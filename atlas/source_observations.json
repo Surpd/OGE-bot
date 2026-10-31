@@ -1,0 +1,335 @@
+[
+  {
+    "number": 1,
+    "semantic_class": "географическая схема",
+    "observation": "Схема метро + перечисление связей → восстановление обозначений станций",
+    "observed_task_id": "366647",
+    "source_code": "P1",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=135&ttest=true",
+    "engineering_implication": "Генерировать не текстом, а связным графом со строго однозначной расшифровкой"
+  },
+  {
+    "number": 1,
+    "semantic_class": "прикладная таблица",
+    "observation": "Печи и допустимые объёмы → соответствия диапазонов и объектов",
+    "observed_task_id": "383591",
+    "source_code": "P2",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=136&ttest=true",
+    "engineering_implication": "Нужны диапазоны пригодности и контроль единственности соответствий"
+  },
+  {
+    "number": 7,
+    "semantic_class": "выбор числа",
+    "observation": "Выбор числа, лежащего между двумя обыкновенными дробями",
+    "observed_task_id": "311420",
+    "source_code": "N7",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=52&ttest=true",
+    "engineering_implication": "Реально различать число и диапазон, а не единый текст"
+  },
+  {
+    "number": 7,
+    "semantic_class": "выбор промежутка",
+    "observation": "Определить промежуток для рационального числа",
+    "observed_task_id": "317132",
+    "source_code": "N7",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=52&ttest=true",
+    "engineering_implication": "Генератор интервалов с непересекающимися ответами"
+  },
+  {
+    "number": 7,
+    "semantic_class": "выбор промежутка",
+    "observation": "Определить промежуток, которому принадлежит корень",
+    "observed_task_id": "317223",
+    "source_code": "N7",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=52&ttest=true",
+    "engineering_implication": "Использовать точное сравнение квадратов"
+  },
+  {
+    "number": 7,
+    "semantic_class": "выбор числа",
+    "observation": "Выбрать радикал, попадающий в данный интервал",
+    "observed_task_id": "337389",
+    "source_code": "N7",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=52&ttest=true",
+    "engineering_implication": "Генератор дистракторов требует проверки уникального выбора"
+  },
+  {
+    "number": 10,
+    "semantic_class": "дополнение",
+    "observation": "Не выучены некоторые билеты, спрашивается противоположное событие",
+    "observed_task_id": "149",
+    "source_code": "N10",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
+    "engineering_implication": "Нужны параметры событие/комплемент независимо от сюжета"
+  },
+  {
+    "number": 10,
+    "semantic_class": "бинарное событие",
+    "observation": "Телевизионные каналы; спрашивается НЕ целевая категория",
+    "observed_task_id": "132730",
+    "source_code": "N10",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
+    "engineering_implication": "Отдельная формулировка отрицания"
+  },
+  {
+    "number": 10,
+    "semantic_class": "категории",
+    "observation": "Несколько видов предметов; вычисление попадания в один вид",
+    "observed_task_id": "132732",
+    "source_code": "N10",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
+    "engineering_implication": "Категории + случайный равновозможный выбор"
+  },
+  {
+    "number": 10,
+    "semantic_class": "составное условие",
+    "observation": "Несколько языковых групп и пересечение интересующих свойств",
+    "observed_task_id": "311525",
+    "source_code": "N10",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
+    "engineering_implication": "Нужна модель множеств, не только m/n подстановка"
+  },
+  {
+    "number": 12,
+    "semantic_class": "решить формулу",
+    "observation": "Диагональ ромба: неизвестная переменная в геометрической формуле",
+    "observed_task_id": "311348",
+    "source_code": "N12",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true",
+    "engineering_implication": "Выбор неизвестной — независимый параметр"
+  },
+  {
+    "number": 12,
+    "semantic_class": "решить формулу",
+    "observation": "Сторона треугольника из площади и высоты",
+    "observed_task_id": "311528",
+    "source_code": "N12",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true",
+    "engineering_implication": "Сохранять единицы и размерность"
+  },
+  {
+    "number": 12,
+    "semantic_class": "решить формулу",
+    "observation": "Высота трапеции из площади и оснований",
+    "observed_task_id": "311530",
+    "source_code": "N12",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true",
+    "engineering_implication": "Параметр и геометрическое значение должны быть валидны"
+  },
+  {
+    "number": 14,
+    "semantic_class": "арифм. сумма",
+    "observation": "Количество рядов, сумма мест в амфитеатре",
+    "observed_task_id": "406645",
+    "source_code": "N14A",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "engineering_implication": "Сюжет амфитеатра + вопрос о сумме"
+  },
+  {
+    "number": 14,
+    "semantic_class": "арифм. член",
+    "observation": "В том же сюжете спрашивается количество мест в конкретном ряду",
+    "observed_task_id": "412187",
+    "source_code": "N14A",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "engineering_implication": "Тот же сюжет, но ДРУГОЕ математическое ядро"
+  },
+  {
+    "number": 14,
+    "semantic_class": "арифм. обратная",
+    "observation": "Два известных ряда: восстановить разность и найти последний ряд",
+    "observed_task_id": "412241",
+    "source_code": "N14A",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "engineering_implication": "Отдельная задача на обратные параметры"
+  },
+  {
+    "number": 14,
+    "semantic_class": "арифм. изменение",
+    "observation": "Охлаждение: динамика температуры по минутам",
+    "observed_task_id": "412218",
+    "source_code": "N14A",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "engineering_implication": "Важна временная шкала и отрицательные температуры"
+  },
+  {
+    "number": 14,
+    "semantic_class": "геом. спад",
+    "observation": "Радиоактивный распад: остаточная масса после нескольких периодов",
+    "observed_task_id": "412192",
+    "source_code": "N14G",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=46&ttest=true",
+    "engineering_implication": "Не перепутать начальный момент и число переходов"
+  },
+  {
+    "number": 14,
+    "semantic_class": "геом. порог",
+    "observation": "Высота отскока мяча: первый номер, когда она ниже порога",
+    "observed_task_id": "412224",
+    "source_code": "N14G",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=46&ttest=true",
+    "engineering_implication": "Проверять целочисленный минимум, а не округлять логарифм"
+  },
+  {
+    "number": 14,
+    "semantic_class": "геом. дополнение",
+    "observation": "Переход атомов из одного изотопа в другой: образовавшаяся масса",
+    "observed_task_id": "412198",
+    "source_code": "N14G",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=46&ttest=true",
+    "engineering_implication": "Вычисляется не остаток, а дополнение к общей массе"
+  },
+  {
+    "number": 18,
+    "semantic_class": "решётка высота",
+    "observation": "Большая высота параллелограмма на клетчатой бумаге",
+    "observed_task_id": "311400",
+    "source_code": "N18",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=99&ttest=true",
+    "engineering_implication": "Координатная фигура и формула высоты"
+  },
+  {
+    "number": 18,
+    "semantic_class": "решётка расстояние",
+    "observation": "Расстояние от точки до прямой, проходящей через две точки",
+    "observed_task_id": "311762",
+    "source_code": "N18",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=99&ttest=true",
+    "engineering_implication": "Произвольный рисунок с целочисленными вершинами"
+  },
+  {
+    "number": 18,
+    "semantic_class": "решётка середина",
+    "observation": "Расстояние от точки до середины отрезка",
+    "observed_task_id": "311818",
+    "source_code": "N18",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=99&ttest=true",
+    "engineering_implication": "Другая целевая точка при похожем исходном рисунке"
+  },
+  {
+    "number": 19,
+    "semantic_class": "набор утверждений",
+    "observation": "Истинность нескольких независимых геометрических утверждений в историческом варианте",
+    "observed_task_id": "67",
+    "source_code": "N19",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=15&ttest=true",
+    "engineering_implication": "Не переносить формат ответа старых вариантов в 2027 без проверки"
+  },
+  {
+    "number": 6,
+    "semantic_class": "обыкновенные дроби, степень и вычитание",
+    "observation": "Выражение со степенью дроби и вторым слагаемым",
+    "observed_task_id": "314127",
+    "source_code": "REVIEW_6",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE06-F003; не считать доказательством всего семейства."
+  },
+  {
+    "number": 6,
+    "semantic_class": "сумма обыкновенных дробей",
+    "observation": "Две обыкновенные дроби с разными знаменателями",
+    "observed_task_id": "314264",
+    "source_code": "REVIEW_6",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE06-F001; не считать доказательством всего семейства."
+  },
+  {
+    "number": 6,
+    "semantic_class": "разность обыкновенных дробей",
+    "observation": "Вычитание двух обыкновенных дробей",
+    "observed_task_id": "314265",
+    "source_code": "REVIEW_6",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE06-F001; не считать доказательством всего семейства."
+  },
+  {
+    "number": 6,
+    "semantic_class": "скобки + деление на дробь",
+    "observation": "Сумма дробей в скобках делится на дробь",
+    "observed_task_id": "314288",
+    "source_code": "REVIEW_6",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE06-F003; не считать доказательством всего семейства."
+  },
+  {
+    "number": 6,
+    "semantic_class": "деление дробей",
+    "observation": "Деление рациональных дробей",
+    "observed_task_id": "350101",
+    "source_code": "REVIEW_6",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE06-F002; не считать доказательством всего семейства."
+  },
+  {
+    "number": 9,
+    "semantic_class": "линейное уравнение со скобками",
+    "observation": "Скобки по обе стороны равенства",
+    "observed_task_id": "85",
+    "source_code": "REVIEW_9",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=7&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE09-F002; не считать доказательством всего семейства."
+  },
+  {
+    "number": 9,
+    "semantic_class": "линейное уравнение с дробными коэффициентами",
+    "observation": "Рациональные коэффициенты с переносом",
+    "observed_task_id": "311755",
+    "source_code": "REVIEW_9",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=7&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE09-F003; не считать доказательством всего семейства."
+  },
+  {
+    "number": 9,
+    "semantic_class": "линейное уравнение с дробью x/число",
+    "observation": "Две разные дроби с переменной",
+    "observed_task_id": "316225",
+    "source_code": "REVIEW_9",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=7&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE09-F003; не считать доказательством всего семейства."
+  },
+  {
+    "number": 9,
+    "semantic_class": "равенство двух выражений",
+    "observation": "Найти значение x, при котором выражения равны",
+    "observed_task_id": "338500",
+    "source_code": "REVIEW_9",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=7&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE09-F001; не считать доказательством всего семейства."
+  },
+  {
+    "number": 16,
+    "semantic_class": "окружность, диаметры и углы",
+    "observation": "Два диаметра и связь углов треугольников",
+    "observed_task_id": "116",
+    "source_code": "REVIEW_16",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=12&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE16-F001; не считать доказательством всего семейства."
+  },
+  {
+    "number": 16,
+    "semantic_class": "центральный и вписанный углы",
+    "observation": "Два диаметра и искомый вписанный угол",
+    "observed_task_id": "311517",
+    "source_code": "REVIEW_16",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=12&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE16-F001; не считать доказательством всего семейства."
+  },
+  {
+    "number": 16,
+    "semantic_class": "вписанный угол и центральный",
+    "observation": "Вписанный треугольник, известный центральный угол",
+    "observed_task_id": "311956",
+    "source_code": "REVIEW_16",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=12&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE16-F001; не считать доказательством всего семейства."
+  },
+  {
+    "number": 16,
+    "semantic_class": "центральный угол задан напрямую",
+    "observation": "Искомый вписанный угол по известному центральному",
+    "observed_task_id": "314811",
+    "source_code": "REVIEW_16",
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=12&ttest=true",
+    "engineering_implication": "Использовать для ограничения семейств OGE16-F001; не считать доказательством всего семейства."
+  }
+]

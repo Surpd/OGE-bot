@@ -1,0 +1,636 @@
+[
+  {
+    "id": "OGE01-G001",
+    "number": 1,
+    "intent": "Сопоставить объекты и обозначения на общей схеме",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE01-F001",
+      "OGE01-F002",
+      "OGE01-F003",
+      "OGE01-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=135&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE01-G002",
+    "number": 1,
+    "intent": "Указать объект по относительному расположению",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE01-F001",
+      "OGE01-F002",
+      "OGE01-F003",
+      "OGE01-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=135&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE02-G003",
+    "number": 2,
+    "intent": "Найти величину по данным сюжета",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE02-F001",
+      "OGE02-F002",
+      "OGE02-F003",
+      "OGE02-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=135&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE02-G004",
+    "number": 2,
+    "intent": "Перевести величину в указанные единицы",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE02-F001",
+      "OGE02-F002",
+      "OGE02-F003",
+      "OGE02-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=135&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE03-G005",
+    "number": 3,
+    "intent": "Найти площадь/расстояние по общему плану",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE03-F001",
+      "OGE03-F002",
+      "OGE03-F003",
+      "OGE03-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=136&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE03-G006",
+    "number": 3,
+    "intent": "Вычислить характеристику по нескольким данным",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE03-F001",
+      "OGE03-F002",
+      "OGE03-F003",
+      "OGE03-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=136&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE04-G007",
+    "number": 4,
+    "intent": "Рассчитать параметр по практической формуле",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE04-F001",
+      "OGE04-F002",
+      "OGE04-F003",
+      "OGE04-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=136&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE04-G008",
+    "number": 4,
+    "intent": "Определить процентное изменение",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE04-F001",
+      "OGE04-F002",
+      "OGE04-F003",
+      "OGE04-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=136&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE05-G009",
+    "number": 5,
+    "intent": "Найти наиболее экономный допустимый вариант",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE05-F001",
+      "OGE05-F002",
+      "OGE05-F003",
+      "OGE05-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=136&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE05-G010",
+    "number": 5,
+    "intent": "Найти итоговое число по исходным данным",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE05-F001",
+      "OGE05-F002",
+      "OGE05-F003",
+      "OGE05-F004"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=136&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE06-G011",
+    "number": 6,
+    "intent": "Вычислите значение выражения",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE06-F001",
+      "OGE06-F002",
+      "OGE06-F003",
+      "OGE06-F004",
+      "OGE06-F005",
+      "OGE06-F006",
+      "OGE06-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE06-G012",
+    "number": 6,
+    "intent": "Найдите значение числового выражения",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE06-F001",
+      "OGE06-F002",
+      "OGE06-F003",
+      "OGE06-F004",
+      "OGE06-F005",
+      "OGE06-F006",
+      "OGE06-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE07-G013",
+    "number": 7,
+    "intent": "Укажите номер числа между заданными границами",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE07-F001",
+      "OGE07-F002",
+      "OGE07-F003",
+      "OGE07-F004",
+      "OGE07-F005",
+      "OGE07-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=52&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE07-G014",
+    "number": 7,
+    "intent": "Выберите промежуток для данного числа",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE07-F001",
+      "OGE07-F002",
+      "OGE07-F003",
+      "OGE07-F004",
+      "OGE07-F005",
+      "OGE07-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=52&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE07-G015",
+    "number": 7,
+    "intent": "Определите положение числа на координатной прямой",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE07-F001",
+      "OGE07-F002",
+      "OGE07-F003",
+      "OGE07-F004",
+      "OGE07-F005",
+      "OGE07-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=52&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE08-G016",
+    "number": 8,
+    "intent": "Вычислите выражение со степенями",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE08-F001",
+      "OGE08-F002",
+      "OGE08-F003",
+      "OGE08-F004",
+      "OGE08-F005",
+      "OGE08-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=54&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE08-G017",
+    "number": 8,
+    "intent": "Найдите значение выражения с корнями",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE08-F001",
+      "OGE08-F002",
+      "OGE08-F003",
+      "OGE08-F004",
+      "OGE08-F005",
+      "OGE08-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=54&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE09-G018",
+    "number": 9,
+    "intent": "Решите уравнение",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE09-F001",
+      "OGE09-F002",
+      "OGE09-F003",
+      "OGE09-F004",
+      "OGE09-F005",
+      "OGE09-F006",
+      "OGE09-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=7&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE09-G019",
+    "number": 9,
+    "intent": "Найдите корень с указанным свойством",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE09-F001",
+      "OGE09-F002",
+      "OGE09-F003",
+      "OGE09-F004",
+      "OGE09-F005",
+      "OGE09-F006",
+      "OGE09-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=7&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE10-G020",
+    "number": 10,
+    "intent": "Какова вероятность указанного события?",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE10-F001",
+      "OGE10-F002",
+      "OGE10-F003",
+      "OGE10-F004",
+      "OGE10-F005",
+      "OGE10-F006",
+      "OGE10-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE10-G021",
+    "number": 10,
+    "intent": "Найдите вероятность противоположного события",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE10-F001",
+      "OGE10-F002",
+      "OGE10-F003",
+      "OGE10-F004",
+      "OGE10-F005",
+      "OGE10-F006",
+      "OGE10-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE11-G022",
+    "number": 11,
+    "intent": "Установите соответствие графиков и функций",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE11-F001",
+      "OGE11-F002",
+      "OGE11-F003",
+      "OGE11-F004",
+      "OGE11-F005",
+      "OGE11-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=8&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE11-G023",
+    "number": 11,
+    "intent": "Выберите график заданной функции",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE11-F001",
+      "OGE11-F002",
+      "OGE11-F003",
+      "OGE11-F004",
+      "OGE11-F005",
+      "OGE11-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=8&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE12-G024",
+    "number": 12,
+    "intent": "Вычислите величину по формуле",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE12-F001",
+      "OGE12-F002",
+      "OGE12-F003",
+      "OGE12-F004",
+      "OGE12-F005",
+      "OGE12-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE12-G025",
+    "number": 12,
+    "intent": "Найдите неизвестную величину по указанной формуле",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE12-F001",
+      "OGE12-F002",
+      "OGE12-F003",
+      "OGE12-F004",
+      "OGE12-F005",
+      "OGE12-F006"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE13-G026",
+    "number": 13,
+    "intent": "Найдите решение неравенства и выберите вариант",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE13-F001",
+      "OGE13-F002",
+      "OGE13-F003",
+      "OGE13-F004",
+      "OGE13-F005",
+      "OGE13-F006",
+      "OGE13-F007",
+      "OGE13-F008"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=55&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE13-G027",
+    "number": 13,
+    "intent": "Какое множество является решением системы?",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE13-F001",
+      "OGE13-F002",
+      "OGE13-F003",
+      "OGE13-F004",
+      "OGE13-F005",
+      "OGE13-F006",
+      "OGE13-F007",
+      "OGE13-F008"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=55&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE14-G028",
+    "number": 14,
+    "intent": "Найдите член последовательности",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE14-F001",
+      "OGE14-F002",
+      "OGE14-F003",
+      "OGE14-F004",
+      "OGE14-F005",
+      "OGE14-F006",
+      "OGE14-F007",
+      "OGE14-F008"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE14-G029",
+    "number": 14,
+    "intent": "Определите разность / знаменатель",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE14-F001",
+      "OGE14-F002",
+      "OGE14-F003",
+      "OGE14-F004",
+      "OGE14-F005",
+      "OGE14-F006",
+      "OGE14-F007",
+      "OGE14-F008"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE14-G030",
+    "number": 14,
+    "intent": "Найдите сумму первых членов",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE14-F001",
+      "OGE14-F002",
+      "OGE14-F003",
+      "OGE14-F004",
+      "OGE14-F005",
+      "OGE14-F006",
+      "OGE14-F007",
+      "OGE14-F008"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE14-G031",
+    "number": 14,
+    "intent": "Через сколько шагов выполнится условие?",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE14-F001",
+      "OGE14-F002",
+      "OGE14-F003",
+      "OGE14-F004",
+      "OGE14-F005",
+      "OGE14-F006",
+      "OGE14-F007",
+      "OGE14-F008"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=113&ttest=true&wclones=1",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE15-G032",
+    "number": 15,
+    "intent": "Найдите длину / угол треугольника",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE15-F001",
+      "OGE15-F002",
+      "OGE15-F003",
+      "OGE15-F004",
+      "OGE15-F005",
+      "OGE15-F006",
+      "OGE15-F007",
+      "OGE15-F008"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=57&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE16-G033",
+    "number": 16,
+    "intent": "Найдите радиус / угол / длину хорды",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE16-F001",
+      "OGE16-F002",
+      "OGE16-F003",
+      "OGE16-F004",
+      "OGE16-F005",
+      "OGE16-F006",
+      "OGE16-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=12&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE17-G034",
+    "number": 17,
+    "intent": "Вычислите длину / площадь / высоту четырёхугольника",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE17-F001",
+      "OGE17-F002",
+      "OGE17-F003",
+      "OGE17-F004",
+      "OGE17-F005",
+      "OGE17-F006",
+      "OGE17-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=33&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE18-G035",
+    "number": 18,
+    "intent": "По чертежу на клетчатой бумаге вычислите величину",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE18-F001",
+      "OGE18-F002",
+      "OGE18-F003",
+      "OGE18-F004",
+      "OGE18-F005",
+      "OGE18-F006",
+      "OGE18-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=99&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE19-G036",
+    "number": 19,
+    "intent": "Выберите номер истинного утверждения (проект-2027)",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE19-F001",
+      "OGE19-F002",
+      "OGE19-F003",
+      "OGE19-F004",
+      "OGE19-F005",
+      "OGE19-F006",
+      "OGE19-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=15&ttest=true",
+    "verified_literal": false
+  },
+  {
+    "id": "OGE19-G037",
+    "number": 19,
+    "intent": "Выберите все верные утверждения (историческая редакция; не выпускать как-2027)",
+    "meaning": "авторская схема построения вопроса, не дословный текст источника",
+    "evidence": "грамматическая гипотеза; сопоставить с конкретными task-ID",
+    "family_ids": [
+      "OGE19-F001",
+      "OGE19-F002",
+      "OGE19-F003",
+      "OGE19-F004",
+      "OGE19-F005",
+      "OGE19-F006",
+      "OGE19-F007"
+    ],
+    "source_url": "https://math-oge.sdamgia.ru/test?theme=15&ttest=true",
+    "verified_literal": false
+  }
+]
