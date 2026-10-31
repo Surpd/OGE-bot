@@ -1,3 +1,4 @@
+import re
 from fractions import Fraction
 from itertools import groupby
 
@@ -73,6 +74,37 @@ def test_greater_root_hint_matches_the_displayed_answer_target() -> None:
     problem = generate_equation("OGE09-K2", 2)
     assert problem.answer_target == "greater"
     assert "больший" in problem.hints[1]
+
+
+def test_task9_solutions_choose_a_method_that_matches_the_equation() -> None:
+    vieta = generate_equation("OGE09-K2", 2)
+    assert any("Виета" in step for step in vieta.solution)
+    assert not any("Дискриминант" in step for step in vieta.solution)
+
+    quadratic = generate_equation("OGE09-K3", 2)
+    assert any("Коэффициенты: a =" in step for step in quadratic.solution)
+    assert any("D = b² − 4ac" in step for step in quadratic.solution)
+    assert any("x₁,₂ =" in step for step in quadratic.solution)
+
+    incomplete = generate_equation("OGE09-K6", 3)
+    assert any("x² =" in step for step in incomplete.solution)
+    assert any("x = ±" in step for step in incomplete.solution)
+    assert not any("D =" in step for step in incomplete.solution)
+
+    grouped = generate_equation("OGE09-L4A", 4)
+    assert any("Раскроем скобки" in step for step in grouped.solution)
+    linear = generate_equation("OGE09-L1", 4)
+    assert any("Запишем уравнение" in step for step in linear.solution)
+
+
+@pytest.mark.parametrize("family_id", ENABLED_FAMILIES)
+def test_task9_solution_has_no_malformed_coefficient_terms(family_id: str) -> None:
+    for seed in range(20):
+        solution = " ".join(generate_equation(family_id, seed).solution)
+        assert re.search(r"\b0x(?:²)?\b", solution) is None
+        assert re.search(r"\b1x(?:²)?\b", solution) is None
+        assert re.search(r"\+\s+-", solution) is None
+        assert "\\frac" not in solution
 
 
 def test_catalog_grouping_prototypes_have_separate_visible_generators() -> None:

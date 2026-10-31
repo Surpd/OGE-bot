@@ -38,6 +38,10 @@ async def test_task9_postgres_hints_answers_and_snapshots_survive_repository_res
         assert state is not None and state["state"]["hints_used"] == 2
         assert await repository.set_task9_prompt_message(user_id, problem_id, 777001)
         await repository.save_user_state(user_id, "task9")
+        late = await repository.task9_attempt(
+            user_id, problem_id, str(problem["correct_answer"]), True, 777000, 777001
+        )
+        assert late == {"status": "stale", "attempt": 0}
         answer = await repository.task9_attempt(
             user_id, problem_id, str(problem["correct_answer"]), True, 777002, 777001
         )

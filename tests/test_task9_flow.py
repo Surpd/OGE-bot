@@ -52,7 +52,7 @@ async def test_task9_two_attempts_solution_hints_and_progress_are_separate_from_
     wrong = _reply(repository, 901, "999")
     wrong.message_id = 61001
     await task9_answer(wrong, repository)
-    assert "ответ не раскрываю" in wrong.answer.await_args.args[0]
+    assert "Попробуйте ещё раз" in wrong.answer.await_args.args[0]
     assert repository.training9[901]["state"]["attempts"] == 1
     assert repository.training.get(901) is None
 
@@ -94,7 +94,7 @@ async def test_task9_pause_resume_and_old_prompt_reply_are_safe() -> None:
     stale.reply_to_message = SimpleNamespace(message_id=old_prompt)
     await task9_answer(stale, repository)
     assert repository.training9[902]["state"]["attempts"] == 1
-    assert "реплаем" in stale.answer.await_args.args[0]
+    assert "предыдущему заданию" in stale.answer.await_args.args[0]
 
 
 @pytest.mark.asyncio
@@ -104,6 +104,9 @@ async def test_old_callback_and_double_next_do_not_skip_multiple_problems() -> N
     first_id = str(repository.training9[903]["problem"]["problem_id"])
 
     async def click(problem_id: str) -> None:
+        current_id = str(repository.training9[903]["problem"]["problem_id"])
+        if current_id == problem_id:
+            await repository.task9_reveal_solution(903, problem_id)
         callback = AsyncMock()
         callback.data = f"t9:next:{problem_id}"
         callback.from_user = User(id=903, is_bot=False, first_name="Student")
@@ -129,8 +132,47 @@ async def test_task9_wrong_first_answer_does_not_show_correct_value() -> None:
     await task9_answer(message, repository)
     feedback = message.answer.await_args.args[0]
     correct = str(repository.training9[904]["problem"]["correct_answer"])
-    assert "не раскрываю" in feedback
+    assert "Попробуйте ещё раз" in feedback
     assert correct not in feedback
+
+
+@pytest.mark.asyncio
+async def test_task9_accepts_plain_numeric_message_without_reply_and_updates_buttons() -> None:
+    repository = MemoryRepository()
+    await choose_task9(_message(914, "№9 · Уравнения"), repository)
+    state = await repository.task9_state(914)
+    assert state is not None and isinstance(state["problem"], dict)
+    wrong = _message(914, "999")
+    wrong.reply_to_message = None
+    await task9_answer(wrong, repository)
+    active_keyboard = wrong.answer.await_args.kwargs["reply_markup"]
+    assert {button.text for row in active_keyboard.inline_keyboard for button in row} == {
+        "💡 Подсказка", "📘 Разбор", "⏭ Пропустить", "↩ В меню"
+    }
+    answer_state = await repository.task9_state(914)
+    assert answer_state is not None and isinstance(answer_state["state"], dict)
+    correct = _message(914, str(state["problem"]["correct_answer"]))
+    correct.reply_to_message = None
+    await task9_answer(correct, repository)
+    completed_keyboard = correct.answer.await_args.kwargs["reply_markup"]
+    assert {button.text for row in completed_keyboard.inline_keyboard for button in row} == {
+        "➡ Следующее", "↩ В меню"
+    }
+
+
+@pytest.mark.asyncio
+async def test_task9_skip_records_skipped_outcome() -> None:
+    repository = MemoryRepository()
+    await choose_task9(_message(913, "№9 · Уравнения"), repository)
+    problem_id = str(repository.training9[913]["problem"]["problem_id"])
+    callback = AsyncMock()
+    callback.data = f"t9:skip:{problem_id}"
+    callback.from_user = User(id=913, is_bot=False, first_name="Student")
+    callback.message = AsyncMock()
+    callback.message.message_id = repository.training9[913]["state"]["input_prompt_message_id"]
+    callback.message.answer.return_value.message_id = callback.message.message_id + 1
+    await task9_callback(callback, repository)
+    assert repository.outcomes9[913][problem_id] == "skipped"
 
 
 @pytest.mark.asyncio

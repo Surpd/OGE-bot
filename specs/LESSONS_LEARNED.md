@@ -16,6 +16,7 @@
 | LL-09 | Source/answer policy | Исторические рубрики и форматы нельзя переносить без актуального подтверждения. | Версионировать политику ответа и раздельно хранить исторические типы. | №9 | Нет отдельного теста реестра answer policy; формат проверяется через `tests/test_oge9_math.py::test_equation_generator_is_deterministic_and_rendered_equation_has_exact_roots` и acceptance-прогон в `scripts/oge9_quality_report.py` | partial |
 | LL-10 | Deployment | Флаг автодеплоя не доказывает, что Render запустил нужный SHA. | Перед релизом сверять фактический deploy commit и Live статус. | Release | Ручной release-checklist; автоматического pytest для Render статуса/SHA нет | documented |
 | LL-11 | Supabase migrations | Структура и migration ledger могут расходиться. | Сверять схему с ledger; production миграции выполнять только в разрешённом релизном этапе. | Release/DB | Ручная проверка migration ledger; pytest `test_migration_chain_is_idempotent` отсутствует | documented |
+| LL-12 | Training transitions | «Следующее» и «Пропустить» использовали общий переход; активное задание могло тихо попасть в `skipped` при обычном переходе. | Проверять исходный статус под транзакцией: `next` разрешён только для завершённой задачи, `skip` завершает только активную. | №6/№9 | `tests/test_task6_flow.py::test_task6_skip_records_skipped_outcome`; `tests/test_task9_flow.py::test_task9_skip_records_skipped_outcome`; `tests/test_task6_flow.py::test_correct_answer_is_counted_once_and_next_issues_a_new_problem` | covered |
 
 ## Добавление урока
 

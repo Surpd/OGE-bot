@@ -34,6 +34,7 @@ class Repository(Protocol):
         candidates: list[dict[str, object]],
         expected_screen: str | None = None,
         expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
     ) -> dict[str, object]: ...
 
     async def task6_state(self, telegram_user_id: int) -> dict[str, object] | None: ...
@@ -81,6 +82,7 @@ class Repository(Protocol):
         candidates: list[dict[str, object]],
         expected_screen: str | None = None,
         expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
     ) -> dict[str, object]: ...
 
     async def task9_state(self, telegram_user_id: int) -> dict[str, object] | None: ...
@@ -255,6 +257,7 @@ class PostgresRepository:
         candidates: list[dict[str, object]],
         expected_screen: str | None = None,
         expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
     ) -> dict[str, object]:
         async with self._pool.acquire() as connection, connection.transaction():
             user = await connection.fetchrow(
@@ -292,6 +295,8 @@ class PostgresRepository:
                 current = _json_object(saved["snapshot"])
                 if expected_problem_id != active_id:
                     return {**current, "_transitioned": False}
+                if skip_active != (state.get("status") == "active"):
+                    return {**current, "_transitioned": False}
             elif expected_problem_id is not None:
                 raise RuntimeError("Expected active task-9 problem is missing")
 
@@ -327,7 +332,7 @@ class PostgresRepository:
                     json.dumps(problem, ensure_ascii=False),
                     _state_int(problem, "selection_attempts", 1),
                 )
-                if active_id is not None and state.get("status") == "active":
+                if active_id is not None and skip_active:
                     await connection.execute(
                         "UPDATE issued_problems SET outcome = 'skipped' WHERE id = $1",
                         row["active_problem_id"],
@@ -384,7 +389,8 @@ class PostgresRepository:
             if row is None or str(row["active_problem_id"]) != expected_problem_id:
                 return False
             state = _json_object(row["state"])
-            if state.get("status") != "active":
+            current_message_id = state.get("input_prompt_message_id")
+            if isinstance(current_message_id, int) and message_id < current_message_id:
                 return False
             state["input_prompt_message_id"] = message_id
             await connection.execute(
@@ -425,11 +431,15 @@ class PostgresRepository:
                 return {"status": "stale", "attempt": 0}
             state = _json_object(row["state"])
             user_state = _json_object(user["current_state"])
+            if user_state.get("screen") != "task9":
+                return {"status": "stale", "attempt": 0}
             if expected_prompt_message_id is not None and (
-                user_state.get("screen") != "task9"
-                or state.get("input_prompt_message_id") != expected_prompt_message_id
+                state.get("input_prompt_message_id") != expected_prompt_message_id
             ):
                 return {"status": "stale", "attempt": 0}
+            if telegram_message_id is not None and expected_prompt_message_id is not None:
+                if telegram_message_id <= expected_prompt_message_id:
+                    return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
                     "SELECT 1 FROM attempts WHERE user_id = $1 AND telegram_message_id = $2",
@@ -578,6 +588,14 @@ class PostgresRepository:
             """SELECT count(DISTINCT p.id)::int AS issued,
                       count(DISTINCT p.id) FILTER (WHERE a.problem_id IS NOT NULL)::int AS answered,
                       count(DISTINCT p.id) FILTER (WHERE p.outcome = 'solved')::int AS correct,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome = 'solved' AND EXISTS (
+                        SELECT 1 FROM attempts a1 WHERE a1.problem_id = p.id
+                          AND a1.attempt_no = 1 AND a1.is_correct
+                      ))::int AS solved_first_try,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome = 'solved' AND EXISTS (
+                        SELECT 1 FROM attempts a2 WHERE a2.problem_id = p.id
+                          AND a2.attempt_no = 2 AND a2.is_correct
+                      ))::int AS solved_second_try,
                       count(a.id)::int AS attempts,
                       count(a.id) FILTER (WHERE a.attempt_no = 1)::int AS first_attempts,
                       count(a.id) FILTER (WHERE a.attempt_no = 2)::int AS second_attempts,
@@ -598,6 +616,8 @@ class PostgresRepository:
             "issued",
             "answered",
             "correct",
+            "solved_first_try",
+            "solved_second_try",
             "attempts",
             "first_attempts",
             "second_attempts",
@@ -614,6 +634,7 @@ class PostgresRepository:
         candidates: list[dict[str, object]],
         expected_screen: str | None = None,
         expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
     ) -> dict[str, object]:
         async with self._pool.acquire() as connection, connection.transaction():
             user = await connection.fetchrow(
@@ -651,6 +672,8 @@ class PostgresRepository:
                     raise RuntimeError("Active task-6 snapshot is missing")
                 current = _json_object(current_row["snapshot"])
                 if expected_problem_id is not None and active_id != expected_problem_id:
+                    return {**current, "_transitioned": False}
+                if skip_active != (state.get("status") == "active"):
                     return {**current, "_transitioned": False}
                 if expected_problem_id is None and state.get("status") == "active":
                     return {**current, "_transitioned": False}
@@ -697,7 +720,7 @@ class PostgresRepository:
                     json.dumps(problem, ensure_ascii=False),
                     selection_attempts,
                 )
-                if active_id is not None and state.get("status") == "active":
+                if active_id is not None and skip_active:
                     await connection.execute(
                         "UPDATE issued_problems SET outcome = 'skipped' WHERE id = $1",
                         row["active_problem_id"],
@@ -757,7 +780,8 @@ class PostgresRepository:
             if row is None or str(row["active_problem_id"]) != expected_problem_id:
                 return False
             state = _json_object(row["state"])
-            if state.get("status") != "active":
+            current_message_id = state.get("input_prompt_message_id")
+            if isinstance(current_message_id, int) and message_id < current_message_id:
                 return False
             state["input_prompt_message_id"] = message_id
             await connection.execute(
@@ -798,11 +822,15 @@ class PostgresRepository:
                 return {"status": "stale", "attempt": 0}
             state = _json_object(row["state"])
             user_state = _json_object(user["current_state"])
+            if user_state.get("screen") != "task6":
+                return {"status": "stale", "attempt": 0}
             if expected_prompt_message_id is not None and (
-                user_state.get("screen") != "task6"
-                or state.get("input_prompt_message_id") != expected_prompt_message_id
+                state.get("input_prompt_message_id") != expected_prompt_message_id
             ):
                 return {"status": "stale", "attempt": 0}
+            if telegram_message_id is not None and expected_prompt_message_id is not None:
+                if telegram_message_id <= expected_prompt_message_id:
+                    return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
                     "SELECT 1 FROM attempts WHERE user_id = $1 AND telegram_message_id = $2",
@@ -1129,6 +1157,7 @@ class MemoryRepository:
         candidates: list[dict[str, object]],
         expected_screen: str | None = None,
         expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
     ) -> dict[str, object]:
         state = self.training[telegram_user_id]
         if expected_screen is not None and self.states.get(telegram_user_id) != expected_screen:
@@ -1156,7 +1185,9 @@ class MemoryRepository:
                 return {**cast(dict[str, object], current), "_transitioned": False}
             if expected_problem_id is None and status == "active":
                 return {**cast(dict[str, object], current), "_transitioned": False}
-            if status == "active":
+            if skip_active != (status == "active"):
+                return {**cast(dict[str, object], current), "_transitioned": False}
+            if skip_active:
                 self.outcomes.setdefault(telegram_user_id, {})[active_id] = "skipped"
         elif expected_problem_id is not None:
             raise RuntimeError("Expected active task-6 problem is missing")
@@ -1212,7 +1243,8 @@ class MemoryRepository:
         if str(problem.get("problem_id", "")) != expected_problem_id:
             return False
         session_state = cast(dict[str, object], state["state"])
-        if session_state.get("status") != "active":
+        current_message_id = session_state.get("input_prompt_message_id")
+        if isinstance(current_message_id, int) and message_id < current_message_id:
             return False
         session_state["input_prompt_message_id"] = message_id
         return True
@@ -1234,11 +1266,15 @@ class MemoryRepository:
         if problem_id != expected_problem_id:
             return {"status": "stale", "attempt": 0}
         session_state = cast(dict[str, object], state["state"])
+        if self.states.get(telegram_user_id) != "task6":
+            return {"status": "stale", "attempt": 0}
         if expected_prompt_message_id is not None and (
-            self.states.get(telegram_user_id) != "task6"
-            or session_state.get("input_prompt_message_id") != expected_prompt_message_id
+            session_state.get("input_prompt_message_id") != expected_prompt_message_id
         ):
             return {"status": "stale", "attempt": 0}
+        if telegram_message_id is not None and expected_prompt_message_id is not None:
+            if telegram_message_id <= expected_prompt_message_id:
+                return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
             message_key = (telegram_user_id, telegram_message_id)
             if message_key in self.processed_message_ids:
@@ -1383,6 +1419,7 @@ class MemoryRepository:
         candidates: list[dict[str, object]],
         expected_screen: str | None = None,
         expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
     ) -> dict[str, object]:
         saved = self.training9[telegram_user_id]
         if expected_screen is not None and self.states.get(telegram_user_id) != expected_screen:
@@ -1407,7 +1444,9 @@ class MemoryRepository:
         if current_id is not None:
             if current_id != expected_problem_id:
                 return {**cast(dict[str, object], current), "_transitioned": False}
-            if state.get("status") == "active":
+            if skip_active != (state.get("status") == "active"):
+                return {**cast(dict[str, object], current), "_transitioned": False}
+            if skip_active:
                 self.outcomes9.setdefault(telegram_user_id, {})[current_id] = "skipped"
         recent_value = state.get("recent_fingerprints", [])
         recent = (
@@ -1462,7 +1501,8 @@ class MemoryRepository:
         if str(problem.get("problem_id")) != expected_problem_id:
             return False
         state = cast(dict[str, object], saved["state"])
-        if state.get("status") != "active":
+        current_message_id = state.get("input_prompt_message_id")
+        if isinstance(current_message_id, int) and message_id < current_message_id:
             return False
         state["input_prompt_message_id"] = message_id
         return True
@@ -1483,11 +1523,15 @@ class MemoryRepository:
         if str(problem.get("problem_id")) != expected_problem_id:
             return {"status": "stale", "attempt": 0}
         state = cast(dict[str, object], saved["state"])
+        if self.states.get(telegram_user_id) != "task9":
+            return {"status": "stale", "attempt": 0}
         if expected_prompt_message_id is not None and (
-            self.states.get(telegram_user_id) != "task9"
-            or state.get("input_prompt_message_id") != expected_prompt_message_id
+            state.get("input_prompt_message_id") != expected_prompt_message_id
         ):
             return {"status": "stale", "attempt": 0}
+        if telegram_message_id is not None and expected_prompt_message_id is not None:
+            if telegram_message_id <= expected_prompt_message_id:
+                return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
             key = (telegram_user_id, telegram_message_id)
             if key in self.processed_message_ids:
@@ -1580,6 +1624,22 @@ class MemoryRepository:
             "issued": len(issued),
             "answered": len({str(item["problem_id"]) for item in attempts}),
             "correct": sum(value == "solved" for value in outcomes.values()),
+            "solved_first_try": sum(
+                value == "solved" and any(
+                    str(attempt["problem_id"]) == problem_id
+                    and attempt["attempt_no"] == 1 and attempt.get("is_correct") is True
+                    for attempt in attempts
+                )
+                for problem_id, value in outcomes.items()
+            ),
+            "solved_second_try": sum(
+                value == "solved" and any(
+                    str(attempt["problem_id"]) == problem_id
+                    and attempt["attempt_no"] == 2 and attempt.get("is_correct") is True
+                    for attempt in attempts
+                )
+                for problem_id, value in outcomes.items()
+            ),
             "attempts": len(attempts),
             "first_attempts": sum(item["attempt_no"] == 1 for item in attempts),
             "second_attempts": sum(item["attempt_no"] == 2 for item in attempts),
