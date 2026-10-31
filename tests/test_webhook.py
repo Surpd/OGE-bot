@@ -72,6 +72,8 @@ async def test_postgres_registration_and_state_survive_new_repository() -> None:
         await pool.execute(await read_migration("migrations/0002_task6_training.sql"))
         await pool.execute(await read_migration("migrations/0003_task6_session_quality.sql"))
         await pool.execute(await read_migration("migrations/0003_task6_session_quality.sql"))
+        await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
+        await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
         await pool.execute("DELETE FROM telegram_updates WHERE update_id = 444")
         first = PostgresRepository(pool)
         assert await pool.fetchval(
@@ -119,6 +121,7 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         await pool.execute(await read_migration("migrations/0001_foundation.sql"))
         await pool.execute(await read_migration("migrations/0002_task6_training.sql"))
         await pool.execute(await read_migration("migrations/0003_task6_session_quality.sql"))
+        await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
         repository = PostgresRepository(pool)
         await repository.register_user(telegram_user_id)
         session_id = await repository.ensure_task6_session(telegram_user_id)
@@ -244,6 +247,8 @@ async def test_migration_has_rls_and_update_uniqueness() -> None:
     assert "solution_viewed_at" in quality_sql
     assert "hints_used" in quality_sql
     assert "selection_attempts" in quality_sql
+    task9_sql = await read_migration("migrations/0004_task9_sessions.sql")
+    assert "sessions_one_active_task9_per_user" in task9_sql
 
 
 @pytest.mark.asyncio

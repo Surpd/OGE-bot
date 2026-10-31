@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "exam_number": 9,
+  "title": "Решение уравнений",
+  "source_snapshot": "2026-10-31",
+  "normative_sources": [
+    {
+      "id": "FIPI-OGE-2027-PROJECT",
+      "url": "https://fipi.ru/oge/demoversii-specifikacii-kodifikatory",
+      "kind": "official_project",
+      "claim": "Проект кодификатора относит уравнения к предметному содержанию; №9 рассматривается как линия линейных и квадратных уравнений. Источник не задаёт частоты подтипов."
+    },
+    {
+      "id": "SDAMGIA-LINEAR-CATALOG",
+      "url": "https://oge.sdamgia.ru/test?theme=7&ttest=true",
+      "kind": "catalog",
+      "claim": "Каталог конкретных задач линии №9 о линейных уравнениях; его частоты не являются статистикой КИМ."
+    },
+    {
+      "id": "SDAMGIA-QUADRATIC-CATALOG",
+      "url": "https://oge.sdamgia.ru/test?theme=43&ttest=true",
+      "kind": "catalog",
+      "claim": "Каталог конкретных задач линии №9 о квадратных уравнениях; его частоты не являются статистикой КИМ."
+    },
+    {
+      "id": "FIPI-OGE-NAVIGATOR-2025",
+      "url": "https://doc.fipi.ru/navigator-podgotovki/navigator-oge/Ma-9_2_algebra.pdf",
+      "kind": "official_preparation_material",
+      "claim": "Навигатор подготовки описывает №9 как линейные и квадратные уравнения."
+    }
+  ],
+  "structures": [
+    {
+      "id": "OGE09-L1",
+      "group": "linear",
+      "name": "Простое линейное ax+b=c",
+      "reference_ids": [
+        "338606",
+        "338658"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=338606",
+        "https://oge.sdamgia.ru/problem?id=338658"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Единственный корень; источники — каталожные прототипы, не оценка частоты.",
+      "construction_description": "Уравнение ax+b=c с одним линейным членом слева.",
+      "characteristic_ranges": "Образец 338606: |a|=2, |b|=2, |c|=3; генератор использует a=1..40, b=-15..15, x целый либо ±0,5/±1,5.",
+      "manual_difficulty": "Низкая; 1 перенос и 1 деление.",
+      "answer_policy": "single_numeric_root; точный целый/конечная десятичная до 2 знаков.",
+      "difference_from_neighbors": "От L2 отличается отсутствием x справа.",
+      "status_reason": "Единственный корень; источники — каталожные прототипы, не оценка частоты.",
+      "source_type": "FIPI-bank mirror/catalog"
+    },
+    {
+      "id": "OGE09-L2",
+      "group": "linear",
+      "name": "Переменная с двух сторон ax+b=cx+d",
+      "reference_ids": [
+        "338488",
+        "338557"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=338488",
+        "https://oge.sdamgia.ru/problem?id=338557"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Требовать ненулевой итоговый коэффициент при x.",
+      "construction_description": "Уравнение ax+b=cx+d, x виден по обе стороны.",
+      "characteristic_ranges": "Образец 338488: a=10, b=9, c=7, d=0; генератор: коэффициенты по модулю обычно ≤60, свободный член |b|≤15.",
+      "manual_difficulty": "Низкая/средняя; собрать x и константы по сторонам.",
+      "answer_policy": "single_numeric_root; точный целый/конечная десятичная до 2 знаков.",
+      "difference_from_neighbors": "Не допускается равенство итоговых коэффициентов при x (тождество/противоречие).",
+      "status_reason": "Требовать ненулевой итоговый коэффициент при x.",
+      "source_type": "FIPI-bank mirror/catalog"
+    },
+    {
+      "id": "OGE09-L3",
+      "group": "linear",
+      "name": "Одна скобка a(x+b)=c",
+      "reference_ids": [
+        "338509"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=338509"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Сохранять скобки и умножение в display AST.",
+      "construction_description": "Равенство a(x+h)=c, одна явно видимая скобка и числовая правая часть.",
+      "characteristic_ranges": "Образец 338509: 10(x−9)=7; генератор: |a|≤8, |h|≤12, |c|≤60.",
+      "manual_difficulty": "Низкая; раскрыть скобки и разделить.",
+      "answer_policy": "single_numeric_root; точное число до 2 десятичных знаков.",
+      "difference_from_neighbors": "От L1 отличается единственной группой, умноженной на коэффициент.",
+      "status_reason": "Сохранять скобки и умножение в display AST.",
+      "source_type": "FIPI-bank mirror/catalog"
+    },
+    {
+      "id": "OGE09-L4",
+      "group": "linear",
+      "name": "Несколько скобок и приведение подобных",
+      "reference_ids": [
+        "85",
+        "338495"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=85",
+        "https://oge.sdamgia.ru/problem?id=338495"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Не допускать визуального схлопывания в L1/L2.",
+      "construction_description": "Слева и справа группы линейных выражений со скобками; требуется раскрыть скобки и привести подобные.",
+      "characteristic_ranges": "Образец 338495/пример 2−3(2x+2)=5−4x: коэффициенты и сдвиги однозначно малые целые; генераторные видимые числа и итоговые коэффициенты ≤500.",
+      "manual_difficulty": "Средняя; раскрыть две группы, собрать подобные и решить линейное уравнение.",
+      "answer_policy": "single_numeric_root; точное число до 2 десятичных знаков.",
+      "difference_from_neighbors": "От L3 отличается наличием групп на обеих сторонах и приведением подобных.",
+      "status_reason": "Не допускать визуального схлопывания в L1/L2.",
+      "source_type": "FIPI-bank mirror/catalog"
+    },
+    {
+      "id": "OGE09-L5",
+      "group": "linear",
+      "name": "Дробные коэффициенты при x",
+      "reference_ids": [
+        "316225"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=316225"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Помета Д29 сама по себе не подтверждает современный статус/ответную политику.",
+      "construction_description": "Линейное уравнение с дробными коэффициентами при x.",
+      "characteristic_ranges": "Образец 316225: знаменатели 7 и 3 из формулировки 3−x/7=x/3.",
+      "manual_difficulty": "Средняя; привести дробные коэффициенты к общему знаменателю.",
+      "answer_policy": "Требуется проверить формат каждого источника; не использовать Д29 как доказательство современной политики.",
+      "difference_from_neighbors": "От L2 отличается рациональными коэффициентами.",
+      "status_reason": "Помета Д29 сама по себе не подтверждает современный статус/ответную политику.",
+      "source_type": "catalog or historical diagnostic example"
+    },
+    {
+      "id": "OGE09-L6",
+      "group": "linear",
+      "name": "Линейные выражения в числителях дробей",
+      "reference_ids": [
+        "311755",
+        "316341"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=311755",
+        "https://oge.sdamgia.ru/problem?id=316341"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Нужна отдельная проверка видимых знаменателей и современного статуса.",
+      "construction_description": "Дробные черты содержат линейные выражения в числителях.",
+      "characteristic_ranges": "Примеры 311755 и 316341; точные границы знаменателей/чисел требуют отдельной проверки исходных страниц.",
+      "manual_difficulty": "Средняя/высокая; умножение на общий знаменатель и проверка ограничений.",
+      "answer_policy": "Не включено: статус прототипов/политика ответа ещё не подтверждены.",
+      "difference_from_neighbors": "От L5 отличается линейными числителями дробей.",
+      "status_reason": "Нужна отдельная проверка видимых знаменателей и современного статуса.",
+      "source_type": "catalog or historical diagnostic example"
+    },
+    {
+      "id": "OGE09-L7",
+      "group": "linear",
+      "name": "Равенство значений двух выражений",
+      "reference_ids": [
+        "338500"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=338500"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Формулировка может быть оболочкой структуры L2; не отдельное семейство.",
+      "construction_description": "Словесная задача: значения двух линейных выражений должны быть равны.",
+      "characteristic_ranges": "Образец 338500: 7x−2 и 3x+6, малые целые коэффициенты.",
+      "manual_difficulty": "Низкая; приравнять выражения и решить линейное уравнение.",
+      "answer_policy": "single_numeric_root в образце, но отдельный генератор не нужен до доказательства новой математической структуры.",
+      "difference_from_neighbors": "Математически может быть оболочкой L2, отличается формулировкой.",
+      "status_reason": "Формулировка может быть оболочкой структуры L2; не отдельное семейство.",
+      "source_type": "catalog or historical diagnostic example"
+    },
+    {
+      "id": "OGE09-K1",
+      "group": "quadratic",
+      "name": "Неполное ax²+bx=0 с общим множителем x",
+      "reference_ids": [
+        "111",
+        "338915"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=111",
+        "https://oge.sdamgia.ru/problem?id=338915"
+      ],
+      "format": "historical_root_sequence_candidate",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Требует отдельного подтверждения актуального числового формата ответа; не включать сцепленные исторические ключи.",
+      "construction_description": "Неполное квадратное ax²+bx=0 с вынесением общего множителя x.",
+      "characteristic_ranges": "Примеры 111 и 338915; 338915 содержит 4x²+7=7+24x, но каталожные клоны могут просить оба корня последовательностью.",
+      "manual_difficulty": "Низкая; вынести x за скобки.",
+      "answer_policy": "Историческая sequence-политика не входит в числовой режим; требуется типоспецифичный источник.",
+      "difference_from_neighbors": "От K6 отличается наличием линейного члена и нулевого корня.",
+      "status_reason": "Требует отдельного подтверждения актуального числового формата ответа; не включать сцепленные исторические ключи.",
+      "source_type": "catalog or historical diagnostic example"
+    },
+    {
+      "id": "OGE09-K2",
+      "group": "quadratic",
+      "name": "Приведённое полное квадратное x²+bx+c=0",
+      "reference_ids": [
+        "357568"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=357568"
+      ],
+      "format": "greater_real_root_numeric",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Прототип №357568 явно просит больший корень; ответ остаётся одним числом. Клон #338814 и типы с ответом-последовательностью сюда не переносятся.",
+      "construction_description": "Приведённое полное квадратное x²+bx+c=0 с двумя целыми корнями; требуется больший.",
+      "characteristic_ranges": "№357568: x²+x−12=0, корни −4 и 3; генераторные корни целые из [-12,12], ноль и противоположная пара исключены.",
+      "manual_difficulty": "Низкая/средняя; разложение на множители/теорема Виета.",
+      "answer_policy": "greater_real_root_numeric, один точный числовой корень.",
+      "difference_from_neighbors": "От K3 отличается коэффициентом при x², равным 1.",
+      "status_reason": "Прототип №357568 явно просит больший корень; ответ остаётся одним числом. Клон #338814 и типы с ответом-последовательностью сюда не переносятся.",
+      "source_type": "FIPI-bank mirror/catalog"
+    },
+    {
+      "id": "OGE09-K3",
+      "group": "quadratic",
+      "name": "Неприведённое полное квадратное ax²+bx+c=0",
+      "reference_ids": [
+        "357133",
+        "357135"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=357133",
+        "https://oge.sdamgia.ru/problem?id=357135"
+      ],
+      "format": "lesser_real_root_numeric",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Оба указанных прототипа явно просят меньший корень; #357134 с большим корнем намеренно не включён в эту политику.",
+      "construction_description": "Неприведённое полное квадратное ax²+bx+c=0, два рациональных корня; требуется меньший.",
+      "characteristic_ranges": "№357133: 2x²−3x+1=0, корни 0,5 и 1; №357135: корни −3,5 и 1. Генератор использует целые и половинные корни в пределах ±12, |коэффициенты|≤500.",
+      "manual_difficulty": "Средняя; дискриминант/разложение, сравнение корней.",
+      "answer_policy": "lesser_real_root_numeric, точный целый или конечный десятичный до 1 знака.",
+      "difference_from_neighbors": "От K2 отличается неединичным коэффициентом при x²; политика фиксирована на меньший корень.",
+      "status_reason": "Оба указанных прототипа явно просят меньший корень; #357134 с большим корнем намеренно не включён в эту политику.",
+      "source_type": "FIPI-bank mirror/catalog"
+    },
+    {
+      "id": "OGE09-K4",
+      "group": "quadratic",
+      "name": "Квадратное уравнение после переноса x²+ax=b",
+      "reference_ids": [
+        "137382",
+        "355407"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=137382",
+        "https://oge.sdamgia.ru/problem?id=355407"
+      ],
+      "format": "historical_root_sequence_candidate",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "№137382 требует записать оба корня в порядке возрастания без разделителя. Обычное числовое поле несовместимо; отдельная текстовая политика не включена.",
+      "construction_description": "Квадратное после переноса, например x²+3x=4.",
+      "characteristic_ranges": "№137382 и 355407; №137382 явно просит оба корня в порядке возрастания без разделителя.",
+      "manual_difficulty": "Средняя; перенос к стандартному виду и решение квадратного уравнения.",
+      "answer_policy": "Выключено: корни как текстовая последовательность, не одиночное число.",
+      "difference_from_neighbors": "От K2/K3 отличается ненулевой правой частью; при переносе вид уравнения важен.",
+      "status_reason": "№137382 требует записать оба корня в порядке возрастания без разделителя. Обычное числовое поле несовместимо; отдельная текстовая политика не включена.",
+      "source_type": "catalog or historical diagnostic example"
+    },
+    {
+      "id": "OGE09-K5",
+      "group": "quadratic",
+      "name": "Произведение линейных множителей равно нулю",
+      "reference_ids": [
+        "369496"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=369496"
+      ],
+      "format": "least_real_root_numeric",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Один конкретный прототип; пределы разнообразия/коэффициентов должны быть проверены.",
+      "construction_description": "Произведение двух линейных множителей равно нулю.",
+      "characteristic_ranges": "№369496; один подтверждённый конкретный образец, диапазон/answer policy ещё не установлены.",
+      "manual_difficulty": "Низкая/средняя; правило нулевого произведения и сравнение корней.",
+      "answer_policy": "Не включено до подтверждения вариативности конструкции и политики ответа.",
+      "difference_from_neighbors": "От раскрытого K3 отличается факторизованной отображённой структурой.",
+      "status_reason": "Один конкретный прототип; пределы разнообразия/коэффициентов должны быть проверены.",
+      "source_type": "catalog or historical diagnostic example"
+    },
+    {
+      "id": "OGE09-K6",
+      "group": "quadratic",
+      "name": "Неполное квадратное ax²-c=0",
+      "reference_ids": [
+        "357173"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=357173"
+      ],
+      "format": "lesser_real_root_numeric",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "№357173 — ОГЭ 06.06.2024, просит меньший корень. №338864 требует сцепленную последовательность обоих корней и здесь намеренно не используется.",
+      "construction_description": "Неполное квадратное ax²−c=0 без линейного члена; симметричные ненулевые корни.",
+      "characteristic_ranges": "№357173 (ОГЭ 06.06.2024): x²−64=0, корни −8 и 8; генератор дополнительно использует простые рациональные ведущие коэффициенты и малые квадратные значения.",
+      "manual_difficulty": "Низкая; извлечь квадратный корень с двумя знаками ±.",
+      "answer_policy": "lesser_real_root_numeric, точный целый ответ.",
+      "difference_from_neighbors": "От K1 отличается отсутствием x; образец №338864 исключён из подтверждений, так как просит оба корня строкой.",
+      "status_reason": "№357173 — ОГЭ 06.06.2024, просит меньший корень. №338864 требует сцепленную последовательность обоих корней и здесь намеренно не используется.",
+      "source_type": "FIPI-bank mirror/catalog"
+    }
+  ],
+  "excluded_classes": [
+    "systems_of_equations",
+    "variable_in_denominator",
+    "degree_above_two",
+    "historical_concatenated_root_keys"
+  ],
+  "weight_policy": {
+    "linear_vs_quadratic": "pedagogical 50/50 starting configuration; not exam-frequency data",
+    "within_group": "persisted shuffled deck among enabled structures"
+  }
+}
