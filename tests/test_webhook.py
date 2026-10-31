@@ -139,6 +139,30 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         assert restored_problem["problem_id"] == issued["problem_id"]
 
         expected_problem_id = str(issued["problem_id"])
+        assert await restarted_repository.set_task6_prompt_message(
+            telegram_user_id, expected_problem_id, 71_001
+        )
+        assert await restarted_repository.task6_hint(telegram_user_id, expected_problem_id)
+        assert await restarted_repository.task6_hint(telegram_user_id, expected_problem_id)
+        after_hints = await PostgresRepository(pool).task6_state(telegram_user_id)
+        assert after_hints is not None
+        assert after_hints["state"]["hints_used"] == 2
+        assert after_hints["state"]["input_prompt_message_id"] == 71_001
+        assert (await PostgresRepository(pool).task6_progress(telegram_user_id))["hints_used"] == 2
+
+        await restarted_repository.save_user_state(telegram_user_id, "main_menu")
+        paused_answer = await restarted_repository.task6_attempt(
+            telegram_user_id,
+            expected_problem_id,
+            str(issued["correct_answer"]),
+            True,
+            telegram_message_id=49_999,
+            expected_prompt_message_id=71_001,
+        )
+        assert paused_answer == {"status": "stale", "attempt": 0}
+        assert (await restarted_repository.task6_progress(telegram_user_id))["attempts"] == 0
+        await restarted_repository.save_user_state(telegram_user_id, "task6")
+
         first = await restarted_repository.task6_attempt(
             telegram_user_id, expected_problem_id, "999", False
         )

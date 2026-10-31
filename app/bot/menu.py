@@ -1,4 +1,9 @@
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 
 MAIN_MENU = (
     "⚡ 5 минут",
@@ -40,12 +45,17 @@ def number_menu() -> ReplyKeyboardMarkup:
     )
 
 
-def task6_menu() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="💡 Подсказка"), KeyboardButton(text="📘 Разбор")],
-            [KeyboardButton(text="➡ Следующее"), KeyboardButton(text="⏭ Пропустить")],
-            [KeyboardButton(text="↩ В меню")],
-        ],
-        resize_keyboard=True,
+def task6_menu(problem_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💡 Подсказка", callback_data=f"t6:hint:{problem_id}"),
+                InlineKeyboardButton(text="📘 Разбор", callback_data=f"t6:solution:{problem_id}"),
+            ],
+            [
+                InlineKeyboardButton(text="➡ Следующее", callback_data=f"t6:next:{problem_id}"),
+                InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t6:skip:{problem_id}"),
+            ],
+            [InlineKeyboardButton(text="↩ В меню", callback_data=f"t6:menu:{problem_id}")],
+        ]
     )
