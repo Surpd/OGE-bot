@@ -73,6 +73,21 @@ def test_greater_root_hint_matches_the_displayed_answer_target() -> None:
     assert "больший" in problem.hints[1]
 
 
+def test_catalog_grouping_prototypes_have_separate_visible_generators() -> None:
+    from app.math.equations import solve_rendered_equation
+
+    assert solve_rendered_equation("2 - 3(2x + 2) = 5 - 4x") == (Fraction(-9, 2),)
+    assert solve_rendered_equation("-x - 2 + 3(x - 3) = 3(4 - x) - 3") == (Fraction(4),)
+    one_group = generate_equation("OGE09-L4A", 123)
+    two_groups = generate_equation("OGE09-L4B", 123)
+    assert one_group.reference_ids == ("85",)
+    assert two_groups.reference_ids == ("338495",)
+    assert one_group.equation_text.count("(") == 1
+    assert two_groups.equation_text.count("(") == 2
+    validate_rendered_problem(one_group)
+    validate_rendered_problem(two_groups)
+
+
 def test_degenerate_and_unapproved_historical_types_stay_disabled() -> None:
     with pytest.raises(KeyError):
         generate_equation("OGE09-K1", 1)

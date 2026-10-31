@@ -101,27 +101,47 @@
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
-      "id": "OGE09-L4",
+      "id": "OGE09-L4A",
       "group": "linear",
-      "name": "Несколько скобок и приведение подобных",
+      "name": "Одна группа и переменная снаружи (прототип 85)",
       "reference_ids": [
-        "85",
+        "85"
+      ],
+      "urls": [
+        "https://oge.sdamgia.ru/problem?id=85"
+      ],
+      "format": "single_numeric_root",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Прототип отличается от №338495 числом групп и размещением переменных; ответ в образце −4,5.",
+      "construction_description": "a − b(cx+d) = e − fx; одна видимая группа с линейным выражением слева и линейный член справа.",
+      "characteristic_ranges": "№85: 2−3(2x+2)=5−4x. Генератор использует коэффициенты 2..8 и малые целые сдвиги.",
+      "manual_difficulty": "Средняя; раскрыть одну скобку, перенести линейные члены и решить.",
+      "answer_policy": "single_numeric_root; точный целый или конечная десятичная до 2 знаков.",
+      "difference_from_neighbors": "В отличие от L3 справа есть переменная; в отличие от L4B только одна группа.",
+      "status_reason": "Separate visible template and source answer confirmed; awaiting the version 0.2.0 rerun and PostgreSQL CI before enablement.",
+      "source_type": "FIPI-bank mirror/catalog"
+    },
+    {
+      "id": "OGE09-L4B",
+      "group": "linear",
+      "name": "Скобки с переменными по обе стороны (прототип 338495)",
+      "reference_ids": [
         "338495"
       ],
       "urls": [
-        "https://oge.sdamgia.ru/problem?id=85",
         "https://oge.sdamgia.ru/problem?id=338495"
       ],
       "format": "single_numeric_root",
-      "status": "enabled",
-      "generator_id": "OGE09-L4",
-      "notes": "Не допускать визуального схлопывания в L1/L2.",
-      "construction_description": "Слева и справа группы линейных выражений со скобками; требуется раскрыть скобки и привести подобные.",
-      "characteristic_ranges": "Образец 338495/пример 2−3(2x+2)=5−4x: коэффициенты и сдвиги однозначно малые целые; генераторные видимые числа и итоговые коэффициенты ≤500.",
-      "manual_difficulty": "Средняя; раскрыть две группы, собрать подобные и решить линейное уравнение.",
+      "status": "research_only",
+      "generator_id": null,
+      "notes": "Отдельная конструкция: свободный член и -x слева, группы с x по обе стороны. Не объединять с одногрупповым №85.",
+      "construction_description": "−x + a + b(x+c) = d(e−x) + f; обе стороны содержат явно видимые группы и требуется раскрытие скобок.",
+      "characteristic_ranges": "№338495: −x−2+3(x−3)=3(4−x)−3. Генератор использует коэффициенты групп 2..6 и малые целые константы.",
+      "manual_difficulty": "Средняя; раскрыть две группы, собрать несколько линейных членов.",
       "answer_policy": "single_numeric_root; точное число до 2 десятичных знаков.",
-      "difference_from_neighbors": "От L3 отличается наличием групп на обеих сторонах и приведением подобных.",
-      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
+      "difference_from_neighbors": "В отличие от L4A есть скобки с x на обеих сторонах и отдельный линейный член вне скобок слева.",
+      "status_reason": "Separate visible template and source answer confirmed; awaiting the version 0.2.0 rerun and PostgreSQL CI before enablement.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {

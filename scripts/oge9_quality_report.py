@@ -8,6 +8,7 @@ from pathlib import Path
 
 from app.math.equations import (
     ENABLED_FAMILIES,
+    GENERATOR_VERSION,
     generate_equation,
     solve_rendered_equation,
     validate_rendered_problem,
@@ -23,7 +24,8 @@ REFERENCE_ANSWER_SAMPLES = (
     ("OGE09-L1", "338606", Fraction(-5, 2)),
     ("OGE09-L2", "338488", Fraction(-3)),
     ("OGE09-L3", "338509", Fraction(97, 10)),
-    ("OGE09-L4", "338495", Fraction(-9, 2)),
+    ("OGE09-L4A", "85", Fraction(-9, 2)),
+    ("OGE09-L4B", "338495", Fraction(4)),
     ("OGE09-K2", "357568", Fraction(3)),
     ("OGE09-K3", "357133", Fraction(1, 2)),
     ("OGE09-K3", "357135", Fraction(-7, 2)),
@@ -206,7 +208,7 @@ def build_report() -> dict[str, object]:
     )
     return {
         "report_version": 1,
-        "generator_version": "0.1.0",
+        "generator_version": GENERATOR_VERSION,
         "source_snapshot": registry["source_snapshot"],
         "sample_count_per_family": SAMPLE_COUNT,
         "acceptance_unique_target": UNIQUE_TARGET,
@@ -227,7 +229,9 @@ def build_report() -> dict[str, object]:
             ),
             "sample_task_ids": [task_id for _, task_id, _ in REFERENCE_ANSWER_SAMPLES],
         },
-        "enabled_structure_count": len(enabled_ids),
+        "enabled_structure_count": sum(
+            item["status"] == "enabled" for item in registry["structures"]
+        ),
         "uncovered_structure_ids": [
             item["id"] for item in registry["structures"] if item["id"] not in enabled_ids
         ],

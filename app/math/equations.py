@@ -12,7 +12,7 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy, format_decimal
 
-GENERATOR_VERSION = "0.1.0"
+GENERATOR_VERSION = "0.2.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,7 +126,8 @@ _SOURCES: dict[str, tuple[str, ...]] = {
     "OGE09-L1": ("338606", "338658"),
     "OGE09-L2": ("338488", "338557"),
     "OGE09-L3": ("338509",),
-    "OGE09-L4": ("85", "338495"),
+    "OGE09-L4A": ("85",),
+    "OGE09-L4B": ("338495",),
     "OGE09-K2": ("357568",),
     "OGE09-K3": ("357133", "357135"),
     "OGE09-K6": ("357173",),
@@ -305,7 +306,7 @@ def _linear_from_coefficients(a: int, b: int, c: int, d: int) -> Equation:
 def _choose_root(rng: random.Random) -> Fraction:
     if rng.randrange(5) == 0:
         return Fraction(rng.choice([-15, -10, -5, 5, 10, 15]), 10)
-    return Fraction(rng.randint(-12, 12))
+    return Fraction(rng.randint(-10, 10))
 
 
 def _build_linear(family: str, rng: random.Random) -> Equation:
@@ -321,9 +322,81 @@ def _build_linear(family: str, rng: random.Random) -> Equation:
         right_b = a * root.numerator // denominator + b - right_a * root.numerator // denominator
         return _linear_from_coefficients(a, b, right_a, right_b)
     if family == "OGE09-L3":
-        shift = rng.randint(-12, 12)
+        root = Fraction(rng.randint(-12, 12), 2)
+        denominator = root.denominator
+        a = rng.choice([denominator * value for value in (2, 3, 4)])
+        shift = rng.randint(-6, 6)
         right = a * root.numerator // denominator + a * shift
         return Equation(_op("*", _n(a), Group(_op("+", _x(), _n(shift)))), _n(right))
+    if family == "OGE09-L4A":
+        root = Fraction(rng.choice([value for value in range(-10, 11) if value]), 2)
+        grouped_coefficient = rng.randint(2, 4)
+        inner_coefficient = rng.randint(2, 3)
+        shift, constant = rng.randint(-4, 4), rng.randint(-6, 6)
+        compatible_deltas = [
+            delta
+            for delta in range(-4, 5)
+            if delta != 0
+            and 2 <= grouped_coefficient * inner_coefficient + delta <= 8
+            and (delta * root).denominator == 1
+        ]
+        delta = rng.choice(compatible_deltas)
+        right_coefficient = grouped_coefficient * inner_coefficient + delta
+        right_constant = (
+            constant
+            - grouped_coefficient * shift
+            + (right_coefficient - grouped_coefficient * inner_coefficient) * root
+        )
+        return Equation(
+            _op(
+                "-",
+                _n(constant),
+                _op(
+                    "*",
+                    _n(grouped_coefficient),
+                    Group(_op("+", _op("*", _n(inner_coefficient), _x()), _n(shift))),
+                ),
+            ),
+            _op("+", _n(right_constant), _op("*", _n(-right_coefficient), _x())),
+        )
+    if family == "OGE09-L4B":
+        # Preserve the two-sided grouped form observed in #338495:
+        # -x + a + b(x+c) = d(e-x) + f.
+        root = Fraction(rng.choice([value for value in range(-10, 11) if value]), 2)
+        compatible_pairs = [
+            (grouped_left, grouped_right)
+            for grouped_left in range(2, 5)
+            for grouped_right in range(2, 5)
+            if ((grouped_left + grouped_right - 1) * root).denominator == 1
+        ]
+        grouped_left, grouped_right = rng.choice(compatible_pairs)
+        for _ in range(32):
+            left_constant = rng.randint(-4, 4)
+            inner_left = rng.randint(-4, 4)
+            inner_right = rng.randint(-4, 4)
+            right_constant = (
+                left_constant
+                + grouped_left * inner_left
+                + (grouped_left + grouped_right - 1) * root
+                - grouped_right * inner_right
+            )
+            if abs(right_constant) <= 60:
+                break
+        else:
+            left_constant = inner_left = inner_right = 0
+            right_constant = (grouped_left + grouped_right - 1) * root
+        left = _op(
+            "+",
+            _op("+", Unary("-", _x()), _n(left_constant)),
+            _op("*", _n(grouped_left), Group(_op("+", _x(), _n(inner_left)))),
+        )
+        right_expr = _op(
+            "+",
+            _op("*", _n(grouped_right), Group(_op("+", _n(inner_right), Unary("-", _x())))),
+            _n(right_constant),
+        )
+        return Equation(left, right_expr)
+    # Fallback for future explicitly registered linear forms.
     # Two grouped linear expressions, with a nonzero combined x coefficient.
     left_a, right_a = rng.randint(1, 6), rng.randint(1, 6)
     while 2 * left_a == right_a:
@@ -361,7 +434,7 @@ def _choose_rational_roots(rng: random.Random) -> tuple[Fraction, Fraction]:
     values = {
         Fraction(number, denominator)
         for denominator in (1, 2)
-        for number in range(-12, 13)
+        for number in range(-8, 9)
         if number != 0
     }
     choices = sorted(values)
@@ -415,7 +488,7 @@ def _build_quadratic(family: str, rng: random.Random) -> Equation:
             for denominator in range(1, 11):
                 coefficient = Fraction(numerator, denominator)
                 constant = coefficient * value * value
-                if constant.denominator == 1 and constant <= 500:
+                if constant.denominator == 1 and constant <= 196:
                     candidates.append((value, coefficient))
     value, coefficient = rng.choice(candidates)
     constant = coefficient * value * value
@@ -663,8 +736,12 @@ def _validate_visible_shape(family_id: str, equation_text: str) -> None:
         left.count("(") != 1 or right.count("(") or variable_count(right)
     ):
         raise ValueError("L3 must show one multiplied group and a numeric right side")
-    if family_id == "OGE09-L4" and (left.count("(") < 1 or right.count("(") < 1):
-        raise ValueError("L4 must visibly show grouped expressions on both sides")
+    if family_id == "OGE09-L4A" and (
+        left.count("(") != 1 or right.count("(") or not variable_count(right)
+    ):
+        raise ValueError("L4A must show one left group and an ungrouped variable on the right")
+    if family_id == "OGE09-L4B" and (left.count("(") < 1 or right.count("(") < 1):
+        raise ValueError("L4B must visibly show groups on both sides")
     if family_id == "OGE09-K2" and (
         not left.startswith("x²") or variable_count(left) != 1 or right.strip() != "0"
     ):

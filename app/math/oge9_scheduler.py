@@ -15,6 +15,8 @@ def _deck(seed: int, last_family: str | None = None) -> list[str]:
     rng = random.Random(f"oge9-deck:{seed}")
     linear = [family for family in ENABLED_FAMILIES if family.startswith("OGE09-L")]
     quadratic = [family for family in ENABLED_FAMILIES if family.startswith("OGE09-K")]
+    if len(linear) > 4:
+        linear = rng.sample(linear, k=4)
     # Eight cards per cycle: four linear and four quadratic. Since K2/K3/K6
     # currently form a group of three, one is repeated, chosen afresh per cycle.
     quadratic.append(rng.choice(quadratic))
