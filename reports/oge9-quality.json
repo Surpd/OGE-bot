@@ -1,0 +1,895 @@
+{
+  "report_version": 1,
+  "generator_version": "0.2.0",
+  "source_snapshot": "2026-10-31",
+  "sample_count_per_family": 250,
+  "acceptance_unique_target": 200,
+  "acceptance_attempt_limit": 1200,
+  "selection_weights": {
+    "linear": 50,
+    "quadratic": 50,
+    "status": "pedagogical, not exam statistics"
+  },
+  "families": [
+    {
+      "family_id": "OGE09-L1",
+      "status": "enabled",
+      "reference_ids": [
+        "338606",
+        "338658"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=338606",
+        "https://oge.sdamgia.ru/problem?id=338658"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 242,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 208,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-L1', 'linear')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "unique": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 228,
+        "decimal_1": 22,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 119,
+        "zero": 8
+      },
+      "answer_absolute_value_bins": {
+        "0": 8,
+        "0_to_1": 69,
+        "1_to_5": 88,
+        "5_to_10": 85,
+        "over_10": 0
+      },
+      "operation_counts": {
+        "+": 125,
+        "-": 125,
+        "·": 0,
+        "/": 0
+      },
+      "parentheses_histogram": {
+        "0": 250
+      },
+      "max_visible_integer_literal": 44,
+      "finite_parameter_domain_size": null,
+      "examples": [
+        {
+          "condition": "Решите уравнение: 3x - 11 = -8",
+          "answer": "1",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 3x = 3.",
+            "Разделим обе части на 3: x = 1."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Решите уравнение: 3x + 8 = 38",
+          "answer": "10",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 3x = 30.",
+            "Разделим обе части на 3: x = 10."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Решите уравнение: x - 14 = -16",
+          "answer": "-2",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 1x = -2.",
+            "Разделим обе части на 1: x = -2."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "338606",
+          "answer": "-5/2"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 1,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    },
+    {
+      "family_id": "OGE09-L2",
+      "status": "enabled",
+      "reference_ids": [
+        "338488",
+        "338557"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=338488",
+        "https://oge.sdamgia.ru/problem?id=338557"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 247,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 202,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-L2', 'linear')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "unique": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 217,
+        "decimal_1": 33,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 121,
+        "zero": 9
+      },
+      "answer_absolute_value_bins": {
+        "0": 9,
+        "0_to_1": 48,
+        "1_to_5": 103,
+        "5_to_10": 90,
+        "over_10": 0
+      },
+      "operation_counts": {
+        "+": 238,
+        "-": 262,
+        "·": 0,
+        "/": 0
+      },
+      "parentheses_histogram": {
+        "0": 250
+      },
+      "max_visible_integer_literal": 35,
+      "finite_parameter_domain_size": null,
+      "examples": [
+        {
+          "condition": "Решите уравнение: 2x + 7 = 4x + 10",
+          "answer": "-1,5",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: -2x = 3.",
+            "Разделим обе части на -2: x = -1,5."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Решите уравнение: 3x + 4 = 4x + 5",
+          "answer": "-1",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: -1x = 1.",
+            "Разделим обе части на -1: x = -1."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Решите уравнение: 3x + 0 = x + 2",
+          "answer": "1",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 2x = 2.",
+            "Разделим обе части на 2: x = 1."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "338488",
+          "answer": "-3"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 1,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    },
+    {
+      "family_id": "OGE09-L3",
+      "status": "enabled",
+      "reference_ids": [
+        "338509"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=338509"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 214,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 220,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-L3', 'linear')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "unique": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 132,
+        "decimal_1": 118,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 124,
+        "zero": 10
+      },
+      "answer_absolute_value_bins": {
+        "0": 10,
+        "0_to_1": 48,
+        "1_to_5": 162,
+        "5_to_10": 30,
+        "over_10": 0
+      },
+      "operation_counts": {
+        "+": 147,
+        "-": 103,
+        "·": 0,
+        "/": 0
+      },
+      "parentheses_histogram": {
+        "1": 250
+      },
+      "max_visible_integer_literal": 84,
+      "finite_parameter_domain_size": null,
+      "examples": [
+        {
+          "condition": "Решите уравнение: 4(x + 2) = 8",
+          "answer": "0",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 4x = 0.",
+            "Разделим обе части на 4: x = 0."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Решите уравнение: 8(x - 3) = -36",
+          "answer": "-1,5",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 8x = -12.",
+            "Разделим обе части на 8: x = -1,5."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Решите уравнение: 2(x + 6) = 20",
+          "answer": "4",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 2x = 8.",
+            "Разделим обе части на 2: x = 4."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "338509",
+          "answer": "97/10"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 1,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    },
+    {
+      "family_id": "OGE09-L4A",
+      "status": "enabled",
+      "reference_ids": [
+        "85"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=85"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 250,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 200,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-L4A', 'linear')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "unique": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 129,
+        "decimal_1": 121,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 114,
+        "zero": 0
+      },
+      "answer_absolute_value_bins": {
+        "0": 0,
+        "0_to_1": 56,
+        "1_to_5": 194,
+        "5_to_10": 0,
+        "over_10": 0
+      },
+      "operation_counts": {
+        "+": 142,
+        "-": 608,
+        "·": 0,
+        "/": 0
+      },
+      "parentheses_histogram": {
+        "1": 250
+      },
+      "max_visible_integer_literal": 34,
+      "finite_parameter_domain_size": null,
+      "examples": [
+        {
+          "condition": "Решите уравнение: -2 - 3(2x - 3) = 11 - 4x",
+          "answer": "-2",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: -2x = 4.",
+            "Разделим обе части на -2: x = -2."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Решите уравнение: 4 - 3(2x + 2) = -1 - 5x",
+          "answer": "-1",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: -1x = 1.",
+            "Разделим обе части на -1: x = -1."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Решите уравнение: -5 - 4(2x - 3) = 1 - 5x",
+          "answer": "2",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: -3x = -6.",
+            "Разделим обе части на -3: x = 2."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "85",
+          "answer": "-9/2"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 1,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    },
+    {
+      "family_id": "OGE09-L4B",
+      "status": "enabled",
+      "reference_ids": [
+        "338495"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=338495"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 248,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 200,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-L4B', 'linear')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "unique": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 139,
+        "decimal_1": 111,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 121,
+        "zero": 0
+      },
+      "answer_absolute_value_bins": {
+        "0": 0,
+        "0_to_1": 45,
+        "1_to_5": 205,
+        "5_to_10": 0,
+        "over_10": 0
+      },
+      "operation_counts": {
+        "+": 665,
+        "-": 585,
+        "·": 0,
+        "/": 0
+      },
+      "parentheses_histogram": {
+        "2": 250
+      },
+      "max_visible_integer_literal": 50,
+      "finite_parameter_domain_size": null,
+      "examples": [
+        {
+          "condition": "Решите уравнение: -x + 1 + 4(x - 4) = 3(-3 - x) - 15",
+          "answer": "-1,5",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 6x = -9.",
+            "Разделим обе части на 6: x = -1,5."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Решите уравнение: -x + 4 + 3(x - 3) = 3(1 - x) + 7",
+          "answer": "3",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 5x = 15.",
+            "Разделим обе части на 5: x = 3."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Решите уравнение: -x - 3 + 3(x + 4) = 2(3 - x) + 21",
+          "answer": "4,5",
+          "answer_target": "unique",
+          "solution": [
+            "Перенесём слагаемые с x влево и числа вправо: 4x = 18.",
+            "Разделим обе части на 4: x = 4,5."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "338495",
+          "answer": "4"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 1,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    },
+    {
+      "family_id": "OGE09-K2",
+      "status": "enabled",
+      "reference_ids": [
+        "357568"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=357568"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 155,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 361,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-K2', 'quadratic')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "greater": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 250,
+        "decimal_1": 0,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 66,
+        "zero": 0
+      },
+      "answer_absolute_value_bins": {
+        "0": 0,
+        "0_to_1": 19,
+        "1_to_5": 95,
+        "5_to_10": 88,
+        "over_10": 48
+      },
+      "operation_counts": {
+        "+": 267,
+        "-": 233,
+        "·": 0,
+        "/": 0
+      },
+      "parentheses_histogram": {
+        "0": 250
+      },
+      "max_visible_integer_literal": 132,
+      "finite_parameter_domain_size": null,
+      "examples": [
+        {
+          "condition": "Найдите больший корень уравнения x² - 16x + 63 = 0",
+          "answer": "9",
+          "answer_target": "greater",
+          "solution": [
+            "Перенесём всё в левую часть: 1x² + -16x + 63 = 0.",
+            "Дискриминант D = b² − 4ac = 4.",
+            "Действительные корни: 7 и 9.",
+            "Требуется больший корень, поэтому ответ: 9."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Найдите больший корень уравнения x² + 7x - 60 = 0",
+          "answer": "5",
+          "answer_target": "greater",
+          "solution": [
+            "Перенесём всё в левую часть: 1x² + 7x + -60 = 0.",
+            "Дискриминант D = b² − 4ac = 289.",
+            "Действительные корни: -12 и 5.",
+            "Требуется больший корень, поэтому ответ: 5."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Найдите больший корень уравнения x² + 15x + 44 = 0",
+          "answer": "-4",
+          "answer_target": "greater",
+          "solution": [
+            "Перенесём всё в левую часть: 1x² + 15x + 44 = 0.",
+            "Дискриминант D = b² − 4ac = 49.",
+            "Действительные корни: -11 и -4.",
+            "Требуется больший корень, поэтому ответ: -4."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "357568",
+          "answer": "3"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 1,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    },
+    {
+      "family_id": "OGE09-K3",
+      "status": "enabled",
+      "reference_ids": [
+        "357133",
+        "357135"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=357133",
+        "https://oge.sdamgia.ru/problem?id=357135"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 168,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 370,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-K3', 'quadratic')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "lesser": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 159,
+        "decimal_1": 91,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 188,
+        "zero": 0
+      },
+      "answer_absolute_value_bins": {
+        "0": 0,
+        "0_to_1": 40,
+        "1_to_5": 144,
+        "5_to_10": 66,
+        "over_10": 0
+      },
+      "operation_counts": {
+        "+": 269,
+        "-": 231,
+        "·": 0,
+        "/": 0
+      },
+      "parentheses_histogram": {
+        "0": 250
+      },
+      "max_visible_integer_literal": 112,
+      "finite_parameter_domain_size": null,
+      "examples": [
+        {
+          "condition": "Найдите меньший корень уравнения 2x² + 6x + 4 = 0",
+          "answer": "-2",
+          "answer_target": "lesser",
+          "solution": [
+            "Перенесём всё в левую часть: 2x² + 6x + 4 = 0.",
+            "Дискриминант D = b² − 4ac = 4.",
+            "Действительные корни: -2 и -1.",
+            "Требуется меньший корень, поэтому ответ: -2."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Найдите меньший корень уравнения 2x² + 14x + 24 = 0",
+          "answer": "-4",
+          "answer_target": "lesser",
+          "solution": [
+            "Перенесём всё в левую часть: 2x² + 14x + 24 = 0.",
+            "Дискриминант D = b² − 4ac = 4.",
+            "Действительные корни: -4 и -3.",
+            "Требуется меньший корень, поэтому ответ: -4."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Найдите меньший корень уравнения 2x² + 4x - 16 = 0",
+          "answer": "-4",
+          "answer_target": "lesser",
+          "solution": [
+            "Перенесём всё в левую часть: 2x² + 4x + -16 = 0.",
+            "Дискриминант D = b² − 4ac = 144.",
+            "Действительные корни: -4 и 2.",
+            "Требуется меньший корень, поэтому ответ: -4."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "357133",
+          "answer": "1/2"
+        },
+        {
+          "task_id": "357135",
+          "answer": "-7/2"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 2,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    },
+    {
+      "family_id": "OGE09-K6",
+      "status": "enabled",
+      "reference_ids": [
+        "357173"
+      ],
+      "reference_urls": [
+        "https://oge.sdamgia.ru/problem?id=357173"
+      ],
+      "sample_count": 250,
+      "unique_conditions_in_sample": 129,
+      "acceptance_unique_target": 200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts": 1126,
+      "structural_signature_count": 1,
+      "structural_signature": [
+        "('OGE09-K6', 'quadratic')"
+      ],
+      "display_oracle": "pass: Pratt parser over rendered equation; exact Fraction polynomial solver",
+      "answer_target_counts": {
+        "lesser": 250
+      },
+      "answer_places": {
+        "non_terminating": 0,
+        "integer": 250,
+        "decimal_1": 0,
+        "decimal_2": 0,
+        "decimal_3_plus": 0
+      },
+      "answer_signs": {
+        "negative": 250,
+        "zero": 0
+      },
+      "answer_absolute_value_bins": {
+        "0": 0,
+        "0_to_1": 11,
+        "1_to_5": 84,
+        "5_to_10": 121,
+        "over_10": 34
+      },
+      "operation_counts": {
+        "+": 0,
+        "-": 250,
+        "·": 0,
+        "/": 134
+      },
+      "parentheses_histogram": {
+        "0": 116,
+        "1": 134
+      },
+      "max_visible_integer_literal": 196,
+      "finite_parameter_domain_size": 212,
+      "examples": [
+        {
+          "condition": "Найдите меньший корень уравнения x² - 1 = 0",
+          "answer": "-1",
+          "answer_target": "lesser",
+          "solution": [
+            "Перенесём всё в левую часть: 1x² + 0x + -1 = 0.",
+            "Дискриминант D = b² − 4ac = 4.",
+            "Действительные корни: -1 и 1.",
+            "Требуется меньший корень, поэтому ответ: -1."
+          ],
+          "seed": 0
+        },
+        {
+          "condition": "Найдите меньший корень уравнения (5/2)x² - 90 = 0",
+          "answer": "-6",
+          "answer_target": "lesser",
+          "solution": [
+            "Перенесём всё в левую часть: (5/2)x² + 0x + -90 = 0.",
+            "Дискриминант D = b² − 4ac = 900.",
+            "Действительные корни: -6 и 6.",
+            "Требуется меньший корень, поэтому ответ: -6."
+          ],
+          "seed": 1
+        },
+        {
+          "condition": "Найдите меньший корень уравнения (1/2)x² - 2 = 0",
+          "answer": "-2",
+          "answer_target": "lesser",
+          "solution": [
+            "Перенесём всё в левую часть: (1/2)x² + 0x + -2 = 0.",
+            "Дискриминант D = b² − 4ac = 4.",
+            "Действительные корни: -2 и 2.",
+            "Требуется меньший корень, поэтому ответ: -2."
+          ],
+          "seed": 2
+        }
+      ],
+      "observed_catalog_answers": [
+        {
+          "task_id": "357173",
+          "answer": "-8"
+        }
+      ],
+      "catalog_comparison": {
+        "prototype_construction_match": true,
+        "answer_policy_matches_references": true,
+        "observed_answer_sample_count": 1,
+        "distribution_status": "preliminary; source sample count is small and is not exam frequency"
+      }
+    }
+  ],
+  "answer_distribution_comparison": {
+    "generated_250_per_family": {
+      "sample_count": 2000,
+      "counts": {
+        "integer": 1504,
+        "decimal_1": 496,
+        "decimal_2": 0,
+        "decimal_3_plus": 0,
+        "non_terminating": 0,
+        "negative": 1103,
+        "zero": 27,
+        "abs_le_1": 363,
+        "abs_1_to_10": 1555,
+        "abs_over_10": 82
+      },
+      "proportions": {
+        "integer": 0.752,
+        "decimal_1": 0.248,
+        "decimal_2": 0.0,
+        "decimal_3_plus": 0.0,
+        "non_terminating": 0.0,
+        "negative": 0.5515,
+        "zero": 0.0135,
+        "abs_le_1": 0.1815,
+        "abs_1_to_10": 0.7775,
+        "abs_over_10": 0.041
+      }
+    },
+    "observed_catalog_examples": {
+      "sample_count": 9,
+      "counts": {
+        "integer": 4,
+        "decimal_1": 5,
+        "decimal_2": 0,
+        "decimal_3_plus": 0,
+        "non_terminating": 0,
+        "negative": 5,
+        "zero": 0,
+        "abs_le_1": 1,
+        "abs_1_to_10": 8,
+        "abs_over_10": 0
+      },
+      "proportions": {
+        "integer": 0.4444,
+        "decimal_1": 0.5556,
+        "decimal_2": 0.0,
+        "decimal_3_plus": 0.0,
+        "non_terminating": 0.0,
+        "negative": 0.5556,
+        "zero": 0.0,
+        "abs_le_1": 0.1111,
+        "abs_1_to_10": 0.8889,
+        "abs_over_10": 0.0
+      }
+    },
+    "precision_category_total_variation": 0.3076,
+    "interpretation": "preliminary: 8 explicitly inspected examples are not a representative exam-frequency sample",
+    "sample_task_ids": [
+      "338606",
+      "338488",
+      "338509",
+      "85",
+      "338495",
+      "357568",
+      "357133",
+      "357135",
+      "357173"
+    ]
+  },
+  "enabled_structure_count": 8,
+  "uncovered_structure_ids": [
+    "OGE09-L5",
+    "OGE09-L6",
+    "OGE09-L7",
+    "OGE09-K1",
+    "OGE09-K4",
+    "OGE09-K5"
+  ],
+  "known_limits": [
+    "No claim of complete OGE-9 catalog coverage.",
+    "Only explicitly selected numeric roots are included; concatenated root sequences remain disabled.",
+    "Distribution comparison is preliminary because reference samples are not a representative exam-frequency sample."
+  ]
+}

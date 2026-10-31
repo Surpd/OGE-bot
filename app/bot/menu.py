@@ -39,6 +39,7 @@ def number_menu() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="№6 · Вычисления")],
+            [KeyboardButton(text="№9 · Уравнения")],
             [KeyboardButton(text="↩ В меню")],
         ],
         resize_keyboard=True,
@@ -57,5 +58,21 @@ def task6_menu(problem_id: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t6:skip:{problem_id}"),
             ],
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t6:menu:{problem_id}")],
+        ]
+    )
+
+
+def task9_menu(problem_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💡 Подсказка", callback_data=f"t9:hint:{problem_id}"),
+                InlineKeyboardButton(text="📘 Разбор", callback_data=f"t9:solution:{problem_id}"),
+            ],
+            [
+                InlineKeyboardButton(text="➡ Следующее", callback_data=f"t9:next:{problem_id}"),
+                InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t9:skip:{problem_id}"),
+            ],
+            [InlineKeyboardButton(text="↩ В меню", callback_data=f"t9:menu:{problem_id}")],
         ]
     )

@@ -72,6 +72,8 @@ async def test_postgres_registration_and_state_survive_new_repository() -> None:
         await pool.execute(await read_migration("migrations/0002_task6_training.sql"))
         await pool.execute(await read_migration("migrations/0003_task6_session_quality.sql"))
         await pool.execute(await read_migration("migrations/0003_task6_session_quality.sql"))
+        await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
+        await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
         await pool.execute("DELETE FROM telegram_updates WHERE update_id = 444")
         first = PostgresRepository(pool)
         assert await pool.fetchval(
@@ -119,6 +121,7 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         await pool.execute(await read_migration("migrations/0001_foundation.sql"))
         await pool.execute(await read_migration("migrations/0002_task6_training.sql"))
         await pool.execute(await read_migration("migrations/0003_task6_session_quality.sql"))
+        await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
         repository = PostgresRepository(pool)
         await repository.register_user(telegram_user_id)
         session_id = await repository.ensure_task6_session(telegram_user_id)
@@ -142,6 +145,7 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         assert await restarted_repository.set_task6_prompt_message(
             telegram_user_id, expected_problem_id, 71_001
         )
+        await restarted_repository.save_user_state(telegram_user_id, "task6")
         assert await restarted_repository.task6_hint(telegram_user_id, expected_problem_id)
         assert await restarted_repository.task6_hint(telegram_user_id, expected_problem_id)
         after_hints = await PostgresRepository(pool).task6_state(telegram_user_id)
@@ -244,6 +248,8 @@ async def test_migration_has_rls_and_update_uniqueness() -> None:
     assert "solution_viewed_at" in quality_sql
     assert "hints_used" in quality_sql
     assert "selection_attempts" in quality_sql
+    task9_sql = await read_migration("migrations/0004_task9_sessions.sql")
+    assert "sessions_one_active_task9_per_user" in task9_sql
 
 
 @pytest.mark.asyncio
@@ -260,9 +266,12 @@ async def test_start_registers_user_and_returns_main_menu() -> None:
 
 @pytest.mark.asyncio
 async def test_training_menu_button_returns_safe_placeholder() -> None:
+    repository = MemoryRepository()
     message = AsyncMock()
-    await menu_section(message)
+    message.from_user = User(id=12348, is_bot=False, first_name="Student")
+    await menu_section(message, repository)
     assert "не включён" in message.answer.await_args.args[0]
+    assert await repository.user_state(12348) == "main_menu"
 
 
 @pytest.mark.asyncio

@@ -103,7 +103,9 @@ async def test_repeated_old_transition_callback_does_not_advance_twice(action: s
         callback.data = f"t6:{action}:{problem_id}"
         callback.from_user = User(id=785, is_bot=False, first_name="Student")
         callback.message = AsyncMock()
-        callback.message.answer.return_value.message_id = _message(785, "prompt").message_id
+        current = repository.training[785]
+        callback.message.message_id = current["state"]["input_prompt_message_id"]
+        callback.message.answer.return_value.message_id = int(callback.message.message_id) + 1
         await task6_callback(callback, repository)
 
     await tap(first_id)
@@ -269,6 +271,7 @@ async def test_reply_to_previous_problem_is_rejected_after_next_callback() -> No
     callback.data = f"t6:next:{old_problem_id}"
     callback.from_user = User(id=787, is_bot=False, first_name="Student")
     callback.message = AsyncMock()
+    callback.message.message_id = old_prompt_id
     callback.message.answer.return_value.message_id = _message(787, "new prompt").message_id
     await task6_callback(callback, repository)
     assert repository.training[787]["problem"]["problem_id"] != old_problem_id
