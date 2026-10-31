@@ -160,6 +160,37 @@ def _format_root(value: Fraction) -> str:
         return f"{value.numerator}/{value.denominator}"
 
 
+def _polynomial_text(constant: Fraction, linear: Fraction, quadratic: Fraction) -> str:
+    terms: list[tuple[Fraction, str]] = []
+    if quadratic:
+        terms.append((quadratic, "x²"))
+    if linear:
+        terms.append((linear, "x"))
+    if constant:
+        terms.append((constant, ""))
+    if not terms:
+        return "0"
+    rendered = []
+    for index, (coefficient, variable) in enumerate(terms):
+        magnitude = abs(coefficient)
+        value = variable if variable and magnitude == 1 else f"{_fmt(magnitude)}{variable}"
+        if index == 0:
+            rendered.append(f"-{value}" if coefficient < 0 else value)
+        else:
+            rendered.append(f" {'−' if coefficient < 0 else '+'} {value}")
+    return "".join(rendered)
+
+
+def _contains_group(expr: Expr) -> bool:
+    if isinstance(expr, Group):
+        return True
+    if isinstance(expr, Unary):
+        return _contains_group(expr.expression)
+    if isinstance(expr, Operation):
+        return _contains_group(expr.left) or _contains_group(expr.right)
+    return False
+
+
 def render_expr(expr: Expr) -> str:
     if isinstance(expr, Number):
         return _fmt(expr.value)
@@ -534,28 +565,90 @@ def generate_equation(
     )
     polynomial = _poly_add(_poly(equation.left), _poly(equation.right), -1)
     c, b, a = polynomial
+    solution: tuple[str, ...]
     if a:
-        disc = b * b - 4 * a * c
-        solution: tuple[str, ...] = (
-            f"Перенесём всё в левую часть: {_fmt(a)}x² + {_fmt(b)}x + {_fmt(c)} = 0.",
-            f"Дискриминант D = b² − 4ac = {_format_root(disc)}.",
-            f"Действительные корни: {_format_root(roots[0])} и {_format_root(roots[-1])}.",
-            (
-                f"Требуется {'больший' if answer_target == 'greater' else 'меньший'} корень, "
-                f"поэтому ответ: {answer}."
-            ),
-        )
-        hints = (
-            "Сначала приведи уравнение к виду ax² + bx + c = 0.",
-            (
-                "Сравни действительные корни и выбери больший."
-                if answer_target == "greater"
-                else "Сравни действительные корни и выбери меньший."
-            ),
-        )
+        root_text = " и ".join(_format_root(root) for root in roots)
+        if b == 0 and c < 0:
+            square = -c / a
+            quadratic_term = _polynomial_text(Fraction(0), Fraction(0), a)
+            squared_form = _polynomial_text(Fraction(0), Fraction(0), Fraction(1))
+            solution = (
+                f"Перенесём число: {quadratic_term} = {_fmt(-c)}.",
+                (
+                    f"x² = {_format_root(square)}."
+                    if a == 1
+                    else (
+                        f"Разделим обе части на {_fmt(a)}: "
+                        f"{squared_form} = {_format_root(square)}."
+                    )
+                ),
+                f"Извлечём квадратный корень: x = ±{_format_root(roots[-1])}.",
+            f"Корни: {root_text}. Требуется меньший корень, поэтому ответ: {answer}.",
+            )
+            hints = (
+                "Перенеси число в правую часть и вырази x².",
+                "Подели обе части на коэффициент при x², затем найди оба корня.",
+            )
+        elif family_id == "OGE09-K2" and a == 1 and all(root.denominator == 1 for root in roots):
+            solution = (
+                f"По теореме Виета сумма корней равна {_format_root(-b)}, "
+                f"а произведение — {_format_root(c)}.",
+                f"Подходящие корни: {_format_root(roots[0])} и {_format_root(roots[-1])}.",
+                f"Требуется больший корень, поэтому ответ: {answer}.",
+            )
+            hints = (
+                "Воспользуйся теоремой Виета: найди два числа с нужными суммой и произведением.",
+                (
+                    "Сравни найденные корни и выбери больший."
+                    if answer_target == "greater"
+                    else "Сравни найденные корни и выбери меньший."
+                ),
+            )
+        else:
+            disc = b * b - 4 * a * c
+            square_root = _sqrt_fraction(disc)
+            if square_root is None:
+                raise ValueError("Equation has no exact square root for the displayed solution")
+            steps: list[str] = []
+            if family_id == "OGE09-K5":
+                left = _poly(equation.left)
+                right = _poly(equation.right)
+                steps.append(
+                    "Раскроем скобки и приведём подобные: "
+                    f"{_polynomial_text(*left)} = {_polynomial_text(*right)}."
+                )
+            steps.extend(
+                [
+                    f"Перенесём всё в левую часть: {_polynomial_text(c, b, a)} = 0.",
+                    f"Коэффициенты: a = {_fmt(a)}, b = {_fmt(b)}, c = {_fmt(c)}.",
+                    f"D = b² − 4ac = {_fmt(b)}² − 4·{_fmt(a)}·({_fmt(c)}) = {_format_root(disc)}.",
+                    "Найдём корни по формуле: "
+                    f"x₁,₂ = (−({_fmt(b)}) ± {_format_root(square_root)})/"
+                    f"(2·{_fmt(a)}) = {root_text}.",
+                    f"Требуется {'больший' if answer_target == 'greater' else 'меньший'} корень, "
+                    f"поэтому ответ: {answer}.",
+                ]
+            )
+            solution = tuple(steps)
+            hints = (
+                "Приведи уравнение к виду ax² + bx + c = 0.",
+                (
+                    "Сравни два корня и выбери больший."
+                    if answer_target == "greater"
+                    else "Сравни два корня и выбери меньший."
+                ),
+            )
     else:
+        left, right = _poly(equation.left), _poly(equation.right)
+        expansion = (
+            "Раскроем скобки и приведём подобные: "
+            if _contains_group(equation.left) or _contains_group(equation.right)
+            else "Запишем уравнение и приведём подобные: "
+        )
         solution = (
-            f"Перенесём слагаемые с x влево и числа вправо: {_fmt(b)}x = {_fmt(-c)}.",
+            f"{expansion}{_polynomial_text(*left)} = {_polynomial_text(*right)}.",
+            "Соберём переменные и числа отдельно: "
+            f"{_polynomial_text(Fraction(0), b, Fraction(0))} = {_fmt(-c)}.",
             f"Разделим обе части на {_fmt(b)}: x = {answer}.",
         )
         hints = (

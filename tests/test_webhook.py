@@ -154,6 +154,16 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         assert after_hints["state"]["input_prompt_message_id"] == 71_001
         assert (await PostgresRepository(pool).task6_progress(telegram_user_id))["hints_used"] == 2
 
+        late = await restarted_repository.task6_attempt(
+            telegram_user_id,
+            expected_problem_id,
+            str(issued["correct_answer"]),
+            True,
+            telegram_message_id=71_000,
+            expected_prompt_message_id=71_001,
+        )
+        assert late == {"status": "stale", "attempt": 0}
+
         await restarted_repository.save_user_state(telegram_user_id, "main_menu")
         paused_answer = await restarted_repository.task6_attempt(
             telegram_user_id,
@@ -216,7 +226,7 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         assert next_state is not None
         skip_candidates = build_candidate_batch(cast(dict[str, object], next_state["state"]), 21)
         skip_task = restarted_repository.advance_task6_problem(
-            telegram_user_id, next_id, skip_candidates
+            telegram_user_id, next_id, skip_candidates, skip_active=True
         )
         answer_task = restarted_repository.task6_attempt(telegram_user_id, next_id, "999", False)
         skipped_or_answered, answer_result = await asyncio.gather(skip_task, answer_task)

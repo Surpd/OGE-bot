@@ -6,7 +6,7 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, Message
 
-from app.bot.menu import MAIN_MENU, main_menu, number_menu, task6_menu, task9_menu
+from app.bot.menu import MAIN_MENU, main_menu, number_menu, progress_menu, task6_menu, task9_menu
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.registry import ANSWER_POLICY_BY_SNAPSHOT
@@ -20,6 +20,16 @@ TASK9_LABEL = "№9 · Уравнения"
 
 def _user_id(message: Message) -> int | None:
     return message.from_user.id if message.from_user is not None else None
+
+
+async def _disable_stale_keyboard(message: Message, saved: bool) -> None:
+    if not saved:
+        await message.edit_reply_markup(reply_markup=None)
+
+
+def _solution_display_status(revealed: dict[str, object] | None) -> str:
+    status = revealed.get("status") if revealed is not None else None
+    return "solution_viewed" if status == "active" else str(status or "")
 
 
 def _has_resumable_task6(state: dict[str, object] | None) -> bool:
@@ -50,6 +60,7 @@ async def _send_problem(
     expected_screen: str | None = None,
     expected_prompt_message_id: int | None = None,
     user_id_override: int | None = None,
+    skip_active: bool = False,
 ) -> bool:
     user_id = user_id_override if user_id_override is not None else _user_id(message)
     if user_id is None:
@@ -86,6 +97,7 @@ async def _send_problem(
                 candidates,
                 expected_screen=expected_screen,
                 expected_prompt_message_id=expected_prompt_message_id,
+                skip_active=skip_active,
             )
         except RuntimeError:
             await message.answer(
@@ -105,12 +117,12 @@ async def _send_problem(
             return False
     sent = await message.answer(
         f"Задание №6 · вычисления\n\n{saved_problem['condition']}\n\n"
-        "Ответьте реплаем на это сообщение. Десятичную дробь можно записать через запятую.",
+        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
         reply_markup=task6_menu(str(saved_problem["problem_id"])),
     )
     prompt_message_id = getattr(sent, "message_id", None)
     if type(prompt_message_id) is int:
-        await repository.set_task6_prompt_message(
+        await repository.set_task6_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_message_id
         )
     return True
@@ -192,6 +204,7 @@ async def _send_task9_problem(
     expected_screen: str | None = None,
     expected_prompt_message_id: int | None = None,
     user_id_override: int | None = None,
+    skip_active: bool = False,
 ) -> bool:
     user_id = user_id_override if user_id_override is not None else _user_id(message)
     if user_id is None:
@@ -213,12 +226,12 @@ async def _send_task9_problem(
                 await repository.save_user_state(user_id, "task9")
                 sent = await message.answer(
                     f"Задание №9 · уравнения\n\n{saved_problem['condition']}\n\n"
-                    "Ответьте реплаем на это сообщение числом.",
+                    "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
                     reply_markup=task9_menu(str(saved_problem["problem_id"])),
                 )
                 prompt_id = getattr(sent, "message_id", None)
                 if type(prompt_id) is int:
-                    await repository.set_task9_prompt_message(
+                    await repository.set_task9_condition_message(
                         user_id, str(saved_problem["problem_id"]), prompt_id
                     )
                 return True
@@ -238,6 +251,7 @@ async def _send_task9_problem(
                 candidates,
                 expected_screen=expected_screen,
                 expected_prompt_message_id=expected_prompt_message_id,
+                skip_active=skip_active,
             )
         except RuntimeError:
             await message.answer("Не удалось подготовить задачу №9. Попробуйте ещё раз.")
@@ -248,12 +262,12 @@ async def _send_task9_problem(
             await repository.save_user_state(user_id, "task9")
     sent = await message.answer(
         f"Задание №9 · уравнения\n\n{saved_problem['condition']}\n\n"
-        "Ответьте реплаем на это сообщение числом.",
+        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
         reply_markup=task9_menu(str(saved_problem["problem_id"])),
     )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await repository.set_task9_prompt_message(
+        await repository.set_task9_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_id
         )
     return True
@@ -271,7 +285,9 @@ async def task6_skip(message: Message, repository: Repository) -> None:
     user_id = _user_id(message)
     if user_id is None:
         return
-    await _send_problem(message, repository, action="advance", expected_screen="task6")
+    await _send_problem(
+        message, repository, action="advance", expected_screen="task6", skip_active=True
+    )
 
 
 async def task6_callback(callback: CallbackQuery, repository: Repository) -> None:
@@ -323,6 +339,7 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             expected_screen="task6",
             expected_prompt_message_id=control_message_id,
             user_id_override=user_id,
+            skip_active=action == "skip",
         )
         await callback.answer("Задание уже сменилось." if not advanced else None)
         return
@@ -342,10 +359,20 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             return
         solution = saved_problem.get("solution", [])
         steps = "\n".join(str(step) for step in solution) if isinstance(solution, list) else ""
-        await message.answer(
+        sent = await message.answer(
             "Разбор (самостоятельное решение не засчитывается):\n"
-            f"{steps}\n\nОтвет: {saved_problem['correct_answer']}"
+            f"{steps}\n\nОтвет: {saved_problem['correct_answer']}",
+            reply_markup=task6_menu(expected_problem_id, completed=True),
         )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task6_prompt_message(
+                user_id,
+                expected_problem_id,
+                result_id,
+                expected_status=_solution_display_status(revealed),
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await callback.answer()
         return
@@ -391,9 +418,19 @@ async def task6_solution(message: Message, repository: Repository) -> None:
     solution = saved_problem.get("solution", [])
     answer = str(saved_problem.get("correct_answer", ""))
     text = "\n".join(str(step) for step in solution) if isinstance(solution, list) else ""
-    await message.answer(
-        f"Разбор (самостоятельное решение не засчитывается):\n{text}\n\nОтвет: {answer}"
+    sent = await message.answer(
+        f"Разбор (самостоятельное решение не засчитывается):\n{text}\n\nОтвет: {answer}",
+        reply_markup=task6_menu(problem_id, completed=True),
     )
+    result_id = getattr(sent, "message_id", None)
+    if type(result_id) is int and user_id is not None:
+        saved = await repository.set_task6_prompt_message(
+            user_id,
+            problem_id,
+            result_id,
+            expected_status=_solution_display_status(revealed),
+        )
+        await _disable_stale_keyboard(sent, saved)
 
 
 async def task6_answer(message: Message, repository: Repository) -> None:
@@ -409,13 +446,14 @@ async def task6_answer(message: Message, repository: Repository) -> None:
     if session_state.get("status") != "active":
         await message.answer("Это задание уже завершено. Нажмите «➡ Следующее».")
         return
-    prompt_message_id = session_state.get("input_prompt_message_id")
+    prompt_message_id = session_state.get(
+        "problem_prompt_message_id", session_state.get("input_prompt_message_id")
+    )
     replied_to = getattr(message.reply_to_message, "message_id", None)
-    if type(prompt_message_id) is not int or replied_to != prompt_message_id:
-        await message.answer(
-            "Чтобы ответ не попал к другой задаче, отправьте ответ реплаем на последнее "
-            "сообщение с условием."
-        )
+    if type(prompt_message_id) is not int or (
+        replied_to is not None and replied_to != prompt_message_id
+    ):
+        await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
         return
     family_id = str(problem.get("family_id", ""))
     policy_id = str(problem.get("answer_policy_id", ""))
@@ -446,17 +484,42 @@ async def task6_answer(message: Message, repository: Repository) -> None:
     elif outcome["status"] == "duplicate":
         await message.answer("Это сообщение уже было обработано.")
     elif outcome["status"] == "solved":
-        await message.answer("Верно! Ответ засчитан. Нажмите «➡ Следующее».")
+        sent = await message.answer(
+            "✅ Верно!\nОтвет засчитан.",
+            reply_markup=task6_menu(expected_problem_id, completed=True),
+        )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task6_prompt_message(
+                user_id, expected_problem_id, result_id, expected_status="solved"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome["status"] == "active":
-        await message.answer("Пока неверно. Попробуйте ещё раз; правильный ответ не раскрываю.")
+        sent = await message.answer(
+            "Пока неверно. Попробуйте ещё раз.",
+            reply_markup=task6_menu(expected_problem_id),
+        )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task6_prompt_message(
+                user_id, expected_problem_id, result_id, expected_status="active"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome["status"] == "failed":
         saved_problem = cast(dict[str, object], outcome["problem"])
         solution = saved_problem.get("solution", [])
         steps = "\n".join(str(step) for step in solution) if isinstance(solution, list) else ""
-        await message.answer(
+        sent = await message.answer(
             f"Вторая попытка неверна. Правильный ответ: {saved_problem['correct_answer']}.\n\n"
-            f"Разбор:\n{steps}\n\nНажмите «➡ Следующее»."
+            f"Разбор:\n{steps}",
+            reply_markup=task6_menu(expected_problem_id, completed=True),
         )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task6_prompt_message(
+                user_id, expected_problem_id, result_id, expected_status="failed"
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await message.answer("Ответ по этому заданию уже обработан. Нажмите «➡ Следующее».")
 
@@ -508,6 +571,7 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             expected_screen="task9",
             expected_prompt_message_id=control_message_id,
             user_id_override=user_id,
+            skip_active=action == "skip",
         )
         await callback.answer(None if advanced else "Это задание уже сменилось.")
         return
@@ -526,10 +590,20 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             return
         steps = snapshot.get("solution", [])
         rendered_steps = "\n".join(str(step) for step in steps) if isinstance(steps, list) else ""
-        await message.answer(
+        sent = await message.answer(
             "Разбор (самостоятельное решение не засчитывается):\n"
-            f"{rendered_steps}\n\nОтвет: {snapshot['correct_answer']}"
+            f"{rendered_steps}\n\nОтвет: {snapshot['correct_answer']}",
+            reply_markup=task9_menu(expected_problem_id, completed=True),
         )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task9_prompt_message(
+                user_id,
+                expected_problem_id,
+                result_id,
+                expected_status=_solution_display_status(revealed),
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await callback.answer()
         return
@@ -550,12 +624,12 @@ async def task9_answer(message: Message, repository: Repository) -> None:
     if session_state.get("status") != "active":
         await message.answer("Задание завершено. Нажмите «➡ Следующее».")
         return
-    prompt_id = session_state.get("input_prompt_message_id")
+    prompt_id = session_state.get(
+        "problem_prompt_message_id", session_state.get("input_prompt_message_id")
+    )
     replied_to = getattr(message.reply_to_message, "message_id", None)
-    if type(prompt_id) is not int or replied_to != prompt_id:
-        await message.answer(
-            "Ответьте реплаем на актуальное условие, чтобы ответ не попал к другой задаче."
-        )
+    if type(prompt_id) is not int or (replied_to is not None and replied_to != prompt_id):
+        await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
         return
     task9_policy = ANSWER_POLICIES_BY_SNAPSHOT.get(
         (str(problem.get("answer_policy_id", "")), str(problem.get("answer_policy_version", "")))
@@ -581,19 +655,43 @@ async def task9_answer(message: Message, repository: Repository) -> None:
     elif outcome.get("status") == "duplicate":
         await message.answer("Это сообщение уже было обработано.")
     elif outcome.get("status") == "solved":
-        await message.answer("Верно! Ответ засчитан. Нажмите «➡ Следующее».")
+        sent = await message.answer(
+            "✅ Верно!\nОтвет засчитан.",
+            reply_markup=task9_menu(problem_id, completed=True),
+        )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task9_prompt_message(
+                user_id, problem_id, result_id, expected_status="solved"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome.get("status") == "active":
-        await message.answer("Пока неверно. Попробуйте ещё раз; ответ не раскрываю.")
+        sent = await message.answer(
+            "Пока неверно. Попробуйте ещё раз.", reply_markup=task9_menu(problem_id)
+        )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task9_prompt_message(
+                user_id, problem_id, result_id, expected_status="active"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome.get("status") == "failed":
         snapshot = cast(dict[str, object], outcome["problem"])
         solution = snapshot.get("solution", [])
         rendered_steps = (
             "\n".join(str(step) for step in solution) if isinstance(solution, list) else ""
         )
-        await message.answer(
+        sent = await message.answer(
             f"Вторая попытка неверна. Правильный ответ: {snapshot['correct_answer']}.\n\n"
-            f"Разбор:\n{rendered_steps}\n\nНажмите «➡ Следующее»."
+            f"Разбор:\n{rendered_steps}",
+            reply_markup=task9_menu(problem_id, completed=True),
         )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task9_prompt_message(
+                user_id, problem_id, result_id, expected_status="failed"
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await message.answer("Ответ уже обработан. Нажмите «➡ Следующее».")
 
@@ -628,30 +726,53 @@ async def show_progress(message: Message, repository: Repository) -> None:
     issued = progress["issued"]
     answered = progress["answered"]
     correct = progress["correct"]
-    attempts = progress["attempts"]
     accuracy = (correct * 100 + answered // 2) // answered if answered else 0
     state = await repository.task6_state(user_id)
     progress9 = await repository.task9_progress(user_id)
     state9 = await repository.task9_state(user_id)
     has_session = _has_resumable_task6(state) or _has_resumable_task9(state9)
+    accuracy9 = (
+        (progress9["correct"] * 100 + progress9["answered"] // 2) // progress9["answered"]
+        if progress9["answered"]
+        else 0
+    )
     await message.answer(
-        "📊 Прогресс по заданию №6\n"
-        f"Выдано задач: {issued}\n"
-        f"Задач с ответом: {answered}\n"
-        f"Решено верно: {correct}\n"
-        f"Попыток всего: {attempts}\n"
-        f"Попыток №1 / №2: {progress['first_attempts']} / {progress['second_attempts']}\n"
-        f"Решено с первой / второй попытки: {progress['solved_first_try']} / "
-        f"{progress['solved_second_try']}\n"
-        f"Подсказок: {progress['hints_used']} · Разборов: {progress['solutions_viewed']}\n"
-        f"Пропущено: {progress['skipped']}\n"
-        f"Точность: {accuracy}%\n\n"
-        "📊 Прогресс по заданию №9\n"
-        f"Выдано задач: {progress9['issued']} · с ответом: {progress9['answered']}\n"
-        f"Решено верно: {progress9['correct']} · попыток: {progress9['attempts']}\n"
-        f"Подсказок: {progress9['hints_used']} · разборов: {progress9['solutions_viewed']} · "
-        f"пропущено: {progress9['skipped']}",
-        reply_markup=main_menu(has_session=has_session),
+        "📊 Прогресс\n\n"
+        f"№6 · выдано {issued} · отвечал {answered} · решил {correct} · "
+        f"пропустил {progress['skipped']} · правильно {accuracy}%\n"
+        f"№9 · выдано {progress9['issued']} · отвечал {progress9['answered']} · "
+        f"решил {progress9['correct']} · пропустил {progress9['skipped']} · "
+        f"правильно {accuracy9}%\n\n"
+        "Процент считается среди задач, на которые вы отвечали.",
+        reply_markup=progress_menu(has_session=has_session),
+    )
+
+
+async def show_progress_details(message: Message, repository: Repository) -> None:
+    user_id = _user_id(message)
+    if user_id is None:
+        return
+    await repository.save_user_state(user_id, "progress")
+    progress6 = await repository.task6_progress(user_id)
+    progress9 = await repository.task9_progress(user_id)
+    state6 = await repository.task6_state(user_id)
+    state9 = await repository.task9_state(user_id)
+    has_session = _has_resumable_task6(state6) or _has_resumable_task9(state9)
+
+    def detail(number: str, values: dict[str, int]) -> str:
+        return (
+            f"№{number}: правильно с первой попытки — {values.get('solved_first_try', 0)}, "
+            f"со второй — {values.get('solved_second_try', 0)}; "
+            f"неверных попыток — {max(values['attempts'] - values['correct'], 0)}; "
+            f"подсказок — {values['hints_used']}; "
+            f"разборов просмотрено — {values['solutions_viewed']}."
+        )
+
+    await message.answer(
+        "📊 Подробнее\n\n"
+        f"{detail('6', progress6)}\n\n{detail('9', progress9)}\n\n"
+        "Неверный ответ, пропуск и просмотр разбора учитываются отдельно.",
+        reply_markup=progress_menu(has_session=has_session),
     )
 
 
@@ -694,6 +815,7 @@ def build_router() -> Router:
     router.message.register(task6_solution, F.text == "📘 Разбор")
     router.message.register(return_to_menu, F.text == "↩ В меню")
     router.message.register(show_progress, F.text == "📊 Прогресс")
+    router.message.register(show_progress_details, F.text == "📊 Подробнее")
     router.message.register(menu_section, F.text.in_(MAIN_MENU))
     router.message.register(unknown_message)
     router.callback_query.register(task6_callback, F.data.startswith("t6:"))

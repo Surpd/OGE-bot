@@ -18,7 +18,6 @@ MAIN_MENU = (
 TASK6_MENU = (
     "💡 Подсказка",
     "📘 Разбор",
-    "➡ Следующее",
     "⏭ Пропустить",
     "↩ В меню",
 )
@@ -46,7 +45,21 @@ def number_menu() -> ReplyKeyboardMarkup:
     )
 
 
-def task6_menu(problem_id: str) -> InlineKeyboardMarkup:
+def progress_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
+    rows = [[KeyboardButton(text="📊 Подробнее")], [KeyboardButton(text="↩ В меню")]]
+    if has_session:
+        rows.append([KeyboardButton(text="▶ Продолжить")])
+    return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
+
+
+def task6_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
+    if completed:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="➡ Следующее", callback_data=f"t6:next:{problem_id}")],
+                [InlineKeyboardButton(text="↩ В меню", callback_data=f"t6:menu:{problem_id}")],
+            ]
+        )
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -54,7 +67,6 @@ def task6_menu(problem_id: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="📘 Разбор", callback_data=f"t6:solution:{problem_id}"),
             ],
             [
-                InlineKeyboardButton(text="➡ Следующее", callback_data=f"t6:next:{problem_id}"),
                 InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t6:skip:{problem_id}"),
             ],
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t6:menu:{problem_id}")],
@@ -62,7 +74,14 @@ def task6_menu(problem_id: str) -> InlineKeyboardMarkup:
     )
 
 
-def task9_menu(problem_id: str) -> InlineKeyboardMarkup:
+def task9_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
+    if completed:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="➡ Следующее", callback_data=f"t9:next:{problem_id}")],
+                [InlineKeyboardButton(text="↩ В меню", callback_data=f"t9:menu:{problem_id}")],
+            ]
+        )
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -70,7 +89,6 @@ def task9_menu(problem_id: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="📘 Разбор", callback_data=f"t9:solution:{problem_id}"),
             ],
             [
-                InlineKeyboardButton(text="➡ Следующее", callback_data=f"t9:next:{problem_id}"),
                 InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t9:skip:{problem_id}"),
             ],
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t9:menu:{problem_id}")],
