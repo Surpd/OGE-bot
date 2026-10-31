@@ -10,6 +10,15 @@ class Repository(Protocol):
 
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None: ...
 
+    async def transition_task_screen(
+        self,
+        telegram_user_id: int,
+        mode: str,
+        expected_problem_id: str,
+        target_screen: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> bool: ...
+
     async def user_state(self, telegram_user_id: int) -> str | None: ...
 
     async def last_training_mode(self, telegram_user_id: int) -> str | None: ...
@@ -23,6 +32,8 @@ class Repository(Protocol):
         telegram_user_id: int,
         expected_problem_id: str | None,
         candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]: ...
 
     async def task6_state(self, telegram_user_id: int) -> dict[str, object] | None: ...
@@ -41,10 +52,18 @@ class Repository(Protocol):
         expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None: ...
 
-    async def task6_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None: ...
+    async def task6_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None: ...
 
     async def task6_reveal_solution(
-        self, telegram_user_id: int, expected_problem_id: str
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None: ...
 
     async def task6_progress(self, telegram_user_id: int) -> dict[str, int]: ...
@@ -60,6 +79,8 @@ class Repository(Protocol):
         telegram_user_id: int,
         expected_problem_id: str | None,
         candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]: ...
 
     async def task9_state(self, telegram_user_id: int) -> dict[str, object] | None: ...
@@ -78,10 +99,18 @@ class Repository(Protocol):
         expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None: ...
 
-    async def task9_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None: ...
+    async def task9_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None: ...
 
     async def task9_reveal_solution(
-        self, telegram_user_id: int, expected_problem_id: str
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None: ...
 
     async def task9_progress(self, telegram_user_id: int) -> dict[str, int]: ...
@@ -109,6 +138,49 @@ class PostgresRepository:
             telegram_user_id,
             screen,
         )
+
+    async def transition_task_screen(
+        self,
+        telegram_user_id: int,
+        mode: str,
+        expected_problem_id: str,
+        target_screen: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> bool:
+        if mode not in {"task6", "task9"}:
+            return False
+        async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != mode:
+                return False
+            session = await connection.fetchrow(
+                """SELECT id, active_problem_id, state FROM sessions
+                   WHERE user_id = $1 AND mode = $2 AND finished_at IS NULL
+                   ORDER BY started_at DESC LIMIT 1 FOR UPDATE""",
+                user["id"],
+                mode,
+            )
+            if (
+                session is None
+                or str(session["active_problem_id"]) != expected_problem_id
+                or (
+                    expected_prompt_message_id is not None
+                    and _json_object(session["state"]).get("input_prompt_message_id")
+                    != expected_prompt_message_id
+                )
+            ):
+                return False
+            await connection.execute(
+                """UPDATE users SET current_state = jsonb_set(
+                       COALESCE(current_state, '{}'::jsonb), '{screen}', to_jsonb($2::text), true)
+                   WHERE id = $1""",
+                user["id"],
+                target_screen,
+            )
+            return True
 
     async def user_state(self, telegram_user_id: int) -> str | None:
         state = await self._pool.fetchval(
@@ -181,8 +253,20 @@ class PostgresRepository:
         telegram_user_id: int,
         expected_problem_id: str | None,
         candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]:
         async with self._pool.acquire() as connection, connection.transaction():
+            if expected_screen is not None:
+                user = await connection.fetchrow(
+                    "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                    telegram_user_id,
+                )
+                if (
+                    user is None
+                    or _json_object(user["current_state"]).get("screen") != expected_screen
+                ):
+                    return {"_transitioned": False, "_stale_screen": True}
             row = await connection.fetchrow(
                 """SELECT s.id, s.active_problem_id, s.state, u.id AS user_id
                    FROM sessions s JOIN users u ON u.id = s.user_id
@@ -194,6 +278,11 @@ class PostgresRepository:
             if row is None:
                 raise RuntimeError("Task-9 session does not exist")
             state = _json_object(row["state"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return {"_transitioned": False, "_stale_screen": True}
             active_id = str(row["active_problem_id"]) if row["active_problem_id"] else None
             if active_id is not None:
                 saved = await connection.fetchrow(
@@ -220,6 +309,8 @@ class PostgresRepository:
                     continue
                 problem = dict(candidate)
                 queue_after = problem.pop("_family_queue_after", [])
+                last_group = problem.pop("_last_group_after", None)
+                group_run_length = problem.pop("_group_run_length_after", 0)
                 problem_id = UUID(str(problem["problem_id"]))
                 await connection.execute(
                     """INSERT INTO issued_problems
@@ -250,6 +341,8 @@ class PostgresRepository:
                     "family_queue": queue_after,
                     "recent_fingerprints": [*recent_order, fingerprint][-30:],
                     "last_family_id": problem["family_id"],
+                    "last_group": last_group,
+                    "group_run_length": group_run_length,
                 }
                 await connection.execute(
                     "UPDATE sessions SET active_problem_id = $2, state = $3::jsonb WHERE id = $1",
@@ -312,21 +405,27 @@ class PostgresRepository:
         expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None:
+                return None
             row = await connection.fetchrow(
                 """SELECT s.id AS session_id, s.state, s.active_problem_id, p.user_id,
-                          p.snapshot, u.current_state AS user_state
-                   FROM sessions s JOIN users u ON u.id = s.user_id
-                   JOIN issued_problems p ON p.id = s.active_problem_id
-                   WHERE u.telegram_user_id = $1 AND s.mode = 'task9'
+                          p.snapshot
+                   FROM sessions s JOIN issued_problems p ON p.id = s.active_problem_id
+                   WHERE s.user_id = $1 AND s.mode = 'task9'
                      AND s.finished_at IS NULL
-                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s, u""",
-                telegram_user_id,
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                user["id"],
             )
             if row is None:
                 return None
             if str(row["active_problem_id"]) != expected_problem_id:
                 return {"status": "stale", "attempt": 0}
-            state, user_state = _json_object(row["state"]), _json_object(row["user_state"])
+            state = _json_object(row["state"])
+            user_state = _json_object(user["current_state"])
             if expected_prompt_message_id is not None and (
                 user_state.get("screen") != "task9"
                 or state.get("input_prompt_message_id") != expected_prompt_message_id
@@ -381,8 +480,19 @@ class PostgresRepository:
             )
             return {"status": status, "attempt": attempt, "problem": _json_object(row["snapshot"])}
 
-    async def task9_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None:
+    async def task9_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != "task9":
+                return None
             row = await connection.fetchrow(
                 """SELECT s.id, s.state, s.active_problem_id, p.snapshot FROM sessions s
                    JOIN users u ON u.id = s.user_id
@@ -394,6 +504,11 @@ class PostgresRepository:
             if row is None or str(row["active_problem_id"]) != expected_problem_id:
                 return None
             state, problem = _json_object(row["state"]), _json_object(row["snapshot"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return None
             hints = problem.get("hints", [])
             used = _state_int(state, "hints_used")
             if state.get("status") != "active" or not isinstance(hints, list) or used >= len(hints):
@@ -410,9 +525,18 @@ class PostgresRepository:
             return str(hints[used])
 
     async def task9_reveal_solution(
-        self, telegram_user_id: int, expected_problem_id: str
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != "task9":
+                return None
             row = await connection.fetchrow(
                 """SELECT s.id, s.state, s.active_problem_id, p.snapshot FROM sessions s
                    JOIN users u ON u.id = s.user_id
@@ -424,6 +548,11 @@ class PostgresRepository:
             if row is None or str(row["active_problem_id"]) != expected_problem_id:
                 return None
             state, problem = _json_object(row["state"]), _json_object(row["snapshot"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return None
             status = str(state.get("status", ""))
             if status == "active":
                 state["status"] = "solution_viewed"
@@ -484,8 +613,20 @@ class PostgresRepository:
         telegram_user_id: int,
         expected_problem_id: str | None,
         candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]:
         async with self._pool.acquire() as connection, connection.transaction():
+            if expected_screen is not None:
+                user = await connection.fetchrow(
+                    "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                    telegram_user_id,
+                )
+                if (
+                    user is None
+                    or _json_object(user["current_state"]).get("screen") != expected_screen
+                ):
+                    return {"_transitioned": False, "_stale_screen": True}
             row = await connection.fetchrow(
                 """SELECT s.id, s.active_problem_id, s.state, u.id AS user_id
                    FROM sessions s JOIN users u ON u.id = s.user_id
@@ -497,6 +638,11 @@ class PostgresRepository:
             if row is None:
                 raise RuntimeError("Task-6 session does not exist")
             state = _json_object(row["state"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return {"_transitioned": False, "_stale_screen": True}
             active_id = str(row["active_problem_id"]) if row["active_problem_id"] else None
             if active_id is not None:
                 current_row = await connection.fetchrow(
@@ -633,22 +779,27 @@ class PostgresRepository:
         expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None:
+                return None
             row = await connection.fetchrow(
                 """SELECT s.id AS session_id, s.state, s.active_problem_id,
-                          p.user_id, p.snapshot, u.current_state AS user_state
-                   FROM sessions s JOIN users u ON u.id = s.user_id
-                   JOIN issued_problems p ON p.id = s.active_problem_id
-                   WHERE u.telegram_user_id = $1 AND s.mode = 'task6'
+                          p.user_id, p.snapshot
+                   FROM sessions s JOIN issued_problems p ON p.id = s.active_problem_id
+                   WHERE s.user_id = $1 AND s.mode = 'task6'
                      AND s.finished_at IS NULL
-                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s, u""",
-                telegram_user_id,
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                user["id"],
             )
             if row is None:
                 return None
             if str(row["active_problem_id"]) != expected_problem_id:
                 return {"status": "stale", "attempt": 0}
             state = _json_object(row["state"])
-            user_state = _json_object(row["user_state"])
+            user_state = _json_object(user["current_state"])
             if expected_prompt_message_id is not None and (
                 user_state.get("screen") != "task6"
                 or state.get("input_prompt_message_id") != expected_prompt_message_id
@@ -705,8 +856,19 @@ class PostgresRepository:
             )
             return {"status": status, "attempt": attempt, "problem": snapshot}
 
-    async def task6_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None:
+    async def task6_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != "task6":
+                return None
             row = await connection.fetchrow(
                 """SELECT s.id, s.state, s.active_problem_id, p.snapshot FROM sessions s
                    JOIN users u ON u.id = s.user_id
@@ -722,6 +884,11 @@ class PostgresRepository:
                 return None
             state = _json_object(row["state"])
             problem = _json_object(row["snapshot"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return None
             if state.get("status") != "active":
                 return None
             hints = problem.get("hints", [])
@@ -745,9 +912,18 @@ class PostgresRepository:
             return str(hints[hints_used - 1])
 
     async def task6_reveal_solution(
-        self, telegram_user_id: int, expected_problem_id: str
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != "task6":
+                return None
             row = await connection.fetchrow(
                 """SELECT s.id, s.state, s.active_problem_id, p.snapshot
                    FROM sessions s JOIN users u ON u.id = s.user_id
@@ -761,6 +937,11 @@ class PostgresRepository:
                 return None
             state = _json_object(row["state"])
             problem = _json_object(row["snapshot"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return None
             status = str(state.get("status", ""))
             if status == "active":
                 state["status"] = "solution_viewed"
@@ -894,6 +1075,39 @@ class MemoryRepository:
         if screen in {"task6", "task9"}:
             self.resume_modes[telegram_user_id] = screen
 
+    async def transition_task_screen(
+        self,
+        telegram_user_id: int,
+        mode: str,
+        expected_problem_id: str,
+        target_screen: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> bool:
+        if self.states.get(telegram_user_id) != mode:
+            return False
+        saved = (
+            self.training.get(telegram_user_id)
+            if mode == "task6"
+            else self.training9.get(telegram_user_id)
+        )
+        problem = saved.get("problem") if saved is not None else None
+        state = saved.get("state") if saved is not None else None
+        if (
+            not isinstance(problem, dict)
+            or str(problem.get("problem_id", "")) != expected_problem_id
+        ):
+            return False
+        if (
+            expected_prompt_message_id is not None
+            and (
+                not isinstance(state, dict)
+                or state.get("input_prompt_message_id") != expected_prompt_message_id
+            )
+        ):
+            return False
+        self.states[telegram_user_id] = target_screen
+        return True
+
     async def user_state(self, telegram_user_id: int) -> str | None:
         return self.states.get(telegram_user_id)
 
@@ -915,10 +1129,28 @@ class MemoryRepository:
         telegram_user_id: int,
         expected_problem_id: str | None,
         candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]:
         state = self.training[telegram_user_id]
+        if expected_screen is not None and self.states.get(telegram_user_id) != expected_screen:
+            current = state.get("problem")
+            return (
+                {**current, "_transitioned": False, "_stale_screen": True}
+                if isinstance(current, dict)
+                else {"_transitioned": False, "_stale_screen": True}
+            )
         session_state = cast(dict[str, object], state["state"])
         current = state.get("problem")
+        if (
+            expected_prompt_message_id is not None
+            and session_state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return (
+                {**current, "_transitioned": False}
+                if isinstance(current, dict)
+                else {"_transitioned": False}
+            )
         active_id = str(current.get("problem_id", "")) if isinstance(current, dict) else None
         status = session_state.get("status")
         if active_id is not None:
@@ -1070,15 +1302,25 @@ class MemoryRepository:
             "skipped": sum(value == "skipped" for value in outcomes.values()),
         }
 
-    async def task6_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None:
+    async def task6_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None:
         state = self.training.get(telegram_user_id)
         if state is None or state.get("problem") is None:
             return None
         problem = cast(dict[str, object], state["problem"])
         problem_id = str(problem.get("problem_id", ""))
-        if problem_id != expected_problem_id:
+        if self.states.get(telegram_user_id) != "task6" or problem_id != expected_problem_id:
             return None
         session_state = cast(dict[str, object], state["state"])
+        if (
+            expected_prompt_message_id is not None
+            and session_state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return None
         if session_state.get("status") != "active":
             return None
         hints = problem.get("hints", [])
@@ -1093,16 +1335,24 @@ class MemoryRepository:
         return str(hints[hints_used - 1])
 
     async def task6_reveal_solution(
-        self, telegram_user_id: int, expected_problem_id: str
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None:
         state = self.training.get(telegram_user_id)
         if state is None or not isinstance(state.get("problem"), dict):
             return None
         problem = cast(dict[str, object], state["problem"])
         problem_id = str(problem.get("problem_id", ""))
-        if problem_id != expected_problem_id:
+        if self.states.get(telegram_user_id) != "task6" or problem_id != expected_problem_id:
             return None
         session_state = cast(dict[str, object], state["state"])
+        if (
+            expected_prompt_message_id is not None
+            and session_state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return None
         previous_status = str(session_state.get("status", ""))
         if previous_status == "active":
             session_state["status"] = "solution_viewed"
@@ -1133,9 +1383,27 @@ class MemoryRepository:
         telegram_user_id: int,
         expected_problem_id: str | None,
         candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]:
         saved = self.training9[telegram_user_id]
+        if expected_screen is not None and self.states.get(telegram_user_id) != expected_screen:
+            current = saved.get("problem")
+            return (
+                {**current, "_transitioned": False, "_stale_screen": True}
+                if isinstance(current, dict)
+                else {"_transitioned": False, "_stale_screen": True}
+            )
         state = cast(dict[str, object], saved["state"])
+        if (
+            expected_prompt_message_id is not None
+            and state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return (
+                {**cast(dict[str, object], saved["problem"]), "_transitioned": False}
+                if isinstance(saved.get("problem"), dict)
+                else {"_transitioned": False}
+            )
         current = saved.get("problem")
         current_id = str(current.get("problem_id", "")) if isinstance(current, dict) else None
         if current_id is not None:
@@ -1156,6 +1424,8 @@ class MemoryRepository:
                 continue
             problem = dict(candidate)
             queue = problem.pop("_family_queue_after", [])
+            last_group = problem.pop("_last_group_after", None)
+            group_run_length = problem.pop("_group_run_length_after", 0)
             problem["problem_id"] = str(problem["problem_id"])
             next_state = {
                 "status": "active",
@@ -1165,6 +1435,8 @@ class MemoryRepository:
                 "family_queue": queue,
                 "recent_fingerprints": [*recent, fingerprint][-30:],
                 "last_family_id": problem["family_id"],
+                "last_group": last_group,
+                "group_run_length": group_run_length,
             }
             saved["problem"], saved["state"] = problem, next_state
             self.issued9.setdefault(telegram_user_id, {})[str(problem["problem_id"])] = problem
@@ -1244,13 +1516,27 @@ class MemoryRepository:
             self.outcomes9.setdefault(telegram_user_id, {})[expected_problem_id] = status
         return {"status": status, "attempt": attempt, "problem": problem}
 
-    async def task9_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None:
+    async def task9_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None:
         saved = self.training9.get(telegram_user_id)
         if saved is None or not isinstance(saved.get("problem"), dict):
             return None
         problem = cast(dict[str, object], saved["problem"])
         state = cast(dict[str, object], saved["state"])
-        if str(problem.get("problem_id")) != expected_problem_id or state.get("status") != "active":
+        if (
+            expected_prompt_message_id is not None
+            and state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return None
+        if (
+            self.states.get(telegram_user_id) != "task9"
+            or str(problem.get("problem_id")) != expected_problem_id
+            or state.get("status") != "active"
+        ):
             return None
         hints = problem.get("hints", [])
         used = _state_int(state, "hints_used")
@@ -1261,15 +1547,26 @@ class MemoryRepository:
         return str(hints[used])
 
     async def task9_reveal_solution(
-        self, telegram_user_id: int, expected_problem_id: str
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
     ) -> dict[str, object] | None:
         saved = self.training9.get(telegram_user_id)
         if saved is None or not isinstance(saved.get("problem"), dict):
             return None
         problem = cast(dict[str, object], saved["problem"])
-        if str(problem.get("problem_id")) != expected_problem_id:
+        if (
+            self.states.get(telegram_user_id) != "task9"
+            or str(problem.get("problem_id")) != expected_problem_id
+        ):
             return None
         state = cast(dict[str, object], saved["state"])
+        if (
+            expected_prompt_message_id is not None
+            and state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return None
         old_status = str(state.get("status", ""))
         if old_status == "active":
             state["status"] = "solution_viewed"

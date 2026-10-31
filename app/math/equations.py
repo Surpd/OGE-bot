@@ -444,6 +444,19 @@ def _choose_rational_roots(rng: random.Random) -> tuple[Fraction, Fraction]:
             return min(first, second), max(first, second)
 
 
+def k6_parameter_domain() -> tuple[tuple[int, Fraction], ...]:
+    """Return the exact finite parameter domain for the enabled K6 prototype."""
+    return tuple(
+        (value, coefficient)
+        for value in range(1, 13)
+        for numerator in range(1, 11)
+        for denominator in range(1, 11)
+        for coefficient in (Fraction(numerator, denominator),)
+        if (coefficient * value * value).denominator == 1
+        and coefficient * value * value <= 196
+    )
+
+
 def _build_quadratic(family: str, rng: random.Random) -> Equation:
     low, high = _choose_roots(rng)
     if family == "OGE09-K2":
@@ -482,14 +495,7 @@ def _build_quadratic(family: str, rng: random.Random) -> Equation:
         return Equation(_op("*", Group(first), Group(second)), _n(0))
     # K6: no linear term; preserve the observed ax²-c form, including simple
     # fractional leading coefficients such as the catalog's 4/3 x² - 48 = 0.
-    candidates: list[tuple[int, Fraction]] = []
-    for value in range(1, 13):
-        for numerator in range(1, 11):
-            for denominator in range(1, 11):
-                coefficient = Fraction(numerator, denominator)
-                constant = coefficient * value * value
-                if constant.denominator == 1 and constant <= 196:
-                    candidates.append((value, coefficient))
+    candidates = k6_parameter_domain()
     value, coefficient = rng.choice(candidates)
     constant = coefficient * value * value
     return Equation(_op("-", _op("*", _n(coefficient), _x2()), _n(constant)), _n(0))

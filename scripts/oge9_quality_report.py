@@ -10,6 +10,7 @@ from app.math.equations import (
     ENABLED_FAMILIES,
     GENERATOR_VERSION,
     generate_equation,
+    k6_parameter_domain,
     solve_rendered_equation,
     validate_rendered_problem,
 )
@@ -146,6 +147,9 @@ def analyze_family(family_id: str) -> dict[str, object]:
         "operation_counts": dict(operation_totals),
         "parentheses_histogram": dict(parenthesis_counts),
         "max_visible_integer_literal": maximum_literal,
+        "finite_parameter_domain_size": (
+            len(set(k6_parameter_domain())) if family_id == "OGE09-K6" else None
+        ),
         "examples": examples,
         "observed_catalog_answers": [
             {"task_id": task_id, "answer": str(value)}

@@ -63,6 +63,7 @@
         "0": 250
       },
       "max_visible_integer_literal": 44,
+      "finite_parameter_domain_size": null,
       "examples": [
         {
           "condition": "Решите уравнение: 3x - 11 = -8",
@@ -160,6 +161,7 @@
         "0": 250
       },
       "max_visible_integer_literal": 35,
+      "finite_parameter_domain_size": null,
       "examples": [
         {
           "condition": "Решите уравнение: 2x + 7 = 4x + 10",
@@ -255,6 +257,7 @@
         "1": 250
       },
       "max_visible_integer_literal": 84,
+      "finite_parameter_domain_size": null,
       "examples": [
         {
           "condition": "Решите уравнение: 4(x + 2) = 8",
@@ -350,6 +353,7 @@
         "1": 250
       },
       "max_visible_integer_literal": 34,
+      "finite_parameter_domain_size": null,
       "examples": [
         {
           "condition": "Решите уравнение: -2 - 3(2x - 3) = 11 - 4x",
@@ -445,6 +449,7 @@
         "2": 250
       },
       "max_visible_integer_literal": 50,
+      "finite_parameter_domain_size": null,
       "examples": [
         {
           "condition": "Решите уравнение: -x + 1 + 4(x - 4) = 3(-3 - x) - 15",
@@ -540,6 +545,7 @@
         "0": 250
       },
       "max_visible_integer_literal": 132,
+      "finite_parameter_domain_size": null,
       "examples": [
         {
           "condition": "Найдите больший корень уравнения x² - 16x + 63 = 0",
@@ -643,6 +649,7 @@
         "0": 250
       },
       "max_visible_integer_literal": 112,
+      "finite_parameter_domain_size": null,
       "examples": [
         {
           "condition": "Найдите меньший корень уравнения 2x² + 6x + 4 = 0",
@@ -749,6 +756,7 @@
         "1": 134
       },
       "max_visible_integer_literal": 196,
+      "finite_parameter_domain_size": 212,
       "examples": [
         {
           "condition": "Найдите меньший корень уравнения x² - 1 = 0",

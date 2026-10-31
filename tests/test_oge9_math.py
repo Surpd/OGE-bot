@@ -1,10 +1,12 @@
 from fractions import Fraction
+from itertools import groupby
 
 import pytest
 
 from app.math.equations import (
     ENABLED_FAMILIES,
     generate_equation,
+    k6_parameter_domain,
     solve_rendered_equation,
     validate_rendered_problem,
 )
@@ -102,13 +104,37 @@ def test_degenerate_and_unapproved_historical_types_stay_disabled() -> None:
         solve_rendered_equation("x² + 1 = 0")
 
 
-def test_task9_family_deck_balances_groups_and_avoids_adjacent_same_group() -> None:
+def test_task9_schedule_balances_groups_without_strict_alternation_or_long_runs() -> None:
     for seed in range(100):
         deck = _deck(seed)
         linear = [family for family in deck if family.startswith("OGE09-L")]
         quadratic = [family for family in deck if family.startswith("OGE09-K")]
         assert len(linear) == len(quadratic) == 4
-        assert all(
-            deck[index].split("-")[1][0] != deck[index + 1].split("-")[1][0]
-            for index in range(len(deck) - 1)
-        )
+        groups = ["linear" if family.startswith("OGE09-L") else "quadratic" for family in deck]
+        assert any(left == right for left, right in zip(groups, groups[1:], strict=False))
+        assert max(len(list(run)) for _, run in groupby(groups)) <= 3
+        assert all(left != right for left, right in zip(deck, deck[1:], strict=False))
+
+
+def test_task9_schedule_respects_saved_group_run_at_deck_boundary() -> None:
+    for seed in range(100):
+        deck = _deck(seed, last_group="linear", group_run_length=2)
+        groups = ["linear" if family.startswith("OGE09-L") else "quadratic" for family in deck]
+        whole = ["linear", "linear", *groups]
+        run_length = 0
+        previous = None
+        for group in whole:
+            run_length = run_length + 1 if group == previous else 1
+            previous = group
+            assert run_length <= 3
+
+
+def test_k6_exact_fingerprint_domain_is_limited_but_exceeds_acceptance_floor() -> None:
+    domain = k6_parameter_domain()
+    assert len(set(domain)) == 212
+    assert len(domain) >= len(set(domain))
+    for value, coefficient in domain:
+        constant = coefficient * value * value
+        assert value in range(1, 13)
+        assert coefficient > 0
+        assert constant.denominator == 1 and constant <= 196

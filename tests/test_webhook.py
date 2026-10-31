@@ -265,9 +265,12 @@ async def test_start_registers_user_and_returns_main_menu() -> None:
 
 @pytest.mark.asyncio
 async def test_training_menu_button_returns_safe_placeholder() -> None:
+    repository = MemoryRepository()
     message = AsyncMock()
-    await menu_section(message)
+    message.from_user = User(id=12348, is_bot=False, first_name="Student")
+    await menu_section(message, repository)
     assert "не включён" in message.answer.await_args.args[0]
+    assert await repository.user_state(12348) == "main_menu"
 
 
 @pytest.mark.asyncio
