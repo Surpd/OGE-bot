@@ -40,6 +40,19 @@ def create_app(
             if not settings.telegram_bot_token:
                 raise RuntimeError("TELEGRAM_BOT_TOKEN is required")
             telegram_bot = Bot(settings.telegram_bot_token)
+        if settings.app_env == "production":
+            if not settings.telegram_webhook_secret:
+                raise RuntimeError("TELEGRAM_WEBHOOK_SECRET is required in production")
+            if not settings.webhook_base_url or not settings.webhook_base_url.startswith(
+                "https://"
+            ):
+                raise RuntimeError("WEBHOOK_BASE_URL must be an HTTPS origin in production")
+        if settings.webhook_base_url and settings.telegram_webhook_secret:
+            await telegram_bot.set_webhook(
+                url=f"{settings.webhook_base_url.rstrip('/')}/telegram/webhook",
+                secret_token=settings.telegram_webhook_secret,
+                drop_pending_updates=False,
+            )
         dispatcher = Dispatcher()
         dispatcher.include_router(build_router())
         application.state.repository = repo

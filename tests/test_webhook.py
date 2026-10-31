@@ -146,6 +146,24 @@ async def test_continue_button_handles_missing_session() -> None:
     assert "нет незавершённой тренировки" in message.answer.await_args.args[0]
 
 
+def test_production_startup_registers_the_webhook(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", "test-webhook-secret")
+    monkeypatch.setenv("WEBHOOK_BASE_URL", "https://oge-trainer.example.onrender.com/")
+    get_settings.cache_clear()
+    set_webhook = AsyncMock(return_value=True)
+    monkeypatch.setattr(Bot, "set_webhook", set_webhook)
+    app = create_app(repository=MemoryRepository(), bot=Bot(token="123456:TEST_TOKEN"))
+    with TestClient(app):
+        pass
+    set_webhook.assert_awaited_once_with(
+        url="https://oge-trainer.example.onrender.com/telegram/webhook",
+        secret_token="test-webhook-secret",
+        drop_pending_updates=False,
+    )
+    get_settings.cache_clear()
+
+
 def test_main_menu_contains_the_product_sections() -> None:
     markup = main_menu()
     labels = {button.text for row in markup.keyboard for button in row}
