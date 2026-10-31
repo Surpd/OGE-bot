@@ -35,7 +35,9 @@ def _message(user_id: int, text: str) -> AsyncMock:
 def _reply(repository: MemoryRepository, user_id: int, text: str) -> AsyncMock:
     message = _message(user_id, text)
     state = repository.training9[user_id]["state"]
-    message.reply_to_message = SimpleNamespace(message_id=state["input_prompt_message_id"])
+    message.reply_to_message = SimpleNamespace(
+        message_id=state.get("problem_prompt_message_id", state["input_prompt_message_id"])
+    )
     return message
 
 

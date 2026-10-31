@@ -22,6 +22,16 @@ def _user_id(message: Message) -> int | None:
     return message.from_user.id if message.from_user is not None else None
 
 
+async def _disable_stale_keyboard(message: Message, saved: bool) -> None:
+    if not saved:
+        await message.edit_reply_markup(reply_markup=None)
+
+
+def _solution_display_status(revealed: dict[str, object] | None) -> str:
+    status = revealed.get("status") if revealed is not None else None
+    return "solution_viewed" if status == "active" else str(status or "")
+
+
 def _has_resumable_task6(state: dict[str, object] | None) -> bool:
     if state is None or not isinstance(state.get("problem"), dict):
         return False
@@ -112,7 +122,7 @@ async def _send_problem(
     )
     prompt_message_id = getattr(sent, "message_id", None)
     if type(prompt_message_id) is int:
-        await repository.set_task6_prompt_message(
+        await repository.set_task6_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_message_id
         )
     return True
@@ -221,7 +231,7 @@ async def _send_task9_problem(
                 )
                 prompt_id = getattr(sent, "message_id", None)
                 if type(prompt_id) is int:
-                    await repository.set_task9_prompt_message(
+                    await repository.set_task9_condition_message(
                         user_id, str(saved_problem["problem_id"]), prompt_id
                     )
                 return True
@@ -257,7 +267,7 @@ async def _send_task9_problem(
     )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await repository.set_task9_prompt_message(
+        await repository.set_task9_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_id
         )
     return True
@@ -356,7 +366,13 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task6_prompt_message(user_id, expected_problem_id, result_id)
+            saved = await repository.set_task6_prompt_message(
+                user_id,
+                expected_problem_id,
+                result_id,
+                expected_status=_solution_display_status(revealed),
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await callback.answer()
         return
@@ -408,7 +424,13 @@ async def task6_solution(message: Message, repository: Repository) -> None:
     )
     result_id = getattr(sent, "message_id", None)
     if type(result_id) is int and user_id is not None:
-        await repository.set_task6_prompt_message(user_id, problem_id, result_id)
+        saved = await repository.set_task6_prompt_message(
+            user_id,
+            problem_id,
+            result_id,
+            expected_status=_solution_display_status(revealed),
+        )
+        await _disable_stale_keyboard(sent, saved)
 
 
 async def task6_answer(message: Message, repository: Repository) -> None:
@@ -424,7 +446,9 @@ async def task6_answer(message: Message, repository: Repository) -> None:
     if session_state.get("status") != "active":
         await message.answer("Это задание уже завершено. Нажмите «➡ Следующее».")
         return
-    prompt_message_id = session_state.get("input_prompt_message_id")
+    prompt_message_id = session_state.get(
+        "problem_prompt_message_id", session_state.get("input_prompt_message_id")
+    )
     replied_to = getattr(message.reply_to_message, "message_id", None)
     if type(prompt_message_id) is not int or (
         replied_to is not None and replied_to != prompt_message_id
@@ -466,7 +490,10 @@ async def task6_answer(message: Message, repository: Repository) -> None:
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task6_prompt_message(user_id, expected_problem_id, result_id)
+            saved = await repository.set_task6_prompt_message(
+                user_id, expected_problem_id, result_id, expected_status="solved"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome["status"] == "active":
         sent = await message.answer(
             "Пока неверно. Попробуйте ещё раз.",
@@ -474,7 +501,10 @@ async def task6_answer(message: Message, repository: Repository) -> None:
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task6_prompt_message(user_id, expected_problem_id, result_id)
+            saved = await repository.set_task6_prompt_message(
+                user_id, expected_problem_id, result_id, expected_status="active"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome["status"] == "failed":
         saved_problem = cast(dict[str, object], outcome["problem"])
         solution = saved_problem.get("solution", [])
@@ -486,7 +516,10 @@ async def task6_answer(message: Message, repository: Repository) -> None:
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task6_prompt_message(user_id, expected_problem_id, result_id)
+            saved = await repository.set_task6_prompt_message(
+                user_id, expected_problem_id, result_id, expected_status="failed"
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await message.answer("Ответ по этому заданию уже обработан. Нажмите «➡ Следующее».")
 
@@ -564,7 +597,13 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task9_prompt_message(user_id, expected_problem_id, result_id)
+            saved = await repository.set_task9_prompt_message(
+                user_id,
+                expected_problem_id,
+                result_id,
+                expected_status=_solution_display_status(revealed),
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await callback.answer()
         return
@@ -585,7 +624,9 @@ async def task9_answer(message: Message, repository: Repository) -> None:
     if session_state.get("status") != "active":
         await message.answer("Задание завершено. Нажмите «➡ Следующее».")
         return
-    prompt_id = session_state.get("input_prompt_message_id")
+    prompt_id = session_state.get(
+        "problem_prompt_message_id", session_state.get("input_prompt_message_id")
+    )
     replied_to = getattr(message.reply_to_message, "message_id", None)
     if type(prompt_id) is not int or (replied_to is not None and replied_to != prompt_id):
         await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
@@ -620,14 +661,20 @@ async def task9_answer(message: Message, repository: Repository) -> None:
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task9_prompt_message(user_id, problem_id, result_id)
+            saved = await repository.set_task9_prompt_message(
+                user_id, problem_id, result_id, expected_status="solved"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome.get("status") == "active":
         sent = await message.answer(
             "Пока неверно. Попробуйте ещё раз.", reply_markup=task9_menu(problem_id)
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task9_prompt_message(user_id, problem_id, result_id)
+            saved = await repository.set_task9_prompt_message(
+                user_id, problem_id, result_id, expected_status="active"
+            )
+            await _disable_stale_keyboard(sent, saved)
     elif outcome.get("status") == "failed":
         snapshot = cast(dict[str, object], outcome["problem"])
         solution = snapshot.get("solution", [])
@@ -641,7 +688,10 @@ async def task9_answer(message: Message, repository: Repository) -> None:
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
-            await repository.set_task9_prompt_message(user_id, problem_id, result_id)
+            saved = await repository.set_task9_prompt_message(
+                user_id, problem_id, result_id, expected_status="failed"
+            )
+            await _disable_stale_keyboard(sent, saved)
     else:
         await message.answer("Ответ уже обработан. Нажмите «➡ Следующее».")
 
@@ -702,6 +752,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
     user_id = _user_id(message)
     if user_id is None:
         return
+    await repository.save_user_state(user_id, "progress")
     progress6 = await repository.task6_progress(user_id)
     progress9 = await repository.task9_progress(user_id)
     state6 = await repository.task6_state(user_id)

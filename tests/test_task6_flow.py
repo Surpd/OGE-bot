@@ -40,7 +40,9 @@ def _message(user_id: int, text: str) -> AsyncMock:
 def _answer(repository: MemoryRepository, user_id: int, text: str) -> AsyncMock:
     message = _message(user_id, text)
     state = repository.training[user_id]["state"]
-    message.reply_to_message = SimpleNamespace(message_id=state["input_prompt_message_id"])
+    message.reply_to_message = SimpleNamespace(
+        message_id=state.get("problem_prompt_message_id", state["input_prompt_message_id"])
+    )
     return message
 
 
@@ -344,6 +346,20 @@ async def test_empty_progress_uses_zero_accuracy_without_division_error() -> Non
     assert "№6 · выдано 0 · отвечал 0" in text
     assert "№9 · выдано 0 · отвечал 0" in text
     assert text.count("правильно 0%") == 2
+
+
+@pytest.mark.asyncio
+async def test_progress_details_switches_screen_before_arbitrary_text() -> None:
+    repository = MemoryRepository()
+    await choose_task6(_message(771, "№6 · Вычисления"), repository)
+
+    await show_progress_details(_message(771, "📊 Подробнее"), repository)
+    assert await repository.user_state(771) == "progress"
+
+    random_text = _message(771, "случайный текст")
+    await unknown_message(random_text, repository)
+    assert (await repository.task6_progress(771))["attempts"] == 0
+    assert repository.training[771]["state"]["attempts"] == 0
 
 
 @pytest.mark.asyncio
