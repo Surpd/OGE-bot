@@ -13,7 +13,7 @@
   "families": [
     {
       "family_id": "OGE09-L1",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "338606",
         "338658"
@@ -110,7 +110,7 @@
     },
     {
       "family_id": "OGE09-L2",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "338488",
         "338557"
@@ -207,7 +207,7 @@
     },
     {
       "family_id": "OGE09-L3",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "338509"
       ],
@@ -302,7 +302,7 @@
     },
     {
       "family_id": "OGE09-L4",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "85",
         "338495"
@@ -399,7 +399,7 @@
     },
     {
       "family_id": "OGE09-K2",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "357568"
       ],
@@ -500,7 +500,7 @@
     },
     {
       "family_id": "OGE09-K3",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "357133",
         "357135"
@@ -607,7 +607,7 @@
     },
     {
       "family_id": "OGE09-K6",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "357173"
       ],

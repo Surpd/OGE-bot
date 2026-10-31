@@ -43,15 +43,15 @@
         "https://oge.sdamgia.ru/problem?id=338658"
       ],
       "format": "single_numeric_root",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-L1",
       "notes": "Единственный корень; источники — каталожные прототипы, не оценка частоты.",
       "construction_description": "Уравнение ax+b=c с одним линейным членом слева.",
       "characteristic_ranges": "Образец 338606: |a|=2, |b|=2, |c|=3; генератор использует a=1..40, b=-15..15, x целый либо ±0,5/±1,5.",
       "manual_difficulty": "Низкая; 1 перенос и 1 деление.",
       "answer_policy": "single_numeric_root; точный целый/конечная десятичная до 2 знаков.",
       "difference_from_neighbors": "От L2 отличается отсутствием x справа.",
-      "status_reason": "Единственный корень; источники — каталожные прототипы, не оценка частоты.",
+      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
@@ -67,15 +67,15 @@
         "https://oge.sdamgia.ru/problem?id=338557"
       ],
       "format": "single_numeric_root",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-L2",
       "notes": "Требовать ненулевой итоговый коэффициент при x.",
       "construction_description": "Уравнение ax+b=cx+d, x виден по обе стороны.",
       "characteristic_ranges": "Образец 338488: a=10, b=9, c=7, d=0; генератор: коэффициенты по модулю обычно ≤60, свободный член |b|≤15.",
       "manual_difficulty": "Низкая/средняя; собрать x и константы по сторонам.",
       "answer_policy": "single_numeric_root; точный целый/конечная десятичная до 2 знаков.",
       "difference_from_neighbors": "Не допускается равенство итоговых коэффициентов при x (тождество/противоречие).",
-      "status_reason": "Требовать ненулевой итоговый коэффициент при x.",
+      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
@@ -89,15 +89,15 @@
         "https://oge.sdamgia.ru/problem?id=338509"
       ],
       "format": "single_numeric_root",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-L3",
       "notes": "Сохранять скобки и умножение в display AST.",
       "construction_description": "Равенство a(x+h)=c, одна явно видимая скобка и числовая правая часть.",
       "characteristic_ranges": "Образец 338509: 10(x−9)=7; генератор: |a|≤8, |h|≤12, |c|≤60.",
       "manual_difficulty": "Низкая; раскрыть скобки и разделить.",
       "answer_policy": "single_numeric_root; точное число до 2 десятичных знаков.",
       "difference_from_neighbors": "От L1 отличается единственной группой, умноженной на коэффициент.",
-      "status_reason": "Сохранять скобки и умножение в display AST.",
+      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
@@ -113,15 +113,15 @@
         "https://oge.sdamgia.ru/problem?id=338495"
       ],
       "format": "single_numeric_root",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-L4",
       "notes": "Не допускать визуального схлопывания в L1/L2.",
       "construction_description": "Слева и справа группы линейных выражений со скобками; требуется раскрыть скобки и привести подобные.",
       "characteristic_ranges": "Образец 338495/пример 2−3(2x+2)=5−4x: коэффициенты и сдвиги однозначно малые целые; генераторные видимые числа и итоговые коэффициенты ≤500.",
       "manual_difficulty": "Средняя; раскрыть две группы, собрать подобные и решить линейное уравнение.",
       "answer_policy": "single_numeric_root; точное число до 2 десятичных знаков.",
       "difference_from_neighbors": "От L3 отличается наличием групп на обеих сторонах и приведением подобных.",
-      "status_reason": "Не допускать визуального схлопывания в L1/L2.",
+      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
@@ -227,15 +227,15 @@
         "https://oge.sdamgia.ru/problem?id=357568"
       ],
       "format": "greater_real_root_numeric",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-K2",
       "notes": "Прототип №357568 явно просит больший корень; ответ остаётся одним числом. Клон #338814 и типы с ответом-последовательностью сюда не переносятся.",
       "construction_description": "Приведённое полное квадратное x²+bx+c=0 с двумя целыми корнями; требуется больший.",
       "characteristic_ranges": "№357568: x²+x−12=0, корни −4 и 3; генераторные корни целые из [-12,12], ноль и противоположная пара исключены.",
       "manual_difficulty": "Низкая/средняя; разложение на множители/теорема Виета.",
       "answer_policy": "greater_real_root_numeric, один точный числовой корень.",
       "difference_from_neighbors": "От K3 отличается коэффициентом при x², равным 1.",
-      "status_reason": "Прототип №357568 явно просит больший корень; ответ остаётся одним числом. Клон #338814 и типы с ответом-последовательностью сюда не переносятся.",
+      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
@@ -251,15 +251,15 @@
         "https://oge.sdamgia.ru/problem?id=357135"
       ],
       "format": "lesser_real_root_numeric",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-K3",
       "notes": "Оба указанных прототипа явно просят меньший корень; #357134 с большим корнем намеренно не включён в эту политику.",
       "construction_description": "Неприведённое полное квадратное ax²+bx+c=0, два рациональных корня; требуется меньший.",
       "characteristic_ranges": "№357133: 2x²−3x+1=0, корни 0,5 и 1; №357135: корни −3,5 и 1. Генератор использует целые и половинные корни в пределах ±12, |коэффициенты|≤500.",
       "manual_difficulty": "Средняя; дискриминант/разложение, сравнение корней.",
       "answer_policy": "lesser_real_root_numeric, точный целый или конечный десятичный до 1 знака.",
       "difference_from_neighbors": "От K2 отличается неединичным коэффициентом при x²; политика фиксирована на меньший корень.",
-      "status_reason": "Оба указанных прототипа явно просят меньший корень; #357134 с большим корнем намеренно не включён в эту политику.",
+      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
@@ -319,15 +319,15 @@
         "https://oge.sdamgia.ru/problem?id=357173"
       ],
       "format": "lesser_real_root_numeric",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-K6",
       "notes": "№357173 — ОГЭ 06.06.2024, просит меньший корень. №338864 требует сцепленную последовательность обоих корней и здесь намеренно не используется.",
       "construction_description": "Неполное квадратное ax²−c=0 без линейного члена; симметричные ненулевые корни.",
       "characteristic_ranges": "№357173 (ОГЭ 06.06.2024): x²−64=0, корни −8 и 8; генератор дополнительно использует простые рациональные ведущие коэффициенты и малые квадратные значения.",
       "manual_difficulty": "Низкая; извлечь квадратный корень с двумя знаками ±.",
       "answer_policy": "lesser_real_root_numeric, точный целый ответ.",
       "difference_from_neighbors": "От K1 отличается отсутствием x; образец №338864 исключён из подтверждений, так как просит оба корня строкой.",
-      "status_reason": "№357173 — ОГЭ 06.06.2024, просит меньший корень. №338864 требует сцепленную последовательность обоих корней и здесь намеренно не используется.",
+      "status_reason": "Passed 250-sample family report, exact rendered oracle, 200-unique acceptance within 1200 attempts, local regression suite, and GitHub CI including PostgreSQL 17 integration tests.",
       "source_type": "FIPI-bank mirror/catalog"
     }
   ],
