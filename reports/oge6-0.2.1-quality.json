@@ -1,0 +1,1050 @@
+{
+  "report_version": 2,
+  "run_level": "main",
+  "generator_version": "0.2.1",
+  "sample_count_per_family": 250,
+  "acceptance_attempt_limit": 1200,
+  "acceptance_unique_target": 200,
+  "prototype_registry": "atlas/oge6_reference_structures.json",
+  "catalog_weight_basis": "unique prototypes of enabled families; preliminary, not exam population frequency",
+  "family_reports": [
+    {
+      "family_id": "OGE06-F001-ADD",
+      "reference_structure_id": "oge6.fraction.add.two_terms",
+      "source_ids": [
+        "314264"
+      ],
+      "source_weight": 1,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 247,
+      "unique_fingerprints": 247,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "add(fraction,fraction)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "add(fraction,fraction)",
+      "operations": {
+        "+": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "2": 250
+      },
+      "fraction_denominator_histogram": {
+        "2": 12,
+        "4": 28,
+        "5": 39,
+        "8": 4,
+        "10": 58,
+        "20": 67,
+        "25": 156,
+        "40": 12,
+        "50": 73,
+        "100": 51
+      },
+      "decimal_operand_places_histogram": {},
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_1_places": 32,
+        "decimal_2_places": 216,
+        "integer": 2
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "101/100",
+      "absolute_answer_max": "399/100",
+      "manual_limits": {
+        "max_intermediate_numerator": 400,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 100,
+        "max_integer_factor": 125,
+        "max_estimated_steps": 5
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 399,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 100,
+        "max_integer_factor": 100,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 0,
+        "estimated_manual_steps": 2
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 247,
+      "acceptance_attempts_used": 250,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Вычислите: 3/10 + 37/20",
+          "answer": "2,15",
+          "seed": 0
+        },
+        {
+          "condition": "Вычислите: 13/50 + 41/25",
+          "answer": "1,9",
+          "seed": 1
+        },
+        {
+          "condition": "Вычислите: 11/50 + 3/2",
+          "answer": "1,72",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F001-SUB",
+      "reference_structure_id": "oge6.fraction.subtract.two_terms",
+      "source_ids": [
+        "314265"
+      ],
+      "source_weight": 1,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 164,
+      "unique_fingerprints": 164,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "subtract(fraction,fraction)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "subtract(fraction,fraction)",
+      "operations": {
+        "-": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "2": 250
+      },
+      "fraction_denominator_histogram": {
+        "2": 33,
+        "4": 34,
+        "5": 101,
+        "10": 78,
+        "20": 44,
+        "25": 109,
+        "50": 71,
+        "100": 30
+      },
+      "decimal_operand_places_histogram": {},
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_1_places": 250
+      },
+      "negative_answers": 250,
+      "zero_answers": 0,
+      "absolute_answer_min": "1/10",
+      "absolute_answer_max": "1/2",
+      "manual_limits": {
+        "max_intermediate_numerator": 400,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 100,
+        "max_integer_factor": 125,
+        "max_estimated_steps": 5
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 111,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 100,
+        "max_integer_factor": 111,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 0,
+        "estimated_manual_steps": 2
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts_used": 326,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Вычислите: 5/4 - 27/20",
+          "answer": "-0,1",
+          "seed": 0
+        },
+        {
+          "condition": "Вычислите: 6/5 - 7/5",
+          "answer": "-0,2",
+          "seed": 1
+        },
+        {
+          "condition": "Вычислите: 41/100 - 51/100",
+          "answer": "-0,1",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F002-MUL",
+      "reference_structure_id": "oge6.fraction.multiply.two_terms",
+      "source_ids": [
+        "383596"
+      ],
+      "source_weight": 1,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 158,
+      "unique_fingerprints": 158,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "multiply(fraction,fraction)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "multiply(fraction,fraction)",
+      "operations": {
+        "*": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "2": 250
+      },
+      "fraction_denominator_histogram": {
+        "2": 81,
+        "3": 51,
+        "4": 105,
+        "5": 120,
+        "8": 25,
+        "10": 11,
+        "15": 59,
+        "20": 15,
+        "25": 33
+      },
+      "decimal_operand_places_histogram": {},
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_1_places": 250
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "1/10",
+      "absolute_answer_max": "49/10",
+      "manual_limits": {
+        "max_intermediate_numerator": 250,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 1,
+        "max_integer_factor": 100,
+        "max_estimated_steps": 5
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 99,
+        "max_intermediate_denominator": 25,
+        "max_common_denominator": 1,
+        "max_integer_factor": 99,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 2,
+        "estimated_manual_steps": 4
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts_used": 371,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: 14/25 · 5/4",
+          "answer": "0,7",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: 36/5 · 2/3",
+          "answer": "4,8",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: 63/10 · 2/3",
+          "answer": "4,2",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F002-DIV",
+      "reference_structure_id": "oge6.fraction.divide.two_terms",
+      "source_ids": [
+        "350101"
+      ],
+      "source_weight": 1,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 237,
+      "unique_fingerprints": 237,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "divide(group(fraction),group(fraction))": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "divide(group(fraction),group(fraction))",
+      "operations": {
+        "/": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "2": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "4": 250
+      },
+      "fraction_denominator_histogram": {
+        "2": 57,
+        "3": 63,
+        "4": 43,
+        "5": 30,
+        "6": 41,
+        "8": 28,
+        "10": 18,
+        "12": 14,
+        "15": 24,
+        "16": 9,
+        "20": 24,
+        "24": 8,
+        "25": 55,
+        "30": 14,
+        "32": 4,
+        "40": 31,
+        "48": 3,
+        "50": 34
+      },
+      "decimal_operand_places_histogram": {},
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_2_places": 250
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "3/25",
+      "absolute_answer_max": "99/50",
+      "manual_limits": {
+        "max_intermediate_numerator": 3000,
+        "max_intermediate_denominator": 1000,
+        "max_common_denominator": 1,
+        "max_integer_factor": 100,
+        "max_estimated_steps": 6
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 189,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 1,
+        "max_integer_factor": 99,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 2,
+        "estimated_manual_steps": 4
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 237,
+      "acceptance_attempts_used": 250,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: (24/25) : (3/4)",
+          "answer": "1,28",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: (35/24) : (7/6)",
+          "answer": "1,25",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: (31/16) : (5/4)",
+          "answer": "1,55",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F004-DEC-ADD",
+      "reference_structure_id": "oge6.decimal.add.two_terms",
+      "source_ids": [
+        "316784",
+        "355404"
+      ],
+      "source_weight": 2,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 239,
+      "unique_fingerprints": 239,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "add(decimal,decimal)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "add(decimal,decimal)",
+      "operations": {
+        "+": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "1": 250
+      },
+      "fraction_denominator_histogram": {},
+      "decimal_operand_places_histogram": {
+        "1": 500
+      },
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_1_places": 250
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "67/10",
+      "absolute_answer_max": "171/10",
+      "manual_limits": {
+        "max_intermediate_numerator": 171,
+        "max_intermediate_denominator": 10,
+        "max_common_denominator": 10,
+        "max_integer_factor": 100,
+        "max_estimated_steps": 3
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 171,
+        "max_intermediate_denominator": 10,
+        "max_common_denominator": 10,
+        "max_integer_factor": 93,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 0,
+        "estimated_manual_steps": 2
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 239,
+      "acceptance_attempts_used": 250,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: 5,9 + 3,5",
+          "answer": "9,4",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: 4,7 + 8,1",
+          "answer": "12,8",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: 3,8 + 3,5",
+          "answer": "7,3",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F004-DEC-SUB",
+      "reference_structure_id": "oge6.decimal.subtract.two_terms",
+      "source_ids": [
+        "369727",
+        "369795",
+        "369824",
+        "369853",
+        "384399"
+      ],
+      "source_weight": 5,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 237,
+      "unique_fingerprints": 237,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "subtract(decimal,decimal)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "subtract(decimal,decimal)",
+      "operations": {
+        "-": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "1": 250
+      },
+      "fraction_denominator_histogram": {},
+      "decimal_operand_places_histogram": {
+        "1": 500
+      },
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_1_places": 250
+      },
+      "negative_answers": 206,
+      "zero_answers": 0,
+      "absolute_answer_min": "1/5",
+      "absolute_answer_max": "9/2",
+      "manual_limits": {
+        "max_intermediate_numerator": 450,
+        "max_intermediate_denominator": 10,
+        "max_common_denominator": 10,
+        "max_integer_factor": 100,
+        "max_estimated_steps": 3
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 93,
+        "max_intermediate_denominator": 10,
+        "max_common_denominator": 10,
+        "max_integer_factor": 94,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 0,
+        "estimated_manual_steps": 2
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 237,
+      "acceptance_attempts_used": 250,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: 6,2 - 7,1",
+          "answer": "-0,9",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: 2,7 - 6,6",
+          "answer": "-3,9",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: 5,9 - 9,3",
+          "answer": "-3,4",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F004-DEC-MUL",
+      "reference_structure_id": "oge6.decimal.multiply.two_terms",
+      "source_ids": [
+        "349924",
+        "350570",
+        "461940"
+      ],
+      "source_weight": 3,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 228,
+      "unique_fingerprints": 228,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "multiply(decimal,decimal)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "multiply(decimal,decimal)",
+      "operations": {
+        "*": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "1": 250
+      },
+      "fraction_denominator_histogram": {},
+      "decimal_operand_places_histogram": {
+        "1": 500
+      },
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_2_places": 250
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "33/4",
+      "absolute_answer_max": "504/25",
+      "manual_limits": {
+        "max_intermediate_numerator": 2016,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 1,
+        "max_integer_factor": 100,
+        "max_estimated_steps": 4
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 2013,
+        "max_intermediate_denominator": 100,
+        "max_common_denominator": 1,
+        "max_integer_factor": 96,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 1,
+        "estimated_manual_steps": 3
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 228,
+      "acceptance_attempts_used": 250,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: 1,6 · 8,6",
+          "answer": "13,76",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: 2,1 · 7,5",
+          "answer": "15,75",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: 3,5 · 4,7",
+          "answer": "16,45",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F006-MIXED-MINUS-DECIMAL",
+      "reference_structure_id": "oge6.mixed_number.subtract.decimal",
+      "source_ids": [
+        "448832"
+      ],
+      "source_weight": 1,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 180,
+      "unique_fingerprints": 180,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "subtract(mixed_number,decimal)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "subtract(mixed_number,decimal)",
+      "operations": {
+        "-": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "1": 250
+      },
+      "fraction_denominator_histogram": {
+        "2": 250
+      },
+      "decimal_operand_places_histogram": {
+        "1": 250
+      },
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "single_number",
+      "answer_class_histogram": {
+        "decimal_1_places": 250
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "1/5",
+      "absolute_answer_max": "39/5",
+      "manual_limits": {
+        "max_intermediate_numerator": 155,
+        "max_intermediate_denominator": 10,
+        "max_common_denominator": 10,
+        "max_integer_factor": 160,
+        "max_estimated_steps": 5
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 151,
+        "max_intermediate_denominator": 10,
+        "max_common_denominator": 10,
+        "max_integer_factor": 151,
+        "arithmetic_actions": 1,
+        "transformation_count": 2,
+        "cancellation_count": 0,
+        "estimated_manual_steps": 3
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 200,
+      "acceptance_attempts_used": 298,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: 4 1/2 - 0,7",
+          "answer": "3,8",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: 11 1/2 - 9,3",
+          "answer": "2,2",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: 11 1/2 - 5,7",
+          "answer": "5,8",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F008-REDUCED-NUMERATOR",
+      "reference_structure_id": "oge6.fraction.subtract.then_reduced_numerator",
+      "source_ids": [
+        "439897"
+      ],
+      "source_weight": 1,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 210,
+      "unique_fingerprints": 210,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "subtract(fraction,fraction)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "subtract(fraction,fraction)",
+      "operations": {
+        "-": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "2": 250
+      },
+      "fraction_denominator_histogram": {
+        "2": 37,
+        "3": 62,
+        "4": 39,
+        "5": 55,
+        "6": 56,
+        "7": 53,
+        "8": 49,
+        "10": 55,
+        "12": 50,
+        "14": 44
+      },
+      "decimal_operand_places_histogram": {},
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "numerator_of_reduced_fraction",
+      "answer_class_histogram": {
+        "integer": 250
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "1",
+      "absolute_answer_max": "19",
+      "manual_limits": {
+        "max_intermediate_numerator": 196,
+        "max_intermediate_denominator": 196,
+        "max_common_denominator": 196,
+        "max_integer_factor": 14,
+        "max_estimated_steps": 6
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 19,
+        "max_intermediate_denominator": 84,
+        "max_common_denominator": 84,
+        "max_integer_factor": 14,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 0,
+        "estimated_manual_steps": 2
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 210,
+      "acceptance_attempts_used": 250,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: 1/2 - 1/10. Представьте результат в виде несократимой обыкновенной дроби. В ответ запишите числитель этой дроби",
+          "answer": "2",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: 1/4 - 1/7. Представьте результат в виде несократимой обыкновенной дроби. В ответ запишите числитель этой дроби",
+          "answer": "3",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: 4/5 - 4/12. Представьте результат в виде несократимой обыкновенной дроби. В ответ запишите числитель этой дроби",
+          "answer": "7",
+          "seed": 2
+        }
+      ]
+    },
+    {
+      "family_id": "OGE06-F009-PRESCRIBED-NUMERATOR",
+      "reference_structure_id": "oge6.fraction.convert_to_prescribed_denominator_numerator",
+      "source_ids": [
+        "450504"
+      ],
+      "source_weight": 1,
+      "sample_count": 250,
+      "valid_sample_count": 250,
+      "rejected_count": 0,
+      "rejection_reasons": {},
+      "unique_rendered_conditions": 223,
+      "unique_fingerprints": 223,
+      "unique_problem_ids": 250,
+      "unique_ast_structures": 1,
+      "ast_structure_histogram": {
+        "subtract(fraction,fraction)": 250
+      },
+      "reference_structure_match": true,
+      "expected_structure": "subtract(fraction,fraction)",
+      "operations": {
+        "-": 250
+      },
+      "action_count_histogram": {
+        "1": 250
+      },
+      "group_count_histogram": {
+        "0": 250
+      },
+      "calculation_complexity_index_histogram": {
+        "2": 250
+      },
+      "fraction_denominator_histogram": {
+        "4": 92,
+        "5": 68,
+        "6": 82,
+        "7": 45,
+        "8": 47,
+        "9": 35,
+        "10": 48,
+        "12": 46,
+        "14": 37
+      },
+      "decimal_operand_places_histogram": {},
+      "operand_signs": {
+        "negative": 0,
+        "zero": 0,
+        "nonnegative": 500
+      },
+      "answer_format": "numerator_with_prescribed_denominator",
+      "answer_class_histogram": {
+        "integer": 250
+      },
+      "negative_answers": 0,
+      "zero_answers": 0,
+      "absolute_answer_min": "2",
+      "absolute_answer_max": "40",
+      "manual_limits": {
+        "max_intermediate_numerator": 140,
+        "max_intermediate_denominator": 140,
+        "max_common_denominator": 140,
+        "max_integer_factor": 140,
+        "max_estimated_steps": 6
+      },
+      "manual_diagnostics_maxima": {
+        "max_intermediate_numerator": 19,
+        "max_intermediate_denominator": 45,
+        "max_common_denominator": 45,
+        "max_integer_factor": 14,
+        "arithmetic_actions": 1,
+        "transformation_count": 1,
+        "cancellation_count": 0,
+        "estimated_manual_steps": 2
+      },
+      "acceptance_unique_target": 200,
+      "acceptance_attempt_limit": 1200,
+      "acceptance_unique_count": 223,
+      "acceptance_attempts_used": 250,
+      "acceptance_gate_passed": true,
+      "examples": [
+        {
+          "condition": "Найдите значение выражения: 4/5 - 3/6. Запишите выражение в виде дроби со знаменателем 60. В ответ запишите числитель полученной дроби",
+          "answer": "18",
+          "seed": 0
+        },
+        {
+          "condition": "Найдите значение выражения: 8/9 - 4/9. Запишите выражение в виде дроби со знаменателем 18. В ответ запишите числитель полученной дроби",
+          "answer": "8",
+          "seed": 1
+        },
+        {
+          "condition": "Найдите значение выражения: 4/6 - 1/12. Запишите выражение в виде дроби со знаменателем 36. В ответ запишите числитель полученной дроби",
+          "answer": "21",
+          "seed": 2
+        }
+      ]
+    }
+  ],
+  "weighted_random_draws": {
+    "count": 2500,
+    "family_distribution": {
+      "OGE06-F001-ADD": 153,
+      "OGE06-F001-SUB": 143,
+      "OGE06-F002-DIV": 129,
+      "OGE06-F002-MUL": 165,
+      "OGE06-F004-DEC-ADD": 293,
+      "OGE06-F004-DEC-MUL": 430,
+      "OGE06-F004-DEC-SUB": 753,
+      "OGE06-F006-MIXED-MINUS-DECIMAL": 146,
+      "OGE06-F008-REDUCED-NUMERATOR": 130,
+      "OGE06-F009-PRESCRIBED-NUMERATOR": 158
+    },
+    "answer_class_distribution": {
+      "decimal_1_places": 1524,
+      "decimal_2_places": 685,
+      "integer": 291
+    },
+    "negative_answers": 739,
+    "zero_answers": 0,
+    "three_or_more_decimal_places": 0,
+    "absolute_answer_min": "1/10",
+    "absolute_answer_max": "38",
+    "enabled_prototype_answer_class_reference": {
+      "integer": 2,
+      "decimal_1_places": 10,
+      "decimal_2_places": 5
+    },
+    "full_catalog_answer_class_reference": {
+      "integer": 7,
+      "decimal_1_places": 11,
+      "decimal_2_places": 5
+    },
+    "catalog_negative_answers": 5,
+    "catalog_zero_answers": 0,
+    "catalog_3_plus_places": 0,
+    "enabled_reference_sample_size": 17,
+    "disabled_confirmed_reference_prototypes": 6,
+    "answer_distribution_total_variation": {
+      "numerator": 227,
+      "denominator": 10625
+    },
+    "negative_answer_rate_total_variation": {
+      "numerator": 63,
+      "denominator": 85000
+    },
+    "reference_status": "preliminary; small catalog prototype sample, not representative frequency estimate"
+  },
+  "uncovered_confirmed_types": [
+    {
+      "structure_id": "oge6.fraction.reciprocal_of_unit_fraction_sum",
+      "source_ids": [
+        "463020"
+      ],
+      "unique_with_reference_ranges": 50,
+      "reason": "Finite 50-condition capacity is an allowed documented exception to the mass-family 200-unique target, but this type remains disabled until exact rendering and scheduler exhaustion/fallback regression tests pass."
+    },
+    {
+      "structure_id": "oge6.decimal.quotient_in_fraction_bar",
+      "source_ids": [
+        "348647",
+        "438264",
+        "438308",
+        "438339",
+        "438368"
+      ],
+      "unique_with_reference_ranges": 43,
+      "reason": "Finite 43-pair capacity is an allowed documented exception to the mass-family 200-unique target, but this type remains disabled until exact rendering and scheduler exhaustion/fallback regression tests pass."
+    }
+  ],
+  "unconfirmed_disabled_types": [
+    "ratios/proportions",
+    "powers/order of operations",
+    "arbitrary multi-step expressions",
+    "ordinary fraction plus decimal fraction in one chain"
+  ],
+  "quality_gate_rejections": {},
+  "rejection_note": "Every sampled output passed exact oracle, answer policy, reference AST shape, and per-family manual-computation limits."
+}

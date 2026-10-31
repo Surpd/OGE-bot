@@ -3,8 +3,8 @@
 ## Поток запросов
 `Telegram -> webhook HTTPS (FastAPI + aiogram) -> application/session service -> verified generator -> oracle -> renderer -> Telegram Bot API`; `application service <-> Supabase PostgreSQL/Storage`.
 
-1. **Northflank combined service**: один контейнер Python с FastAPI и Telegram webhook. **Не polling параллельно webhook**, иначе будут потери/дубли.
-2. **Отдельный Supabase project**: пользователи, состояния сессий, попытки, снимки выданных заданий, версии семейств, метаданные готовых рисунков. Не требуется постоянный Postgres в Northflank.
+1. **Render Web Service**: один контейнер Python с FastAPI и Telegram webhook. **Не polling параллельно webhook**, иначе будут потери/дубли.
+2. **Существующий Supabase project**: пользователи, состояния сессий, попытки, снимки выданных заданий, версии семейств, метаданные готовых рисунков. База Render не создаётся.
 3. **GitHub**: код, atlas source, миграции, CI, тесты. Не хранить секреты и массово чужие задания.
 4. **Math core**: самостоятельная библиотека Python без Telegram, DB, HTTP, Groq. Детеминизм, безопасные числа, стабильные API.
 5. **Content**: для №1–5 и визуально сложных задач готовые подтверждённые изображения/параметры; для арифметики/алгебры генерация **на лету**.
