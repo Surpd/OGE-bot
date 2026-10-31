@@ -111,15 +111,15 @@
         "https://oge.sdamgia.ru/problem?id=85"
       ],
       "format": "single_numeric_root",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-L4A",
       "notes": "Прототип отличается от №338495 числом групп и размещением переменных; ответ в образце −4,5.",
       "construction_description": "a − b(cx+d) = e − fx; одна видимая группа с линейным выражением слева и линейный член справа.",
       "characteristic_ranges": "№85: 2−3(2x+2)=5−4x. Генератор использует коэффициенты 2..8 и малые целые сдвиги.",
       "manual_difficulty": "Средняя; раскрыть одну скобку, перенести линейные члены и решить.",
       "answer_policy": "single_numeric_root; точный целый или конечная десятичная до 2 знаков.",
       "difference_from_neighbors": "В отличие от L3 справа есть переменная; в отличие от L4B только одна группа.",
-      "status_reason": "Separate visible template and source answer confirmed; awaiting the version 0.2.0 rerun and PostgreSQL CI before enablement.",
+      "status_reason": "Enabled after generator version 0.2.0 passed exact rendered-expression regressions, 250-sample family report, 200 unique variants, and GitHub CI run 17 with PostgreSQL 17.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {
@@ -133,15 +133,15 @@
         "https://oge.sdamgia.ru/problem?id=338495"
       ],
       "format": "single_numeric_root",
-      "status": "research_only",
-      "generator_id": null,
+      "status": "enabled",
+      "generator_id": "OGE09-L4B",
       "notes": "Отдельная конструкция: свободный член и -x слева, группы с x по обе стороны. Не объединять с одногрупповым №85.",
       "construction_description": "−x + a + b(x+c) = d(e−x) + f; обе стороны содержат явно видимые группы и требуется раскрытие скобок.",
       "characteristic_ranges": "№338495: −x−2+3(x−3)=3(4−x)−3. Генератор использует коэффициенты групп 2..6 и малые целые константы.",
       "manual_difficulty": "Средняя; раскрыть две группы, собрать несколько линейных членов.",
       "answer_policy": "single_numeric_root; точное число до 2 десятичных знаков.",
       "difference_from_neighbors": "В отличие от L4A есть скобки с x на обеих сторонах и отдельный линейный член вне скобок слева.",
-      "status_reason": "Separate visible template and source answer confirmed; awaiting the version 0.2.0 rerun and PostgreSQL CI before enablement.",
+      "status_reason": "Enabled after generator version 0.2.0 passed exact rendered-expression regressions, 250-sample family report, 200 unique variants, and GitHub CI run 17 with PostgreSQL 17.",
       "source_type": "FIPI-bank mirror/catalog"
     },
     {

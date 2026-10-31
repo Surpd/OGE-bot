@@ -302,7 +302,7 @@
     },
     {
       "family_id": "OGE09-L4A",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "85"
       ],
@@ -397,7 +397,7 @@
     },
     {
       "family_id": "OGE09-L4B",
-      "status": "research_only",
+      "status": "enabled",
       "reference_ids": [
         "338495"
       ],
@@ -870,7 +870,7 @@
       "357173"
     ]
   },
-  "enabled_structure_count": 6,
+  "enabled_structure_count": 8,
   "uncovered_structure_ids": [
     "OGE09-L5",
     "OGE09-L6",
