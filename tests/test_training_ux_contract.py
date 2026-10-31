@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import Any, cast
@@ -10,6 +11,7 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram.types import User
 
+from app.bot.menu import number_menu
 from app.bot.router import (
     choose_task6,
     choose_task9,
@@ -79,6 +81,19 @@ TRAININGS = (
 TRAINING_CASES = pytest.mark.parametrize(
     "training", TRAININGS, ids=lambda item: f"task{item.number}"
 )
+
+
+def test_number_menu_matches_registered_training_adapters() -> None:
+    menu_numbers = {
+        int(match.group(1))
+        for row in number_menu().keyboard
+        for button in row
+        if (match := re.match(r"№(\d+)", button.text or "")) is not None
+    }
+    registered_numbers = {training.number for training in TRAININGS}
+
+    assert menu_numbers == registered_numbers
+
 
 _message_id = 910_000
 
