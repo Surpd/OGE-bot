@@ -30,7 +30,7 @@ class PostgresRepository:
 
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None:
         await self._pool.execute(
-            "UPDATE users SET current_state = jsonb_build_object('screen', $2) "
+            "UPDATE users SET current_state = jsonb_build_object('screen', $2::text) "
             "WHERE telegram_user_id = $1",
             telegram_user_id,
             screen,
