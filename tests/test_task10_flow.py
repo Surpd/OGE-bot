@@ -12,6 +12,8 @@ from app.bot.router import (
     return_to_menu,
     show_progress,
     start,
+    task6_answer,
+    task9_answer,
     task10_answer,
     task10_callback,
     unknown_message,
@@ -65,20 +67,86 @@ async def test_task10_two_attempts_hints_solution_and_progress() -> None:
 
 
 @pytest.mark.asyncio
-async def test_task10_answer_requires_reply_to_the_current_condition() -> None:
+async def test_task10_accepts_plain_answer_and_current_reply_on_second_attempt() -> None:
     repository = MemoryRepository()
     await choose_task10(_message(1005, "№10 · Вероятность"), repository)
     saved = await repository.task10_state(1005)
     assert saved is not None
-    prompt_id = saved["state"]["problem_prompt_message_id"]
-    message = _message(1005, "0,5")
-    message.reply_to_message = None
-    await task10_answer(message, repository)
-    assert repository.training10[1005]["state"]["attempts"] == 0
-    stale = _message(1005, "0,5")
-    stale.reply_to_message = SimpleNamespace(message_id=int(prompt_id) - 1)
+    prompt_id = int(saved["state"]["problem_prompt_message_id"])
+    problem = saved["problem"]
+    wrong = _message(1005, "0,999")
+    wrong.reply_to_message = None
+    await task10_answer(wrong, repository)
+    assert repository.training10[1005]["state"]["attempts"] == 1
+    assert "Попробуйте ещё раз" in wrong.answer.await_args.args[0]
+
+    correct = _message(1005, str(problem["correct_answer"]))
+    correct.reply_to_message = SimpleNamespace(message_id=prompt_id)
+    await task10_answer(correct, repository)
+    assert repository.training10[1005]["state"]["attempts"] == 2
+    assert repository.training10[1005]["state"]["status"] == "solved"
+
+
+@pytest.mark.asyncio
+async def test_task10_rejects_reply_to_old_condition_after_advancing() -> None:
+    repository = MemoryRepository()
+    await choose_task10(_message(1006, "№10 · Вероятность"), repository)
+    old = await repository.task10_state(1006)
+    assert old is not None
+    old_id = str(old["problem"]["problem_id"])
+    old_condition_id = int(old["state"]["problem_prompt_message_id"])
+    await repository.task10_reveal_solution(1006, old_id)
+    from app.math.oge10_scheduler import build_task10_candidate_batch
+
+    candidates = build_task10_candidate_batch(
+        {"recent_fingerprints": [old["problem"]["fingerprint"]]}, 88991
+    )
+    await repository.advance_task10_problem(
+        1006, old_id, candidates, expected_screen="task10", skip_active=False
+    )
+    current = repository.training10[1006]
+    await repository.set_task10_condition_message(
+        1006, str(current["problem"]["problem_id"]), old_condition_id + 10
+    )
+    stale = _message(1006, "0,5")
+    stale.reply_to_message = SimpleNamespace(message_id=old_condition_id)
     await task10_answer(stale, repository)
-    assert repository.training10[1005]["state"]["attempts"] == 0
+    assert current["state"]["attempts"] == 0
+    assert "предыдущему" in stale.answer.await_args.args[0]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("mode", "choose", "answer"),
+    [
+        ("task6", choose_task6, task6_answer),
+        ("task9", choose_task9, task9_answer),
+        ("task10", choose_task10, task10_answer),
+    ],
+)
+async def test_extra_text_after_solved_task_keeps_next_available(mode, choose, answer) -> None:
+    repository = MemoryRepository()
+    user_id = {"task6": 1011, "task9": 1012, "task10": 1013}[mode]
+    await choose(_message(user_id, f"{mode}"), repository)
+    state_method = getattr(repository, f"{mode}_state")
+    state = await state_method(user_id)
+    assert state is not None
+    result = await state_method(user_id)
+    assert result is not None
+    correct = str(result["problem"]["correct_answer"])
+    response = _message(user_id, correct)
+    response.reply_to_message = None
+    await answer(response, repository)
+    solved = await state_method(user_id)
+    assert solved is not None and solved["state"]["status"] == "solved"
+    problem_id = solved["problem"]["problem_id"]
+
+    extra = _message(user_id, "Спасибо, понял")
+    await unknown_message(extra, repository)
+    after = await state_method(user_id)
+    assert await repository.user_state(user_id) == mode
+    assert after is not None and after["problem"]["problem_id"] == problem_id
+    assert "Следующее" in extra.answer.await_args.args[0]
 
 
 @pytest.mark.asyncio

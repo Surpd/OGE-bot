@@ -48,6 +48,38 @@ SOURCE_IDS: dict[str, tuple[str, ...]] = {
     EMPIRICAL: ("132746", "132748"),
 }
 
+CountForms = tuple[str, str, str]
+
+_CHIPS: CountForms = ("фишка", "фишки", "фишек")
+_TICKETS: CountForms = ("билет", "билета", "билетов")
+_FLASHLIGHTS: CountForms = ("фонарик", "фонарика", "фонариков")
+_CABINS: CountForms = ("кабинка", "кабинки", "кабинок")
+_MARKERS: CountForms = ("маркер", "маркера", "маркеров")
+_PEOPLE: CountForms = ("человек", "человека", "человек")
+
+
+def counted_phrase(
+    count: int,
+    noun_forms: CountForms,
+    adjective_forms: CountForms | None = None,
+) -> str:
+    """Render a numeric noun phrase with Russian 1 / 2–4 / 5+ agreement."""
+    if count < 0:
+        raise ValueError("Count cannot be negative")
+    last_two = count % 100
+    last = count % 10
+    if last == 1 and last_two != 11:
+        form_index = 0
+    elif 2 <= last <= 4 and not 12 <= last_two <= 14:
+        form_index = 1
+    else:
+        form_index = 2
+    pieces = [str(count)]
+    if adjective_forms is not None:
+        pieces.append(adjective_forms[form_index])
+    pieces.append(noun_forms[form_index])
+    return " ".join(pieces)
+
 
 @dataclass(frozen=True, slots=True)
 class ProbabilityProblem:
@@ -169,10 +201,19 @@ def _draw_category(seed: int) -> ProbabilityProblem:
     target = rng.choice(tuple(counts))
     space = tuple(frozenset({label}) for label, count in counts.items() for _ in range(count))
     event = {"kind": "has", "label": target}
-    russian_color = {"red": "красную", "blue": "синюю", "green": "зелёную"}[target]
+    color_forms = {
+        "red": ("красная", "красные", "красных"),
+        "blue": ("синяя", "синие", "синих"),
+        "green": ("зелёная", "зелёные", "зелёных"),
+    }
+    color_accusative = {"red": "красную", "blue": "синюю", "green": "зелёную"}[target]
     condition = (
-        f"В наборе {total} фишек: {first} красных, {second} синих и {third} зелёных. "
-        f"Наугад выбирают одну фишку. Найдите вероятность выбрать {russian_color} фишку."
+        f"В наборе {counted_phrase(total, _CHIPS)}: "
+        f"{counted_phrase(first, _CHIPS, color_forms['red'])}, "
+        f"{counted_phrase(second, _CHIPS, color_forms['blue'])} и "
+        f"{counted_phrase(third, _CHIPS, color_forms['green'])}. "
+        "Наугад выбирают одну фишку. Найдите вероятность выбрать "
+        f"{color_accusative} фишку."
     )
     value = Fraction(counts[target], total)
     return _problem(
@@ -188,7 +229,7 @@ def _draw_category(seed: int) -> ProbabilityProblem:
         ),
         (
             f"Всего равновозможных исходов: {total}.",
-            f"Подходящих исходов: {counts[target]} фишек нужного цвета.",
+            f"Подходящих исходов: {counted_phrase(counts[target], _CHIPS, color_forms[target])}.",
             f"Вероятность равна {counts[target]}/{total} = {_exact_answer(value)}.",
         ),
     )
@@ -204,7 +245,7 @@ def _complement(seed: int) -> ProbabilityProblem:
     )
     event = {"kind": "not", "event": {"kind": "has", "label": "unprepared"}}
     condition = (
-        f"На экзамене {total} билетов, ученик не выучил {unknown} из них. "
+        f"На экзамене {counted_phrase(total, _TICKETS)}; ученик не выучил {unknown} из них. "
         "Билет выбирают наугад. Найдите вероятность того, что билет выучен."
     )
     value = Fraction(prepared, total)
@@ -220,8 +261,8 @@ def _complement(seed: int) -> ProbabilityProblem:
             "Сначала найдите число выученных билетов как дополнение до общего количества.",
         ),
         (
-            f"Всего билетов {total}; не выучено {unknown}.",
-            f"Выучено {total} − {unknown} = {prepared} билетов.",
+            f"Всего {counted_phrase(total, _TICKETS)}; не выучено {unknown}.",
+            f"Выучено {total} − {unknown} = {counted_phrase(prepared, _TICKETS)}.",
             f"Вероятность равна {prepared}/{total} = {_exact_answer(value)}.",
         ),
     )
@@ -235,14 +276,15 @@ def _empirical_frequency(seed: int) -> ProbabilityProblem:
     known_label = rng.choice(("working", "defective"))
     target = "defective" if known_label == "working" else "working"
     known_count = working if known_label == "working" else defective
-    known_adjective = "исправными" if known_label == "working" else "неисправными"
+    known_adjective = "исправных" if known_label == "working" else "неисправных"
     target_adjective = "неисправный" if target == "defective" else "исправный"
     space = tuple(frozenset({"working"}) for _ in range(working)) + tuple(
         frozenset({"defective"}) for _ in range(defective)
     )
     event = {"kind": "has", "label": target}
     condition = (
-        f"При проверке партии из {total} фонариков {known_count} оказались {known_adjective}. "
+        f"В партии {counted_phrase(total, _FLASHLIGHTS)}. "
+        f"Количество {known_adjective} фонариков — {known_count}. "
         "Оцените по относительной частоте вероятность выбрать "
         f"{target_adjective} фонарик."
     )
@@ -260,7 +302,8 @@ def _empirical_frequency(seed: int) -> ProbabilityProblem:
             "Найдите число нужных предметов как дополнение до размера всей партии.",
         ),
         (
-            f"Нужных фонариков {total} − {known_count} = {favorable}.",
+            f"Нужных фонариков {total} − {known_count} = "
+            f"{counted_phrase(favorable, _FLASHLIGHTS)}.",
             f"Относительная частота равна {favorable}/{total}.",
             f"Вероятность равна {_exact_answer(value)}.",
         ),
@@ -280,7 +323,9 @@ def _remainder_category(seed: int) -> ProbabilityProblem:
     )
     event = {"kind": "has", "label": "red"}
     condition = (
-        f"На колесе обозрения {total} кабинок: {first} синих, {second} зелёных, "
+        f"На колесе обозрения {counted_phrase(total, _CABINS)}: "
+        f"{counted_phrase(first, _CABINS, ('синяя', 'синие', 'синих'))}, "
+        f"{counted_phrase(second, _CABINS, ('зелёная', 'зелёные', 'зелёных'))}, "
         "остальные красные. Кабинку выбирают наугад. Найдите вероятность попасть "
         "в красную кабинку."
     )
@@ -297,7 +342,8 @@ def _remainder_category(seed: int) -> ProbabilityProblem:
             "Вычтите из общего количества кабинки двух известных цветов.",
         ),
         (
-            f"Красных кабинок {total} − {first} − {second} = {remainder}.",
+            f"Красных кабинок {total} − {first} − {second} = "
+            f"{counted_phrase(remainder, _CABINS, ('красная', 'красные', 'красных'))}.",
             f"Всего равновозможных кабинок {total}.",
             f"Вероятность равна {remainder}/{total} = {_exact_answer(value)}.",
         ),
@@ -330,7 +376,10 @@ def _disjoint_union(seed: int) -> ProbabilityProblem:
         "events": [{"kind": "has", "label": "red"}, {"kind": "has", "label": "black"}],
     }
     condition = (
-        f"В ящике {total} маркеров: {first} красных, {second} зелёных, {third} фиолетовых. "
+        f"В ящике {counted_phrase(total, _MARKERS)}: "
+        f"{counted_phrase(first, _MARKERS, ('красный', 'красных', 'красных'))}, "
+        f"{counted_phrase(second, _MARKERS, ('зелёный', 'зелёных', 'зелёных'))}, "
+        f"{counted_phrase(third, _MARKERS, ('фиолетовый', 'фиолетовых', 'фиолетовых'))}. "
         "Синих и чёрных поровну; других маркеров нет. Один маркер выбирают наугад. "
         "Найдите вероятность выбрать красный или чёрный маркер."
     )
@@ -349,7 +398,9 @@ def _disjoint_union(seed: int) -> ProbabilityProblem:
         ),
         (
             f"Остаток: {total} − {first} − {second} − {third} = {2 * hidden_each}.",
-            f"Чёрных маркеров {hidden_each}; благоприятных {first} + {hidden_each} = {favorable}.",
+            "Чёрных маркеров "
+            f"{counted_phrase(hidden_each, _MARKERS, ('чёрный', 'чёрных', 'чёрных'))}; "
+            f"благоприятных {first} + {hidden_each} = {counted_phrase(favorable, _MARKERS)}.",
             f"Вероятность равна {favorable}/{total} = {_exact_answer(value)}.",
         ),
     )
@@ -372,7 +423,7 @@ def _overlapping_groups(seed: int) -> ProbabilityProblem:
     )
     event = {"kind": "has", "label": "french"}
     condition = (
-        f"В группе {total} человек: {only_english} знают только английский, "
+        f"В группе {counted_phrase(total, _PEOPLE)}: {only_english} знают только английский, "
         f"{only_french} — только французский, а {both} знают оба языка. "
         "Найдите вероятность того, что случайно выбранный человек знает французский."
     )
@@ -390,7 +441,8 @@ def _overlapping_groups(seed: int) -> ProbabilityProblem:
             "Сложите только число знающих французский и число знающих оба языка.",
         ),
         (
-            f"Знают французский {only_french} + {both} = {favorable} человек.",
+            f"Знают французский {counted_phrase(only_french, _PEOPLE)} + "
+            f"{counted_phrase(both, _PEOPLE)} = {counted_phrase(favorable, _PEOPLE)}.",
             f"Всего равновозможных выборов {total}.",
             f"Вероятность равна {favorable}/{total} = {_exact_answer(value)}.",
         ),
@@ -505,6 +557,21 @@ def validate_rendered_problem(problem: ProbabilityProblem) -> bool:
         return False
     visible = tuple(int(value) for value in re.findall(r"\d+", problem.condition))
     if problem.family_id == DRAW_CATEGORY:
+        color_forms = {
+            "red": ("красная", "красные", "красных"),
+            "blue": ("синяя", "синие", "синих"),
+            "green": ("зелёная", "зелёные", "зелёных"),
+        }
+        if len(visible) != 4 or not all(
+            phrase in problem.condition
+            for phrase in (
+                counted_phrase(visible[0], _CHIPS),
+                counted_phrase(visible[1], _CHIPS, color_forms["red"]),
+                counted_phrase(visible[2], _CHIPS, color_forms["blue"]),
+                counted_phrase(visible[3], _CHIPS, color_forms["green"]),
+            )
+        ):
+            return False
         target = next(
             (
                 label
@@ -526,6 +593,8 @@ def validate_rendered_problem(problem: ProbabilityProblem) -> bool:
         if problem.event != {"kind": "has", "label": target}:
             return False
     elif problem.family_id == COMPLEMENT:
+        if len(visible) != 2 or counted_phrase(visible[0], _TICKETS) not in problem.condition:
+            return False
         excluded = problem.event.get("event")
         if problem.event.get("kind") != "not" or excluded != {
             "kind": "has",
@@ -539,6 +608,13 @@ def validate_rendered_problem(problem: ProbabilityProblem) -> bool:
         ):
             return False
     elif problem.family_id == EMPIRICAL:
+        if len(visible) != 2 or counted_phrase(visible[0], _FLASHLIGHTS) not in problem.condition:
+            return False
+        known_label_word = (
+            "исправных" if "Количество исправных" in problem.condition else "неисправных"
+        )
+        if f"Количество {known_label_word} фонариков — {visible[1]}." not in problem.condition:
+            return False
         target = "defective" if "неисправный фонарик" in problem.condition else "working"
         if problem.event != {"kind": "has", "label": target}:
             return False
@@ -548,6 +624,15 @@ def validate_rendered_problem(problem: ProbabilityProblem) -> bool:
         if sum(known_label in outcome for outcome in problem.sample_space) != visible[1]:
             return False
     elif problem.family_id == REMAINDER_CATEGORY:
+        if len(visible) != 3 or not all(
+            phrase in problem.condition
+            for phrase in (
+                counted_phrase(visible[0], _CABINS),
+                counted_phrase(visible[1], _CABINS, ("синяя", "синие", "синих")),
+                counted_phrase(visible[2], _CABINS, ("зелёная", "зелёные", "зелёных")),
+            )
+        ):
+            return False
         if problem.event != {"kind": "has", "label": "red"}:
             return False
         counts = (
@@ -557,6 +642,16 @@ def validate_rendered_problem(problem: ProbabilityProblem) -> bool:
         if len(visible) != 3 or visible[0] != len(problem.sample_space) or visible[1:] != counts:
             return False
     elif problem.family_id == DISJOINT_UNION:
+        if len(visible) != 4 or not all(
+            phrase in problem.condition
+            for phrase in (
+                counted_phrase(visible[0], _MARKERS),
+                counted_phrase(visible[1], _MARKERS, ("красный", "красных", "красных")),
+                counted_phrase(visible[2], _MARKERS, ("зелёный", "зелёных", "зелёных")),
+                counted_phrase(visible[3], _MARKERS, ("фиолетовый", "фиолетовых", "фиолетовых")),
+            )
+        ):
+            return False
         if problem.event != {
             "kind": "or",
             "events": [
@@ -573,6 +668,8 @@ def validate_rendered_problem(problem: ProbabilityProblem) -> bool:
         if len(visible) != 4 or visible[0] != len(problem.sample_space) or visible[1:] != counts:
             return False
     elif problem.family_id == OVERLAPPING_GROUP:
+        if not visible or counted_phrase(visible[0], _PEOPLE) not in problem.condition:
+            return False
         if problem.event != {"kind": "has", "label": "french"}:
             return False
         counts = (

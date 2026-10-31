@@ -11,10 +11,55 @@ from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.probability import (
     ANSWER_POLICY,
     ENABLED_FAMILIES,
+    counted_phrase,
     generate,
     solve_rendered_condition,
     validate_rendered_problem,
 )
+
+
+@pytest.mark.parametrize(
+    ("count", "expected"),
+    [
+        (1, "1 билет"),
+        (2, "2 билета"),
+        (4, "4 билета"),
+        (5, "5 билетов"),
+        (11, "11 билетов"),
+        (14, "14 билетов"),
+        (20, "20 билетов"),
+        (21, "21 билет"),
+        (22, "22 билета"),
+        (25, "25 билетов"),
+        (31, "31 билет"),
+        (101, "101 билет"),
+    ],
+)
+def test_russian_counted_noun_forms_follow_numeral_endings(count: int, expected: str) -> None:
+    assert counted_phrase(count, ("билет", "билета", "билетов")) == expected
+
+
+@pytest.mark.parametrize(
+    ("count", "expected"),
+    [
+        (1, "1 синяя кабинка"),
+        (2, "2 синие кабинки"),
+        (4, "4 синие кабинки"),
+        (5, "5 синих кабинок"),
+        (11, "11 синих кабинок"),
+        (21, "21 синяя кабинка"),
+        (22, "22 синие кабинки"),
+        (25, "25 синих кабинок"),
+        (31, "31 синяя кабинка"),
+        (101, "101 синяя кабинка"),
+    ],
+)
+def test_russian_counted_adjective_agrees_with_count(count: int, expected: str) -> None:
+    assert counted_phrase(
+        count,
+        ("кабинка", "кабинки", "кабинок"),
+        ("синяя", "синие", "синих"),
+    ) == expected
 
 
 @pytest.mark.parametrize("family_id", ENABLED_FAMILIES)

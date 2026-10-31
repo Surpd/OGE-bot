@@ -363,7 +363,7 @@ async def _send_task10_problem(
                 await repository.save_user_state(user_id, "task10")
     sent = await message.answer(
         f"Задание №10 · вероятность\n\n{problem['condition']}\n\n"
-        "Ответьте на это сообщение числом; десятичную дробь можно записать через запятую.",
+        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
         reply_markup=task10_menu(str(problem["problem_id"])),
     )
     prompt_id = getattr(sent, "message_id", None)
@@ -474,10 +474,12 @@ async def task10_answer(message: Message, repository: Repository) -> None:
     )
     if (
         type(prompt_id) is not int
-        or message.reply_to_message is None
-        or message.reply_to_message.message_id != prompt_id
+        or (
+            message.reply_to_message is not None
+            and message.reply_to_message.message_id != prompt_id
+        )
     ):
-        await message.answer("Чтобы связать ответ с заданием, отправьте его ответом на условие.")
+        await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
         return
     if (
         problem.get("answer_policy_id") != TASK10_ANSWER_POLICY.policy_id
@@ -1050,18 +1052,30 @@ async def unknown_message(message: Message, repository: Repository) -> None:
         if session_state.get("status") == "active":
             await task6_answer(message, repository)
             return
+        await message.answer(
+            "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
+        )
+        return
     state9 = await repository.task9_state(user_id) if user_id is not None else None
     if screen == "task9" and state9 is not None and isinstance(state9.get("problem"), dict):
         session_state9 = cast(dict[str, object], state9.get("state", {}))
         if session_state9.get("status") == "active":
             await task9_answer(message, repository)
             return
+        await message.answer(
+            "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
+        )
+        return
     state10 = await repository.task10_state(user_id) if user_id is not None else None
     if screen == "task10" and state10 is not None and isinstance(state10.get("problem"), dict):
         state10_status = cast(dict[str, object], state10.get("state", {}))
         if state10_status.get("status") == "active":
             await task10_answer(message, repository)
             return
+        await message.answer(
+            "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
+        )
+        return
     has_session = (
         _has_resumable_task6(state) or _has_resumable_task9(state9) or _has_resumable_task9(state10)
     )
