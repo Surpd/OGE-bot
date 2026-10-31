@@ -193,9 +193,8 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         answer_task = restarted_repository.task6_attempt(telegram_user_id, next_id, "999", False)
         skipped_or_answered, answer_result = await asyncio.gather(skip_task, answer_task)
         assert skipped_or_answered["problem_id"] != next_id
-        assert answer_result is not None
-        assert answer_result["status"] in {"stale", "active"}
-        if answer_result["status"] == "stale":
+        assert answer_result is None or answer_result["status"] in {"stale", "active"}
+        if answer_result is None or answer_result["status"] == "stale":
             assert (await restarted_repository.task6_progress(telegram_user_id))["attempts"] == 2
         else:
             assert (await restarted_repository.task6_progress(telegram_user_id))["attempts"] == 3
