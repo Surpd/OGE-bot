@@ -396,7 +396,8 @@ class PostgresRepository:
                       COALESCE((
                           SELECT sum(p2.hints_used) FROM issued_problems p2
                           JOIN sessions s2 ON s2.id = p2.session_id AND s2.mode = 'task6'
-                          WHERE p2.user_id = u.id
+                          JOIN users u2 ON u2.id = p2.user_id
+                          WHERE u2.telegram_user_id = $1
                       ), 0)::int AS hints_used,
                       count(DISTINCT p.id) FILTER (
                           WHERE p.solution_viewed_at IS NOT NULL
