@@ -6,6 +6,7 @@ import asyncpg
 import pytest
 
 from app.math.oge9_scheduler import build_task9_candidate_batch
+from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import PostgresRepository, read_migration
 
@@ -98,12 +99,23 @@ async def test_postgres_mixed_sessions_are_independent_and_stale_actions_are_ser
         assert await repo.set_task9_prompt_message(user_id, str(problem9["problem_id"]), 810_009)
         await repo.save_user_state(user_id, "task9")
 
+        await repo.ensure_task10_session(user_id)
+        problem10 = await repo.advance_task10_problem(
+            user_id, None, build_task10_candidate_batch({}, 9110)
+        )
+        assert await repo.set_task10_condition_message(
+            user_id, str(problem10["problem_id"]), 810_010
+        )
+        await repo.save_user_state(user_id, "task10")
+
         restarted = PostgresRepository(pool)
         saved6 = await restarted.task6_state(user_id)
         saved9 = await restarted.task9_state(user_id)
-        assert saved6 is not None and saved9 is not None
+        saved10 = await restarted.task10_state(user_id)
+        assert saved6 is not None and saved9 is not None and saved10 is not None
         assert saved6["problem"]["problem_id"] == problem6["problem_id"]
         assert saved9["problem"]["problem_id"] == problem9["problem_id"]
+        assert saved10["problem"]["problem_id"] == problem10["problem_id"]
 
         await restarted.save_user_state(user_id, "progress")
         stale6 = await restarted.task6_attempt(
@@ -116,6 +128,16 @@ async def test_postgres_mixed_sessions_are_independent_and_stale_actions_are_ser
         )
         assert stale6 == {"status": "stale", "attempt": 0}
         assert (await restarted.task6_progress(user_id))["attempts"] == 0
+        stale10 = await restarted.task10_attempt(
+            user_id,
+            str(problem10["problem_id"]),
+            str(problem10["correct_answer"]),
+            True,
+            telegram_message_id=810_110,
+            expected_prompt_message_id=810_010,
+        )
+        assert stale10 == {"status": "stale", "attempt": 0}
+        assert (await restarted.task10_progress(user_id))["attempts"] == 0
 
         await restarted.save_user_state(user_id, "task9")
         problem9_id = str(problem9["problem_id"])

@@ -15,6 +15,7 @@ from app.bot.menu import (
     task9_menu,
     task10_menu,
 )
+from app.bot.training_ux import matches_current_condition
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
@@ -472,13 +473,7 @@ async def task10_answer(message: Message, repository: Repository) -> None:
     prompt_id = session_state.get(
         "problem_prompt_message_id", session_state.get("input_prompt_message_id")
     )
-    if (
-        type(prompt_id) is not int
-        or (
-            message.reply_to_message is not None
-            and message.reply_to_message.message_id != prompt_id
-        )
-    ):
+    if not matches_current_condition(message, cast(dict[str, object], session_state)):
         await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
         return
     if (
@@ -697,10 +692,7 @@ async def task6_answer(message: Message, repository: Repository) -> None:
     prompt_message_id = session_state.get(
         "problem_prompt_message_id", session_state.get("input_prompt_message_id")
     )
-    replied_to = getattr(message.reply_to_message, "message_id", None)
-    if type(prompt_message_id) is not int or (
-        replied_to is not None and replied_to != prompt_message_id
-    ):
+    if not matches_current_condition(message, cast(dict[str, object], session_state)):
         await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
         return
     family_id = str(problem.get("family_id", ""))
@@ -875,8 +867,7 @@ async def task9_answer(message: Message, repository: Repository) -> None:
     prompt_id = session_state.get(
         "problem_prompt_message_id", session_state.get("input_prompt_message_id")
     )
-    replied_to = getattr(message.reply_to_message, "message_id", None)
-    if type(prompt_id) is not int or (replied_to is not None and replied_to != prompt_id):
+    if not matches_current_condition(message, cast(dict[str, object], session_state)):
         await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
         return
     task9_policy = ANSWER_POLICIES_BY_SNAPSHOT.get(
