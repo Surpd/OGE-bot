@@ -159,6 +159,10 @@ GENERATOR_SPECS = (
 )
 
 SPEC_BY_ID = {spec.family_id: spec for spec in GENERATOR_SPECS}
+ANSWER_POLICY_BY_SNAPSHOT = {
+    (spec.family_id, spec.policy.policy_id, spec.policy.version): spec.policy
+    for spec in GENERATOR_SPECS
+}
 SELECTION_WEIGHT_TOTAL = sum(spec.selection_weight for spec in GENERATOR_SPECS)
 
 if SELECTION_WEIGHT_TOTAL != 17:

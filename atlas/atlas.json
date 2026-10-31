@@ -174,7 +174,7 @@
         "https://fipi.ru/oge/demoversii-specifikacii-kodifikatory"
       ],
       "reference_registry": "atlas/oge6_reference_structures.json",
-      "coverage_report": "reports/oge6-0.2.0-quality.json",
+      "coverage_report": "reports/oge6-0.2.1-quality.json",
       "source_status": "23 уникальных прототипа разделены по алгоритмам; 69 включают числовые клоны; частоты предварительны",
       "atlas_status": "Частичное покрытие: 10 включённых генераторов; два подтверждённых прототипа выключены из-за <200 реалистичных вариантов; отношения/пропорции не подтверждены"
     },

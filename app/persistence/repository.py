@@ -16,19 +16,29 @@ class Repository(Protocol):
 
     async def ensure_task6_session(self, telegram_user_id: int) -> str: ...
 
-    async def issue_task6_problem(
-        self, telegram_user_id: int, problem: dict[str, object]
+    async def advance_task6_problem(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str | None,
+        candidates: list[dict[str, object]],
     ) -> dict[str, object]: ...
 
     async def task6_state(self, telegram_user_id: int) -> dict[str, object] | None: ...
 
     async def task6_attempt(
-        self, telegram_user_id: int, raw_answer: str, is_correct: bool
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        raw_answer: str,
+        is_correct: bool,
+        telegram_message_id: int | None = None,
     ) -> dict[str, object] | None: ...
 
-    async def task6_hint(self, telegram_user_id: int) -> str | None: ...
+    async def task6_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None: ...
 
-    async def task6_finish_problem(self, telegram_user_id: int, status: str) -> None: ...
+    async def task6_reveal_solution(
+        self, telegram_user_id: int, expected_problem_id: str
+    ) -> dict[str, object] | None: ...
 
     async def task6_progress(self, telegram_user_id: int) -> dict[str, int]: ...
 
@@ -95,8 +105,11 @@ class PostgresRepository:
             )
             return str(created)
 
-    async def issue_task6_problem(
-        self, telegram_user_id: int, problem: dict[str, object]
+    async def advance_task6_problem(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str | None,
+        candidates: list[dict[str, object]],
     ) -> dict[str, object]:
         async with self._pool.acquire() as connection, connection.transaction():
             row = await connection.fetchrow(
@@ -110,38 +123,88 @@ class PostgresRepository:
             if row is None:
                 raise RuntimeError("Task-6 session does not exist")
             state = _json_object(row["state"])
-            if row["active_problem_id"] is not None and state.get("status") == "active":
-                current = await connection.fetchval(
-                    "SELECT snapshot FROM issued_problems WHERE id = $1",
+            active_id = str(row["active_problem_id"]) if row["active_problem_id"] else None
+            if active_id is not None:
+                current_row = await connection.fetchrow(
+                    "SELECT snapshot, fingerprint FROM issued_problems WHERE id = $1",
                     row["active_problem_id"],
                 )
-                if current is not None:
-                    return _json_object(current)
-            problem_id = UUID(str(problem["problem_id"]))
-            await connection.execute(
-                """INSERT INTO issued_problems
-                   (id, user_id, session_id, family_id, generator_version, seed,
-                    fingerprint, shape_fingerprint, snapshot)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
-                   ON CONFLICT (id) DO NOTHING""",
-                problem_id,
-                row["user_id"],
-                row["id"],
-                problem["family_id"],
-                problem["generator_version"],
-                problem["seed"],
-                problem["fingerprint"],
-                problem["reference_structure_id"],
-                json.dumps(problem, ensure_ascii=False),
+                if current_row is None:
+                    raise RuntimeError("Active task-6 snapshot is missing")
+                current = _json_object(current_row["snapshot"])
+                if expected_problem_id is not None and active_id != expected_problem_id:
+                    return current
+                if expected_problem_id is None and state.get("status") == "active":
+                    return current
+            elif expected_problem_id is not None:
+                raise RuntimeError("Expected active task-6 problem is missing")
+
+            if not candidates:
+                raise RuntimeError("No distinct task-6 candidate could be constructed")
+
+            previous_fingerprints = state.get("recent_fingerprints", [])
+            recent_order = (
+                [value for value in previous_fingerprints if isinstance(value, str)]
+                if isinstance(previous_fingerprints, list)
+                else []
             )
-            await connection.execute(
-                """UPDATE sessions SET active_problem_id = $2,
-                   state = $3::jsonb WHERE id = $1""",
-                row["id"],
-                problem_id,
-                json.dumps({"status": "active", "attempts": 0, "used_hint": False}),
-            )
-            return problem
+            recent = set(recent_order)
+            rejected = 0
+            for candidate in candidates:
+                fingerprint = str(candidate["fingerprint"])
+                if fingerprint in recent:
+                    rejected += 1
+                    continue
+                problem = dict(candidate)
+                queue_after = problem.pop("_family_queue_after", [])
+                problem_id = UUID(str(problem["problem_id"]))
+                selection_attempts_value = problem.get("selection_attempts", 1)
+                selection_attempts = (
+                    selection_attempts_value if isinstance(selection_attempts_value, int) else 1
+                )
+                await connection.execute(
+                    """INSERT INTO issued_problems
+                       (id, user_id, session_id, family_id, generator_version, seed,
+                        fingerprint, shape_fingerprint, snapshot, selection_attempts,
+                        outcome)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, 'issued')""",
+                    problem_id,
+                    row["user_id"],
+                    row["id"],
+                    problem["family_id"],
+                    problem["generator_version"],
+                    problem["seed"],
+                    fingerprint,
+                    problem["reference_structure_id"],
+                    json.dumps(problem, ensure_ascii=False),
+                    selection_attempts,
+                )
+                if active_id is not None and state.get("status") == "active":
+                    await connection.execute(
+                        "UPDATE issued_problems SET outcome = 'skipped' WHERE id = $1",
+                        row["active_problem_id"],
+                    )
+                recent.add(fingerprint)
+                ordered_recent = [*recent_order, fingerprint][-30:]
+                next_state = {
+                    "status": "active",
+                    "attempts": 0,
+                    "hints_used": 0,
+                    "used_hint": False,
+                    "family_queue": queue_after,
+                    "recent_fingerprints": ordered_recent,
+                    "selection_dedupe_rejections": (
+                        _state_int(state, "selection_dedupe_rejections") + rejected
+                    ),
+                }
+                await connection.execute(
+                    "UPDATE sessions SET active_problem_id = $2, state = $3::jsonb WHERE id = $1",
+                    row["id"],
+                    problem_id,
+                    json.dumps(next_state),
+                )
+                return problem
+            raise RuntimeError("Every task-6 candidate repeats a recently issued fingerprint")
 
     async def task6_state(self, telegram_user_id: int) -> dict[str, object] | None:
         row = await self._pool.fetchrow(
@@ -162,7 +225,12 @@ class PostgresRepository:
         }
 
     async def task6_attempt(
-        self, telegram_user_id: int, raw_answer: str, is_correct: bool
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        raw_answer: str,
+        is_correct: bool,
+        telegram_message_id: int | None = None,
     ) -> dict[str, object] | None:
         async with self._pool.acquire() as connection, connection.transaction():
             row = await connection.fetchrow(
@@ -177,7 +245,17 @@ class PostgresRepository:
             )
             if row is None:
                 return None
+            if str(row["active_problem_id"]) != expected_problem_id:
+                return {"status": "stale", "attempt": 0}
             state = _json_object(row["state"])
+            if telegram_message_id is not None:
+                duplicate = await connection.fetchval(
+                    "SELECT 1 FROM attempts WHERE user_id = $1 AND telegram_message_id = $2",
+                    row["user_id"],
+                    telegram_message_id,
+                )
+                if duplicate is not None:
+                    return {"status": "duplicate", "attempt": 0}
             if state.get("status") != "active":
                 return {
                     "status": str(state.get("status", "finished")),
@@ -197,16 +275,23 @@ class PostgresRepository:
             await connection.execute(
                 """INSERT INTO attempts
                    (problem_id, user_id, attempt_no, raw_answer, normalized_answer,
-                    is_correct, used_hint)
-                   VALUES ($1, $2, $3, $4, $4, $5, $6)""",
+                    is_correct, used_hint, telegram_message_id)
+                   VALUES ($1, $2, $3, $4, $4, $5, $6, $7)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
                 raw_answer[:200],
                 is_correct,
                 bool(state.get("used_hint", False)),
+                telegram_message_id,
             )
             state.update({"status": status, "attempts": attempt})
+            if status in {"solved", "failed"}:
+                await connection.execute(
+                    "UPDATE issued_problems SET outcome = $2 WHERE id = $1",
+                    row["active_problem_id"],
+                    status,
+                )
             await connection.execute(
                 "UPDATE sessions SET state = $2::jsonb WHERE id = $1",
                 row["session_id"],
@@ -214,7 +299,7 @@ class PostgresRepository:
             )
             return {"status": status, "attempt": attempt, "problem": snapshot}
 
-    async def task6_hint(self, telegram_user_id: int) -> str | None:
+    async def task6_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None:
         async with self._pool.acquire() as connection, connection.transaction():
             row = await connection.fetchrow(
                 """SELECT s.id, s.state, p.snapshot FROM sessions s
@@ -227,37 +312,96 @@ class PostgresRepository:
             )
             if row is None:
                 return None
+            if str(row["active_problem_id"]) != expected_problem_id:
+                return None
             state = _json_object(row["state"])
             problem = _json_object(row["snapshot"])
             if state.get("status") != "active":
                 return None
             hints = problem.get("hints", [])
+            hints_used = state.get("hints_used", 0)
+            hints_used = hints_used if isinstance(hints_used, int) else 0
+            if not isinstance(hints, list) or hints_used >= len(hints):
+                return None
+            hints_used += 1
+            state["hints_used"] = hints_used
             state["used_hint"] = True
             await connection.execute(
                 "UPDATE sessions SET state = $2::jsonb WHERE id = $1",
                 row["id"],
                 json.dumps(state),
             )
-            return str(hints[0]) if isinstance(hints, list) and hints else None
+            await connection.execute(
+                "UPDATE issued_problems SET hints_used = $2 WHERE id = $1",
+                row["active_problem_id"],
+                hints_used,
+            )
+            return str(hints[hints_used - 1])
 
-    async def task6_finish_problem(self, telegram_user_id: int, status: str) -> None:
-        if status not in {"skipped", "menu"}:
-            raise ValueError("Invalid task-6 final state")
-        await self._pool.execute(
-            """UPDATE sessions s SET state = jsonb_set(s.state, '{status}', to_jsonb($2::text))
-               FROM users u WHERE s.user_id = u.id AND u.telegram_user_id = $1
-                 AND s.mode = 'task6' AND s.finished_at IS NULL
-                 AND s.state ->> 'status' = 'active'""",
-            telegram_user_id,
-            status,
-        )
+    async def task6_reveal_solution(
+        self, telegram_user_id: int, expected_problem_id: str
+    ) -> dict[str, object] | None:
+        async with self._pool.acquire() as connection, connection.transaction():
+            row = await connection.fetchrow(
+                """SELECT s.id, s.state, s.active_problem_id, p.snapshot
+                   FROM sessions s JOIN users u ON u.id = s.user_id
+                   JOIN issued_problems p ON p.id = s.active_problem_id
+                   WHERE u.telegram_user_id = $1 AND s.mode = 'task6'
+                     AND s.finished_at IS NULL
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                telegram_user_id,
+            )
+            if row is None or str(row["active_problem_id"]) != expected_problem_id:
+                return None
+            state = _json_object(row["state"])
+            problem = _json_object(row["snapshot"])
+            status = str(state.get("status", ""))
+            if status == "active":
+                state["status"] = "solution_viewed"
+                await connection.execute(
+                    "UPDATE issued_problems SET outcome = 'solution_viewed', "
+                    "solution_viewed_at = now() WHERE id = $1",
+                    row["active_problem_id"],
+                )
+                await connection.execute(
+                    "UPDATE sessions SET state = $2::jsonb WHERE id = $1",
+                    row["id"],
+                    json.dumps(state),
+                )
+            else:
+                await connection.execute(
+                    "UPDATE issued_problems SET solution_viewed_at = "
+                    "COALESCE(solution_viewed_at, now()) "
+                    "WHERE id = $1",
+                    row["active_problem_id"],
+                )
+            return {"problem": problem, "status": status}
 
     async def task6_progress(self, telegram_user_id: int) -> dict[str, int]:
         row = await self._pool.fetchrow(
             """SELECT count(DISTINCT p.id)::int AS issued,
                       count(DISTINCT p.id) FILTER (WHERE a.problem_id IS NOT NULL)::int AS answered,
-                      count(DISTINCT p.id) FILTER (WHERE a.is_correct)::int AS correct,
-                      count(a.id)::int AS attempts
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome = 'solved')::int AS correct,
+                      count(a.id)::int AS attempts,
+                      count(a.id) FILTER (WHERE a.attempt_no = 1)::int AS first_attempts,
+                      count(a.id) FILTER (WHERE a.attempt_no = 2)::int AS second_attempts,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome = 'solved' AND EXISTS (
+                          SELECT 1 FROM attempts a1 WHERE a1.problem_id = p.id
+                            AND a1.attempt_no = 1 AND a1.is_correct
+                      ))::int AS solved_first_try,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome = 'solved' AND EXISTS (
+                          SELECT 1 FROM attempts a2 WHERE a2.problem_id = p.id
+                            AND a2.attempt_no = 2 AND a2.is_correct
+                      ))::int AS solved_second_try,
+                      COALESCE((
+                          SELECT sum(p2.hints_used) FROM issued_problems p2
+                          JOIN sessions s2 ON s2.id = p2.session_id AND s2.mode = 'task6'
+                          WHERE p2.user_id = u.id
+                      ), 0)::int AS hints_used,
+                      count(DISTINCT p.id) FILTER (
+                          WHERE p.solution_viewed_at IS NOT NULL
+                      )::int AS solutions_viewed,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome = 'skipped')::int AS skipped
                FROM users u
                LEFT JOIN issued_problems p ON p.user_id = u.id
                LEFT JOIN sessions s ON s.id = p.session_id AND s.mode = 'task6'
@@ -265,9 +409,22 @@ class PostgresRepository:
                WHERE u.telegram_user_id = $1 AND (p.id IS NULL OR s.id IS NOT NULL)""",
             telegram_user_id,
         )
+        keys = (
+            "issued",
+            "answered",
+            "correct",
+            "attempts",
+            "first_attempts",
+            "second_attempts",
+            "solved_first_try",
+            "solved_second_try",
+            "hints_used",
+            "solutions_viewed",
+            "skipped",
+        )
         if row is None:
-            return {"issued": 0, "answered": 0, "correct": 0, "attempts": 0}
-        return {key: int(row[key]) for key in ("issued", "answered", "correct", "attempts")}
+            return dict.fromkeys(keys, 0)
+        return {key: int(row[key]) for key in keys}
 
     async def claim_update(self, update_id: int) -> bool:
         async with self._pool.acquire() as connection:
@@ -309,9 +466,11 @@ class MemoryRepository:
         self.sessions: dict[int, dict[str, object]] = {}
         self.training: dict[int, dict[str, object]] = {}
         self.issued_history: dict[int, dict[str, dict[str, object]]] = {}
-        self.attempt_history: dict[int, int] = {}
-        self.answered_history: dict[int, set[str]] = {}
-        self.solved_history: dict[int, set[str]] = {}
+        self.attempt_history: dict[int, list[dict[str, object]]] = {}
+        self.outcomes: dict[int, dict[str, str]] = {}
+        self.hints_history: dict[int, dict[str, int]] = {}
+        self.solutions_viewed: dict[int, set[str]] = {}
+        self.processed_message_ids: set[tuple[int, int]] = set()
 
     async def register_user(self, telegram_user_id: int) -> None:
         self.users.add(telegram_user_id)
@@ -332,31 +491,88 @@ class MemoryRepository:
         )
         return str(state["session_id"])
 
-    async def issue_task6_problem(
-        self, telegram_user_id: int, problem: dict[str, object]
+    async def advance_task6_problem(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str | None,
+        candidates: list[dict[str, object]],
     ) -> dict[str, object]:
         state = self.training[telegram_user_id]
         session_state = cast(dict[str, object], state["state"])
-        if state.get("problem") is not None and session_state.get("status") == "active":
-            return cast(dict[str, object], state["problem"])
-        state["problem"] = problem
-        state["state"] = {"status": "active", "attempts": 0, "used_hint": False}
-        problem_id = str(problem.get("problem_id", ""))
-        if problem_id:
+        current = state.get("problem")
+        active_id = str(current.get("problem_id", "")) if isinstance(current, dict) else None
+        status = session_state.get("status")
+        if active_id is not None:
+            if expected_problem_id is not None and active_id != expected_problem_id:
+                return cast(dict[str, object], current)
+            if expected_problem_id is None and status == "active":
+                return cast(dict[str, object], current)
+            if status == "active":
+                self.outcomes.setdefault(telegram_user_id, {})[active_id] = "skipped"
+        elif expected_problem_id is not None:
+            raise RuntimeError("Expected active task-6 problem is missing")
+        if not candidates:
+            raise RuntimeError("No distinct task-6 candidate could be constructed")
+        recent = session_state.get("recent_fingerprints", [])
+        recent_fingerprints = (
+            [item for item in recent if isinstance(item, str)] if isinstance(recent, list) else []
+        )
+        queue_after: list[str] = []
+        rejected = 0
+        for candidate in candidates:
+            if str(candidate.get("fingerprint", "")) in recent_fingerprints:
+                rejected += 1
+                continue
+            problem = dict(candidate)
+            raw_queue = problem.pop("_family_queue_after", [])
+            queue_after = (
+                [item for item in raw_queue if isinstance(item, str)]
+                if isinstance(raw_queue, list)
+                else []
+            )
+            problem_id = str(problem["problem_id"])
+            state["problem"] = problem
+            next_recent = [*recent_fingerprints, str(problem["fingerprint"])][-30:]
+            state["state"] = {
+                "status": "active",
+                "attempts": 0,
+                "hints_used": 0,
+                "used_hint": False,
+                "family_queue": queue_after,
+                "recent_fingerprints": next_recent,
+                "selection_dedupe_rejections": (
+                    _state_int(session_state, "selection_dedupe_rejections") + rejected
+                ),
+            }
             self.issued_history.setdefault(telegram_user_id, {})[problem_id] = problem
-        return problem
+            self.outcomes.setdefault(telegram_user_id, {})[problem_id] = "issued"
+            return problem
+        raise RuntimeError("Every task-6 candidate repeats a recently issued fingerprint")
 
     async def task6_state(self, telegram_user_id: int) -> dict[str, object] | None:
         state = self.training.get(telegram_user_id)
         return state
 
     async def task6_attempt(
-        self, telegram_user_id: int, raw_answer: str, is_correct: bool
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        raw_answer: str,
+        is_correct: bool,
+        telegram_message_id: int | None = None,
     ) -> dict[str, object] | None:
-        del raw_answer
         state = self.training.get(telegram_user_id)
         if state is None or state.get("problem") is None:
             return None
+        problem = cast(dict[str, object], state["problem"])
+        problem_id = str(problem.get("problem_id", ""))
+        if problem_id != expected_problem_id:
+            return {"status": "stale", "attempt": 0}
+        if telegram_message_id is not None:
+            message_key = (telegram_user_id, telegram_message_id)
+            if message_key in self.processed_message_ids:
+                return {"status": "duplicate", "attempt": 0}
+            self.processed_message_ids.add(message_key)
         session_state = cast(dict[str, object], state["state"])
         if session_state.get("status") != "active":
             return {
@@ -368,41 +584,91 @@ class MemoryRepository:
         attempt = (previous_attempts if isinstance(previous_attempts, int) else 0) + 1
         status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
         session_state.update({"status": status, "attempts": attempt})
-        problem_id = str(cast(dict[str, object], state["problem"]).get("problem_id", ""))
-        self.attempt_history[telegram_user_id] = self.attempt_history.get(telegram_user_id, 0) + 1
-        if problem_id:
-            self.answered_history.setdefault(telegram_user_id, set()).add(problem_id)
-            if is_correct:
-                self.solved_history.setdefault(telegram_user_id, set()).add(problem_id)
-        return {"status": status, "attempt": attempt, "problem": state["problem"]}
+        self.attempt_history.setdefault(telegram_user_id, []).append(
+            {
+                "problem_id": problem_id,
+                "attempt_no": attempt,
+                "is_correct": is_correct,
+                "raw": raw_answer,
+                "telegram_message_id": telegram_message_id,
+            }
+        )
+        if status in {"solved", "failed"}:
+            self.outcomes.setdefault(telegram_user_id, {})[problem_id] = status
+        return {"status": status, "attempt": attempt, "problem": problem}
 
     async def task6_progress(self, telegram_user_id: int) -> dict[str, int]:
         issued = self.issued_history.get(telegram_user_id, {})
+        outcomes = self.outcomes.get(telegram_user_id, {})
+        records = self.attempt_history.get(telegram_user_id, [])
+        by_problem: dict[str, list[dict[str, object]]] = {}
+        for record in records:
+            by_problem.setdefault(str(record["problem_id"]), []).append(record)
+        solved_first = sum(
+            1
+            for problem_id, values in by_problem.items()
+            if outcomes.get(problem_id) == "solved"
+            and any(value["attempt_no"] == 1 and value["is_correct"] for value in values)
+        )
+        solved_second = sum(
+            1
+            for problem_id, values in by_problem.items()
+            if outcomes.get(problem_id) == "solved"
+            and any(value["attempt_no"] == 2 and value["is_correct"] for value in values)
+        )
         return {
             "issued": len(issued),
-            "answered": len(self.answered_history.get(telegram_user_id, set())),
-            "correct": len(self.solved_history.get(telegram_user_id, set())),
-            "attempts": self.attempt_history.get(telegram_user_id, 0),
+            "answered": len(by_problem),
+            "correct": sum(value == "solved" for value in outcomes.values()),
+            "attempts": len(records),
+            "first_attempts": sum(record["attempt_no"] == 1 for record in records),
+            "second_attempts": sum(record["attempt_no"] == 2 for record in records),
+            "solved_first_try": solved_first,
+            "solved_second_try": solved_second,
+            "hints_used": sum(self.hints_history.get(telegram_user_id, {}).values()),
+            "solutions_viewed": len(self.solutions_viewed.get(telegram_user_id, set())),
+            "skipped": sum(value == "skipped" for value in outcomes.values()),
         }
 
-    async def task6_hint(self, telegram_user_id: int) -> str | None:
+    async def task6_hint(self, telegram_user_id: int, expected_problem_id: str) -> str | None:
         state = self.training.get(telegram_user_id)
         if state is None or state.get("problem") is None:
+            return None
+        problem = cast(dict[str, object], state["problem"])
+        problem_id = str(problem.get("problem_id", ""))
+        if problem_id != expected_problem_id:
             return None
         session_state = cast(dict[str, object], state["state"])
         if session_state.get("status") != "active":
             return None
-        session_state["used_hint"] = True
-        problem = cast(dict[str, object], state["problem"])
         hints = problem.get("hints", [])
-        return str(hints[0]) if isinstance(hints, list) and hints else None
+        hints_used = session_state.get("hints_used", 0)
+        hints_used = hints_used if isinstance(hints_used, int) else 0
+        if not isinstance(hints, list) or hints_used >= len(hints):
+            return None
+        hints_used += 1
+        session_state["hints_used"] = hints_used
+        session_state["used_hint"] = True
+        self.hints_history.setdefault(telegram_user_id, {})[problem_id] = hints_used
+        return str(hints[hints_used - 1])
 
-    async def task6_finish_problem(self, telegram_user_id: int, status: str) -> None:
+    async def task6_reveal_solution(
+        self, telegram_user_id: int, expected_problem_id: str
+    ) -> dict[str, object] | None:
         state = self.training.get(telegram_user_id)
-        if state is not None:
-            session_state = cast(dict[str, object], state["state"])
-            if session_state.get("status") == "active":
-                session_state["status"] = status
+        if state is None or not isinstance(state.get("problem"), dict):
+            return None
+        problem = cast(dict[str, object], state["problem"])
+        problem_id = str(problem.get("problem_id", ""))
+        if problem_id != expected_problem_id:
+            return None
+        session_state = cast(dict[str, object], state["state"])
+        previous_status = str(session_state.get("status", ""))
+        if previous_status == "active":
+            session_state["status"] = "solution_viewed"
+            self.outcomes.setdefault(telegram_user_id, {})[problem_id] = "solution_viewed"
+        self.solutions_viewed.setdefault(telegram_user_id, set()).add(problem_id)
+        return {"problem": problem, "status": previous_status}
 
     async def claim_update(self, update_id: int) -> bool:
         state = self.updates.get(update_id)
@@ -429,3 +695,8 @@ def _json_object(value: object) -> dict[str, object]:
         if isinstance(decoded, dict):
             return cast(dict[str, object], decoded)
     raise TypeError("Expected a JSON object from PostgreSQL")
+
+
+def _state_int(state: dict[str, object], key: str, default: int = 0) -> int:
+    value = state.get(key, default)
+    return value if isinstance(value, int) else default

@@ -111,7 +111,43 @@ def evaluate_rendered_condition(condition: str) -> Fraction:
     return _RenderedExpressionParser(expression).parse()
 
 
+def _rendered_number_tokens(condition: str) -> list[tuple[str, str]]:
+    match = _EXPRESSION.search(condition)
+    if match is None:
+        raise OracleParseError("Condition does not contain a supported calculation prompt")
+    parser = _RenderedExpressionParser(match.group(1).strip().removesuffix(".").strip())
+    return [
+        (kind, value) for kind, value in parser.tokens if kind in {"mixed", "decimal", "integer"}
+    ]
+
+
+def _validate_reference_visible_shape(problem: Problem) -> None:
+    family_id = problem.family_id
+    if family_id not in {
+        "OGE06-F004-DEC-ADD",
+        "OGE06-F004-DEC-SUB",
+        "OGE06-F004-DEC-MUL",
+        "OGE06-F006-MIXED-MINUS-DECIMAL",
+    }:
+        return
+    tokens = _rendered_number_tokens(problem.condition)
+    expected_kinds = (
+        ("mixed", "decimal")
+        if family_id == "OGE06-F006-MIXED-MINUS-DECIMAL"
+        else ("decimal", "decimal")
+    )
+    if tuple(kind for kind, _ in tokens) != expected_kinds:
+        raise AssertionError(f"Displayed operands do not match confirmed structure {family_id}")
+    for kind, text in tokens:
+        if kind == "mixed":
+            continue
+        fractional = re.split(r"[,.]", text)[1]
+        if len(fractional) != 1 or fractional == "0":
+            raise AssertionError(f"Displayed decimal operand changed prototype shape: {text}")
+
+
 def validate_rendered_problem(problem: Problem) -> None:
+    _validate_reference_visible_shape(problem)
     rendered_value = evaluate_rendered_condition(problem.condition)
     from app.math.answer_policy import AnswerFormat
     from app.math.ast import evaluate

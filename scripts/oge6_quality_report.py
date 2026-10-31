@@ -278,13 +278,21 @@ def build_report(level: str) -> dict[str, object]:
                 "structure_id": "oge6.fraction.reciprocal_of_unit_fraction_sum",
                 "source_ids": ["463020"],
                 "unique_with_reference_ranges": 50,
-                "reason": "Below the 200-example mass-family gate in source-bounded ranges.",
+                "reason": (
+                    "Finite 50-condition capacity is an allowed documented exception to the "
+                    "mass-family 200-unique target, but this type remains disabled until exact "
+                    "rendering and scheduler exhaustion/fallback regression tests pass."
+                ),
             },
             {
                 "structure_id": "oge6.decimal.quotient_in_fraction_bar",
                 "source_ids": ["348647", "438264", "438308", "438339", "438368"],
                 "unique_with_reference_ranges": 43,
-                "reason": "Below the 200-example mass-family gate in observed source ranges.",
+                "reason": (
+                    "Finite 43-pair capacity is an allowed documented exception to the "
+                    "mass-family 200-unique target, but this type remains disabled until exact "
+                    "rendering and scheduler exhaustion/fallback regression tests pass."
+                ),
             },
         ],
         "unconfirmed_disabled_types": [

@@ -37,6 +37,9 @@ def create_app(
             if run_schema_migrations:
                 await pool.execute(await read_migration("migrations/0001_foundation.sql"))
                 await pool.execute(await read_migration("migrations/0002_task6_training.sql"))
+                await pool.execute(
+                    await read_migration("migrations/0003_task6_session_quality.sql")
+                )
         if telegram_bot is None:
             if not settings.telegram_bot_token:
                 raise RuntimeError("TELEGRAM_BOT_TOKEN is required")

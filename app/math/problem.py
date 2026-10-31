@@ -24,6 +24,7 @@ class Problem:
     hints: tuple[str, ...]
     solution: tuple[str, ...]
     fingerprint: str
+    generation_attempts: int = 1
 
     def to_snapshot(self) -> dict[str, object]:
         return {
@@ -44,6 +45,7 @@ class Problem:
             "hints": list(self.hints),
             "solution": list(self.solution),
             "fingerprint": self.fingerprint,
+            "generation_attempts": self.generation_attempts,
         }
 
 
@@ -63,6 +65,7 @@ def create_problem(
     answer_suffix: str = "",
     condition_prefix: str = "Вычислите: ",
     answer_value: Fraction | None = None,
+    generation_attempts: int = 1,
 ) -> Problem:
     exact_value = evaluate(expression)
     answer = answer_policy.format(answer_value if answer_value is not None else exact_value)
@@ -88,4 +91,5 @@ def create_problem(
         hints=hints,
         solution=solution,
         fingerprint=fingerprint,
+        generation_attempts=generation_attempts,
     )

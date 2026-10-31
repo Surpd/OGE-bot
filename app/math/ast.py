@@ -120,9 +120,9 @@ def render(expression: Expr) -> str:
     if isinstance(expression, Decimal):
         scale = 10**expression.places
         whole, remainder = divmod(abs(expression.unscaled), scale)
-        if expression.places == 0 or remainder == 0:
+        if expression.places == 0:
             return f"{'-' if expression.unscaled < 0 else ''}{whole}"
-        fraction = f"{remainder:0{expression.places}d}".rstrip("0")
+        fraction = f"{remainder:0{expression.places}d}"
         return f"{'-' if expression.unscaled < 0 else ''}{whole},{fraction}"
     if isinstance(expression, FractionLiteral):
         sign = "-" if expression.numerator < 0 else ""

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import random
+from dataclasses import replace
 from fractions import Fraction
 from math import gcd, lcm
 from uuid import NAMESPACE_URL, uuid5
 
+from app.math.analysis import calculation_diagnostics
 from app.math.answer_policy import decimal_places, format_decimal
 from app.math.ast import (
     Binary,
@@ -23,7 +25,8 @@ from app.math.oracle import validate_rendered_problem
 from app.math.problem import Problem, create_problem
 from app.math.registry import GENERATOR_SPECS, SPEC_BY_ID, GeneratorSpec
 
-GENERATOR_VERSION = "0.2.0"
+GENERATOR_VERSION = "0.2.1"
+MAX_CONSTRUCTION_ATTEMPTS = 8
 SUPPORTED_FAMILIES = tuple(spec.family_id for spec in GENERATOR_SPECS)
 _FRACTION_DENOMINATORS = (2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 15, 20, 25, 30, 42, 50)
 _FINITE_DENOMINATORS = (2, 4, 5, 10, 20, 25, 50, 100)
@@ -55,9 +58,7 @@ _FRACTION_DIVISORS = tuple(
 )
 _FRACTION_DIVISION_PAIRS = tuple(
     (target, divisor, target * divisor)
-    for target in (
-        Fraction(numerator, 100) for numerator in range(10, 200) if numerator % 10
-    )
+    for target in (Fraction(numerator, 100) for numerator in range(10, 200) if numerator % 10)
     for divisor in _FRACTION_DIVISORS
     if (target * divisor).denominator > 1
     and (target * divisor).numerator <= 100
@@ -320,7 +321,10 @@ def _decimal_add(seed: int, rng: random.Random, spec: GeneratorSpec) -> Problem:
     valid_splits = [
         first
         for first in range(29, 94)
-        if first < target_units and 29 <= target_units - first <= 93
+        if first < target_units
+        and 29 <= target_units - first <= 93
+        and first % 10 != 0
+        and (target_units - first) % 10 != 0
     ]
     if not valid_splits:
         raise RuntimeError("No decimal addends satisfy the source-shaped answer policy")
@@ -352,7 +356,14 @@ def _decimal_subtract(seed: int, rng: random.Random, spec: GeneratorSpec) -> Pro
         [n for n in range(5, 46) if n % 10] if negative else [n for n in range(1, 46) if n % 10]
     )
     magnitude = Fraction(magnitude_units, 10)
-    base_units = rng.randint(17, 94 - magnitude_units)
+    base_candidates = [
+        units
+        for units in range(17, 95 - magnitude_units)
+        if units % 10 != 0 and (units + magnitude_units) % 10 != 0
+    ]
+    if not base_candidates:
+        raise RuntimeError("No source-shaped decimal minuends are available")
+    base_units = rng.choice(base_candidates)
     base = Fraction(base_units, 10)
     first, second = (base, base + magnitude) if negative else (base + magnitude, base)
     target = first - second
@@ -375,8 +386,8 @@ def _decimal_subtract(seed: int, rng: random.Random, spec: GeneratorSpec) -> Pro
 
 def _decimal_multiply(seed: int, rng: random.Random, spec: GeneratorSpec) -> Problem:
     for _ in range(128):
-        left_units = rng.randint(16, 96)
-        right_units = rng.randint(16, 96)
+        left_units = rng.choice([n for n in range(16, 97) if n % 10 != 0])
+        right_units = rng.choice([n for n in range(16, 97) if n % 10 != 0])
         product_units = left_units * right_units
         if 816 <= product_units <= 2016 and product_units % 10 != 0:
             break
@@ -553,10 +564,36 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
     if type(seed) is not int or seed < 0 or seed >= 2**63:
         raise ValueError("seed must be an integer in [0, 2**63)")
     spec = SPEC_BY_ID[family_id]
-    problem = _BUILDERS[family_id](seed, _rng(family_id, seed), spec)
-    if problem.exact_value != evaluate(problem.expression):
-        raise AssertionError("Stored exact value differs from the AST")
-    return problem
+    retry_rng = random.Random(f"{generator_version}:{family_id}:{seed}:manual-retry")
+    attempted_seeds = [seed]
+    attempted_seeds.extend(retry_rng.randrange(2**63) for _ in range(MAX_CONSTRUCTION_ATTEMPTS - 1))
+    last_diagnostics: dict[str, int] = {}
+    for attempt, construction_seed in enumerate(attempted_seeds, start=1):
+        try:
+            problem = _BUILDERS[family_id](
+                construction_seed, _rng(family_id, construction_seed), spec
+            )
+        except RuntimeError:
+            continue
+        if problem.exact_value != evaluate(problem.expression):
+            raise AssertionError("Stored exact value differs from the AST")
+        last_diagnostics = calculation_diagnostics(problem.expression)
+        limits = spec.manual_limits
+        if (
+            last_diagnostics["max_intermediate_numerator"] > limits.max_intermediate_numerator
+            or last_diagnostics["max_intermediate_denominator"]
+            > limits.max_intermediate_denominator
+            or last_diagnostics["max_common_denominator"] > limits.max_common_denominator
+            or last_diagnostics["max_integer_factor"] > limits.max_integer_factor
+            or last_diagnostics["estimated_manual_steps"] > limits.max_estimated_steps
+        ):
+            continue
+        validate_rendered_problem(problem)
+        return replace(problem, generation_attempts=attempt)
+    raise RuntimeError(
+        f"Could not construct a manually bounded task for {family_id} "
+        f"after {MAX_CONSTRUCTION_ATTEMPTS} attempts; last diagnostics={last_diagnostics}"
+    )
 
 
 def choose_family(seed: int) -> str:

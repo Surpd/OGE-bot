@@ -111,7 +111,7 @@
       "number_ranges": "каталожные знаменатели 30 и 42",
       "difficulty": "два действия и скобки; сначала сумма, затем обратная величина",
       "generator": null,
-      "status": "confirmed_reference_only; disabled because only 50 unique examples fit reference-bounded parameter ranges, below the 200-example mass-family gate"
+      "status": "confirmed_reference_only; bounded-capacity exception candidate (50 conditions), currently disabled pending exact-render regression and scheduler exhaustion/fallback tests"
     },
     {
       "id": "oge6.decimal.add.two_terms",
@@ -234,7 +234,7 @@
       "number_ranges": "образцы: делитель 1,2–4,1; частное 2–8",
       "difficulty": "одно деление; устранение запятых эквивалентным умножением",
       "generator": null,
-      "status": "confirmed_reference_only; disabled because only 43 distinct operand pairs fit observed input ranges 6.5–9.6 over 1.2–4.1; below the 200-example mass-family gate",
+      "status": "confirmed_reference_only; bounded-capacity exception candidate (43 operand pairs), currently disabled pending exact-render regression and scheduler exhaustion/fallback tests",
       "range_evidence": "prototype-only; five source examples, all decimal operands have one fractional digit"
     }
   ],
