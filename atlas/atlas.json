@@ -1,8 +1,8 @@
 {
   "metadata": {
     "name": "OGE Trainer · Атлас инженерных семейств I части",
-    "version": "1.1-task10",
-    "as_of": "2026-10-31",
+    "version": "1.2-oge12-research",
+    "as_of": "2026-11-01",
     "exam": "Проект ОГЭ-2027, математика, задания №1–19",
     "first_part_numbers": 19,
     "candidate_engineering_templates": 122,
@@ -325,10 +325,21 @@
       "independent_validation": "Символьное разрешение относительно цели, обратная подстановка",
       "high_risk": "Нужно выделять формулу, текстовую оболочку и целевую переменную",
       "sources": [
-        "N12"
+        "N12",
+        "N12R"
       ],
-      "source_status": "Категории, счётчики проверены; подробный перечень вариантов только выборочно",
-      "atlas_status": "Требует полного исследования первичных задач и их группировки"
+      "source_status": "Каталогный срез сохранён; подробное исследование завершено: 17 конструкций «формула × целевое действие» с источниками и авторскими проверочными образцами. Исторические/аналоговые ID не приравниваются к современной официальной верификации.",
+      "atlas_status": "Исследован (17 конструкций); генераторы не реализованы, все структуры остаются research_only и выключены.",
+      "research_artifacts": {
+        "status": "completed_research_only",
+        "structure_count": 17,
+        "generator_status": "not_implemented",
+        "research_report": "specs/research/OGE12_RESEARCH.md",
+        "reference_structures": "atlas/oge12_reference_structures.json",
+        "wording_patterns": "atlas/oge12_wording_patterns.json",
+        "content_note": "17 авторских условий и решений; короткие реальные фразы приведены с task-ID/URL; полный текст банка не копируется.",
+        "eligibility_note": "Все OGE12-R001…R017 имеют ship_eligible=false и implementation_status=not_implemented_research_only. Не считать исторические и analog_id_not_individually_rechecked подтверждёнными для production."
+      }
     },
     {
       "number": 13,
@@ -5551,6 +5562,26 @@
       "source_code": "REVIEW_16",
       "source_url": "https://math-oge.sdamgia.ru/test?theme=12&ttest=true",
       "engineering_implication": "Использовать для ограничения семейств OGE16-F001; не считать доказательством всего семейства."
+    },
+    {
+      "number": 12,
+      "semantic_class": "площадь треугольника через две стороны и синус",
+      "observation": "Расширенное исследование добавило ранее пропущенную конструкцию; опорный каталоговый ID исторический.",
+      "observed_task_id": "311537",
+      "source_code": "N12R",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=311537",
+      "research_file": "atlas/oge12_reference_structures.json",
+      "engineering_implication": "Оставлять research_only; сверять полный список источников и область угла перед реализацией."
+    },
+    {
+      "number": 12,
+      "semantic_class": "площадь треугольника через радиус вписанной окружности",
+      "observation": "Расширенное исследование добавило ранее пропущенную конструкцию; геометрические параметры зависимы.",
+      "observed_task_id": "311538",
+      "source_code": "N12R",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=311538",
+      "research_file": "atlas/oge12_reference_structures.json",
+      "engineering_implication": "Проверять неравенства треугольника и согласованность площади с радиусом вписанной окружности."
     }
   ],
   "sources": {
@@ -5609,6 +5640,10 @@
     "DEM2027": {
       "url": "https://egesto.ru/math-oge/varianty/2027",
       "description": "Текстовая публикация проекта демоверсии ОГЭ-2027: формат №19 проверить по финальному документу"
+    },
+    "N12R": {
+      "url": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true",
+      "description": "Источники исследования задания №12; полный перечень task-ID, статусы проверки и ограничения приведены в specs/research/OGE12_RESEARCH.md и atlas/oge12_reference_structures.json"
     }
   }
 }
