@@ -145,6 +145,7 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         assert await restarted_repository.set_task6_prompt_message(
             telegram_user_id, expected_problem_id, 71_001
         )
+        await restarted_repository.save_user_state(telegram_user_id, "task6")
         assert await restarted_repository.task6_hint(telegram_user_id, expected_problem_id)
         assert await restarted_repository.task6_hint(telegram_user_id, expected_problem_id)
         after_hints = await PostgresRepository(pool).task6_state(telegram_user_id)

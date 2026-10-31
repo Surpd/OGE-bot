@@ -30,6 +30,7 @@ async def test_task9_postgres_hints_answers_and_snapshots_survive_repository_res
         batch = build_task9_candidate_batch({}, 76543)
         problem = await repository.advance_task9_problem(user_id, None, batch)
         problem_id = str(problem["problem_id"])
+        await repository.save_user_state(user_id, "task9")
         assert await repository.task9_hint(user_id, problem_id) is not None
         assert await repository.task9_hint(user_id, problem_id) is not None
         assert await repository.task9_hint(user_id, problem_id) is None
