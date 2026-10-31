@@ -7,7 +7,7 @@
     "first_part_numbers": 19,
     "candidate_engineering_templates": 117,
     "normalized_author_intents": 37,
-    "exam_verified_subtypes": "НЕ заявлено: проверены разделы каталога и ограниченная выборка примеров",
+    "exam_verified_subtypes": "Частичное покрытие №6; точный реестр — atlas/oge6_reference_structures.json",
     "observed_sample_count": 37,
     "historical_source": "OGE_Atlas_2027_v0.2_исследование.json",
     "policy": "Не утверждать конкретный подтип без сопоставления с реальными образцами. Нет автоматической публикации AI-сочинённых задач.",
@@ -147,27 +147,36 @@
     {
       "number": 6,
       "title": "Числа и вычисления",
-      "reshu_prototypes_catalog_snapshot": 29,
-      "reshu_total_including_clones": 124,
+      "reshu_prototypes_catalog_snapshot": 23,
+      "reshu_total_including_clones": 69,
       "source_snapshot": "Каталог Решу ОГЭ (заголовок страницы ОГЭ-2026, просмотр 31.10.2026; неполная совокупность всех возможных ОГЭ-2027)",
       "generation_type": "expression-ast",
       "generation_type_human": "вычислительный",
       "formulation_importance": "вторична",
       "unit_of_generation": "Точное дерево арифметического выражения с рациональными числами",
       "question_intents": [
-        "Вычислить значение числового выражения",
-        "Выполнить действия с обычными дробями",
-        "Вычислить смешанное десятичное выражение",
-        "Вычислить выражение со скобками"
+        "Сложить или вычесть две обыкновенные дроби",
+        "Умножить или разделить две обыкновенные дроби",
+        "Вычислить простое действие с десятичными дробями",
+        "Вычесть десятичную дробь из смешанного числа",
+        "Записать требуемый числитель после вычисления дробей",
+        "Разделить десятичные дроби дробной чертой (подтверждено, но выключено)",
+        "Вычислить обратную величину суммы двух единичных дробей (подтверждена, но выключена)"
       ],
-      "parameter_constraints": "Точные Fraction/Decimal, контролируемая сложность, видимые скобки",
-      "independent_validation": "Отдельный вычислитель разбирает отображённое выражение",
-      "high_risk": "Числовые подстановки не должны подменять написанное",
+      "parameter_constraints": "Точные Fraction/Decimal, ответы только по отдельной AnswerPolicy структуры, структура AST совпадает с реальным прототипом; веса предварительные по числу уникальных прототипов",
+      "independent_validation": "Точный независимый parser считает отрендерованное условие; быстрый прогон 40, основной 250 задач на тип, приёмка ≥200 уникальных вариантов за ≤1 200 попыток; отчёт проверяет форматы, распределения и ручную сложность",
+      "high_risk": "Числовые клоны не считаются разными прототипами; общий каталог не доказывает отдельный генератор; отношения/пропорции и произвольные цепочки выключены",
       "sources": [
-        "CAT"
+        "https://math-oge.sdamgia.ru/test?a=catlistwstat",
+        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+        "https://math-oge.sdamgia.ru/test?theme=59&ttest=true",
+        "https://math-oge.sdamgia.ru/test?theme=129&ttest=true",
+        "https://fipi.ru/oge/demoversii-specifikacii-kodifikatory"
       ],
-      "source_status": "Категории, счётчики проверены; подробный перечень вариантов только выборочно",
-      "atlas_status": "Требует полного исследования первичных задач и их группировки"
+      "reference_registry": "atlas/oge6_reference_structures.json",
+      "coverage_report": "reports/oge6-0.2.0-quality.json",
+      "source_status": "23 уникальных прототипа разделены по алгоритмам; 69 включают числовые клоны; частоты предварительны",
+      "atlas_status": "Частичное покрытие: 10 включённых генераторов; два подтверждённых прототипа выключены из-за <200 реалистичных вариантов; отношения/пропорции не подтверждены"
     },
     {
       "number": 7,
@@ -1157,19 +1166,19 @@
       "id": "OGE06-F001",
       "number": 6,
       "section": "Обыкновенные дроби",
-      "name": "Сложение и вычитание дробей",
-      "evidence_status": "пример просмотрен; инженерный шаблон требует утверждения",
+      "name": "Сложение и вычитание двух обыкновенных дробей",
+      "evidence_status": "подтверждены конкретные структуры; включены только отдельные двухоперандные алгоритмы",
       "verified_example_ids": [
         "314264",
         "314265"
       ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://math-oge.sdamgia.ru/problem?id=314264",
+        "https://math-oge.sdamgia.ru/problem?id=314265"
       ],
       "generation_strategy": "expression",
       "generation_unit": "Дерево арифметических операций: +, −, ×, ÷, скобки, рациональные числа.",
-      "recipe": "Выбирай 2–3 рациональных дроби и целевой тип +/−; целые знаменатели 2..30, избегай тривиального сокращения всего выражения.",
+      "recipe": "Отдельно генерировать сумму двух дробей и разность двух дробей; не добавлять третьи операнды, смешанные числа или произвольные скобки без нового подтверждённого прототипа.",
       "independent_oracle": "Пересчитай по распарсенной записи, проверь знаменатели и формат конечного ответа.",
       "parameter_variants": [
         "разные знаменатели",
@@ -1180,30 +1189,36 @@
         "Вычислите значение выражения",
         "Найдите значение числового выражения"
       ],
-      "answer_format": "рациональное число",
+      "answer_format": "точное число с конечной десятичной записью; для ответного формата — отдельные семьи F008/F009",
       "visual": "нет",
       "quality_criteria": "200 неповторяющихся вариантов как цель для массового алгоритмического семейства; граничные тесты; только подтверждённый экзаменационный формат",
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true,
+      "implementation_status": "partially_enabled",
+      "generator_ids": [
+        "OGE06-F001-ADD",
+        "OGE06-F001-SUB"
+      ]
     },
     {
       "id": "OGE06-F002",
       "number": 6,
       "section": "Обыкновенные дроби",
-      "name": "Умножение и деление дробей",
-      "evidence_status": "пример просмотрен; инженерный шаблон требует утверждения",
+      "name": "Умножение или деление двух обыкновенных дробей",
+      "evidence_status": "подтверждены отдельные операции по конкретным образцам",
       "verified_example_ids": [
+        "383596",
         "350101"
       ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://math-oge.sdamgia.ru/problem?id=383596",
+        "https://math-oge.sdamgia.ru/problem?id=350101"
       ],
       "generation_strategy": "expression",
       "generation_unit": "Дерево арифметических операций: +, −, ×, ÷, скобки, рациональные числа.",
-      "recipe": "Выбери ×/÷, 2–3 дроби; делитель отличный от 0; сохраняй видимые сокращения.",
+      "recipe": "Отдельные алгоритмы умножения и деления с ровно двумя дробями; делитель ненулевой; отображение и политика ответа совпадают с прототипом.",
       "independent_oracle": "Пересчёт с обратной дробью и отсутствие деления на ноль.",
       "parameter_variants": [
         "сокращение до вычисления",
@@ -1214,31 +1229,34 @@
         "Вычислите значение выражения",
         "Найдите значение числового выражения"
       ],
-      "answer_format": "рациональное число",
+      "answer_format": "точный числовой ответ по отдельной AnswerPolicy",
       "visual": "нет",
       "quality_criteria": "200 неповторяющихся вариантов как цель для массового алгоритмического семейства; граничные тесты; только подтверждённый экзаменационный формат",
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true,
+      "implementation_status": "enabled",
+      "generator_ids": [
+        "OGE06-F002-MUL",
+        "OGE06-F002-DIV"
+      ]
     },
     {
       "id": "OGE06-F003",
       "number": 6,
       "section": "Обыкновенные дроби",
-      "name": "Многошаговое выражение с дробями",
-      "evidence_status": "пример просмотрен; инженерный шаблон требует утверждения",
+      "name": "Обратная величина суммы двух единичных дробей",
+      "evidence_status": "подтверждён один конкретный прототип; массовое семейство выключено",
       "verified_example_ids": [
-        "314127",
-        "314288"
+        "463020"
       ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://math-oge.sdamgia.ru/problem?id=463020"
       ],
       "generation_strategy": "expression",
       "generation_unit": "Дерево арифметических операций: +, −, ×, ÷, скобки, рациональные числа.",
-      "recipe": "Составь AST из 2–4 операций и скобок, с конечной сложностью и явным приоритетом.",
+      "recipe": "Прототип 1:(1/30+1/42); при ограничении диапазонов наблюдаемого примера получено только 50 уникальных условий, меньше массового порога 200.",
       "independent_oracle": "Независимый рекурсивный интерпретатор итогового AST; покрыть скобки/разные ветки.",
       "parameter_variants": [
         "скобки",
@@ -1255,22 +1273,34 @@
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": false,
+      "implementation_status": "disabled_insufficient_diversity",
+      "generator_ids": []
     },
     {
       "id": "OGE06-F004",
       "number": 6,
       "section": "Десятичные дроби",
-      "name": "Действия с десятичными дробями",
-      "evidence_status": "категория номера подтверждена; подтип пока проектный",
-      "verified_example_ids": [],
+      "name": "Операции с десятичными дробями в одно действие",
+      "evidence_status": "10 конкретных прототипов; 3 операции разделены по алгоритму",
+      "verified_example_ids": [
+        "316784",
+        "355404",
+        "369727",
+        "369795",
+        "369824",
+        "369853",
+        "384399",
+        "349924",
+        "350570",
+        "461940"
+      ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://math-oge.sdamgia.ru/test?theme=59&ttest=true"
       ],
       "generation_strategy": "expression",
       "generation_unit": "Дерево арифметических операций: +, −, ×, ÷, скобки, рациональные числа.",
-      "recipe": "Используй рациональные десятичные числа с максимум 1–3 знаками, итоговый ответ без произвольного округления.",
+      "recipe": "Один тип операции с двумя десятичными дробями; разряды и точность результата соответствуют отдельным образцам сложения, вычитания и умножения.",
       "independent_oracle": "Decimal/Fraction; текст и ответ равны до точной дроби.",
       "parameter_variants": [
         "отрицательные",
@@ -1281,28 +1311,31 @@
         "Вычислите значение выражения",
         "Найдите значение числового выражения"
       ],
-      "answer_format": "рациональное число",
+      "answer_format": "точная конечная десятичная запись: 1 знак для сложения/вычитания, 2 для умножения",
       "visual": "нет",
       "quality_criteria": "200 неповторяющихся вариантов как цель для массового алгоритмического семейства; граничные тесты; только подтверждённый экзаменационный формат",
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true,
+      "implementation_status": "enabled_as_three_generators",
+      "generator_ids": [
+        "OGE06-F004-DEC-ADD",
+        "OGE06-F004-DEC-SUB",
+        "OGE06-F004-DEC-MUL"
+      ]
     },
     {
       "id": "OGE06-F005",
       "number": 6,
       "section": "Десятичные дроби",
-      "name": "Скобки и порядок действий",
-      "evidence_status": "категория номера подтверждена; подтип пока проектный",
+      "name": "Степени и произвольный порядок действий",
+      "evidence_status": "не подтверждено современным прототипом №6; старые D8-примеры исключены",
       "verified_example_ids": [],
-      "references": [
-        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
-      ],
+      "references": [],
       "generation_strategy": "expression",
       "generation_unit": "Дерево арифметических операций: +, −, ×, ÷, скобки, рациональные числа.",
-      "recipe": "Составь выражение с одной/двумя парами скобок и выбранной последовательностью операций.",
+      "recipe": "Не генерировать до проверки современной нумерации и конкретных примеров №6.",
       "independent_oracle": "Проверить семантику скобок на готовом AST и выводимую строку.",
       "parameter_variants": [
         "вложенные скобки",
@@ -1319,22 +1352,25 @@
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": false,
+      "implementation_status": "disabled_unconfirmed",
+      "generator_ids": []
     },
     {
       "id": "OGE06-F006",
       "number": 6,
       "section": "Смешанные дроби",
-      "name": "Смешанные обыкновенные и десятичные",
-      "evidence_status": "категория номера подтверждена; подтип пока проектный",
-      "verified_example_ids": [],
+      "name": "Смешанное число минус десятичная дробь",
+      "evidence_status": "подтверждён конкретный экзаменационный прототип",
+      "verified_example_ids": [
+        "448832"
+      ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://math-oge.sdamgia.ru/problem?id=448832"
       ],
       "generation_strategy": "expression",
       "generation_unit": "Дерево арифметических операций: +, −, ×, ÷, скобки, рациональные числа.",
-      "recipe": "Сочетай обычные и десятичные дроби; конвертируй десятичную в Fraction до арифметики.",
+      "recipe": "Смешанное число вычитается из десятичной дроби в конструкции одного действия; ответ конечный десятичный.",
       "independent_oracle": "Сверь отображаемое число и рациональное представление.",
       "parameter_variants": [
         "перевод между формами",
@@ -1345,28 +1381,31 @@
         "Вычислите значение выражения",
         "Найдите значение числового выражения"
       ],
-      "answer_format": "рациональное число",
+      "answer_format": "точная конечная десятичная запись с одним знаком",
       "visual": "нет",
       "quality_criteria": "200 неповторяющихся вариантов как цель для массового алгоритмического семейства; граничные тесты; только подтверждённый экзаменационный формат",
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true,
+      "implementation_status": "enabled",
+      "generator_ids": [
+        "OGE06-F006-MIXED-MINUS-DECIMAL"
+      ]
     },
     {
       "id": "OGE06-F007",
       "number": 6,
       "section": "Рациональные числа",
       "name": "Отношение и пропорция чисел",
-      "evidence_status": "категория номера подтверждена; подтип пока проектный",
+      "evidence_status": "не подтверждено в современном каталоге/примерах задания №6",
       "verified_example_ids": [],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
         "https://math-oge.sdamgia.ru/test?a=catlistwstat"
       ],
       "generation_strategy": "expression",
       "generation_unit": "Дерево арифметических операций: +, −, ×, ÷, скобки, рациональные числа.",
-      "recipe": "Реализовать отдельную математическую конструкцию «Отношение и пропорция чисел» в модели expression; фиксировать зависимые и независимые параметры, допустимые диапазоны, цель вопроса и выходной формат.",
+      "recipe": "Не считать отношения и пропорции самостоятельной структурой №6 без конкретного task-ID и проверки нумерации.",
       "independent_oracle": "Пересчёт ИМЕННО отображённого дерева вторым интерпретатором; Fraction; нет деления на ноль.",
       "parameter_variants": [
         "обратное отношение",
@@ -1383,7 +1422,9 @@
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Сопоставить с конкретным образцом: отдельный прототип «пропорция» не следует автоматически из категории №6.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": false,
+      "implementation_status": "disabled_unconfirmed",
+      "generator_ids": []
     },
     {
       "id": "OGE07-F001",
@@ -4308,6 +4349,68 @@
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P2",
       "ship_eligible": false
+    },
+    {
+      "id": "OGE06-F008",
+      "number": 6,
+      "section": "Числа и вычисления",
+      "name": "Числитель несократимой дроби после вычитания",
+      "evidence_status": "подтверждены конкретные прототипы; веса предварительны",
+      "verified_example_ids": [
+        "439897"
+      ],
+      "implementation_status": "enabled",
+      "generator_ids": [
+        "OGE06-F008-REDUCED-NUMERATOR"
+      ],
+      "references": [
+        "https://math-oge.sdamgia.ru/problem?id=439897"
+      ],
+      "recipe": "Генерировать только подтверждённую конструкцию. Не считать числовые клоны новыми типами.",
+      "answer_format": "типоспецифичная AnswerPolicy",
+      "ship_eligible": true
+    },
+    {
+      "id": "OGE06-F009",
+      "number": 6,
+      "section": "Числа и вычисления",
+      "name": "Числитель дроби с указанным знаменателем",
+      "evidence_status": "подтверждены конкретные прототипы; веса предварительны",
+      "verified_example_ids": [
+        "450504"
+      ],
+      "implementation_status": "enabled",
+      "generator_ids": [
+        "OGE06-F009-PRESCRIBED-NUMERATOR"
+      ],
+      "references": [
+        "https://math-oge.sdamgia.ru/problem?id=450504"
+      ],
+      "recipe": "Генерировать только подтверждённую конструкцию. Не считать числовые клоны новыми типами.",
+      "answer_format": "типоспецифичная AnswerPolicy",
+      "ship_eligible": true
+    },
+    {
+      "id": "OGE06-F010",
+      "number": 6,
+      "section": "Числа и вычисления",
+      "name": "Деление десятичных дробей, записанное дробной чертой",
+      "evidence_status": "подтверждены конкретные прототипы; веса предварительны",
+      "verified_example_ids": [
+        "348647",
+        "438264",
+        "438308",
+        "438339",
+        "438368"
+      ],
+      "implementation_status": "disabled_insufficient_diversity",
+      "generator_ids": [],
+      "references": [
+        "https://math-oge.sdamgia.ru/test?theme=129&ttest=true"
+      ],
+      "recipe": "Не расширять входные диапазоны сверх наблюдаемых значений ради достижения 200 вариантов; в подтверждённом диапазоне только 43 уникальные пары.",
+      "answer_format": "типоспецифичная AnswerPolicy",
+      "ship_eligible": false
     }
   ],
   "formulations": [
@@ -5254,13 +5357,15 @@
       "engineering_implication": "Не переносить формат ответа старых вариантов в 2027 без проверки"
     },
     {
-      "number": 6,
+      "number": null,
       "semantic_class": "обыкновенные дроби, степень и вычитание",
       "observation": "Выражение со степенью дроби и вторым слагаемым",
       "observed_task_id": "314127",
       "source_code": "REVIEW_6",
       "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-      "engineering_implication": "Использовать для ограничения семейств OGE06-F003; не считать доказательством всего семейства."
+      "engineering_implication": "Ранее каталогизировано как D8; степень дроби относится к более ранней нумерации и не подтверждает современный №6.",
+      "legacy_number": "D8",
+      "eligibility_status": "excluded_from_current_task6"
     },
     {
       "number": 6,
@@ -5281,13 +5386,15 @@
       "engineering_implication": "Использовать для ограничения семейств OGE06-F001; не считать доказательством всего семейства."
     },
     {
-      "number": 6,
+      "number": null,
       "semantic_class": "скобки + деление на дробь",
       "observation": "Сумма дробей в скобках делится на дробь",
       "observed_task_id": "314288",
       "source_code": "REVIEW_6",
       "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
-      "engineering_implication": "Использовать для ограничения семейств OGE06-F003; не считать доказательством всего семейства."
+      "engineering_implication": "Ранее каталогизировано как D26; тематическая дробная конструкция не подтверждает современный №6.",
+      "legacy_number": "D26",
+      "eligibility_status": "excluded_from_current_task6"
     },
     {
       "number": 6,

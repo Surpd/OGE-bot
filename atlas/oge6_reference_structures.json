@@ -1,0 +1,297 @@
+{
+  "registry_version": "1.0.0",
+  "as_of": "2026-10-31",
+  "exam": "ОГЭ по математике, задание 6 (каталог Решу ОГЭ; сверка тегов банка ФИПИ и прошлых экзаменов)",
+  "problem_url_template": "https://math-oge.sdamgia.ru/problem?id={id}",
+  "catalog": {
+    "url": "https://math-oge.sdamgia.ru/test?a=catlistwstat",
+    "snapshot_unique_prototypes": 23,
+    "snapshot_total_with_numeric_clones": 69,
+    "subcatalogs": [
+      {
+        "label": "обыкновенные дроби",
+        "url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+        "unique_prototypes": 8,
+        "total_with_clones": 44
+      },
+      {
+        "label": "десятичные дроби",
+        "url": "https://math-oge.sdamgia.ru/test?theme=59&ttest=true",
+        "unique_prototypes": 10,
+        "total_with_clones": 19
+      },
+      {
+        "label": "дробная черта: десятичное деление",
+        "url": "https://math-oge.sdamgia.ru/test?theme=129&ttest=true",
+        "unique_prototypes": 5,
+        "total_with_clones": 6
+      }
+    ],
+    "weight_interpretation": "Предварительные веса равны числу уникальных каталожных прототипов на алгоритм, а не частоте появления на экзамене. Экзаменационные варианты и числовые клоны не считаются независимыми прототипами."
+  },
+  "structures": [
+    {
+      "id": "oge6.fraction.add.two_terms",
+      "label": "Сложение двух обыкновенных дробей",
+      "prototype_ids": [
+        "314264"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+      "source_context": "Банк ФИПИ",
+      "sample": "4/25 + 15/4",
+      "sample_answer": "3,91",
+      "answer_format": "точное конечное десятичное число",
+      "number_ranges": "каталожный пример: числители 4,15; знаменатели 25,4",
+      "difficulty": "одно действие, приведение к общему знаменателю",
+      "generator": "OGE06-F001-ADD",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.fraction.subtract.two_terms",
+      "label": "Вычитание двух обыкновенных дробей, отрицательный результат",
+      "prototype_ids": [
+        "314265"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+      "source_context": "Банк ФИПИ",
+      "sample": "3/2 − 9/5",
+      "sample_answer": "−0,3",
+      "answer_format": "точное конечное десятичное число, отрицательное",
+      "number_ranges": "каталожный пример: числители 3,9; знаменатели 2,5",
+      "difficulty": "одно действие; контроль знака и общего знаменателя",
+      "generator": "OGE06-F001-SUB",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.fraction.multiply.two_terms",
+      "label": "Умножение двух обыкновенных дробей",
+      "prototype_ids": [
+        "383596"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+      "source_context": "ОГЭ 2020, досрочный этап",
+      "sample": "9/5 · 2/3",
+      "sample_answer": "6/5 (1,2)",
+      "answer_format": "числовой ответ",
+      "number_ranges": "каталожный пример: числители 9,2; знаменатели 5,3",
+      "difficulty": "одно действие; возможное сокращение",
+      "generator": "OGE06-F002-MUL",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.fraction.divide.two_terms",
+      "label": "Деление обыкновенных дробей",
+      "prototype_ids": [
+        "350101"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+      "source_context": "ОГЭ 2024, Краснодарский край",
+      "sample": "12/5 : 15/2",
+      "sample_answer": "0,32",
+      "answer_format": "точное конечное десятичное число",
+      "number_ranges": "каталожный пример: числители 12,15; знаменатели 5,2",
+      "difficulty": "одно действие; умножение на обратную дробь",
+      "generator": "OGE06-F002-DIV",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.fraction.reciprocal_of_unit_fraction_sum",
+      "label": "Обратная величина суммы двух единичных дробей",
+      "prototype_ids": [
+        "463020"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=463020",
+        "https://math-oge.sdamgia.ru/test?theme=6&ttest=true"
+      ],
+      "source_context": "Банк каталога №6",
+      "sample": "1 : (1/30 + 1/42)",
+      "sample_answer": "17,5",
+      "answer_format": "точное конечное десятичное число",
+      "number_ranges": "каталожные знаменатели 30 и 42",
+      "difficulty": "два действия и скобки; сначала сумма, затем обратная величина",
+      "generator": null,
+      "status": "confirmed_reference_only; disabled because only 50 unique examples fit reference-bounded parameter ranges, below the 200-example mass-family gate"
+    },
+    {
+      "id": "oge6.decimal.add.two_terms",
+      "label": "Сложение десятичных дробей",
+      "prototype_ids": [
+        "316784",
+        "355404"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=59&ttest=true",
+      "source_context": "316784 — прототип, с несколькими экзаменационными появлениями; 355404 — отдельный прототип",
+      "sample": "3,8 + 2,9; 9,3 + 7,8",
+      "sample_answer": "6,7; 17,1",
+      "answer_format": "десятичное число, 1 знак",
+      "number_ranges": "образцы: положительные десятые от 2,9 до 9,3",
+      "difficulty": "одно действие, десятые",
+      "generator": "OGE06-F004-DEC-ADD",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.decimal.subtract.two_terms",
+      "label": "Вычитание десятичных дробей",
+      "prototype_ids": [
+        "369727",
+        "369795",
+        "369824",
+        "369853",
+        "384399"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=59&ttest=true",
+      "source_context": "Каталог десятичных дробей; один прототип на каждую структуру, без подсчёта числовых клонов",
+      "sample": "5,7 − 7,6; 4,4 − 1,7; 3,6 − 4,1; 4,7 − 8,2; 4,9 − 9,4",
+      "sample_answer": "−1,9; 2,7; −0,5; −3,5; −4,5",
+      "answer_format": "десятичное число, 1 знак; встречаются оба знака",
+      "number_ranges": "образцы: десятые; операнды 1,7–9,4; результаты −4,5…2,7",
+      "difficulty": "одно действие, десятые; важен знак разности",
+      "generator": "OGE06-F004-DEC-SUB",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.decimal.multiply.two_terms",
+      "label": "Умножение десятичных дробей",
+      "prototype_ids": [
+        "349924",
+        "350570",
+        "461940"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=59&ttest=true",
+      "source_context": "Каталог десятичных дробей",
+      "sample": "2,1 · 9,6; 1,6 · 5,1; 3,2 · 6,2",
+      "sample_answer": "20,16; 8,16; 19,84",
+      "answer_format": "десятичное число, 2 знака",
+      "number_ranges": "образцы: десятые от 1,6 до 9,6; произведения 8,16–20,16",
+      "difficulty": "одно действие; перенос запятой на две позиции",
+      "generator": "OGE06-F004-DEC-MUL",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.mixed_number.subtract.decimal",
+      "label": "Вычитание десятичной дроби из смешанного числа",
+      "prototype_ids": [
+        "448832"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+      "source_context": "ОГЭ 2024, досрочный этап",
+      "sample": "6 1/2 − 47/10",
+      "sample_answer": "1,8",
+      "answer_format": "точное конечное десятичное число",
+      "number_ranges": "образец: смешанное 6 1/2 и десятичная дробь 4,7",
+      "difficulty": "одно действие после представления смешанного числа",
+      "generator": "OGE06-F006-MIXED-MINUS-DECIMAL",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.fraction.subtract.then_reduced_numerator",
+      "label": "Вычислить разность, сократить дробь, указать числитель",
+      "prototype_ids": [
+        "439897"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+      "source_context": "Демонстрационный вариант ОГЭ 2024",
+      "sample": "условие требует несократимую обыкновенную дробь и её числитель",
+      "sample_answer": "13",
+      "answer_format": "целый числитель несократимой дроби",
+      "number_ranges": "ответ образца 13",
+      "difficulty": "вычитание, сокращение, чтение формата ответа",
+      "generator": "OGE06-F008-REDUCED-NUMERATOR",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.fraction.convert_to_prescribed_denominator_numerator",
+      "label": "Привести разность к указанному знаменателю и записать числитель",
+      "prototype_ids": [
+        "450504"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=6&ttest=true",
+      "source_context": "ОГЭ 2024, досрочный этап",
+      "sample": "3/5 − 2/7; привести к знаменателю 70",
+      "sample_answer": "22",
+      "answer_format": "целый числитель несокращённой записи с заданным знаменателем",
+      "number_ranges": "образец: знаменатель 70; ответ 22",
+      "difficulty": "вычитание, эквивалентная дробь, форматированный ответ",
+      "generator": "OGE06-F009-PRESCRIBED-NUMERATOR",
+      "status": "confirmed_prototype; prevalence preliminary"
+    },
+    {
+      "id": "oge6.decimal.quotient_in_fraction_bar",
+      "label": "Деление десятичных дробей, записанных дробной чертой",
+      "prototype_ids": [
+        "348647",
+        "438264",
+        "438308",
+        "438339",
+        "438368"
+      ],
+      "source_url": "https://math-oge.sdamgia.ru/test?theme=129&ttest=true",
+      "source_context": "438264 — ОГЭ 2023, Санкт-Петербург; 438308 и 438368 встречаются в материалах 2023/2026; пять записей сведены к одному алгоритму дробной черты",
+      "sample": "9,6/1,6; 6,5/1,3; 8,2/4,1; 9,6/1,2; 8,4/1,2",
+      "sample_answer": "6; 5; 2; 8; 7",
+      "answer_format": "целое числовое значение",
+      "number_ranges": "образцы: делитель 1,2–4,1; частное 2–8",
+      "difficulty": "одно деление; устранение запятых эквивалентным умножением",
+      "generator": null,
+      "status": "confirmed_reference_only; disabled because only 43 distinct operand pairs fit observed input ranges 6.5–9.6 over 1.2–4.1; below the 200-example mass-family gate",
+      "range_evidence": "prototype-only; five source examples, all decimal operands have one fractional digit"
+    }
+  ],
+  "coverage_gaps": [
+    {
+      "candidate": "отношения и пропорции",
+      "atlas_family": "F007",
+      "status": "disabled_unconfirmed",
+      "evidence": "Не обнаружены в трёх подкаталогах №6 текущего каталога; в атласе нет task ID/URL примера №6.",
+      "action": "Не создавать самостоятельный генератор №6 без конкретного образца."
+    },
+    {
+      "candidate": "степени и порядок действий",
+      "atlas_family": "F005",
+      "status": "disabled_unconfirmed",
+      "evidence": "Нет task ID/URL подтверждённой конструкции в каталоге №6.",
+      "action": "Оставить research_only."
+    },
+    {
+      "candidate": "произвольные многошаговые смешанные выражения и скобки",
+      "atlas_family": "F003",
+      "status": "partially_covered",
+      "evidence": "Подтверждена только конкретная структура 1:(1/a+1/b), образец 463020.",
+      "action": "Не расширять за пределы подтверждённого прототипа; остальные формы зарегистрировать как gap."
+    },
+    {
+      "candidate": "обыкновенная дробь + десятичная дробь в одной цепочке операций",
+      "status": "disabled_unconfirmed",
+      "evidence": "Название каталога theme=129 вводит в заблуждение: найденные 5 прототипов — только десятичное деление с дробной чертой.",
+      "action": "Не выводить поддержку из названия категории."
+    },
+    {
+      "candidate": "деление десятичных дробей с дробной чертой",
+      "status": "confirmed_but_disabled_insufficient_diversity",
+      "source_ids": [
+        "348647",
+        "438264",
+        "438308",
+        "438339",
+        "438368"
+      ],
+      "evidence": "Все пять прототипов имеют одну структуру; в наблюдаемом диапазоне числителя 6.5–9.6 и знаменателя 1.2–4.1 существует 43 различные пары с целым частным.",
+      "action": "Оставить выключенным, пока дополнительные реальные прототипы не подтвердят более широкий числовой диапазон."
+    }
+  ],
+  "excluded_atlas_candidates": [
+    {
+      "task_id": "314127",
+      "url": "https://math-oge.sdamgia.ru/problem?id=314127",
+      "observed_label": "Тип Д8, прежняя нумерация; степень дроби",
+      "reason": "Страница помечена Д8 и относится к более ранней нумерации заданий; не использовать как доказательство современного задания №6."
+    },
+    {
+      "task_id": "314288",
+      "url": "https://math-oge.sdamgia.ru/problem?id=314288",
+      "observed_label": "Тип Д26; сумма дробей в скобках делится на дробь",
+      "reason": "Страница помечена Д26, не современным типом №6; не смешивать тематику «обыкновенные дроби» с номером задания."
+    }
+  ]
+}

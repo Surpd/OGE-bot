@@ -10,6 +10,14 @@ MAIN_MENU = (
     "▶ Продолжить",
 )
 
+TASK6_MENU = (
+    "💡 Подсказка",
+    "📘 Разбор",
+    "➡ Следующее",
+    "⏭ Пропустить",
+    "↩ В меню",
+)
+
 
 def main_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
     rows = [
@@ -20,3 +28,24 @@ def main_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
     if has_session:
         rows.append([KeyboardButton(text="▶ Продолжить")])
     return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
+
+
+def number_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="№6 · Вычисления")],
+            [KeyboardButton(text="↩ В меню")],
+        ],
+        resize_keyboard=True,
+    )
+
+
+def task6_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="💡 Подсказка"), KeyboardButton(text="📘 Разбор")],
+            [KeyboardButton(text="➡ Следующее"), KeyboardButton(text="⏭ Пропустить")],
+            [KeyboardButton(text="↩ В меню")],
+        ],
+        resize_keyboard=True,
+    )
