@@ -257,15 +257,14 @@ class PostgresRepository:
         expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None:
+                raise RuntimeError("Task-9 user does not exist")
             if expected_screen is not None:
-                user = await connection.fetchrow(
-                    "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
-                    telegram_user_id,
-                )
-                if (
-                    user is None
-                    or _json_object(user["current_state"]).get("screen") != expected_screen
-                ):
+                if _json_object(user["current_state"]).get("screen") != expected_screen:
                     return {"_transitioned": False, "_stale_screen": True}
             row = await connection.fetchrow(
                 """SELECT s.id, s.active_problem_id, s.state, u.id AS user_id
@@ -617,15 +616,14 @@ class PostgresRepository:
         expected_prompt_message_id: int | None = None,
     ) -> dict[str, object]:
         async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None:
+                raise RuntimeError("Task-6 user does not exist")
             if expected_screen is not None:
-                user = await connection.fetchrow(
-                    "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
-                    telegram_user_id,
-                )
-                if (
-                    user is None
-                    or _json_object(user["current_state"]).get("screen") != expected_screen
-                ):
+                if _json_object(user["current_state"]).get("screen") != expected_screen:
                     return {"_transitioned": False, "_stale_screen": True}
             row = await connection.fetchrow(
                 """SELECT s.id, s.active_problem_id, s.state, u.id AS user_id
