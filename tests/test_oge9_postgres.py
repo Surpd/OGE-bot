@@ -23,6 +23,7 @@ async def test_task9_postgres_hints_answers_and_snapshots_survive_repository_res
             "migrations/0002_task6_training.sql",
             "migrations/0003_task6_session_quality.sql",
             "migrations/0004_task9_sessions.sql",
+            "migrations/0005_task10_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
         repository = PostgresRepository(pool)
@@ -80,6 +81,7 @@ async def test_postgres_mixed_sessions_are_independent_and_stale_actions_are_ser
             "migrations/0002_task6_training.sql",
             "migrations/0003_task6_session_quality.sql",
             "migrations/0004_task9_sessions.sql",
+            "migrations/0005_task10_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
         repo = PostgresRepository(pool)

@@ -345,7 +345,7 @@ async def test_empty_progress_uses_zero_accuracy_without_division_error() -> Non
     text = message.answer.await_args.args[0]
     assert "№6 · выдано 0 · отвечал 0" in text
     assert "№9 · выдано 0 · отвечал 0" in text
-    assert text.count("правильно 0%") == 2
+    assert text.count("правильно 0%") == 3
 
 
 @pytest.mark.asyncio
@@ -374,13 +374,17 @@ async def test_active_and_completed_task6_buttons_are_distinct() -> None:
     await task6_answer(wrong, repository)
     active_keyboard = wrong.answer.await_args.kwargs["reply_markup"]
     assert {button.text for row in active_keyboard.inline_keyboard for button in row} == {
-        "💡 Подсказка", "📘 Разбор", "⏭ Пропустить", "↩ В меню"
+        "💡 Подсказка",
+        "📘 Разбор",
+        "⏭ Пропустить",
+        "↩ В меню",
     }
     correct = _answer(repository, 775, str(prompt["problem"]["correct_answer"]))
     await task6_answer(correct, repository)
     completed_keyboard = correct.answer.await_args.kwargs["reply_markup"]
     assert {button.text for row in completed_keyboard.inline_keyboard for button in row} == {
-        "➡ Следующее", "↩ В меню"
+        "➡ Следующее",
+        "↩ В меню",
     }
 
 

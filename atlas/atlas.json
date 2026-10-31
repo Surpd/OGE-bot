@@ -1,11 +1,11 @@
 {
   "metadata": {
     "name": "OGE Trainer · Атлас инженерных семейств I части",
-    "version": "1.0-preimplementation",
+    "version": "1.1-task10",
     "as_of": "2026-10-31",
     "exam": "Проект ОГЭ-2027, математика, задания №1–19",
     "first_part_numbers": 19,
-    "candidate_engineering_templates": 117,
+    "candidate_engineering_templates": 122,
     "normalized_author_intents": 37,
     "exam_verified_subtypes": "Частичное покрытие №6; точный реестр — atlas/oge6_reference_structures.json",
     "observed_sample_count": 37,
@@ -2060,19 +2060,19 @@
       "id": "OGE10-F001",
       "number": 10,
       "section": "Классическая вероятность",
-      "name": "Один случайный выбор из равновероятных",
-      "evidence_status": "пример просмотрен; инженерный шаблон требует утверждения",
+      "name": "Один случайный выбор: один отмеченный класс исходов",
+      "evidence_status": "конструкция подтверждена по задачам 132732 и 311525",
       "verified_example_ids": [
-        "132730",
-        "132732"
+        "132732",
+        "311525"
       ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://oge.sdamgia.ru/problem?id=132732",
+        "https://oge.sdamgia.ru/problem?id=311525"
       ],
       "generation_strategy": "probability",
       "generation_unit": "Явное конечное равновероятное пространство исходов или модель испытания.",
-      "recipe": "Создай n равновероятных объектов, m благоприятных; выбери событийный сюжет из банка текстов.",
+      "recipe": "Равновероятный выбор одного объекта; заданы количество объектов нужной категории и общее количество. Структурный fingerprint хранит все категории и выбранную категорию.",
       "independent_oracle": "Перечисление пространства исходов; 0<=m<=n; текст не подразумевает неравные вероятности.",
       "parameter_variants": [
         "жетоны",
@@ -2090,24 +2090,25 @@
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true
     },
     {
       "id": "OGE10-F002",
       "number": 10,
       "section": "Классическая вероятность",
-      "name": "Противоположное событие",
-      "evidence_status": "пример просмотрен; инженерный шаблон требует утверждения",
+      "name": "Противоположное событие при одном случайном выборе",
+      "evidence_status": "конструкция подтверждена по задачам 149 и 132730",
       "verified_example_ids": [
-        "149"
+        "149",
+        "132730"
       ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://oge.sdamgia.ru/problem?id=149",
+        "https://oge.sdamgia.ru/problem?id=132730"
       ],
       "generation_strategy": "probability",
       "generation_unit": "Явное конечное равновероятное пространство исходов или модель испытания.",
-      "recipe": "Явно определи противоположное событие, а не просто инвертируй текстовую метку.",
+      "recipe": "Вероятность дополнения: из известного общего числа вычесть число объектов с указанным отрицательным свойством.",
       "independent_oracle": "P(A)+P(не A)=1 и полнота исходов.",
       "parameter_variants": [
         "случайный билет",
@@ -2124,7 +2125,7 @@
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true
     },
     {
       "id": "OGE10-F003",
@@ -2227,15 +2228,18 @@
       "number": 10,
       "section": "Статистика, теоремы",
       "name": "Частоты и вероятность по наблюдениям",
-      "evidence_status": "категория номера подтверждена; подтип пока проектный",
-      "verified_example_ids": [],
+      "evidence_status": "конструкция подтверждена по задачам 132746 и 132748; распределение параметров предварительное",
+      "verified_example_ids": [
+        "132746",
+        "132748"
+      ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://math-oge.sdamgia.ru/problem?id=132746",
+        "https://math-oge.sdamgia.ru/problem?id=132748"
       ],
       "generation_strategy": "probability",
       "generation_unit": "Явное конечное равновероятное пространство исходов или модель испытания.",
-      "recipe": "Реализовать отдельную математическую конструкцию «Частоты и вероятность по наблюдениям» в модели probability; фиксировать зависимые и независимые параметры, допустимые диапазоны, цель вопроса и выходной формат.",
+      "recipe": "Относительная частота требуемого исхода определяется по конечной партии: число подходящих / общее число; варианты условия проверяются парсером отображённого текста.",
       "independent_oracle": "Перебор исходов и точный Fraction; не допускать подмены «ближайшего» случайным.",
       "parameter_variants": [
         "таблица",
@@ -2252,24 +2256,23 @@
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
       "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true
     },
     {
       "id": "OGE10-F007",
       "number": 10,
-      "section": "Статистика, теоремы",
-      "name": "Сложение вероятностей несовместимых событий",
-      "evidence_status": "пример просмотрен; инженерный шаблон требует утверждения",
+      "section": "Классическая вероятность",
+      "name": "Остаток партии, разделённый между категориями, и объединение несовместимых событий",
+      "evidence_status": "конструкция подтверждена по задаче 325580; источник 311525 ранее был классифицирован ошибочно",
       "verified_example_ids": [
-        "311525"
+        "325580"
       ],
       "references": [
-        "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
-        "https://math-oge.sdamgia.ru/test?a=catlistwstat"
+        "https://math-oge.sdamgia.ru/problem?id=325580"
       ],
       "generation_strategy": "probability",
       "generation_unit": "Явное конечное равновероятное пространство исходов или модель испытания.",
-      "recipe": "Реализовать отдельную математическую конструкцию «Сложение вероятностей несовместимых событий» в модели probability; фиксировать зависимые и независимые параметры, допустимые диапазоны, цель вопроса и выходной формат.",
+      "recipe": "Вычесть известные категории из общей партии, разделить остаток поровну между двумя неуказанными категориями и сложить выбранную известную категорию с одной из остаточных.",
       "independent_oracle": "Перебор исходов и точный Fraction; не допускать подмены «ближайшего» случайным.",
       "parameter_variants": [
         "непересекающиеся классы исходов",
@@ -2283,9 +2286,9 @@
       "visual": "иногда таблица/дерево",
       "quality_criteria": "200 неповторяющихся вариантов как цель для массового алгоритмического семейства; граничные тесты; только подтверждённый экзаменационный формат",
       "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
-      "specific_caution": "Образец нужен до production: математическая допустимость не равна соответствию ОГЭ.",
+      "specific_caution": "Не сливать с простым сложением заданных вероятностей; остаточное количество должно быть положительным и чётным.",
       "priority": "P0",
-      "ship_eligible": false
+      "ship_eligible": true
     },
     {
       "id": "OGE11-F001",
@@ -4411,6 +4414,74 @@
       "recipe": "Не расширять входные диапазоны сверх наблюдаемых значений ради достижения 200 вариантов; в подтверждённом диапазоне только 43 уникальные пары.",
       "answer_format": "типоспецифичная AnswerPolicy",
       "ship_eligible": false
+    },
+    {
+      "id": "OGE10-F008",
+      "number": 10,
+      "section": "Классическая вероятность",
+      "name": "Остаточная категория при выборе одного объекта",
+      "evidence_status": "конструкция подтверждена по указанному task-ID; distribution preliminary",
+      "verified_example_ids": [
+        "132738"
+      ],
+      "references": [
+        "https://oge.sdamgia.ru/problem?id=132738"
+      ],
+      "generation_strategy": "probability",
+      "generation_unit": "Явное конечное равновероятное пространство исходов или модель испытания.",
+      "recipe": "Задан общий размер и количества двух категорий; требуется вероятность оставшейся третьей категории. Отдельная конструкция обратного вычитания.",
+      "independent_oracle": "Перечисление пространства исходов; 0<=m<=n; текст не подразумевает неравные вероятности.",
+      "parameter_variants": [
+        "жетоны",
+        "номера",
+        "шарики",
+        "простые события"
+      ],
+      "formulation_intents_authored": [
+        "Какова вероятность указанного события?",
+        "Найдите вероятность противоположного события"
+      ],
+      "answer_format": "число (вероятность)",
+      "visual": "иногда таблица/дерево",
+      "quality_criteria": "200 неповторяющихся вариантов как цель для массового алгоритмического семейства; граничные тесты; только подтверждённый экзаменационный формат",
+      "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
+      "specific_caution": "Не учитывать числовые клоны как отдельные структуры.",
+      "priority": "P0",
+      "ship_eligible": true
+    },
+    {
+      "id": "OGE10-F009",
+      "number": 10,
+      "section": "Классическая вероятность",
+      "name": "Вероятность объединённой группы с пересечением признаков",
+      "evidence_status": "конструкция подтверждена по указанному task-ID; distribution preliminary",
+      "verified_example_ids": [
+        "311512"
+      ],
+      "references": [
+        "https://oge.sdamgia.ru/problem?id=311512"
+      ],
+      "generation_strategy": "probability",
+      "generation_unit": "Явное конечное равновероятное пространство исходов или модель испытания.",
+      "recipe": "В выборке отдельно заданы только первый признак, только второй и оба признака; вероятность второго признака включает группу пересечения.",
+      "independent_oracle": "Перечисление пространства исходов; 0<=m<=n; текст не подразумевает неравные вероятности.",
+      "parameter_variants": [
+        "жетоны",
+        "номера",
+        "шарики",
+        "простые события"
+      ],
+      "formulation_intents_authored": [
+        "Какова вероятность указанного события?",
+        "Найдите вероятность противоположного события"
+      ],
+      "answer_format": "число (вероятность)",
+      "visual": "иногда таблица/дерево",
+      "quality_criteria": "200 неповторяющихся вариантов как цель для массового алгоритмического семейства; граничные тесты; только подтверждённый экзаменационный формат",
+      "repeat_policy": "full-instance-fingerprint + family rotation; не считать смену фамилии или перестановку вариантов новой математической задачей",
+      "specific_caution": "Не учитывать числовые клоны как отдельные структуры.",
+      "priority": "P0",
+      "ship_eligible": true
     }
   ],
   "formulations": [
@@ -4734,7 +4805,9 @@
         "OGE10-F004",
         "OGE10-F005",
         "OGE10-F006",
-        "OGE10-F007"
+        "OGE10-F007",
+        "OGE10-F008",
+        "OGE10-F009"
       ],
       "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
       "verified_literal": false
@@ -4752,7 +4825,9 @@
         "OGE10-F004",
         "OGE10-F005",
         "OGE10-F006",
-        "OGE10-F007"
+        "OGE10-F007",
+        "OGE10-F008",
+        "OGE10-F009"
       ],
       "source_url": "https://math-oge.sdamgia.ru/test?theme=20&ttest=true",
       "verified_literal": false

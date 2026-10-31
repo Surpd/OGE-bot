@@ -1,0 +1,200 @@
+{
+  "version": "0.1.0",
+  "updated": "2026-11-01",
+  "scope": "OGE task 10 probability prototypes; structures, not numeric clones",
+  "source_policy": "A structure is confirmed only when a task ID supports the construction itself.",
+  "enabled": [
+    {
+      "family_id": "OGE10-F001-DRAW-CATEGORY",
+      "atlas_id": "OGE10-F001",
+      "examples": [
+        {
+          "task_id": "132732",
+          "url": "https://oge.sdamgia.ru/problem?id=132732"
+        },
+        {
+          "task_id": "311525",
+          "url": "https://oge.sdamgia.ru/problem?id=311525"
+        }
+      ],
+      "structure": "Choose one object uniformly; ask for one explicitly named category.",
+      "generator": "Build disjoint category counts summing to the population; query one category.",
+      "ranges": "source examples are 12 objects and 20 objects; generated count ranges 12..100",
+      "complexity": "one favorable count divided by total; exact single numeric answer",
+      "answer_format": "terminating decimal in [0,1], at most 3 decimal places",
+      "weight_status": "preliminary; equal family rotation is a coverage safeguard, not an exam-frequency estimate",
+      "observed_answers": [
+        {
+          "task_id": "132732",
+          "answer": "0.25"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE10-F002-COMPLEMENT",
+      "atlas_id": "OGE10-F002",
+      "examples": [
+        {
+          "task_id": "149",
+          "url": "https://oge.sdamgia.ru/problem?id=149"
+        },
+        {
+          "task_id": "132730",
+          "url": "https://oge.sdamgia.ru/problem?id=132730"
+        }
+      ],
+      "structure": "Uniform single selection; target event is the complement of a described subset.",
+      "generator": "Subtract the count of the excluded property from the population, then divide by total.",
+      "ranges": "source populations 20 and 25; generated counts 15..100",
+      "complexity": "one complement subtraction followed by a probability ratio",
+      "answer_format": "terminating decimal in [0,1], at most 3 decimal places",
+      "weight_status": "preliminary",
+      "observed_answers": [
+        {
+          "task_id": "149",
+          "answer": "0.88"
+        },
+        {
+          "task_id": "132730",
+          "answer": "0.85"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE10-F006-EMPIRICAL-FREQUENCY",
+      "atlas_id": "OGE10-F006",
+      "examples": [
+        {
+          "task_id": "132746",
+          "url": "https://math-oge.sdamgia.ru/problem?id=132746"
+        },
+        {
+          "task_id": "132748",
+          "url": "https://math-oge.sdamgia.ru/problem?id=132748"
+        }
+      ],
+      "structure": "Estimate a single selection probability from observed counts in a finite batch.",
+      "generator": "Use favorable items / inspected items, with the complement count stated in the condition.",
+      "ranges": "source populations 50 and 80; generated populations 20..200 from fixed plausible totals",
+      "complexity": "one complement count and an exact relative frequency",
+      "answer_format": "terminating decimal in [0,1], at most 3 decimal places",
+      "weight_status": "preliminary; only two concrete examples inspected",
+      "observed_answers": [
+        {
+          "task_id": "132746",
+          "answer": "0.96"
+        },
+        {
+          "task_id": "132748",
+          "answer": "0.05"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE10-F007-DISJOINT-UNION-RESIDUAL",
+      "atlas_id": "OGE10-F007",
+      "examples": [
+        {
+          "task_id": "325580",
+          "url": "https://math-oge.sdamgia.ru/problem?id=325580"
+        }
+      ],
+      "structure": "Known categories leave an even residual split equally into two disjoint classes; ask for a known class or one residual class.",
+      "generator": "Subtract known counts, halve the residual, add the requested disjoint favorable counts, divide by total.",
+      "ranges": "source population 100; generated populations 40..200",
+      "complexity": "three visible counts, exact residual parity condition, one addition and a ratio",
+      "answer_format": "terminating decimal in [0,1], at most 3 decimal places",
+      "weight_status": "preliminary; one concrete example",
+      "observed_answers": [
+        {
+          "task_id": "325580",
+          "answer": "0.56"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE10-F008-REMAINDER-CATEGORY",
+      "atlas_id": "OGE10-F008",
+      "examples": [
+        {
+          "task_id": "132738",
+          "url": "https://oge.sdamgia.ru/problem?id=132738"
+        }
+      ],
+      "structure": "Uniform selection among a partition; find the probability of the third category described as the remainder.",
+      "generator": "Subtract two known disjoint category counts from the total.",
+      "ranges": "source population 24; generated populations 20..100",
+      "complexity": "two subtractions followed by a ratio",
+      "answer_format": "terminating decimal in [0,1], at most 3 decimal places",
+      "weight_status": "preliminary; one concrete example",
+      "observed_answers": [
+        {
+          "task_id": "132738",
+          "answer": "0.5"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE10-F009-OVERLAPPING-GROUPS",
+      "atlas_id": "OGE10-F009",
+      "examples": [
+        {
+          "task_id": "311512",
+          "url": "https://oge.sdamgia.ru/problem?id=311512"
+        }
+      ],
+      "structure": "Two attributes overlap; counts are given for only-first, only-second, and both; ask for one attribute.",
+      "generator": "Add the only-second and intersection counts, then divide by total.",
+      "ranges": "source population 20; generated populations 20..60",
+      "complexity": "one addition that must include the intersection exactly once",
+      "answer_format": "terminating decimal in [0,1], at most 3 decimal places",
+      "weight_status": "preliminary; one concrete example",
+      "observed_answers": [
+        {
+          "task_id": "311512",
+          "answer": "0.25"
+        }
+      ]
+    }
+  ],
+  "research_only": [
+    {
+      "atlas_id": "OGE10-F003",
+      "name": "Repeated independent trials / small coin and die spaces",
+      "examples": [
+        {
+          "task_id": "325486",
+          "url": "https://math-oge.sdamgia.ru/problem?id=325486"
+        },
+        {
+          "task_id": "325491",
+          "url": "https://math-oge.sdamgia.ru/problem?id=325491"
+        },
+        {
+          "task_id": "341364",
+          "url": "https://math-oge.sdamgia.ru/problem?id=341364"
+        }
+      ],
+      "reason": "Finite event spaces of 8 or 36 outcomes have restricted natural diversity; task 325491 page contains an apparent solution-text inconsistency. No generator enabled."
+    },
+    {
+      "atlas_id": "OGE10-F004",
+      "name": "Sampling without replacement",
+      "examples": [],
+      "reason": "No sufficiently reviewed task-ID for the intended construction in the checked sources."
+    },
+    {
+      "atlas_id": "OGE10-F005",
+      "name": "Visual tree/diagram probability",
+      "examples": [],
+      "reason": "No source-backed rendered diagram fixture or independent visual condition parser yet."
+    }
+  ],
+  "known_source_correction": {
+    "task_id": "311525",
+    "url": "https://oge.sdamgia.ru/problem?id=311525",
+    "old_classification": "sum of probabilities of disjoint events",
+    "correct_classification": "single selection from tea categories; one target category",
+    "regression": "tests/test_oge10_math.py::test_known_task_311525_is_a_single_category_not_a_union"
+  }
+}

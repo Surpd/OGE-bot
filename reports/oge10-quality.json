@@ -1,0 +1,535 @@
+{
+  "generator_version": "0.1.0",
+  "report_seed": 20261101,
+  "sample_count_per_family": 250,
+  "unique_target": 200,
+  "attempt_limit": 1200,
+  "source_registry_version": "0.1.0",
+  "distribution_note": "Family rotation is a coverage policy. Exam-frequency weights are preliminary because the reviewed sample set is small.",
+  "families": [
+    {
+      "family_id": "OGE10-F001-DRAW-CATEGORY",
+      "source_ids": [
+        "132732",
+        "311525"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 247,
+      "duplicate_rejections": 3,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        100
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "20": 30,
+        "4": 29,
+        "25": 45,
+        "5": 40,
+        "8": 31,
+        "50": 16,
+        "2": 17,
+        "10": 18,
+        "100": 8,
+        "40": 16
+      },
+      "answer_decimal_places": {
+        "1": 75,
+        "2": 128,
+        "3": 47
+      },
+      "source_answer_examples": [
+        {
+          "task_id": "132732",
+          "answer": "0.25"
+        }
+      ],
+      "source_answer_decimal_places": {
+        "2": 1
+      },
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/100",
+        "max": "97/100",
+        "mean": 0.36654
+      },
+      "examples": [
+        {
+          "problem_id": "1ea23b1e-885d-5700-a520-c9187d484821",
+          "seed": 1679124554229777435,
+          "condition": "В наборе 60 фишек: 9 красных, 34 синих и 17 зелёных. Наугад выбирают одну фишку. Найдите вероятность выбрать красную фишку.",
+          "answer": "0,15",
+          "fingerprint": "65f0dac9960b538f3fea6c9e1104c698292ced76340d4ff96f329707f8c2a964"
+        },
+        {
+          "problem_id": "278b04f2-4909-5ae6-9289-901403f4a832",
+          "seed": 1101873822826666871,
+          "condition": "В наборе 100 фишек: 28 красных, 55 синих и 17 зелёных. Наугад выбирают одну фишку. Найдите вероятность выбрать синюю фишку.",
+          "answer": "0,55",
+          "fingerprint": "584f25fa74d5c4605465c161394dd88da98ffd0c0e11b0b50fc7786c059e4efd"
+        },
+        {
+          "problem_id": "dea7516a-f07e-5ca5-917b-7f06a23f330c",
+          "seed": 800632029228423858,
+          "condition": "В наборе 40 фишек: 27 красных, 10 синих и 3 зелёных. Наугад выбирают одну фишку. Найдите вероятность выбрать синюю фишку.",
+          "answer": "0,25",
+          "fingerprint": "6e868cb5618858a6958f9afd0e823efb712747db8036cac78b88223f3ae97842"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F002-COMPLEMENT",
+      "source_ids": [
+        "132730",
+        "149"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 302,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 102,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        100
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "8": 36,
+        "5": 41,
+        "50": 20,
+        "2": 21,
+        "100": 16,
+        "4": 24,
+        "25": 42,
+        "20": 22,
+        "40": 11,
+        "10": 17
+      },
+      "answer_decimal_places": {
+        "1": 79,
+        "2": 124,
+        "3": 47
+      },
+      "source_answer_examples": [
+        {
+          "task_id": "149",
+          "answer": "0.88"
+        },
+        {
+          "task_id": "132730",
+          "answer": "0.85"
+        }
+      ],
+      "source_answer_decimal_places": {
+        "2": 2
+      },
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/50",
+        "max": "49/50",
+        "mean": 0.47174
+      },
+      "examples": [
+        {
+          "problem_id": "ba6d07c3-ef49-57f9-8a9c-7852fdd4f10c",
+          "seed": 2893849626351233995,
+          "condition": "На экзамене 56 билетов, ученик не выучил 21 из них. Билет выбирают наугад. Найдите вероятность того, что билет выучен.",
+          "answer": "0,625",
+          "fingerprint": "1fb36dd478ea338f33deb1319a453e48e38a4dfc115cbf86c289063ac026588e"
+        },
+        {
+          "problem_id": "a35fc032-5afc-53bb-b91b-13577c55eca7",
+          "seed": 3462176900109188769,
+          "condition": "На экзамене 55 билетов, ученик не выучил 22 из них. Билет выбирают наугад. Найдите вероятность того, что билет выучен.",
+          "answer": "0,6",
+          "fingerprint": "98d9b7f9f3e62198ad87c13adba831c021980648ca4dc469d8f05ebe1fb86435"
+        },
+        {
+          "problem_id": "eefdd85f-6dcc-594f-ad81-d0af82b0bc93",
+          "seed": 5038319869857396703,
+          "condition": "На экзамене 50 билетов, ученик не выучил 3 из них. Билет выбирают наугад. Найдите вероятность того, что билет выучен.",
+          "answer": "0,94",
+          "fingerprint": "67dbc1b168f79dda10aa907f74ca04f2e0c7510ea66ba0ac3a4e7796da1671e1"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F008-REMAINDER-CATEGORY",
+      "source_ids": [
+        "132738"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 236,
+      "duplicate_rejections": 14,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        100
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "100": 26,
+        "20": 58,
+        "10": 24,
+        "40": 23,
+        "5": 31,
+        "4": 18,
+        "50": 27,
+        "2": 8,
+        "25": 27,
+        "8": 8
+      },
+      "answer_decimal_places": {
+        "1": 63,
+        "2": 156,
+        "3": 31
+      },
+      "source_answer_examples": [
+        {
+          "task_id": "132738",
+          "answer": "0.5"
+        }
+      ],
+      "source_answer_decimal_places": {
+        "1": 1
+      },
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/100",
+        "max": "19/20",
+        "mean": 0.42294
+      },
+      "examples": [
+        {
+          "problem_id": "fafa95df-cdca-5cd1-a44e-2618ef4c145e",
+          "seed": 1439168568724143115,
+          "condition": "На колесе обозрения 100 кабинок: 31 синих, 22 зелёных, остальные красные. Кабинку выбирают наугад. Найдите вероятность попасть в красную кабинку.",
+          "answer": "0,47",
+          "fingerprint": "3c1baa63fe9f52fee6e7da52051327436a0319de435b05fbb50cce9ddb10efff"
+        },
+        {
+          "problem_id": "58ebcea6-f92a-5a24-a683-d68e0f582428",
+          "seed": 3459146817418536192,
+          "condition": "На колесе обозрения 20 кабинок: 6 синих, 13 зелёных, остальные красные. Кабинку выбирают наугад. Найдите вероятность попасть в красную кабинку.",
+          "answer": "0,05",
+          "fingerprint": "7055bf7e2fb03e8d5eb92c3cbda1d2a3bf75a609fb588948cfec0816de936fa3"
+        },
+        {
+          "problem_id": "212e172b-866f-5e31-915e-ecc3d45c856c",
+          "seed": 2028207605820095873,
+          "condition": "На колесе обозрения 20 кабинок: 2 синих, 4 зелёных, остальные красные. Кабинку выбирают наугад. Найдите вероятность попасть в красную кабинку.",
+          "answer": "0,7",
+          "fingerprint": "51f9e3c1d4669950d750a21c0d7cbed564a4044da1bc5bd7fff954af396e78c3"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F007-DISJOINT-UNION-RESIDUAL",
+      "source_ids": [
+        "325580"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 236,
+      "duplicate_rejections": 14,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        200
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 250,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "100": 34,
+        "25": 43,
+        "40": 35,
+        "2": 29,
+        "50": 44,
+        "20": 27,
+        "200": 21,
+        "5": 16,
+        "8": 1
+      },
+      "answer_decimal_places": {
+        "1": 45,
+        "2": 148,
+        "3": 57
+      },
+      "source_answer_examples": [
+        {
+          "task_id": "325580",
+          "answer": "0.56"
+        }
+      ],
+      "source_answer_decimal_places": {
+        "2": 1
+      },
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "2/5",
+        "max": "5/8",
+        "mean": 0.51882
+      },
+      "examples": [
+        {
+          "problem_id": "67ad95e5-e38f-5205-8333-97adf66ae319",
+          "seed": 2416834727440898036,
+          "condition": "В ящике 100 маркеров: 8 красных, 8 зелёных, 2 фиолетовых. Синих и чёрных поровну; других маркеров нет. Один маркер выбирают наугад. Найдите вероятность выбрать красный или чёрный маркер.",
+          "answer": "0,49",
+          "fingerprint": "a4f11df8286450054666de940e582c4e0a2107a32f381d2dd1c434faae96951f"
+        },
+        {
+          "problem_id": "14b5aadf-9597-508e-a4b5-225a9640bfd8",
+          "seed": 7144124271327295447,
+          "condition": "В ящике 50 маркеров: 10 красных, 2 зелёных, 2 фиолетовых. Синих и чёрных поровну; других маркеров нет. Один маркер выбирают наугад. Найдите вероятность выбрать красный или чёрный маркер.",
+          "answer": "0,56",
+          "fingerprint": "daef17918cf97f3d0280b6eadb19786c59b62a48ec86f22480735718a472372b"
+        },
+        {
+          "problem_id": "0efe343d-0e2a-5d1b-86e9-01ca21b97bc5",
+          "seed": 312210838944947481,
+          "condition": "В ящике 50 маркеров: 7 красных, 4 зелёных, 1 фиолетовых. Синих и чёрных поровну; других маркеров нет. Один маркер выбирают наугад. Найдите вероятность выбрать красный или чёрный маркер.",
+          "answer": "0,52",
+          "fingerprint": "0f6a7ef6b092140035d1d65a4eb1704880ec713da5dd7b883066ba272f6723af"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F009-OVERLAPPING-GROUPS",
+      "source_ids": [
+        "311512"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 215,
+      "duplicate_rejections": 35,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        60
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 250
+      },
+      "denominator_counts": {
+        "5": 50,
+        "40": 14,
+        "4": 46,
+        "10": 29,
+        "25": 48,
+        "8": 26,
+        "50": 18,
+        "20": 19
+      },
+      "answer_decimal_places": {
+        "1": 79,
+        "2": 131,
+        "3": 40
+      },
+      "source_answer_examples": [
+        {
+          "task_id": "311512",
+          "answer": "0.25"
+        }
+      ],
+      "source_answer_decimal_places": {
+        "2": 1
+      },
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/20",
+        "max": "9/25",
+        "mean": 0.20352
+      },
+      "examples": [
+        {
+          "problem_id": "593c0802-6eae-593c-8275-0e9ca826e3dc",
+          "seed": 7600310268055660276,
+          "condition": "В группе 25 человек: 2 знают только английский, 3 — только французский, а 2 знают оба языка. Найдите вероятность того, что случайно выбранный человек знает французский.",
+          "answer": "0,2",
+          "fingerprint": "87779b036d1c53ae931b92811eff9e01bdc01a3c7174e493d32f5abd6b74040b"
+        },
+        {
+          "problem_id": "6792a6e8-bdbf-551f-9079-ccc6cbe956ff",
+          "seed": 1547662203581069816,
+          "condition": "В группе 40 человек: 7 знают только английский, 6 — только французский, а 3 знают оба языка. Найдите вероятность того, что случайно выбранный человек знает французский.",
+          "answer": "0,225",
+          "fingerprint": "ab57e07aa6a16a714c77afad4cc85298b319c152a8c7e2e9447d85bd0e9743d0"
+        },
+        {
+          "problem_id": "5a0b0313-dc1c-5437-9bdc-20b7317da4f3",
+          "seed": 113086059355972602,
+          "condition": "В группе 36 человек: 4 знают только английский, 7 — только французский, а 2 знают оба языка. Найдите вероятность того, что случайно выбранный человек знает французский.",
+          "answer": "0,25",
+          "fingerprint": "4fc3e5e1e661bdfada1f706451f883538f4e3eb9a09202d92410cafd44995197"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F006-EMPIRICAL-FREQUENCY",
+      "source_ids": [
+        "132746",
+        "132748"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 254,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 54,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        200
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "50": 21,
+        "100": 29,
+        "2": 2,
+        "40": 23,
+        "200": 13,
+        "25": 67,
+        "5": 30,
+        "4": 10,
+        "20": 31,
+        "10": 19,
+        "8": 5
+      },
+      "answer_decimal_places": {
+        "1": 51,
+        "2": 158,
+        "3": 41
+      },
+      "source_answer_examples": [
+        {
+          "task_id": "132746",
+          "answer": "0.96"
+        },
+        {
+          "task_id": "132748",
+          "answer": "0.05"
+        }
+      ],
+      "source_answer_decimal_places": {
+        "2": 2
+      },
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/40",
+        "max": "39/40",
+        "mean": 0.50954
+      },
+      "examples": [
+        {
+          "problem_id": "31c965fc-7825-53e6-97ed-3d4c7cd1e2f1",
+          "seed": 2170517941701394660,
+          "condition": "При проверке партии из 100 фонариков 74 оказались неисправными. Оцените по относительной частоте вероятность выбрать исправный фонарик.",
+          "answer": "0,26",
+          "fingerprint": "259c15fd979e59e0e044798aee40ed51fd9c5557095a7732a5d982a727711363"
+        },
+        {
+          "problem_id": "62304d77-730d-5af9-a985-23441977f893",
+          "seed": 8337803169474434881,
+          "condition": "При проверке партии из 200 фонариков 22 оказались неисправными. Оцените по относительной частоте вероятность выбрать исправный фонарик.",
+          "answer": "0,89",
+          "fingerprint": "3145f6bec8f3340ef49b622dcbfe009db3a38192e5f1a6fd6a35547095824fbc"
+        },
+        {
+          "problem_id": "27718b41-b66b-58ae-99a7-2840639dd64d",
+          "seed": 8766267695054188900,
+          "condition": "При проверке партии из 20 фонариков 10 оказались исправными. Оцените по относительной частоте вероятность выбрать неисправный фонарик.",
+          "answer": "0,5",
+          "fingerprint": "e5fef76fbf91f615aef2b875e0de31c4c32deb53ad261350aeb6ddc1bd357fcc"
+        }
+      ],
+      "acceptance": "passed"
+    }
+  ],
+  "overall": {
+    "families_enabled": 6,
+    "families_total": 6,
+    "unique_task_instances_in_samples": 1500
+  }
+}
