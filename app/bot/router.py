@@ -2007,6 +2007,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
     progress14 = await repository.task14_progress(user_id)
     progress8 = await repository.task8_progress(user_id)
     progress7 = await repository.task7_progress(user_id)
+    history7 = await repository.task7_history(user_id, limit=5)
     state6 = await repository.task6_state(user_id)
     state9 = await repository.task9_state(user_id)
     state10 = await repository.task10_state(user_id)
@@ -2033,11 +2034,28 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
             f"разборов просмотрено — {values['solutions_viewed']}."
         )
 
+    outcome_labels = {
+        "solved": "верно",
+        "failed": "две ошибки",
+        "skipped": "пропуск",
+        "solution_viewed": "разбор",
+        "issued": "не завершено",
+    }
+    history_text = (
+        "\n".join(
+            f"• {item['family_id']} · {outcome_labels.get(str(item['outcome']), 'не завершено')} · "
+            f"попыток {item['attempts']}\n  {item['condition']}"
+            for item in history7
+        )
+        or "Пока нет выданных заданий."
+    )
+
     await message.answer(
         "📊 Подробнее\n\n"
         f"{detail('6', progress6)}\n\n{detail('9', progress9)}\n\n"
         f"{detail('10', progress10)}\n\n{detail('12', progress12)}\n\n"
         f"{detail('7', progress7)}\n\n{detail('8', progress8)}\n\n{detail('14', progress14)}\n\n"
+        f"История №7 (последние 5):\n{history_text}\n\n"
         "Неверный ответ, пропуск и просмотр разбора учитываются отдельно.",
         reply_markup=progress_menu(has_session=has_session),
     )

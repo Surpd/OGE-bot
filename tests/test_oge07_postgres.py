@@ -87,6 +87,10 @@ async def test_task7_postgres_restores_text_and_png_snapshots_and_answers(
         progress = await restarted.task7_progress(user_id)
         assert progress["issued"] == progress["correct"] == progress["attempts"] == 1
         assert progress["hints_used"] == 1
+        history = await restarted.task7_history(user_id)
+        assert history[0]["family_id"] == family
+        assert history[0]["outcome"] == "solved"
+        assert history[0]["condition"] == snapshot["condition"]
     finally:
         await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
         await pool.close()

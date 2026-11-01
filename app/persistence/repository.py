@@ -393,6 +393,10 @@ class Repository(Protocol):
 
     async def task7_progress(self, telegram_user_id: int) -> dict[str, int]: ...
 
+    async def task7_history(
+        self, telegram_user_id: int, limit: int = 5
+    ) -> list[dict[str, object]]: ...
+
 
 class _Task10PostgresMixin:
     _pool: asyncpg.Pool
@@ -2532,6 +2536,34 @@ class _Task7PostgresMixin:
                 )
             }
         )
+
+    async def task7_history(self, telegram_user_id: int, limit: int = 5) -> list[dict[str, object]]:
+        rows = await self._pool.fetch(
+            """SELECT p.family_id, p.snapshot, p.outcome, p.hints_used,
+                      count(a.id)::int AS attempts
+               FROM users u JOIN issued_problems p ON p.user_id=u.id
+               JOIN sessions s ON s.id=p.session_id AND s.mode='task7'
+               LEFT JOIN attempts a ON a.problem_id=p.id
+               WHERE u.telegram_user_id=$1
+               GROUP BY p.id
+               ORDER BY p.issued_at DESC
+               LIMIT $2""",
+            telegram_user_id,
+            max(1, min(limit, 20)),
+        )
+        history: list[dict[str, object]] = []
+        for row in rows:
+            snapshot = _json_object(row["snapshot"])
+            history.append(
+                {
+                    "family_id": str(row["family_id"]),
+                    "condition": str(snapshot.get("condition", "")),
+                    "outcome": str(row["outcome"]),
+                    "attempts": int(row["attempts"]),
+                    "hints_used": int(row["hints_used"]),
+                }
+            )
+        return history
 
 
 class PostgresRepository(
@@ -5484,6 +5516,29 @@ class MemoryRepository:
             "solutions_viewed": len(self.solutions7.get(telegram_user_id, set())),
             "skipped": sum(outcome == "skipped" for outcome in outcomes.values()),
         }
+
+    async def task7_history(self, telegram_user_id: int, limit: int = 5) -> list[dict[str, object]]:
+        issued = list(self.issued7.get(telegram_user_id, {}).values())
+        attempts = self.attempts7.get(telegram_user_id, [])
+        by_problem: dict[str, int] = {}
+        for attempt in attempts:
+            problem_id = str(attempt["problem_id"])
+            by_problem[problem_id] = by_problem.get(problem_id, 0) + 1
+        history = [
+            {
+                "family_id": str(problem.get("family_id", "")),
+                "condition": str(problem.get("condition", "")),
+                "outcome": self.outcomes7.get(telegram_user_id, {}).get(
+                    str(problem.get("problem_id", "")), "issued"
+                ),
+                "attempts": by_problem.get(str(problem.get("problem_id", "")), 0),
+                "hints_used": self.hints7.get(telegram_user_id, {}).get(
+                    str(problem.get("problem_id", "")), 0
+                ),
+            }
+            for problem in issued
+        ]
+        return list(reversed(history[-max(1, min(limit, 20)) :]))
 
 
 async def read_migration(path: str) -> str:

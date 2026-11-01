@@ -21,6 +21,7 @@ from app.bot.router import (
     choose_task10,
     choose_task12,
     choose_task14,
+    show_progress_details,
     task6_answer,
     task6_callback,
     task7_answer,
@@ -420,3 +421,25 @@ async def test_task7_graph_snapshot_photo_survives_resume(monkeypatch: pytest.Mo
     assert resumed_state is not None
     assert resumed_state["problem"]["problem_id"] == first_problem["problem_id"]
     assert resumed_state["problem"]["correct_answer"] == first_problem["correct_answer"]
+
+
+@pytest.mark.asyncio
+async def test_task7_history_is_visible_in_detailed_progress(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
+    repository = MemoryRepository()
+    user_id = 972_007
+    training = next(item for item in TRAININGS if item.number == 7)
+    state = await _open(repository, training, user_id)
+    problem = state["problem"]
+
+    await task7_answer(_message(user_id, str(problem["correct_answer"])), repository)
+    details = _message(user_id, "📊 Подробнее")
+    await show_progress_details(details, repository)
+
+    rendered = details.answer.await_args.args[0]
+    assert "История №7" in rendered
+    assert str(problem["family_id"]) in rendered
+    assert str(problem["condition"]) in rendered
+    assert "верно" in rendered
