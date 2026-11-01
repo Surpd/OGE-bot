@@ -257,7 +257,10 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         )
         return _build(
             R04, seed, expression, (left_rad, right_rad, left_coeff, right_coeff),
-            ("Сгруппируйте корни и используйте √a·√b = √(ab) для неотрицательных a и b.",),
+            (
+                "Сгруппируйте корни и используйте √a·√b = √(ab) для неотрицательных a и b.",
+                f"Под корнем получится квадрат числа {left_rad * right_rad}: √({left_rad * right_rad}²) = {left_rad * right_rad}.",
+            ),
             (
                 f"{left_coeff}·{right_coeff}·√({left_rad}·{right_rad}·{left_rad * right_rad})"
                 f" = {left_coeff * right_coeff}·{left_rad * right_rad}"
@@ -276,7 +279,10 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         answer = radicand + coefficient**2
         return _build(
             R08, seed, expression, (radicand, coefficient),
-            ("Раскройте квадрат суммы; смешанный член сократится с последним слагаемым.",),
+            (
+                "Раскройте квадрат суммы; смешанный член сократится с последним слагаемым.",
+                f"После сокращения останется {radicand} + {coefficient}².",
+            ),
             (f"n + {coefficient}² = {radicand} + {coefficient**2}.", f"Ответ: {answer}."),
             "binomial_square_cancel_radical",
             Fraction(answer),
