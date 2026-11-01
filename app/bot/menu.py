@@ -34,19 +34,18 @@ def main_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
 
 
-def number_menu() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="№6 · Вычисления")],
-            [KeyboardButton(text="№9 · Уравнения")],
-            [KeyboardButton(text="№10 · Вероятность")],
-            [KeyboardButton(text="№12 · Формулы")],
-            [KeyboardButton(text="№13 · Неравенства")],
-            [KeyboardButton(text="№14 · Прогрессии")],
-            [KeyboardButton(text="↩ В меню")],
-        ],
-        resize_keyboard=True,
-    )
+def number_menu(*, include_task13: bool = False) -> ReplyKeyboardMarkup:
+    rows = [
+        [KeyboardButton(text="№6 · Вычисления")],
+        [KeyboardButton(text="№9 · Уравнения")],
+        [KeyboardButton(text="№10 · Вероятность")],
+        [KeyboardButton(text="№12 · Формулы")],
+        [KeyboardButton(text="№14 · Прогрессии")],
+        [KeyboardButton(text="↩ В меню")],
+    ]
+    if include_task13:
+        rows.insert(4, [KeyboardButton(text="№13 · Неравенства")])
+    return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
 
 
 def progress_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
@@ -138,6 +137,7 @@ def task12_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMa
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t12:menu:{problem_id}")],
         ]
     )
+
 
 def task14_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
     if completed:

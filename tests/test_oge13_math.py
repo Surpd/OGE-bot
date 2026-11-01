@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import random
 import re
 import struct
+import zlib
 from dataclasses import replace
 from fractions import Fraction
 
@@ -11,11 +13,39 @@ from app.math.inequalities import (
     ENABLED_FAMILIES,
     FAMILIES,
     Interval,
+    _svg,
     generate,
     independent_solve,
     render_option_sheet_png,
+    render_option_sheet_snapshot_png,
     validate,
+    validate_snapshot,
 )
+
+
+def _test_linear_expression(expression: str) -> tuple[Fraction, Fraction]:
+    compact = expression.replace(" ", "")
+    terms = re.findall(r"[+-]?[^+-]+", compact)
+    assert "".join(terms) == compact
+    coefficient = Fraction(0)
+    constant = Fraction(0)
+    for term in terms:
+        if term.endswith("x"):
+            raw = term[:-1]
+            coefficient += Fraction(-1 if raw == "-" else 1 if raw in ("", "+") else raw)
+        else:
+            constant += Fraction(term.replace(",", "."))
+    return coefficient, constant
+
+
+def _test_comparison(row: str, x: Fraction) -> bool:
+    matches = list(re.finditer(r"<=|>=|<|>", row))
+    assert len(matches) == 1
+    match = matches[0]
+    left = _test_linear_expression(row[: match.start()])
+    right = _test_linear_expression(row[match.end() :])
+    left_value, right_value = left[0] * x + left[1], right[0] * x + right[1]
+    return _compare(left_value, right_value, match.group())
 
 
 def _condition_truth(condition: str, family: str, x: Fraction) -> bool:
@@ -64,14 +94,7 @@ def _condition_truth(condition: str, family: str, x: Fraction) -> bool:
     else:
         rows = condition.splitlines()
         assert len(rows) == 2
-        for row in rows:
-            match = re.fullmatch(r"x ([<>]=?) (-?\d+(?:,\d{1,2})?)", row)
-            assert match
-            rel, raw = match.groups()
-            bound = Fraction(raw.replace(",", "."))
-            if not _compare(x, bound, rel):
-                return False
-        return True
+        return all(_test_comparison(row, x) for row in rows)
     return _compare(left, right, rel)
 
 
@@ -91,6 +114,33 @@ def _contains(option, x: Fraction) -> bool:
         if left_ok and right_ok:
             return True
     return False
+
+
+def _decode_rgb_png(image: bytes) -> tuple[int, int, bytes]:
+    offset = 8
+    compressed = bytearray()
+    width = height = color_type = bit_depth = None
+    while offset < len(image):
+        size = struct.unpack(">I", image[offset : offset + 4])[0]
+        kind = image[offset + 4 : offset + 8]
+        data = image[offset + 8 : offset + 8 + size]
+        offset += size + 12
+        if kind == b"IHDR":
+            width, height, bit_depth, color_type = struct.unpack(">IIBB", data[:10])[:4]
+        elif kind == b"IDAT":
+            compressed.extend(data)
+        elif kind == b"IEND":
+            break
+    assert width is not None and height is not None
+    assert bit_depth == 8 and color_type == 2
+    raw = zlib.decompress(compressed)
+    stride = width * 3
+    pixels = bytearray()
+    for row in range(height):
+        start = row * (stride + 1)
+        assert raw[start] == 0
+        pixels.extend(raw[start + 1 : start + 1 + stride])
+    return width, height, bytes(pixels)
 
 
 def _probe_points() -> tuple[Fraction, ...]:
@@ -148,9 +198,13 @@ def _critical_probe_points(condition: str, family: str, options=()) -> tuple[Fra
         )
     else:
         for row in condition.splitlines():
-            match = re.fullmatch(r"x ([<>]=?) (-?\d+(?:,\d{1,2})?)", row)
+            match = re.search(r"<=|>=|<|>", row)
             assert match
-            boundaries.add(Fraction(match.group(2).replace(",", ".")))
+            left = _test_linear_expression(row[: match.start()])
+            right = _test_linear_expression(row[match.end() :])
+            coefficient, constant = left[0] - right[0], left[1] - right[1]
+            if coefficient:
+                boundaries.add(-constant / coefficient)
 
     for option in options:
         for interval in option:
@@ -225,6 +279,26 @@ def test_all_pilot_families_are_deterministic_disabled_and_audited() -> None:
             "OGE13-S01",
             (Interval(Fraction(-3, 2), Fraction(5, 2), True, True),),
         ),
+        (
+            "x + 2,6 <= 0\nx + 5 >= 1",
+            "OGE13-S01",
+            (Interval(Fraction(-4), Fraction(-13, 5), True, True),),
+        ),
+        (
+            "x + 3 >= -2\nx + 1,1 >= 0",
+            "OGE13-S02",
+            (Interval(Fraction(-11, 10), None, True, False),),
+        ),
+        (
+            "x > 3\n4 - x > 0",
+            "OGE13-S03",
+            (Interval(Fraction(3), Fraction(4)),),
+        ),
+        (
+            "-2x + 1 <= 0\n3x - 4 <= -1",
+            "OGE13-S01",
+            (Interval(Fraction(1, 2), Fraction(1), True, True),),
+        ),
     ],
 )
 def test_independent_solver_boundary_and_sign_cases(condition, family, expected) -> None:
@@ -241,6 +315,86 @@ def test_empty_set_model_and_svg_png_are_available() -> None:
     assert all(svg.startswith("<svg") for svg in problem.option_svgs)
 
 
+def test_distractors_reject_reversed_and_noncanonical_intervals() -> None:
+    from app.math.inequalities import _distractors, _is_canonical_interval_set
+
+    correct = (Interval(Fraction(0), Fraction(1, 2)),)
+    options = _distractors(correct, random.Random(13))
+
+    assert len(options) == 4
+    assert len(set(options)) == 4
+    assert all(_is_canonical_interval_set(option) for option in options)
+    assert not _is_canonical_interval_set((Interval(Fraction(1), Fraction(1, 2)),))
+    assert (Interval(Fraction(1), Fraction(1, 2)),) not in options
+    assert _is_canonical_interval_set((Interval(Fraction(2), Fraction(2), True, True),))
+    assert not _is_canonical_interval_set((Interval(Fraction(2), Fraction(2)),))
+    assert not _is_canonical_interval_set(
+        (Interval(Fraction(0), Fraction(2)), Interval(Fraction(1), Fraction(3)))
+    )
+    assert not _is_canonical_interval_set(
+        (Interval(Fraction(0), Fraction(1), True, True), Interval(Fraction(1), None))
+    )
+
+
+@pytest.mark.parametrize(
+    "family", ("OGE13-L02", "OGE13-Q04", "OGE13-S01", "OGE13-S02", "OGE13-S03")
+)
+def test_png_pixels_match_each_saved_interval_and_boundary(family: str) -> None:
+    problem = generate(family, 2701)
+    width, height, pixels = _decode_rgb_png(render_option_sheet_png(problem))
+    assert (width, height) == (1280, 1120)
+    blue, ink, white = (23, 105, 170), (34, 34, 34), (255, 255, 255)
+
+    def pixel(x: int, y: int) -> tuple[int, int, int]:
+        offset = (y * width + x) * 3
+        return tuple(pixels[offset : offset + 3])
+
+    for option_index, option in enumerate(problem.options):
+        axis_y = 185 + option_index * 250
+        endpoints = [
+            endpoint
+            for interval in option
+            for endpoint in (interval.left, interval.right)
+            if endpoint is not None
+        ]
+        for x in range(120, 1161, 7):
+            if any(abs(x - (640 + tick * 36)) <= 2 for tick in range(-12, 13, 4)):
+                continue
+            if any(abs(x - round(640 + float(endpoint) * 36)) <= 14 for endpoint in endpoints):
+                continue
+            number = Fraction(x - 640, 36)
+            expected = _contains(option, number)
+            assert pixel(x, axis_y) == (blue if expected else ink)
+        for interval in option:
+            for endpoint, closed in (
+                (interval.left, interval.left_closed),
+                (interval.right, interval.right_closed),
+            ):
+                if endpoint is None:
+                    continue
+                center_x = round(640 + float(endpoint) * 36)
+                assert pixel(center_x, axis_y) == (blue if closed else white)
+
+
+def test_snapshot_renderer_uses_saved_options_and_rejects_unknown_versions() -> None:
+    problem = generate("OGE13-Q04", 702)
+    snapshot = problem.to_snapshot()
+    assert validate_snapshot(snapshot)
+    assert render_option_sheet_snapshot_png(snapshot) == render_option_sheet_png(problem)
+
+    tampered = dict(snapshot)
+    tampered["correct_option_number"] = problem.correct_option_number % 4 + 1
+    assert not validate_snapshot(tampered)
+
+    unsupported = dict(snapshot)
+    unsupported["generator_version"] = "99.0.0"
+    assert not validate_snapshot(unsupported)
+    with pytest.raises(ValueError, match="Unsupported OGE13 generator version"):
+        render_option_sheet_snapshot_png(unsupported)
+    with pytest.raises(ValueError, match="Unsupported OGE13 generator version"):
+        generate("OGE13-S01", 1, generator_version="99.0.0")
+
+
 def test_answer_parser_accepts_option_number_or_exact_text() -> None:
     problem = generate("OGE13-L02", 77)
     assert problem.accepts(str(problem.correct_option_number))
@@ -253,6 +407,54 @@ def test_condition_audit_rejects_changed_visible_condition() -> None:
     assert independent_solve(problem.condition, problem.family_id) == problem.solution_set
     with pytest.raises(ValueError):
         independent_solve(problem.condition + "x", problem.family_id)
+
+
+def test_original_system_source_cases_are_independently_solved() -> None:
+    cases = (
+        (
+            "x + 2,6 <= 0\nx + 5 >= 1",
+            "OGE13-S01",
+            (Interval(Fraction(-4), Fraction(-13, 5), True, True),),
+        ),
+        (
+            "x + 3 >= -2\nx + 1,1 >= 0",
+            "OGE13-S02",
+            (Interval(Fraction(-11, 10), None, True, False),),
+        ),
+        (
+            "x > 3\n4 - x > 0",
+            "OGE13-S03",
+            (Interval(Fraction(3), Fraction(4)),),
+        ),
+    )
+    for condition, family, expected in cases:
+        assert independent_solve(condition, family) == expected
+        probes = _critical_probe_points(condition, family, (expected,))
+        assert all(
+            _contains(expected, point) == _condition_truth(condition, family, point)
+            for point in probes
+        )
+
+
+@pytest.mark.parametrize("family", ("OGE13-S01", "OGE13-S02", "OGE13-S03"))
+def test_system_generators_keep_source_algebra_and_vary_coefficients(family: str) -> None:
+    seen_coefficients: set[Fraction] = set()
+    for seed in range(100):
+        problem = generate(family, seed)
+        rows = problem.condition.splitlines()
+        assert len(rows) == 2
+        assert all("x" in row and re.search(r"[<>]=?", row) for row in rows)
+        assert not all(re.fullmatch(r"x [<>]=? -?\d+(?:,\d+)?", row) for row in rows)
+        for row in rows:
+            comparison = re.search(r"<=|>=|<|>", row)
+            assert comparison
+            coefficient = _test_linear_expression(row[: comparison.start()])[0]
+            seen_coefficients.add(abs(coefficient))
+        if family == "OGE13-S03":
+            second_left = rows[1].split(">", maxsplit=1)[0]
+            assert _test_linear_expression(second_left)[0] < 0
+        assert validate(problem)
+    assert len(seen_coefficients) >= 3
 
 
 @pytest.mark.parametrize("family", FAMILIES)
@@ -315,9 +517,19 @@ def test_svg_is_bound_to_ordered_options_and_png_rows_follow_option_order() -> N
     changed_svgs[0], changed_svgs[1] = changed_svgs[1], changed_svgs[0]
     assert not validate(replace(problem, option_svgs=tuple(changed_svgs)))
 
-    changed_options = list(problem.options)
-    changed_options[0], changed_options[1] = changed_options[1], changed_options[0]
-    reordered = replace(problem, options=tuple(changed_options))
+    order = (1, 0, 2, 3)
+    reordered = replace(
+        problem,
+        options=tuple(problem.options[index] for index in order),
+        option_texts=tuple(problem.option_texts[index] for index in order),
+        option_svgs=tuple(
+            _svg(problem.options[index], position + 1) for position, index in enumerate(order)
+        ),
+        display_order=tuple(problem.display_order[index] for index in order),
+        correct_option_number=order.index(problem.correct_option_number - 1) + 1,
+        correct_answer=str(order.index(problem.correct_option_number - 1) + 1),
+    )
+    assert validate(reordered)
     assert render_option_sheet_png(problem) != render_option_sheet_png(reordered)
 
 

@@ -22,11 +22,16 @@ from app.bot.training_ux import matches_current_condition
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.formulas import POLICY as TASK12_ANSWER_POLICY
 from app.math.inequalities import (
+    ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES,
+)
+from app.math.inequalities import (
     POLICY as TASK13_ANSWER_POLICY,
 )
 from app.math.inequalities import (
-    generate,
-    render_option_sheet_png,
+    render_option_sheet_snapshot_png,
+)
+from app.math.inequalities import (
+    validate_snapshot as validate_task13_snapshot,
 )
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
@@ -268,7 +273,10 @@ async def choose_number(message: Message, repository: Repository) -> None:
     user_id = _user_id(message)
     if user_id is not None:
         await repository.save_user_state(user_id, "number_selection")
-    await message.answer("Выберите номер задания:", reply_markup=number_menu())
+    await message.answer(
+        "Выберите номер задания:",
+        reply_markup=number_menu(include_task13=bool(TASK13_ENABLED_FAMILIES)),
+    )
 
 
 async def choose_task6(message: Message, repository: Repository) -> None:
@@ -573,6 +581,7 @@ async def task10_answer(message: Message, repository: Repository) -> None:
             user_id, problem_id, result_id, expected_status=str(status)
         )
         await _disable_stale_keyboard(sent, saved)
+
 
 async def _send_task12_problem(
     message: Message,
@@ -1010,15 +1019,13 @@ async def task14_answer(message: Message, repository: Repository) -> None:
         await _disable_stale_keyboard(sent, saved)
 
 
-
 _TASK13_TEXT_FAMILIES = {"OGE13-L01", "OGE13-Q01", "OGE13-Q02", "OGE13-Q03"}
 
 
 def _task13_choice_text(problem: dict[str, object]) -> str:
     choices = problem.get("option_texts", [])
-    if (
-        str(problem.get("family_id", "")) not in _TASK13_TEXT_FAMILIES
-        or not isinstance(choices, list)
+    if str(problem.get("family_id", "")) not in _TASK13_TEXT_FAMILIES or not isinstance(
+        choices, list
     ):
         return ""
     return "\n".join(f"{index}. {choice}" for index, choice in enumerate(choices, 1))
@@ -1090,6 +1097,14 @@ async def _send_task13_problem(
             if expected_screen is None:
                 await repository.save_user_state(user_id, "task13")
     problem_id = str(problem["problem_id"])
+    if not validate_task13_snapshot(problem):
+        await repository.save_user_state(user_id, "main_menu")
+        await message.answer(
+            "Сохранённое задание №13 использует неподдерживаемую версию или повреждённые "
+            "варианты. Оно не было заменено новым заданием.",
+            reply_markup=main_menu(),
+        )
+        return False
     graph_choice = _task13_is_graph_choice(problem)
     caption = (
         "Задание №13 · неравенства\n"
@@ -1102,13 +1117,17 @@ async def _send_task13_problem(
     )
     markup = task13_menu(problem_id, choices=True)
     if graph_choice:
-        generated = generate(
-            str(problem["family_id"]),
-            int(problem["seed"]),
-            generator_version=str(problem["generator_version"]),
-        )
+        try:
+            image = render_option_sheet_snapshot_png(problem)
+        except ValueError:
+            await repository.save_user_state(user_id, "main_menu")
+            await message.answer(
+                "Не удалось отобразить сохранённые варианты №13; задание не пересоздавалось.",
+                reply_markup=main_menu(),
+            )
+            return False
         sent = await message.answer_photo(
-            BufferedInputFile(render_option_sheet_png(generated), filename="oge13-options.png"),
+            BufferedInputFile(image, filename="oge13-options.png"),
             caption=caption,
             reply_markup=markup,
         )
@@ -1165,9 +1184,7 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
             return
         state_value = state.get("state", {}) if state else {}
         condition_id = (
-            state_value.get("problem_prompt_message_id")
-            if isinstance(state_value, dict)
-            else None
+            state_value.get("problem_prompt_message_id") if isinstance(state_value, dict) else None
         )
         current_prompt = (
             state_value.get("input_prompt_message_id") if isinstance(state_value, dict) else None

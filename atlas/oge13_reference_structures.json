@@ -246,7 +246,7 @@
       "answer_layout": "four_graphs",
       "research_state": "pilot",
       "production_enabled": false,
-      "parameter_contract": "Границы a<b с корректными включениями; полная система должна решаться как пересечение двух полупрямых.",
+      "parameter_contract": "Сохранять формы a·x+b≤c и d·x+e≥f (источник 340580: x+2,6≤0; x+5≥1); варьировать положительные коэффициенты, переносимые константы и точные десятичные числа так, чтобы пересечение было замкнутым отрезком.",
       "distractor_types": "Разворот границы, изменение включения, только одна строка системы.",
       "requirements": [
         "real_reference_id",
@@ -275,7 +275,7 @@
       "answer_layout": "four_graphs",
       "research_state": "pilot",
       "production_enabled": false,
-      "parameter_contract": "Обе строки дают x≥a и x≥b либо x>a и x>b; итог более сильная граница; учесть равенство границ.",
+      "parameter_contract": "Сохранять формы a·x+b≥c и d·x+e≥f (источник 348461: x+3≥−2; x+1,1≥0); коэффициенты и переносимые константы генерировать отдельно, затем сравнивать обе границы лучей.",
       "distractor_types": "Выбор слабой границы, неверное направление, неверная закраска точки.",
       "requirements": [
         "real_reference_id",
@@ -304,7 +304,7 @@
       "answer_layout": "four_graphs_with_optional_empty_text",
       "research_state": "pilot",
       "production_enabled": false,
-      "parameter_contract": "Одна нижняя и одна верхняя строгая граница, нижняя < верхней; обе пустые точки.",
+      "parameter_contract": "Сохранять систему x>a и c−d·x>e с d>0 (источник 333109: x>3; 4−x>0); переносить константы и менять знак при делении на отрицательный коэффициент, обе границы строгие.",
       "distractor_types": "Отдельные лучи, замкнутые границы, текст «нет решений». ",
       "requirements": [
         "real_reference_id",

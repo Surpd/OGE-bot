@@ -125,6 +125,8 @@ TRAININGS = (
         "task14_progress",
     ),
 )
+
+
 @pytest.fixture(autouse=True)
 def restore_task13_enabled_families():
     original = oge13_scheduler.ENABLED_FAMILIES
@@ -144,9 +146,15 @@ def test_number_menu_matches_registered_training_adapters() -> None:
         for button in row
         if (match := re.match(r"№(\d+)", button.text or "")) is not None
     }
-    registered_numbers = {training.number for training in TRAININGS}
+    registered_numbers = {training.number for training in TRAININGS} - {13}
 
     assert menu_numbers == registered_numbers
+    assert 13 in {
+        int(match.group(1))
+        for row in number_menu(include_task13=True).keyboard
+        for button in row
+        if (match := re.match(r"№(\d+)", button.text or "")) is not None
+    }
 
 
 _message_id = 910_000

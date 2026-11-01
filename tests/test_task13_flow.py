@@ -6,8 +6,9 @@ import pytest
 from aiogram.types import User
 
 from app.bot.menu import task13_menu
-from app.bot.router import choose_task13, task13_callback
-from app.math import oge13_scheduler
+from app.bot.router import choose_task13, continue_session, task13_callback
+from app.math import inequalities, oge13_scheduler
+from app.math.inequalities import render_option_sheet_snapshot_png
 from app.persistence.repository import MemoryRepository
 
 
@@ -60,7 +61,9 @@ async def test_disabled_task13_families_are_not_issued_to_students() -> None:
 
 
 @pytest.mark.asyncio
-async def test_graph_choices_render_mobile_sheet_and_duplicate_choice_is_idempotent() -> None:
+async def test_graph_choices_render_saved_snapshot_and_duplicate_choice_is_idempotent(
+    monkeypatch,
+) -> None:
     oge13_scheduler.ENABLED_FAMILIES = ("OGE13-Q04",)
     repository = MemoryRepository()
     user_id = 913_001
@@ -73,6 +76,17 @@ async def test_graph_choices_render_mobile_sheet_and_duplicate_choice_is_idempot
     assert problem["family_id"] == "OGE13-Q04"
     message.answer_photo.assert_awaited_once()
     assert b"PNG" in message.answer_photo.await_args.args[0].data[1:4]
+    original_png = message.answer_photo.await_args.args[0].data
+    assert original_png == render_option_sheet_snapshot_png(problem)
+
+    def fail_if_regenerated(*_args, **_kwargs):
+        pytest.fail("A persisted task must be rendered from its stored options")
+
+    monkeypatch.setattr(inequalities, "generate", fail_if_regenerated)
+    resumed_message = _message(user_id)
+    await continue_session(resumed_message, repository)
+    resumed_message.answer_photo.assert_awaited_once()
+    assert resumed_message.answer_photo.await_args.args[0].data == original_png
 
     markup = task13_menu(str(problem["problem_id"]), choices=True)
     assert [button.text for button in markup.inline_keyboard[0]] == ["1", "2", "3", "4"]

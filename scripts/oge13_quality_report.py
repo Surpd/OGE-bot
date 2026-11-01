@@ -65,11 +65,34 @@ def main() -> None:
     if ENABLED_FAMILIES:
         raise RuntimeError("New OGE-13 families must stay disabled for student delivery")
 
+    representative_examples = {}
+    representative_seeds = {
+        "OGE13-L02": 13011,
+        "OGE13-Q04": 13013,
+        "OGE13-S01": 13013,
+        "OGE13-S02": 13013,
+        "OGE13-S03": 13013,
+    }
+    for family_id, seed in representative_seeds.items():
+        problem = generate(family_id, seed=seed)
+        if not validate(problem):
+            raise RuntimeError(f"Representative example failed audit for {family_id}")
+        representative_examples[family_id] = {
+            "seed": problem.seed,
+            "condition": problem.condition,
+            "options": list(problem.option_texts),
+            "correct_option_number": problem.correct_option_number,
+            "correct_option": problem.option_texts[problem.correct_option_number - 1],
+            "solution_steps": list(problem.solution),
+            "generated_analogue_not_original": True,
+        }
+
     report = {
-        "report_version": 1,
+        "report_version": 2,
         "as_of": datetime.now(timezone(timedelta(hours=3))).date().isoformat(),
         "branch": "feat/oge13-generators-v1",
         "base_commit": BASE_COMMIT,
+        "generator_version": "0.2.0",
         "family_count": len(ALL_FAMILIES),
         "production_enabled_count": len(ENABLED_FAMILIES),
         "quick_cases_per_family": QUICK_SAMPLE_SIZE,
@@ -88,8 +111,17 @@ def main() -> None:
                 "boundary openness",
                 "interval direction",
                 "display order versus correct option number",
-                "SVG-to-option ordering",
+                "snapshot version and saved option ordering",
+                "invalid and noncanonical intervals",
             ],
+        },
+        "png_semantic_audit": {
+            "families": ["OGE13-L02", "OGE13-Q04", "OGE13-S01", "OGE13-S02", "OGE13-S03"],
+            "cases": 5,
+            "checks": (
+                "decoded RGB axis membership and exact open/closed endpoint pixels "
+                "against saved interval sets"
+            ),
         },
         "source_audit": {
             "individual_portal_pages_reviewed": 18,
@@ -98,6 +130,23 @@ def main() -> None:
             "official_full_kim_independently_matched": 0,
             "catalog_csv_rows_are_individual_evidence": False,
             "findings": "specs/research/OGE13_IMPLEMENTATION_REVIEW.md",
+            "system_source_regressions": {
+                "OGE13-S01": {
+                    "task_id": "340580",
+                    "condition": "x + 2,6 <= 0; x + 5 >= 1",
+                    "solution": "[-4;-2,6]",
+                },
+                "OGE13-S02": {
+                    "task_id": "348461",
+                    "condition": "x + 3 >= -2; x + 1,1 >= 0",
+                    "solution": "[-1,1;+∞)",
+                },
+                "OGE13-S03": {
+                    "task_id": "333109",
+                    "condition": "x > 3; 4 - x > 0",
+                    "solution": "(3;4)",
+                },
+            },
         },
         "generated_visual_audit": {
             "families": ["OGE13-L02", "OGE13-Q04", "OGE13-S01", "OGE13-S02", "OGE13-S03"],
@@ -116,6 +165,7 @@ def main() -> None:
             "ci_status": "required_on_pull_request",
         },
         "families": families,
+        "representative_examples": representative_examples,
         "excluded_families": {
             "OGE13-Q05": "separate reverse-graph generator stage; original SVG reviewed",
             "OGE13-Q06": "conflicting portal attribution to 2023 Saint Petersburg variant 2409",

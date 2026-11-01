@@ -7,6 +7,7 @@ import random
 import re
 import struct
 import zlib
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 from typing import cast
@@ -14,7 +15,8 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
-GENERATOR_VERSION = "0.1.0"
+GENERATOR_VERSION = "0.2.0"
+SUPPORTED_GENERATOR_VERSIONS = frozenset({GENERATOR_VERSION})
 ENABLED_FAMILIES: tuple[str, ...] = ()
 FAMILIES = (
     "OGE13-L01",
@@ -39,6 +41,11 @@ REFERENCE_IDS = {
     "OGE13-S02": ("348461", "340832"),
     "OGE13-S03": ("333109", "341322"),
 }
+_SYSTEM_TENTHS = tuple(Fraction(i, 10) for i in range(-40, 41))
+_SYSTEM_INTERCEPTS = tuple(Fraction(i, 10) for i in range(-20, 21))
+_VISUALLY_SEPARATED_BOUNDS = tuple(
+    (lower, upper) for lower in _SYSTEM_TENTHS for upper in _SYSTEM_TENTHS if upper - lower >= 1
+)
 POLICY = AnswerPolicy("oge13.option-number", "1", AnswerFormat.CHOICE_NUMBER)
 
 
@@ -51,6 +58,29 @@ class Interval:
 
 
 IntervalSet = tuple[Interval, ...]
+
+
+def _is_canonical_interval_set(items: IntervalSet) -> bool:
+    previous: Interval | None = None
+    for item in items:
+        if item.left is None and item.left_closed:
+            return False
+        if item.right is None and item.right_closed:
+            return False
+        if item.left is not None and item.right is not None:
+            if item.left > item.right:
+                return False
+            if item.left == item.right and not (item.left_closed and item.right_closed):
+                return False
+        if previous is not None:
+            if previous.right is None or item.left is None:
+                return False
+            if item.left < previous.right:
+                return False
+            if item.left == previous.right and (previous.right_closed or item.left_closed):
+                return False
+        previous = item
+    return True
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,6 +179,18 @@ def format_set(items: IntervalSet) -> str:
         b = "+∞" if i.right is None else _display(i.right)
         parts.append(f"{left}{a};{b}{right}")
     return " ∪ ".join(parts)
+
+
+def _solution_steps(condition: str, family_id: str, solution: IntervalSet) -> tuple[str, ...]:
+    if not family_id.startswith("OGE13-S"):
+        return ("Точное множество решений: " + format_set(solution),)
+    rows = condition.splitlines()
+    first, second = (_solve_linear_inequality(row) for row in rows)
+    return (
+        f"1) {rows[0]} ⇒ {format_set(first)}",
+        f"2) {rows[1]} ⇒ {format_set(second)}",
+        "Пересечение полученных множеств: " + format_set(solution),
+    )
 
 
 def parse_answer(problem: InequalityProblem, answer: str) -> int | None:
@@ -254,6 +296,62 @@ def _intersect(a: Interval, b: Interval) -> IntervalSet:
     return (Interval(left, right, lc, rc),)
 
 
+_LINEAR_TERM = re.compile(r"([+-]?)(?:(\d+(?:,\d{1,2})?)?x|(\d+(?:,\d{1,2})?))")
+
+
+def _parse_linear_expression(expression: str) -> tuple[Fraction, Fraction]:
+    compact = expression.replace(" ", "")
+    if not compact:
+        raise ValueError("Linear expression is empty")
+    coefficient = Fraction(0)
+    constant = Fraction(0)
+    cursor = 0
+    while cursor < len(compact):
+        match = _LINEAR_TERM.match(compact, cursor)
+        if match is None:
+            raise ValueError("Linear expression contains an unsupported term")
+        sign, raw_coefficient, raw_constant = match.groups()
+        multiplier = Fraction(-1 if sign == "-" else 1)
+        if raw_constant is None:
+            coefficient += multiplier * (
+                Fraction(1) if not raw_coefficient else _parse_displayed_number(raw_coefficient)
+            )
+        else:
+            constant += multiplier * _parse_displayed_number(raw_constant)
+        cursor = match.end()
+    return coefficient, constant
+
+
+def _solve_linear_inequality(row: str) -> IntervalSet:
+    relations = list(re.finditer(r"<=|>=|<|>", row))
+    if len(relations) != 1:
+        raise ValueError("Expected one comparison in a linear inequality")
+    relation_match = relations[0]
+    relation = relation_match.group()
+    left_coefficient, left_constant = _parse_linear_expression(row[: relation_match.start()])
+    right_coefficient, right_constant = _parse_linear_expression(row[relation_match.end() :])
+    coefficient = left_coefficient - right_coefficient
+    constant = left_constant - right_constant
+
+    if coefficient == 0:
+        is_true = {
+            "<": constant < 0,
+            "<=": constant <= 0,
+            ">": constant > 0,
+            ">=": constant >= 0,
+        }[relation]
+        return (Interval(None, None),) if is_true else ()
+
+    boundary = -constant / coefficient
+    less = relation[0] == "<"
+    if coefficient < 0:
+        less = not less
+    strict = len(relation) == 1
+    if less:
+        return (Interval(None, boundary, False, not strict),)
+    return (Interval(boundary, None, not strict, False),)
+
+
 def independent_solve(condition: str, family_id: str) -> IntervalSet:
     """Reconstructs visible expressions from text and solves with exact fractions."""
     if family_id.startswith("OGE13-L"):
@@ -324,21 +422,11 @@ def independent_solve(condition: str, family_id: str) -> IntervalSet:
         rows = condition.split("\n")
         if len(rows) != 2:
             raise ValueError("System must contain exactly two visible rows")
-        bounds = []
-        for row in rows:
-            number = r"\d+(?:,\d{1,2})?"
-            m = re.fullmatch(rf"x ([<>]=?) (-?{number})", row)
-            if not m:
-                raise ValueError("Condition audit could not parse system row")
-            rel, raw = m.groups()
-            bound = _parse_displayed_number(raw)
-            strict = len(rel) == 1
-            bounds.append(
-                Interval(bound, None, not strict, False)
-                if rel[0] == ">"
-                else Interval(None, bound, False, not strict)
-            )
-        return _intersect(bounds[0], bounds[1])
+        first = _solve_linear_inequality(rows[0])
+        second = _solve_linear_inequality(rows[1])
+        if not first or not second:
+            return ()
+        return _intersect(first[0], second[0])
     raise ValueError("Unsupported family")
 
 
@@ -370,7 +458,8 @@ def _condition(family: str, rng: random.Random) -> tuple[str, tuple[str, ...]]:
             return f"-x² - {_display(k)}x <= 0", ("negative_leading_coefficient",)
         else:
             values = [Fraction(i, 2) for i in range(-24, 25)]
-            aa, bb = sorted(rng.sample(values, 2))
+            pairs = [(left, right) for left in values for right in values if right - left >= 1]
+            aa, bb = rng.choice(pairs)
             pair = (aa, bb)
             rel = rng.choice((">", "<"))
             lead = 1
@@ -385,21 +474,67 @@ def _condition(family: str, rng: random.Random) -> tuple[str, tuple[str, ...]]:
         right = f"(x {s2} {n2})"
         cond = f"{'-' if lead < 0 else ''}{left}{right} {rel} 0"
         return cond, ("negative_leading_coefficient",) if lead < 0 else ()
+    intercepts = _SYSTEM_INTERCEPTS
     if family.endswith("S01"):
-        values = [Fraction(i, 2) for i in range(-24, 25)]
-        lower, upper = sorted(rng.sample(values, 2))
-        return f"x >= {_display(lower)}\nx <= {_display(upper)}", ()
+        lower, upper = rng.choice(_VISUALLY_SEPARATED_BOUNDS)
+        upper_coefficient, lower_coefficient = rng.randint(1, 4), rng.randint(1, 4)
+        upper_intercept = rng.choice(intercepts)
+        lower_intercept = rng.choice(intercepts)
+        upper_right = upper_coefficient * upper + upper_intercept
+        lower_right = lower_coefficient * lower + lower_intercept
+        return (
+            f"{_format_ax_plus_b(upper_coefficient, upper_intercept)} <= {_display(upper_right)}\n"
+            f"{_format_ax_plus_b(lower_coefficient, lower_intercept)} >= {_display(lower_right)}",
+            ("source_algebra_preserved", "coefficient_transfer", "decimal_exact"),
+        )
     if family.endswith("S02"):
-        values = [Fraction(i, 2) for i in range(-24, 25)]
-        lower, upper = sorted(rng.sample(values, 2))
-        rel = rng.choice((">", ">="))
-        return f"x {rel} {_display(lower)}\nx {rel} {_display(upper)}", ()
-    values = [Fraction(i, 2) for i in range(-24, 25)]
-    lower, upper = sorted(rng.sample(values, 2))
-    return f"x > {_display(lower)}\nx < {_display(upper)}", ()
+        first, second = rng.sample(_SYSTEM_TENTHS, 2)
+        first_coefficient, second_coefficient = rng.randint(1, 4), rng.randint(1, 4)
+        first_intercept = rng.choice(intercepts)
+        second_intercept = rng.choice(intercepts)
+        first_right = first_coefficient * first + first_intercept
+        second_right = second_coefficient * second + second_intercept
+        return (
+            f"{_format_ax_plus_b(first_coefficient, first_intercept)} >= {_display(first_right)}\n"
+            f"{_format_ax_plus_b(second_coefficient, second_intercept)} "
+            f">= {_display(second_right)}",
+            ("source_algebra_preserved", "coefficient_transfer", "decimal_exact"),
+        )
+    if family.endswith("S03"):
+        lower, upper = rng.choice(_VISUALLY_SEPARATED_BOUNDS)
+        negative_coefficient = rng.randint(1, 4)
+        upper_intercept = rng.choice(intercepts)
+        upper_constant = negative_coefficient * upper + upper_intercept
+        left = (
+            f"{_display(upper_constant)} - "
+            f"{'x' if negative_coefficient == 1 else f'{negative_coefficient}x'}"
+            if upper_constant != 0
+            else ("-x" if negative_coefficient == 1 else f"-{negative_coefficient}x")
+        )
+        return (
+            f"x > {_display(lower)}\n{left} > {_display(upper_intercept)}",
+            ("source_algebra_preserved", "negative_coefficient", "strict_boundaries"),
+        )
+    raise ValueError(f"Unsupported OGE13 family: {family}")
+
+
+def _format_ax_plus_b(coefficient: int, constant: Fraction) -> str:
+    if coefficient == 1:
+        variable = "x"
+    elif coefficient == -1:
+        variable = "-x"
+    else:
+        variable = f"{coefficient}x"
+    if constant > 0:
+        return f"{variable} + {_display(constant)}"
+    if constant < 0:
+        return f"{variable} - {_display(abs(constant))}"
+    return variable
 
 
 def _distractors(solution: IntervalSet, rng: random.Random) -> tuple[IntervalSet, ...]:
+    if not _is_canonical_interval_set(solution):
+        raise ValueError("Correct answer must be a canonical interval set")
     candidates: list[IntervalSet] = []
     if not solution:
         candidates.extend(
@@ -444,9 +579,13 @@ def _distractors(solution: IntervalSet, rng: random.Random) -> tuple[IntervalSet
         candidates.append((Interval(None, solution[-1].left, False, False),))
     else:
         candidates.append(())
-    unique = []
+    unique: list[IntervalSet] = []
     for candidate in candidates:
-        if candidate != solution and candidate not in unique:
+        if (
+            _is_canonical_interval_set(candidate)
+            and candidate != solution
+            and candidate not in unique
+        ):
             unique.append(candidate)
     if len(unique) < 3:
         unique.extend(
@@ -458,7 +597,7 @@ def _distractors(solution: IntervalSet, rng: random.Random) -> tuple[IntervalSet
             ]
         )
     if len(unique) < 3:
-        raise RuntimeError("Could not construct distinct answer options")
+        raise RuntimeError("Could not construct three valid, distinct distractors")
     rng.shuffle(unique)
     return (solution, *unique[:3])
 
@@ -468,6 +607,8 @@ def generate(
 ) -> InequalityProblem:
     if family_id not in FAMILIES:
         raise ValueError(f"Unsupported OGE13 family: {family_id}")
+    if generator_version not in SUPPORTED_GENERATOR_VERSIONS:
+        raise ValueError(f"Unsupported OGE13 generator version: {generator_version}")
     rng = random.Random(f"oge13:{family_id}:{seed}:{generator_version}")
     condition, special = _condition(family_id, rng)
     solution = independent_solve(condition, family_id)
@@ -483,7 +624,13 @@ def generate(
     correct = order.index(0) + 1
     display_order = (order[0], order[1], order[2], order[3])
     audit = independent_solve(condition, family_id)
-    if audit != solution or len(set(ordered)) != 4 or ordered[correct - 1] != solution:
+    if (
+        audit != solution
+        or not _is_canonical_interval_set(solution)
+        or any(not _is_canonical_interval_set(option) for option in ordered)
+        or len(set(ordered)) != 4
+        or ordered[correct - 1] != solution
+    ):
         raise RuntimeError("OGE13 generated condition/options failed semantic audit")
     fp = hashlib.sha256(f"{family_id}|{condition}".encode()).hexdigest()
     problem_id = str(uuid5(NAMESPACE_URL, f"oge13:{family_id}:{seed}:{generator_version}"))
@@ -517,7 +664,7 @@ def generate(
         "Rendered condition independently parsed and solved with exact Fraction arithmetic.",
         tuple(flags),
         ("Решите неравенство; учтите знак сравнения и граничные точки.",),
-        ("Точное множество решений: " + format_set(solution),),
+        _solution_steps(condition, family_id, solution),
         fp,
     )
 
@@ -528,10 +675,17 @@ def validate(problem: InequalityProblem) -> bool:
         solved = independent_solve(problem.condition, problem.family_id)
     except (ValueError, ZeroDivisionError):
         return False
-    if solved != problem.solution_set or len(problem.options) != 4:
+    if (
+        solved != problem.solution_set
+        or not _is_canonical_interval_set(problem.solution_set)
+        or len(problem.options) != 4
+        or type(problem.correct_option_number) is not int
+        or not 1 <= problem.correct_option_number <= 4
+    ):
         return False
     if (
         len(set(problem.options)) != 4
+        or any(not _is_canonical_interval_set(option) for option in problem.options)
         or problem.options[problem.correct_option_number - 1] != solved
     ):
         return False
@@ -548,8 +702,110 @@ def validate(problem: InequalityProblem) -> bool:
     )
 
 
+def _snapshot_fraction(value: object) -> Fraction | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("Interval snapshot endpoint must be a string or null")
+    try:
+        return Fraction(value)
+    except (ValueError, ZeroDivisionError) as exc:
+        raise ValueError("Interval snapshot endpoint is not an exact fraction") from exc
+
+
+def _snapshot_interval_set(value: object) -> IntervalSet:
+    if not isinstance(value, list):
+        raise ValueError("Interval snapshot must be a list")
+    intervals: list[Interval] = []
+    for raw_interval in value:
+        if not isinstance(raw_interval, Mapping):
+            raise ValueError("Interval snapshot entry must be an object")
+        left_closed, right_closed = (
+            raw_interval.get("left_closed"),
+            raw_interval.get("right_closed"),
+        )
+        if type(left_closed) is not bool or type(right_closed) is not bool:
+            raise ValueError("Interval snapshot closure flags must be booleans")
+        intervals.append(
+            Interval(
+                _snapshot_fraction(raw_interval.get("left")),
+                _snapshot_fraction(raw_interval.get("right")),
+                left_closed,
+                right_closed,
+            )
+        )
+    result = tuple(intervals)
+    if not _is_canonical_interval_set(result):
+        raise ValueError("Interval snapshot is not canonical")
+    return result
+
+
+def _snapshot_options(snapshot: Mapping[str, object]) -> tuple[IntervalSet, ...]:
+    version = snapshot.get("generator_version")
+    if not isinstance(version, str) or version not in SUPPORTED_GENERATOR_VERSIONS:
+        raise ValueError(f"Unsupported OGE13 generator version in snapshot: {version}")
+    family_id = snapshot.get("family_id")
+    if not isinstance(family_id, str) or family_id not in FAMILIES:
+        raise ValueError("Unsupported OGE13 family in snapshot")
+    raw_options = snapshot.get("options")
+    if not isinstance(raw_options, list) or len(raw_options) != 4:
+        raise ValueError("Snapshot must preserve all four answer options")
+    options = tuple(_snapshot_interval_set(option) for option in raw_options)
+    if len(set(options)) != 4:
+        raise ValueError("Snapshot answer options must be mathematically distinct")
+    correct_number = snapshot.get("correct_option_number")
+    if type(correct_number) is not int or not 1 <= correct_number <= 4:
+        raise ValueError("Snapshot correct option number must be between 1 and 4")
+    solution = _snapshot_interval_set(snapshot.get("solution_set"))
+    if options[correct_number - 1] != solution:
+        raise ValueError("Snapshot correct number does not identify its saved solution")
+    option_texts = snapshot.get("option_texts")
+    if (
+        not isinstance(option_texts, list)
+        or len(option_texts) != 4
+        or tuple(option_texts) != tuple(format_set(option) for option in options)
+        or snapshot.get("correct_answer") != str(correct_number)
+    ):
+        raise ValueError("Snapshot text options do not match saved mathematical options")
+    if (
+        snapshot.get("answer_policy_id") != POLICY.policy_id
+        or snapshot.get("answer_policy_version") != POLICY.version
+    ):
+        raise ValueError("Snapshot answer policy is unsupported")
+    condition = snapshot.get("condition")
+    if not isinstance(condition, str) or independent_solve(condition, family_id) != solution:
+        raise ValueError("Snapshot condition does not match its saved solution")
+    raw_svgs = snapshot.get("option_svgs")
+    expected_svgs = tuple(_svg(option, index + 1) for index, option in enumerate(options))
+    if not isinstance(raw_svgs, list) or tuple(raw_svgs) != expected_svgs:
+        raise ValueError("Snapshot graph options do not match saved mathematical options")
+    return options
+
+
+def validate_snapshot(snapshot: Mapping[str, object]) -> bool:
+    try:
+        _snapshot_options(snapshot)
+    except (ValueError, TypeError, ZeroDivisionError):
+        return False
+    return True
+
+
+def render_option_sheet_snapshot_png(snapshot: Mapping[str, object]) -> bytes:
+    """Render the four saved options without regenerating a persisted task."""
+    return _render_option_sets_png(_snapshot_options(snapshot))
+
+
 def render_option_sheet_png(problem: InequalityProblem) -> bytes:
-    """Render four number-line options to a deterministic 1280×1120 RGB PNG."""
+    """Render four verified number-line options to a deterministic 1280×1120 RGB PNG."""
+    if not validate(problem):
+        raise ValueError("Cannot render an invalid OGE13 problem")
+    return _render_option_sets_png(problem.options)
+
+
+def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
+    """Render already validated four interval sets to a deterministic PNG."""
+    if len(options) != 4 or any(not _is_canonical_interval_set(option) for option in options):
+        raise ValueError("PNG renderer needs four canonical interval sets")
     width, height = 1280, 1120
     pixels = bytearray([255, 255, 255] * width * height)
     ink, blue, gray = (34, 34, 34), (23, 105, 170), (110, 110, 110)
@@ -610,7 +866,7 @@ def render_option_sheet_png(problem: InequalityProblem) -> bytes:
                                     gray,
                                 )
 
-    for index, option in enumerate(problem.options):
+    for index, option in enumerate(options):
         cy = 185 + index * 250
         # Draw axis with arrowheads and identical scale in every panel.
         line(100, cy, 1180, cy, ink, 1)
