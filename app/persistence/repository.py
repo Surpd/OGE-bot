@@ -2163,6 +2163,445 @@ class _Task8PostgresMixin:
         )
 
 
+class _Task13PostgresMixin:
+    _pool: asyncpg.Pool
+
+    async def register_user(self, telegram_user_id: int) -> None:
+        raise NotImplementedError
+
+    async def ensure_task13_session(self, telegram_user_id: int) -> str:
+        await self.register_user(telegram_user_id)
+        async with self._pool.acquire() as connection, connection.transaction():
+            user_id = await connection.fetchval(
+                "SELECT id FROM users WHERE telegram_user_id = $1 FOR UPDATE", telegram_user_id
+            )
+            existing = await connection.fetchval(
+                "SELECT id FROM sessions WHERE user_id = $1 AND mode = 'task13' "
+                "AND finished_at IS NULL ORDER BY started_at DESC LIMIT 1",
+                user_id,
+            )
+            if existing is not None:
+                return str(existing)
+            created = await connection.fetchval(
+                "INSERT INTO sessions (user_id, mode, state) VALUES ($1, 'task13', '{}'::jsonb) "
+                "RETURNING id",
+                user_id,
+            )
+            return str(created)
+
+    async def advance_task13_problem(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str | None,
+        candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
+    ) -> dict[str, object]:
+        async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id = $1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None:
+                raise RuntimeError("Task-13 user does not exist")
+            user_state = _json_object(user["current_state"])
+            if expected_screen is not None and user_state.get("screen") != expected_screen:
+                return {"_transitioned": False, "_stale_screen": True}
+            session = await connection.fetchrow(
+                """SELECT id, active_problem_id, state FROM sessions
+                   WHERE user_id = $1 AND mode = 'task13' AND finished_at IS NULL
+                   ORDER BY started_at DESC LIMIT 1 FOR UPDATE""",
+                user["id"],
+            )
+            if session is None:
+                raise RuntimeError("Task-13 session does not exist")
+            state = _json_object(session["state"])
+            if expected_prompt_message_id is not None and (
+                state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return {"_transitioned": False, "_stale_screen": True}
+            active_id = str(session["active_problem_id"]) if session["active_problem_id"] else None
+            if active_id is not None:
+                current_row = await connection.fetchrow(
+                    "SELECT snapshot FROM issued_problems WHERE id = $1",
+                    session["active_problem_id"],
+                )
+                if current_row is None:
+                    raise RuntimeError("Active task-14 snapshot is missing")
+                current = _json_object(current_row["snapshot"])
+                if expected_problem_id != active_id or skip_active != (
+                    state.get("status") == "active"
+                ):
+                    return {**current, "_transitioned": False}
+                if skip_active:
+                    await connection.execute(
+                        "UPDATE issued_problems SET outcome = 'skipped' WHERE id = $1",
+                        session["active_problem_id"],
+                    )
+            elif expected_problem_id is not None:
+                raise RuntimeError("Expected active task-14 problem is missing")
+            if not candidates:
+                raise RuntimeError("No task-14 candidates available")
+            recent_value = state.get("recent_fingerprints", [])
+            recent_order = (
+                [x for x in recent_value if isinstance(x, str)]
+                if isinstance(recent_value, list)
+                else []
+            )
+            recent = set(recent_order)
+            rejected = 0
+            for candidate in candidates:
+                fingerprint = str(candidate["fingerprint"])
+                if fingerprint in recent:
+                    rejected += 1
+                    continue
+                problem = dict(candidate)
+                family_queue = problem.pop("_family_queue_after", [])
+                last_family = problem.pop("_last_family_after", None)
+                problem_id = UUID(str(problem["problem_id"]))
+                await connection.execute(
+                    """INSERT INTO issued_problems
+                       (id, user_id, session_id, family_id, generator_version, seed,
+                        fingerprint, shape_fingerprint, snapshot, selection_attempts, outcome)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, 'issued')""",
+                    problem_id,
+                    user["id"],
+                    session["id"],
+                    problem["family_id"],
+                    problem["generator_version"],
+                    problem["seed"],
+                    fingerprint,
+                    problem["family_id"],
+                    json.dumps(problem, ensure_ascii=False),
+                    problem.get("selection_attempts", 1),
+                )
+                next_state = {
+                    "status": "active",
+                    "attempts": 0,
+                    "hints_used": 0,
+                    "used_hint": False,
+                    "family_queue": family_queue if isinstance(family_queue, list) else [],
+                    "last_family_id": last_family if isinstance(last_family, str) else None,
+                    "recent_fingerprints": [*recent_order, fingerprint][-30:],
+                    "selection_dedupe_rejections": _state_int(state, "selection_dedupe_rejections")
+                    + rejected,
+                }
+                await connection.execute(
+                    "UPDATE sessions SET active_problem_id = $2, state = $3::jsonb WHERE id = $1",
+                    session["id"],
+                    problem_id,
+                    json.dumps(next_state, ensure_ascii=False),
+                )
+                return {**problem, "_transitioned": True}
+            raise RuntimeError("Every task-14 candidate repeats a recent fingerprint")
+
+    async def task13_state(self, telegram_user_id: int) -> dict[str, object] | None:
+        row = await self._pool.fetchrow(
+            """SELECT s.state, p.snapshot FROM sessions s JOIN users u ON u.id = s.user_id
+               LEFT JOIN issued_problems p ON p.id = s.active_problem_id
+               WHERE u.telegram_user_id = $1 AND s.mode = 'task13' AND s.finished_at IS NULL
+               ORDER BY s.started_at DESC LIMIT 1""",
+            telegram_user_id,
+        )
+        return (
+            {"state": _json_object(row["state"]), "problem": _json_object(row["snapshot"])}
+            if row and row["snapshot"]
+            else None
+        )
+
+    async def set_task13_prompt_message(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        message_id: int,
+        expected_status: str | None = None,
+    ) -> bool:
+        async with self._pool.acquire() as connection, connection.transaction():
+            row = await connection.fetchrow(
+                """SELECT s.id, s.state, s.active_problem_id
+                   FROM sessions s JOIN users u ON u.id=s.user_id
+                   WHERE u.telegram_user_id=$1 AND s.mode='task13' AND s.finished_at IS NULL
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                telegram_user_id,
+            )
+            if row is None or str(row["active_problem_id"]) != expected_problem_id:
+                return False
+            state = _json_object(row["state"])
+            if expected_status is not None and state.get("status") != expected_status:
+                return False
+            current = state.get("input_prompt_message_id")
+            if isinstance(current, int) and message_id < current:
+                return False
+            state["input_prompt_message_id"] = message_id
+            await connection.execute(
+                "UPDATE sessions SET state=$2::jsonb WHERE id=$1", row["id"], json.dumps(state)
+            )
+            return True
+
+    async def set_task13_condition_message(
+        self, telegram_user_id: int, expected_problem_id: str, message_id: int
+    ) -> bool:
+        async with self._pool.acquire() as connection, connection.transaction():
+            row = await connection.fetchrow(
+                """SELECT s.id, s.state, s.active_problem_id
+                   FROM sessions s JOIN users u ON u.id=s.user_id
+                   WHERE u.telegram_user_id=$1 AND s.mode='task13' AND s.finished_at IS NULL
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                telegram_user_id,
+            )
+            if row is None or str(row["active_problem_id"]) != expected_problem_id:
+                return False
+            state = _json_object(row["state"])
+            state["problem_prompt_message_id"] = message_id
+            state["input_prompt_message_id"] = message_id
+            await connection.execute(
+                "UPDATE sessions SET state=$2::jsonb WHERE id=$1", row["id"], json.dumps(state)
+            )
+            return True
+
+    async def task13_attempt(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        raw_answer: str,
+        is_correct: bool,
+        telegram_message_id: int | None = None,
+        expected_prompt_message_id: int | None = None,
+        telegram_event_id: str | None = None,
+    ) -> dict[str, object] | None:
+        async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id=$1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None:
+                return None
+            row = await connection.fetchrow(
+                """SELECT s.id AS session_id, s.state, s.active_problem_id, p.user_id, p.snapshot
+                   FROM sessions s JOIN issued_problems p ON p.id=s.active_problem_id
+                   WHERE s.user_id=$1 AND s.mode='task13' AND s.finished_at IS NULL
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                user["id"],
+            )
+            if row is None:
+                return None
+            if str(row["active_problem_id"]) != expected_problem_id:
+                return {"status": "stale", "attempt": 0}
+            state, user_state = _json_object(row["state"]), _json_object(user["current_state"])
+            if user_state.get("screen") != "task13":
+                return {"status": "stale", "attempt": 0}
+            callback_ids = state.get("processed_choice_callbacks", [])
+            if (
+                telegram_event_id is not None
+                and isinstance(callback_ids, list)
+                and telegram_event_id in callback_ids
+            ):
+                return {"status": "duplicate", "attempt": 0}
+            if (
+                expected_prompt_message_id is not None
+                and state.get("problem_prompt_message_id", state.get("input_prompt_message_id"))
+                != expected_prompt_message_id
+            ):
+                return {"status": "stale", "attempt": 0}
+            if (
+                telegram_message_id is not None
+                and expected_prompt_message_id is not None
+                and telegram_message_id <= expected_prompt_message_id
+            ):
+                return {"status": "stale", "attempt": 0}
+            if telegram_message_id is not None:
+                duplicate = await connection.fetchval(
+                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    row["user_id"],
+                    telegram_message_id,
+                )
+                if duplicate is not None:
+                    return {"status": "duplicate", "attempt": 0}
+            if state.get("status") != "active":
+                return {
+                    "status": str(state.get("status", "finished")),
+                    "attempt": 0,
+                    "problem": _json_object(row["snapshot"]),
+                }
+            attempt = _state_int(state, "attempts") + 1
+            if attempt > 2:
+                return {
+                    "status": "finished",
+                    "attempt": 2,
+                    "problem": _json_object(row["snapshot"]),
+                }
+            status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
+            await connection.execute(
+                """INSERT INTO attempts
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                row["active_problem_id"],
+                row["user_id"],
+                attempt,
+                raw_answer[:200],
+                is_correct,
+                bool(state.get("used_hint", False)),
+                telegram_message_id,
+            )
+            state.update({"status": status, "attempts": attempt})
+            if telegram_event_id is not None:
+                callback_ids = state.get("processed_choice_callbacks", [])
+                callback_ids = callback_ids if isinstance(callback_ids, list) else []
+                state["processed_choice_callbacks"] = [*callback_ids, telegram_event_id][-100:]
+            if status in {"solved", "failed"}:
+                await connection.execute(
+                    "UPDATE issued_problems SET outcome=$2 WHERE id=$1",
+                    row["active_problem_id"],
+                    status,
+                )
+            await connection.execute(
+                "UPDATE sessions SET state=$2::jsonb WHERE id=$1",
+                row["session_id"],
+                json.dumps(state),
+            )
+            return {"status": status, "attempt": attempt, "problem": _json_object(row["snapshot"])}
+
+    async def task13_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None:
+        async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT current_state FROM users WHERE telegram_user_id=$1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != "task13":
+                return None
+            row = await connection.fetchrow(
+                """SELECT s.id,s.state,s.active_problem_id,p.snapshot
+                   FROM sessions s JOIN users u ON u.id=s.user_id
+                   JOIN issued_problems p ON p.id=s.active_problem_id
+                   WHERE u.telegram_user_id=$1 AND s.mode='task13' AND s.finished_at IS NULL
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                telegram_user_id,
+            )
+            if row is None or str(row["active_problem_id"]) != expected_problem_id:
+                return None
+            state, problem = _json_object(row["state"]), _json_object(row["snapshot"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return None
+            hints = problem.get("hints", [])
+            used = _state_int(state, "hints_used")
+            if state.get("status") != "active" or not isinstance(hints, list) or used >= len(hints):
+                return None
+            state.update({"hints_used": used + 1, "used_hint": True})
+            await connection.execute(
+                "UPDATE sessions SET state=$2::jsonb WHERE id=$1", row["id"], json.dumps(state)
+            )
+            await connection.execute(
+                "UPDATE issued_problems SET hints_used=$2 WHERE id=$1",
+                row["active_problem_id"],
+                used + 1,
+            )
+            return str(hints[used])
+
+    async def task13_reveal_solution(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> dict[str, object] | None:
+        async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT current_state FROM users WHERE telegram_user_id=$1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != "task13":
+                return None
+            row = await connection.fetchrow(
+                """SELECT s.id,s.state,s.active_problem_id,p.snapshot
+                   FROM sessions s JOIN users u ON u.id=s.user_id
+                   JOIN issued_problems p ON p.id=s.active_problem_id
+                   WHERE u.telegram_user_id=$1 AND s.mode='task13' AND s.finished_at IS NULL
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                telegram_user_id,
+            )
+            if row is None or str(row["active_problem_id"]) != expected_problem_id:
+                return None
+            state, problem = _json_object(row["state"]), _json_object(row["snapshot"])
+            if (
+                expected_prompt_message_id is not None
+                and state.get("input_prompt_message_id") != expected_prompt_message_id
+            ):
+                return None
+            status = str(state.get("status", ""))
+            if status == "active":
+                state["status"] = "solution_viewed"
+                await connection.execute(
+                    "UPDATE sessions SET state=$2::jsonb WHERE id=$1", row["id"], json.dumps(state)
+                )
+                await connection.execute(
+                    """UPDATE issued_problems SET outcome='solution_viewed',
+                       solution_viewed_at=now() WHERE id=$1""",
+                    row["active_problem_id"],
+                )
+            else:
+                await connection.execute(
+                    """UPDATE issued_problems SET solution_viewed_at=COALESCE(
+                       solution_viewed_at,now()) WHERE id=$1""",
+                    row["active_problem_id"],
+                )
+            return {"problem": problem, "status": status}
+
+    async def task13_progress(self, telegram_user_id: int) -> dict[str, int]:
+        row = await self._pool.fetchrow(
+            """SELECT count(DISTINCT p.id)::int AS issued,
+                      count(DISTINCT p.id) FILTER (WHERE a.problem_id IS NOT NULL)::int AS answered,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome='solved')::int AS correct,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome='solved' AND EXISTS
+                          (SELECT 1 FROM attempts a1 WHERE a1.problem_id=p.id
+                           AND a1.attempt_no=1 AND a1.is_correct))::int AS solved_first_try,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome='solved' AND EXISTS
+                          (SELECT 1 FROM attempts a2 WHERE a2.problem_id=p.id
+                           AND a2.attempt_no=2 AND a2.is_correct))::int AS solved_second_try,
+                      count(a.id)::int AS attempts,
+                      count(a.id) FILTER (WHERE a.attempt_no=1)::int AS first_attempts,
+                      count(a.id) FILTER (WHERE a.attempt_no=2)::int AS second_attempts,
+                      COALESCE((SELECT sum(p2.hints_used) FROM issued_problems p2
+                                JOIN sessions s2 ON s2.id=p2.session_id AND s2.mode='task13'
+                                WHERE p2.user_id=u.id),0)::int AS hints_used,
+                      count(DISTINCT p.id) FILTER
+                          (WHERE p.solution_viewed_at IS NOT NULL)::int AS solutions_viewed,
+                      count(DISTINCT p.id) FILTER (WHERE p.outcome='skipped')::int AS skipped
+               FROM users u LEFT JOIN issued_problems p ON p.user_id=u.id
+               LEFT JOIN attempts a ON a.problem_id=p.id
+               WHERE u.telegram_user_id=$1 AND (p.id IS NULL OR EXISTS
+                   (SELECT 1 FROM sessions s WHERE s.id=p.session_id AND s.mode='task13'))
+               GROUP BY u.id""",
+            telegram_user_id,
+        )
+        return (
+            dict(row)
+            if row
+            else {
+                key: 0
+                for key in (
+                    "issued",
+                    "answered",
+                    "correct",
+                    "solved_first_try",
+                    "solved_second_try",
+                    "attempts",
+                    "first_attempts",
+                    "second_attempts",
+                    "hints_used",
+                    "solutions_viewed",
+                    "skipped",
+                )
+            }
+        )
+
 class _Task7PostgresMixin:
     _pool: asyncpg.Pool
 
@@ -2624,6 +3063,7 @@ class PostgresRepository(
     _Task12PostgresMixin,
     _Task14PostgresMixin,
     _Task8PostgresMixin,
+    _Task13PostgresMixin,
     _Task7PostgresMixin,
 ):
     def __init__(self, pool: asyncpg.Pool) -> None:
