@@ -345,7 +345,7 @@ async def test_empty_progress_uses_zero_accuracy_without_division_error() -> Non
     text = message.answer.await_args.args[0]
     assert "№6 · выдано 0 · отвечал 0" in text
     assert "№9 · выдано 0 · отвечал 0" in text
-    assert text.count("правильно 0%") == 3
+    assert text.count("правильно 0%") == 4
 
 
 @pytest.mark.asyncio

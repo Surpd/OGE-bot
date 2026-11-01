@@ -41,7 +41,8 @@
       "wording": "Пользуясь этой формулой, найдите сопротивление R",
       "note": "480728 — проект демоверсии ОГЭ-2027; атрибуция 316914 к ОГЭ-2024/2026 указана порталом.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R002",
@@ -70,7 +71,8 @@
       "wording": "найдите радиус R (в метрах)",
       "note": "341532 — более короткая формулировка того же действия.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R003",
@@ -96,7 +98,8 @@
       "wording": "Какая температура по шкале Фаренгейта соответствует",
       "note": "Сохранять обратную задачу отдельно.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R004",
@@ -121,7 +124,8 @@
       "wording": "Ответ округлите до десятых",
       "note": "Обязательно отдельная policy округления; проверять способ tie-breaking.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R005",
@@ -152,7 +156,8 @@
       "wording": "Пользуясь этой формулой, найдите длину диагонали",
       "note": "Постановки sinα и диагональ — разные операции на одной формуле.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R006",
@@ -176,7 +181,8 @@
       "wording": "найдите диагональ d₁",
       "note": "Диагональ не получать нулевой.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
     },
     {
       "id": "OGE12-R007",
@@ -199,7 +205,8 @@
       "wording": "найдите сторону a",
       "note": "Формула с синусом — отдельная геометрическая конструкция R016.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
     },
     {
       "id": "OGE12-R008",
@@ -224,7 +231,8 @@
       "wording": "найдите высоту h",
       "note": "Учитывать скобки в формуле.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
     },
     {
       "id": "OGE12-R009",
@@ -248,7 +256,8 @@
       "wording": "Чему равна высота пирамиды?",
       "note": "Не принимать решение простым масштабированием без знания сторон.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
     },
     {
       "id": "OGE12-R010",
@@ -275,7 +284,8 @@
       "wording": "Найдите скорость этого автомобиля в метрах в секунду",
       "note": "Подкоренное выражение 2E/m.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R011",
@@ -300,7 +310,8 @@
       "wording": "Найдите массу тела",
       "note": "В оригинале 459974 энергия обозначена P; не смешивать с электрической мощностью P.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R012",
@@ -326,7 +337,8 @@
       "wording": "Найдите силу Архимеда",
       "note": "Не заменять молча среду или значение g.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
     },
     {
       "id": "OGE12-R013",
@@ -350,7 +362,8 @@
       "wording": "Ответ дайте в джоулях",
       "note": "Различать отрицательный показатель степени у 10 и у единиц.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: источник каталога D14 не подтверждает, что конструкция относится к актуальному заданию №12."
     },
     {
       "id": "OGE12-R014",
@@ -377,7 +390,8 @@
       "wording": "рассчитайте стоимость колодца",
       "note": "Формула с параметрами тарифов — отдельная конструкция R015.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник; современная применимость не подтверждена."
     },
     {
       "id": "OGE12-R015",
@@ -404,7 +418,8 @@
       "wording": "рассчитайте стоимость 15-минутной поездки",
       "note": "Не генерировать t≤t₀ при формуле только для t>t₀.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: конечный набор параметров не обеспечивает приёмочный порог уникальных fingerprints."
     },
     {
       "id": "OGE12-R016",
@@ -428,7 +443,8 @@
       "wording": "найдите площадь треугольника",
       "note": "Это было ПРОПУЩЕНО в прежней карте из 14 конструкций.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник; современная применимость не подтверждена."
     },
     {
       "id": "OGE12-R017",
@@ -452,7 +468,8 @@
       "wording": "Вычислите длину стороны c",
       "note": "Параметры не независимы: r должен быть радиусом вписанной окружности данного треугольника.",
       "ship_eligible": false,
-      "implementation_status": "not_implemented_research_only"
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник и узкая геометрическая вариативность; требуется дополнительное доказательство разнообразия."
     }
   ],
   "references": [
@@ -951,5 +968,22 @@
       "year_attribution_is_portal_claim": true,
       "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
     }
-  ]
+  ],
+  "implementation": {
+    "status": "partial",
+    "enabled_families": [
+      "OGE12-R001",
+      "OGE12-R002",
+      "OGE12-R003",
+      "OGE12-R004",
+      "OGE12-R005",
+      "OGE12-R010",
+      "OGE12-R011",
+      "OGE12-R012"
+    ],
+    "disabled_family_count": 9,
+    "generator_version": "0.1.0",
+    "quality_report": "reports/oge12-quality.json",
+    "telegram_training": "implemented_on_feature_branch"
+  }
 }

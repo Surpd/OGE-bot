@@ -1,0 +1,813 @@
+{
+  "generator_version": "0.1.0",
+  "report_seed": 20261101,
+  "sample_count_per_family": 250,
+  "unique_target": 200,
+  "attempt_limit": 1200,
+  "enabled_family_ids": [
+    "OGE12-R001",
+    "OGE12-R002",
+    "OGE12-R003",
+    "OGE12-R004",
+    "OGE12-R005",
+    "OGE12-R010",
+    "OGE12-R011",
+    "OGE12-R012"
+  ],
+  "disabled_family_ids": [
+    "OGE12-R006",
+    "OGE12-R007",
+    "OGE12-R008",
+    "OGE12-R009",
+    "OGE12-R013",
+    "OGE12-R014",
+    "OGE12-R015",
+    "OGE12-R016",
+    "OGE12-R017"
+  ],
+  "source_registry_version": "1.0",
+  "oracle_note": "Rendered conditions are parsed independently from the generator values; authored research examples are checked against the same family oracle.",
+  "families": [
+    {
+      "family_id": "OGE12-R001",
+      "name": "Электрическая мощность",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "316914",
+        "338155",
+        "471237",
+        "478040",
+        "480728"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 200,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 0,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1",
+      "answer_max": "100",
+      "authored_fixture": {
+        "source_task_id": "316914",
+        "condition": "Электрическая мощность P (в ваттах) определяется формулой P = I²·R, где I — сила тока в амперах, R — сопротивление в омах. Найдите сопротивление R, если P = 361,25 Вт, а I = 8,5 А. Ответ дайте в омах.",
+        "expected_answer": "5",
+        "oracle_answer": "5"
+      },
+      "examples": [
+        {
+          "problem_id": "3908ac70-8539-5fff-bc77-efc258fc253c",
+          "seed": 5808268237000616308,
+          "condition": "P = I²·R. Сопротивление R измеряется в омах, сила тока I — в амперах. Мощность P равна 8294,4 Вт, а сила тока I равна 14,4 А. Найдите сопротивление R. Ответ дайте в омах.",
+          "answer": "40",
+          "formula": "P = I²·R",
+          "target": "R",
+          "units": {
+            "answer": "Ом"
+          },
+          "fingerprint": "e7f7af8e310a3bf286350a3b8bf4996851dce1078aba77cad5371fdc62b4651a"
+        },
+        {
+          "problem_id": "77cd34a4-027d-59a5-87c6-8b8c9b8f8442",
+          "seed": 3339482440990384296,
+          "condition": "P = I²·R. Сопротивление R измеряется в омах, сила тока I — в амперах. Мощность P равна 6452,48 Вт, а сила тока I равна 14,2 А. Найдите сопротивление R. Ответ дайте в омах.",
+          "answer": "32",
+          "formula": "P = I²·R",
+          "target": "R",
+          "units": {
+            "answer": "Ом"
+          },
+          "fingerprint": "3f8f66a44b6ea2008fee6cddce18e7623e5440e7351c3f640fa5787f7b929408"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R002",
+      "name": "Центростремительное ускорение",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "311920",
+        "338050",
+        "338232",
+        "341532",
+        "392900",
+        "392927"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 209,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 14,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1",
+      "answer_max": "80",
+      "authored_fixture": {
+        "source_task_id": "338232",
+        "condition": "Центростремительное ускорение a (в м/с²) вычисляется по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Найдите R, если ω = 5 с⁻¹ и a = 175 м/с². Ответ дайте в метрах.",
+        "expected_answer": "7",
+        "oracle_answer": "7"
+      },
+      "examples": [
+        {
+          "problem_id": "42bd6e3b-d7f8-5207-880d-2402fa803c04",
+          "seed": 8007736330771449712,
+          "condition": "Центростремительное ускорение a (в м/с²) вычисляют по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Если ω = 5 с⁻¹ и a = 250 м/с², найдите R в метрах.",
+          "answer": "10",
+          "formula": "a = ω²·R",
+          "target": "R",
+          "units": {
+            "answer": "м"
+          },
+          "fingerprint": "3ac225d70002b3b57b896ddea15506534eb94badadd1807cd9c0e18989bea1b0"
+        },
+        {
+          "problem_id": "49df6576-9b75-573a-a64a-d6291d46cc43",
+          "seed": 3583740704447223416,
+          "condition": "Центростремительное ускорение a (в м/с²) вычисляют по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Если ω = 6 с⁻¹ и a = 2412 м/с², найдите R в метрах.",
+          "answer": "67",
+          "formula": "a = ω²·R",
+          "target": "R",
+          "units": {
+            "answer": "м"
+          },
+          "fingerprint": "7c6b6bcca314cb24b4e7e581111d822050039091e733a96070a1ae242668a613"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R003",
+      "name": "Температура: прямая подстановка",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "311768",
+        "311542",
+        "338138",
+        "357575",
+        "355423"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 953,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 106,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "1": 209,
+        "0": 41
+      },
+      "answer_signs": {
+        "positive": 159,
+        "negative": 91
+      },
+      "answer_min": "-731/5",
+      "answer_max": "212",
+      "authored_fixture": {
+        "source_task_id": "357575",
+        "condition": "Для перевода температуры по шкале Цельсия в шкалу Фаренгейта используют формулу F = 1,8·C + 32. Скольким градусам Фаренгейта соответствует температура −10 °C?",
+        "expected_answer": "14",
+        "oracle_answer": "14"
+      },
+      "examples": [
+        {
+          "problem_id": "832b8160-7ae3-50e2-8d4b-e80bedccc154",
+          "seed": 7475626686465083351,
+          "condition": "Температуру по Фаренгейту вычисляют по формуле F = 1,8·C + 32, где C — температура в градусах Цельсия, F — в градусах Фаренгейта. Какая температура по Фаренгейту соответствует -3 °C?",
+          "answer": "26,6",
+          "formula": "F = 1,8·C + 32",
+          "target": "F",
+          "units": {
+            "answer": "°F"
+          },
+          "fingerprint": "f52b33630cf9bcdb1da8e4a7b1c1e9fbb61100a5461e55fb5e81c6d2ad3708d7"
+        },
+        {
+          "problem_id": "35edfb8e-0491-5be7-a271-5ad810959ec6",
+          "seed": 1676024575997907668,
+          "condition": "Температуру по Фаренгейту вычисляют по формуле F = 1,8·C + 32, где C — температура в градусах Цельсия, F — в градусах Фаренгейта. Какая температура по Фаренгейту соответствует -36 °C?",
+          "answer": "-32,8",
+          "formula": "F = 1,8·C + 32",
+          "target": "F",
+          "units": {
+            "answer": "°F"
+          },
+          "fingerprint": "576c1709e05111f175c1071bf3040eaa1aeaee893de37c8c9ad66d0e71c2796f"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R004",
+      "name": "Температура: обратное преобразование и округление",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "311824",
+        "341156"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 306,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 71,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "2": 124,
+        "1": 126
+      },
+      "answer_signs": {
+        "positive": 185,
+        "negative": 65
+      },
+      "answer_min": "-364/5",
+      "answer_max": "739/5",
+      "authored_fixture": {
+        "source_task_id": "311824",
+        "condition": "Температуры по Цельсию C и по Фаренгейту F связаны формулой F = 1,8·C + 32. Определите температуру по Цельсию, если F = 7 °F. Ответ округлите до десятых.",
+        "expected_answer": "-13,9",
+        "oracle_answer": "-13,9"
+      },
+      "examples": [
+        {
+          "problem_id": "149308cb-94e3-544d-8f3d-27e8fb9837a3",
+          "seed": 6194665912849351413,
+          "condition": "Температуры по шкалам Цельсия C и Фаренгейта F связаны формулой F = 1,8·C + 32. Найдите C, если F = 80 °F. Ответ округлите до десятых.",
+          "answer": "26,7",
+          "formula": "F = 1,8·C + 32",
+          "target": "C",
+          "units": {
+            "answer": "°C"
+          },
+          "fingerprint": "f236308107db6e21feb6ba2a7a28c141b56b248c7a7452e29aa61c1cb17b5d4a"
+        },
+        {
+          "problem_id": "a1aacbb6-5e82-5c67-a45f-ed108ad313ad",
+          "seed": 3478812349057117941,
+          "condition": "Температуры по шкалам Цельсия C и Фаренгейта F связаны формулой F = 1,8·C + 32. Найдите C, если F = 196 °F. Ответ округлите до десятых.",
+          "answer": "91,1",
+          "formula": "F = 1,8·C + 32",
+          "target": "C",
+          "units": {
+            "answer": "°C"
+          },
+          "fingerprint": "768e970cf5f4a5cb89a98adf6e15fe20e96bc9773b2003c26be4b2ad812e2c93"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R005",
+      "name": "Площадь выпуклого четырёхугольника через диагонали и синус",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "311543",
+        "338238",
+        "341054",
+        "341365",
+        "369501"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 205,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 13,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "3": 24,
+        "2": 42,
+        "1": 111,
+        "0": 73
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1/10",
+      "answer_max": "1",
+      "authored_fixture": {
+        "source_task_id": "311543",
+        "condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sinα/2, где d₁, d₂ — диагонали, α — угол между ними. Найдите sinα, если S = 48, d₁ = 12, d₂ = 10.",
+        "expected_answer": "0,8",
+        "oracle_answer": "0,8"
+      },
+      "examples": [
+        {
+          "problem_id": "9d6a94e1-6113-51a2-b773-a8121bd13f59",
+          "seed": 896621980027816756,
+          "condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = 157,5, d₁ = 30, d₂ = 28.",
+          "answer": "0,375",
+          "formula": "S = d₁·d₂·sin(α)/2",
+          "target": "sin_alpha",
+          "units": {
+            "answer": ""
+          },
+          "fingerprint": "99670a71335c40717cabc566fb73945e1465c7359352e67069f9d995a842698e"
+        },
+        {
+          "problem_id": "1abc90a9-e832-5b26-9cf2-aabcd3b8f822",
+          "seed": 2088409717033757010,
+          "condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = 108, d₁ = 40, d₂ = 54.",
+          "answer": "0,1",
+          "formula": "S = d₁·d₂·sin(α)/2",
+          "target": "sin_alpha",
+          "units": {
+            "answer": ""
+          },
+          "fingerprint": "982b012260115e8f68aaebdd3504d471141e7b84203b2cfa55564791ed261029"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R006",
+      "name": "Площадь ромба",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12.",
+      "source_ids": [
+        "311348"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 248,
+      "duplicate_rejections": 2,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1",
+      "answer_max": "80",
+      "authored_fixture": {
+        "source_task_id": "311348",
+        "condition": "Площадь ромба (в м²) можно найти по формуле S = d₁·d₂/2, где d₁ и d₂ — диагонали в метрах. Вычислите d₁, если S = 81 м², d₂ = 18 м. Ответ дайте в метрах.",
+        "expected_answer": "9",
+        "oracle_answer": "9"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R007",
+      "name": "Площадь треугольника по стороне и высоте",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12.",
+      "source_ids": [
+        "311528"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 244,
+      "duplicate_rejections": 6,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1",
+      "answer_max": "80",
+      "authored_fixture": {
+        "source_task_id": "311528",
+        "condition": "Площадь треугольника (в м²) вычисляется по формуле S = a·h/2, где a — сторона в метрах, h — высота к ней. Найдите a, если S = 54 м², h = 9 м.",
+        "expected_answer": "12",
+        "oracle_answer": "12"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R008",
+      "name": "Площадь трапеции",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12.",
+      "source_ids": [
+        "311530"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 250,
+      "duplicate_rejections": 0,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1",
+      "answer_max": "60",
+      "authored_fixture": {
+        "source_task_id": "311530",
+        "condition": "Площадь трапеции (в м²) вычисляют по формуле S = (a+b)·h/2, где a и b — основания в метрах, h — высота. Найдите h, если a = 7 м, b = 11 м, S = 90 м².",
+        "expected_answer": "10",
+        "oracle_answer": "10"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R009",
+      "name": "Объём пирамиды",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12.",
+      "source_ids": [
+        "311541"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 241,
+      "duplicate_rejections": 9,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "2",
+      "answer_max": "60",
+      "authored_fixture": {
+        "source_task_id": "311541",
+        "condition": "Объём пирамиды вычисляется по формуле V = S·h/3, где S — площадь основания, h — высота. Найдите высоту, если V = 80 м³, а S = 30 м². Ответ дайте в метрах.",
+        "expected_answer": "8",
+        "oracle_answer": "8"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R010",
+      "name": "Кинетическая энергия",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "459973",
+        "463026",
+        "474304"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 204,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 6,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "2",
+      "answer_max": "100",
+      "authored_fixture": {
+        "source_task_id": "463026",
+        "condition": "Кинетическая энергия автомобиля массой m (в кг), движущегося со скоростью v (в м/с), равна E = m·v²/2 (в джоулях). Автомобиль массой 1200 кг обладает кинетической энергией 240 тысяч Дж. Найдите его скорость в м/с.",
+        "expected_answer": "20",
+        "oracle_answer": "20"
+      },
+      "examples": [
+        {
+          "problem_id": "da8dce83-2cdf-5e48-9a92-1032d9e2f821",
+          "seed": 3070739795035425740,
+          "condition": "Кинетическая энергия E автомобиля массой m равна m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой 2500 кг, если E = 3380 тысяч Дж. Ответ дайте в метрах в секунду.",
+          "answer": "52",
+          "formula": "E = m·v²/2",
+          "target": "v_nonnegative",
+          "units": {
+            "answer": "м/с"
+          },
+          "fingerprint": "83176ee14fb1e21ec1c16c9303d0814f7045ce725674faf2127525dc026760a3"
+        },
+        {
+          "problem_id": "a5a17a44-2ee9-561b-9daf-21c97998da07",
+          "seed": 819856298845720905,
+          "condition": "Кинетическая энергия E автомобиля массой m равна m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой 3700 кг, если E = 7577600 Дж. Ответ дайте в метрах в секунду.",
+          "answer": "64",
+          "formula": "E = m·v²/2",
+          "target": "v_nonnegative",
+          "units": {
+            "answer": "м/с"
+          },
+          "fingerprint": "e0589e2275c1d88322f1d04e04c054d11c6dd9ea078e093d4be415e59c96e48d"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R011",
+      "name": "Потенциальная энергия",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "459974",
+        "474301"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 204,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 7,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1",
+      "answer_max": "50",
+      "authored_fixture": {
+        "source_task_id": "459974",
+        "condition": "Потенциальная энергия тела (в джоулях) определяется формулой E = m·g·h, где m — масса в кг, g = 9,8 м/с², h — высота в метрах. Найдите массу, если E = 1568 Дж и h = 20 м. Ответ дайте в килограммах.",
+        "expected_answer": "8",
+        "oracle_answer": "8"
+      },
+      "examples": [
+        {
+          "problem_id": "1ddb82a5-9295-5f13-8959-0e3705c032b2",
+          "seed": 4211594248483381032,
+          "condition": "Потенциальная энергия тела P (в джоулях) вычисляется по формуле P = m·g·h, где g = 9,8 м/с², m — масса в килограммах, h — высота в метрах. Найдите массу тела, если P = 17130,4 Дж и h = 38 м.",
+          "answer": "46",
+          "formula": "P = m·g·h",
+          "target": "m",
+          "units": {
+            "answer": "кг"
+          },
+          "fingerprint": "31803746a2f3403eed60b2c8fb906d399384c7af9b5e9fb107a0b727c4f2b8a9"
+        },
+        {
+          "problem_id": "c9188d3d-0909-56ad-b2dc-f3dbce3daaff",
+          "seed": 8995459624622152372,
+          "condition": "Потенциальная энергия тела P (в джоулях) вычисляется по формуле P = m·g·h, где g = 9,8 м/с², m — масса в килограммах, h — высота в метрах. Найдите массу тела, если P = 4233,6 Дж и h = 24 м.",
+          "answer": "18",
+          "formula": "P = m·g·h",
+          "target": "m",
+          "units": {
+            "answer": "кг"
+          },
+          "fingerprint": "d4be9e9855d2fbb786eeeb7fda019a21e50fc1e4a8633b8de44de80b2b0ea3fa"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R012",
+      "name": "Сила Архимеда",
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12.",
+      "source_ids": [
+        "459972",
+        "474300",
+        "474302"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 258,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 39,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "98",
+      "answer_max": "49000",
+      "authored_fixture": {
+        "source_task_id": "459972",
+        "condition": "Сила Архимеда для тела, погружённого в воду, определяется формулой F = ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 0,4 м³. Ответ дайте в ньютонах.",
+        "expected_answer": "3920",
+        "oracle_answer": "3920"
+      },
+      "examples": [
+        {
+          "problem_id": "98b8629e-7bcf-5f5d-bfd7-8e42b460ec0c",
+          "seed": 184176715360205859,
+          "condition": "Сила Архимеда F для тела в воде равна ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 0,29 м³. Ответ дайте в ньютонах.",
+          "answer": "2842",
+          "formula": "F = ρ·g·V",
+          "target": "F",
+          "units": {
+            "answer": "Н"
+          },
+          "fingerprint": "87e4a52db59239575ad73b7fdb5724291d9ea66eb6f589817ed6fb3b5ee59a1c"
+        },
+        {
+          "problem_id": "5b740816-066a-5523-a592-443f9d1c6890",
+          "seed": 171171374308288271,
+          "condition": "Сила Архимеда F для тела в воде равна ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 1,71 м³. Ответ дайте в ньютонах.",
+          "answer": "16758",
+          "formula": "F = ρ·g·V",
+          "target": "F",
+          "units": {
+            "answer": "Н"
+          },
+          "fingerprint": "a4e00acd3bc233a51e266f8d7443947555750fe854554ef36b45c9a26c2da1a5"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE12-R013",
+      "name": "Энергия конденсатора",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: источник каталога D14 не подтверждает, что конструкция относится к актуальному заданию №12.",
+      "source_ids": [
+        "450510"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 145,
+      "duplicate_rejections": 105,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "9": 90,
+        "7": 74,
+        "5": 46,
+        "4": 29,
+        "1": 3,
+        "2": 1,
+        "3": 6,
+        "0": 1
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "1/20000",
+      "answer_max": "2",
+      "authored_fixture": {
+        "source_task_id": "450510",
+        "condition": "Энергия заряженного конденсатора (в джоулях) вычисляется по формуле W = C·U²/2, где C — ёмкость в фарадах, U — напряжение в вольтах. Найдите W, если C = 10⁻⁴ Ф, U = 16 В. Ответ дайте в джоулях.",
+        "expected_answer": "0,0128",
+        "oracle_answer": "0,0128"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R014",
+      "name": "Фиксированная и переменная стоимость колодца",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник; современная применимость не подтверждена.",
+      "source_ids": [
+        "124",
+        "311532",
+        "314118",
+        "314142"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 92,
+      "duplicate_rejections": 158,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "10100",
+      "answer_max": "411900",
+      "authored_fixture": {
+        "source_task_id": "124",
+        "condition": "Стоимость колодца в рублях вычисляется по формуле C = 6000 + 4100·n, где n — число установленных колец. Сколько будет стоить колодец из 6 колец?",
+        "expected_answer": "30600",
+        "oracle_answer": "30600"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R015",
+      "name": "Тариф поездки после порогового времени",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: конечный набор параметров не обеспечивает приёмочный порог уникальных fingerprints.",
+      "source_ids": [
+        "98",
+        "202",
+        "311531"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 106,
+      "duplicate_rejections": 144,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "161",
+      "answer_max": "1415",
+      "authored_fixture": {
+        "source_task_id": "98",
+        "condition": "Стоимость поездки на такси в рублях при длительности больше 5 минут определяется формулой C = 150 + 11·(t−5), где t — продолжительность поездки в минутах. Рассчитайте стоимость поездки длительностью 12 минут.",
+        "expected_answer": "227",
+        "oracle_answer": "227"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R016",
+      "name": "Площадь треугольника через две стороны и синус",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник; современная применимость не подтверждена.",
+      "source_ids": [
+        "311537"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 250,
+      "duplicate_rejections": 0,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 141,
+        "1": 71,
+        "2": 38
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "8",
+      "answer_max": "4559",
+      "authored_fixture": {
+        "source_task_id": "311537",
+        "condition": "Площадь треугольника определяется формулой S = b·c·sinα/2, где b и c — стороны, а α — угол между ними. Найдите площадь треугольника, если b = 8, c = 10, α = 30°.",
+        "expected_answer": "20",
+        "oracle_answer": "20"
+      },
+      "examples": []
+    },
+    {
+      "family_id": "OGE12-R017",
+      "name": "Площадь треугольника через радиус вписанной окружности",
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник и узкая геометрическая вариативность; требуется дополнительное доказательство разнообразия.",
+      "source_ids": [
+        "311538"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": null,
+      "unique_fingerprints": 222,
+      "duplicate_rejections": 28,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "answer_decimal_places": {
+        "0": 250
+      },
+      "answer_signs": {
+        "positive": 250
+      },
+      "answer_min": "5",
+      "answer_max": "4990",
+      "authored_fixture": {
+        "source_task_id": "311538",
+        "condition": "Площадь треугольника определяется формулой S = (a+b+c)·r/2, где a, b, c — стороны, r — радиус вписанной окружности. Найдите c, если S = 24, a = 8, b = 6, r = 2.",
+        "expected_answer": "10",
+        "oracle_answer": "10"
+      },
+      "examples": []
+    }
+  ],
+  "overall": {
+    "family_count": 17,
+    "enabled_family_count": 8,
+    "disabled_family_count": 9,
+    "sample_count": 4250,
+    "math_oracle_failures": 0,
+    "rendered_oracle_failures": 0,
+    "authored_fixture_count": 17,
+    "authored_fixture_oracle_failures": 0
+  }
+}
