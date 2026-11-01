@@ -1,0 +1,50 @@
+{
+  "as_of": "2026-11-01",
+  "package_version": "v3",
+  "purpose": "research_for_future_generators",
+  "generator_code_created": false,
+  "telegram_code_created": false,
+  "github_modified": false,
+  "old_catalog_rows": 144,
+  "old_extra_rows": 7,
+  "legacy_catalog_unique_urls": 151,
+  "individual_web_source_cases_in_v3": 18,
+  "families_researched": 12,
+  "families_initially_enabled": 0,
+  "source_answer_digits_independently_svg_verified": 0,
+  "full_original_KIM_cross_checks": 0,
+  "verified_parameters_in_v3": "conceptual constraints only; actual generation not tested",
+  "known_risks": [
+    "151 links are not independent exam KIM",
+    "source metadata from portal not official cross-check",
+    "image option numbering not verified against original assets",
+    "source 322330 has prototype-solution fallback",
+    "356077 date/variant label conflict",
+    "478016 duplicate of 369833",
+    "383605 OGE-2020 false exam wave",
+    "licensing rights of original SVG uncertain"
+  ],
+  "status": "RESEARCH_ONLY_NO_GENERATORS",
+  "legacy_index": {
+    "dataset": "v2 catalog link index with metadata carried forward; unchanged CSV for traceability",
+    "snapshot_date": "2026-11-01",
+    "catalog_rows": 144,
+    "additional_rows": 7,
+    "unique_ids_in_legacy_index": 151,
+    "individual_source_pages_checked_in_v3": 18,
+    "caveats": [
+      "Old answer_digit columns in CSV were NOT independently checked against option SVGs.",
+      "The count 144 is a snapshot, not proof all are genuine exam KIM.",
+      "V3 families link to 18 individually checked portal cards; full attribution rights still open."
+    ],
+    "family_status_counts": {
+      "needs_source_attribution_review": 1,
+      "needs_visual_anchor_review": 1,
+      "blocked_until_independent_visual_source": 1,
+      "pilot": 9
+    }
+  },
+  "independent_sympy_solution_checks_passed": 18,
+  "independent_sympy_solution_checks_failed": 0,
+  "qualification": "18 symbolic solution sets compared to SymPy, NOT rendering/image/exam-KIM certification"
+}

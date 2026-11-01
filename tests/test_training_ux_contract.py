@@ -17,6 +17,7 @@ from app.bot.router import (
     choose_task9,
     choose_task10,
     choose_task12,
+    choose_task13,
     choose_task14,
     task6_answer,
     task6_callback,
@@ -26,14 +27,17 @@ from app.bot.router import (
     task10_callback,
     task12_answer,
     task12_callback,
+    task13_answer,
+    task13_callback,
     task14_answer,
     task14_callback,
     unknown_message,
 )
-from app.math import oge14_scheduler
+from app.math import oge13_scheduler, oge14_scheduler
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
+from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.progressions import A01
 from app.math.scheduler import build_candidate_batch
@@ -99,6 +103,17 @@ TRAININGS = (
         "task12_progress",
     ),
     TrainingAdapter(
+        13,
+        choose_task13,
+        task13_answer,
+        task13_callback,
+        "advance_task13_problem",
+        "set_task13_condition_message",
+        build_task13_candidate_batch,
+        "task13_state",
+        "task13_progress",
+    ),
+    TrainingAdapter(
         14,
         choose_task14,
         task14_answer,
@@ -110,6 +125,13 @@ TRAININGS = (
         "task14_progress",
     ),
 )
+@pytest.fixture(autouse=True)
+def restore_task13_enabled_families():
+    original = oge13_scheduler.ENABLED_FAMILIES
+    yield
+    oge13_scheduler.ENABLED_FAMILIES = original
+
+
 TRAINING_CASES = pytest.mark.parametrize(
     "training", TRAININGS, ids=lambda item: f"task{item.number}"
 )
@@ -156,6 +178,8 @@ def _callback(
 
 
 async def _open(repository: MemoryRepository, training: TrainingAdapter, user_id: int):
+    if training.number == 13:
+        oge13_scheduler.ENABLED_FAMILIES = ("OGE13-L01",)
     await training.choose(_message(user_id, f"№{training.number}"), repository)
     state = await getattr(repository, training.state)(user_id)
     assert state is not None and isinstance(state.get("problem"), dict)
@@ -181,7 +205,11 @@ async def test_contract_accepts_plain_answer_and_enforces_two_attempts(
     assert after_malformed is not None and after_malformed["state"]["attempts"] == 0
 
     correct = str(problem["correct_answer"])
-    wrong_text = "-999999" if correct == "999999" else "999999"
+    wrong_text = (
+        ("2" if correct != "2" else "1")
+        if training.number == 13
+        else ("-999999" if correct == "999999" else "999999")
+    )
     first = _message(user_id, wrong_text)
     assert first.message_id > first_prompt_id
     await training.answer(first, repository)

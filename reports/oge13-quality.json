@@ -1,0 +1,253 @@
+{
+  "report_version": 1,
+  "as_of": "2026-11-02",
+  "branch": "feat/oge13-generators-v1",
+  "base_commit": "06183a1d5407a305791d047add4d29e8a7b2cc51",
+  "family_count": 9,
+  "production_enabled_count": 0,
+  "quick_cases_per_family": 40,
+  "primary_unique_conditions_per_family": 250,
+  "max_seed_attempts_observed": 290,
+  "all_families_meet_diversity_gate": true,
+  "independent_oracle": {
+    "implementation": "direct evaluation of rendered conditions and exact interval membership in tests/test_oge13_math.py",
+    "quick_cases": 360,
+    "primary_cases": 2250,
+    "mutations": [
+      "comparison direction and strictness",
+      "boundary openness",
+      "interval direction",
+      "display order versus correct option number",
+      "SVG-to-option ordering"
+    ]
+  },
+  "source_audit": {
+    "individual_portal_pages_reviewed": 18,
+    "pilot_source_graph_pages_visually_reviewed": 10,
+    "excluded_source_graph_pages_visually_reviewed": 3,
+    "official_full_kim_independently_matched": 0,
+    "catalog_csv_rows_are_individual_evidence": false,
+    "findings": "specs/research/OGE13_IMPLEMENTATION_REVIEW.md"
+  },
+  "generated_visual_audit": {
+    "families": [
+      "OGE13-L02",
+      "OGE13-Q04",
+      "OGE13-S01",
+      "OGE13-S02",
+      "OGE13-S03"
+    ],
+    "renderer": "own PNG number lines, 1280x1120, stable 1-4 order",
+    "original_source_svg_copied": false,
+    "phone_label_height_px_approx": 11,
+    "manual_visual_review": "pass: endpoint labels, open/closed markers, rays, ticks, and four-option order inspected"
+  },
+  "postgresql": {
+    "version": 17,
+    "migration": "migrations/0008_task13_sessions.sql",
+    "local_integration_status": "skipped_without_DATABASE_URL",
+    "ci_status": "required_on_pull_request"
+  },
+  "families": {
+    "OGE13-L01": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 280,
+      "duplicate_condition_rejections": 30,
+      "duplicate_condition_rejection_rate": 0.1071,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 57,
+        "2": 85,
+        "3": 55,
+        "4": 53
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311409",
+        "338590"
+      ]
+    },
+    "OGE13-L02": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 258,
+      "duplicate_condition_rejections": 8,
+      "duplicate_condition_rejection_rate": 0.031,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 60,
+        "2": 66,
+        "3": 57,
+        "4": 67
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "314612",
+        "107"
+      ]
+    },
+    "OGE13-Q01": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 285,
+      "duplicate_condition_rejections": 35,
+      "duplicate_condition_rejection_rate": 0.1228,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 72,
+        "2": 64,
+        "3": 59,
+        "4": 55
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311310"
+      ]
+    },
+    "OGE13-Q02": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 276,
+      "duplicate_condition_rejections": 26,
+      "duplicate_condition_rejection_rate": 0.0942,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 53,
+        "2": 70,
+        "3": 52,
+        "4": 75
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311309"
+      ]
+    },
+    "OGE13-Q03": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 279,
+      "duplicate_condition_rejections": 29,
+      "duplicate_condition_rejection_rate": 0.1039,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 71,
+        "2": 58,
+        "3": 64,
+        "4": 57
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311311"
+      ]
+    },
+    "OGE13-Q04": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 265,
+      "duplicate_condition_rejections": 15,
+      "duplicate_condition_rejection_rate": 0.0566,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 60,
+        "2": 60,
+        "3": 66,
+        "4": 64
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "369736",
+        "369833"
+      ]
+    },
+    "OGE13-S01": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 276,
+      "duplicate_condition_rejections": 26,
+      "duplicate_condition_rejection_rate": 0.0942,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 56,
+        "2": 62,
+        "3": 65,
+        "4": 67
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "340580",
+        "311672"
+      ]
+    },
+    "OGE13-S02": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 272,
+      "duplicate_condition_rejections": 22,
+      "duplicate_condition_rejection_rate": 0.0809,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 65,
+        "2": 50,
+        "3": 56,
+        "4": 79
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "348461",
+        "340832"
+      ]
+    },
+    "OGE13-S03": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 290,
+      "duplicate_condition_rejections": 40,
+      "duplicate_condition_rejection_rate": 0.1379,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "answer_positions": {
+        "1": 66,
+        "2": 66,
+        "3": 68,
+        "4": 50
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "333109",
+        "341322"
+      ]
+    }
+  },
+  "excluded_families": {
+    "OGE13-Q05": "separate reverse-graph generator stage; original SVG reviewed",
+    "OGE13-Q06": "conflicting portal attribution to 2023 Saint Petersburg variant 2409",
+    "OGE13-S04": "card solution belongs to another system, not the shown card"
+  }
+}
