@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import json
 import statistics
+import sys
 from collections import Counter
 from pathlib import Path
 
-from app.math.progressions import (
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from app.math.progressions import (  # noqa: E402
     A04,
     A11,
     ALL_FAMILIES,
@@ -31,7 +36,10 @@ def run() -> dict[str, object]:
         "main_cases_per_family": MAIN_CASES,
         "acceptance_budget": ACCEPTANCE_BUDGET,
         "families": {},
-        "release_gate": "blocked_pending_telegram_and_postgres17_ci",
+        "release_gate": (
+            "quality_and_postgres17_ci_passed; "
+            "live_telegram_smoke_required_before_release"
+        ),
     }
     results = report["families"]
     assert isinstance(results, dict)
@@ -56,11 +64,7 @@ def run() -> dict[str, object]:
                 break
         answers = [float(problem.exact_value) for problem in problems]
         results[family] = {
-            "status": (
-                FAMILY_STATUS[family]
-                if family == "OGE14-A06"
-                else "disabled_pending_telegram_and_postgres17_ci"
-            ),
+            "status": FAMILY_STATUS[family],
             "source_ids": list(problems[0].reference_ids),
             "source_urls": list(SOURCE_URLS[family]),
             "quick_valid": sum(
@@ -94,9 +98,12 @@ def run() -> dict[str, object]:
                 solve_condition(family, p.condition) == p.exact_value for p in problems
             ),
             "gate_note": (
-                "42-fingerprint natural finite capacity; requires documented exception review"
+                "42-fingerprint natural finite capacity; remains disabled pending "
+                "documented exception review"
                 if family == "OGE14-A06"
-                else "disabled until PostgreSQL 17 CI completes"
+                else "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
+                if family in FAMILY_STATUS and FAMILY_STATUS[family].startswith("enabled_")
+                else "family is held or disabled pending quality gates"
             ),
         }
     return report

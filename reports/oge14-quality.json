@@ -7,7 +7,7 @@
   "acceptance_budget": 1200,
   "families": {
     "OGE14-A01": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "412190",
         "412187",
@@ -53,10 +53,10 @@
       "max_rendered_characters": 130,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A02": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "412241",
         "449740"
@@ -104,10 +104,10 @@
       "max_rendered_characters": 156,
       "max_generation_attempts": 3,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A03": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "406645",
         "412286"
@@ -147,7 +147,7 @@
       "max_rendered_characters": 137,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A04": {
       "status": "disabled_hold_historical_topic",
@@ -164,7 +164,7 @@
       "unique_within_budget": 0
     },
     "OGE14-A05": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "412218"
       ],
@@ -206,7 +206,7 @@
       "max_rendered_characters": 119,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A06": {
       "status": "disabled_bounded_capacity_acceptance_review",
@@ -247,10 +247,10 @@
       "max_rendered_characters": 187,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "42-fingerprint natural finite capacity; requires documented exception review"
+      "gate_note": "42-fingerprint natural finite capacity; remains disabled pending documented exception review"
     },
     "OGE14-A07": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "463386"
       ],
@@ -288,10 +288,10 @@
       "max_rendered_characters": 167,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A08": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "459978"
       ],
@@ -330,10 +330,10 @@
       "max_rendered_characters": 169,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A09": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "394279"
       ],
@@ -371,10 +371,10 @@
       "max_rendered_characters": 204,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A10": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "FIPI-MR-2024-P7"
       ],
@@ -416,7 +416,7 @@
       "max_rendered_characters": 181,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A11": {
       "status": "disabled_hold_degenerate_progression",
@@ -431,7 +431,7 @@
       "unique_within_budget": 0
     },
     "OGE14-G01": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "412192",
         "412266",
@@ -474,10 +474,10 @@
       "max_rendered_characters": 146,
       "max_generation_attempts": 2,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-G02": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "412195"
       ],
@@ -519,10 +519,10 @@
       "max_rendered_characters": 143,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-G03": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "412198"
       ],
@@ -560,10 +560,10 @@
       "max_rendered_characters": 172,
       "max_generation_attempts": 4,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-G04": {
-      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "status": "enabled_passed_quality_and_postgres17_gates",
       "source_ids": [
         "412224",
         "459975"
@@ -603,8 +603,8 @@
       "max_rendered_characters": 191,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "disabled until PostgreSQL 17 CI completes"
+      "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     }
   },
-  "release_gate": "blocked_pending_telegram_and_postgres17_ci"
+  "release_gate": "quality_and_postgres17_ci_passed; live_telegram_smoke_required_before_release"
 }

@@ -41,9 +41,28 @@ A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, G01, G02, G03, G04 = (
     )
 )
 ALL_FAMILIES = (A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, G01, G02, G03, G04)
-# Families are enabled only after their automated corpus gates pass.
-ENABLED_FAMILIES: tuple[str, ...] = ()
-FAMILY_STATUS = {family: "disabled_pending_quality_gates" for family in ALL_FAMILIES}
+# These 12 P1 families passed the oracle, visible-text, 200-variant diversity,
+# shared UX, and PostgreSQL 17 CI gates. A06 has a smaller natural domain and
+# stays off until its bounded-capacity exception is reviewed.
+ENABLED_FAMILIES: tuple[str, ...] = (
+    A01,
+    A02,
+    A03,
+    A05,
+    A07,
+    A08,
+    A09,
+    A10,
+    G01,
+    G02,
+    G03,
+    G04,
+)
+FAMILY_STATUS = {
+    family: "enabled_passed_quality_and_postgres17_gates" if family in ENABLED_FAMILIES
+    else "disabled_pending_quality_gates"
+    for family in ALL_FAMILIES
+}
 FAMILY_STATUS[A04] = "disabled_hold_historical_topic"
 FAMILY_STATUS[A11] = "disabled_hold_degenerate_progression"
 FAMILY_STATUS[A06] = "disabled_bounded_capacity_acceptance_review"

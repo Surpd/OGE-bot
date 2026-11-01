@@ -41,6 +41,9 @@ def test_task14_all_research_structures_have_source_ids_and_explicit_status() ->
     assert set(SOURCE_IDS) == set(ALL_FAMILIES)
     assert all(SOURCE_IDS[family] for family in ALL_FAMILIES)
     assert A04 not in ENABLED_FAMILIES and A11 not in ENABLED_FAMILIES
+    assert set(ENABLED_FAMILIES) == {
+        family for family in IMPLEMENTED if family != "OGE14-A06"
+    }
     assert FAMILY_STATUS[A04] == "disabled_hold_historical_topic"
     assert FAMILY_STATUS[A11] == "disabled_hold_degenerate_progression"
 
