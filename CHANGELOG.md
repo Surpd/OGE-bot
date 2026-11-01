@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-02 — OGE task 7 (PR in progress)
+- Added parameterized C01–C06 generators with independent visible-condition oracles, and candidate number-line structures N01–N05 with saved graph models, PNG renderer and raster oracle.
+- Added the Telegram flow, separate task7 persistence, migration 0010 and shared UX/PostgreSQL lifecycle coverage. All task7 families remain disabled and №7 stays out of the learner menu pending acceptance.
+
 ## 2026-11-02 — Migration startup follow-up for OGE task 8
 - Reserved migration `0008_task13_sessions.sql` for PR #8 and renumbered task 8 to `0009_task8_sessions.sql`.
 - Application startup now discovers migrations by unique numeric prefix, serializes concurrent runners, and records successful versions for idempotent restarts. Active-session duplicates are detected before any session uniqueness index migration; startup fails with a manual remediation message and leaves rows untouched.

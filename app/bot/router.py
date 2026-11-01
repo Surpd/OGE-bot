@@ -1,10 +1,11 @@
+import base64
 import logging
 import secrets
 from typing import cast
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
 from app.bot.menu import (
     MAIN_MENU,
@@ -12,6 +13,7 @@ from app.bot.menu import (
     number_menu,
     progress_menu,
     task6_menu,
+    task7_menu,
     task8_menu,
     task9_menu,
     task10_menu,
@@ -21,6 +23,8 @@ from app.bot.menu import (
 from app.bot.training_ux import matches_current_condition
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.formulas import POLICY as TASK12_ANSWER_POLICY
+from app.math.numbers import POLICY as TASK7_ANSWER_POLICY
+from app.math.oge07_scheduler import build_task7_candidate_batch
 from app.math.oge8 import POLICY as TASK8_ANSWER_POLICY
 from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
@@ -35,6 +39,7 @@ from app.persistence.repository import Repository
 
 logger = logging.getLogger(__name__)
 TASK6_LABEL = "№6 · Вычисления"
+TASK7_LABEL = "№7 · Числа и координатная прямая"
 TASK9_LABEL = "№9 · Уравнения"
 TASK10_LABEL = "№10 · Вероятность"
 TASK12_LABEL = "№12 · Формулы"
@@ -71,13 +76,14 @@ def _has_resumable_task9(state: dict[str, object] | None) -> bool:
 
 
 async def _has_resumable_session(repository: Repository, user_id: int) -> bool:
-    state6, state9, state10, state12, state14, state8 = (
+    state6, state9, state10, state12, state14, state8, state7 = (
         await repository.task6_state(user_id),
         await repository.task9_state(user_id),
         await repository.task10_state(user_id),
         await repository.task12_state(user_id),
         await repository.task14_state(user_id),
         await repository.task8_state(user_id),
+        await repository.task7_state(user_id),
     )
     return (
         _has_resumable_task6(state6)
@@ -86,6 +92,7 @@ async def _has_resumable_session(repository: Repository, user_id: int) -> bool:
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
         or _has_resumable_task9(state8)
+        or _has_resumable_task9(state7)
     )
 
 
@@ -177,6 +184,7 @@ async def start(message: Message, repository: Repository) -> None:
     state12 = await repository.task12_state(message.from_user.id)
     state14 = await repository.task14_state(message.from_user.id)
     state8 = await repository.task8_state(message.from_user.id)
+    state7 = await repository.task7_state(message.from_user.id)
     has_session = (
         _has_resumable_task6(state)
         or _has_resumable_task9(state9)
@@ -184,6 +192,7 @@ async def start(message: Message, repository: Repository) -> None:
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
         or _has_resumable_task9(state8)
+        or _has_resumable_task9(state7)
     )
     logger.info("user_started")
     await message.answer(
@@ -213,6 +222,10 @@ async def continue_session(message: Message, repository: Repository) -> None:
     state12 = await repository.task12_state(user_id)
     state14 = await repository.task14_state(user_id)
     state8 = await repository.task8_state(user_id)
+    state7 = await repository.task7_state(user_id)
+    if resume_mode == "task7" and _has_resumable_task9(state7):
+        await _send_task7_problem(message, repository, action="resume")
+        return
     if resume_mode == "task8" and _has_resumable_task9(state8):
         await _send_task8_problem(message, repository, action="resume")
         return
@@ -242,6 +255,9 @@ async def continue_session(message: Message, repository: Repository) -> None:
         return
     if _has_resumable_task9(state12):
         await _send_task12_problem(message, repository, action="resume")
+        return
+    if _has_resumable_task9(state7):
+        await _send_task7_problem(message, repository, action="resume")
         return
     if _has_resumable_task9(state8):
         await _send_task8_problem(message, repository, action="resume")
@@ -567,6 +583,7 @@ async def task10_answer(message: Message, repository: Repository) -> None:
             user_id, problem_id, result_id, expected_status=str(status)
         )
         await _disable_stale_keyboard(sent, saved)
+
 
 async def _send_task12_problem(
     message: Message,
@@ -1069,9 +1086,7 @@ async def _send_task8_problem(
     )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await repository.set_task8_condition_message(
-            user_id, str(problem["problem_id"]), prompt_id
-        )
+        await repository.set_task8_condition_message(user_id, str(problem["problem_id"]), prompt_id)
     return True
 
 
@@ -1217,6 +1232,241 @@ async def task8_answer(message: Message, repository: Repository) -> None:
     result_id = getattr(sent, "message_id", None)
     if type(result_id) is int:
         saved = await repository.set_task8_prompt_message(
+            user_id, problem_id, result_id, expected_status=str(status)
+        )
+        await _disable_stale_keyboard(sent, saved)
+
+
+async def _send_task7_problem(
+    message: Message,
+    repository: Repository,
+    *,
+    action: str,
+    expected_problem_id: str | None = None,
+    expected_screen: str | None = None,
+    expected_prompt_message_id: int | None = None,
+    user_id_override: int | None = None,
+    skip_active: bool = False,
+) -> bool:
+    user_id = user_id_override if user_id_override is not None else _user_id(message)
+    if user_id is None:
+        return False
+    await repository.ensure_task7_session(user_id)
+    state = await repository.task7_state(user_id)
+    state_value = cast(dict[str, object], state.get("state", {})) if state else {}
+    current = state.get("problem") if state else None
+    if action == "resume":
+        if not isinstance(current, dict) or state_value.get("status") != "active":
+            await message.answer("Нет незавершённой тренировки №7.", reply_markup=main_menu())
+            return False
+        problem = current
+        await repository.save_user_state(user_id, "task7")
+    else:
+        if (
+            action == "start"
+            and isinstance(current, dict)
+            and state_value.get("status") == "active"
+        ):
+            problem = current
+            await repository.save_user_state(user_id, "task7")
+        else:
+            if action == "start" and isinstance(current, dict):
+                expected_problem_id = str(current.get("problem_id", ""))
+                action = "advance"
+            if action == "advance" and expected_problem_id is None and isinstance(current, dict):
+                expected_problem_id = str(current.get("problem_id", ""))
+            candidates = build_task7_candidate_batch(state_value, secrets.randbelow(2**63))
+            try:
+                problem = await repository.advance_task7_problem(
+                    user_id,
+                    expected_problem_id,
+                    candidates,
+                    expected_screen,
+                    expected_prompt_message_id,
+                    skip_active,
+                )
+            except RuntimeError:
+                await message.answer("Не удалось подготовить задание №7. Попробуйте ещё раз.")
+                return False
+            if action == "advance" and problem.get("_transitioned") is False:
+                return False
+            if expected_screen is None:
+                await repository.save_user_state(user_id, "task7")
+    options = problem.get("options", [])
+    option_lines = (
+        "\n".join(f"{i}. {v}" for i, v in enumerate(options, 1))
+        if isinstance(options, list)
+        else ""
+    )
+    caption = (
+        "Задание №7 · числа и координатная прямая\n"
+        "Тренировочный аналог, созданный алгоритмически по мотивам указанной структуры; "
+        "это не оригинальное опубликованное задание ОГЭ.\n\n"
+        f"{problem['condition']}\n\n{option_lines}\n\nВведите номер варианта 1–4."
+    )
+    encoded = problem.get("graph_png_base64")
+    if isinstance(encoded, str):
+        try:
+            photo = BufferedInputFile(
+                base64.b64decode(encoded, validate=True), filename="oge07.png"
+            )
+        except ValueError:
+            await message.answer("Сохранённое изображение задания повреждено.")
+            return False
+        sent = await message.answer_photo(
+            photo, caption=caption, reply_markup=task7_menu(str(problem["problem_id"]))
+        )
+    else:
+        sent = await message.answer(caption, reply_markup=task7_menu(str(problem["problem_id"])))
+    prompt_id = getattr(sent, "message_id", None)
+    if type(prompt_id) is int:
+        await repository.set_task7_condition_message(user_id, str(problem["problem_id"]), prompt_id)
+    return True
+
+
+async def choose_task7(message: Message, repository: Repository) -> None:
+    await _send_task7_problem(message, repository, action="start")
+
+
+async def task7_callback(callback: CallbackQuery, repository: Repository) -> None:
+    parts = (callback.data or "").split(":", 2)
+    if len(parts) != 3 or parts[0] != "t7" or callback.message is None:
+        await callback.answer()
+        return
+    _, action, expected_id = parts
+    user_id = callback.from_user.id
+    message = cast(Message, callback.message)
+    prompt_id = getattr(message, "message_id", None)
+    if type(prompt_id) is not int:
+        await callback.answer("Кнопка больше не связана с заданием.")
+        return
+    if action == "menu":
+        changed = await repository.transition_task_screen(
+            user_id, "task7", expected_id, "main_menu", prompt_id
+        )
+        if not changed:
+            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            return
+        await message.answer(
+            "Главное меню.",
+            reply_markup=main_menu(has_session=await _has_resumable_session(repository, user_id)),
+        )
+        await callback.answer()
+        return
+    if await repository.user_state(user_id) != "task7":
+        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        return
+    state = await repository.task7_state(user_id)
+    problem = state.get("problem") if state else None
+    if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
+        await callback.answer("Это задание уже сменилось.")
+        return
+    if action in {"next", "skip"}:
+        advanced = await _send_task7_problem(
+            message,
+            repository,
+            action="advance",
+            expected_problem_id=expected_id,
+            expected_screen="task7",
+            expected_prompt_message_id=prompt_id,
+            user_id_override=user_id,
+            skip_active=action == "skip",
+        )
+        await callback.answer(None if advanced else "Это задание уже сменилось.")
+        return
+    if action == "hint":
+        hint = await repository.task7_hint(user_id, expected_id, prompt_id)
+        await message.answer(hint or "Подсказок больше нет.")
+    elif action == "solution":
+        revealed = await repository.task7_reveal_solution(user_id, expected_id, prompt_id)
+        snapshot = revealed.get("problem") if revealed else None
+        if not isinstance(snapshot, dict):
+            await callback.answer("Это задание уже сменилось.")
+            return
+        steps = snapshot.get("solution", [])
+        sent = await message.answer(
+            "Разбор (самостоятельное решение не засчитывается):\n"
+            + "\n".join(str(step) for step in steps)
+            + f"\n\nОтвет: {snapshot['correct_answer']}",
+            reply_markup=task7_menu(expected_id, completed=True),
+        )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task7_prompt_message(
+                user_id,
+                expected_id,
+                result_id,
+                expected_status=_solution_display_status(revealed),
+            )
+            await _disable_stale_keyboard(sent, saved)
+    else:
+        await callback.answer()
+        return
+    await callback.answer()
+
+
+async def task7_answer(message: Message, repository: Repository) -> None:
+    user_id = _user_id(message)
+    if user_id is None or message.text is None:
+        return
+    state = await repository.task7_state(user_id)
+    problem = state.get("problem") if state else None
+    session_state = state.get("state", {}) if state else {}
+    if (
+        not isinstance(problem, dict)
+        or not isinstance(session_state, dict)
+        or session_state.get("status") != "active"
+    ):
+        await message.answer("Сначала откройте активную тренировку №7.")
+        return
+    prompt_id = session_state.get(
+        "problem_prompt_message_id", session_state.get("input_prompt_message_id")
+    )
+    if not matches_current_condition(message, cast(dict[str, object], session_state)):
+        await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
+        return
+    if (
+        problem.get("answer_policy_id") != TASK7_ANSWER_POLICY.policy_id
+        or problem.get("answer_policy_version") != TASK7_ANSWER_POLICY.version
+    ):
+        await message.answer("Политика ответа этой задачи недоступна.")
+        return
+    parsed = TASK7_ANSWER_POLICY.parse(message.text)
+    if parsed is None or parsed.denominator != 1 or parsed.numerator not in range(1, 5):
+        await message.answer("Введите номер варианта от 1 до 4.")
+        return
+    problem_id = str(problem.get("problem_id", ""))
+    correct = TASK7_ANSWER_POLICY.accepts(message.text, str(problem.get("correct_answer", "")))
+    outcome = await repository.task7_attempt(
+        user_id,
+        problem_id,
+        message.text,
+        correct,
+        message.message_id if type(message.message_id) is int else None,
+        prompt_id,
+    )
+    if outcome is None or outcome.get("status") in {"stale", "duplicate"}:
+        await message.answer("Ответ к уже сменившемуся заданию проигнорирован.")
+        return
+    status = outcome.get("status")
+    if status == "solved":
+        text = "✅ Верно! Ответ засчитан."
+    elif status == "active":
+        text = "Пока неверно. Попробуйте ещё раз."
+    elif status == "failed":
+        snapshot = cast(dict[str, object], outcome["problem"])
+        text = (
+            f"Вторая попытка неверна. Ответ: {snapshot['correct_answer']}\n\nРазбор:\n"
+            + "\n".join(map(str, cast(list[object], snapshot.get("solution", []))))
+        )
+    else:
+        await message.answer("Ответ уже обработан. Нажмите «Следующее».")
+        return
+    completed = status != "active"
+    sent = await message.answer(text, reply_markup=task7_menu(problem_id, completed=completed))
+    result_id = getattr(sent, "message_id", None)
+    if type(result_id) is int:
+        saved = await repository.set_task7_prompt_message(
             user_id, problem_id, result_id, expected_status=str(status)
         )
         await _disable_stale_keyboard(sent, saved)
@@ -1674,6 +1924,8 @@ async def show_progress(message: Message, repository: Repository) -> None:
     progress12 = await repository.task12_progress(user_id)
     state12 = await repository.task12_state(user_id)
     progress8 = await repository.task8_progress(user_id)
+    progress7 = await repository.task7_progress(user_id)
+    state7 = await repository.task7_state(user_id)
     progress14 = await repository.task14_progress(user_id)
     state8 = await repository.task8_state(user_id)
     state14 = await repository.task14_state(user_id)
@@ -1684,6 +1936,7 @@ async def show_progress(message: Message, repository: Repository) -> None:
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
         or _has_resumable_task9(state8)
+        or _has_resumable_task9(state7)
     )
     accuracy9 = (
         (progress9["correct"] * 100 + progress9["answered"] // 2) // progress9["answered"]
@@ -1710,6 +1963,11 @@ async def show_progress(message: Message, repository: Repository) -> None:
         if progress8["answered"]
         else 0
     )
+    accuracy7 = (
+        (progress7["correct"] * 100 + progress7["answered"] // 2) // progress7["answered"]
+        if progress7["answered"]
+        else 0
+    )
     await message.answer(
         "📊 Прогресс\n\n"
         f"№6 · выдано {issued} · отвечал {answered} · решил {correct} · "
@@ -1723,6 +1981,9 @@ async def show_progress(message: Message, repository: Repository) -> None:
         f"№12 · выдано {progress12['issued']} · отвечал {progress12['answered']} · "
         f"решил {progress12['correct']} · пропустил {progress12['skipped']} · "
         f"правильно {accuracy12}%\n"
+        f"№7 · выдано {progress7['issued']} · отвечал {progress7['answered']} · "
+        f"решил {progress7['correct']} · пропустил {progress7['skipped']} · "
+        f"правильно {accuracy7}%\n"
         f"№8 · выдано {progress8['issued']} · отвечал {progress8['answered']} · "
         f"решил {progress8['correct']} · пропустил {progress8['skipped']} · "
         f"правильно {accuracy8}%\n"
@@ -1745,12 +2006,14 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
     progress12 = await repository.task12_progress(user_id)
     progress14 = await repository.task14_progress(user_id)
     progress8 = await repository.task8_progress(user_id)
+    progress7 = await repository.task7_progress(user_id)
     state6 = await repository.task6_state(user_id)
     state9 = await repository.task9_state(user_id)
     state10 = await repository.task10_state(user_id)
     state12 = await repository.task12_state(user_id)
     state14 = await repository.task14_state(user_id)
     state8 = await repository.task8_state(user_id)
+    state7 = await repository.task7_state(user_id)
     has_session = (
         _has_resumable_task6(state6)
         or _has_resumable_task9(state9)
@@ -1758,6 +2021,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
         or _has_resumable_task9(state8)
+        or _has_resumable_task9(state7)
     )
 
     def detail(number: str, values: dict[str, int]) -> str:
@@ -1773,7 +2037,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
         "📊 Подробнее\n\n"
         f"{detail('6', progress6)}\n\n{detail('9', progress9)}\n\n"
         f"{detail('10', progress10)}\n\n{detail('12', progress12)}\n\n"
-        f"{detail('8', progress8)}\n\n{detail('14', progress14)}\n\n"
+        f"{detail('7', progress7)}\n\n{detail('8', progress8)}\n\n{detail('14', progress14)}\n\n"
         "Неверный ответ, пропуск и просмотр разбора учитываются отдельно.",
         reply_markup=progress_menu(has_session=has_session),
     )
@@ -1806,6 +2070,7 @@ async def unknown_message(message: Message, repository: Repository) -> None:
     state12 = await repository.task12_state(user_id) if user_id is not None else None
     state14 = await repository.task14_state(user_id) if user_id is not None else None
     state8 = await repository.task8_state(user_id) if user_id is not None else None
+    state7 = await repository.task7_state(user_id) if user_id is not None else None
     if screen == "task10" and state10 is not None and isinstance(state10.get("problem"), dict):
         state10_status = cast(dict[str, object], state10.get("state", {}))
         if state10_status.get("status") == "active":
@@ -1819,6 +2084,15 @@ async def unknown_message(message: Message, repository: Repository) -> None:
         state12_status = cast(dict[str, object], state12.get("state", {}))
         if state12_status.get("status") == "active":
             await task12_answer(message, repository)
+            return
+        await message.answer(
+            "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
+        )
+        return
+    if screen == "task7" and state7 is not None and isinstance(state7.get("problem"), dict):
+        state7_status = cast(dict[str, object], state7.get("state", {}))
+        if state7_status.get("status") == "active":
+            await task7_answer(message, repository)
             return
         await message.answer(
             "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
@@ -1869,6 +2143,7 @@ def build_router() -> Router:
     router.message.register(choose_task10, F.text == TASK10_LABEL)
     router.message.register(choose_task12, F.text == TASK12_LABEL)
     router.message.register(choose_task14, F.text == TASK14_LABEL)
+    router.message.register(choose_task7, F.text == TASK7_LABEL)
     router.message.register(choose_task8, F.text == TASK8_LABEL)
     # Transitions are inline callbacks bound to a specific problem ID. Text commands
     # have no reliable association with the task shown when the user tapped them.
@@ -1884,5 +2159,6 @@ def build_router() -> Router:
     router.callback_query.register(task10_callback, F.data.startswith("t10:"))
     router.callback_query.register(task12_callback, F.data.startswith("t12:"))
     router.callback_query.register(task14_callback, F.data.startswith("t14:"))
+    router.callback_query.register(task7_callback, F.data.startswith("t7:"))
     router.callback_query.register(task8_callback, F.data.startswith("t8:"))
     return router

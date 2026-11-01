@@ -139,6 +139,7 @@ def task12_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMa
         ]
     )
 
+
 def task14_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
     if completed:
         return InlineKeyboardMarkup(
@@ -175,5 +176,25 @@ def task8_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMar
             ],
             [InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t8:skip:{problem_id}")],
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t8:menu:{problem_id}")],
+        ]
+    )
+
+
+def task7_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
+    if completed:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="➡ Следующее", callback_data=f"t7:next:{problem_id}")],
+                [InlineKeyboardButton(text="↩ В меню", callback_data=f"t7:menu:{problem_id}")],
+            ]
+        )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💡 Подсказка", callback_data=f"t7:hint:{problem_id}"),
+                InlineKeyboardButton(text="📘 Разбор", callback_data=f"t7:solution:{problem_id}"),
+            ],
+            [InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t7:skip:{problem_id}")],
+            [InlineKeyboardButton(text="↩ В меню", callback_data=f"t7:menu:{problem_id}")],
         ]
     )

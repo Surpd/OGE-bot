@@ -1,0 +1,24 @@
+{
+  "version": "0.1.0",
+  "task_number": 7,
+  "source_count_note": "Research package identifies 30 visible prototype IDs; catalog aggregate says 31. The missing ID is not invented.",
+  "families": [
+    {"family_id":"OGE07-C01","reference_ids":["317132","353058"],"status":"implemented_disabled_pending_training_and_quality_gates","reason":"Exact interval containment generator and parser of displayed condition/options; 250-case tests pass. Source pages were not individually rechecked and Telegram/PostgreSQL gates remain."},
+    {"family_id":"OGE07-C02","reference_ids":["317223","337311","352483","425018"],"status":"implemented_disabled_pending_training_and_quality_gates","reason":"Text generator and exact square-bound oracle implemented; 250-case tests pass. Source pages were not individually rechecked and Telegram/PostgreSQL gates remain."},
+    {"family_id":"OGE07-C03","reference_ids":["337389","406570"],"status":"implemented_disabled_pending_training_and_quality_gates","reason":"Generator and independent displayed-option parser implemented; 250-case tests pass. Source pages were not individually rechecked; Telegram/PostgreSQL gates remain."},
+    {"family_id":"OGE07-C04","reference_ids":["369728"],"status":"implemented_disabled_pending_training_and_quality_gates","reason":"Generator and independent displayed-option parser implemented; 250-case tests pass. Source pages were not individually rechecked; Telegram/PostgreSQL gates remain."},
+    {"family_id":"OGE07-C05","reference_ids":["311420"],"status":"implemented_disabled_pending_training_and_quality_gates","reason":"Generator and independent displayed-option parser implemented; 250-case tests pass. Source pages were not individually rechecked; Telegram/PostgreSQL gates remain."},
+    {"family_id":"OGE07-C06","reference_ids":["461837"],"status":"implemented_disabled_pending_training_and_quality_gates","reason":"Text generator and exact signed floor oracle implemented; 250-case tests pass. Source page was not individually rechecked; Telegram/PostgreSQL gates remain."},
+    {"family_id":"OGE07-N01","reference_ids":["384400","322293","449733"],"status":"implemented_disabled_pending_acceptance","reason":"Exact graph model, PNG renderer and raster oracle implemented; catalog source images and historical attribution conflicts have not been individually verified."},
+    {"family_id":"OGE07-N02","reference_ids":["311380","474133"],"status":"implemented_disabled_pending_acceptance","reason":"Exact graph model, PNG renderer and raster oracle implemented; catalog source images have not been individually verified."},
+    {"family_id":"OGE07-N03","reference_ids":["317102","370464"],"status":"implemented_disabled_pending_acceptance","reason":"Exact graph model, PNG renderer and raster oracle implemented; source attribution risk for 317102 remains."},
+    {"family_id":"OGE07-N04","reference_ids":["317005"],"status":"implemented_disabled_pending_acceptance","reason":"Exact point model, PNG renderer and raster oracle implemented; source image has not been individually verified."},
+    {"family_id":"OGE07-N05","reference_ids":["311392","317074"],"status":"implemented_disabled_pending_acceptance","reason":"Exact point model, PNG renderer and raster oracle implemented; source images have not been individually verified."},
+    {"family_id":"OGE07-N06","reference_ids":["360229","343110"],"status":"hold","reason":"Archived demo structures require individual confirmation; graph renderer/oracle not implemented."},
+    {"family_id":"OGE07-I01","reference_ids":["311418","311749","311779","311805","311837","316220"],"status":"hold","reason":"Requires universal symbolic proof over visible graph regions."},
+    {"family_id":"OGE07-I02","reference_ids":["317575","339306"],"status":"hold","reason":"Requires individually reviewed graph and universal predicate proof."},
+    {"family_id":"OGE07-I03","reference_ids":["322419","322422","392920","448839"],"status":"hold","reason":"Requires reviewed graph structure and independent symbolic oracle."},
+    {"family_id":"OGE07-I04","reference_ids":["322417","322538"],"status":"hold_high_risk","reason":"High-risk symbolic family; explicitly held by research package."},
+    {"family_id":"OGE07-HISTORICAL","reference_ids":["317179","317180","27","352460","317061","205771","137293"],"status":"hold_historical","reason":"Historical D27 structures are excluded from modern task 7."}
+  ]
+}
