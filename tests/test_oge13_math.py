@@ -13,13 +13,13 @@ from app.math.inequalities import (
     ENABLED_FAMILIES,
     FAMILIES,
     Interval,
+    _solution_steps,
+    _svg,
     format_set,
     generate,
     independent_solve,
     render_option_sheet_png,
     render_option_sheet_snapshot_png,
-    _solution_steps,
-    _svg,
     validate,
     validate_snapshot,
 )
@@ -183,7 +183,7 @@ def _expected_explanation(condition: str, family: str) -> tuple[str, ...]:
         match = re.fullmatch(rf"x² - ({number})x (<) 0", condition)
         assert match
         roots = (Fraction(0), Fraction(match.group(1).replace(",", ".")))
-        leading, relation = 1, match.group(2)
+        relation = match.group(2)
         factorization = (
             f"Раскладываем: x² - {_test_display(roots[1])}x "
             f"= x(x - {_test_display(roots[1])})"
@@ -192,7 +192,7 @@ def _expected_explanation(condition: str, family: str) -> tuple[str, ...]:
         match = re.fullmatch(rf"x² \+ ({number})x (>=) 0", condition)
         assert match
         value = Fraction(match.group(1).replace(",", "."))
-        roots, leading, relation = (-value, Fraction(0)), 1, match.group(2)
+        roots, relation = (-value, Fraction(0)), match.group(2)
         factorization = (
             f"Раскладываем: x² + {_test_display(value)}x "
             f"= x(x + {_test_display(value)})"
@@ -201,7 +201,7 @@ def _expected_explanation(condition: str, family: str) -> tuple[str, ...]:
         match = re.fullmatch(rf"-x² - ({number})x (<=) 0", condition)
         assert match
         value = Fraction(match.group(1).replace(",", "."))
-        roots, leading, relation = (-value, Fraction(0)), -1, match.group(2)
+        roots, relation = (-value, Fraction(0)), match.group(2)
         factorization = (
             f"Раскладываем: −x² − {_test_display(value)}x "
             f"= −x(x + {_test_display(value)})"
