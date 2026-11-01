@@ -1,0 +1,610 @@
+{
+  "task": 14,
+  "generator_version": "0.1.0",
+  "provenance": "generated_analogue; no historical-original claim",
+  "quick_cases_per_family": 40,
+  "main_cases_per_family": 250,
+  "acceptance_budget": 1200,
+  "families": {
+    "OGE14-A01": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "412190",
+        "412187",
+        "412237"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412190",
+        "https://math-oge.sdamgia.ru/problem?id=412187",
+        "https://math-oge.sdamgia.ru/problem?id=412237"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 201,
+      "answer_range": [
+        13.0,
+        110.0
+      ],
+      "visible_parameter_ranges": {
+        "rows": [
+          10,
+          20
+        ],
+        "a1": [
+          12,
+          30
+        ],
+        "d": [
+          1,
+          5
+        ],
+        "k": [
+          2,
+          20
+        ]
+      },
+      "median_answer": 40.0,
+      "distinct_structures": 249,
+      "distinct_fingerprints_main": 249,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 130,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A02": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "412241",
+        "449740"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412241",
+        "https://math-oge.sdamgia.ru/problem?id=449740"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 201,
+      "answer_range": [
+        20.0,
+        117.0
+      ],
+      "visible_parameter_ranges": {
+        "rows": [
+          10,
+          20
+        ],
+        "a1": [
+          10,
+          25
+        ],
+        "d": [
+          1,
+          5
+        ],
+        "i": [
+          2,
+          12
+        ],
+        "j": [
+          3,
+          13
+        ]
+      },
+      "median_answer": 54.0,
+      "distinct_structures": 249,
+      "distinct_fingerprints_main": 249,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 156,
+      "max_generation_attempts": 3,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A03": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "406645",
+        "412286"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=406645",
+        "https://math-oge.sdamgia.ru/problem?id=412286"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 218,
+      "answer_range": [
+        148.0,
+        1197.0
+      ],
+      "visible_parameter_ranges": {
+        "rows": [
+          8,
+          18
+        ],
+        "a1": [
+          10,
+          26
+        ],
+        "d": [
+          1,
+          5
+        ]
+      },
+      "median_answer": 428.5,
+      "distinct_structures": 229,
+      "distinct_fingerprints_main": 229,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 137,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A04": {
+      "status": "disabled_hold_historical_topic",
+      "source_ids": [
+        "412276",
+        "412233"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412276",
+        "https://math-oge.sdamgia.ru/problem?id=412233"
+      ],
+      "quick_valid": 0,
+      "main_valid": 0,
+      "unique_within_budget": 0
+    },
+    "OGE14-A05": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "412218"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412218"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 204,
+      "answer_range": [
+        -89.0,
+        23.0
+      ],
+      "visible_parameter_ranges": {
+        "t0": [
+          -10,
+          25
+        ],
+        "rate": [
+          1,
+          8
+        ],
+        "minutes": [
+          6,
+          15
+        ],
+        "t": [
+          1,
+          15
+        ]
+      },
+      "median_answer": -15.0,
+      "distinct_structures": 250,
+      "distinct_fingerprints_main": 246,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 119,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A06": {
+      "status": "disabled_bounded_capacity_acceptance_review",
+      "source_ids": [
+        "459977"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=459977"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 42,
+      "acceptance_attempts": 1200,
+      "answer_range": [
+        12.0,
+        288.0
+      ],
+      "visible_parameter_ranges": {
+        "n": [
+          3,
+          8
+        ],
+        "d": [
+          2,
+          8
+        ],
+        "a1": [
+          6,
+          64
+        ]
+      },
+      "median_answer": 80.0,
+      "distinct_structures": 42,
+      "distinct_fingerprints_main": 42,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 187,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "42-fingerprint natural finite capacity; requires documented exception review"
+    },
+    "OGE14-A07": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "463386"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=463386"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 225,
+      "answer_range": [
+        15.0,
+        273.0
+      ],
+      "visible_parameter_ranges": {
+        "n": [
+          3,
+          8
+        ],
+        "d": [
+          2,
+          7
+        ],
+        "a1": [
+          9,
+          45
+        ]
+      },
+      "median_answer": 124.0,
+      "distinct_structures": 217,
+      "distinct_fingerprints_main": 217,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 167,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A08": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "459978"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=459978"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 225,
+      "answer_range": [
+        3.5,
+        73.8
+      ],
+      "visible_parameter_ranges": {
+        "n": [
+          5,
+          12
+        ],
+        "a1t": [
+          1,
+          12
+        ],
+        "dt": [
+          2,
+          9
+        ]
+      },
+      "median_answer": 20.95,
+      "distinct_structures": 221,
+      "distinct_fingerprints_main": 221,
+      "answer_types": {
+        "decimal": 193,
+        "integer": 57
+      },
+      "max_rendered_characters": 169,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A09": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "394279"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=394279"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 225,
+      "answer_range": [
+        39.0,
+        660.0
+      ],
+      "visible_parameter_ranges": {
+        "n": [
+          3,
+          12
+        ],
+        "a1": [
+          10,
+          30
+        ],
+        "d": [
+          2,
+          6
+        ]
+      },
+      "median_answer": 211.5,
+      "distinct_structures": 221,
+      "distinct_fingerprints_main": 221,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 204,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A10": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "FIPI-MR-2024-P7"
+      ],
+      "source_urls": [
+        "https://doc.fipi.ru/navigator-podgotovki/navigator-oge/MR_matematika_oge_2024.pdf"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 201,
+      "answer_range": [
+        14.0,
+        164.0
+      ],
+      "visible_parameter_ranges": {
+        "n": [
+          7,
+          20
+        ],
+        "a1": [
+          10,
+          40
+        ],
+        "d": [
+          2,
+          9
+        ],
+        "k": [
+          2,
+          18
+        ]
+      },
+      "median_answer": 52.0,
+      "distinct_structures": 249,
+      "distinct_fingerprints_main": 249,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 181,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-A11": {
+      "status": "disabled_hold_degenerate_progression",
+      "source_ids": [
+        "406337"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=406337"
+      ],
+      "quick_valid": 0,
+      "main_valid": 0,
+      "unique_within_budget": 0
+    },
+    "OGE14-G01": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "412192",
+        "412266",
+        "480730"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412192",
+        "https://math-oge.sdamgia.ru/problem?id=412266",
+        "https://math-oge.sdamgia.ru/problem?id=480730"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 209,
+      "answer_range": [
+        0.75,
+        192.0
+      ],
+      "visible_parameter_ranges": {
+        "m0": [
+          20,
+          800
+        ],
+        "cycles": [
+          2,
+          5
+        ],
+        "period": [
+          5,
+          15
+        ]
+      },
+      "median_answer": 11.25,
+      "distinct_structures": 239,
+      "distinct_fingerprints_main": 239,
+      "answer_types": {
+        "integer": 193,
+        "decimal": 57
+      },
+      "max_rendered_characters": 146,
+      "max_generation_attempts": 2,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-G02": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "412195"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412195"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 208,
+      "answer_range": [
+        8.0,
+        1215.0
+      ],
+      "visible_parameter_ranges": {
+        "m0": [
+          2,
+          15
+        ],
+        "factor": [
+          2,
+          3
+        ],
+        "cycles": [
+          2,
+          4
+        ],
+        "period": [
+          10,
+          30
+        ]
+      },
+      "median_answer": 96.0,
+      "distinct_structures": 239,
+      "distinct_fingerprints_main": 239,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 143,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-G03": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "412198"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412198"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 213,
+      "answer_range": [
+        8.0,
+        750.0
+      ],
+      "visible_parameter_ranges": {
+        "m0": [
+          16,
+          800
+        ],
+        "cycles": [
+          1,
+          5
+        ],
+        "period": [
+          5,
+          15
+        ]
+      },
+      "median_answer": 129.0,
+      "distinct_structures": 234,
+      "distinct_fingerprints_main": 234,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 172,
+      "max_generation_attempts": 4,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    },
+    "OGE14-G04": {
+      "status": "disabled_pending_telegram_and_postgres17_ci",
+      "source_ids": [
+        "412224",
+        "459975"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412224",
+        "https://math-oge.sdamgia.ru/problem?id=459975"
+      ],
+      "quick_valid": 40,
+      "main_valid": 250,
+      "unique_within_budget": 200,
+      "acceptance_attempts": 201,
+      "answer_range": [
+        3.0,
+        8.0
+      ],
+      "visible_parameter_ranges": {
+        "h1": [
+          80,
+          360
+        ],
+        "factor": [
+          2,
+          4
+        ],
+        "threshold": [
+          2,
+          15
+        ]
+      },
+      "median_answer": 4.0,
+      "distinct_structures": 249,
+      "distinct_fingerprints_main": 249,
+      "answer_types": {
+        "integer": 250
+      },
+      "max_rendered_characters": 191,
+      "max_generation_attempts": 1,
+      "all_oracles_passed": true,
+      "gate_note": "disabled until PostgreSQL 17 CI completes"
+    }
+  },
+  "release_gate": "blocked_pending_telegram_and_postgres17_ci"
+}

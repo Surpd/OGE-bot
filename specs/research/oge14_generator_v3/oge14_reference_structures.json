@@ -1,0 +1,481 @@
+{
+  "schema_version": "3.0-generator-blueprint",
+  "date": "2026-11-01",
+  "purpose": "Генераторы параметрических вариантов на основе реально существующих типов ОГЭ №14, НЕ банк статических задач",
+  "active_in_repo": false,
+  "may_generate_new_numbers": true,
+  "may_invent_new_families_or_storylines": false,
+  "default_enabled_families": [],
+  "exam_provenance_note": "FIPI доказан только для примера из методрекомендаций; портальная атрибуция не равна оригиналу КИМ",
+  "family_count": 15,
+  "ready_to_implement_priority_p1": 13,
+  "families": [
+    {
+      "family_id": "OGE14-A01",
+      "title": "Простой член АП, амфитеатр",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "412190",
+        "412187",
+        "412237"
+      ],
+      "reference_model": "a1+(k-1)d",
+      "validity_rule": "Число мест; k<=rows; положительные целые; вопрос только про один ряд",
+      "parameter_space_v1": {
+        "rows": [
+          10,
+          20
+        ],
+        "a1": [
+          12,
+          30
+        ],
+        "d": [
+          1,
+          5
+        ],
+        "target_index": [
+          2,
+          20
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A02",
+      "title": "Два члена АП, найти последний ряд",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "412241",
+        "449740"
+      ],
+      "reference_model": "a_j-a_i=(j-i)d, a_N=a_i+(N-i)d",
+      "validity_rule": "Два номера i<j<rows; оба места целые; один положительный d",
+      "parameter_space_v1": {
+        "rows": [
+          10,
+          20
+        ],
+        "a1": [
+          10,
+          25
+        ],
+        "d": [
+          1,
+          5
+        ],
+        "known_i": [
+          2,
+          6
+        ],
+        "known_j": [
+          7,
+          12
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A03",
+      "title": "Сумма мест в амфитеатре",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "406645",
+        "412286"
+      ],
+      "reference_model": "sum(a1+i*d for i in range(rows))",
+      "validity_rule": "Положительные места; умеренный ответ; без подмены суммы на член",
+      "parameter_space_v1": {
+        "rows": [
+          8,
+          18
+        ],
+        "a1": [
+          10,
+          26
+        ],
+        "d": [
+          1,
+          5
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A04",
+      "title": "Путь камня за секунды, старая рубрика Д12",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "412276",
+        "412233"
+      ],
+      "reference_model": "sum(a1+i*d for i in range(n))",
+      "validity_rule": "Историческая рубрика Д12; выключено до решения о допуске",
+      "parameter_space_v1": {
+        "a1": [
+          5,
+          20
+        ],
+        "d": [
+          2,
+          10
+        ],
+        "n": [
+          3,
+          8
+        ]
+      },
+      "priority": "HOLD",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A05",
+      "title": "Равномерное охлаждение",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "412218"
+      ],
+      "reference_model": "T0 - t*delta",
+      "validity_rule": "Начальное значение при t=0; не (t-1); t<=продолжительности опыта",
+      "parameter_space_v1": {
+        "T0": [
+          -20,
+          35
+        ],
+        "decrease_per_minute": [
+          1,
+          8
+        ],
+        "minutes_total": [
+          6,
+          15
+        ],
+        "t": [
+          1,
+          12
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A06",
+      "title": "Торможение до остановки",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "459977"
+      ],
+      "reference_model": "sum(a1-i*delta for i in range(n))",
+      "validity_rule": "Члены положительны до n-го, следующий 0; не добавлять отрицательные расстояния",
+      "parameter_space_v1": {
+        "positive_distance_terms": [
+          3,
+          8
+        ],
+        "decrease_each_second": [
+          2,
+          8
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A07",
+      "title": "Торможение за первые n секунд",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "463386"
+      ],
+      "reference_model": "sum(a1-i*delta for i in range(n))",
+      "validity_rule": "n задано; последний учтённый отрезок >0; не до остановки",
+      "parameter_space_v1": {
+        "a1": [
+          18,
+          45
+        ],
+        "decrease_each_second": [
+          2,
+          7
+        ],
+        "n": [
+          3,
+          8
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A08",
+      "title": "Разгон поезда, десятичные метры",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "459978"
+      ],
+      "reference_model": "sum(a1+i*d for i in range(n))",
+      "validity_rule": "Точные десятые доли; суммы без округления",
+      "parameter_space_v1": {
+        "a1_tenths": [
+          1,
+          12
+        ],
+        "d_tenths": [
+          2,
+          9
+        ],
+        "n": [
+          5,
+          12
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A09",
+      "title": "По сумме и первому+последнему найти n",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "394279"
+      ],
+      "reference_model": "2*S/(a1+an)",
+      "validity_rule": "Число дней натуральное; восстанавливать параметризацией из честной АП",
+      "parameter_space_v1": {
+        "a1": [
+          10,
+          30
+        ],
+        "d": [
+          2,
+          6
+        ],
+        "n": [
+          3,
+          12
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A10",
+      "title": "По сумме и первому члену найти d и a_k",
+      "progression_kind": "arithmetic",
+      "source_case_ids": [
+        "394131"
+      ],
+      "reference_model": "d=(2*S/n-2*a1)/(n-1); a_k=a1+(k-1)d",
+      "validity_rule": "Официальный образец ФИПИ; сначала конструировать допустимую d, потом вычислять S",
+      "parameter_space_v1": {
+        "a1": [
+          10,
+          40
+        ],
+        "d": [
+          2,
+          9
+        ],
+        "n": [
+          7,
+          20
+        ],
+        "target_index": [
+          2,
+          19
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-A11",
+      "title": "Постоянное накопление осадка",
+      "progression_kind": "linear_accumulation_boundary",
+      "source_case_ids": [
+        "406337"
+      ],
+      "reference_model": "rate*minutes",
+      "validity_rule": "Каталог поместил в №14; нет явного признака невырожденной прогрессии; выключено",
+      "parameter_space_v1": {
+        "rate_tenths": [
+          2,
+          25
+        ],
+        "minutes": [
+          2,
+          12
+        ]
+      },
+      "priority": "HOLD",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-G01",
+      "title": "Остаток радиоактивного изотопа",
+      "progression_kind": "geometric",
+      "source_case_ids": [
+        "412192",
+        "412266",
+        "480730"
+      ],
+      "reference_model": "M0/2**cycles",
+      "validity_rule": "t=cycles*period; t=0 -> M0; не вычитать из M0",
+      "parameter_space_v1": {
+        "remaining_mass_mg": [
+          1,
+          25
+        ],
+        "cycles": [
+          2,
+          7
+        ],
+        "period_minutes": [
+          5,
+          15
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-G02",
+      "title": "Рост массы микроорганизмов",
+      "progression_kind": "geometric",
+      "source_case_ids": [
+        "412195"
+      ],
+      "reference_model": "M0*factor**cycles",
+      "validity_rule": "t=0 -> M0; множитель роста >1; ограничить величину ответа",
+      "parameter_space_v1": {
+        "initial_mass_mg": [
+          2,
+          15
+        ],
+        "factor": [
+          2,
+          4
+        ],
+        "cycles": [
+          2,
+          5
+        ],
+        "period_minutes": [
+          10,
+          30
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-G03",
+      "title": "Продукт превращения А в Б",
+      "progression_kind": "geometric",
+      "source_case_ids": [
+        "412198"
+      ],
+      "reference_model": "M0-M0/2**cycles",
+      "validity_rule": "Отвечать на массу Б, не остатка А; закон сохранения массы",
+      "parameter_space_v1": {
+        "remaining_mass_mg": [
+          1,
+          20
+        ],
+        "cycles": [
+          2,
+          7
+        ],
+        "period_minutes": [
+          5,
+          15
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    },
+    {
+      "family_id": "OGE14-G04",
+      "title": "Первый отскок ниже строгого порога",
+      "progression_kind": "geometric",
+      "source_case_ids": [
+        "412224",
+        "459975"
+      ],
+      "reference_model": "min(k>=1: H1/q**(k-1)<threshold)",
+      "validity_rule": "Первый отскок k=1; сравнение строгое; T в одинаковых единицах",
+      "parameter_space_v1": {
+        "first_height_cm": [
+          120,
+          1000
+        ],
+        "factor_decrease": [
+          2,
+          4
+        ],
+        "first_below_index": [
+          2,
+          7
+        ],
+        "strict_threshold_cm": [
+          3,
+          100
+        ]
+      },
+      "priority": "P1",
+      "implementation_status": "disabled_pending_oracle_and_tests",
+      "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
+      "no_new_storylines": true,
+      "no_llm_generation": true
+    }
+  ],
+  "catalogs": [
+    "https://math-oge.sdamgia.ru/test?theme=113&ttest=true",
+    "https://math-oge.sdamgia.ru/test?theme=46&ttest=true"
+  ]
+}
