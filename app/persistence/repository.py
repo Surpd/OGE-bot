@@ -5536,24 +5536,3 @@ def _state_int(state: dict[str, object], key: str, default: int = 0) -> int:
             "solutions_viewed": len(self.solutions13.get(telegram_user_id, set())),
             "skipped": sum(outcome == "skipped" for outcome in outcomes.values()),
         }
-
-
-async def read_migration(path: str) -> str:
-    from pathlib import Path
-
-    return Path(path).read_text(encoding="utf-8")
-
-
-def _json_object(value: object) -> dict[str, object]:
-    if isinstance(value, dict):
-        return cast(dict[str, object], value)
-    if isinstance(value, str):
-        decoded = json.loads(value)
-        if isinstance(decoded, dict):
-            return cast(dict[str, object], decoded)
-    raise TypeError("Expected a JSON object from PostgreSQL")
-
-
-def _state_int(state: dict[str, object], key: str, default: int = 0) -> int:
-    value = state.get(key, default)
-    return value if isinstance(value, int) else default

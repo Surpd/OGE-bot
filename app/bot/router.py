@@ -27,11 +27,11 @@ from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
-from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
 from app.math.inequalities import POLICY as TASK13_ANSWER_POLICY
 from app.math.inequalities import render_option_sheet_snapshot_png
 from app.math.inequalities import validate_snapshot as validate_task13_snapshot
+from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.probability import ANSWER_POLICY as TASK10_ANSWER_POLICY
 from app.math.progressions import POLICY as TASK14_ANSWER_POLICY
@@ -280,7 +280,10 @@ async def choose_number(message: Message, repository: Repository) -> None:
     user_id = _user_id(message)
     if user_id is not None:
         await repository.save_user_state(user_id, "number_selection")
-    await message.answer("Выберите номер задания:", reply_markup=number_menu(include_task13=bool(TASK13_ENABLED_FAMILIES)))
+    await message.answer(
+        "Выберите номер задания:",
+        reply_markup=number_menu(include_task13=bool(TASK13_ENABLED_FAMILIES)),
+    )
 
 
 async def choose_task6(message: Message, repository: Repository) -> None:
@@ -2072,7 +2075,11 @@ async def show_progress(message: Message, repository: Repository) -> None:
     )
     progress13 = await repository.task13_progress(user_id)
     state13 = await repository.task13_state(user_id)
-    accuracy13 = (progress13["correct"] * 100 + progress13["answered"] // 2) // progress13["answered"] if progress13["answered"] else 0
+    accuracy13 = (
+        (progress13["correct"] * 100 + progress13["answered"] // 2) // progress13["answered"]
+        if progress13["answered"]
+        else 0
+    )
     await message.answer(
         "📊 Прогресс\n\n"
         f"№6 · выдано {issued} · отвечал {answered} · решил {correct} · "
@@ -2182,7 +2189,9 @@ async def unknown_message(message: Message, repository: Repository) -> None:
         if state13_status.get("status") == "active":
             await task13_answer(message, repository)
             return
-        await message.answer("Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом.")
+        await message.answer(
+            "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
+        )
         return
     if screen == "task10" and state10 is not None and isinstance(state10.get("problem"), dict):
         state10_status = cast(dict[str, object], state10.get("state", {}))
