@@ -3649,6 +3649,12 @@ class MemoryRepository:
             else self.training12.get(telegram_user_id)
             if mode == "task12"
             else self.training14.get(telegram_user_id)
+            if mode == "task14"
+            else self.training8.get(telegram_user_id)
+            if mode == "task8"
+            else self.training13.get(telegram_user_id)
+            if mode == "task13"
+            else None
         )
         problem = saved.get("problem") if saved is not None else None
         state = saved.get("state") if saved is not None else None
