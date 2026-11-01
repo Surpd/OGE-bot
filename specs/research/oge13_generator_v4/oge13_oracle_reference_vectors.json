@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0",
+  "test_vectors": [
+    {
+      "source_id": 311409,
+      "set_kind": "open_ray",
+      "left": "-3",
+      "right": null,
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 338590,
+      "set_kind": "open_ray",
+      "left": "1",
+      "right": null,
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 314612,
+      "set_kind": "left_ray",
+      "left": null,
+      "right": "-1/2",
+      "left_included": false,
+      "right_included": true,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 107,
+      "set_kind": "left_ray",
+      "left": null,
+      "right": "7/2",
+      "left_included": false,
+      "right_included": true,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 311310,
+      "set_kind": "interval",
+      "left": "0",
+      "right": "4",
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 311309,
+      "set_kind": "union_outside",
+      "left": "-1",
+      "right": "0",
+      "left_included": true,
+      "right_included": true,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 311311,
+      "set_kind": "union_outside",
+      "left": "-2",
+      "right": "0",
+      "left_included": true,
+      "right_included": true,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 369736,
+      "set_kind": "union_outside",
+      "left": "-2",
+      "right": "7",
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 369833,
+      "set_kind": "interval",
+      "left": "-5",
+      "right": "2",
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 185,
+      "set_kind": "interval",
+      "left": "-2",
+      "right": "2",
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 356077,
+      "set_kind": "interval",
+      "left": "-8",
+      "right": "8",
+      "left_included": true,
+      "right_included": true,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 340580,
+      "set_kind": "interval",
+      "left": "-4",
+      "right": "-13/5",
+      "left_included": true,
+      "right_included": true,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 311672,
+      "set_kind": "interval",
+      "left": "-4",
+      "right": "-13/5",
+      "left_included": true,
+      "right_included": true,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 348461,
+      "set_kind": "open_ray",
+      "left": "-11/10",
+      "right": null,
+      "left_included": true,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 340832,
+      "set_kind": "open_ray",
+      "left": "9",
+      "right": null,
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 333109,
+      "set_kind": "interval",
+      "left": "3",
+      "right": "4",
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 341322,
+      "set_kind": "interval",
+      "left": "7",
+      "right": "8",
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    },
+    {
+      "source_id": 322330,
+      "set_kind": "empty",
+      "left": null,
+      "right": null,
+      "left_included": false,
+      "right_included": false,
+      "oracle_assertion": "mathematical_solution_set_only",
+      "source_answer_digit_is_unverified_without_original_option_images": true
+    }
+  ],
+  "clarification": "open_ray means (left;+∞) or [left;+∞). left_ray means (-∞;right) or (-∞;right]. union_outside means (-∞;left) ∪ (right;+∞), endpoint inclusion defined by flags.",
+  "no_executable_code": true
+}

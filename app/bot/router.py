@@ -18,6 +18,7 @@ from app.bot.menu import (
     task9_menu,
     task10_menu,
     task12_menu,
+    task13_menu,
     task14_menu,
 )
 from app.bot.training_ux import matches_current_condition
@@ -30,6 +31,7 @@ from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
+from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.probability import ANSWER_POLICY as TASK10_ANSWER_POLICY
 from app.math.progressions import POLICY as TASK14_ANSWER_POLICY
@@ -45,6 +47,7 @@ TASK10_LABEL = "№10 · Вероятность"
 TASK12_LABEL = "№12 · Формулы"
 TASK14_LABEL = "№14 · Прогрессии"
 TASK8_LABEL = "№8 · Степени и корни"
+TASK13_LABEL = "№13 · Неравенства"
 
 
 def _user_id(message: Message) -> int | None:
@@ -262,6 +265,9 @@ async def continue_session(message: Message, repository: Repository) -> None:
     if _has_resumable_task9(state8):
         await _send_task8_problem(message, repository, action="resume")
         return
+    if _has_resumable_task9(state13):
+        await _send_task13_problem(message, repository, action="resume")
+        return
     if _has_resumable_task9(state14):
         await _send_task14_problem(message, repository, action="resume")
         return
@@ -278,7 +284,10 @@ async def choose_number(message: Message, repository: Repository) -> None:
     user_id = _user_id(message)
     if user_id is not None:
         await repository.save_user_state(user_id, "number_selection")
-    await message.answer("Выберите номер задания:", reply_markup=number_menu())
+    await message.answer(
+        "Выберите номер задания:",
+        reply_markup=number_menu(include_task13=bool(TASK13_ENABLED_FAMILIES)),
+    )
 
 
 async def choose_task6(message: Message, repository: Repository) -> None:
@@ -1928,6 +1937,7 @@ async def show_progress(message: Message, repository: Repository) -> None:
     state7 = await repository.task7_state(user_id)
     progress14 = await repository.task14_progress(user_id)
     state8 = await repository.task8_state(user_id)
+    state13 = await repository.task13_state(user_id)
     state14 = await repository.task14_state(user_id)
     has_session = (
         _has_resumable_task6(state)
@@ -1987,6 +1997,9 @@ async def show_progress(message: Message, repository: Repository) -> None:
         f"№8 · выдано {progress8['issued']} · отвечал {progress8['answered']} · "
         f"решил {progress8['correct']} · пропустил {progress8['skipped']} · "
         f"правильно {accuracy8}%\n"
+        f"№13 · выдано {progress13['issued']} · отвечал {progress13['answered']} · "
+        f"решил {progress13['correct']} · пропустил {progress13['skipped']} · "
+        f"правильно {accuracy13}%\n"
         f"№14 · выдано {progress14['issued']} · отвечал {progress14['answered']} · "
         f"решил {progress14['correct']} · пропустил {progress14['skipped']} · "
         f"правильно {accuracy14}%\n\n"
@@ -2141,6 +2154,7 @@ async def unknown_message(message: Message, repository: Repository) -> None:
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
         or _has_resumable_task9(state8)
+        or _has_resumable_task9(state13)
     )
     if user_id is not None:
         await repository.save_user_state(user_id, "main_menu")
@@ -2163,6 +2177,7 @@ def build_router() -> Router:
     router.message.register(choose_task14, F.text == TASK14_LABEL)
     router.message.register(choose_task7, F.text == TASK7_LABEL)
     router.message.register(choose_task8, F.text == TASK8_LABEL)
+    router.message.register(choose_task13, F.text == TASK13_LABEL)
     # Transitions are inline callbacks bound to a specific problem ID. Text commands
     # have no reliable association with the task shown when the user tapped them.
     router.message.register(task6_hint, F.text == "💡 Подсказка")
@@ -2179,4 +2194,5 @@ def build_router() -> Router:
     router.callback_query.register(task14_callback, F.data.startswith("t14:"))
     router.callback_query.register(task7_callback, F.data.startswith("t7:"))
     router.callback_query.register(task8_callback, F.data.startswith("t8:"))
+    router.callback_query.register(task13_callback, F.data.startswith("t13:"))
     return router

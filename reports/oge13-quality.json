@@ -1,0 +1,481 @@
+{
+  "report_version": 3,
+  "as_of": "2026-11-02",
+  "branch": "feat/oge13-generators-v1",
+  "base_commit": "06183a1d5407a305791d047add4d29e8a7b2cc51",
+  "generator_version": "0.2.0",
+  "family_count": 9,
+  "production_enabled_count": 0,
+  "quick_cases_per_family": 40,
+  "primary_unique_conditions_per_family": 250,
+  "max_seed_attempts_observed": 285,
+  "all_families_meet_diversity_gate": true,
+  "independent_oracle": {
+    "implementation": "direct evaluation of rendered conditions and exact interval membership in tests/test_oge13_math.py",
+    "quick_cases": 360,
+    "primary_cases": 2250,
+    "mutations": [
+      "comparison direction and strictness",
+      "boundary openness",
+      "interval direction",
+      "display order versus correct option number",
+      "snapshot version and saved option ordering",
+      "invalid and noncanonical intervals"
+    ]
+  },
+  "solution_explanation_audit": {
+    "families": [
+      "OGE13-L01",
+      "OGE13-L02",
+      "OGE13-Q01",
+      "OGE13-Q02",
+      "OGE13-Q03",
+      "OGE13-Q04"
+    ],
+    "generator_cases": 1740,
+    "independent_regression_cases": 180,
+    "checks": [
+      "linear rearrangement and exact division from visible condition",
+      "comparison reversal for negative divisors",
+      "quadratic roots, three sign regions, and strict/non-strict endpoints",
+      "tampered explanation steps rejected by validate"
+    ],
+    "test": "tests/test_oge13_math.py::test_linear_and_quadratic_explanations_are_derived_and_independently_checked"
+  },
+  "png_semantic_audit": {
+    "families": [
+      "OGE13-L02",
+      "OGE13-Q04",
+      "OGE13-S01",
+      "OGE13-S02",
+      "OGE13-S03"
+    ],
+    "cases": 5,
+    "checks": "decoded RGB axis membership and exact open/closed endpoint pixels against saved interval sets"
+  },
+  "source_audit": {
+    "individual_portal_pages_reviewed": 18,
+    "pilot_source_graph_pages_visually_reviewed": 10,
+    "excluded_source_graph_pages_visually_reviewed": 3,
+    "official_full_kim_independently_matched": 0,
+    "catalog_csv_rows_are_individual_evidence": false,
+    "findings": "specs/research/OGE13_IMPLEMENTATION_REVIEW.md",
+    "system_source_regressions": {
+      "OGE13-S01": {
+        "task_id": "340580",
+        "condition": "x + 2,6 <= 0; x + 5 >= 1",
+        "solution": "[-4;-2,6]"
+      },
+      "OGE13-S02": {
+        "task_id": "348461",
+        "condition": "x + 3 >= -2; x + 1,1 >= 0",
+        "solution": "[-1,1;+∞)"
+      },
+      "OGE13-S03": {
+        "task_id": "333109",
+        "condition": "x > 3; 4 - x > 0",
+        "solution": "(3;4)"
+      }
+    }
+  },
+  "generated_visual_audit": {
+    "families": [
+      "OGE13-L02",
+      "OGE13-Q04",
+      "OGE13-S01",
+      "OGE13-S02",
+      "OGE13-S03"
+    ],
+    "renderer": "own PNG number lines, 1280x1120, stable 1-4 order",
+    "original_source_svg_copied": false,
+    "phone_label_height_px_approx": 11,
+    "manual_visual_review": "pass: endpoint labels, open/closed markers, rays, ticks, and four-option order inspected"
+  },
+  "postgresql": {
+    "version": 17,
+    "migration": "migrations/0008_task13_sessions.sql",
+    "local_integration_status": "skipped_without_DATABASE_URL",
+    "ci_status": "required_on_pull_request"
+  },
+  "families": {
+    "OGE13-L01": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 278,
+      "duplicate_condition_rejections": 28,
+      "duplicate_condition_rejection_rate": 0.1007,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 64,
+        "2": 57,
+        "3": 66,
+        "4": 63
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311409",
+        "338590"
+      ]
+    },
+    "OGE13-L02": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 267,
+      "duplicate_condition_rejections": 17,
+      "duplicate_condition_rejection_rate": 0.0637,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 69,
+        "2": 60,
+        "3": 59,
+        "4": 62
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "314612",
+        "107"
+      ]
+    },
+    "OGE13-Q01": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 285,
+      "duplicate_condition_rejections": 35,
+      "duplicate_condition_rejection_rate": 0.1228,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 51,
+        "2": 66,
+        "3": 68,
+        "4": 65
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311310"
+      ]
+    },
+    "OGE13-Q02": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 267,
+      "duplicate_condition_rejections": 17,
+      "duplicate_condition_rejection_rate": 0.0637,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 63,
+        "2": 59,
+        "3": 59,
+        "4": 69
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311309"
+      ]
+    },
+    "OGE13-Q03": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 282,
+      "duplicate_condition_rejections": 32,
+      "duplicate_condition_rejection_rate": 0.1135,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 72,
+        "2": 62,
+        "3": 55,
+        "4": 61
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "311311"
+      ]
+    },
+    "OGE13-Q04": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 265,
+      "duplicate_condition_rejections": 15,
+      "duplicate_condition_rejection_rate": 0.0566,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 69,
+        "2": 69,
+        "3": 54,
+        "4": 58
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "369736",
+        "369833"
+      ]
+    },
+    "OGE13-S01": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 250,
+      "duplicate_condition_rejections": 0,
+      "duplicate_condition_rejection_rate": 0.0,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 48,
+        "2": 69,
+        "3": 73,
+        "4": 60
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "340580",
+        "311672"
+      ]
+    },
+    "OGE13-S02": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 250,
+      "duplicate_condition_rejections": 0,
+      "duplicate_condition_rejection_rate": 0.0,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 55,
+        "2": 63,
+        "3": 60,
+        "4": 72
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "348461",
+        "340832"
+      ]
+    },
+    "OGE13-S03": {
+      "publication_status": "disabled",
+      "quick_cases": 40,
+      "primary_unique_conditions": 250,
+      "primary_seed_attempts": 250,
+      "duplicate_condition_rejections": 0,
+      "duplicate_condition_rejection_rate": 0.0,
+      "independent_oracle_cases_in_pytest": 290,
+      "all_four_options_pairwise_distinct": true,
+      "exactly_one_matching_option_per_case": true,
+      "solution_steps_revalidated": true,
+      "answer_positions": {
+        "1": 60,
+        "2": 69,
+        "3": 53,
+        "4": 68
+      },
+      "answer_policy": "oge13.option-number@1",
+      "source_task_ids": [
+        "333109",
+        "341322"
+      ]
+    }
+  },
+  "representative_examples": {
+    "OGE13-L01": {
+      "seed": 13013,
+      "condition": "-x - 4 < x - 20",
+      "options": [
+        "(−∞;8)",
+        "[8;+∞)",
+        "(8;+∞)",
+        "(9;+∞)"
+      ],
+      "correct_option_number": 3,
+      "correct_option": "(8;+∞)",
+      "solution_steps": [
+        "Исходное неравенство: -x - 4 < x - 20.",
+        "Переносим слагаемые: -2x < -16.",
+        "Делим обе части на -2 (<0), знак меняется: x > 8.",
+        "Ответ: (8;+∞)."
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-L02": {
+      "seed": 13011,
+      "condition": "2x - 4 >= x + 1",
+      "options": [
+        "(−∞;5)",
+        "(5;+∞)",
+        "[5;+∞)",
+        "[6;+∞)"
+      ],
+      "correct_option_number": 3,
+      "correct_option": "[5;+∞)",
+      "solution_steps": [
+        "Исходное неравенство: 2x - 4 >= x + 1.",
+        "Переносим слагаемые: x >= 5.",
+        "Делим обе части на 1 (>0), знак сохраняется: x >= 5.",
+        "Ответ: [5;+∞)."
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-Q01": {
+      "seed": 13013,
+      "condition": "x² - 9,26x < 0",
+      "options": [
+        "(0;9,26]",
+        "(0;9,26)",
+        "(0;10,26)",
+        "(−∞;0)"
+      ],
+      "correct_option_number": 2,
+      "correct_option": "(0;9,26)",
+      "solution_steps": [
+        "Раскладываем: x² - 9,26x = x(x - 9,26); корни: x = 0 и x = 9,26.",
+        "Знаки выражения на промежутках: (−∞;0): +; (0;9,26): −; (9,26;+∞): +.",
+        "Для условия < 0 выбираем подходящие промежутки; корни не включаем, так как неравенство строгое.",
+        "Ответ: (0;9,26)."
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-Q02": {
+      "seed": 13013,
+      "condition": "x² + 1,24x >= 0",
+      "options": [
+        "(−∞;-0,24]",
+        "(-1,24;+∞)",
+        "(−∞;-1,24] ∪ [0;+∞)",
+        "(−∞;-1,24]"
+      ],
+      "correct_option_number": 3,
+      "correct_option": "(−∞;-1,24] ∪ [0;+∞)",
+      "solution_steps": [
+        "Раскладываем: x² + 1,24x = x(x + 1,24); корни: x = -1,24 и x = 0.",
+        "Знаки выражения на промежутках: (−∞;-1,24): +; (-1,24;0): −; (0;+∞): +.",
+        "Для условия >= 0 выбираем подходящие промежутки; корни включаем, так как знак неравенства нестрогий.",
+        "Ответ: (−∞;-1,24] ∪ [0;+∞)."
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-Q03": {
+      "seed": 13013,
+      "condition": "-x² - 5,25x <= 0",
+      "options": [
+        "(-5,25;+∞)",
+        "(−∞;-4,25]",
+        "(−∞;-5,25] ∪ [0;+∞)",
+        "(0;+∞)"
+      ],
+      "correct_option_number": 3,
+      "correct_option": "(−∞;-5,25] ∪ [0;+∞)",
+      "solution_steps": [
+        "Раскладываем: −x² − 5,25x = −x(x + 5,25); корни: x = -5,25 и x = 0.",
+        "Знаки выражения на промежутках: (−∞;-5,25): −; (-5,25;0): +; (0;+∞): −.",
+        "Для условия <= 0 выбираем подходящие промежутки; корни включаем, так как знак неравенства нестрогий.",
+        "Ответ: (−∞;-5,25] ∪ [0;+∞)."
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-Q04": {
+      "seed": 13013,
+      "condition": "(x + 6)(x - 5) > 0",
+      "options": [
+        "[5;+∞)",
+        "(-6;+∞)",
+        "(−∞;-6) ∪ (5;+∞)",
+        "(−∞;-6)"
+      ],
+      "correct_option_number": 3,
+      "correct_option": "(−∞;-6) ∪ (5;+∞)",
+      "solution_steps": [
+        "Выражение уже разложено на множители: (x + 6)(x - 5); корни: x = -6 и x = 5.",
+        "Знаки выражения на промежутках: (−∞;-6): +; (-6;5): −; (5;+∞): +.",
+        "Для условия > 0 выбираем подходящие промежутки; корни не включаем, так как неравенство строгое.",
+        "Ответ: (−∞;-6) ∪ (5;+∞)."
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-S01": {
+      "seed": 13013,
+      "condition": "x + 1,4 <= 4,2\n4x - 1,7 >= -8,5",
+      "options": [
+        "(-1,7;2,8]",
+        "[-1,7;3,8]",
+        "[-1,7;2,8]",
+        "[-0,7;2,8]"
+      ],
+      "correct_option_number": 3,
+      "correct_option": "[-1,7;2,8]",
+      "solution_steps": [
+        "1) x + 1,4 <= 4,2 ⇒ (−∞;2,8]",
+        "2) 4x - 1,7 >= -8,5 ⇒ [-1,7;+∞)",
+        "Пересечение полученных множеств: [-1,7;2,8]"
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-S02": {
+      "seed": 13013,
+      "condition": "4x - 1,9 >= -17,1\n4x + 0,8 >= -1,6",
+      "options": [
+        "(-0,6;+∞)",
+        "(−∞;-0,6)",
+        "[0,4;+∞)",
+        "[-0,6;+∞)"
+      ],
+      "correct_option_number": 4,
+      "correct_option": "[-0,6;+∞)",
+      "solution_steps": [
+        "1) 4x - 1,9 >= -17,1 ⇒ [-3,8;+∞)",
+        "2) 4x + 0,8 >= -1,6 ⇒ [-0,6;+∞)",
+        "Пересечение полученных множеств: [-0,6;+∞)"
+      ],
+      "generated_analogue_not_original": true
+    },
+    "OGE13-S03": {
+      "seed": 13013,
+      "condition": "x > 2,6\n4,3 - x > 0,7",
+      "options": [
+        "(−∞;2,6)",
+        "[2,6;3,6)",
+        "(2,6;3,6)",
+        "(2,6;3,6]"
+      ],
+      "correct_option_number": 3,
+      "correct_option": "(2,6;3,6)",
+      "solution_steps": [
+        "1) x > 2,6 ⇒ (2,6;+∞)",
+        "2) 4,3 - x > 0,7 ⇒ (−∞;3,6)",
+        "Пересечение полученных множеств: (2,6;3,6)"
+      ],
+      "generated_analogue_not_original": true
+    }
+  },
+  "excluded_families": {
+    "OGE13-Q05": "separate reverse-graph generator stage; original SVG reviewed",
+    "OGE13-Q06": "conflicting portal attribution to 2023 Saint Petersburg variant 2409",
+    "OGE13-S04": "card solution belongs to another system, not the shown card"
+  }
+}

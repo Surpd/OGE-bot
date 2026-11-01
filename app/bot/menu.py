@@ -34,19 +34,18 @@ def main_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
 
 
-def number_menu() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="№6 · Вычисления")],
-            [KeyboardButton(text="№8 · Степени и корни")],
-            [KeyboardButton(text="№9 · Уравнения")],
-            [KeyboardButton(text="№10 · Вероятность")],
-            [KeyboardButton(text="№12 · Формулы")],
-            [KeyboardButton(text="№14 · Прогрессии")],
-            [KeyboardButton(text="↩ В меню")],
-        ],
-        resize_keyboard=True,
-    )
+def number_menu(*, include_task13: bool = False) -> ReplyKeyboardMarkup:
+    rows = [
+        [KeyboardButton(text="№6 · Вычисления")],
+        [KeyboardButton(text="№8 · Степени и корни")],
+        [KeyboardButton(text="№9 · Уравнения")],
+        [KeyboardButton(text="№10 · Вероятность")],
+        [KeyboardButton(text="№12 · Формулы")],
+    ]
+    if include_task13:
+        rows.append([KeyboardButton(text="№13 · Неравенства")])
+    rows.extend([[KeyboardButton(text="№14 · Прогрессии")], [KeyboardButton(text="↩ В меню")]])
+    return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
 
 
 def progress_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:

@@ -398,6 +398,59 @@ class Repository(Protocol):
     ) -> list[dict[str, object]]: ...
 
 
+    async def ensure_task13_session(self, telegram_user_id: int) -> str: ...
+
+    async def advance_task13_problem(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str | None,
+        candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
+    ) -> dict[str, object]: ...
+
+    async def task13_state(self, telegram_user_id: int) -> dict[str, object] | None: ...
+
+    async def set_task13_prompt_message(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        message_id: int,
+        expected_status: str | None = None,
+    ) -> bool: ...
+
+    async def set_task13_condition_message(
+        self, telegram_user_id: int, expected_problem_id: str, message_id: int
+    ) -> bool: ...
+
+    async def task13_attempt(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        raw_answer: str,
+        is_correct: bool,
+        telegram_message_id: int | None = None,
+        expected_prompt_message_id: int | None = None,
+        telegram_event_id: str | None = None,
+    ) -> dict[str, object] | None: ...
+
+    async def task13_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None: ...
+
+    async def task13_reveal_solution(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> dict[str, object] | None: ...
+
+    async def task13_progress(self, telegram_user_id: int) -> dict[str, int]: ...
+
 class _Task10PostgresMixin:
     _pool: asyncpg.Pool
 
@@ -2586,7 +2639,7 @@ class PostgresRepository(
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None:
         await self._pool.execute(
             """UPDATE users SET current_state = CASE
-                 WHEN $2 IN ('task6', 'task9', 'task10', 'task12', 'task14', 'task8')
+                 WHEN $2 IN ('task6', 'task9', 'task10', 'task12', 'task14', 'task8', 'task13')
                    THEN jsonb_build_object(
                    'screen', $2::text, 'resume_mode', $2::text)
                  ELSE jsonb_set(COALESCE(current_state, '{}'::jsonb), '{screen}',
@@ -2604,7 +2657,7 @@ class PostgresRepository(
         target_screen: str,
         expected_prompt_message_id: int | None = None,
     ) -> bool:
-        if mode not in {"task6", "task9", "task10", "task12", "task14", "task8"}:
+        if mode not in {"task6", "task9", "task10", "task12", "task14", "task8", "task13"}:
             return False
         async with self._pool.acquire() as connection, connection.transaction():
             user = await connection.fetchrow(
@@ -3623,6 +3676,12 @@ class MemoryRepository:
         self.solutions12: dict[int, set[str]] = {}
         self.training14: dict[int, dict[str, object]] = {}
         self.training8: dict[int, dict[str, object]] = {}
+        self.training13: dict[int, dict[str, object]] = {}
+        self.issued13: dict[int, dict[str, dict[str, object]]] = {}
+        self.attempts13: dict[int, list[dict[str, object]]] = {}
+        self.outcomes13: dict[int, dict[str, str]] = {}
+        self.hints13: dict[int, dict[str, int]] = {}
+        self.solutions13: dict[int, set[str]] = {}
         self.issued14: dict[int, dict[str, dict[str, object]]] = {}
         self.issued8: dict[int, dict[str, dict[str, object]]] = {}
         self.attempts14: dict[int, list[dict[str, object]]] = {}
@@ -3645,7 +3704,7 @@ class MemoryRepository:
 
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None:
         self.states[telegram_user_id] = screen
-        if screen in {"task6", "task9", "task10", "task12", "task14", "task8"}:
+        if screen in {"task6", "task9", "task10", "task12", "task14", "task8", "task13"}:
             self.resume_modes[telegram_user_id] = screen
 
     async def transition_task_screen(
@@ -3668,6 +3727,12 @@ class MemoryRepository:
             else self.training12.get(telegram_user_id)
             if mode == "task12"
             else self.training14.get(telegram_user_id)
+            if mode == "task14"
+            else self.training8.get(telegram_user_id)
+            if mode == "task8"
+            else self.training13.get(telegram_user_id)
+            if mode == "task13"
+            else None
         )
         problem = saved.get("problem") if saved is not None else None
         state = saved.get("state") if saved is not None else None
@@ -5540,6 +5605,273 @@ class MemoryRepository:
         ]
         return list(reversed(history[-max(1, min(limit, 20)) :]))
 
+
+    async def ensure_task13_session(self, telegram_user_id: int) -> str:
+        saved = self.training13.setdefault(
+            telegram_user_id,
+            {"session_id": f"memory13-{telegram_user_id}", "state": {}, "problem": None},
+        )
+        return str(saved["session_id"])
+
+    async def advance_task13_problem(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str | None,
+        candidates: list[dict[str, object]],
+        expected_screen: str | None = None,
+        expected_prompt_message_id: int | None = None,
+        skip_active: bool = False,
+    ) -> dict[str, object]:
+        saved = self.training13[telegram_user_id]
+        state = cast(dict[str, object], saved["state"])
+        current = saved.get("problem")
+        if expected_screen is not None and self.states.get(telegram_user_id) != expected_screen:
+            return {"_transitioned": False, "_stale_screen": True}
+        if (
+            expected_prompt_message_id is not None
+            and state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return {"_transitioned": False, "_stale_screen": True}
+        current_id = str(current.get("problem_id", "")) if isinstance(current, dict) else None
+        if current_id is not None:
+            if current_id != expected_problem_id or skip_active != (
+                state.get("status") == "active"
+            ):
+                return {**cast(dict[str, object], current), "_transitioned": False}
+            if skip_active:
+                self.outcomes13.setdefault(telegram_user_id, {})[current_id] = "skipped"
+        elif expected_problem_id is not None:
+            raise RuntimeError("Expected active task-13 problem is missing")
+        recent = state.get("recent_fingerprints", [])
+        recent_order = (
+            [item for item in recent if isinstance(item, str)] if isinstance(recent, list) else []
+        )
+        for candidate in candidates:
+            fingerprint = str(candidate.get("fingerprint", ""))
+            if fingerprint in recent_order:
+                continue
+            problem = dict(candidate)
+            queue = problem.pop("_family_queue_after", [])
+            last_family = problem.pop("_last_family_after", None)
+            problem_id = str(problem["problem_id"])
+            saved["problem"] = problem
+            saved["state"] = {
+                "status": "active",
+                "attempts": 0,
+                "hints_used": 0,
+                "used_hint": False,
+                "family_queue": queue if isinstance(queue, list) else [],
+                "last_family_id": last_family,
+                "recent_fingerprints": [*recent_order, fingerprint][-30:],
+            }
+            self.issued13.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.outcomes13.setdefault(telegram_user_id, {})[problem_id] = "issued"
+            return {**problem, "_transitioned": True}
+        raise RuntimeError("Every task-13 candidate repeats a recent fingerprint")
+
+    async def task13_state(self, telegram_user_id: int) -> dict[str, object] | None:
+        return self.training13.get(telegram_user_id)
+
+    async def set_task13_prompt_message(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        message_id: int,
+        expected_status: str | None = None,
+    ) -> bool:
+        saved = self.training13.get(telegram_user_id)
+        problem = saved.get("problem") if saved else None
+        if (
+            saved is None
+            or not isinstance(problem, dict)
+            or str(problem.get("problem_id")) != expected_problem_id
+        ):
+            return False
+        state = cast(dict[str, object], saved["state"])
+        if expected_status is not None and state.get("status") != expected_status:
+            return False
+        current = state.get("input_prompt_message_id")
+        if isinstance(current, int) and message_id < current:
+            return False
+        state["input_prompt_message_id"] = message_id
+        return True
+
+    async def set_task13_condition_message(
+        self, telegram_user_id: int, expected_problem_id: str, message_id: int
+    ) -> bool:
+        saved = self.training13.get(telegram_user_id)
+        problem = saved.get("problem") if saved else None
+        if (
+            saved is None
+            or not isinstance(problem, dict)
+            or str(problem.get("problem_id")) != expected_problem_id
+        ):
+            return False
+        state = cast(dict[str, object], saved["state"])
+        state["problem_prompt_message_id"] = message_id
+        state["input_prompt_message_id"] = message_id
+        return True
+
+    async def task13_attempt(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        raw_answer: str,
+        is_correct: bool,
+        telegram_message_id: int | None = None,
+        expected_prompt_message_id: int | None = None,
+        telegram_event_id: str | None = None,
+    ) -> dict[str, object] | None:
+        saved = self.training13.get(telegram_user_id)
+        problem = saved.get("problem") if saved else None
+        if saved is None or not isinstance(problem, dict):
+            return None
+        if (
+            str(problem.get("problem_id")) != expected_problem_id
+            or self.states.get(telegram_user_id) != "task13"
+        ):
+            return {"status": "stale", "attempt": 0}
+        state = cast(dict[str, object], saved["state"])
+        if (
+            expected_prompt_message_id is not None
+            and state.get("problem_prompt_message_id", state.get("input_prompt_message_id"))
+            != expected_prompt_message_id
+        ):
+            return {"status": "stale", "attempt": 0}
+        if (
+            telegram_message_id is not None
+            and expected_prompt_message_id is not None
+            and telegram_message_id <= expected_prompt_message_id
+        ):
+            return {"status": "stale", "attempt": 0}
+        if telegram_message_id is not None:
+            key = (telegram_user_id, telegram_message_id)
+            if key in self.processed_message_ids:
+                return {"status": "duplicate", "attempt": 0}
+            self.processed_message_ids.add(key)
+        callback_ids = state.get("processed_choice_callbacks", [])
+        if (
+            telegram_event_id is not None
+            and isinstance(callback_ids, list)
+            and telegram_event_id in callback_ids
+        ):
+            return {"status": "duplicate", "attempt": 0}
+        if state.get("status") != "active":
+            return {
+                "status": str(state.get("status", "finished")),
+                "attempt": 0,
+                "problem": problem,
+            }
+        attempt = _state_int(state, "attempts") + 1
+        status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
+        state.update({"status": status, "attempts": attempt})
+        if telegram_event_id is not None:
+            callback_ids = state.get("processed_choice_callbacks", [])
+            callback_ids = callback_ids if isinstance(callback_ids, list) else []
+            state["processed_choice_callbacks"] = [*callback_ids, telegram_event_id][-100:]
+        self.attempts13.setdefault(telegram_user_id, []).append(
+            {
+                "problem_id": expected_problem_id,
+                "attempt_no": attempt,
+                "is_correct": is_correct,
+                "raw_answer": raw_answer,
+            }
+        )
+        if status in {"solved", "failed"}:
+            self.outcomes13.setdefault(telegram_user_id, {})[expected_problem_id] = status
+        return {"status": status, "attempt": attempt, "problem": problem}
+
+    async def task13_hint(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> str | None:
+        saved = self.training13.get(telegram_user_id)
+        problem = saved.get("problem") if saved else None
+        if (
+            saved is None
+            or not isinstance(problem, dict)
+            or self.states.get(telegram_user_id) != "task13"
+        ):
+            return None
+        if str(problem.get("problem_id")) != expected_problem_id:
+            return None
+        state = cast(dict[str, object], saved["state"])
+        if (
+            expected_prompt_message_id is not None
+            and state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return None
+        hints = problem.get("hints", [])
+        used = _state_int(state, "hints_used")
+        if state.get("status") != "active" or not isinstance(hints, list) or used >= len(hints):
+            return None
+        state.update({"hints_used": used + 1, "used_hint": True})
+        self.hints13.setdefault(telegram_user_id, {})[expected_problem_id] = used + 1
+        return str(hints[used])
+
+    async def task13_reveal_solution(
+        self,
+        telegram_user_id: int,
+        expected_problem_id: str,
+        expected_prompt_message_id: int | None = None,
+    ) -> dict[str, object] | None:
+        saved = self.training13.get(telegram_user_id)
+        problem = saved.get("problem") if saved else None
+        if (
+            saved is None
+            or not isinstance(problem, dict)
+            or self.states.get(telegram_user_id) != "task13"
+        ):
+            return None
+        if str(problem.get("problem_id")) != expected_problem_id:
+            return None
+        state = cast(dict[str, object], saved["state"])
+        if (
+            expected_prompt_message_id is not None
+            and state.get("input_prompt_message_id") != expected_prompt_message_id
+        ):
+            return None
+        status = str(state.get("status", ""))
+        if status == "active":
+            state["status"] = "solution_viewed"
+            self.outcomes13.setdefault(telegram_user_id, {})[expected_problem_id] = (
+                "solution_viewed"
+            )
+        self.solutions13.setdefault(telegram_user_id, set()).add(expected_problem_id)
+        return {"problem": problem, "status": status}
+
+    async def task13_progress(self, telegram_user_id: int) -> dict[str, int]:
+        issued = self.issued13.get(telegram_user_id, {})
+        outcomes = self.outcomes13.get(telegram_user_id, {})
+        attempts = self.attempts13.get(telegram_user_id, [])
+        by_problem: dict[str, list[dict[str, object]]] = {}
+        for attempt in attempts:
+            by_problem.setdefault(str(attempt["problem_id"]), []).append(attempt)
+        solved_first = sum(
+            outcomes.get(pid) == "solved"
+            and any(a["attempt_no"] == 1 and a["is_correct"] for a in values)
+            for pid, values in by_problem.items()
+        )
+        solved_second = sum(
+            outcomes.get(pid) == "solved"
+            and any(a["attempt_no"] == 2 and a["is_correct"] for a in values)
+            for pid, values in by_problem.items()
+        )
+        return {
+            "issued": len(issued),
+            "answered": len(by_problem),
+            "correct": sum(outcome == "solved" for outcome in outcomes.values()),
+            "solved_first_try": int(solved_first),
+            "solved_second_try": int(solved_second),
+            "attempts": len(attempts),
+            "first_attempts": sum(attempt["attempt_no"] == 1 for attempt in attempts),
+            "second_attempts": sum(attempt["attempt_no"] == 2 for attempt in attempts),
+            "hints_used": sum(self.hints13.get(telegram_user_id, {}).values()),
+            "solutions_viewed": len(self.solutions13.get(telegram_user_id, set())),
+            "skipped": sum(outcome == "skipped" for outcome in outcomes.values()),
+        }
 
 async def read_migration(path: str) -> str:
     from pathlib import Path

@@ -1,0 +1,120 @@
+{
+  "schema_version": "5.0",
+  "format": "intents_and_constraints_not_generated_examples",
+  "full_original_exam_texts_included": false,
+  "claim": "These are wording intents observed on cited real task pages; no authored tasks in package.",
+  "patterns": [
+    {
+      "family_id": "OGE13-L01",
+      "observed_intent": "Решите неравенство. В ответе укажите номер правильного варианта.",
+      "allowed_layout": "4 numbered textual intervals",
+      "required_information": [
+        "inequality",
+        "four interval sets",
+        "single correct option"
+      ]
+    },
+    {
+      "family_id": "OGE13-L02",
+      "observed_intent": "Решите неравенство и определите, на каком рисунке изображено множество его решений.",
+      "allowed_layout": "4 numbered numeric-line diagrams",
+      "required_information": [
+        "inequality",
+        "four graphs",
+        "one correct option"
+      ]
+    },
+    {
+      "family_id": "OGE13-Q01",
+      "observed_intent": "Решите неравенство. В ответе укажите номер правильного варианта.",
+      "allowed_layout": "4 textual intervals",
+      "required_information": [
+        "quadratic inequality",
+        "4 sets"
+      ]
+    },
+    {
+      "family_id": "OGE13-Q02",
+      "observed_intent": "Решите неравенство. В ответе укажите номер правильного варианта.",
+      "allowed_layout": "4 sets, text/graphics if source supports",
+      "required_information": [
+        "product sign",
+        "boundary inclusion"
+      ]
+    },
+    {
+      "family_id": "OGE13-Q03",
+      "observed_intent": "Решите неравенство. В ответе укажите номер правильного варианта.",
+      "allowed_layout": "4 textual intervals",
+      "required_information": [
+        "negative leading coefficient",
+        "4 distinct sets"
+      ]
+    },
+    {
+      "family_id": "OGE13-Q04",
+      "observed_intent": "Укажите решение неравенства.",
+      "allowed_layout": "4 graphs",
+      "required_information": [
+        "factored quadratic",
+        "graphs"
+      ]
+    },
+    {
+      "family_id": "OGE13-Q05",
+      "observed_intent": "Решение какого из данных неравенств изображено на рисунке?",
+      "allowed_layout": "one graph + 4 equations",
+      "required_information": [
+        "graph semantics",
+        "4 different inequalities",
+        "one equivalent"
+      ]
+    },
+    {
+      "family_id": "OGE13-Q06",
+      "observed_intent": "На каком рисунке изображено решение неравенства?",
+      "allowed_layout": "4 graphs",
+      "required_information": [
+        "square comparison",
+        "closed/open boundaries"
+      ]
+    },
+    {
+      "family_id": "OGE13-S01",
+      "observed_intent": "Решите систему неравенств. На каком рисунке изображено множество её решений?",
+      "allowed_layout": "4 graphs",
+      "required_information": [
+        "two lines",
+        "intersection"
+      ]
+    },
+    {
+      "family_id": "OGE13-S02",
+      "observed_intent": "Укажите решение системы неравенств.",
+      "allowed_layout": "4 graphs",
+      "required_information": [
+        "both inequalities",
+        "stronger bound"
+      ]
+    },
+    {
+      "family_id": "OGE13-S03",
+      "observed_intent": "На каком рисунке изображено множество решений системы неравенств?",
+      "allowed_layout": "4 options, sometimes one is text no solutions",
+      "required_information": [
+        "two bounds",
+        "strictness"
+      ]
+    },
+    {
+      "family_id": "OGE13-S04",
+      "observed_intent": "Решите систему неравенств.",
+      "allowed_layout": "4 options incl one textual no-solution option",
+      "required_information": [
+        "contradiction",
+        "uniqueness"
+      ],
+      "must_review_before_pilot": true
+    }
+  ]
+}
