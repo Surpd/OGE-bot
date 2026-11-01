@@ -13,14 +13,19 @@ from aiogram.types import User
 
 from app.bot.menu import number_menu
 from app.bot.router import (
+    _send_task7_problem,
     choose_task6,
+    choose_task7,
     choose_task8,
     choose_task9,
     choose_task10,
     choose_task12,
     choose_task14,
+    show_progress_details,
     task6_answer,
     task6_callback,
+    task7_answer,
+    task7_callback,
     task8_answer,
     task8_callback,
     task9_answer,
@@ -33,7 +38,8 @@ from app.bot.router import (
     task14_callback,
     unknown_message,
 )
-from app.math import oge8_scheduler, oge14_scheduler
+from app.math import oge07_scheduler, oge8_scheduler, oge14_scheduler
+from app.math.oge07_scheduler import build_task7_candidate_batch
 from app.math.oge8 import R04
 from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
@@ -125,6 +131,17 @@ TRAININGS = (
         "task14_state",
         "task14_progress",
     ),
+    TrainingAdapter(
+        7,
+        choose_task7,
+        task7_answer,
+        task7_callback,
+        "advance_task7_problem",
+        "set_task7_condition_message",
+        build_task7_candidate_batch,
+        "task7_state",
+        "task7_progress",
+    ),
 )
 TRAINING_CASES = pytest.mark.parametrize(
     "training", TRAININGS, ids=lambda item: f"task{item.number}"
@@ -138,9 +155,10 @@ def test_number_menu_matches_registered_training_adapters() -> None:
         for button in row
         if (match := re.match(r"№(\d+)", button.text or "")) is not None
     }
-    registered_numbers = {training.number for training in TRAININGS}
+    registered_numbers = {training.number for training in TRAININGS if training.number != 7}
 
     assert menu_numbers == registered_numbers
+    assert 7 not in menu_numbers
 
 
 _message_id = 910_000
@@ -156,6 +174,7 @@ def _message(user_id: int, text: str, *, message_id: int | None = None) -> Async
     message.message_id = incoming
     message.reply_to_message = None
     message.answer.return_value.message_id = incoming + 1
+    message.answer_photo.return_value.message_id = incoming + 1
     return message
 
 
@@ -178,6 +197,13 @@ async def _open(repository: MemoryRepository, training: TrainingAdapter, user_id
     return state
 
 
+def _wrong_answer(training: TrainingAdapter, problem: dict[str, object]) -> str:
+    correct = str(problem["correct_answer"])
+    if training.number == 7:
+        return str(int(correct) % 4 + 1)
+    return "-999999" if correct == "999999" else "999999"
+
+
 @pytest.mark.asyncio
 @TRAINING_CASES
 async def test_contract_accepts_plain_answer_and_enforces_two_attempts(
@@ -186,6 +212,7 @@ async def test_contract_accepts_plain_answer_and_enforces_two_attempts(
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
     repository = MemoryRepository()
     user_id = 920_000 + training.number
     state = await _open(repository, training, user_id)
@@ -198,7 +225,7 @@ async def test_contract_accepts_plain_answer_and_enforces_two_attempts(
     assert after_malformed is not None and after_malformed["state"]["attempts"] == 0
 
     correct = str(problem["correct_answer"])
-    wrong_text = "-999999" if correct == "999999" else "999999"
+    wrong_text = _wrong_answer(training, problem)
     first = _message(user_id, wrong_text)
     assert first.message_id > first_prompt_id
     await training.answer(first, repository)
@@ -223,6 +250,7 @@ async def test_contract_next_never_skips_but_skip_records_one_outcome(
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
     repository = MemoryRepository()
     user_id = 930_000 + training.number
     state = await _open(repository, training, user_id)
@@ -263,6 +291,7 @@ async def test_contract_solution_view_closes_scoring_and_keeps_next(
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
     repository = MemoryRepository()
     user_id = 940_000 + training.number
     state = await _open(repository, training, user_id)
@@ -293,6 +322,7 @@ async def test_contract_duplicate_message_and_text_after_completion_are_idempote
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
     repository = MemoryRepository()
     user_id = 950_000 + training.number
     state = await _open(repository, training, user_id)
@@ -319,6 +349,7 @@ async def test_contract_old_reply_is_rejected_without_consuming_current_attempt(
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
     repository = MemoryRepository()
     user_id = 960_000 + training.number
     original = await _open(repository, training, user_id)
@@ -351,16 +382,90 @@ async def test_contract_sessions_for_numbers_do_not_share_answers(
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
     repository = MemoryRepository()
     user_id = 970_006
     states = {}
     for training in TRAININGS:
         states[training.number] = await _open(repository, training, user_id)
     active = TRAININGS[-1]
-    await active.answer(_message(user_id, "999999"), repository)
+    await active.answer(
+        _message(user_id, _wrong_answer(active, states[active.number]["problem"])), repository
+    )
     for training in TRAININGS:
         state = await getattr(repository, training.state)(user_id)
         assert state is not None
         expected_attempts = 1 if training.number == active.number else 0
         assert state["state"]["attempts"] == expected_attempts
         assert state["problem"]["problem_id"] == states[training.number]["problem"]["problem_id"]
+
+
+@pytest.mark.asyncio
+async def test_task7_graph_snapshot_photo_survives_resume(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-N01",))
+    repository = MemoryRepository()
+    user_id = 971_007
+    first_message = _message(user_id, "№7")
+    await choose_task7(first_message, repository)
+    first_state = await repository.task7_state(user_id)
+    assert first_state is not None
+    first_problem = first_state["problem"]
+    first_photo = first_message.answer_photo.await_args.args[0]
+    assert first_problem["graph_png_sha256"]
+
+    resumed_message = _message(user_id, "resume")
+    await _send_task7_problem(resumed_message, repository, action="resume")
+    resumed_photo = resumed_message.answer_photo.await_args.args[0]
+    resumed_state = await repository.task7_state(user_id)
+    assert resumed_photo.data == first_photo.data
+    assert resumed_state is not None
+    assert resumed_state["problem"]["problem_id"] == first_problem["problem_id"]
+    assert resumed_state["problem"]["correct_answer"] == first_problem["correct_answer"]
+
+
+@pytest.mark.asyncio
+async def test_task7_history_is_visible_in_detailed_progress(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", ("OGE07-C01",))
+    repository = MemoryRepository()
+    user_id = 972_007
+    training = next(item for item in TRAININGS if item.number == 7)
+    state = await _open(repository, training, user_id)
+    problem = state["problem"]
+
+    await task7_answer(_message(user_id, str(problem["correct_answer"])), repository)
+    details = _message(user_id, "📊 Подробнее")
+    await show_progress_details(details, repository)
+
+    rendered = details.answer.await_args.args[0]
+    assert "История №7" in rendered
+    assert str(problem["family_id"]) in rendered
+    assert str(problem["condition"]) in rendered
+    assert "верно" in rendered
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("family", ("OGE07-C01", "OGE07-N04"))
+async def test_task7_rejects_corrupt_snapshot_without_regenerating(
+    monkeypatch: pytest.MonkeyPatch, family: str
+) -> None:
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", (family,))
+    repository = MemoryRepository()
+    user_id = 973_007
+    training = next(item for item in TRAININGS if item.number == 7)
+    state = await _open(repository, training, user_id)
+    problem = state["problem"]
+    original_problem_id = str(problem["problem_id"])
+    problem["condition"] = f"{problem['condition']}!"
+
+    resume_message = _message(user_id, "resume")
+    sent = await _send_task7_problem(resume_message, repository, action="resume")
+
+    persisted = await repository.task7_state(user_id)
+    assert sent is False
+    assert persisted is not None
+    assert persisted["problem"]["problem_id"] == original_problem_id
+    assert len(repository.issued7[user_id]) == 1
+    assert resume_message.answer_photo.await_count == 0
+    assert "не заменено новым заданием" in resume_message.answer.await_args.args[0]

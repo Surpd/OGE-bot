@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-02 — OGE task 7 (PR in progress)
+- Added parameterized C01–C06 generators with independent visible-condition oracles, and candidate number-line structures N01–N05 with saved graph models, PNG renderer and raster oracle.
+- Added the Telegram flow, separate task7 persistence, migration 0010 and shared UX/PostgreSQL lifecycle coverage. All task7 families remain disabled and №7 stays out of the learner menu pending acceptance.
+
+
 ## 2026-11-02 — OGE Trainer / реализация №13 (PR, без публикации)
 - По V4 отдельно перепроверены 18 первоисточников и исходные рисунки; расхождения источника №107 и карточек №356077/№322330 задокументированы. Каталог CSV не считается доказательством индивидуальной проверки.
 - Реализованы девять пилотных семейств №13: L01/L02/Q01–Q04/S01–S03. Все девять остаются выключенными для учеников до review и отдельного решения о публикации; Q05/Q06/S04 заблокированы с причинами в QA отчёте.
