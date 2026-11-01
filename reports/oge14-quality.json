@@ -174,7 +174,7 @@
       "quick_valid": 40,
       "main_valid": 250,
       "unique_within_budget": 200,
-      "acceptance_attempts": 204,
+      "acceptance_attempts": 200,
       "answer_range": [
         -89.0,
         23.0
@@ -188,7 +188,7 @@
           1,
           8
         ],
-        "minutes": [
+        "minutes_total": [
           6,
           15
         ],
@@ -199,11 +199,11 @@
       },
       "median_answer": -15.0,
       "distinct_structures": 250,
-      "distinct_fingerprints_main": 246,
+      "distinct_fingerprints_main": 250,
       "answer_types": {
         "integer": 250
       },
-      "max_rendered_characters": 119,
+      "max_rendered_characters": 194,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
       "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
@@ -247,7 +247,7 @@
       "max_rendered_characters": 187,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "42-fingerprint natural finite capacity; remains disabled pending documented exception review"
+      "gate_note": "42-fingerprint natural finite capacity (n=3..8, d=2..8); stays disabled: rolling global history retains only 30 fingerprints and cannot guarantee the full family cycle without repeats; no artificial parameter expansion"
     },
     "OGE14-A07": {
       "status": "enabled_passed_quality_and_postgres17_gates",
@@ -343,10 +343,10 @@
       "quick_valid": 40,
       "main_valid": 250,
       "unique_within_budget": 200,
-      "acceptance_attempts": 225,
+      "acceptance_attempts": 296,
       "answer_range": [
-        39.0,
-        660.0
+        3.0,
+        12.0
       ],
       "visible_parameter_ranges": {
         "n": [
@@ -362,13 +362,13 @@
           6
         ]
       },
-      "median_answer": 211.5,
+      "median_answer": 7.0,
       "distinct_structures": 221,
-      "distinct_fingerprints_main": 221,
+      "distinct_fingerprints_main": 180,
       "answer_types": {
         "integer": 250
       },
-      "max_rendered_characters": 204,
+      "max_rendered_characters": 206,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
       "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
@@ -413,7 +413,7 @@
       "answer_types": {
         "integer": 250
       },
-      "max_rendered_characters": 181,
+      "max_rendered_characters": 255,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
       "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"

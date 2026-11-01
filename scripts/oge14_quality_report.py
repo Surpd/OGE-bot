@@ -17,6 +17,7 @@ from app.math.progressions import (  # noqa: E402
     FAMILY_STATUS,
     SOURCE_IDS,
     SOURCE_URLS,
+    audit_condition,
     generate,
     solve_condition,
 )
@@ -72,7 +73,9 @@ def run() -> dict[str, object]:
                 for p in problems[:QUICK_CASES]
             ),
             "main_valid": sum(
-                solve_condition(family, p.condition) == p.exact_value for p in problems
+                audit_condition(family, p.condition, p.parameters)
+                and solve_condition(family, p.condition) == p.exact_value
+                for p in problems
             ),
             "unique_within_budget": len(unique),
             "acceptance_attempts": attempts,
@@ -95,11 +98,14 @@ def run() -> dict[str, object]:
             "max_rendered_characters": max(len(p.condition) for p in problems),
             "max_generation_attempts": max(p.generation_attempts for p in problems),
             "all_oracles_passed": all(
-                solve_condition(family, p.condition) == p.exact_value for p in problems
+                audit_condition(family, p.condition, p.parameters)
+                and solve_condition(family, p.condition) == p.exact_value
+                for p in problems
             ),
             "gate_note": (
-                "42-fingerprint natural finite capacity; remains disabled pending "
-                "documented exception review"
+                "42-fingerprint natural finite capacity (n=3..8, d=2..8); stays disabled: "
+                "rolling global history retains only 30 fingerprints and cannot guarantee "
+                "the full family cycle without repeats; no artificial parameter expansion"
                 if family == "OGE14-A06"
                 else "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
                 if family in FAMILY_STATUS and FAMILY_STATUS[family].startswith("enabled_")

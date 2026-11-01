@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from fractions import Fraction
 
 import pytest
@@ -11,6 +12,11 @@ from app.math.progressions import (
     ENABLED_FAMILIES,
     FAMILY_STATUS,
     SOURCE_IDS,
+    _arithmetic_sum,
+    _enumerate,
+    _explanation,
+    _model,
+    _render,
     audit_condition,
     generate,
     solve_condition,
@@ -55,6 +61,7 @@ def test_task14_generator_is_deterministic_and_oracles_agree(family: str) -> Non
         again = generate(family, seed)
         assert first == again
         assert audit_condition(family, first.condition, first.parameters)
+        assert _enumerate(family, first.parameters) == first.exact_value
         assert solve_condition(family, first.condition) == first.exact_value
         assert first.correct_answer
         assert first.to_snapshot()["content_provenance"] == "generated_analogue"
@@ -65,26 +72,22 @@ def test_task14_visible_text_mutations_are_rejected(family: str) -> None:
     problem = generate(family, 2114)
     text = problem.condition
     assert not audit_condition(family, text + " ", problem.parameters)
-    mutated = text.replace("м", "км", 1) if "м" in text else text.replace("см", "мм", 1)
-    assert not audit_condition(family, mutated, problem.parameters)
-    if family in {
-        "OGE14-A05",
-        "OGE14-A06",
-        "OGE14-A07",
-        "OGE14-A08",
-        "OGE14-G01",
-        "OGE14-G02",
-        "OGE14-G03",
-    }:
-        number = next((part for part in text.split() if part.isdigit()), None)
-        assert number is not None
-        changed = text.replace(number, str(int(number) + 1), 1)
+    unit = next((unit for unit in (" °C", " мг", " см", " м") if unit in text), None)
+    if unit is not None:
+        mutated = text.replace(unit, " altered-unit", 1)
+        assert not audit_condition(family, mutated, problem.parameters)
+    numeric_tokens = list(re.finditer(r"(?<!\w)-?\d+(?:,\d+)?", text))
+    assert numeric_tokens
+    for token in numeric_tokens:
+        visible = token.group().replace(",", ".")
+        replacement = str(Fraction(visible) + 1).replace(".", ",")
+        changed = text[: token.start()] + replacement + text[token.end() :]
         assert not audit_condition(family, changed, problem.parameters)
 
 
 def test_task14_semantic_mutations_change_or_invalidate_independent_answer() -> None:
     cases = (
-        ("OGE14-A05", "уменьшалась", "увеличивалась"),
+        ("OGE14-A05", "снижалась", "повышалась"),
         ("OGE14-A06", "до полной остановки", "за первые 5 секунд"),
         ("OGE14-A07", "за первые", "до полной остановки за первые"),
         ("OGE14-G03", "вещества Б", "вещества А"),
@@ -161,3 +164,64 @@ def test_task14_bounce_starts_at_first_rebound_and_uses_strict_threshold() -> No
         assert Fraction(h1, factor ** (bounce - 1)) < threshold
         if bounce > 1:
             assert Fraction(h1, factor ** (bounce - 2)) >= threshold
+
+
+def test_task14_a09_source_regression_answers_days_and_preserves_painting_story() -> None:
+    parameters = {"n": 4, "a1": 30, "d": 5}
+    condition = _render("OGE14-A09", parameters)
+    assert "150 м" in condition and "75 м" in condition
+    assert "бригада маляров красит" in condition.lower()
+    assert "покрасили" in condition
+    assert "постро" not in condition
+    assert _model("OGE14-A09", parameters) == 4
+    assert _arithmetic_sum(parameters) == 150
+    assert solve_condition("OGE14-A09", condition) == 4
+    _, solution = _explanation("OGE14-A09", parameters, Fraction(4))
+    assert "2·150/(30+45) = 4" in solution[1]
+    assert "2·4/" not in solution[1]
+
+    # The previous renderer changed painting to construction and supplied the
+    # endpoint outputs separately; the source-locked oracle must reject it.
+    previous_condition = (
+        "Забор длиной 150 м нужно построить за несколько дней. В первый день "
+        "построили 30 м, а в последний — 45 м. Каждый день строили на одинаковую "
+        "длину больше, чем в предыдущий. За сколько дней построили забор?"
+    )
+    assert solve_condition("OGE14-A09", previous_condition) is None
+
+
+def test_task14_a10_fipi_regression_infers_increment_without_giving_it() -> None:
+    parameters = {"n": 15, "a1": 30, "d": 5, "k": 5}
+    condition = _render("OGE14-A10", parameters)
+    assert "За 15 дней" in condition
+    assert "составило 975" in condition
+    assert "первый день число приседаний составило 30" in condition
+    assert "на 5 приседаний больше" not in condition
+    assert _arithmetic_sum(parameters) == 975
+    assert _model("OGE14-A10", parameters) == 50
+    assert solve_condition("OGE14-A10", condition) == 50
+    _, solution = _explanation("OGE14-A10", parameters, Fraction(50))
+    assert "aₙ = 2·975/15−30 = 100" in solution[1]
+    assert "= 50" in solution[2]
+    assert not any("d = 5" in step for step in solution)
+
+    # Regression for the prior text, which displayed a_k as S_n and disclosed d.
+    previous_condition = (
+        "За 15 дней спортсмен сделал всего 50 приседаний. Каждый день он делал "
+        "на 5 приседаний больше, чем в предыдущий, а в первый день сделал 30. "
+        "Сколько приседаний он сделал в 5-й день?"
+    )
+    assert solve_condition("OGE14-A10", previous_condition) is None
+
+
+def test_task14_a05_visible_condition_retains_experiment_duration() -> None:
+    problem = generate("OGE14-A05", 412218)
+    assert str(problem.parameters["minutes_total"]) in problem.condition
+    assert "охлаждали" in problem.condition
+    assert audit_condition("OGE14-A05", problem.condition, problem.parameters)
+    changed_duration = problem.condition.replace(
+        f"охлаждали {problem.parameters['minutes_total']}",
+        f"охлаждали {problem.parameters['minutes_total'] + 1}",
+        1,
+    )
+    assert not audit_condition("OGE14-A05", changed_duration, problem.parameters)

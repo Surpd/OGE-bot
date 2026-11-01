@@ -216,8 +216,13 @@ def _sample(family: str, rng: random.Random) -> dict[str, int]:
     if family == A03:
         return {"rows": rng.randint(8, 18), "a1": rng.randint(10, 26), "d": rng.randint(1, 5)}
     if family == A05:
-        t0, rate, minutes = rng.randint(-10, 25), rng.randint(1, 8), rng.randint(6, 15)
-        return {"t0": t0, "rate": rate, "minutes": minutes, "t": rng.randint(1, minutes)}
+        t0, rate, minutes_total = rng.randint(-10, 25), rng.randint(1, 8), rng.randint(6, 15)
+        return {
+            "t0": t0,
+            "rate": rate,
+            "minutes_total": minutes_total,
+            "t": rng.randint(1, minutes_total),
+        }
     if family == A06:
         n, d = rng.randint(3, 8), rng.randint(2, 8)
         return {"n": n, "d": d, "a1": n * d}
@@ -261,6 +266,11 @@ def _sample(family: str, rng: random.Random) -> dict[str, int]:
     raise ValueError("Family has no generator")
 
 
+def _arithmetic_sum(p: dict[str, int]) -> Fraction:
+    """Closed-form sum used for visible known totals, separate from the requested term."""
+    return Fraction(p["n"] * (2 * p["a1"] + (p["n"] - 1) * p["d"]), 2)
+
+
 def _model(family: str, p: dict[str, int]) -> Fraction:
     if family == A01:
         return Fraction(p["a1"] + (p["k"] - 1) * p["d"])
@@ -275,7 +285,7 @@ def _model(family: str, p: dict[str, int]) -> Fraction:
     if family == A08:
         return Fraction(p["n"] * (2 * p["a1t"] + (p["n"] - 1) * p["dt"]), 20)
     if family == A09:
-        return Fraction(p["n"] * (2 * p["a1"] + (p["n"] - 1) * p["d"]) // 2)
+        return Fraction(p["n"])
     if family == A10:
         return Fraction(p["a1"] + (p["k"] - 1) * p["d"])
     if family == G01:
@@ -301,7 +311,7 @@ def _render(family: str, p: dict[str, int]) -> str:
     if family == A03:
         return f"В амфитеатре {p['rows']} рядов. В первом ряду {p['a1']} {_place_word(p['a1'])}, и в каждом следующем на {p['d']} {_place_word(p['d'])} больше, чем в предыдущем. Сколько всего мест в амфитеатре?"
     if family == A05:
-        return f"Температура вещества была {p['t0']} °C и каждую минуту равномерно уменьшалась на {p['rate']} °C. Какой была температура через {p['t']} {_minute_word(p['t'])}?"
+        return f"Во время опыта вещество равномерно охлаждали {p['minutes_total']} {_minute_word(p['minutes_total'])}. Начальная температура составляла {p['t0']} °C, каждую минуту температура снижалась на {p['rate']} °C. Какова температура через {p['t']} {_minute_word(p['t'])} после начала опыта?"
     if family == A06:
         return f"При торможении автомобиль за первую секунду прошёл {p['a1']} м, а каждую следующую секунду тормозной путь уменьшался на {p['d']} м. Какой путь прошёл автомобиль с начала торможения до полной остановки?"
     if family == A07:
@@ -310,11 +320,12 @@ def _render(family: str, p: dict[str, int]) -> str:
         return f"При разгоне поезд за первую секунду прошёл {_fmt(Fraction(p['a1t'], 10))} м, а за каждую следующую секунду проходил на {_fmt(Fraction(p['dt'], 10))} м больше, чем за предыдущую. Какой путь поезд прошёл за первые {p['n']} {_seconds_word(p['n'])}?"
     if family == A09:
         last_day = p["a1"] + (p["n"] - 1) * p["d"]
-        total = _model(family, p)
-        return f"Забор длиной {_fmt(total)} м нужно построить за несколько дней. В первый день построили {p['a1']} м, а в последний — {last_day} м. Каждый день строили на одинаковую длину больше, чем в предыдущий. За сколько дней построили забор?"
+        total = _arithmetic_sum(p)
+        endpoint_sum = p["a1"] + last_day
+        return f"Бригада маляров красит забор длиной {_fmt(total)} м, ежедневно увеличивая норму покраски на одно и то же число метров. За первый и последний дни вместе покрасили {endpoint_sum} м забора. Сколько дней бригада красила весь забор?"
     if family == A10:
-        total = _model(family, p)
-        return f"За {p['n']} дней спортсмен сделал всего {int(total)} приседаний. Каждый день он делал на {p['d']} {_situps_word(p['d'])} больше, чем в предыдущий, а в первый день сделал {p['a1']}. Сколько приседаний он сделал в {p['k']}-й день?"
+        total = _arithmetic_sum(p)
+        return f"Вика делает зарядку каждое утро. В первый день число приседаний составило {p['a1']}, а в каждый следующий день она делала на одно и то же количество приседаний больше. За {p['n']} дней общее число приседаний составило {_fmt(total)}. Сколько приседаний она сделала на {p['k']}-й день?"
     if family == G01:
         t = p["cycles"] * p["period"]
         return f"Масса радиоактивного вещества в начальный момент была {p['m0']} мг. Каждые {p['period']} минут распадается половина вещества. Какова масса вещества через {t} минут?"
@@ -347,11 +358,11 @@ def solve_condition(family: str, condition: str) -> Fraction | None:
         A02: r"В амфитеатре (\d+) рядов\. В (\d+)-м ряду (\d+) мест, а в (\d+)-м ряду (\d+) мест\. В каждом следующем ряду мест на одно и то же число больше\. Сколько мест в последнем ряду\?",
         A03: r"В амфитеатре (\d+) рядов\. В первом ряду (\d+) (?:место|места|мест), и в каждом следующем на (\d+) (?:место|места|мест) больше, чем в предыдущем\. Сколько всего мест в амфитеатре\?",
         A06: r"При торможении автомобиль за первую секунду прошёл (\d+) м, а каждую следующую секунду тормозной путь уменьшался на (\d+) м\. Какой путь прошёл автомобиль с начала торможения до полной остановки\?",
-        A05: r"Температура вещества была (-?\d+) °C и каждую минуту равномерно уменьшалась на (\d+) °C\. Какой была температура через (\d+) минут(?:у|ы)?\?",
+        A05: r"Во время опыта вещество равномерно охлаждали (\d+) минут(?:у|ы)?\. Начальная температура составляла (-?\d+) °C, каждую минуту температура снижалась на (\d+) °C\. Какова температура через (\d+) минут(?:у|ы)? после начала опыта\?",
         A07: r"При торможении за первую секунду автомобиль прошёл (\d+) м, а каждую следующую секунду тормозной путь уменьшался на (\d+) м\. Какой путь автомобиль прошёл за первые (\d+) (?:секунд|секунды)\?",
         A08: r"При разгоне поезд за первую секунду прошёл ([\d,]+) м, а за каждую следующую секунду проходил на ([\d,]+) м больше, чем за предыдущую\. Какой путь поезд прошёл за первые (\d+) (?:секунд|секунды)\?",
-        A09: r"Забор длиной ([\d,]+) м нужно построить за несколько дней\. В первый день построили (\d+) м, а в последний — (\d+) м\. Каждый день строили на одинаковую длину больше, чем в предыдущий\. За сколько дней построили забор\?",
-        A10: r"За (\d+) дней спортсмен сделал всего (\d+) приседаний\. Каждый день он делал на (\d+) (?:приседание|приседания|приседаний) больше, чем в предыдущий, а в первый день сделал (\d+)\. Сколько приседаний он сделал в (\d+)-й день\?",
+        A09: r"Бригада маляров красит забор длиной ([\d,]+) м, ежедневно увеличивая норму покраски на одно и то же число метров\. За первый и последний дни вместе покрасили (\d+) м забора\. Сколько дней бригада красила весь забор\?",
+        A10: r"Вика делает зарядку каждое утро\. В первый день число приседаний составило (\d+), а в каждый следующий день она делала на одно и то же количество приседаний больше\. За (\d+) дней общее число приседаний составило ([\d,]+)\. Сколько приседаний она сделала на (\d+)-й день\?",
         G01: r"Масса радиоактивного вещества в начальный момент была (\d+) мг\. Каждые (\d+) минут распадается половина вещества\. Какова масса вещества через (\d+) минут\?",
         G02: r"Масса колонии микроорганизмов в начальный момент составляла (\d+) мг и каждые (\d+) минут увеличивалась в (\d+) раза\. Какой станет масса через (\d+) минут\?",
         G03: r"В начальный момент масса радиоактивного вещества А составляла (\d+) мг\. Каждые (\d+) минут половина вещества А превращается в вещество Б\. Какова масса вещества Б через (\d+) минут\?",
@@ -381,8 +392,8 @@ def solve_condition(family: str, condition: str) -> Fraction | None:
                 return None
             p = {"a1": a1, "d": d, "n": a1 // d}
         elif family == A05:
-            t0, rate, t = map(int, vals)
-            p = {"t0": t0, "rate": rate, "t": t}
+            minutes_total, t0, rate, t = map(int, vals)
+            p = {"minutes_total": minutes_total, "t0": t0, "rate": rate, "t": t}
         elif family == A07:
             a1, d, n = map(int, vals)
             p = {"a1": a1, "d": d, "n": n}
@@ -390,21 +401,18 @@ def solve_condition(family: str, condition: str) -> Fraction | None:
             a1t, dt, n = vals[0] * 10, vals[1] * 10, int(vals[2])
             p = {"a1t": int(a1t), "dt": int(dt), "n": n}
         elif family == A09:
-            total_value, first_value, last_value = vals
-            terms = int(Fraction(2) * total_value / (first_value + last_value))
-            difference = int((last_value - first_value) / (terms - 1))
-            p = {"n": terms, "a1": int(first_value), "d": difference}
-            if _model(family, p) != total_value:
-                return None
+            total_value, endpoint_sum = map(int, vals)
+            p = {"total": total_value, "endpoint_sum": endpoint_sum}
         elif family == A10:
-            days, total_value_int, delta_int, first_int, target_index = map(int, vals)
-            p = {
-                "n": days,
-                "a1": first_int,
-                "d": delta_int,
-                "k": target_index,
-            }
-            if _model(family, p) != total_value_int:
+            first_value, days, displayed_total, target_index = vals
+            n, a1, k = int(days), int(first_value), int(target_index)
+            if n < 2:
+                return None
+            difference = (Fraction(2 * displayed_total, n) - 2 * a1) / (n - 1)
+            if difference.denominator != 1 or difference <= 0:
+                return None
+            p = {"n": n, "a1": a1, "d": int(difference), "k": k}
+            if _arithmetic_sum(p) != displayed_total:
                 return None
         elif family == G01:
             m0, period, t = map(int, vals)
@@ -442,13 +450,15 @@ def _valid(family: str, p: dict[str, int]) -> bool:
     if family == A06:
         return p["n"] >= 1 and p["a1"] == p["n"] * p["d"] and p["d"] > 0
     if family == A05:
-        return 1 <= p["t"] <= 15 and p["rate"] > 0
+        return 1 <= p["t"] <= p["minutes_total"] <= 15 and p["rate"] > 0
     if family == A07:
         return p["n"] >= 1 and p["a1"] - (p["n"] - 1) * p["d"] > 0
     if family == A08:
         return p["n"] >= 1 and p["a1t"] > 0 and p["dt"] > 0
     if family == A09:
-        return p["n"] >= 2 and p["d"] > 0
+        if "total" in p:
+            return p["total"] > 0 and p["endpoint_sum"] > 0
+        return p["n"] >= 2 and p["d"] > 0 and p["a1"] > 0
     if family == A10:
         return 2 <= p["k"] < p["n"] and p["d"] > 0
     if family in {G01, G03}:
@@ -460,7 +470,7 @@ def _valid(family: str, p: dict[str, int]) -> bool:
     return False
 
 
-def _enumerate(family: str, p: dict[str, int]) -> Fraction:
+def _enumerate(family: str, p: dict[str, int]) -> Fraction | None:
     if family == A01:
         return Fraction(sum([p["a1"]] + [p["d"]] * (p["k"] - 1)))
     if family == A02:
@@ -473,12 +483,22 @@ def _enumerate(family: str, p: dict[str, int]) -> Fraction:
         return Fraction(sum(p["a1"] - i * p["d"] for i in range(p["n"])))
     if family == A08:
         return sum((Fraction(p["a1t"] + i * p["dt"], 10) for i in range(p["n"])), Fraction())
-    if family in {A09, A10}:
-        return (
-            Fraction(sum(p["a1"] + i * p["d"] for i in range(p["n"])))
-            if family == A09
-            else Fraction(p["a1"] + (p["k"] - 1) * p["d"])
-        )
+    if family == A09:
+        total: Fraction
+        endpoint_sum: int
+        if "total" in p:
+            total, endpoint_sum = Fraction(p["total"]), p["endpoint_sum"]
+        else:
+            total = _arithmetic_sum(p)
+            endpoint_sum = 2 * p["a1"] + (p["n"] - 1) * p["d"]
+        matching_days = [
+            days
+            for days in range(2, 121)
+            if Fraction(days * endpoint_sum, 2) == total
+        ]
+        return Fraction(matching_days[0]) if len(matching_days) == 1 else None
+    if family == A10:
+        return Fraction(p["a1"] + (p["k"] - 1) * p["d"])
     if family == G01:
         return Fraction(p["m0"], 2 ** p["cycles"])
     if family == G02:
@@ -549,18 +569,22 @@ def _explanation(
         )
     if family == A09:
         last_day = p["a1"] + (p["n"] - 1) * p["d"]
-        total_days = int(answer)
+        total = _arithmetic_sum(p)
         return (first_hint, "Используйте число дней n = 2S/(a₁+aₙ)."), (
-            "Длина построенного забора по дням образует арифметическую прогрессию.",
-            f"n = 2·{total_days}/({p['a1']}+{last_day}) = {result}.",
-            f"Ответ: забор строили {result} {_days_word(int(answer))}.",
+            "Суммарный объём покраски за первый и последний дни — сумма крайних членов прогрессии.",
+            f"n = 2S/(a₁+aₙ) = 2·{_fmt(total)}/({p['a1']}+{last_day}) = {result}.",
+            f"Ответ: бригада красила забор {result} {_days_word(int(answer))}.",
         )
     if family == A10:
-        total = int(_model(family, p))
-        return (first_hint, "Проверьте сумму n членов, затем найдите нужный член."), (
+        total = _arithmetic_sum(p)
+        last = 2 * total / p["n"] - p["a1"]
+        return (
+            "Используйте сумму, чтобы определить последний член прогрессии.",
+            "Затем выразите нужный член через первый и последний члены.",
+        ), (
             "Число приседаний по дням образует арифметическую прогрессию.",
-            f"Sₙ = n(2a₁+(n−1)d)/2 = {p['n']}·(2·{p['a1']}+({p['n']}−1)·{p['d']})/2 = {total}.",
-            f"aₖ = a₁+(k−1)d = {p['a1']}+({p['k']}−1)·{p['d']} = {result}.",
+            f"Из Sₙ = n(a₁+aₙ)/2 получаем aₙ = 2·{_fmt(total)}/{p['n']}−{p['a1']} = {_fmt(last)}.",
+            f"aₖ = a₁+(k−1)(aₙ−a₁)/(n−1) = {p['a1']}+({p['k']}−1)·({_fmt(last)}−{p['a1']})/({p['n']}−1) = {result}.",
             "Найден член для указанного дня, а не последний член ряда.",
         )
     if family in {G01, G02, G03}:

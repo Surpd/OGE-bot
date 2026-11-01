@@ -7,17 +7,18 @@ import pytest
 
 from app.math import oge14_scheduler
 from app.math.oge14_scheduler import build_task14_candidate_batch
-from app.math.progressions import A01
 from app.persistence.repository import PostgresRepository, read_migration
-
-oge14_scheduler.ENABLED_FAMILIES = (A01,)
 
 
 @pytest.mark.asyncio
-async def test_task14_postgres_hints_answer_and_snapshot_survive_repository_restart() -> None:
+@pytest.mark.parametrize("family", oge14_scheduler.ENABLED_FAMILIES)
+async def test_task14_postgres_hints_answer_and_snapshot_survive_repository_restart(
+    family: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
         pytest.skip("DATABASE_URL not configured")
+    monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (family,))
     pool = await asyncpg.create_pool(database_url)
     user_id = int(uuid4().int % (2**62)) + 1
     try:
@@ -34,6 +35,7 @@ async def test_task14_postgres_hints_answer_and_snapshot_survive_repository_rest
         repository = PostgresRepository(pool)
         await repository.ensure_task14_session(user_id)
         first = build_task14_candidate_batch({}, 17101)[0]
+        assert first["family_id"] == family
         issued = await repository.advance_task14_problem(user_id, None, [first])
         problem_id = str(issued["problem_id"])
         await repository.save_user_state(user_id, "task14")
