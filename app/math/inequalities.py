@@ -232,6 +232,7 @@ def _solution_steps(condition: str, family_id: str, solution: IntervalSet) -> tu
         desired_sign = -1 if relation[0] == "<" else 1
         outside_sign = leading_sign
         inside_sign = -leading_sign
+        explained_solution: IntervalSet
         if desired_sign == outside_sign:
             explained_solution = (
                 Interval(None, left_root, False, not strict),
