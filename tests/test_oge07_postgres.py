@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
 import os
 from uuid import uuid4
 
@@ -70,7 +71,8 @@ async def test_task7_postgres_restores_text_and_png_snapshots_and_answers(
         assert snapshot["problem_id"] == problem_id
         assert restored["state"]["hints_used"] == 1
         if family == "OGE07-N01":
-            assert snapshot["graph_model"] == issued["graph_model"]
+            saved_graph_model = json.loads(json.dumps(issued["graph_model"]))
+            assert snapshot["graph_model"] == saved_graph_model
             assert base64.b64decode(str(snapshot["graph_png_base64"]))
         correct = await restarted.task7_attempt(
             user_id, problem_id, str(snapshot["correct_answer"]), True, 77002, 77001
