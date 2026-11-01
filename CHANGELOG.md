@@ -4,6 +4,7 @@
 - Reserved migration `0008_task13_sessions.sql` for PR #8 and renumbered task 8 to `0009_task8_sessions.sql`.
 - Application startup now discovers migrations by unique numeric prefix, serializes concurrent runners, and records successful versions for idempotent restarts. Active-session duplicates are detected before any session uniqueness index migration; startup fails with a manual remediation message and leaves rows untouched.
 - Added PostgreSQL 17 lifespan integration coverage for ordered/idempotent startup and duplicate-session fail-closed behavior.
+- Combined startup coverage now includes migrations 0008/0009, two concurrent app instances, and legacy databases where 0001–0006 predate the migration ledger. Added a read-only SQL preflight for active task14/task13/task8 sessions.
 
 ## 2026-11-01 — OGE Trainer 0.5 / задание №12 (PR реализации, в работе; исправления oracle)
 - Исследование, 17 реестровых конструкций и 17 авторских образцов остаются постоянной основой; проверены отдельные статусы источников.

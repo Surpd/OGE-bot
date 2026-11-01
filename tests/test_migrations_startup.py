@@ -1,4 +1,6 @@
+import asyncio
 import os
+from pathlib import Path
 from typing import cast
 from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
@@ -35,6 +37,15 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
     if not database_url:
         pytest.skip("DATABASE_URL not configured")
     admin, database_name, test_url = await _create_test_database(database_url)
+    seed_pool = await asyncpg.create_pool(test_url)
+    try:
+        for number, migration in enumerate(_migration_files(), 1):
+            if number > 6:
+                break
+            await seed_pool.execute(await read_migration(str(migration)))
+    finally:
+        await seed_pool.close()
+
     monkeypatch.setenv("DATABASE_URL", test_url)
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123456:TEST_TOKEN")
     get_settings.cache_clear()
@@ -42,17 +53,27 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
     expected_versions = [migration.name for migration in _migration_files()]
 
     try:
-        async with app.router.lifespan_context(app):
-            repository = cast(PostgresRepository, app.state.repository)
-            rows = await repository._pool.fetch(
-                "SELECT version FROM app_schema_migrations ORDER BY version"
-            )
-            assert [row["version"] for row in rows] == expected_versions
-            assert "0007_task14_sessions.sql" in expected_versions
-            assert "0009_task8_sessions.sql" in expected_versions
-            assert [int(version[:4]) for version in expected_versions] == sorted(
-                int(version[:4]) for version in expected_versions
-            )
+        async def start_and_read_versions(app_instance) -> list[str]:
+            async with app_instance.router.lifespan_context(app_instance):
+                repository = cast(PostgresRepository, app_instance.state.repository)
+                rows = await repository._pool.fetch(
+                    "SELECT version FROM app_schema_migrations ORDER BY version"
+                )
+                return [row["version"] for row in rows]
+
+        concurrent_results = await asyncio.gather(
+            start_and_read_versions(create_app()),
+            start_and_read_versions(create_app()),
+        )
+        assert concurrent_results == [expected_versions, expected_versions]
+        assert {
+            "0007_task14_sessions.sql",
+            "0008_task13_sessions.sql",
+            "0009_task8_sessions.sql",
+        }.issubset(expected_versions)
+        assert [int(version[:4]) for version in expected_versions] == sorted(
+            int(version[:4]) for version in expected_versions
+        )
 
         async with app.router.lifespan_context(app):
             repository = cast(PostgresRepository, app.state.repository)
@@ -63,8 +84,44 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
             assert await repository._pool.fetchval(
                 "SELECT to_regclass('sessions_one_active_task8_per_user') IS NOT NULL"
             )
+            assert await repository._pool.fetch(
+                Path("scripts/preflight_active_sessions.sql").read_text(encoding="utf-8")
+            ) == []
     finally:
         get_settings.cache_clear()
+        await _drop_test_database(admin, database_name)
+
+
+@pytest.mark.asyncio
+async def test_read_only_active_session_preflight_reports_task14_task13_task8() -> None:
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        pytest.skip("DATABASE_URL not configured")
+    admin, database_name, test_url = await _create_test_database(database_url)
+    pool = await asyncpg.create_pool(test_url)
+    try:
+        await pool.execute(await read_migration("migrations/0001_foundation.sql"))
+        for mode in ("task14", "task13", "task8"):
+            user_id = await pool.fetchval(
+                "INSERT INTO users (telegram_user_id) VALUES ($1) RETURNING id",
+                int(uuid4().int % (2**62)) + 1,
+            )
+            await pool.execute(
+                "INSERT INTO sessions (user_id, mode, state) VALUES ($1, $2, '{}'::jsonb), "
+                "($1, $2, '{}'::jsonb)",
+                user_id,
+                mode,
+            )
+        before = await pool.fetchval("SELECT count(*) FROM sessions")
+        query = Path("scripts/preflight_active_sessions.sql").read_text(encoding="utf-8")
+        rows = await pool.fetch(query)
+        after = await pool.fetchval("SELECT count(*) FROM sessions")
+        assert before == after == 6
+        assert [row["mode"] for row in rows] == ["task14", "task13", "task8"]
+        assert all(row["affected_users"] == 1 for row in rows)
+        assert all(row["affected_sessions"] == 2 for row in rows)
+    finally:
+        await pool.close()
         await _drop_test_database(admin, database_name)
 
 
