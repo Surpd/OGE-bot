@@ -57,6 +57,17 @@ def test_authored_research_examples_are_regression_fixtures_for_visible_oracle()
     registry = json.loads(FIXTURE_FILE.read_text(encoding="utf-8"))
     assert len(registry["patterns"]) == 17
     assert {item["family_id"] for item in registry["patterns"]} == set(ALL_FAMILIES)
+    references = json.loads(
+        (ROOT / "atlas" / "oge12_reference_structures.json").read_text(encoding="utf-8")
+    )
+    source_ids = {
+        item["id"]: {str(task_id) for task_id in item.get("ids", [])}
+        for item in references["families"]
+    }
+    assert all(
+        str(sample["origin_task_id"]) in source_ids[sample["family_id"]]
+        for sample in registry["patterns"]
+    )
     for sample in registry["patterns"]:
         family_id = sample["family_id"]
         result = solve_rendered_condition(family_id, sample["authored_ready_to_use_condition"])

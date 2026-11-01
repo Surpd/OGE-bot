@@ -731,7 +731,7 @@ class _Task12PostgresMixin:
                     session["active_problem_id"],
                 )
                 if current_row is None:
-                    raise RuntimeError("Active task-10 snapshot is missing")
+                    raise RuntimeError("Active task-12 snapshot is missing")
                 current = _json_object(current_row["snapshot"])
                 if expected_problem_id != active_id or skip_active != (
                     state.get("status") == "active"
@@ -743,9 +743,9 @@ class _Task12PostgresMixin:
                         session["active_problem_id"],
                     )
             elif expected_problem_id is not None:
-                raise RuntimeError("Expected active task-10 problem is missing")
+                raise RuntimeError("Expected active task-12 problem is missing")
             if not candidates:
-                raise RuntimeError("No task-10 candidates available")
+                raise RuntimeError("No task-12 candidates available")
             recent_value = state.get("recent_fingerprints", [])
             recent_order = (
                 [x for x in recent_value if isinstance(x, str)]
@@ -797,7 +797,7 @@ class _Task12PostgresMixin:
                     json.dumps(next_state, ensure_ascii=False),
                 )
                 return {**problem, "_transitioned": True}
-            raise RuntimeError("Every task-10 candidate repeats a recent fingerprint")
+            raise RuntimeError("Every task-12 candidate repeats a recent fingerprint")
 
     async def task12_state(self, telegram_user_id: int) -> dict[str, object] | None:
         row = await self._pool.fetchrow(
@@ -3001,7 +3001,6 @@ class MemoryRepository:
             "solutions_viewed": len(self.solutions10.get(telegram_user_id, set())),
             "skipped": sum(outcome == "skipped" for outcome in outcomes.values()),
         }
-
 
     async def ensure_task12_session(self, telegram_user_id: int) -> str:
         saved = self.training12.setdefault(
