@@ -1,0 +1,385 @@
+{
+  "schema_version": "3.0",
+  "count": 23,
+  "definition": "Краткие фактические пересказы существующих карточек, только source fixture; не тексты для выдачи ученику",
+  "cases": [
+    {
+      "case_id": "FIPI-MR-2024-P7",
+      "legacy_archive_id": "394131",
+      "family_id": "OGE14-A10",
+      "source_url": "https://doc.fipi.ru/navigator-podgotovki/navigator-oge/MR_matematika_oge_2024.pdf",
+      "provenance": "official_fipi",
+      "short_nonverbatim_description": "Зарядка: первые 15 дней, 30 приседаний в первый день, всего 975; требуется пятый день.",
+      "source_parameters": {
+        "n": 15,
+        "a1": 30,
+        "sum": 975,
+        "target_index": 5
+      },
+      "expected_answer": "50",
+      "source_note": "Это внутренний ID предыдущего архива, НЕ ID задачи ФИПИ; ссылка ведёт на методрекомендации, стр. 7",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412190",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A01",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412190",
+      "provenance": "portal_exam_attribution",
+      "short_nonverbatim_description": "Амфитеатр: 14 рядов, 20 мест в первом, прибавка 3; спрашивают 10-й ряд.",
+      "source_parameters": {
+        "rows": 14,
+        "a1": 20,
+        "d": 3,
+        "target_index": 10
+      },
+      "expected_answer": "47",
+      "source_note": "Экзаменационная дата приписана порталом; оригинальный бумажный КИМ отдельно не сверен",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412187",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A01",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412187",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Амфитеатр: 10 рядов, 25 в первом, прибавка 3; спрашивают 8-й ряд.",
+      "source_parameters": {
+        "rows": 10,
+        "a1": 25,
+        "d": 3,
+        "target_index": 8
+      },
+      "expected_answer": "46",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412237",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A01",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412237",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Амфитеатр: 16 рядов, 19 в первом, прибавка 2; спрашивают 13-й ряд.",
+      "source_parameters": {
+        "rows": 16,
+        "a1": 19,
+        "d": 2,
+        "target_index": 13
+      },
+      "expected_answer": "43",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412241",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A02",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412241",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Амфитеатр: 14 рядов, в пятом 27, в восьмом 36; найти последний.",
+      "source_parameters": {
+        "rows": 14,
+        "known": {
+          "5": 27,
+          "8": 36
+        },
+        "target_index": 14
+      },
+      "expected_answer": "54",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "449740",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A02",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=449740",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Амфитеатр: 19 рядов, в третьем 25, в седьмом 37; найти последний.",
+      "source_parameters": {
+        "rows": 19,
+        "known": {
+          "3": 25,
+          "7": 37
+        },
+        "target_index": 19
+      },
+      "expected_answer": "73",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "406645",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A03",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=406645",
+      "provenance": "portal_exam_attribution",
+      "short_nonverbatim_description": "Амфитеатр: 13 рядов, 17 в первом, прибавка 2; спрашивают сумму мест.",
+      "source_parameters": {
+        "rows": 13,
+        "a1": 17,
+        "d": 2
+      },
+      "expected_answer": "377",
+      "source_note": "Экзаменационная дата приписана порталом; оригинальный бумажный КИМ отдельно не сверен",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412286",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A03",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412286",
+      "provenance": "portal_exam_attribution",
+      "short_nonverbatim_description": "Амфитеатр: 14 рядов, 16 в первом, прибавка 2; спрашивают сумму мест.",
+      "source_parameters": {
+        "rows": 14,
+        "a1": 16,
+        "d": 2
+      },
+      "expected_answer": "406",
+      "source_note": "Экзаменационная дата приписана порталом; оригинальный бумажный КИМ отдельно не сверен",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412276",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A04",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412276",
+      "provenance": "legacy_D12",
+      "short_nonverbatim_description": "Камень в ущелье: 8 м за первую секунду, прирост по 10 м, первые 6 секунд.",
+      "source_parameters": {
+        "a1": 8,
+        "d": 10,
+        "n": 6
+      },
+      "expected_answer": "198",
+      "source_note": "Старая рубрика Д12; не включать по умолчанию",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412233",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A04",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412233",
+      "provenance": "legacy_D12",
+      "short_nonverbatim_description": "Камень в ущелье: 9 м за первую секунду, прирост по 10 м, первые 5 секунд.",
+      "source_parameters": {
+        "a1": 9,
+        "d": 10,
+        "n": 5
+      },
+      "expected_answer": "145",
+      "source_note": "Старая рубрика Д12; не включать по умолчанию",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412218",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A05",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412218",
+      "provenance": "portal_exam_attribution",
+      "short_nonverbatim_description": "Охлаждение в течение 10 минут; начало −7 °C, снижение 6 °C/мин, найти через 4 минуты.",
+      "source_parameters": {
+        "minutes_total": 10,
+        "t": 4,
+        "T0": -7,
+        "decrease_per_minute": 6
+      },
+      "expected_answer": "-31",
+      "source_note": "Экзаменационная дата приписана порталом; оригинальный бумажный КИМ отдельно не сверен",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "459977",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A06",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=459977",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Торможение: расстояния по секундам 24, 16, 8, затем 0; путь до остановки.",
+      "source_parameters": {
+        "first_second_distance": 24,
+        "decrease_each_second": 8,
+        "mode": "until_stop"
+      },
+      "expected_answer": "48",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "463386",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A07",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=463386",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Торможение: 30 м за первую секунду, далее на 4 м меньше; первые 5 секунд.",
+      "source_parameters": {
+        "a1": 30,
+        "n": 5,
+        "decrease_each_second": 4
+      },
+      "expected_answer": "110",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "459978",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A08",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=459978",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Поезд: 0,2 м в первую секунду, далее по +0,4 м; первые 10 секунд.",
+      "source_parameters": {
+        "a1": "0.2",
+        "d": "0.4",
+        "n": 10
+      },
+      "expected_answer": "20",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "394279",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A09",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=394279",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Забор 150 м; сумма объёмов за первый и последний день 75 м; найти число дней.",
+      "source_parameters": {
+        "S": 150,
+        "first_plus_last": 75
+      },
+      "expected_answer": "4",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "406337",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-A11",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=406337",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Осадок: каждую минуту получается 0,5 г, найти накопленную массу через 8 минут.",
+      "source_parameters": {
+        "rate": "0.5",
+        "minutes": 8
+      },
+      "expected_answer": "4",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412192",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-G01",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412192",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Изотоп: исходная масса 640 мг, раз в 7 минут уменьшается вдвое, через 42 минуты.",
+      "source_parameters": {
+        "initial_mass_mg": 640,
+        "period_minutes": 7,
+        "elapsed_minutes": 42
+      },
+      "expected_answer": "10",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412266",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-G01",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412266",
+      "provenance": "portal_exam_attribution",
+      "short_nonverbatim_description": "Изотоп: исходная масса 320 мг, вдвое каждые 8 минут, через 40 минут.",
+      "source_parameters": {
+        "initial_mass_mg": 320,
+        "period_minutes": 8,
+        "elapsed_minutes": 40
+      },
+      "expected_answer": "10",
+      "source_note": "Экзаменационная дата приписана порталом; оригинальный бумажный КИМ отдельно не сверен",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412195",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-G02",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412195",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Колония: исходная масса 13 мг, каждые 30 минут увеличивается втрое, через 90 минут.",
+      "source_parameters": {
+        "initial_mass_mg": 13,
+        "factor": 3,
+        "period_minutes": 30,
+        "elapsed_minutes": 90
+      },
+      "expected_answer": "351",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412198",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-G03",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412198",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Изотопы А→Б: исходная масса А 160 мг, половина превращается каждые 8 минут, масса Б через 40 минут.",
+      "source_parameters": {
+        "initial_mass_mg": 160,
+        "period_minutes": 8,
+        "elapsed_minutes": 40
+      },
+      "expected_answer": "155",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "412224",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-G04",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=412224",
+      "provenance": "portal_exam_attribution",
+      "short_nonverbatim_description": "Мяч: высота 1-го отскока 360 см, затем деление на 3; первый отскок с высотой меньше 15 см.",
+      "source_parameters": {
+        "first_height_cm": 360,
+        "factor_decrease": 3,
+        "strict_threshold_cm": 15
+      },
+      "expected_answer": "4",
+      "source_note": "Экзаменационная дата приписана порталом; оригинальный бумажный КИМ отдельно не сверен",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "459975",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-G04",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=459975",
+      "provenance": "oge_catalog",
+      "short_nonverbatim_description": "Мяч: после первого прыжка 5,4 м, затем каждый раз втрое ниже; впервые меньше 10 см.",
+      "source_parameters": {
+        "first_height_cm": 540,
+        "factor_decrease": 3,
+        "strict_threshold_cm": 10
+      },
+      "expected_answer": "5",
+      "source_note": "Карточка опубликована в тематическом каталоге; факт проведения на ОГЭ не доказан",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    },
+    {
+      "case_id": "480730",
+      "legacy_archive_id": null,
+      "family_id": "OGE14-G01",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=480730",
+      "provenance": "catalog_unconfirmed_demo",
+      "short_nonverbatim_description": "Изотоп: 200 мг сначала, половина каждые 8 минут, через 32 минуты.",
+      "source_parameters": {
+        "initial_mass_mg": 200,
+        "period_minutes": 8,
+        "elapsed_minutes": 32
+      },
+      "expected_answer": "12.5",
+      "source_note": "Нет независимой проверки утверждения о проекте демоверсии-2027",
+      "use": "regression_test_and_generation_blueprint_not_student_original"
+    }
+  ]
+}

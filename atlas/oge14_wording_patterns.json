@@ -1,0 +1,425 @@
+{
+  "schema_version": "3.0-slot-spec-no-verbatim-mirroring",
+  "goal": "Фиксированные проверяемые формулировочные каркасы по источникам, не генеративное сочинительство сюжетов",
+  "rules": [
+    "Только сюжеты найденных задач №14",
+    "Не менять запрашиваемую величину/единицы/точку отсчёта",
+    "Не выдавать параметрический вариант за оригинальный экзаменационный task-ID",
+    "Без LLM в runtime",
+    "Выполнить независимый визуально-текстовый oracle"
+  ],
+  "patterns": [
+    {
+      "family_id": "OGE14-A01",
+      "template_id": "oge14.amphitheater_nth.v1",
+      "context_lock": "амфитеатр, количество мест в определённом ряду",
+      "required_visible_slots": [
+        "rows",
+        "a1",
+        "d",
+        "target_index"
+      ],
+      "semantic_guards": [
+        "first_term",
+        "positive_delta",
+        "nth_term"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412190",
+        "https://math-oge.sdamgia.ru/problem?id=412187",
+        "https://math-oge.sdamgia.ru/problem?id=412237"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "В амфитеатре {rows} рядов. В первом ряду {a1} {a1_seats_word}, а в каждом следующем ряду на {d} {d_seats_word} больше, чем в предыдущем. Сколько мест в {target_index}-м ряду?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "derived_display_slots": [
+        "a1_seats_word",
+        "d_seats_word"
+      ],
+      "grammar": "Склонять место/места/мест по числу. Иначе сформированный вариант отклонить.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A02",
+      "template_id": "oge14.amphitheater_from_two.v1",
+      "context_lock": "амфитеатр, количество мест в двух рядах и число мест в последнем",
+      "required_visible_slots": [
+        "rows",
+        "known_i",
+        "known_j",
+        "known_ai",
+        "known_aj"
+      ],
+      "semantic_guards": [
+        "infer_d",
+        "last_term"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412241",
+        "https://math-oge.sdamgia.ru/problem?id=449740"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "В амфитеатре {rows} рядов. В каждом следующем ряду на одно и то же число мест больше, чем в предыдущем. В {known_i}-м ряду {known_ai} {known_ai_seats_word}, а в {known_j}-м — {known_aj} {known_aj_seats_word}. Сколько мест в последнем ряду?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "derived_display_slots": [
+        "known_i",
+        "known_j",
+        "known_ai",
+        "known_aj",
+        "known_ai_seats_word",
+        "known_aj_seats_word"
+      ],
+      "grammar": "Склонять место/места/мест по числу. Иначе сформированный вариант отклонить.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A03",
+      "template_id": "oge14.amphitheater_total.v1",
+      "context_lock": "амфитеатр, общее количество мест",
+      "required_visible_slots": [
+        "rows",
+        "a1",
+        "d"
+      ],
+      "semantic_guards": [
+        "arithmetic_sum"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=406645",
+        "https://math-oge.sdamgia.ru/problem?id=412286"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "В амфитеатре {rows} рядов. В первом ряду {a1} {a1_seats_word}, а в каждом следующем ряду на {d} {d_seats_word} больше, чем в предыдущем. Сколько всего мест в амфитеатре?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "derived_display_slots": [
+        "a1_seats_word",
+        "d_seats_word"
+      ],
+      "grammar": "Склонять место/места/мест по числу. Иначе сформированный вариант отклонить.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A04",
+      "template_id": "oge14.falling_stone.v1",
+      "context_lock": "движение камня, путь за несколько секунд",
+      "required_visible_slots": [
+        "a1",
+        "d",
+        "n"
+      ],
+      "semantic_guards": [
+        "arithmetic_sum"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412276",
+        "https://math-oge.sdamgia.ru/problem?id=412233"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Камень пролетел за первую секунду {a1} м, а за каждую следующую на {d} м больше, чем за предыдущую. Какой путь пролетел камень за первые {n} секунд?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A05",
+      "template_id": "oge14.cooling.v1",
+      "context_lock": "опыт с равномерным охлаждением, температура в заданный момент",
+      "required_visible_slots": [
+        "T0",
+        "decrease_per_minute",
+        "minutes_total",
+        "t"
+      ],
+      "semantic_guards": [
+        "time_zero_linear"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412218"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Во время опыта вещество равномерно охлаждали в течение {minutes_total} минут. Начальная температура составляла {T0} °C, каждую минуту температура снижалась на {decrease_per_minute} °C. Какова температура через {t} минут после начала опыта?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A06",
+      "template_id": "oge14.braking_total.v1",
+      "context_lock": "водитель тормозит, путь до полной остановки",
+      "required_visible_slots": [
+        "first_second_distance",
+        "decrease_each_second"
+      ],
+      "semantic_guards": [
+        "sum_to_zero"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=459977"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Водитель автомобиля начал торможение. За первую секунду после начала торможения автомобиль проехал {first_second_distance} м, а за каждую следующую — на {decrease_each_second} м меньше. Сколько метров автомобиль проехал до полной остановки?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A07",
+      "template_id": "oge14.braking_first_n.v1",
+      "context_lock": "водитель тормозит, путь за первые n секунд",
+      "required_visible_slots": [
+        "a1",
+        "decrease_each_second",
+        "n"
+      ],
+      "semantic_guards": [
+        "sum_n_positive_terms"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=463386"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Водитель автомобиля начал торможение. За первую секунду автомобиль проехал {a1} м, а за каждую следующую — на {decrease_each_second} м меньше. Сколько метров автомобиль проехал за первые {n} секунд торможения?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A08",
+      "template_id": "oge14.train_accelerating.v1",
+      "context_lock": "поезд начинает движение, путь за первые n секунд",
+      "required_visible_slots": [
+        "a1_display",
+        "d_display",
+        "n"
+      ],
+      "semantic_guards": [
+        "sum_decimal_ap"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=459978"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Поезд начал движение от станции. За первую секунду он прошёл {a1_display} м, а за каждую следующую — на {d_display} м больше, чем за предыдущую. Сколько метров поезд прошёл за первые {n} секунд движения?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "derived_display_slots": [
+        "a1_display",
+        "d_display"
+      ],
+      "grammar": "Форматировать конечную десятичную дробь с русской запятой, без округления.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством.",
+      "semantic_parameter_slots": [
+        "a1",
+        "d",
+        "n"
+      ]
+    },
+    {
+      "family_id": "OGE14-A09",
+      "template_id": "oge14.fence_painting.v1",
+      "context_lock": "маляры красят забор с постоянным приростом; известны длина и сумма крайних дневных норм",
+      "required_visible_slots": [
+        "S",
+        "first_plus_last"
+      ],
+      "semantic_guards": [
+        "infer_n_from_sum_extremes"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=394279"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Бригада маляров красит забор длиной {S} м, ежедневно увеличивая норму покраски на одно и то же число метров. За первый и последний дни вместе покрасили {first_plus_last} м забора. Сколько дней бригада красила весь забор?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A10",
+      "template_id": "oge14.morning_exercise.v1",
+      "context_lock": "зарядка, приседания по дням; заданы первый день и общая сумма",
+      "required_visible_slots": [
+        "a1",
+        "n",
+        "sum",
+        "target_index"
+      ],
+      "semantic_guards": [
+        "infer_d_from_sum"
+      ],
+      "source_urls": [
+        "https://doc.fipi.ru/navigator-podgotovki/navigator-oge/MR_matematika_oge_2024.pdf"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Вика делает зарядку каждое утро. В первый день число приседаний составило {a1}, а в каждый следующий день она делала на одно и то же количество приседаний больше. За {n} дней общее число приседаний составило {sum}. Сколько приседаний она сделала на {target_index}-й день?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-A11",
+      "template_id": "oge14.precipitate.v1",
+      "context_lock": "химический осадок образуется равномерно",
+      "required_visible_slots": [
+        "rate_display",
+        "minutes"
+      ],
+      "semantic_guards": [
+        "constant_rate"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=406337"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "При химической реакции образуется осадок. Каждую минуту образуется {rate_display} г осадка. Какова масса осадка через {minutes} минут после начала реакции? Ответ дайте в граммах.",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "derived_display_slots": [
+        "rate_display"
+      ],
+      "grammar": "Форматировать конечную десятичную дробь с русской запятой, без округления.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством.",
+      "semantic_parameter_slots": [
+        "rate",
+        "minutes"
+      ]
+    },
+    {
+      "family_id": "OGE14-G01",
+      "template_id": "oge14.isotope_remaining.v1",
+      "context_lock": "распад изотопа, оставшаяся масса через кратное время",
+      "required_visible_slots": [
+        "initial_mass_mg",
+        "period_minutes",
+        "elapsed_minutes"
+      ],
+      "semantic_guards": [
+        "geometric_decay"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412192",
+        "https://math-oge.sdamgia.ru/problem?id=412266",
+        "https://math-oge.sdamgia.ru/problem?id=480730"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "При распаде радиоактивного изотопа его масса уменьшается вдвое каждые {period_minutes} минут. Начальная масса равна {initial_mass_mg} мг. Какова масса этого изотопа через {elapsed_minutes} минут? Ответ дайте в миллиграммах.",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-G02",
+      "template_id": "oge14.petri_growth.v1",
+      "context_lock": "колония в чашке Петри, рост массы",
+      "required_visible_slots": [
+        "initial_mass_mg",
+        "factor",
+        "period_minutes",
+        "elapsed_minutes"
+      ],
+      "semantic_guards": [
+        "geometric_growth"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412195"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "Во время биологического опыта в чашку Петри поместили колонию микроорганизмов массой {initial_mass_mg} мг. Каждые {period_minutes} минут масса колонии увеличивается в {factor} раза. Какова масса колонии через {elapsed_minutes} минут? Ответ дайте в миллиграммах.",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-G03",
+      "template_id": "oge14.isotope_A_to_B.v1",
+      "context_lock": "изотоп А превращается в изотоп Б, искомая масса Б",
+      "required_visible_slots": [
+        "initial_mass_mg",
+        "period_minutes",
+        "elapsed_minutes"
+      ],
+      "semantic_guards": [
+        "conservation",
+        "geometric_decay"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412198"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "При бета-распаде каждые {period_minutes} минут половина массы изотопа А превращается в стабильный изотоп Б без потери общей массы. В начальный момент масса изотопа А равна {initial_mass_mg} мг. Какова масса образовавшегося изотопа Б через {elapsed_minutes} минут? Ответ дайте в миллиграммах.",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    },
+    {
+      "family_id": "OGE14-G04",
+      "template_id": "oge14.ball_bounce.v1",
+      "context_lock": "мячик, первый отскок ниже порога",
+      "required_visible_slots": [
+        "first_height_cm",
+        "factor_decrease",
+        "strict_threshold_cm"
+      ],
+      "semantic_guards": [
+        "strict_min_index"
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=412224",
+        "https://math-oge.sdamgia.ru/problem?id=459975"
+      ],
+      "use_as": "слотовая спецификация рендера; Codex пишет фиксированный русский шаблон по источнику и тестирует каждое выводимое число",
+      "flexibility": "разрешено менять только численные поля, падежи и необходимые грамматические формы. Запрещено менять сюжет или вид искомой величины",
+      "text_verification": "parse_rendered_condition -> params + unit + target + operation; compare with mathematical model; fail closed",
+      "needs_images": false,
+      "status": "disabled_pending_implementation",
+      "template_ru": "После первого отскока от асфальта мяч поднялся на высоту {first_height_cm} см. После каждого следующего отскока высота была в {factor_decrease} раза меньше предыдущей. После какого по счёту отскока высота впервые станет меньше {strict_threshold_cm} см?",
+      "template_originality": "Собственный краткий каркас, построенный по подтверждённой фабуле и вопросу источника; не дословная копия.",
+      "template_semantics_lock": "Смысл вопроса, отношения, единицы измерения, индекс и время фиксируются этим семейством."
+    }
+  ]
+}

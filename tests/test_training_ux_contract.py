@@ -17,6 +17,7 @@ from app.bot.router import (
     choose_task9,
     choose_task10,
     choose_task12,
+    choose_task14,
     task6_answer,
     task6_callback,
     task9_answer,
@@ -25,11 +26,16 @@ from app.bot.router import (
     task10_callback,
     task12_answer,
     task12_callback,
+    task14_answer,
+    task14_callback,
     unknown_message,
 )
+from app.math import oge14_scheduler
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
+from app.math.oge14_scheduler import build_task14_candidate_batch
+from app.math.progressions import A01
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import MemoryRepository
 
@@ -92,6 +98,17 @@ TRAININGS = (
         "task12_state",
         "task12_progress",
     ),
+    TrainingAdapter(
+        14,
+        choose_task14,
+        task14_answer,
+        task14_callback,
+        "advance_task14_problem",
+        "set_task14_condition_message",
+        build_task14_candidate_batch,
+        "task14_state",
+        "task14_progress",
+    ),
 )
 TRAINING_CASES = pytest.mark.parametrize(
     "training", TRAININGS, ids=lambda item: f"task{item.number}"
@@ -149,7 +166,9 @@ async def _open(repository: MemoryRepository, training: TrainingAdapter, user_id
 @TRAINING_CASES
 async def test_contract_accepts_plain_answer_and_enforces_two_attempts(
     training: TrainingAdapter,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     repository = MemoryRepository()
     user_id = 920_000 + training.number
     state = await _open(repository, training, user_id)
@@ -183,7 +202,9 @@ async def test_contract_accepts_plain_answer_and_enforces_two_attempts(
 @TRAINING_CASES
 async def test_contract_next_never_skips_but_skip_records_one_outcome(
     training: TrainingAdapter,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     repository = MemoryRepository()
     user_id = 930_000 + training.number
     state = await _open(repository, training, user_id)
@@ -220,7 +241,9 @@ async def test_contract_next_never_skips_but_skip_records_one_outcome(
 @TRAINING_CASES
 async def test_contract_solution_view_closes_scoring_and_keeps_next(
     training: TrainingAdapter,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     repository = MemoryRepository()
     user_id = 940_000 + training.number
     state = await _open(repository, training, user_id)
@@ -247,7 +270,9 @@ async def test_contract_solution_view_closes_scoring_and_keeps_next(
 @TRAINING_CASES
 async def test_contract_duplicate_message_and_text_after_completion_are_idempotent(
     training: TrainingAdapter,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     repository = MemoryRepository()
     user_id = 950_000 + training.number
     state = await _open(repository, training, user_id)
@@ -270,7 +295,9 @@ async def test_contract_duplicate_message_and_text_after_completion_are_idempote
 @TRAINING_CASES
 async def test_contract_old_reply_is_rejected_without_consuming_current_attempt(
     training: TrainingAdapter,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     repository = MemoryRepository()
     user_id = 960_000 + training.number
     original = await _open(repository, training, user_id)
@@ -298,7 +325,10 @@ async def test_contract_old_reply_is_rejected_without_consuming_current_attempt(
 
 
 @pytest.mark.asyncio
-async def test_contract_sessions_for_numbers_do_not_share_answers() -> None:
+async def test_contract_sessions_for_numbers_do_not_share_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
     repository = MemoryRepository()
     user_id = 970_006
     states = {}

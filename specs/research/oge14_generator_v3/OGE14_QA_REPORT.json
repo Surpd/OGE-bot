@@ -1,0 +1,25 @@
+{
+  "version": "3.0",
+  "created_on": "2026-11-01",
+  "exam_task": 14,
+  "reference_cases_total": 23,
+  "families_total": 15,
+  "priority_implementation_candidates": 13,
+  "hold": [
+    "OGE14-A04",
+    "OGE14-A11"
+  ],
+  "source_regression": "23/23 passed exact independent double-oracle",
+  "synthetic_math_stress": "1605/1605 passed exact independent double-oracle",
+  "source_render_roundtrip": "23/23 passed",
+  "synthetic_render_roundtrip": "750/750 passed",
+  "mutation_tests": "passed for tested numeric/time/target/wording mutations; not comprehensive proof of all text mutations",
+  "python_unittest_methods_passed": 12,
+  "source_verification_limitation": "The original 23 records are inherited from prior research with URL and metadata. Not all 23 source pages were independently re-fetched in this turn. FIPI primary source and representative portal cards were re-opened.",
+  "production_readiness": "research_and_codex_handoff_only; no generator integrated or shipped",
+  "admission": "all families disabled until tests, integration, PR review and separate release decision",
+  "prior_archives_superseded": [
+    "OGE14_RESEARCH_PACKAGE.zip",
+    "OGE14_REAL_OGE_RESEARCH_PACKAGE.zip"
+  ]
+}
