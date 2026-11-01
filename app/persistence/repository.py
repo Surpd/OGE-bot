@@ -1628,6 +1628,11 @@ class _Task14PostgresMixin:
 
 
 class _Task8PostgresMixin:
+    _pool: asyncpg.Pool
+
+    async def register_user(self, telegram_user_id: int) -> None:
+        raise NotImplementedError
+
     async def ensure_task8_session(self, telegram_user_id: int) -> str:
         await self.register_user(telegram_user_id)
         async with self._pool.acquire() as connection, connection.transaction():
