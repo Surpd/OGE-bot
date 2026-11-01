@@ -34,19 +34,18 @@ def main_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
 
 
-def number_menu() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="№6 · Вычисления")],
-            [KeyboardButton(text="№8 · Степени и корни")],
-            [KeyboardButton(text="№9 · Уравнения")],
-            [KeyboardButton(text="№10 · Вероятность")],
-            [KeyboardButton(text="№12 · Формулы")],
-            [KeyboardButton(text="№14 · Прогрессии")],
-            [KeyboardButton(text="↩ В меню")],
-        ],
-        resize_keyboard=True,
-    )
+def number_menu(*, include_task13: bool = False) -> ReplyKeyboardMarkup:
+    rows = [
+        [KeyboardButton(text="№6 · Вычисления")],
+        [KeyboardButton(text="№8 · Степени и корни")],
+        [KeyboardButton(text="№9 · Уравнения")],
+        [KeyboardButton(text="№10 · Вероятность")],
+        [KeyboardButton(text="№12 · Формулы")],
+    ]
+    if include_task13:
+        rows.append([KeyboardButton(text="№13 · Неравенства")])
+    rows.extend([[KeyboardButton(text="№14 · Прогрессии")], [KeyboardButton(text="↩ В меню")]])
+    return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
 
 
 def progress_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
@@ -177,3 +176,37 @@ def task8_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMar
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t8:menu:{problem_id}")],
         ]
     )
+
+
+def task13_menu(
+    problem_id: str,
+    *,
+    completed: bool = False,
+    choices: bool = False,
+) -> InlineKeyboardMarkup:
+    if completed:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="➡ Следующее", callback_data=f"t13:next:{problem_id}")],
+                [InlineKeyboardButton(text="↩ В меню", callback_data=f"t13:menu:{problem_id}")],
+            ]
+        )
+    rows = [
+        [
+            InlineKeyboardButton(text="💡 Подсказка", callback_data=f"t13:hint:{problem_id}"),
+            InlineKeyboardButton(text="📘 Разбор", callback_data=f"t13:solution:{problem_id}"),
+        ],
+        [InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t13:skip:{problem_id}")],
+        [InlineKeyboardButton(text="↩ В меню", callback_data=f"t13:menu:{problem_id}")],
+    ]
+    if choices:
+        rows.insert(
+            0,
+            [
+                InlineKeyboardButton(
+                    text=str(number), callback_data=f"t13:choose:{problem_id}:{number}"
+                )
+                for number in range(1, 5)
+            ],
+        )
+    return InlineKeyboardMarkup(inline_keyboard=rows)

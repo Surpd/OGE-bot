@@ -365,7 +365,7 @@
       "title": "Неравенства и системы",
       "reshu_prototypes_catalog_snapshot": 48,
       "reshu_total_including_clones": 149,
-      "source_snapshot": "Каталог Решу ОГЭ (заголовок страницы ОГЭ-2026, просмотр 31.10.2026; неполная совокупность всех возможных ОГЭ-2027)",
+      "source_snapshot": "OGE13_GENERATOR_RESEARCH_V4_BRANCHES.zip: 18 individual published task pages; 144+7 CSV rows remain a navigation snapshot, not per-task evidence",
       "generation_type": "inequality-set",
       "generation_type_human": "символьный + варианты выбора",
       "formulation_importance": "важна",
@@ -382,8 +382,27 @@
       "sources": [
         "CAT"
       ],
-      "source_status": "Категории, счётчики проверены; подробный перечень вариантов только выборочно",
-      "atlas_status": "Требует полного исследования первичных задач и их группировки"
+      "source_status": "18 portal task pages individually opened and compared with the source-case summaries; original SVGs visually checked for pilot graph families. Portal attribution is not an independent FIPI KIM match.",
+      "atlas_status": "Research design complete; 9 pilot families under implementation and quality gates; all remain disabled for student delivery. Q05/Q06/S04 excluded with reasons in specs/research/OGE13_IMPLEMENTATION_REVIEW.md.",
+      "research_reference": "specs/research/OGE13_IMPLEMENTATION_REVIEW.md",
+      "reference_structures": "atlas/oge13_reference_structures.json",
+      "wording_patterns": "atlas/oge13_wording_patterns.json",
+      "pilot_families": [
+        "OGE13-L01",
+        "OGE13-L02",
+        "OGE13-Q01",
+        "OGE13-Q02",
+        "OGE13-Q03",
+        "OGE13-Q04",
+        "OGE13-S01",
+        "OGE13-S02",
+        "OGE13-S03"
+      ],
+      "excluded_families": {
+        "OGE13-Q05": "separate reverse-graph audit/generator stage; original SVG inspected, not in pilot",
+        "OGE13-Q06": "conflicting portal attribution to 2023 SPB variant 2409; verify primary KIM",
+        "OGE13-S04": "shown solution is prototype solution, not this card; independently audit variant/provenance"
+      }
     },
     {
       "number": 14,

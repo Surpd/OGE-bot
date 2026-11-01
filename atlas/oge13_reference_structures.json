@@ -1,0 +1,348 @@
+{
+  "schema_version": "5.0-research-only-parametric",
+  "date": "2026-11-01",
+  "mode": "research_design_for_generator_not_implementation",
+  "official_KIM_independently_verified": 0,
+  "family_count": 12,
+  "all_production_enabled": false,
+  "policy": "New NUMERIC variants of verified mathematical exam forms allowed. No new story, no unexplained math type, never claim generated variant is verbatim OGE.",
+  "source_cases_file": "oge13_source_cases.json",
+  "families": [
+    {
+      "family_id": "OGE13-L01",
+      "topic": "linear",
+      "title": "Решить линейное неравенство, выбрать текстовый промежуток",
+      "reference_ids": [
+        311409,
+        338590
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=311409",
+        "https://math-oge.sdamgia.ru/problem?id=338590"
+      ],
+      "mathematical_shape": "linear_a_x_plus_b_vs_c_x_plus_d",
+      "answer_layout": "text_intervals",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Ненулевой коэффициент при x после переноса; один луч с верной границей. Переход с делением на отрицательное число должен менять знак.",
+      "distractor_types": "Равнозначное направление, неверная граница, включённая вместо исключённой точка, знак луча.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-L02",
+      "topic": "linear",
+      "title": "Линейное неравенство, четыре изображения лучей",
+      "reference_ids": [
+        314612,
+        107
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=314612",
+        "https://math-oge.sdamgia.ru/problem?id=107"
+      ],
+      "mathematical_shape": "linear_inequality_inclusive",
+      "answer_layout": "four_graphs",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Разрешены <,≤,>,≥ строго по подтверждённому виду образца; длина дробной границы не более 1–2 знаков.",
+      "distractor_types": "Пустая/закрашенная точка, направление, правильная и ложная граница.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-Q01",
+      "topic": "quadratic",
+      "title": "Квадратное неравенство с корнем 0, строгий промежуток",
+      "reference_ids": [
+        311310
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=311310"
+      ],
+      "mathematical_shape": "x_times_x_minus_r_strict",
+      "answer_layout": "text_intervals",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Два различных рациональных простых корня, один ноль; исключить корни при строгом знаке.",
+      "distractor_types": "Внешний интервал, замкнутый вместо открытого, неправильная граница.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-Q02",
+      "topic": "quadratic",
+      "title": "Произведение x и x+r, нестрогое объединение лучей",
+      "reference_ids": [
+        311309
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=311309"
+      ],
+      "mathematical_shape": "x_times_x_plus_r_nonstrict",
+      "answer_layout": "text_or_graph",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Два различных корня, включая 0; исходный старший коэффициент положителен; интервалы наружу при ≥0.",
+      "distractor_types": "Внутренний промежуток, удалённые концы, неверная граница.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-Q03",
+      "topic": "quadratic",
+      "title": "Отрицательный старший коэффициент, нестрогое сравнение",
+      "reference_ids": [
+        311311
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=311311"
+      ],
+      "mathematical_shape": "negative_x_squared_minus_kx_nonstrict",
+      "answer_layout": "text_intervals",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "При смене знака всего многочлена переворачивать сравнение; два целых различных корня; интервалы наружу.",
+      "distractor_types": "Ошибка смены знака, пропуск концов, замена объединения пересечением.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-Q04",
+      "topic": "quadratic",
+      "title": "Разложенное произведение двух линейных множителей",
+      "reference_ids": [
+        369736,
+        369833
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=369736",
+        "https://math-oge.sdamgia.ru/problem?id=369833"
+      ],
+      "mathematical_shape": "factored_two_roots_strict_sign",
+      "answer_layout": "four_graphs",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Корни строго различны, можно менять оба, а также допустимое строгое направление знака, подтверждённое двумя реальными источниками.",
+      "distractor_types": "Перепутать внутри/снаружи, включить корни, сдвинуть границы.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-Q05",
+      "topic": "quadratic",
+      "title": "По рисунку выбрать одно из четырёх квадратных неравенств",
+      "reference_ids": [
+        185
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=185"
+      ],
+      "mathematical_shape": "reverse_graph_to_quadratic",
+      "answer_layout": "graph_plus_four_equations",
+      "research_state": "needs_visual_anchor_review",
+      "production_enabled": false,
+      "parameter_contract": "Исходный рисунок интервала, уникальная эквивалентность одному из четырёх неравенств; семантика рисунка должна быть сверена визуально.",
+      "distractor_types": "Все x, пустое множество, внутренний/внешний промежуток.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-Q06",
+      "topic": "quadratic",
+      "title": "Квадрат числа ограничен константой",
+      "reference_ids": [
+        356077
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=356077"
+      ],
+      "mathematical_shape": "x_squared_leq_positive_square",
+      "answer_layout": "four_graphs",
+      "research_state": "needs_source_attribution_review",
+      "production_enabled": false,
+      "parameter_contract": "Положительная квадратная константа; замкнутый промежуток [-r;r]; не переносить противоречивую атрибуцию экзамена.",
+      "distractor_types": "Открытый вместо замкнутого, внешний вместо внутреннего, разные модули границ.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-S01",
+      "topic": "system",
+      "title": "Система двух линейных неравенств: ограниченный отрезок",
+      "reference_ids": [
+        340580,
+        311672
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=340580",
+        "https://math-oge.sdamgia.ru/problem?id=311672"
+      ],
+      "mathematical_shape": "intersection_closed_bounded",
+      "answer_layout": "four_graphs",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Сохранять формы a·x+b≤c и d·x+e≥f (источник 340580: x+2,6≤0; x+5≥1); варьировать положительные коэффициенты, переносимые константы и точные десятичные числа так, чтобы пересечение было замкнутым отрезком.",
+      "distractor_types": "Разворот границы, изменение включения, только одна строка системы.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-S02",
+      "topic": "system",
+      "title": "Пересечение двух однонаправленных лучей",
+      "reference_ids": [
+        348461,
+        340832
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=348461",
+        "https://math-oge.sdamgia.ru/problem?id=340832"
+      ],
+      "mathematical_shape": "intersection_redundant_ray",
+      "answer_layout": "four_graphs",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Сохранять формы a·x+b≥c и d·x+e≥f (источник 348461: x+3≥−2; x+1,1≥0); коэффициенты и переносимые константы генерировать отдельно, затем сравнивать обе границы лучей.",
+      "distractor_types": "Выбор слабой границы, неверное направление, неверная закраска точки.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-S03",
+      "topic": "system",
+      "title": "Система двух строгих границ: открытый интервал",
+      "reference_ids": [
+        333109,
+        341322
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=333109",
+        "https://math-oge.sdamgia.ru/problem?id=341322"
+      ],
+      "mathematical_shape": "intersection_open_bounded",
+      "answer_layout": "four_graphs_with_optional_empty_text",
+      "research_state": "pilot",
+      "production_enabled": false,
+      "parameter_contract": "Сохранять систему x>a и c−d·x>e с d>0 (источник 333109: x>3; 4−x>0); переносить константы и менять знак при делении на отрицательный коэффициент, обе границы строгие.",
+      "distractor_types": "Отдельные лучи, замкнутые границы, текст «нет решений». ",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    },
+    {
+      "family_id": "OGE13-S04",
+      "topic": "system",
+      "title": "Система с противоречащими границами, нет решений",
+      "reference_ids": [
+        322330
+      ],
+      "source_urls": [
+        "https://math-oge.sdamgia.ru/problem?id=322330"
+      ],
+      "mathematical_shape": "intersection_empty",
+      "answer_layout": "four_options_one_empty_text",
+      "research_state": "blocked_until_independent_visual_source",
+      "production_enabled": false,
+      "parameter_contract": "Нижняя граница ≥ верхней с корректной обработкой равенства; подтверждённая на сайте карточка есть, но показанное решение относится к прототипу.",
+      "distractor_types": "Кандидаты ложные: левый луч, правый луч, ограниченный интервал; уникальный верный вариант ∅.",
+      "requirements": [
+        "real_reference_id",
+        "exact_semantic_solution_set",
+        "independent_solver",
+        "visual_uniqueness",
+        "rendered_condition_oracle",
+        "repeat_prevention",
+        "UX_contract_tests"
+      ],
+      "notes": "Подтип исследован по выборке реальных карточек; статус pilot не означает разрешение для production."
+    }
+  ]
+}
