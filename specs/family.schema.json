@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Surpd/OGE-bot/tree/main/specs/family.schema.json",
+  "title": "OGE Bot Research Family",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "family_id",
+    "exam_number",
+    "name",
+    "status",
+    "status_reason",
+    "sources",
+    "mathematical_structure",
+    "question_intent",
+    "parameter_model",
+    "generation_algorithm",
+    "answer_policy",
+    "rendering",
+    "oracle",
+    "hints_and_solution",
+    "test_vectors",
+    "difficulty",
+    "known_exclusions",
+    "risks"
+  ],
+  "properties": {
+    "family_id": {
+      "type": "string",
+      "minLength": 5
+    },
+    "exam_number": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 19
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "enabled_candidate",
+        "research_only",
+        "blocked"
+      ]
+    },
+    "status_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "task_id",
+          "url",
+          "provenance",
+          "verification_status"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "provenance": {
+            "enum": [
+              "official_fipi_direct",
+              "exam_attributed_not_independently_verified",
+              "catalog_verified",
+              "historical",
+              "conflicted",
+              "unverified"
+            ]
+          },
+          "verification_status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "last_checked_at": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "mathematical_structure": {
+      "type": "string",
+      "minLength": 1
+    },
+    "question_intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "wording_variations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "parameter_model": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "generation_algorithm": {
+      "type": "string",
+      "minLength": 1
+    },
+    "degenerate_cases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "answer_policy": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "rendering": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "graphics": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "oracle": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "hints_and_solution": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "student_errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "test_vectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "diversity_expectations": {
+      "type": "object"
+    },
+    "difficulty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "known_exclusions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
