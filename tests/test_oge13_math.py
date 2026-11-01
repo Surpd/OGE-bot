@@ -634,9 +634,9 @@ def test_all_family_snapshots_restore_only_condition_derived_solution_steps(fami
     endpoint = re.search(r": ([\[(])", final_answer)
     assert endpoint
     changed_boundary[-1] = (
-        final_answer[: endpoint.start(2)]
-        + (")" if endpoint.group(2) == "[" else "[")
-        + final_answer[endpoint.end(2) :]
+        final_answer[: endpoint.start(1)]
+        + (")" if endpoint.group(1) == "[" else "[")
+        + final_answer[endpoint.end(1) :]
     )
 
     corrupted_versions = (
