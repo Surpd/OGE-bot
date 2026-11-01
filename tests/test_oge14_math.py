@@ -177,9 +177,9 @@ def test_task14_a09_source_regression_answers_days_and_preserves_painting_story(
     assert _arithmetic_sum(parameters) == 150
     assert solve_condition("OGE14-A09", condition) == 4
     _, solution = _explanation("OGE14-A09", parameters, Fraction(4))
-    assert "aₙ = 75−30 = 45 м" in solution[1]
-    assert "2·150/(30+45) = 4" in solution[2]
-    assert "2·4/" not in solution[2]
+    assert "a₁+aₙ = 75 м" in solution[1]
+    assert "2·150/75 = 4" in solution[2]
+    assert "30" not in " ".join(solution)
 
     # The previous renderer changed painting to construction and supplied the
     # endpoint outputs separately; the source-locked oracle must reject it.

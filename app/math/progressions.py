@@ -568,13 +568,12 @@ def _explanation(
             f"Общий путь равен {result} м.",
         )
     if family == A09:
-        last_day = p["a1"] + (p["n"] - 1) * p["d"]
         total = _arithmetic_sum(p)
-        endpoint_sum = p["a1"] + last_day
+        endpoint_sum = p["a1"] + p["a1"] + (p["n"] - 1) * p["d"]
         return (first_hint, "Используйте число дней n = 2S/(a₁+aₙ)."), (
             "Суммарный объём покраски за первый и последний дни — сумма крайних членов прогрессии.",
-            f"В условии a₁+aₙ = {endpoint_sum} м; a₁ = {p['a1']} м, значит aₙ = {endpoint_sum}−{p['a1']} = {last_day} м.",
-            f"n = 2S/(a₁+aₙ) = 2·{_fmt(total)}/({p['a1']}+{last_day}) = {result}.",
+            f"По условию a₁+aₙ = {endpoint_sum} м, а длина всего забора S = {_fmt(total)} м.",
+            f"n = 2S/(a₁+aₙ) = 2·{_fmt(total)}/{endpoint_sum} = {result}.",
             f"Ответ: бригада красила забор {result} {_days_word(int(answer))}.",
         )
     if family == A10:
