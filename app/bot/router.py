@@ -2378,6 +2378,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
     progress12 = await repository.task12_progress(user_id)
     progress14 = await repository.task14_progress(user_id)
     progress8 = await repository.task8_progress(user_id)
+    progress13 = await repository.task13_progress(user_id)
     progress7 = await repository.task7_progress(user_id)
     history7 = await repository.task7_history(user_id, limit=5)
     state6 = await repository.task6_state(user_id)
@@ -2386,6 +2387,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
     state12 = await repository.task12_state(user_id)
     state14 = await repository.task14_state(user_id)
     state8 = await repository.task8_state(user_id)
+    state13 = await repository.task13_state(user_id)
     state7 = await repository.task7_state(user_id)
     has_session = (
         _has_resumable_task6(state6)
@@ -2394,6 +2396,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
         or _has_resumable_task9(state8)
+        or _has_resumable_task9(state13)
         or _has_resumable_task9(state7)
     )
 
@@ -2426,7 +2429,8 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
         "📊 Подробнее\n\n"
         f"{detail('6', progress6)}\n\n{detail('9', progress9)}\n\n"
         f"{detail('10', progress10)}\n\n{detail('12', progress12)}\n\n"
-        f"{detail('7', progress7)}\n\n{detail('8', progress8)}\n\n{detail('14', progress14)}\n\n"
+        f"{detail('7', progress7)}\n\n{detail('8', progress8)}\n\n"
+        f"{detail('13', progress13)}\n\n{detail('14', progress14)}\n\n"
         f"История №7 (последние 5):\n{history_text}\n\n"
         "Неверный ответ, пропуск и просмотр разбора учитываются отдельно.",
         reply_markup=progress_menu(has_session=has_session),

@@ -4,6 +4,20 @@
 - Added parameterized C01–C06 generators with independent visible-condition oracles, and candidate number-line structures N01–N05 with saved graph models, PNG renderer and raster oracle.
 - Added the Telegram flow, separate task7 persistence, migration 0010 and shared UX/PostgreSQL lifecycle coverage. All task7 families remain disabled and №7 stays out of the learner menu pending acceptance.
 
+
+## 2026-11-02 — OGE Trainer / реализация №13 (PR, без публикации)
+- По V4 отдельно перепроверены 18 первоисточников и исходные рисунки; расхождения источника №107 и карточек №356077/№322330 задокументированы. Каталог CSV не считается доказательством индивидуальной проверки.
+- Реализованы девять пилотных семейств №13: L01/L02/Q01–Q04/S01–S03. Все девять остаются выключенными для учеников до review и отдельного решения о публикации; Q05/Q06/S04 заблокированы с причинами в QA отчёте.
+- Добавлены точная модель множеств интервалов, детерминированная генерация вариантов, независимый oracle, числовые прямые собственного рендеринга, AnswerPolicy `oge13.option-number@1`, планировщик и отдельный Telegram/PostgreSQL flow.
+- 40 быстрых и 250 основных уникальных условий на семейство; по 290 независимых oracle cases на семейство. QA: `reports/oge13-quality.json`. PostgreSQL 17 проверяется в CI PR; локальный запуск без DATABASE_URL пропущен.
+- Миграция `0008_task13_sessions.sql` изолирует состояние №13. Внешняя схема №6/10/12 и их поведение не менялись; добавлена общая статистическая строка №13 и регрессия отображения.
+- PR направлен в `main`; merge, auto-merge и production deploy не входят в этап.
+- Follow-up PR #8 rev2: S01–S03 восстановлены как системы линейных неравенств с точными алгебраическими формами источников, коэффициентами и переносом слагаемых; `generator_version` повышена до 0.2.0.
+- Дистракторы теперь фильтруют некорректные/неканоничные интервалы; независимые тесты проверяют математическую семантику пикселей PNG и точную отрисовку сохранённых четырёх вариантов без регенерации.
+- При пустом `ENABLED_FAMILIES` №13 скрыт в меню выбора номера. Отчёт дополнен примерами с вариантами и пошаговыми решениями для L02, Q04, S01–S03.
+- Follow-up PR #8 rev3: L01/L02 показывают исходное неравенство, перенос слагаемых, деление с проверкой знака коэффициента и итоговый промежуток; Q01–Q04 показывают разложение, корни, знаки на трёх промежутках, строгость границ и ответ. Независимые регрессионные тесты сверяют каждый числовой шаг с отображённым условием; генераторы множеств и PNG не менялись.
+
+
 ## 2026-11-02 — Migration startup follow-up for OGE task 8
 - Reserved migration `0008_task13_sessions.sql` for PR #8 and renumbered task 8 to `0009_task8_sessions.sql`.
 - Application startup now discovers migrations by unique numeric prefix, serializes concurrent runners, and records successful versions for idempotent restarts. Active-session duplicates are detected before any session uniqueness index migration; startup fails with a manual remediation message and leaves rows untouched.
