@@ -1,7 +1,9 @@
 import hmac
 import logging
+import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 import asyncpg
@@ -14,6 +16,98 @@ from app.config import get_settings
 from app.persistence.repository import PostgresRepository, Repository, read_migration
 
 logger = logging.getLogger("oge_trainer")
+_MIGRATION_PATTERN = re.compile(r"(?P<number>\d{4})_[a-z0-9_]+\.sql\Z")
+_MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations"
+_MIGRATION_LOCK_ID = 74120608
+
+
+def _migration_files() -> list[Path]:
+    migrations = sorted(_MIGRATIONS_DIR.glob("*.sql"))
+    seen: dict[int, str] = {}
+    for migration in migrations:
+        match = _MIGRATION_PATTERN.fullmatch(migration.name)
+        if match is None:
+            raise RuntimeError(f"Invalid migration filename: {migration.name}")
+        number = int(match.group("number"))
+        previous = seen.get(number)
+        if previous is not None:
+            raise RuntimeError(
+                f"Duplicate migration number {number:04d}: {previous}, {migration.name}"
+            )
+        seen[number] = migration.name
+    return migrations
+
+
+async def _assert_no_duplicate_active_sessions(
+    connection: asyncpg.Connection, mode: str
+) -> None:
+    duplicate = await connection.fetchrow(
+        """SELECT mode, user_id, count(*) AS session_count
+           FROM sessions
+           WHERE finished_at IS NULL
+             AND mode = $1
+           GROUP BY mode, user_id
+           HAVING count(*) > 1
+           ORDER BY mode, user_id
+           LIMIT 1""",
+        mode,
+    )
+    if duplicate is not None:
+        raise RuntimeError(
+            "Cannot apply session uniqueness migrations: duplicate active "
+            f"{duplicate['mode']} sessions exist for user {duplicate['user_id']} "
+            f"({duplicate['session_count']} rows). Resolve them manually before retrying."
+        )
+
+
+async def _run_schema_migrations(pool: asyncpg.Pool) -> None:
+    async with pool.acquire() as connection:
+        await connection.execute("SELECT pg_advisory_lock($1)", _MIGRATION_LOCK_ID)
+        try:
+            await connection.execute(
+                """CREATE TABLE IF NOT EXISTS app_schema_migrations (
+                       version text PRIMARY KEY,
+                       applied_at timestamptz NOT NULL DEFAULT now()
+                   )"""
+            )
+            await connection.execute("ALTER TABLE app_schema_migrations ENABLE ROW LEVEL SECURITY")
+            await connection.execute("REVOKE ALL ON app_schema_migrations FROM PUBLIC")
+            await connection.execute(
+                """DO $$
+                   BEGIN
+                       IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+                           REVOKE ALL ON app_schema_migrations FROM anon;
+                       END IF;
+                       IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+                           REVOKE ALL ON app_schema_migrations FROM authenticated;
+                       END IF;
+                   END $$"""
+            )
+            for migration in _migration_files():
+                version = migration.name
+                applied = await connection.fetchval(
+                    "SELECT EXISTS (SELECT 1 FROM app_schema_migrations WHERE version=$1)",
+                    version,
+                )
+                if applied:
+                    continue
+                sql = await read_migration(str(migration))
+                session_index = re.search(
+                    r"CREATE\s+UNIQUE\s+INDEX[\s\S]+?\bON\s+sessions\b"
+                    r"[\s\S]+?\bWHERE\s+mode\s*=\s*'(?P<mode>[^']+)'",
+                    sql,
+                    re.IGNORECASE,
+                )
+                if session_index is not None:
+                    await _assert_no_duplicate_active_sessions(
+                        connection, session_index.group("mode")
+                    )
+                await connection.execute(sql)
+                await connection.execute(
+                    "INSERT INTO app_schema_migrations (version) VALUES ($1)", version
+                )
+        finally:
+            await connection.execute("SELECT pg_advisory_unlock($1)", _MIGRATION_LOCK_ID)
 
 
 def create_app(
@@ -35,15 +129,11 @@ def create_app(
             pool = await asyncpg.create_pool(settings.database_url, min_size=1, max_size=5)
             repo = PostgresRepository(pool)
             if run_schema_migrations:
-                for migration in (
-                    "0001_foundation.sql",
-                    "0002_task6_training.sql",
-                    "0003_task6_session_quality.sql",
-                    "0004_task9_sessions.sql",
-                    "0005_task10_sessions.sql",
-                    "0006_task12_sessions.sql",
-                ):
-                    await pool.execute(await read_migration(f"migrations/{migration}"))
+                try:
+                    await _run_schema_migrations(pool)
+                except BaseException:
+                    await pool.close()
+                    raise
         if telegram_bot is None:
             if not settings.telegram_bot_token:
                 raise RuntimeError("TELEGRAM_BOT_TOKEN is required")

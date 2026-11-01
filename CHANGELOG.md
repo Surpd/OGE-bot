@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — Migration startup follow-up for OGE task 8
+- Reserved migration `0008_task13_sessions.sql` for PR #8 and renumbered task 8 to `0009_task8_sessions.sql`.
+- Application startup now discovers migrations by unique numeric prefix, serializes concurrent runners, and records successful versions for idempotent restarts. Active-session duplicates are detected before any session uniqueness index migration; startup fails with a manual remediation message and leaves rows untouched.
+- Added PostgreSQL 17 lifespan integration coverage for ordered/idempotent startup and duplicate-session fail-closed behavior.
+- Combined startup coverage now includes migrations 0008/0009, two concurrent app instances, and legacy databases where 0001–0006 predate the migration ledger. Added a read-only SQL preflight for active task14/task13/task8 sessions.
+
 ## 2026-11-01 — OGE Trainer 0.5 / задание №12 (PR реализации, в работе; исправления oracle)
 - Исследование, 17 реестровых конструкций и 17 авторских образцов остаются постоянной основой; проверены отдельные статусы источников.
 - Реализованы точные формульные генераторы, отображённый oracle, ограниченный планировщик, политика ответа и отдельный Telegram/PostgreSQL flow.
@@ -96,3 +102,6 @@
 - PR проверяет PostgreSQL 17 через общий CI; миграция локальная тестовая, production не менялся.
 - Исправлены цели A09 (число дней по длине покрашенного забора и сумме норм первого/последнего дней) и A10 (запрошенный член по общей сумме без подсказки разности); PostgreSQL lifecycle-тесты теперь изолируют включённое семейство локально.
 - Quality report подтверждает 250/250 oracle-проверок на каждое из 13 семейств; A06 остаётся выключенным: его 42 естественных варианта нельзя гарантированно не повторять при скользящем окне лишь из 30 fingerprints.
+# 2026-11-02
+
+- Реализованы параметрические генераторы №8 для проверенных структур произведения корней (R04) и сокращения радикального члена в квадрате двучлена (R08), независимый oracle видимого условия и отдельный Telegram/PostgreSQL-поток. Остальные структуры atlas остаются выключенными.

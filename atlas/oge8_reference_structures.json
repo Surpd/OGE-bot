@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "exam_number": 8,
+    "version": "implementation-v1",
+    "research_snapshot": "2026-11-01",
+    "catalog_prototypes": 26,
+    "catalog_cards_with_clones": 78,
+    "fipi_original_pdfs_individually_verified": false,
+    "enabled_families": ["OGE08-R04", "OGE08-R08"],
+    "disabled_by_default": true
+  },
+  "families": [
+    {"family_id":"OGE08-R01","math_shape":"powers_one_base","source_ids":["401158","406567","460990"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
+    {"family_id":"OGE08-R02","math_shape":"power_of_power","source_ids":["355406","474148"],"status":"research_only","enabled":false,"reason":"Historical 2017 reference and portal examples; no original FIPI PDF checked."},
+    {"family_id":"OGE08-R03","math_shape":"composite_base","source_ids":["384401","401376"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
+    {"family_id":"OGE08-R04","math_shape":"radical_product","source_ids":["137285","392840"],"active_reference_ids":["137285"],"source_urls":["https://math-oge.sdamgia.ru/problem?id=137285","https://math-oge.sdamgia.ru/problem?id=392840"],"status":"enabled","enabled":true,"source_status":"137285: portal attribution to 2024-04-23 early wave; original FIPI PDF not checked","parameterization":"k1*sqrt(a)*k2*sqrt(b)*sqrt(a*b), positive integer a,b,k1,k2; a*b<=100","answer_shape":"integer"},
+    {"family_id":"OGE08-R05","math_shape":"radical_quotient","source_ids":["406280"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
+    {"family_id":"OGE08-R06","math_shape":"radical_conjugates","source_ids":["369495"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
+    {"family_id":"OGE08-R07","math_shape":"sum_radicals_times_root","source_ids":["383598"],"status":"research_only","enabled":false,"reason":"Portal attribution to a 2020 exam is erroneous; the 2020 exam was not held."},
+    {"family_id":"OGE08-R08","math_shape":"binomial_square_cancel","source_ids":["400942"],"active_reference_ids":["400942"],"source_urls":["https://math-oge.sdamgia.ru/problem?id=400942"],"status":"enabled","enabled":true,"source_status":"Portal attribution to St Petersburg trial exam 2025-02-06; original FIPI PDF not checked","parameterization":"(sqrt(n)+k)^2-2*k*sqrt(n), nonsquare integer 2<=n<=80, 1<=k<=7","answer_shape":"integer"},
+    {"family_id":"OGE08-R09","math_shape":"squared_root_quotient","source_ids":["438266","474136","474142"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
+    {"family_id":"OGE08-R10","math_shape":"literal_powers","source_ids":["412184","474139","479793"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
+    {"family_id":"OGE08-R11","math_shape":"two_variable_powers","source_ids":["412211"],"status":"research_only","enabled":false,"reason":"Radical substitution not selected for this release."},
+    {"family_id":"OGE08-R12","math_shape":"sqrt_perfect_square_binomial","source_ids":["412188"],"status":"research_only","enabled":false,"reason":"Absolute-value sign cases are not implemented in this release."},
+    {"family_id":"OGE08-R13","math_shape":"sqrt_literal_monomial","source_ids":["412189","474145","474151"],"status":"research_only","enabled":false,"reason":"Variable-domain and absolute-value cases are not implemented in this release."},
+    {"family_id":"OGE08-R14","math_shape":"multi_radical_literal","source_ids":["412191","412229"],"status":"research_only","enabled":false,"reason":"Variable-domain and radical-sign cases are not implemented in this release."},
+    {"family_id":"OGE08-R15","math_shape":"multiple_choice","source_ids":["349994","353281"],"status":"research_only","enabled":false,"reason":"Current task 8 answer shape is numeric; historical choice format unverified."},
+    {"family_id":"OGE08-R16","math_shape":"rationalize_denominator","source_ids":[],"status":"research_only","enabled":false,"reason":"No individually verified current reference ID."},
+    {"family_id":"OGE08-R17","math_shape":"rational_expressions","source_ids":[],"status":"research_only","enabled":false,"reason":"Legacy-only; current task 8 provenance unverified."}
+  ]
+}
