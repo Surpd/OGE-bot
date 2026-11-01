@@ -30,6 +30,7 @@ from app.math.inequalities import render_option_sheet_snapshot_png
 from app.math.inequalities import validate_snapshot as validate_task13_snapshot
 from app.math.numbers import POLICY as TASK7_ANSWER_POLICY
 from app.math.oge07_scheduler import build_task7_candidate_batch
+from app.math.oge07_validation import validate_task7_snapshot
 from app.math.oge8 import POLICY as TASK8_ANSWER_POLICY
 from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
@@ -1276,6 +1277,24 @@ async def _send_task7_problem(
     state = await repository.task7_state(user_id)
     state_value = cast(dict[str, object], state.get("state", {})) if state else {}
     current = state.get("problem") if state else None
+    if state is not None and (
+        (current is not None and not isinstance(current, dict))
+        or (current is None and state_value.get("status") == "active")
+    ):
+        await repository.save_user_state(user_id, "main_menu")
+        await message.answer(
+            "Сохранённое задание №7 повреждено. Оно не отправлено и не заменено новым заданием.",
+            reply_markup=main_menu(),
+        )
+        return False
+    if isinstance(current, dict) and not validate_task7_snapshot(current):
+        await repository.save_user_state(user_id, "main_menu")
+        await message.answer(
+            "Сохранённое задание №7 повреждено или использует неподдерживаемую версию. "
+            "Оно не отправлено и не заменено новым заданием.",
+            reply_markup=main_menu(),
+        )
+        return False
     if action == "resume":
         if not isinstance(current, dict) or state_value.get("status") != "active":
             await message.answer("Нет незавершённой тренировки №7.", reply_markup=main_menu())
@@ -1313,6 +1332,14 @@ async def _send_task7_problem(
                 return False
             if expected_screen is None:
                 await repository.save_user_state(user_id, "task7")
+    if not validate_task7_snapshot(problem):
+        await repository.save_user_state(user_id, "main_menu")
+        await message.answer(
+            "Сохранённое задание №7 повреждено или использует неподдерживаемую версию. "
+            "Оно не отправлено и не заменено новым заданием.",
+            reply_markup=main_menu(),
+        )
+        return False
     options = problem.get("options", [])
     option_lines = (
         "\n".join(f"{i}. {v}" for i, v in enumerate(options, 1))
@@ -1382,6 +1409,12 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
         await callback.answer("Это задание уже сменилось.")
         return
+    if not validate_task7_snapshot(problem):
+        await repository.save_user_state(user_id, "main_menu")
+        await callback.answer(
+            "Сохранённое задание повреждено; оно не было обработано.", show_alert=True
+        )
+        return
     if action in {"next", "skip"}:
         advanced = await _send_task7_problem(
             message,
@@ -1439,6 +1472,13 @@ async def task7_answer(message: Message, repository: Repository) -> None:
         or session_state.get("status") != "active"
     ):
         await message.answer("Сначала откройте активную тренировку №7.")
+        return
+    if not validate_task7_snapshot(problem):
+        await repository.save_user_state(user_id, "main_menu")
+        await message.answer(
+            "Сохранённое задание №7 повреждено; ответ не обработан и новое задание не создано.",
+            reply_markup=main_menu(),
+        )
         return
     prompt_id = session_state.get(
         "problem_prompt_message_id", session_state.get("input_prompt_message_id")

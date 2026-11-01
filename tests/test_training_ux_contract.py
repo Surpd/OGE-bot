@@ -443,3 +443,29 @@ async def test_task7_history_is_visible_in_detailed_progress(
     assert str(problem["family_id"]) in rendered
     assert str(problem["condition"]) in rendered
     assert "верно" in rendered
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("family", ("OGE07-C01", "OGE07-N04"))
+async def test_task7_rejects_corrupt_snapshot_without_regenerating(
+    monkeypatch: pytest.MonkeyPatch, family: str
+) -> None:
+    monkeypatch.setattr(oge07_scheduler, "ENABLED_FAMILIES", (family,))
+    repository = MemoryRepository()
+    user_id = 973_007
+    training = next(item for item in TRAININGS if item.number == 7)
+    state = await _open(repository, training, user_id)
+    problem = state["problem"]
+    original_problem_id = str(problem["problem_id"])
+    problem["condition"] = f"{problem['condition']}!"
+
+    resume_message = _message(user_id, "resume")
+    sent = await _send_task7_problem(resume_message, repository, action="resume")
+
+    persisted = await repository.task7_state(user_id)
+    assert sent is False
+    assert persisted is not None
+    assert persisted["problem"]["problem_id"] == original_problem_id
+    assert len(repository.issued7[user_id]) == 1
+    assert resume_message.answer_photo.await_count == 0
+    assert "не заменено новым заданием" in resume_message.answer.await_args.args[0]

@@ -10,14 +10,19 @@ import re
 import struct
 import zlib
 from dataclasses import dataclass
-from decimal import Decimal, localcontext
+from decimal import ROUND_HALF_EVEN, Decimal, localcontext
 from fractions import Fraction
 from typing import TypedDict, cast
 from uuid import NAMESPACE_URL, uuid5
 
 WIDTH = 960
 HEIGHT = 260
-SPEC_VERSION = "oge07-line-v1"
+SPEC_VERSION = "oge07-line-v2"
+GENERATOR_VERSION = "1.1.0"
+_AXIS_Y = 145
+_AXIS_LEFT = 72
+_AXIS_RIGHT = WIDTH - 72
+_TEXT_SCALE = 4
 _WHITE = (255, 255, 255)
 _BLACK = (26, 36, 52)
 _BLUE = (35, 105, 190)
@@ -76,7 +81,7 @@ class GraphProblem:
             "problem_id": self.problem_id,
             "family_id": self.family_id,
             "seed": self.seed,
-            "generator_version": "1.0.0",
+            "generator_version": GENERATOR_VERSION,
             "reference_ids": list(self.reference_ids),
             "content_provenance": "generated_analogue",
             "condition": self.condition,
@@ -160,7 +165,7 @@ def _value(point: dict[str, object]) -> Fraction:
 
 def _text(pixels: bytearray, x: int, y: int, text: str, color: tuple[int, int, int]) -> None:
     cursor = x
-    scale = 2
+    scale = _TEXT_SCALE
     for char in text:
         glyph = _GLYPHS.get(char)
         if glyph is None:
@@ -203,27 +208,44 @@ def _line(
 def projection(model: GraphModel) -> dict[str, int]:
     lo = Fraction(*model["axis_min"])
     hi = Fraction(*model["axis_max"])
-    left, right = 72, WIDTH - 72
     return {
-        str(point["id"]): left + round(float((_value(point) - lo) / (hi - lo)) * (right - left))
-        for point in model["points"]
+        str(point["id"]): _project_value(point["value_exact"], lo, hi) for point in model["points"]
     }
+
+
+def _project_value(value: object, axis_min: Fraction, axis_max: Fraction) -> int:
+    span = axis_max - axis_min
+    if isinstance(value, dict) and "sqrt" in value:
+        with localcontext() as context:
+            context.prec = 80
+            decimal_coordinate = Decimal(int(value["sqrt"])).sqrt()
+            lo = Decimal(axis_min.numerator) / Decimal(axis_min.denominator)
+            width = Decimal(span.numerator) / Decimal(span.denominator)
+            normalized = (decimal_coordinate - lo) / width
+            offset = (normalized * (_AXIS_RIGHT - _AXIS_LEFT)).to_integral_value(
+                rounding=ROUND_HALF_EVEN
+            )
+            return _AXIS_LEFT + int(offset)
+    rational_coordinate = _coord(value)
+    return _AXIS_LEFT + round((rational_coordinate - axis_min) / span * (_AXIS_RIGHT - _AXIS_LEFT))
 
 
 def render_png(model: GraphModel) -> tuple[bytes, dict[str, int]]:
     if model["render_spec_version"] != SPEC_VERSION or model["width"] != WIDTH:
         raise ValueError("Unsupported graph rendering specification")
     pixels = bytearray(bytes(_WHITE) * WIDTH * HEIGHT)
-    axis_y, left, right = 145, 72, WIDTH - 72
+    axis_y, left, right = _AXIS_Y, _AXIS_LEFT, _AXIS_RIGHT
     lo = Fraction(*model["axis_min"])
     hi = Fraction(*model["axis_max"])
-    _line(pixels, left, axis_y, right, axis_y, _BLACK)
+    for dy in (-1, 0, 1):
+        _line(pixels, left, axis_y + dy, right, axis_y + dy, _BLACK)
     for tick in model["ticks"]:
         value = _coord(tick["value"])
-        x = left + round(float((value - lo) / (hi - lo)) * (right - left))
-        _line(pixels, x, axis_y - 8, x, axis_y + 8, _BLACK)
+        x = left + round((value - lo) / (hi - lo) * (right - left))
+        for dx in (-1, 0, 1):
+            _line(pixels, x + dx, axis_y - 8, x + dx, axis_y + 8, _BLACK)
         label = str(tick["label"])
-        _text(pixels, x - len(label) * 7, axis_y + 20, label, _BLACK)
+        _text(pixels, x - len(label) * 14, axis_y + 20, label, _BLACK)
     positions = projection(model)
     for point in model["points"]:
         x = positions[str(point["id"])]
@@ -232,7 +254,7 @@ def render_png(model: GraphModel) -> tuple[bytes, dict[str, int]]:
                 if dx * dx + dy * dy <= 64:
                     _pixel(pixels, x + dx, axis_y - 24 + dy, _BLUE)
         label = str(point["label"])
-        _text(pixels, x - len(label) * 7, axis_y - 55, label, _BLACK)
+        _text(pixels, x - len(label) * 14, axis_y - 63, label, _BLACK)
     rows = b"".join(b"\x00" + pixels[y * WIDTH * 3 : (y + 1) * WIDTH * 3] for y in range(HEIGHT))
 
     def chunk(kind: bytes, data: bytes) -> bytes:
@@ -251,20 +273,205 @@ def render_png(model: GraphModel) -> tuple[bytes, dict[str, int]]:
 
 
 def audit_png(model: GraphModel, png: bytes) -> bool:
-    """Verify PNG integrity, dimensions, axes and each point's raster footprint."""
+    """Independently read labels, ticks and plotted point centers from PNG pixels."""
+    pixels = _decode_rgb_png(png)
+    if pixels is None or model["correct_option_index"] not in range(1, 5):
+        return False
+    options = model["options"]
+    points = model["points"]
+    ticks = model["ticks"]
+    if len(options) != 4 or len(set(options)) != 4 or not points or not ticks:
+        return False
+    try:
+        axis_min = _coord(model["axis_min"])
+        axis_max = _coord(model["axis_max"])
+        if not axis_min < axis_max:
+            return False
+        if any(not isinstance(tick, dict) for tick in ticks):
+            return False
+        tick_values = [_coord(tick["value"]) for tick in ticks]
+        if tick_values != sorted(set(tick_values)) or any(
+            value.denominator != 1 for value in tick_values
+        ):
+            return False
+        axis_pixels = [x for x in range(WIDTH) if _raster_pixel(pixels, x, _AXIS_Y) == _BLACK]
+        if axis_pixels != list(range(_AXIS_LEFT - 1, _AXIS_RIGHT + 2)):
+            return False
+        raster_tick_columns = [
+            x
+            for x in range(_AXIS_LEFT - 1, _AXIS_RIGHT + 2)
+            if sum(_raster_pixel(pixels, x, y) == _BLACK for y in range(_AXIS_Y - 8, _AXIS_Y + 9))
+            >= 16
+        ]
+        raster_tick_x: list[int] = []
+        if raster_tick_columns:
+            tick_start = previous = raster_tick_columns[0]
+            for x in raster_tick_columns[1:]:
+                if x != previous + 1:
+                    raster_tick_x.append((tick_start + previous) // 2)
+                    tick_start = x
+                previous = x
+            raster_tick_x.append((tick_start + previous) // 2)
+        expected_tick_x = [
+            _AXIS_LEFT
+            + round((value - axis_min) / (axis_max - axis_min) * (_AXIS_RIGHT - _AXIS_LEFT))
+            for value in tick_values
+        ]
+        if raster_tick_x != expected_tick_x:
+            return False
+        if len(raster_tick_x) > 1:
+            gaps = [b - a for a, b in zip(raster_tick_x, raster_tick_x[1:], strict=False)]
+            value_gaps = [b - a for a, b in zip(tick_values, tick_values[1:], strict=False)]
+            if len(set(value_gaps)) != 1 or max(gaps) - min(gaps) > 1:
+                return False
+        for tick, x in zip(ticks, raster_tick_x, strict=True):
+            label = str(tick["label"])
+            if label != str(int(_coord(tick["value"]))):
+                return False
+            if not _raster_text_matches(pixels, label, x - len(label) * 14, _AXIS_Y + 20):
+                return False
+
+        point_centers = _blue_centers_on_row(pixels, _AXIS_Y - 24)
+        if len(point_centers) != len(points):
+            return False
+        expected_centers: list[int] = []
+        ordered_points = sorted(points, key=lambda point: _value(point))
+        if list(points) != ordered_points:
+            return False
+        if [point.get("sort_order") for point in points] != list(range(len(points))):
+            return False
+        labels = [str(point["label"]) for point in points]
+        if len(set(labels)) != len(labels):
+            return False
+        for point in points:
+            coordinate = _value(point)
+            if not axis_min <= coordinate <= axis_max:
+                return False
+            x = _project_value(point["value_exact"], axis_min, axis_max)
+            expected_centers.append(x)
+            # Check the point's mathematical position against the adjacent labeled ticks.
+            lower = [i for i, tick in enumerate(tick_values) if tick <= coordinate]
+            upper = [i for i, tick in enumerate(tick_values) if tick >= coordinate]
+            if not lower or not upper:
+                return False
+            if not raster_tick_x[lower[-1]] <= x <= raster_tick_x[upper[0]]:
+                return False
+            if not _raster_text_matches(
+                pixels, str(point["label"]), x - len(str(point["label"])) * 14, _AXIS_Y - 63
+            ):
+                return False
+            for y in range(_AXIS_Y - 26, _AXIS_Y - 15):
+                for dx in range(-8, 9):
+                    inside = dx * dx + (y - (_AXIS_Y - 24)) ** 2 <= 64
+                    expected = _BLUE if inside else _WHITE
+                    if _raster_pixel(pixels, x + dx, y) != expected:
+                        return False
+        if point_centers != expected_centers:
+            return False
+        if any(b - a < 20 for a, b in zip(point_centers, point_centers[1:], strict=False)):
+            return False
+        return all(_AXIS_LEFT <= center <= _AXIS_RIGHT for center in point_centers)
+    except (KeyError, TypeError, ValueError, ZeroDivisionError, OverflowError):
+        return False
+
+
+def _decode_rgb_png(png: bytes) -> bytes | None:
     if len(png) < 33 or not png.startswith(b"\x89PNG\r\n\x1a\n"):
-        return False
-    if struct.unpack(">2I", png[16:24]) != (WIDTH, HEIGHT):
-        return False
-    if model["correct_option_index"] not in range(1, 5) or len(model["options"]) != 4:
-        return False
-    # Re-render from the preserved model and compare the exact raster artifact.
-    expected, positions = render_png(model)
-    if png != expected:
-        return False
-    return all(72 <= x < WIDTH - 72 for x in positions.values()) and len(
-        set(positions.values())
-    ) == len(positions)
+        return None
+    cursor = 8
+    compressed = bytearray()
+    dimensions: tuple[int, int] | None = None
+    while cursor + 12 <= len(png):
+        length = struct.unpack(">I", png[cursor : cursor + 4])[0]
+        kind = png[cursor + 4 : cursor + 8]
+        end = cursor + 12 + length
+        if end > len(png):
+            return None
+        data = png[cursor + 8 : cursor + 8 + length]
+        crc = struct.unpack(">I", png[cursor + 8 + length : end])[0]
+        if zlib.crc32(kind + data) & 0xFFFFFFFF != crc:
+            return None
+        if kind == b"IHDR":
+            if length != 13:
+                return None
+            width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
+                ">2I5B", data
+            )
+            if (width, height) != (WIDTH, HEIGHT) or (bit_depth, color_type) != (8, 2):
+                return None
+            if compression or filtering or interlace:
+                return None
+            dimensions = (width, height)
+        elif kind == b"IDAT":
+            compressed.extend(data)
+        elif kind == b"IEND":
+            if length != 0 or end != len(png):
+                return None
+            break
+        cursor = end
+    if dimensions is None:
+        return None
+    try:
+        scanlines = zlib.decompress(compressed)
+    except zlib.error:
+        return None
+    stride = WIDTH * 3
+    if len(scanlines) != HEIGHT * (stride + 1):
+        return None
+    raster = bytearray(HEIGHT * stride)
+    for y in range(HEIGHT):
+        start = y * (stride + 1)
+        if scanlines[start] != 0:
+            return None
+        raster[y * stride : (y + 1) * stride] = scanlines[start + 1 : start + 1 + stride]
+    return bytes(raster)
+
+
+def _raster_pixel(pixels: bytes, x: int, y: int) -> tuple[int, int, int] | None:
+    if not (0 <= x < WIDTH and 0 <= y < HEIGHT):
+        return None
+    offset = (y * WIDTH + x) * 3
+    return pixels[offset], pixels[offset + 1], pixels[offset + 2]
+
+
+def _raster_text_matches(pixels: bytes, text: str, x: int, y: int) -> bool:
+    cursor = x
+    for char in text:
+        glyph = _GLYPHS.get(char)
+        if glyph is None:
+            return False
+        for row in range(7):
+            for col in range(7):
+                bit = glyph[row][col] if col < 5 else "0"
+                for dy in range(_TEXT_SCALE):
+                    for dx in range(_TEXT_SCALE):
+                        expected = _BLACK if bit == "1" else _WHITE
+                        if (
+                            _raster_pixel(
+                                pixels, cursor + col * _TEXT_SCALE + dx, y + row * _TEXT_SCALE + dy
+                            )
+                            != expected
+                        ):
+                            return False
+        cursor += 7 * _TEXT_SCALE
+    return True
+
+
+def _blue_centers_on_row(pixels: bytes, y: int) -> list[int]:
+    runs: list[int] = []
+    start: int | None = None
+    for x in range(_AXIS_LEFT, _AXIS_RIGHT + 1):
+        blue = _raster_pixel(pixels, x, y) == _BLUE
+        if blue and start is None:
+            start = x
+        elif not blue and start is not None:
+            if x - start != 17:
+                return []
+            runs.append((start + x - 1) // 2)
+            start = None
+    if start is not None:
+        return []
+    return runs
 
 
 def png_sha256(png: bytes) -> str:
@@ -416,7 +623,10 @@ def audit_graph_problem(problem: GraphProblem) -> bool:
     """Cross-check displayed task, exact graph model, answer and PNG raster."""
     model = problem.graph_model
     if (
-        model["options"] != list(problem.options)
+        len(problem.options) != 4
+        or len(set(problem.options)) != 4
+        or problem.correct_option_index not in range(1, 5)
+        or model["options"] != list(problem.options)
         or model["correct_option_index"] != problem.correct_option_index
         or model["reference_ids"] != list(problem.reference_ids)
         or png_sha256(problem.png) != problem.png_sha256
@@ -457,13 +667,26 @@ def audit_graph_problem(problem: GraphProblem) -> bool:
                 for option in problem.options
             ]
         elif problem.family_id == "OGE07-N04":
+            if (
+                problem.condition
+                != "Какое число соответствует отмеченной на координатной прямой точке A?"
+            ):
+                return False
             if len(model["points"]) != 1 or model["points"][0]["label"] != "A":
                 return False
             exact = model["points"][0]["value_exact"]
             if not isinstance(exact, dict) or "sqrt" not in exact:
                 return False
+            radicand = int(exact["sqrt"])
+            if radicand <= 0 or math.isqrt(radicand) ** 2 == radicand:
+                return False
             truths = [option == f"√{exact['sqrt']}" for option in problem.options]
         elif problem.family_id == "OGE07-N05":
+            if (
+                problem.condition
+                != "Какое число соответствует отмеченной на координатной прямой точке A?"
+            ):
+                return False
             if len(model["points"]) != 1 or model["points"][0]["label"] != "A":
                 return False
             exact = _coord(model["points"][0]["value_exact"])

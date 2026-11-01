@@ -13,7 +13,7 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
-GENERATOR_VERSION = "0.1.0"
+GENERATOR_VERSION = "0.2.0"
 FAMILIES = tuple(f"OGE07-C{i:02}" for i in range(1, 7))
 ENABLED_FAMILIES: tuple[str, ...] = ()
 POLICY = AnswerPolicy("oge07.single-choice", "1", AnswerFormat.SINGLE_NUMBER)
@@ -39,17 +39,19 @@ def _parse_number(raw: str) -> Fraction:
 
 def _decimal(value: Fraction) -> str:
     """Render the finite decimals used by the generators without float math."""
-    d = value.denominator
-    if any(d % p for p in (2, 5)):
+    denominator = value.denominator
+    twos = fives = 0
+    while denominator % 2 == 0:
+        denominator //= 2
+        twos += 1
+    while denominator % 5 == 0:
+        denominator //= 5
+        fives += 1
+    if denominator != 1:
         return f"{value.numerator}/{value.denominator}"
-    scale = 0
-    while d > 1:
-        for p in (2, 5):
-            if d % p == 0:
-                d //= p
-                scale += 1
-                break
-    n = value.numerator * 10**scale // value.denominator
+    scale = max(twos, fives)
+    multiplier = 2 ** (scale - twos) * 5 ** (scale - fives)
+    n = value.numerator * multiplier
     sign = "−" if n < 0 else ""
     digits = str(abs(n)).rjust(scale + 1, "0")
     if not scale:
@@ -262,7 +264,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         )
     # C06: signed rational and its unique pair of consecutive integer bounds.
     den = rng.randrange(2, 12)
-    p = rng.choice([v for v in range(-40, 41) if v % den])
+    p = rng.choice([v for v in range(-100, 101) if v % den])
     x = Fraction(p, den)
     floor = x.numerator // x.denominator
     opts = [
