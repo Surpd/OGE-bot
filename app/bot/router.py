@@ -12,6 +12,7 @@ from app.bot.menu import (
     number_menu,
     progress_menu,
     task6_menu,
+    task8_menu,
     task9_menu,
     task10_menu,
     task12_menu,
@@ -21,22 +22,16 @@ from app.bot.menu import (
 from app.bot.training_ux import matches_current_condition
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.formulas import POLICY as TASK12_ANSWER_POLICY
-from app.math.inequalities import (
-    ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES,
-)
-from app.math.inequalities import (
-    POLICY as TASK13_ANSWER_POLICY,
-)
-from app.math.inequalities import (
-    render_option_sheet_snapshot_png,
-)
-from app.math.inequalities import (
-    validate_snapshot as validate_task13_snapshot,
-)
+from app.math.oge8 import POLICY as TASK8_ANSWER_POLICY
+from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
 from app.math.oge13_scheduler import build_task13_candidate_batch
+from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
+from app.math.inequalities import POLICY as TASK13_ANSWER_POLICY
+from app.math.inequalities import render_option_sheet_snapshot_png
+from app.math.inequalities import validate_snapshot as validate_task13_snapshot
 from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.probability import ANSWER_POLICY as TASK10_ANSWER_POLICY
 from app.math.progressions import POLICY as TASK14_ANSWER_POLICY
@@ -50,6 +45,7 @@ TASK9_LABEL = "№9 · Уравнения"
 TASK10_LABEL = "№10 · Вероятность"
 TASK12_LABEL = "№12 · Формулы"
 TASK14_LABEL = "№14 · Прогрессии"
+TASK8_LABEL = "№8 · Степени и корни"
 TASK13_LABEL = "№13 · Неравенства"
 
 
@@ -82,12 +78,13 @@ def _has_resumable_task9(state: dict[str, object] | None) -> bool:
 
 
 async def _has_resumable_session(repository: Repository, user_id: int) -> bool:
-    state6, state9, state10, state12, state14, state13 = (
+    state6, state9, state10, state12, state14, state8, state13 = (
         await repository.task6_state(user_id),
         await repository.task9_state(user_id),
         await repository.task10_state(user_id),
         await repository.task12_state(user_id),
         await repository.task14_state(user_id),
+        await repository.task8_state(user_id),
         await repository.task13_state(user_id),
     )
     return (
@@ -96,6 +93,7 @@ async def _has_resumable_session(repository: Repository, user_id: int) -> bool:
         or _has_resumable_task9(state10)
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
+        or _has_resumable_task9(state8)
         or _has_resumable_task9(state13)
     )
 
@@ -187,6 +185,7 @@ async def start(message: Message, repository: Repository) -> None:
     state10 = await repository.task10_state(message.from_user.id)
     state12 = await repository.task12_state(message.from_user.id)
     state14 = await repository.task14_state(message.from_user.id)
+    state8 = await repository.task8_state(message.from_user.id)
     state13 = await repository.task13_state(message.from_user.id)
     has_session = (
         _has_resumable_task6(state)
@@ -194,6 +193,7 @@ async def start(message: Message, repository: Repository) -> None:
         or _has_resumable_task9(state10)
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
+        or _has_resumable_task9(state8)
         or _has_resumable_task9(state13)
     )
     logger.info("user_started")
@@ -223,9 +223,13 @@ async def continue_session(message: Message, repository: Repository) -> None:
     state10 = await repository.task10_state(user_id)
     state12 = await repository.task12_state(user_id)
     state14 = await repository.task14_state(user_id)
+    state8 = await repository.task8_state(user_id)
     state13 = await repository.task13_state(user_id)
     if resume_mode == "task13" and _has_resumable_task9(state13):
         await _send_task13_problem(message, repository, action="resume")
+        return
+    if resume_mode == "task8" and _has_resumable_task9(state8):
+        await _send_task8_problem(message, repository, action="resume")
         return
     if resume_mode == "task14" and _has_resumable_task9(state14):
         await _send_task14_problem(message, repository, action="resume")
@@ -254,6 +258,9 @@ async def continue_session(message: Message, repository: Repository) -> None:
     if _has_resumable_task9(state12):
         await _send_task12_problem(message, repository, action="resume")
         return
+    if _has_resumable_task9(state8):
+        await _send_task8_problem(message, repository, action="resume")
+        return
     if _has_resumable_task9(state13):
         await _send_task13_problem(message, repository, action="resume")
         return
@@ -273,10 +280,7 @@ async def choose_number(message: Message, repository: Repository) -> None:
     user_id = _user_id(message)
     if user_id is not None:
         await repository.save_user_state(user_id, "number_selection")
-    await message.answer(
-        "Выберите номер задания:",
-        reply_markup=number_menu(include_task13=bool(TASK13_ENABLED_FAMILIES)),
-    )
+    await message.answer("Выберите номер задания:", reply_markup=number_menu(include_task13=bool(TASK13_ENABLED_FAMILIES)))
 
 
 async def choose_task6(message: Message, repository: Repository) -> None:
@@ -581,7 +585,6 @@ async def task10_answer(message: Message, repository: Repository) -> None:
             user_id, problem_id, result_id, expected_status=str(status)
         )
         await _disable_stale_keyboard(sent, saved)
-
 
 async def _send_task12_problem(
     message: Message,
@@ -1014,6 +1017,224 @@ async def task14_answer(message: Message, repository: Repository) -> None:
     result_id = getattr(sent, "message_id", None)
     if type(result_id) is int:
         saved = await repository.set_task14_prompt_message(
+            user_id, problem_id, result_id, expected_status=str(status)
+        )
+        await _disable_stale_keyboard(sent, saved)
+
+
+async def _send_task8_problem(
+    message: Message,
+    repository: Repository,
+    *,
+    action: str,
+    expected_problem_id: str | None = None,
+    expected_screen: str | None = None,
+    expected_prompt_message_id: int | None = None,
+    user_id_override: int | None = None,
+    skip_active: bool = False,
+) -> bool:
+    user_id = user_id_override if user_id_override is not None else _user_id(message)
+    if user_id is None:
+        return False
+    await repository.ensure_task8_session(user_id)
+    state = await repository.task8_state(user_id)
+    state_value = cast(dict[str, object], state.get("state", {})) if state else {}
+    current = state.get("problem") if state else None
+    if action == "resume":
+        if not isinstance(current, dict) or state_value.get("status") != "active":
+            await message.answer("Нет незавершённой тренировки №8.", reply_markup=main_menu())
+            return False
+        problem = current
+        await repository.save_user_state(user_id, "task8")
+    else:
+        if (
+            action == "start"
+            and isinstance(current, dict)
+            and state_value.get("status") == "active"
+        ):
+            problem = current
+            await repository.save_user_state(user_id, "task8")
+        else:
+            if action == "start" and isinstance(current, dict):
+                expected_problem_id = str(current.get("problem_id", ""))
+                action = "advance"
+            if action == "advance" and expected_problem_id is None and isinstance(current, dict):
+                expected_problem_id = str(current.get("problem_id", ""))
+            candidates = build_task8_candidate_batch(state_value, secrets.randbelow(2**63))
+            try:
+                problem = await repository.advance_task8_problem(
+                    user_id,
+                    expected_problem_id,
+                    candidates,
+                    expected_screen,
+                    expected_prompt_message_id,
+                    skip_active,
+                )
+            except RuntimeError:
+                await message.answer("Не удалось подготовить задание №8. Попробуйте ещё раз.")
+                return False
+            if action == "advance" and problem.get("_transitioned") is False:
+                return False
+            if expected_screen is None:
+                await repository.save_user_state(user_id, "task8")
+    sent = await message.answer(
+        "Задание №8 · степени и корни\n"
+        "Тренировочный аналог, созданный алгоритмически по мотивам указанной структуры; "
+        "это не оригинальное опубликованное задание ОГЭ.\n\n"
+        f"{problem['condition']}\n\n"
+        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
+        reply_markup=task8_menu(str(problem["problem_id"])),
+    )
+    prompt_id = getattr(sent, "message_id", None)
+    if type(prompt_id) is int:
+        await repository.set_task8_condition_message(
+            user_id, str(problem["problem_id"]), prompt_id
+        )
+    return True
+
+
+async def choose_task8(message: Message, repository: Repository) -> None:
+    await _send_task8_problem(message, repository, action="start")
+
+
+async def task8_callback(callback: CallbackQuery, repository: Repository) -> None:
+    parts = (callback.data or "").split(":", 2)
+    if len(parts) != 3 or parts[0] != "t8" or callback.message is None:
+        await callback.answer()
+        return
+    _, action, expected_id = parts
+    user_id = callback.from_user.id
+    message = cast(Message, callback.message)
+    prompt_id = getattr(message, "message_id", None)
+    if type(prompt_id) is not int:
+        await callback.answer("Кнопка больше не связана с заданием.")
+        return
+    if action == "menu":
+        changed = await repository.transition_task_screen(
+            user_id, "task8", expected_id, "main_menu", prompt_id
+        )
+        if not changed:
+            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            return
+        await message.answer(
+            "Главное меню.",
+            reply_markup=main_menu(has_session=await _has_resumable_session(repository, user_id)),
+        )
+        await callback.answer()
+        return
+    if await repository.user_state(user_id) != "task8":
+        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        return
+    state = await repository.task8_state(user_id)
+    problem = state.get("problem") if state else None
+    if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
+        await callback.answer("Это задание уже сменилось.")
+        return
+    if action in {"next", "skip"}:
+        advanced = await _send_task8_problem(
+            message,
+            repository,
+            action="advance",
+            expected_problem_id=expected_id,
+            expected_screen="task8",
+            expected_prompt_message_id=prompt_id,
+            user_id_override=user_id,
+            skip_active=action == "skip",
+        )
+        await callback.answer(None if advanced else "Это задание уже сменилось.")
+        return
+    if action == "hint":
+        hint = await repository.task8_hint(user_id, expected_id, prompt_id)
+        await message.answer(hint or "Подсказок больше нет.")
+    elif action == "solution":
+        revealed = await repository.task8_reveal_solution(user_id, expected_id, prompt_id)
+        snapshot = revealed.get("problem") if revealed else None
+        if not isinstance(snapshot, dict):
+            await callback.answer("Это задание уже сменилось.")
+            return
+        steps = snapshot.get("solution", [])
+        sent = await message.answer(
+            "Разбор (самостоятельное решение не засчитывается):\n"
+            + "\n".join(str(step) for step in steps)
+            + f"\n\nОтвет: {snapshot['correct_answer']}",
+            reply_markup=task8_menu(expected_id, completed=True),
+        )
+        result_id = getattr(sent, "message_id", None)
+        if type(result_id) is int:
+            saved = await repository.set_task8_prompt_message(
+                user_id,
+                expected_id,
+                result_id,
+                expected_status=_solution_display_status(revealed),
+            )
+            await _disable_stale_keyboard(sent, saved)
+    else:
+        await callback.answer()
+        return
+    await callback.answer()
+
+
+async def task8_answer(message: Message, repository: Repository) -> None:
+    user_id = _user_id(message)
+    if user_id is None or message.text is None:
+        return
+    state = await repository.task8_state(user_id)
+    problem = state.get("problem") if state else None
+    session_state = state.get("state", {}) if state else {}
+    if (
+        not isinstance(problem, dict)
+        or not isinstance(session_state, dict)
+        or session_state.get("status") != "active"
+    ):
+        await message.answer("Сначала откройте активную тренировку №8.")
+        return
+    prompt_id = session_state.get(
+        "problem_prompt_message_id", session_state.get("input_prompt_message_id")
+    )
+    if not matches_current_condition(message, cast(dict[str, object], session_state)):
+        await message.answer("Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.")
+        return
+    if (
+        problem.get("answer_policy_id") != TASK8_ANSWER_POLICY.policy_id
+        or problem.get("answer_policy_version") != TASK8_ANSWER_POLICY.version
+    ):
+        await message.answer("Политика ответа этой задачи недоступна.")
+        return
+    if TASK8_ANSWER_POLICY.parse(message.text) is None:
+        await message.answer("Введите числовой ответ, например 12 или 3,5.")
+        return
+    problem_id = str(problem.get("problem_id", ""))
+    correct = TASK8_ANSWER_POLICY.accepts(message.text, str(problem.get("correct_answer", "")))
+    outcome = await repository.task8_attempt(
+        user_id,
+        problem_id,
+        message.text,
+        correct,
+        message.message_id if type(message.message_id) is int else None,
+        prompt_id,
+    )
+    if outcome is None or outcome.get("status") in {"stale", "duplicate"}:
+        await message.answer("Ответ к уже сменившемуся заданию проигнорирован.")
+        return
+    status = outcome.get("status")
+    if status == "solved":
+        text = "✅ Верно! Ответ засчитан."
+    elif status == "active":
+        text = "Пока неверно. Попробуйте ещё раз."
+    elif status == "failed":
+        snapshot = cast(dict[str, object], outcome["problem"])
+        text = (
+            f"Вторая попытка неверна. Ответ: {snapshot['correct_answer']}\n\nРазбор:\n"
+            + "\n".join(map(str, cast(list[object], snapshot.get("solution", []))))
+        )
+    else:
+        await message.answer("Ответ уже обработан. Нажмите «Следующее».")
+        return
+    completed = status != "active"
+    sent = await message.answer(text, reply_markup=task8_menu(problem_id, completed=completed))
+    result_id = getattr(sent, "message_id", None)
+    if type(result_id) is int:
+        saved = await repository.set_task8_prompt_message(
             user_id, problem_id, result_id, expected_status=str(status)
         )
         await _disable_stale_keyboard(sent, saved)
@@ -1810,16 +2031,18 @@ async def show_progress(message: Message, repository: Repository) -> None:
     state10 = await repository.task10_state(user_id)
     progress12 = await repository.task12_progress(user_id)
     state12 = await repository.task12_state(user_id)
+    progress8 = await repository.task8_progress(user_id)
     progress14 = await repository.task14_progress(user_id)
-    state14 = await repository.task14_state(user_id)
-    progress13 = await repository.task13_progress(user_id)
+    state8 = await repository.task8_state(user_id)
     state13 = await repository.task13_state(user_id)
+    state14 = await repository.task14_state(user_id)
     has_session = (
         _has_resumable_task6(state)
         or _has_resumable_task9(state9)
         or _has_resumable_task9(state10)
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
+        or _has_resumable_task9(state8)
         or _has_resumable_task9(state13)
     )
     accuracy9 = (
@@ -1842,11 +2065,14 @@ async def show_progress(message: Message, repository: Repository) -> None:
         if progress14["answered"]
         else 0
     )
-    accuracy13 = (
-        (progress13["correct"] * 100 + progress13["answered"] // 2) // progress13["answered"]
-        if progress13["answered"]
+    accuracy8 = (
+        (progress8["correct"] * 100 + progress8["answered"] // 2) // progress8["answered"]
+        if progress8["answered"]
         else 0
     )
+    progress13 = await repository.task13_progress(user_id)
+    state13 = await repository.task13_state(user_id)
+    accuracy13 = (progress13["correct"] * 100 + progress13["answered"] // 2) // progress13["answered"] if progress13["answered"] else 0
     await message.answer(
         "📊 Прогресс\n\n"
         f"№6 · выдано {issued} · отвечал {answered} · решил {correct} · "
@@ -1860,6 +2086,9 @@ async def show_progress(message: Message, repository: Repository) -> None:
         f"№12 · выдано {progress12['issued']} · отвечал {progress12['answered']} · "
         f"решил {progress12['correct']} · пропустил {progress12['skipped']} · "
         f"правильно {accuracy12}%\n"
+        f"№8 · выдано {progress8['issued']} · отвечал {progress8['answered']} · "
+        f"решил {progress8['correct']} · пропустил {progress8['skipped']} · "
+        f"правильно {accuracy8}%\n"
         f"№13 · выдано {progress13['issued']} · отвечал {progress13['answered']} · "
         f"решил {progress13['correct']} · пропустил {progress13['skipped']} · "
         f"правильно {accuracy13}%\n"
@@ -1881,12 +2110,14 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
     progress10 = await repository.task10_progress(user_id)
     progress12 = await repository.task12_progress(user_id)
     progress14 = await repository.task14_progress(user_id)
+    progress8 = await repository.task8_progress(user_id)
     progress13 = await repository.task13_progress(user_id)
     state6 = await repository.task6_state(user_id)
     state9 = await repository.task9_state(user_id)
     state10 = await repository.task10_state(user_id)
     state12 = await repository.task12_state(user_id)
     state14 = await repository.task14_state(user_id)
+    state8 = await repository.task8_state(user_id)
     state13 = await repository.task13_state(user_id)
     has_session = (
         _has_resumable_task6(state6)
@@ -1894,6 +2125,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
         or _has_resumable_task9(state10)
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
+        or _has_resumable_task9(state8)
         or _has_resumable_task9(state13)
     )
 
@@ -1910,7 +2142,8 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
         "📊 Подробнее\n\n"
         f"{detail('6', progress6)}\n\n{detail('9', progress9)}\n\n"
         f"{detail('10', progress10)}\n\n{detail('12', progress12)}\n\n"
-        f"{detail('13', progress13)}\n\n{detail('14', progress14)}\n\n"
+        f"{detail('8', progress8)}\n\n{detail('13', progress13)}\n\n"
+        f"{detail('14', progress14)}\n\n"
         "Неверный ответ, пропуск и просмотр разбора учитываются отдельно.",
         reply_markup=progress_menu(has_session=has_session),
     )
@@ -1942,6 +2175,15 @@ async def unknown_message(message: Message, repository: Repository) -> None:
     state10 = await repository.task10_state(user_id) if user_id is not None else None
     state12 = await repository.task12_state(user_id) if user_id is not None else None
     state14 = await repository.task14_state(user_id) if user_id is not None else None
+    state8 = await repository.task8_state(user_id) if user_id is not None else None
+    state13 = await repository.task13_state(user_id) if user_id is not None else None
+    if screen == "task13" and state13 is not None and isinstance(state13.get("problem"), dict):
+        state13_status = cast(dict[str, object], state13.get("state", {}))
+        if state13_status.get("status") == "active":
+            await task13_answer(message, repository)
+            return
+        await message.answer("Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом.")
+        return
     if screen == "task10" and state10 is not None and isinstance(state10.get("problem"), dict):
         state10_status = cast(dict[str, object], state10.get("state", {}))
         if state10_status.get("status") == "active":
@@ -1960,11 +2202,10 @@ async def unknown_message(message: Message, repository: Repository) -> None:
             "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
         )
         return
-    state13 = await repository.task13_state(user_id) if user_id is not None else None
-    if screen == "task13" and state13 is not None and isinstance(state13.get("problem"), dict):
-        status13 = cast(dict[str, object], state13.get("state", {}))
-        if status13.get("status") == "active":
-            await task13_answer(message, repository)
+    if screen == "task8" and state8 is not None and isinstance(state8.get("problem"), dict):
+        state8_status = cast(dict[str, object], state8.get("state", {}))
+        if state8_status.get("status") == "active":
+            await task8_answer(message, repository)
             return
         await message.answer(
             "Задание завершено. Используйте кнопку «➡ Следующее» на сообщении с результатом."
@@ -1985,6 +2226,7 @@ async def unknown_message(message: Message, repository: Repository) -> None:
         or _has_resumable_task9(state10)
         or _has_resumable_task9(state12)
         or _has_resumable_task9(state14)
+        or _has_resumable_task9(state8)
         or _has_resumable_task9(state13)
     )
     if user_id is not None:
@@ -2006,6 +2248,7 @@ def build_router() -> Router:
     router.message.register(choose_task10, F.text == TASK10_LABEL)
     router.message.register(choose_task12, F.text == TASK12_LABEL)
     router.message.register(choose_task14, F.text == TASK14_LABEL)
+    router.message.register(choose_task8, F.text == TASK8_LABEL)
     router.message.register(choose_task13, F.text == TASK13_LABEL)
     # Transitions are inline callbacks bound to a specific problem ID. Text commands
     # have no reliable association with the task shown when the user tapped them.
@@ -2021,5 +2264,6 @@ def build_router() -> Router:
     router.callback_query.register(task10_callback, F.data.startswith("t10:"))
     router.callback_query.register(task12_callback, F.data.startswith("t12:"))
     router.callback_query.register(task14_callback, F.data.startswith("t14:"))
+    router.callback_query.register(task8_callback, F.data.startswith("t8:"))
     router.callback_query.register(task13_callback, F.data.startswith("t13:"))
     return router

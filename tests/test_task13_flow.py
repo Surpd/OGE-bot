@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram.types import User
 
-from app.bot.menu import task13_menu
+from app.bot.menu import number_menu, task13_menu
 from app.bot.router import choose_task13, continue_session, task13_callback
 from app.math import inequalities, oge13_scheduler
 from app.math.inequalities import render_option_sheet_snapshot_png
@@ -45,6 +45,13 @@ def _callback(
     callback.message.message_id = message_id
     callback.message.answer.return_value.message_id = message_id + 1
     return callback
+
+
+def test_disabled_task13_is_hidden_from_number_menu() -> None:
+    oge13_scheduler.ENABLED_FAMILIES = ()
+    labels = [button.text for row in number_menu().keyboard for button in row]
+    assert not any(label and label.startswith("№13") for label in labels)
+    assert any(label and label.startswith("№8") for label in labels)
 
 
 @pytest.mark.asyncio
