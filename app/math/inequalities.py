@@ -182,8 +182,84 @@ def format_set(items: IntervalSet) -> str:
 
 
 def _solution_steps(condition: str, family_id: str, solution: IntervalSet) -> tuple[str, ...]:
+    if family_id.startswith("OGE13-L"):
+        relations = list(re.finditer(r"<=|>=|<|>", condition))
+        if len(relations) != 1:
+            raise ValueError("Expected one comparison in a linear inequality")
+        relation_match = relations[0]
+        relation = relation_match.group()
+        left_coefficient, left_constant = _parse_linear_expression(
+            condition[: relation_match.start()]
+        )
+        right_coefficient, right_constant = _parse_linear_expression(
+            condition[relation_match.end() :]
+        )
+        coefficient = left_coefficient - right_coefficient
+        if coefficient == 0:
+            raise ValueError("Linear explanation requires a nonzero coefficient")
+        right_side = right_constant - left_constant
+        boundary = right_side / coefficient
+        division_relation = relation
+        sign_note = "знак сохраняется"
+        if coefficient < 0:
+            division_relation = {"<": ">", "<=": ">=", ">": "<", ">=": "<="}[
+                relation
+            ]
+            sign_note = "знак меняется"
+        if independent_solve(condition, family_id) != solution:
+            raise ValueError("Linear solution steps do not match the visible inequality")
+        coefficient_text = (
+            "x"
+            if coefficient == 1
+            else "-x"
+            if coefficient == -1
+            else f"{_display(coefficient)}x"
+        )
+        divisor_note = "<0" if coefficient < 0 else ">0"
+        return (
+            f"Исходное неравенство: {condition}.",
+            f"Переносим слагаемые: {coefficient_text} {relation} {_display(right_side)}.",
+            f"Делим обе части на {_display(coefficient)} ({divisor_note}), {sign_note}: "
+            f"x {division_relation} {_display(boundary)}.",
+            "Ответ: " + format_set(solution) + ".",
+        )
+    if family_id.startswith("OGE13-Q"):
+        roots, leading_sign, relation, factorization = _quadratic_explanation_data(
+            condition, family_id
+        )
+        left_root, right_root = roots
+        strict = len(relation) == 1
+        desired_sign = -1 if relation[0] == "<" else 1
+        outside_sign = leading_sign
+        inside_sign = -leading_sign
+        if desired_sign == outside_sign:
+            explained_solution = (
+                Interval(None, left_root, False, not strict),
+                Interval(right_root, None, not strict, False),
+            )
+        else:
+            explained_solution = (Interval(left_root, right_root, not strict, not strict),)
+        if explained_solution != solution:
+            raise ValueError("Quadratic explanation does not match visible condition")
+        sign_regions = (
+            f"(−∞;{_display(left_root)}): {'+' if outside_sign > 0 else '−'}",
+            f"({_display(left_root)};{_display(right_root)}): "
+            f"{'+' if inside_sign > 0 else '−'}",
+            f"({_display(right_root)};+∞): {'+' if outside_sign > 0 else '−'}",
+        )
+        root_inclusion = (
+            "не включаем, так как неравенство строгое"
+            if strict
+            else "включаем, так как знак неравенства нестрогий"
+        )
+        return (
+            f"{factorization}; корни: x = {_display(left_root)} и x = {_display(right_root)}.",
+            "Знаки выражения на промежутках: " + "; ".join(sign_regions) + ".",
+            f"Для условия {relation} 0 выбираем подходящие промежутки; корни {root_inclusion}.",
+            "Ответ: " + format_set(explained_solution) + ".",
+        )
     if not family_id.startswith("OGE13-S"):
-        return ("Точное множество решений: " + format_set(solution),)
+        raise ValueError(f"Unsupported OGE13 family for solution steps: {family_id}")
     rows = condition.splitlines()
     first, second = (_solve_linear_inequality(row) for row in rows)
     return (
@@ -191,6 +267,68 @@ def _solution_steps(condition: str, family_id: str, solution: IntervalSet) -> tu
         f"2) {rows[1]} ⇒ {format_set(second)}",
         "Пересечение полученных множеств: " + format_set(solution),
     )
+
+
+def _quadratic_explanation_data(
+    condition: str, family_id: str
+) -> tuple[tuple[Fraction, Fraction], int, str, str]:
+    number = r"\d+(?:,\d{1,2})?"
+    if family_id.endswith("Q01"):
+        match = re.fullmatch(rf"x² - ({number})x (<) 0", condition)
+        if match is None:
+            raise ValueError("Condition audit could not explain Q01")
+        coefficient = _parse_displayed_number(match.group(1))
+        return (
+            (Fraction(0), coefficient),
+            1,
+            match.group(2),
+            f"Раскладываем: x² - {_display(coefficient)}x "
+            f"= x(x - {_display(coefficient)})",
+        )
+    if family_id.endswith("Q02"):
+        match = re.fullmatch(rf"x² \+ ({number})x (>=) 0", condition)
+        if match is None:
+            raise ValueError("Condition audit could not explain Q02")
+        coefficient = _parse_displayed_number(match.group(1))
+        return (
+            (-coefficient, Fraction(0)),
+            1,
+            match.group(2),
+            f"Раскладываем: x² + {_display(coefficient)}x "
+            f"= x(x + {_display(coefficient)})",
+        )
+    if family_id.endswith("Q03"):
+        match = re.fullmatch(rf"-x² - ({number})x (<=) 0", condition)
+        if match is None:
+            raise ValueError("Condition audit could not explain Q03")
+        coefficient = _parse_displayed_number(match.group(1))
+        return (
+            (-coefficient, Fraction(0)),
+            -1,
+            match.group(2),
+            f"Раскладываем: −x² − {_display(coefficient)}x "
+            f"= −x(x + {_display(coefficient)})",
+        )
+    match = re.fullmatch(
+        rf"(-?)\(x ([+-]) ({number})\)\(x ([+-]) ({number})\) ([<>]=?) 0",
+        condition,
+    )
+    if match is None:
+        raise ValueError("Condition audit could not explain Q04")
+    leading, first_sign, first_number, second_sign, second_number, relation = match.groups()
+    first_root = _parse_displayed_number(first_number) * (1 if first_sign == "-" else -1)
+    second_root = _parse_displayed_number(second_number) * (1 if second_sign == "-" else -1)
+    roots = tuple(sorted((first_root, second_root)))
+    if roots[0] == roots[1]:
+        raise ValueError("Quadratic roots must differ")
+    relation_start = re.search(r"[<>]=? 0$", condition)
+    if relation_start is None:
+        raise ValueError("Condition audit could not locate Q04 comparison")
+    factorization = (
+        "Выражение уже разложено на множители: "
+        + condition[: relation_start.start()].rstrip()
+    )
+    return cast(tuple[Fraction, Fraction], roots), (-1 if leading else 1), relation, factorization
 
 
 def parse_answer(problem: InequalityProblem, answer: str) -> int | None:
@@ -673,10 +811,12 @@ def validate(problem: InequalityProblem) -> bool:
     """Run the independent visible-condition and option uniqueness audit."""
     try:
         solved = independent_solve(problem.condition, problem.family_id)
+        expected_solution_steps = _solution_steps(problem.condition, problem.family_id, solved)
     except (ValueError, ZeroDivisionError):
         return False
     if (
         solved != problem.solution_set
+        or problem.solution != expected_solution_steps
         or not _is_canonical_interval_set(problem.solution_set)
         or len(problem.options) != 4
         or type(problem.correct_option_number) is not int

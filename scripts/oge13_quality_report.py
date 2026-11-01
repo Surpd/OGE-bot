@@ -57,6 +57,7 @@ def main() -> None:
             "independent_oracle_cases_in_pytest": PRIMARY_SAMPLE_SIZE + QUICK_SAMPLE_SIZE,
             "all_four_options_pairwise_distinct": True,
             "exactly_one_matching_option_per_case": True,
+            "solution_steps_revalidated": True,
             "answer_positions": dict(sorted(answer_counts.items())),
             "answer_policy": "oge13.option-number@1",
             "source_task_ids": list(problem.reference_ids),
@@ -67,7 +68,11 @@ def main() -> None:
 
     representative_examples = {}
     representative_seeds = {
+        "OGE13-L01": 13013,
         "OGE13-L02": 13011,
+        "OGE13-Q01": 13013,
+        "OGE13-Q02": 13013,
+        "OGE13-Q03": 13013,
         "OGE13-Q04": 13013,
         "OGE13-S01": 13013,
         "OGE13-S02": 13013,
@@ -88,7 +93,7 @@ def main() -> None:
         }
 
     report = {
-        "report_version": 2,
+        "report_version": 3,
         "as_of": datetime.now(timezone(timedelta(hours=3))).date().isoformat(),
         "branch": "feat/oge13-generators-v1",
         "base_commit": BASE_COMMIT,
@@ -114,6 +119,25 @@ def main() -> None:
                 "snapshot version and saved option ordering",
                 "invalid and noncanonical intervals",
             ],
+        },
+        "solution_explanation_audit": {
+            "families": [
+                "OGE13-L01",
+                "OGE13-L02",
+                "OGE13-Q01",
+                "OGE13-Q02",
+                "OGE13-Q03",
+                "OGE13-Q04",
+            ],
+            "generator_cases": 290 * 6,
+            "independent_regression_cases": 30 * 6,
+            "checks": [
+                "linear rearrangement and exact division from visible condition",
+                "comparison reversal for negative divisors",
+                "quadratic roots, three sign regions, and strict/non-strict endpoints",
+                "tampered explanation steps rejected by validate",
+            ],
+            "test": "tests/test_oge13_math.py::test_linear_and_quadratic_explanations_are_derived_and_independently_checked",
         },
         "png_semantic_audit": {
             "families": ["OGE13-L02", "OGE13-Q04", "OGE13-S01", "OGE13-S02", "OGE13-S03"],

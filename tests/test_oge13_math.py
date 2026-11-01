@@ -18,6 +18,8 @@ from app.math.inequalities import (
     independent_solve,
     render_option_sheet_png,
     render_option_sheet_snapshot_png,
+    format_set,
+    _solution_steps,
     validate,
     validate_snapshot,
 )
@@ -105,6 +107,157 @@ def _compare(left: Fraction, right: Fraction, relation: str) -> bool:
         ">": left > right,
         ">=": left >= right,
     }[relation]
+
+
+def _test_display(value: Fraction) -> str:
+    if value.denominator == 1:
+        return str(value.numerator)
+    scaled = value.numerator * 100 // value.denominator
+    whole, remainder = divmod(abs(scaled), 100)
+    decimals = f"{remainder:02d}".rstrip("0")
+    return f"{'-' if scaled < 0 else ''}{whole},{decimals}"
+
+
+def _test_quadratic_value(condition: str, family: str, x: Fraction) -> Fraction:
+    number = r"\d+(?:,\d{1,2})?"
+    if family.endswith("Q01"):
+        match = re.fullmatch(rf"x² - ({number})x (<) 0", condition)
+        assert match
+        return x * x - Fraction(match.group(1).replace(",", ".")) * x
+    if family.endswith("Q02"):
+        match = re.fullmatch(rf"x² \+ ({number})x (>=) 0", condition)
+        assert match
+        return x * x + Fraction(match.group(1).replace(",", ".")) * x
+    if family.endswith("Q03"):
+        match = re.fullmatch(rf"-x² - ({number})x (<=) 0", condition)
+        assert match
+        return -(x * x) - Fraction(match.group(1).replace(",", ".")) * x
+    match = re.fullmatch(
+        rf"(-?)\(x ([+-]) ({number})\)\(x ([+-]) ({number})\) ([<>]=?) 0",
+        condition,
+    )
+    assert match
+    leading, op_a, raw_a, op_b, raw_b, _ = match.groups()
+    factor_a = x + (1 if op_a == "+" else -1) * Fraction(raw_a.replace(",", "."))
+    factor_b = x + (1 if op_b == "+" else -1) * Fraction(raw_b.replace(",", "."))
+    return (-1 if leading else 1) * factor_a * factor_b
+
+
+def _expected_explanation(condition: str, family: str) -> tuple[str, ...]:
+    if family.startswith("OGE13-L"):
+        relation_match = re.search(r"<=|>=|<|>", condition)
+        assert relation_match
+        relation = relation_match.group()
+        lhs = _test_linear_expression(condition[: relation_match.start()])
+        rhs = _test_linear_expression(condition[relation_match.end() :])
+        coefficient, constant = lhs[0] - rhs[0], lhs[1] - rhs[1]
+        right_side = -constant
+        assert coefficient
+        coefficient_text = (
+            "x"
+            if coefficient == 1
+            else "-x"
+            if coefficient == -1
+            else f"{_test_display(coefficient)}x"
+        )
+        divided_relation = relation
+        sign_note = "знак сохраняется"
+        if coefficient < 0:
+            divided_relation = {"<": ">", "<=": ">=", ">": "<", ">=": "<="}[
+                relation
+            ]
+            sign_note = "знак меняется"
+        boundary = right_side / coefficient
+        result = independent_solve(condition, family)
+        return (
+            f"Исходное неравенство: {condition}.",
+            f"Переносим слагаемые: {coefficient_text} {relation} {_test_display(right_side)}.",
+            f"Делим обе части на {_test_display(coefficient)} "
+            f"({'<0' if coefficient < 0 else '>0'}), {sign_note}: "
+            f"x {divided_relation} {_test_display(boundary)}.",
+            "Ответ: " + format_set(result) + ".",
+        )
+
+    number = r"\d+(?:,\d{1,2})?"
+    if family.endswith("Q01"):
+        match = re.fullmatch(rf"x² - ({number})x (<) 0", condition)
+        assert match
+        roots = (Fraction(0), Fraction(match.group(1).replace(",", ".")))
+        leading, relation = 1, match.group(2)
+        factorization = (
+            f"Раскладываем: x² - {_test_display(roots[1])}x "
+            f"= x(x - {_test_display(roots[1])})"
+        )
+    elif family.endswith("Q02"):
+        match = re.fullmatch(rf"x² \+ ({number})x (>=) 0", condition)
+        assert match
+        value = Fraction(match.group(1).replace(",", "."))
+        roots, leading, relation = (-value, Fraction(0)), 1, match.group(2)
+        factorization = (
+            f"Раскладываем: x² + {_test_display(value)}x "
+            f"= x(x + {_test_display(value)})"
+        )
+    elif family.endswith("Q03"):
+        match = re.fullmatch(rf"-x² - ({number})x (<=) 0", condition)
+        assert match
+        value = Fraction(match.group(1).replace(",", "."))
+        roots, leading, relation = (-value, Fraction(0)), -1, match.group(2)
+        factorization = (
+            f"Раскладываем: −x² − {_test_display(value)}x "
+            f"= −x(x + {_test_display(value)})"
+        )
+    else:
+        match = re.fullmatch(
+            rf"(-?)\(x ([+-]) ({number})\)\(x ([+-]) ({number})\) ([<>]=?) 0",
+            condition,
+        )
+        assert match
+        sign_a, op_a, raw_a, op_b, raw_b, relation = match.groups()
+        roots = tuple(
+            sorted(
+                (
+                    Fraction(raw_a.replace(",", ".")) * (-1 if op_a == "+" else 1),
+                    Fraction(raw_b.replace(",", ".")) * (-1 if op_b == "+" else 1),
+                )
+            )
+        )
+        leading = -1 if sign_a else 1
+        relation_match = re.search(r"[<>]=? 0$", condition)
+        assert relation_match
+        factorization = (
+            "Выражение уже разложено на множители: "
+            + condition[: relation_match.start()].rstrip()
+        )
+    left_root, right_root = roots
+    probes = (left_root - 1, (left_root + right_root) / 2, right_root + 1)
+    signs = tuple(
+        "+" if _test_quadratic_value(condition, family, point) > 0 else "−"
+        for point in probes
+    )
+    strict = len(relation) == 1
+    desired_sign = "+" if relation[0] == ">" else "−"
+    if signs[0] == desired_sign:
+        result = (
+            Interval(None, left_root, False, not strict),
+            Interval(right_root, None, not strict, False),
+        )
+    else:
+        result = (Interval(left_root, right_root, not strict, not strict),)
+    root_note = (
+        "не включаем, так как неравенство строгое"
+        if strict
+        else "включаем, так как знак неравенства нестрогий"
+    )
+    return (
+        f"{factorization}; корни: x = {_test_display(left_root)} "
+        f"и x = {_test_display(right_root)}.",
+        "Знаки выражения на промежутках: "
+        f"(−∞;{_test_display(left_root)}): {signs[0]}; "
+        f"({_test_display(left_root)};{_test_display(right_root)}): {signs[1]}; "
+        f"({_test_display(right_root)};+∞): {signs[2]}.",
+        f"Для условия {relation} 0 выбираем подходящие промежутки; корни {root_note}.",
+        "Ответ: " + format_set(result) + ".",
+    )
 
 
 def _contains(option, x: Fraction) -> bool:
@@ -303,6 +456,62 @@ def test_all_pilot_families_are_deterministic_disabled_and_audited() -> None:
 )
 def test_independent_solver_boundary_and_sign_cases(condition, family, expected) -> None:
     assert independent_solve(condition, family) == expected
+
+
+@pytest.mark.parametrize(
+    "family", ("OGE13-L01", "OGE13-L02", "OGE13-Q01", "OGE13-Q02", "OGE13-Q03", "OGE13-Q04")
+)
+def test_linear_and_quadratic_explanations_are_derived_and_independently_checked(
+    family: str,
+) -> None:
+    for seed in range(30):
+        problem = generate(family, seed)
+        assert problem.solution == _expected_explanation(problem.condition, family)
+        assert validate(problem)
+
+        mutated = replace(problem, solution=problem.solution[:-1] + ("Ответ: 999.",))
+        assert not validate(mutated)
+
+
+def test_linear_explanation_reverses_comparison_when_divisor_is_negative() -> None:
+    condition = "-2x + 1 < 0x + 3"
+    solution = (Interval(Fraction(-1), None),)
+
+    steps = _solution_steps(condition, "OGE13-L01", solution)
+
+    assert steps == (
+        "Исходное неравенство: -2x + 1 < 0x + 3.",
+        "Переносим слагаемые: -2x < 2.",
+        "Делим обе части на -2 (<0), знак меняется: x > -1.",
+        "Ответ: (-1;+∞).",
+    )
+
+
+@pytest.mark.parametrize(
+    ("condition", "family", "closed"),
+    (
+        ("x² - 4x < 0", "OGE13-Q01", False),
+        ("x² + 4x >= 0", "OGE13-Q02", True),
+        ("-x² - 4x <= 0", "OGE13-Q03", True),
+        ("(x + 2)(x - 1) < 0", "OGE13-Q04", False),
+        ("(x + 2)(x - 1) <= 0", "OGE13-Q04", True),
+        ("(x + 2)(x - 1) >= 0", "OGE13-Q04", True),
+    ),
+)
+def test_quadratic_explanations_show_sign_chart_and_boundary_inclusion(
+    condition: str, family: str, closed: bool
+) -> None:
+    solution = independent_solve(condition, family)
+
+    steps = _solution_steps(condition, family, solution)
+    expected = _expected_explanation(condition, family)
+
+    assert steps == expected
+    assert "корни:" in steps[0]
+    assert "Знаки выражения на промежутках" in steps[1]
+    assert ("корни включаем" in steps[2]) is closed
+    assert ("корни не включаем" in steps[2]) is not closed
+    assert steps[-1].endswith(format_set(solution) + ".")
 
 
 def test_empty_set_model_and_svg_png_are_available() -> None:
