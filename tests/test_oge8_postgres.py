@@ -30,7 +30,7 @@ async def test_task8_postgres_hints_answer_and_snapshot_survive_repository_resta
             "migrations/0005_task10_sessions.sql",
             "migrations/0006_task12_sessions.sql",
             "migrations/0007_task14_sessions.sql",
-            "migrations/0008_task8_sessions.sql",
+            "migrations/0009_task8_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
         repository = PostgresRepository(pool)
@@ -84,7 +84,7 @@ async def test_task8_postgres_concurrent_next_after_solution_viewed_advances_onc
             "migrations/0005_task10_sessions.sql",
             "migrations/0006_task12_sessions.sql",
             "migrations/0007_task14_sessions.sql",
-            "migrations/0008_task8_sessions.sql",
+            "migrations/0009_task8_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
         repository = PostgresRepository(pool)
@@ -140,7 +140,7 @@ async def _new_task8_repository(database_url: str) -> tuple[asyncpg.Pool, Postgr
         "migrations/0005_task10_sessions.sql",
         "migrations/0006_task12_sessions.sql",
         "migrations/0007_task14_sessions.sql",
-        "migrations/0008_task8_sessions.sql",
+        "migrations/0009_task8_sessions.sql",
     ):
         await pool.execute(await read_migration(migration))
     repository = PostgresRepository(pool)

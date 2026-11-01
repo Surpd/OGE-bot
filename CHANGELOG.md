@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-02 — Migration startup follow-up for OGE task 8
+- Reserved migration `0008_task13_sessions.sql` for PR #8 and renumbered task 8 to `0009_task8_sessions.sql`.
+- Application startup now discovers migrations by unique numeric prefix, serializes concurrent runners, and records successful versions for idempotent restarts. Active-session duplicates are detected before any session uniqueness index migration; startup fails with a manual remediation message and leaves rows untouched.
+- Added PostgreSQL 17 lifespan integration coverage for ordered/idempotent startup and duplicate-session fail-closed behavior.
+
 ## 2026-11-01 — OGE Trainer 0.5 / задание №12 (PR реализации, в работе; исправления oracle)
 - Исследование, 17 реестровых конструкций и 17 авторских образцов остаются постоянной основой; проверены отдельные статусы источников.
 - Реализованы точные формульные генераторы, отображённый oracle, ограниченный планировщик, политика ответа и отдельный Telegram/PostgreSQL flow.
