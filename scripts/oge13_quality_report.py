@@ -137,7 +137,10 @@ def main() -> None:
                 "quadratic roots, three sign regions, and strict/non-strict endpoints",
                 "tampered explanation steps rejected by validate",
             ],
-            "test": "tests/test_oge13_math.py::test_linear_and_quadratic_explanations_are_derived_and_independently_checked",
+            "test": (
+                "tests/test_oge13_math.py::"
+                "test_linear_and_quadratic_explanations_are_derived_and_independently_checked"
+            ),
         },
         "png_semantic_audit": {
             "families": ["OGE13-L02", "OGE13-Q04", "OGE13-S01", "OGE13-S02", "OGE13-S03"],

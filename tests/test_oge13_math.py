@@ -13,13 +13,13 @@ from app.math.inequalities import (
     ENABLED_FAMILIES,
     FAMILIES,
     Interval,
-    _svg,
+    format_set,
     generate,
     independent_solve,
     render_option_sheet_png,
     render_option_sheet_snapshot_png,
-    format_set,
     _solution_steps,
+    _svg,
     validate,
     validate_snapshot,
 )
@@ -212,7 +212,7 @@ def _expected_explanation(condition: str, family: str) -> tuple[str, ...]:
             condition,
         )
         assert match
-        sign_a, op_a, raw_a, op_b, raw_b, relation = match.groups()
+        _, op_a, raw_a, op_b, raw_b, relation = match.groups()
         roots = tuple(
             sorted(
                 (
@@ -221,7 +221,6 @@ def _expected_explanation(condition: str, family: str) -> tuple[str, ...]:
                 )
             )
         )
-        leading = -1 if sign_a else 1
         relation_match = re.search(r"[<>]=? 0$", condition)
         assert relation_match
         factorization = (
