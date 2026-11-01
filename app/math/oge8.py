@@ -259,7 +259,10 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
             R04, seed, expression, (left_rad, right_rad, left_coeff, right_coeff),
             (
                 "Сгруппируйте корни и используйте √a·√b = √(ab) для неотрицательных a и b.",
-                f"Под корнем получится квадрат числа {left_rad * right_rad}: √({left_rad * right_rad}²) = {left_rad * right_rad}.",
+                (
+                    f"Под корнем получится квадрат числа {left_rad * right_rad}: "
+                    f"√({left_rad * right_rad}²) = {left_rad * right_rad}."
+                ),
             ),
             (
                 f"{left_coeff}·{right_coeff}·√({left_rad}·{right_rad}·{left_rad * right_rad})"
