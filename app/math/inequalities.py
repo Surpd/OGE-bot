@@ -916,6 +916,14 @@ def _snapshot_options(snapshot: Mapping[str, object]) -> tuple[IntervalSet, ...]
     condition = snapshot.get("condition")
     if not isinstance(condition, str) or independent_solve(condition, family_id) != solution:
         raise ValueError("Snapshot condition does not match its saved solution")
+    raw_solution_steps = snapshot.get("solution")
+    if not isinstance(raw_solution_steps, list) or not all(
+        isinstance(step, str) for step in raw_solution_steps
+    ):
+        raise ValueError("Snapshot solution steps must be a list of strings")
+    expected_solution_steps = _solution_steps(condition, family_id, solution)
+    if tuple(raw_solution_steps) != expected_solution_steps:
+        raise ValueError("Snapshot solution steps do not match its visible condition")
     raw_svgs = snapshot.get("option_svgs")
     expected_svgs = tuple(_svg(option, index + 1) for index, option in enumerate(options))
     if not isinstance(raw_svgs, list) or tuple(raw_svgs) != expected_svgs:

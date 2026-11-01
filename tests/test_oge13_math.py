@@ -603,6 +603,52 @@ def test_snapshot_renderer_uses_saved_options_and_rejects_unknown_versions() -> 
         generate("OGE13-S01", 1, generator_version="99.0.0")
 
 
+@pytest.mark.parametrize("family", FAMILIES)
+def test_all_family_snapshots_restore_only_condition_derived_solution_steps(family: str) -> None:
+    problem = generate(family, 13013)
+    snapshot = problem.to_snapshot()
+
+    assert validate_snapshot(snapshot)
+
+    original_steps = list(problem.solution)
+    boundary_number = re.search(r"-?\d+(?:,\d+)?", original_steps[-1])
+    assert boundary_number
+    changed_number = original_steps.copy()
+    last_step = changed_number[-1]
+    changed_number[-1] = (
+        last_step[: boundary_number.start()]
+        + "999"
+        + last_step[boundary_number.end() :]
+    )
+
+    changed_relation = original_steps.copy()
+    relation = re.search(r"<=|>=|<|>", "\n".join(changed_relation))
+    assert relation
+    reverse = {"<": ">", "<=": ">=", ">": "<", ">=": "<="}[relation.group()]
+    combined = "\n".join(changed_relation)
+    combined = combined[: relation.start()] + reverse + combined[relation.end() :]
+    changed_relation = combined.split("\n")
+
+    changed_boundary = original_steps.copy()
+    final_answer = changed_boundary[-1]
+    endpoint = re.search(r"(Ответ: )([\[(])", final_answer)
+    assert endpoint
+    changed_boundary[-1] = (
+        final_answer[: endpoint.start(2)]
+        + (")" if endpoint.group(2) == "[" else "[")
+        + final_answer[endpoint.end(2) :]
+    )
+
+    corrupted_versions = (
+        changed_number,
+        changed_relation,
+        changed_boundary,
+        [*original_steps[:-1], "Ответ: ∅."],
+    )
+    for steps in corrupted_versions:
+        assert not validate_snapshot(snapshot | {"solution": steps})
+
+
 def test_answer_parser_accepts_option_number_or_exact_text() -> None:
     problem = generate("OGE13-L02", 77)
     assert problem.accepts(str(problem.correct_option_number))
