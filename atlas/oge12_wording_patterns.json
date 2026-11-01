@@ -1,0 +1,408 @@
+{
+  "schema_version": "1.0",
+  "research_date": "2026-11-01",
+  "content_policy": "короткие цитаты/характерные обороты с URL; полностью самостоятельно написанные готовые условия (не дословные)",
+  "not_production_approved": true,
+  "patterns": [
+    {
+      "family_id": "OGE12-R001",
+      "origin_task_id": 316914,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=316914",
+      "authentic_exam_wording_short": "Пользуясь этой формулой, найдите сопротивление R",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Электрическая мощность P (в ваттах) определяется формулой P = I²·R, где I — сила тока в амперах, R — сопротивление в омах. Найдите сопротивление R, если P = 361,25 Вт, а I = 8,5 А. Ответ дайте в омах.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "5",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "R = P/I² = 361,25/(8,5²) = 5.",
+      "parameters": {
+        "P_W": "361.25",
+        "I_A": "8.5"
+      },
+      "formula": "P = I²·R",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R002",
+      "origin_task_id": 338232,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=338232",
+      "authentic_exam_wording_short": "найдите радиус R (в метрах)",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Центростремительное ускорение a (в м/с²) вычисляется по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Найдите R, если ω = 5 с⁻¹ и a = 175 м/с². Ответ дайте в метрах.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "7",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "R = a/ω² = 175/25 = 7.",
+      "parameters": {
+        "omega": "5",
+        "a": "175"
+      },
+      "formula": "a = ω²·R",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R003",
+      "origin_task_id": 357575,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=357575",
+      "authentic_exam_wording_short": "Какая температура по шкале Фаренгейта соответствует",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Для перевода температуры по шкале Цельсия в шкалу Фаренгейта используют формулу F = 1,8·C + 32. Скольким градусам Фаренгейта соответствует температура −10 °C?",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "14",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "F = 1,8·(−10)+32 = 14.",
+      "parameters": {
+        "C": "-10"
+      },
+      "formula": "F = 1,8·C + 32",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R004",
+      "origin_task_id": 311824,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311824",
+      "authentic_exam_wording_short": "Ответ округлите до десятых",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Температуры по Цельсию C и по Фаренгейту F связаны формулой F = 1,8·C + 32. Определите температуру по Цельсию, если F = 7 °F. Ответ округлите до десятых.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "-13,9",
+      "answer_policy": "round_to_tenths",
+      "worked_solution": "C = (7−32)/1,8 = −125/9 ≈ −13,888…, до десятых −13,9.",
+      "parameters": {
+        "F": "7"
+      },
+      "formula": "F = 1,8·C + 32",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R005",
+      "origin_task_id": 311543,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311543",
+      "authentic_exam_wording_short": "Пользуясь этой формулой, найдите длину диагонали",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sinα/2, где d₁, d₂ — диагонали, α — угол между ними. Найдите sinα, если S = 48, d₁ = 12, d₂ = 10.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "0,8",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "sinα = 2S/(d₁d₂) = 96/120 = 0,8.",
+      "parameters": {
+        "S": "48",
+        "d1": "12",
+        "d2": "10"
+      },
+      "formula": "S = d₁·d₂·sin(α)/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R006",
+      "origin_task_id": 311348,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311348",
+      "authentic_exam_wording_short": "найдите диагональ d₁",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Площадь ромба (в м²) можно найти по формуле S = d₁·d₂/2, где d₁ и d₂ — диагонали в метрах. Вычислите d₁, если S = 81 м², d₂ = 18 м. Ответ дайте в метрах.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "9",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "d₁ = 2S/d₂ = 162/18 = 9.",
+      "parameters": {
+        "S": "81",
+        "d2": "18"
+      },
+      "formula": "S = d₁·d₂/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R007",
+      "origin_task_id": 311528,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311528",
+      "authentic_exam_wording_short": "найдите сторону a",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Площадь треугольника (в м²) вычисляется по формуле S = a·h/2, где a — сторона в метрах, h — высота к ней. Найдите a, если S = 54 м², h = 9 м.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "12",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "a = 2S/h = 108/9 = 12.",
+      "parameters": {
+        "S": "54",
+        "h": "9"
+      },
+      "formula": "S = a·h/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R008",
+      "origin_task_id": 311530,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311530",
+      "authentic_exam_wording_short": "найдите высоту h",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Площадь трапеции (в м²) вычисляют по формуле S = (a+b)·h/2, где a и b — основания в метрах, h — высота. Найдите h, если a = 7 м, b = 11 м, S = 90 м².",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "10",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "h = 2S/(a+b) = 180/18 = 10.",
+      "parameters": {
+        "a": "7",
+        "b": "11",
+        "S": "90"
+      },
+      "formula": "S = (a+b)·h/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R009",
+      "origin_task_id": 311541,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311541",
+      "authentic_exam_wording_short": "Чему равна высота пирамиды?",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Объём пирамиды вычисляется по формуле V = S·h/3, где S — площадь основания, h — высота. Найдите высоту, если V = 80 м³, а S = 30 м². Ответ дайте в метрах.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "8",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "h = 3V/S = 240/30 = 8.",
+      "parameters": {
+        "V": "80",
+        "S": "30"
+      },
+      "formula": "V = S·h/3",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R010",
+      "origin_task_id": 463026,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=463026",
+      "authentic_exam_wording_short": "Найдите скорость этого автомобиля в метрах в секунду",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Кинетическая энергия автомобиля массой m (в кг), движущегося со скоростью v (в м/с), равна E = m·v²/2 (в джоулях). Автомобиль массой 1200 кг обладает кинетической энергией 240 тысяч Дж. Найдите его скорость в м/с.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "20",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "v = √(2E/m) = √(480000/1200) = √400 = 20.",
+      "parameters": {
+        "E_J": "240000",
+        "m_kg": "1200"
+      },
+      "formula": "E = m·v²/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R011",
+      "origin_task_id": 459974,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=459974",
+      "authentic_exam_wording_short": "Найдите массу тела",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Потенциальная энергия тела (в джоулях) определяется формулой E = m·g·h, где m — масса в кг, g = 9,8 м/с², h — высота в метрах. Найдите массу, если E = 1568 Дж и h = 20 м. Ответ дайте в килограммах.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "8",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "m = E/(gh) = 1568/(9,8·20) = 8.",
+      "parameters": {
+        "E_J": "1568",
+        "h_m": "20",
+        "g": "9.8"
+      },
+      "formula": "E = m·g·h",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R012",
+      "origin_task_id": 459972,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=459972",
+      "authentic_exam_wording_short": "Найдите силу Архимеда",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Сила Архимеда для тела, погружённого в воду, определяется формулой F = ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 0,4 м³. Ответ дайте в ньютонах.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "3920",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "F = 1000·9,8·0,4 = 3920.",
+      "parameters": {
+        "V": "0.4",
+        "rho": "1000",
+        "g": "9.8"
+      },
+      "formula": "F = ρ·g·V",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R013",
+      "origin_task_id": 450510,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=450510",
+      "authentic_exam_wording_short": "Ответ дайте в джоулях",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Энергия заряженного конденсатора (в джоулях) вычисляется по формуле W = C·U²/2, где C — ёмкость в фарадах, U — напряжение в вольтах. Найдите W, если C = 10⁻⁴ Ф, U = 16 В. Ответ дайте в джоулях.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "0,0128",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "W = 10⁻⁴·256/2 = 0,0128.",
+      "parameters": {
+        "C": "0.0001",
+        "U": "16"
+      },
+      "formula": "W = C·U²/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R014",
+      "origin_task_id": 124,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=124",
+      "authentic_exam_wording_short": "рассчитайте стоимость колодца",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Стоимость колодца в рублях вычисляется по формуле C = 6000 + 4100·n, где n — число установленных колец. Сколько будет стоить колодец из 6 колец?",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "30600",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "C = 6000+4100·6 = 30600.",
+      "parameters": {
+        "n": "6"
+      },
+      "formula": "C = a + b·n",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R015",
+      "origin_task_id": 98,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=98",
+      "authentic_exam_wording_short": "рассчитайте стоимость 15-минутной поездки",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Стоимость поездки на такси в рублях при длительности больше 5 минут определяется формулой C = 150 + 11·(t−5), где t — продолжительность поездки в минутах. Рассчитайте стоимость поездки длительностью 12 минут.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "227",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "C = 150 + 11·(12−5) = 227.",
+      "parameters": {
+        "t": "12"
+      },
+      "formula": "C = a + b·(t−t₀)",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R016",
+      "origin_task_id": 311537,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311537",
+      "authentic_exam_wording_short": "найдите площадь треугольника",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Площадь треугольника определяется формулой S = b·c·sinα/2, где b и c — стороны, а α — угол между ними. Найдите площадь треугольника, если b = 8, c = 10, α = 30°.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "20",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "sin30° = 1/2; S = 8·10·(1/2)/2 = 20.",
+      "parameters": {
+        "b": "8",
+        "c": "10",
+        "sin_alpha": "0.5"
+      },
+      "formula": "S = b·c·sin(α)/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    },
+    {
+      "family_id": "OGE12-R017",
+      "origin_task_id": 311538,
+      "origin_url": "https://math-oge.sdamgia.ru/problem?id=311538",
+      "authentic_exam_wording_short": "Вычислите длину стороны c",
+      "authentic_wording_status": "короткая фраза по исходному заданию; не полное условие",
+      "authored_ready_to_use_condition": "Площадь треугольника определяется формулой S = (a+b+c)·r/2, где a, b, c — стороны, r — радиус вписанной окружности. Найдите c, если S = 24, a = 8, b = 6, r = 2.",
+      "authored_condition_not_verbatim": true,
+      "correct_answer": "10",
+      "answer_policy": "exact_decimal",
+      "worked_solution": "c = 2S/r − a − b = 24−8−6 = 10.",
+      "parameters": {
+        "S": "24",
+        "a": "8",
+        "b": "6",
+        "r": "2"
+      },
+      "formula": "S = (a+b+c)·r/2",
+      "generation_guidelines": [
+        "Сохранить математическую структуру и корректную терминологию первоисточника",
+        "Проверить все числа в независимом oracle",
+        "Показывать единицы в условии и решении; ответ обычно число без единиц",
+        "Перечитывать итоговый русский текст, форму согласования и скобки"
+      ]
+    }
+  ],
+  "answer_input_notes": [
+    "Принимать запятую и точку как десятичный разделитель, если UX-контракт разрешает",
+    "Сравнивать точные числа рационально; округлённые — только по опубликованной политике",
+    "Единицы измерения пояснены в условии, но в коротком ответе обычно не вводятся"
+  ],
+  "rounding_warning": "При формальной генерации отдельно зафиксировать правило округления половинных случаев, не домысливать из единичного прототипа"
+}

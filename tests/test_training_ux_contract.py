@@ -16,16 +16,20 @@ from app.bot.router import (
     choose_task6,
     choose_task9,
     choose_task10,
+    choose_task12,
     task6_answer,
     task6_callback,
     task9_answer,
     task9_callback,
     task10_answer,
     task10_callback,
+    task12_answer,
+    task12_callback,
     unknown_message,
 )
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
+from app.math.oge12_scheduler import build_task12_candidate_batch
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import MemoryRepository
 
@@ -76,6 +80,17 @@ TRAININGS = (
         build_task10_candidate_batch,
         "task10_state",
         "task10_progress",
+    ),
+    TrainingAdapter(
+        12,
+        choose_task12,
+        task12_answer,
+        task12_callback,
+        "advance_task12_problem",
+        "set_task12_condition_message",
+        build_task12_candidate_batch,
+        "task12_state",
+        "task12_progress",
     ),
 )
 TRAINING_CASES = pytest.mark.parametrize(
@@ -294,6 +309,6 @@ async def test_contract_sessions_for_numbers_do_not_share_answers() -> None:
     for training in TRAININGS:
         state = await getattr(repository, training.state)(user_id)
         assert state is not None
-        expected_attempts = 1 if training.number == 10 else 0
+        expected_attempts = 1 if training.number == active.number else 0
         assert state["state"]["attempts"] == expected_attempts
         assert state["problem"]["problem_id"] == states[training.number]["problem"]["problem_id"]
