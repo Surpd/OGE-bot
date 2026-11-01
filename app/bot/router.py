@@ -1705,6 +1705,11 @@ async def show_progress(message: Message, repository: Repository) -> None:
         if progress14["answered"]
         else 0
     )
+    accuracy8 = (
+        (progress8["correct"] * 100 + progress8["answered"] // 2) // progress8["answered"]
+        if progress8["answered"]
+        else 0
+    )
     await message.answer(
         "📊 Прогресс\n\n"
         f"№6 · выдано {issued} · отвечал {answered} · решил {correct} · "
@@ -1720,8 +1725,7 @@ async def show_progress(message: Message, repository: Repository) -> None:
         f"правильно {accuracy12}%\n"
         f"№8 · выдано {progress8['issued']} · отвечал {progress8['answered']} · "
         f"решил {progress8['correct']} · пропустил {progress8['skipped']} · "
-        f"правильно "
-        f"{(progress8['correct'] * 100 + progress8['answered'] // 2) // progress8['answered'] if progress8['answered'] else 0}%\n"
+        f"правильно {accuracy8}%\n"
         f"№14 · выдано {progress14['issued']} · отвечал {progress14['answered']} · "
         f"решил {progress14['correct']} · пропустил {progress14['skipped']} · "
         f"правильно {accuracy14}%\n\n"
