@@ -14,12 +14,15 @@ from aiogram.types import User
 from app.bot.menu import number_menu
 from app.bot.router import (
     choose_task6,
+    choose_task8,
     choose_task9,
     choose_task10,
     choose_task12,
     choose_task14,
     task6_answer,
     task6_callback,
+    task8_answer,
+    task8_callback,
     task9_answer,
     task9_callback,
     task10_answer,
@@ -30,7 +33,9 @@ from app.bot.router import (
     task14_callback,
     unknown_message,
 )
-from app.math import oge14_scheduler
+from app.math import oge14_scheduler, oge8_scheduler
+from app.math.oge8 import R04
+from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
@@ -97,6 +102,17 @@ TRAININGS = (
         build_task12_candidate_batch,
         "task12_state",
         "task12_progress",
+    ),
+    TrainingAdapter(
+        8,
+        choose_task8,
+        task8_answer,
+        task8_callback,
+        "advance_task8_problem",
+        "set_task8_condition_message",
+        build_task8_candidate_batch,
+        "task8_state",
+        "task8_progress",
     ),
     TrainingAdapter(
         14,
@@ -169,6 +185,7 @@ async def test_contract_accepts_plain_answer_and_enforces_two_attempts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
+    monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
     repository = MemoryRepository()
     user_id = 920_000 + training.number
     state = await _open(repository, training, user_id)
@@ -205,6 +222,7 @@ async def test_contract_next_never_skips_but_skip_records_one_outcome(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
+    monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
     repository = MemoryRepository()
     user_id = 930_000 + training.number
     state = await _open(repository, training, user_id)
@@ -244,6 +262,7 @@ async def test_contract_solution_view_closes_scoring_and_keeps_next(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
+    monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
     repository = MemoryRepository()
     user_id = 940_000 + training.number
     state = await _open(repository, training, user_id)
@@ -273,6 +292,7 @@ async def test_contract_duplicate_message_and_text_after_completion_are_idempote
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
+    monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
     repository = MemoryRepository()
     user_id = 950_000 + training.number
     state = await _open(repository, training, user_id)
@@ -298,6 +318,7 @@ async def test_contract_old_reply_is_rejected_without_consuming_current_attempt(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
+    monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
     repository = MemoryRepository()
     user_id = 960_000 + training.number
     original = await _open(repository, training, user_id)
@@ -329,6 +350,7 @@ async def test_contract_sessions_for_numbers_do_not_share_answers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(oge14_scheduler, "ENABLED_FAMILIES", (A01,))
+    monkeypatch.setattr(oge8_scheduler, "ENABLED_FAMILIES", (R04,))
     repository = MemoryRepository()
     user_id = 970_006
     states = {}

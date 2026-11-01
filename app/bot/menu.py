@@ -38,6 +38,7 @@ def number_menu() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="№6 · Вычисления")],
+            [KeyboardButton(text="№8 · Степени и корни")],
             [KeyboardButton(text="№9 · Уравнения")],
             [KeyboardButton(text="№10 · Вероятность")],
             [KeyboardButton(text="№12 · Формулы")],
@@ -154,5 +155,25 @@ def task14_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMa
             ],
             [InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t14:skip:{problem_id}")],
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t14:menu:{problem_id}")],
+        ]
+    )
+
+
+def task8_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
+    if completed:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="➡ Следующее", callback_data=f"t8:next:{problem_id}")],
+                [InlineKeyboardButton(text="↩ В меню", callback_data=f"t8:menu:{problem_id}")],
+            ]
+        )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💡 Подсказка", callback_data=f"t8:hint:{problem_id}"),
+                InlineKeyboardButton(text="📘 Разбор", callback_data=f"t8:solution:{problem_id}"),
+            ],
+            [InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t8:skip:{problem_id}")],
+            [InlineKeyboardButton(text="↩ В меню", callback_data=f"t8:menu:{problem_id}")],
         ]
     )
