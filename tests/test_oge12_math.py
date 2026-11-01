@@ -53,6 +53,13 @@ def test_all_formula_families_generate_deterministic_exact_rendered_problems(
     assert first.to_snapshot()["answer_policy_version"] == POLICY.version
     assert first.to_snapshot()["condition"] == first.condition
     assert first.to_snapshot()["solution"] == list(first.solution)
+    assert first.to_snapshot()["content_provenance"] == "generated_analogue"
+
+
+def test_task12_generator_version_is_explicit_and_rejects_stale_generation_requests() -> None:
+    assert GENERATOR_VERSION == "0.3.0"
+    with pytest.raises(ValueError, match="Unsupported OGE-12 generator version"):
+        generate("OGE12-R005", 711, generator_version="0.2.0")
 
 
 def test_authored_research_examples_are_regression_fixtures_for_visible_oracle() -> None:
