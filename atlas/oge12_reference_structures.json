@@ -982,7 +982,7 @@
       "OGE12-R012"
     ],
     "disabled_family_count": 9,
-    "generator_version": "0.1.0",
+    "generator_version": "0.2.0",
     "quality_report": "reports/oge12-quality.json",
     "telegram_training": "implemented_on_feature_branch"
   }

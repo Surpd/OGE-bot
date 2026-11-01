@@ -140,7 +140,20 @@ def main() -> None:
         "enabled_family_ids": list(ENABLED_FAMILIES),
         "disabled_family_ids": [item for item in ALL_FAMILIES if item not in ENABLED_FAMILIES],
         "source_registry_version": structures["schema_version"],
-        "oracle_note": "Rendered conditions are parsed independently from the generator values; authored research examples are checked against the same family oracle.",  # noqa: E501
+        "oracle_note": "Rendered conditions, exact formula signatures, units, target variables, and derivation steps are checked independently from generator values; authored research examples are checked against the same family oracle.",  # noqa: E501
+        "oracle_mutation_regressions": [
+            "R005: change the displayed denominator /2 to /3",
+            "R011: change displayed g = 9.8 to g = 19.8",
+            "R012: change displayed rho = 1000 to rho = 21000",
+            "R001-R017: mutate formula coefficients, units, or target variable",
+            "Enabled families: mutate an intermediate derivation step "
+            "while retaining the final answer",
+        ],
+        "trigonometry_policy": {
+            "R005_generated_sine_values": ["1/2", "1"],
+            "R016_generated_angles_degrees": [30, 90, 150],
+            "note": "Only table trigonometric values are generated.",
+        },
         "families": rows,
         "overall": {
             "family_count": len(rows),

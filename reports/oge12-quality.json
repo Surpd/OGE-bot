@@ -1,5 +1,5 @@
 {
-  "generator_version": "0.1.0",
+  "generator_version": "0.2.0",
   "report_seed": 20261101,
   "sample_count_per_family": 250,
   "unique_target": 200,
@@ -26,7 +26,26 @@
     "OGE12-R017"
   ],
   "source_registry_version": "1.0",
-  "oracle_note": "Rendered conditions are parsed independently from the generator values; authored research examples are checked against the same family oracle.",
+  "oracle_note": "Rendered conditions, exact formula signatures, units, target variables, and derivation steps are checked independently from generator values; authored research examples are checked against the same family oracle.",
+  "oracle_mutation_regressions": [
+    "R005: change the displayed denominator /2 to /3",
+    "R011: change displayed g = 9.8 to g = 19.8",
+    "R012: change displayed rho = 1000 to rho = 21000",
+    "R001-R017: mutate formula coefficients, units, or target variable",
+    "Enabled families: mutate an intermediate derivation step while retaining the final answer"
+  ],
+  "trigonometry_policy": {
+    "R005_generated_sine_values": [
+      "1/2",
+      "1"
+    ],
+    "R016_generated_angles_degrees": [
+      30,
+      90,
+      150
+    ],
+    "note": "Only table trigonometric values are generated."
+  },
   "families": [
     {
       "family_id": "OGE12-R001",
@@ -53,8 +72,8 @@
       "answer_signs": {
         "positive": 250
       },
-      "answer_min": "1",
-      "answer_max": "100",
+      "answer_min": "2",
+      "answer_max": "98",
       "authored_fixture": {
         "source_task_id": "316914",
         "condition": "Электрическая мощность P (в ваттах) определяется формулой P = I²·R, где I — сила тока в амперах, R — сопротивление в омах. Найдите сопротивление R, если P = 361,25 Вт, а I = 8,5 А. Ответ дайте в омах.",
@@ -63,28 +82,28 @@
       },
       "examples": [
         {
-          "problem_id": "3908ac70-8539-5fff-bc77-efc258fc253c",
+          "problem_id": "a9729b2e-5b66-5c5e-b51c-af40cfdcc630",
           "seed": 5808268237000616308,
-          "condition": "P = I²·R. Сопротивление R измеряется в омах, сила тока I — в амперах. Мощность P равна 8294,4 Вт, а сила тока I равна 14,4 А. Найдите сопротивление R. Ответ дайте в омах.",
-          "answer": "40",
+          "condition": "P = I²·R. Сопротивление R измеряется в омах, сила тока I — в амперах. Мощность P равна 630,75 Вт, а сила тока I равна 7,25 А. Найдите сопротивление R. Ответ дайте в омах.",
+          "answer": "12",
           "formula": "P = I²·R",
           "target": "R",
           "units": {
             "answer": "Ом"
           },
-          "fingerprint": "e7f7af8e310a3bf286350a3b8bf4996851dce1078aba77cad5371fdc62b4651a"
+          "fingerprint": "45c16329c8d78389d282f225ef0fc3f2c3c5bbf1b4dae943779978e55bdfe84a"
         },
         {
-          "problem_id": "77cd34a4-027d-59a5-87c6-8b8c9b8f8442",
+          "problem_id": "38394524-effe-56c6-8d06-20a1cefd8c4e",
           "seed": 3339482440990384296,
-          "condition": "P = I²·R. Сопротивление R измеряется в омах, сила тока I — в амперах. Мощность P равна 6452,48 Вт, а сила тока I равна 14,2 А. Найдите сопротивление R. Ответ дайте в омах.",
-          "answer": "32",
+          "condition": "P = I²·R. Сопротивление R измеряется в омах, сила тока I — в амперах. Мощность P равна 3608,55 Вт, а сила тока I равна 8,1 А. Найдите сопротивление R. Ответ дайте в омах.",
+          "answer": "55",
           "formula": "P = I²·R",
           "target": "R",
           "units": {
             "answer": "Ом"
           },
-          "fingerprint": "3f8f66a44b6ea2008fee6cddce18e7623e5440e7351c3f640fa5787f7b929408"
+          "fingerprint": "0c6bef6847291c1ce8fe7808207df8ce16356cbe9bae5a660254c3acc6b3f76e"
         }
       ]
     },
@@ -102,9 +121,9 @@
         "392927"
       ],
       "sample_count": 250,
-      "acceptance_attempts": 209,
+      "acceptance_attempts": 206,
       "unique_fingerprints": 200,
-      "duplicate_rejections": 14,
+      "duplicate_rejections": 15,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -124,28 +143,28 @@
       },
       "examples": [
         {
-          "problem_id": "42bd6e3b-d7f8-5207-880d-2402fa803c04",
+          "problem_id": "fe34400f-b7ab-5fb1-acb6-83096e081907",
           "seed": 8007736330771449712,
-          "condition": "Центростремительное ускорение a (в м/с²) вычисляют по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Если ω = 5 с⁻¹ и a = 250 м/с², найдите R в метрах.",
-          "answer": "10",
+          "condition": "Центростремительное ускорение a (в м/с²) вычисляют по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Если ω = 17 с⁻¹ и a = 10115 м/с², найдите R в метрах.",
+          "answer": "35",
           "formula": "a = ω²·R",
           "target": "R",
           "units": {
             "answer": "м"
           },
-          "fingerprint": "3ac225d70002b3b57b896ddea15506534eb94badadd1807cd9c0e18989bea1b0"
+          "fingerprint": "7e31e012a6dc1942d3603d7041dee06a8a9a1cff0fae3b84bc51ec9b3966442f"
         },
         {
-          "problem_id": "49df6576-9b75-573a-a64a-d6291d46cc43",
+          "problem_id": "eb76c22e-29da-522c-abdd-b485f2a97b15",
           "seed": 3583740704447223416,
-          "condition": "Центростремительное ускорение a (в м/с²) вычисляют по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Если ω = 6 с⁻¹ и a = 2412 м/с², найдите R в метрах.",
-          "answer": "67",
+          "condition": "Центростремительное ускорение a (в м/с²) вычисляют по формуле a = ω²·R, где ω — угловая скорость в с⁻¹, R — радиус в метрах. Если ω = 17 с⁻¹ и a = 13294 м/с², найдите R в метрах.",
+          "answer": "46",
           "formula": "a = ω²·R",
           "target": "R",
           "units": {
             "answer": "м"
           },
-          "fingerprint": "7c6b6bcca314cb24b4e7e581111d822050039091e733a96070a1ae242668a613"
+          "fingerprint": "a4a4a4347ffa2c4113a5d413ad6be4d260b4052bd7e0cccc5d30f10e0ea9e906"
         }
       ]
     },
@@ -162,19 +181,19 @@
         "355423"
       ],
       "sample_count": 250,
-      "acceptance_attempts": 953,
+      "acceptance_attempts": 829,
       "unique_fingerprints": 200,
-      "duplicate_rejections": 106,
+      "duplicate_rejections": 101,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
       "answer_decimal_places": {
-        "1": 209,
-        "0": 41
+        "1": 197,
+        "0": 53
       },
       "answer_signs": {
-        "positive": 159,
-        "negative": 91
+        "negative": 102,
+        "positive": 148
       },
       "answer_min": "-731/5",
       "answer_max": "212",
@@ -186,28 +205,28 @@
       },
       "examples": [
         {
-          "problem_id": "832b8160-7ae3-50e2-8d4b-e80bedccc154",
+          "problem_id": "897b2db3-ffcf-5d1c-86a5-f57436f5c0d5",
           "seed": 7475626686465083351,
-          "condition": "Температуру по Фаренгейту вычисляют по формуле F = 1,8·C + 32, где C — температура в градусах Цельсия, F — в градусах Фаренгейта. Какая температура по Фаренгейту соответствует -3 °C?",
-          "answer": "26,6",
+          "condition": "Температуру по Фаренгейту вычисляют по формуле F = 1,8·C + 32, где C — температура в градусах Цельсия, F — в градусах Фаренгейта. Какая температура по Фаренгейту соответствует -76 °C?",
+          "answer": "-104,8",
           "formula": "F = 1,8·C + 32",
           "target": "F",
           "units": {
             "answer": "°F"
           },
-          "fingerprint": "f52b33630cf9bcdb1da8e4a7b1c1e9fbb61100a5461e55fb5e81c6d2ad3708d7"
+          "fingerprint": "5c1fdaefc51e89a01381d06fea39b2762f589741239e3f65fa3ab65caef85854"
         },
         {
-          "problem_id": "35edfb8e-0491-5be7-a271-5ad810959ec6",
+          "problem_id": "9a2c17fc-a102-5fb2-b8e5-8ffd38e7e91f",
           "seed": 1676024575997907668,
-          "condition": "Температуру по Фаренгейту вычисляют по формуле F = 1,8·C + 32, где C — температура в градусах Цельсия, F — в градусах Фаренгейта. Какая температура по Фаренгейту соответствует -36 °C?",
-          "answer": "-32,8",
+          "condition": "Температуру по Фаренгейту вычисляют по формуле F = 1,8·C + 32, где C — температура в градусах Цельсия, F — в градусах Фаренгейта. Какая температура по Фаренгейту соответствует -11 °C?",
+          "answer": "12,2",
           "formula": "F = 1,8·C + 32",
           "target": "F",
           "units": {
             "answer": "°F"
           },
-          "fingerprint": "576c1709e05111f175c1071bf3040eaa1aeaee893de37c8c9ad66d0e71c2796f"
+          "fingerprint": "97643f0d30f1b2faba9d855e89b4a43ffe8d29c4bfd16e9bd671cb32e18e02f0"
         }
       ]
     },
@@ -221,22 +240,24 @@
         "341156"
       ],
       "sample_count": 250,
-      "acceptance_attempts": 306,
+      "acceptance_attempts": 268,
       "unique_fingerprints": 200,
-      "duplicate_rejections": 71,
+      "duplicate_rejections": 64,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
       "answer_decimal_places": {
-        "2": 124,
-        "1": 126
+        "1": 118,
+        "2": 107,
+        "0": 25
       },
       "answer_signs": {
-        "positive": 185,
-        "negative": 65
+        "positive": 160,
+        "negative": 89,
+        "zero": 1
       },
-      "answer_min": "-364/5",
-      "answer_max": "739/5",
+      "answer_min": "-733/10",
+      "answer_max": "1483/10",
       "authored_fixture": {
         "source_task_id": "311824",
         "condition": "Температуры по Цельсию C и по Фаренгейту F связаны формулой F = 1,8·C + 32. Определите температуру по Цельсию, если F = 7 °F. Ответ округлите до десятых.",
@@ -245,28 +266,28 @@
       },
       "examples": [
         {
-          "problem_id": "149308cb-94e3-544d-8f3d-27e8fb9837a3",
+          "problem_id": "c5d2089f-26b8-52b7-9106-627f3deb3588",
           "seed": 6194665912849351413,
-          "condition": "Температуры по шкалам Цельсия C и Фаренгейта F связаны формулой F = 1,8·C + 32. Найдите C, если F = 80 °F. Ответ округлите до десятых.",
-          "answer": "26,7",
+          "condition": "Температуры по шкалам Цельсия C и Фаренгейта F связаны формулой F = 1,8·C + 32. Найдите C, если F = 243 °F. Ответ округлите до десятых.",
+          "answer": "117,2",
           "formula": "F = 1,8·C + 32",
           "target": "C",
           "units": {
             "answer": "°C"
           },
-          "fingerprint": "f236308107db6e21feb6ba2a7a28c141b56b248c7a7452e29aa61c1cb17b5d4a"
+          "fingerprint": "ca793ef7b1244b4b3fada7f22e6acd921478a4815b1465246328906a06d2cec4"
         },
         {
-          "problem_id": "a1aacbb6-5e82-5c67-a45f-ed108ad313ad",
+          "problem_id": "30114327-16e1-55ca-9ebc-1a129a7a409c",
           "seed": 3478812349057117941,
-          "condition": "Температуры по шкалам Цельсия C и Фаренгейта F связаны формулой F = 1,8·C + 32. Найдите C, если F = 196 °F. Ответ округлите до десятых.",
-          "answer": "91,1",
+          "condition": "Температуры по шкалам Цельсия C и Фаренгейта F связаны формулой F = 1,8·C + 32. Найдите C, если F = 114 °F. Ответ округлите до десятых.",
+          "answer": "45,6",
           "formula": "F = 1,8·C + 32",
           "target": "C",
           "units": {
             "answer": "°C"
           },
-          "fingerprint": "768e970cf5f4a5cb89a98adf6e15fe20e96bc9773b2003c26be4b2ad812e2c93"
+          "fingerprint": "18303c435e1d60ef1ff6de64ded77b5407c6a80e037a07ae7b2867023355b2fb"
         }
       ]
     },
@@ -283,22 +304,20 @@
         "369501"
       ],
       "sample_count": 250,
-      "acceptance_attempts": 205,
+      "acceptance_attempts": 237,
       "unique_fingerprints": 200,
-      "duplicate_rejections": 13,
+      "duplicate_rejections": 46,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
       "answer_decimal_places": {
-        "3": 24,
-        "2": 42,
-        "1": 111,
-        "0": 73
+        "0": 102,
+        "1": 148
       },
       "answer_signs": {
         "positive": 250
       },
-      "answer_min": "1/10",
+      "answer_min": "1/2",
       "answer_max": "1",
       "authored_fixture": {
         "source_task_id": "311543",
@@ -308,28 +327,28 @@
       },
       "examples": [
         {
-          "problem_id": "9d6a94e1-6113-51a2-b773-a8121bd13f59",
+          "problem_id": "cf2663ed-d361-5e9a-ba17-938341668aa3",
           "seed": 896621980027816756,
-          "condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = 157,5, d₁ = 30, d₂ = 28.",
-          "answer": "0,375",
+          "condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = 185, d₁ = 10, d₂ = 37.",
+          "answer": "1",
           "formula": "S = d₁·d₂·sin(α)/2",
           "target": "sin_alpha",
           "units": {
             "answer": ""
           },
-          "fingerprint": "99670a71335c40717cabc566fb73945e1465c7359352e67069f9d995a842698e"
+          "fingerprint": "b6424c7d2a3a7b7a8bbd0648d008a1cdfbe8f678f0dc9540360b4657781298da"
         },
         {
-          "problem_id": "1abc90a9-e832-5b26-9cf2-aabcd3b8f822",
+          "problem_id": "7e3862fb-ad54-5e5b-94a7-61a6452c1f68",
           "seed": 2088409717033757010,
-          "condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = 108, d₁ = 40, d₂ = 54.",
-          "answer": "0,1",
+          "condition": "Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = 540, d₁ = 60, d₂ = 18.",
+          "answer": "1",
           "formula": "S = d₁·d₂·sin(α)/2",
           "target": "sin_alpha",
           "units": {
             "answer": ""
           },
-          "fingerprint": "982b012260115e8f68aaebdd3504d471141e7b84203b2cfa55564791ed261029"
+          "fingerprint": "f3057ba0022ea404299a7528c03080ce87508d97f7adc0f41f2c47e0e2d26b0e"
         }
       ]
     },
@@ -343,8 +362,8 @@
       ],
       "sample_count": 250,
       "acceptance_attempts": null,
-      "unique_fingerprints": 248,
-      "duplicate_rejections": 2,
+      "unique_fingerprints": 245,
+      "duplicate_rejections": 5,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -374,8 +393,8 @@
       ],
       "sample_count": 250,
       "acceptance_attempts": null,
-      "unique_fingerprints": 244,
-      "duplicate_rejections": 6,
+      "unique_fingerprints": 248,
+      "duplicate_rejections": 2,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -436,8 +455,8 @@
       ],
       "sample_count": 250,
       "acceptance_attempts": null,
-      "unique_fingerprints": 241,
-      "duplicate_rejections": 9,
+      "unique_fingerprints": 243,
+      "duplicate_rejections": 7,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -447,7 +466,7 @@
       "answer_signs": {
         "positive": 250
       },
-      "answer_min": "2",
+      "answer_min": "1",
       "answer_max": "60",
       "authored_fixture": {
         "source_task_id": "311541",
@@ -468,9 +487,9 @@
         "474304"
       ],
       "sample_count": 250,
-      "acceptance_attempts": 204,
+      "acceptance_attempts": 205,
       "unique_fingerprints": 200,
-      "duplicate_rejections": 6,
+      "duplicate_rejections": 3,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -490,28 +509,28 @@
       },
       "examples": [
         {
-          "problem_id": "da8dce83-2cdf-5e48-9a92-1032d9e2f821",
+          "problem_id": "131e8886-2772-5dcd-a584-98c101c24e57",
           "seed": 3070739795035425740,
-          "condition": "Кинетическая энергия E автомобиля массой m равна m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой 2500 кг, если E = 3380 тысяч Дж. Ответ дайте в метрах в секунду.",
-          "answer": "52",
+          "condition": "Кинетическая энергия E автомобиля массой m равна m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой 1600 кг, если E = 288800 Дж. Ответ дайте в метрах в секунду.",
+          "answer": "19",
           "formula": "E = m·v²/2",
           "target": "v_nonnegative",
           "units": {
             "answer": "м/с"
           },
-          "fingerprint": "83176ee14fb1e21ec1c16c9303d0814f7045ce725674faf2127525dc026760a3"
+          "fingerprint": "b44cfe0f16d62b2a27ee74908bc9c16c4e6edb076bd3da8bada3f77c6ea05b12"
         },
         {
-          "problem_id": "a5a17a44-2ee9-561b-9daf-21c97998da07",
+          "problem_id": "66acc6c5-677c-5ee4-ba2a-a58ce41ce7b3",
           "seed": 819856298845720905,
-          "condition": "Кинетическая энергия E автомобиля массой m равна m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой 3700 кг, если E = 7577600 Дж. Ответ дайте в метрах в секунду.",
-          "answer": "64",
+          "condition": "Кинетическая энергия E автомобиля массой m равна m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой 3500 кг, если E = 12055750 Дж. Ответ дайте в метрах в секунду.",
+          "answer": "83",
           "formula": "E = m·v²/2",
           "target": "v_nonnegative",
           "units": {
             "answer": "м/с"
           },
-          "fingerprint": "e0589e2275c1d88322f1d04e04c054d11c6dd9ea078e093d4be415e59c96e48d"
+          "fingerprint": "1f71777f413f9eadc1655ef9a65e0da8d38cce41e37d38b955aee1d4894740d9"
         }
       ]
     },
@@ -525,9 +544,9 @@
         "474301"
       ],
       "sample_count": 250,
-      "acceptance_attempts": 204,
+      "acceptance_attempts": 207,
       "unique_fingerprints": 200,
-      "duplicate_rejections": 7,
+      "duplicate_rejections": 4,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -547,28 +566,28 @@
       },
       "examples": [
         {
-          "problem_id": "1ddb82a5-9295-5f13-8959-0e3705c032b2",
+          "problem_id": "44162034-1af8-5a59-a127-7fec6c7350f6",
           "seed": 4211594248483381032,
-          "condition": "Потенциальная энергия тела P (в джоулях) вычисляется по формуле P = m·g·h, где g = 9,8 м/с², m — масса в килограммах, h — высота в метрах. Найдите массу тела, если P = 17130,4 Дж и h = 38 м.",
-          "answer": "46",
+          "condition": "Потенциальная энергия тела P (в джоулях) вычисляется по формуле P = m·g·h, где g = 9,8 м/с², m — масса в килограммах, h — высота в метрах. Найдите массу тела, если P = 1999,2 Дж и h = 17 м.",
+          "answer": "12",
           "formula": "P = m·g·h",
           "target": "m",
           "units": {
             "answer": "кг"
           },
-          "fingerprint": "31803746a2f3403eed60b2c8fb906d399384c7af9b5e9fb107a0b727c4f2b8a9"
+          "fingerprint": "3eb86256b9a836b96de6909a70b455810694bc8d8819d3859bd3bfb3dd077ebd"
         },
         {
-          "problem_id": "c9188d3d-0909-56ad-b2dc-f3dbce3daaff",
+          "problem_id": "1d315738-1916-53cc-b434-3f58e4e1a5e6",
           "seed": 8995459624622152372,
-          "condition": "Потенциальная энергия тела P (в джоулях) вычисляется по формуле P = m·g·h, где g = 9,8 м/с², m — масса в килограммах, h — высота в метрах. Найдите массу тела, если P = 4233,6 Дж и h = 24 м.",
-          "answer": "18",
+          "condition": "Потенциальная энергия тела P (в джоулях) вычисляется по формуле P = m·g·h, где g = 9,8 м/с², m — масса в килограммах, h — высота в метрах. Найдите массу тела, если P = 16072 Дж и h = 41 м.",
+          "answer": "40",
           "formula": "P = m·g·h",
           "target": "m",
           "units": {
             "answer": "кг"
           },
-          "fingerprint": "d4be9e9855d2fbb786eeeb7fda019a21e50fc1e4a8633b8de44de80b2b0ea3fa"
+          "fingerprint": "2004684fd653e759531cc2ce759add10ee0c84bfddca091d9da3a9b3831d7c13"
         }
       ]
     },
@@ -583,9 +602,9 @@
         "474302"
       ],
       "sample_count": 250,
-      "acceptance_attempts": 258,
+      "acceptance_attempts": 250,
       "unique_fingerprints": 200,
-      "duplicate_rejections": 39,
+      "duplicate_rejections": 53,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -595,7 +614,7 @@
       "answer_signs": {
         "positive": 250
       },
-      "answer_min": "98",
+      "answer_min": "392",
       "answer_max": "49000",
       "authored_fixture": {
         "source_task_id": "459972",
@@ -605,28 +624,28 @@
       },
       "examples": [
         {
-          "problem_id": "98b8629e-7bcf-5f5d-bfd7-8e42b460ec0c",
+          "problem_id": "0837bbda-cdc8-5060-b6a9-7a79f8557d5b",
           "seed": 184176715360205859,
-          "condition": "Сила Архимеда F для тела в воде равна ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 0,29 м³. Ответ дайте в ньютонах.",
-          "answer": "2842",
+          "condition": "Сила Архимеда F для тела в воде равна ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 2,23 м³. Ответ дайте в ньютонах.",
+          "answer": "21854",
           "formula": "F = ρ·g·V",
           "target": "F",
           "units": {
             "answer": "Н"
           },
-          "fingerprint": "87e4a52db59239575ad73b7fdb5724291d9ea66eb6f589817ed6fb3b5ee59a1c"
+          "fingerprint": "4c564a9fdea111886da9e505582f84d15327698020388496d767bd9885bedbd6"
         },
         {
-          "problem_id": "5b740816-066a-5523-a592-443f9d1c6890",
+          "problem_id": "97578874-326f-57cf-903a-dd1b385eac25",
           "seed": 171171374308288271,
-          "condition": "Сила Архимеда F для тела в воде равна ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 1,71 м³. Ответ дайте в ньютонах.",
-          "answer": "16758",
+          "condition": "Сила Архимеда F для тела в воде равна ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом 1,72 м³. Ответ дайте в ньютонах.",
+          "answer": "16856",
           "formula": "F = ρ·g·V",
           "target": "F",
           "units": {
             "answer": "Н"
           },
-          "fingerprint": "a4e00acd3bc233a51e266f8d7443947555750fe854554ef36b45c9a26c2da1a5"
+          "fingerprint": "99e7389a73261a38fddd21f54cb33354f4774ff2de13784ae77c3bad1c17bdb9"
         }
       ]
     },
@@ -640,19 +659,19 @@
       ],
       "sample_count": 250,
       "acceptance_attempts": null,
-      "unique_fingerprints": 145,
-      "duplicate_rejections": 105,
+      "unique_fingerprints": 144,
+      "duplicate_rejections": 106,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
       "answer_decimal_places": {
-        "9": 90,
-        "7": 74,
-        "5": 46,
-        "4": 29,
-        "1": 3,
-        "2": 1,
-        "3": 6,
+        "9": 94,
+        "5": 35,
+        "7": 75,
+        "4": 26,
+        "3": 9,
+        "1": 2,
+        "2": 8,
         "0": 1
       },
       "answer_signs": {
@@ -693,7 +712,7 @@
         "positive": 250
       },
       "answer_min": "10100",
-      "answer_max": "411900",
+      "answer_max": "416000",
       "authored_fixture": {
         "source_task_id": "124",
         "condition": "Стоимость колодца в рублях вычисляется по формуле C = 6000 + 4100·n, где n — число установленных колец. Сколько будет стоить колодец из 6 колец?",
@@ -714,8 +733,8 @@
       ],
       "sample_count": 250,
       "acceptance_attempts": null,
-      "unique_fingerprints": 106,
-      "duplicate_rejections": 144,
+      "unique_fingerprints": 103,
+      "duplicate_rejections": 147,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -745,21 +764,21 @@
       ],
       "sample_count": 250,
       "acceptance_attempts": null,
-      "unique_fingerprints": 250,
-      "duplicate_rejections": 0,
+      "unique_fingerprints": 249,
+      "duplicate_rejections": 1,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
       "answer_decimal_places": {
-        "0": 141,
-        "1": 71,
-        "2": 38
+        "0": 142,
+        "2": 33,
+        "1": 75
       },
       "answer_signs": {
         "positive": 250
       },
-      "answer_min": "8",
-      "answer_max": "4559",
+      "answer_min": "63/4",
+      "answer_max": "4656",
       "authored_fixture": {
         "source_task_id": "311537",
         "condition": "Площадь треугольника определяется формулой S = b·c·sinα/2, где b и c — стороны, а α — угол между ними. Найдите площадь треугольника, если b = 8, c = 10, α = 30°.",
@@ -778,8 +797,8 @@
       ],
       "sample_count": 250,
       "acceptance_attempts": null,
-      "unique_fingerprints": 222,
-      "duplicate_rejections": 28,
+      "unique_fingerprints": 224,
+      "duplicate_rejections": 26,
       "math_oracle_failures": 0,
       "rendered_oracle_failures": 0,
       "answer_policy_failures": 0,
@@ -789,7 +808,7 @@
       "answer_signs": {
         "positive": 250
       },
-      "answer_min": "5",
+      "answer_min": "30",
       "answer_max": "4990",
       "authored_fixture": {
         "source_task_id": "311538",

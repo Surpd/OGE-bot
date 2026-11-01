@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import random
+from dataclasses import replace
 from fractions import Fraction
 from pathlib import Path
 
@@ -191,3 +192,126 @@ def test_disabled_families_are_implemented_but_not_selected() -> None:
     assert set(ENABLED_FAMILIES) < set(ALL_FAMILIES)
     assert R015 not in ENABLED_FAMILIES
     assert R004 in ENABLED_FAMILIES
+
+
+FORMULA_MUTATIONS = {
+    "OGE12-R001": ("I²·R", "I·R"),
+    "OGE12-R002": ("ω²·R", "ω·R"),
+    "OGE12-R003": ("1,8·C", "1,7·C"),
+    "OGE12-R004": ("1,8·C", "1,7·C"),
+    "OGE12-R005": ("sin(α)/2", "sin(α)/3"),
+    "OGE12-R006": ("d₁·d₂/2", "d₁·d₂/3"),
+    "OGE12-R007": ("a·h/2", "a·h/3"),
+    "OGE12-R008": ("(a+b)·h/2", "(a+b)·h/3"),
+    "OGE12-R009": ("S·h/3", "S·h/4"),
+    "OGE12-R010": ("m·v²/2", "m·v²/3"),
+    "OGE12-R011": ("m·g·h", "m·g·2h"),
+    "OGE12-R012": ("ρ·g·V", "ρ·g·2V"),
+    "OGE12-R013": ("U²/2", "U²/3"),
+    "OGE12-R014": ("a+b·n", "a+b+n"),
+    "OGE12-R015": ("11·(t−5)", "12·(t−5)"),
+    "OGE12-R016": ("sin(α)/2", "sin(α)/3"),
+    "OGE12-R017": ("(a+b+c)·r/2", "(a+b+c)·r/3"),
+}
+
+UNIT_MUTATIONS = {
+    "OGE12-R001": (" Вт", " кг"),
+    "OGE12-R002": ("м/с²", "км/ч"),
+    "OGE12-R003": ("°C", "°F"),
+    "OGE12-R004": ("°F", "°C"),
+    "OGE12-R005": ("четырёхугольника", "треугольника"),
+    "OGE12-R006": ("м²", "см²"),
+    "OGE12-R007": ("м²", "см²"),
+    "OGE12-R008": ("м²", "см²"),
+    "OGE12-R009": ("м³", "см³"),
+    "OGE12-R010": (" кг,", " г,"),
+    "OGE12-R011": (" Дж и h", " Вт и h"),
+    "OGE12-R012": ("ρ = 1000", "ρ = 21000"),
+    "OGE12-R013": ("10⁻⁴ Ф", "10⁻³ Ф"),
+    "OGE12-R014": (" руб.", " долл."),
+    "OGE12-R015": (" минут", " секунд"),
+    "OGE12-R016": ("стороны", "диагонали"),
+    "OGE12-R017": ("сторонами", "углами"),
+}
+
+TARGET_MUTATIONS = {
+    "OGE12-R001": ("Найдите сопротивление R", "Найдите силу тока I"),
+    "OGE12-R002": ("найдите R", "найдите ускорение a"),
+    "OGE12-R003": ("Какая температура по Фаренгейту", "Какая температура по Цельсию"),
+    "OGE12-R004": ("Найдите C", "Найдите F"),
+    "OGE12-R005": ("Найдите sin(α)", "Найдите d₁"),
+    "OGE12-R006": ("Найдите d₁", "Найдите d₂"),
+    "OGE12-R007": ("Найдите сторону a", "Найдите высоту h"),
+    "OGE12-R008": ("Найдите h", "Найдите a"),
+    "OGE12-R009": ("Найдите высоту", "Найдите объём V"),
+    "OGE12-R010": ("Найдите скорость", "Найдите энергию"),
+    "OGE12-R011": ("Найдите массу", "Найдите высоту"),
+    "OGE12-R012": ("Найдите F", "Найдите V"),
+    "OGE12-R013": ("Найдите W", "Найдите U"),
+    "OGE12-R014": ("Найдите C", "Найдите n"),
+    "OGE12-R015": ("Найдите стоимость", "Найдите время"),
+    "OGE12-R016": ("Найдите S", "Найдите b"),
+    "OGE12-R017": ("Найдите c", "Найдите a"),
+}
+
+
+@pytest.mark.parametrize("family_id", ALL_FAMILIES)
+def test_each_family_oracle_rejects_formula_unit_and_target_mutations(family_id: str) -> None:
+    problem = generate(family_id, 711)
+    for mutations in (FORMULA_MUTATIONS, UNIT_MUTATIONS, TARGET_MUTATIONS):
+        original, mutated = mutations[family_id]
+        assert original in problem.condition, (family_id, original)
+        condition = problem.condition.replace(
+            original, mutated, 1 if mutations is not UNIT_MUTATIONS else -1
+        )
+        assert solve_rendered_condition(family_id, condition) is None, family_id
+
+
+def test_oracle_reads_gravity_and_density_as_numeric_givens() -> None:
+    r011 = generate("OGE12-R011", 711).condition
+    assert solve_rendered_condition("OGE12-R011", r011) is not None
+    assert solve_rendered_condition("OGE12-R011", r011.replace("g = 9,8", "g = 19,8")) is None
+    r012 = generate("OGE12-R012", 711).condition
+    assert solve_rendered_condition("OGE12-R012", r012) is not None
+    assert solve_rendered_condition("OGE12-R012", r012.replace("ρ = 1000", "ρ = 21000")) is None
+    assert solve_rendered_condition("OGE12-R012", r012.replace("g = 9,8", "g = 19,8")) is None
+
+
+def test_enabled_solution_steps_reject_wrong_rearrangements_and_substitutions() -> None:
+    solution_mutations = {
+        "OGE12-R001": (1, "P/I²", "P/I"),
+        "OGE12-R002": (1, "a/ω²", "a/ω"),
+        "OGE12-R003": (1, "1,8·(", "1,7·("),
+        "OGE12-R004": (1, "/1,8", "/1,7"),
+        "OGE12-R005": (1, "2S/", "3S/"),
+        "OGE12-R010": (1, "2E/m", "E/m"),
+        "OGE12-R011": (1, "P/(g·h)", "P/h"),
+        "OGE12-R012": (1, "1000·9,8", "21000·9,8"),
+    }
+    assert set(solution_mutations) == set(ENABLED_FAMILIES)
+    for family_id, (index, original, mutated) in solution_mutations.items():
+        problem = generate(family_id, 712)
+        steps = list(problem.solution)
+        assert original in steps[index], (family_id, steps[index])
+        steps[index] = steps[index].replace(original, mutated, 1)
+        broken = replace(problem, solution=tuple(steps))
+        assert not validate_rendered_problem(broken), family_id
+
+
+def test_tabular_trigonometric_values_only() -> None:
+    for seed in range(250):
+        r005 = generate("OGE12-R005", seed)
+        assert POLICY.parse(r005.correct_answer) in {Fraction(1, 2), Fraction(1)}
+        assert solve_rendered_condition("OGE12-R005", r005.condition) in {
+            Fraction(1, 2),
+            Fraction(1),
+        }
+
+        r016 = generate("OGE12-R016", seed)
+        angle = next(value for value in (30, 90, 150) if f"α = {value}°" in r016.condition)
+        assert (
+            solve_rendered_condition(
+                "OGE12-R016", r016.condition.replace(f"α = {angle}°", "α = 37°")
+            )
+            is None
+        )

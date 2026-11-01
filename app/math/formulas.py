@@ -14,7 +14,7 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy, decimal_places, format_decimal
 
-GENERATOR_VERSION = "0.1.0"
+GENERATOR_VERSION = "0.2.0"
 MAX_GENERATION_ATTEMPTS = 64
 MAX_CANDIDATES = 54
 SEEDS_PER_FAMILY = 6
@@ -231,9 +231,8 @@ def _sample(
     if family == R005:
         d1 = Fraction(rng.randint(1, 6) * 10)
         d2 = Fraction(rng.randint(2, 60))
-        denominator = rng.choice((2, 4, 5, 8, 10))
-        numerator = rng.randint(1, denominator)
-        sine = Fraction(numerator, denominator)
+        # The generated exact sine values stay on the standard trigonometric table.
+        sine = rng.choice((Fraction(1, 2), Fraction(1)))
         area = d1 * d2 * sine / 2
         condition = f"Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = {_f(area)}, d₁ = {_f(d1)}, d₂ = {_f(d2)}."  # noqa: E501
         return (
@@ -500,6 +499,29 @@ def _displayed_parameters(family: str, condition: str) -> dict[str, Fraction] | 
             if "тысяч" in energy.group(2).lower():
                 energy_value *= 1000
             return {"m_kg": mass_value, "E_J": energy_value}
+    if family == R011:
+        gravity = re.search(r"\bg\s*=\s*([\d,.]+)\s*м/с²", condition)
+        energy_and_height = re.search(
+            r"[PE]\s*=\s*([\d,.]+)\s*Дж\s+и\s+h\s*=\s*([\d,.]+)\s*м",
+            condition,
+            re.IGNORECASE,
+        )
+        if gravity is not None and energy_and_height is not None:
+            return {
+                "g": Fraction(gravity.group(1).replace(",", ".")),
+                "P_J": Fraction(energy_and_height.group(1).replace(",", ".")),
+                "h_m": Fraction(energy_and_height.group(2).replace(",", ".")),
+            }
+    if family == R012:
+        density = re.search(r"ρ\s*=\s*([\d,.]+)\s*кг/м³", condition)
+        gravity = re.search(r"\bg\s*=\s*([\d,.]+)\s*м/с²", condition)
+        volume = re.search(r"объёмом\s+([\d,.]+)\s*м³", condition)
+        if density is not None and gravity is not None and volume is not None:
+            return {
+                "rho": Fraction(density.group(1).replace(",", ".")),
+                "g": Fraction(gravity.group(1).replace(",", ".")),
+                "V": Fraction(volume.group(1).replace(",", ".")),
+            }
     patterns: dict[str, tuple[str, ...]] = {
         R001: (
             r"Мощность P равна ([\d,.]+) Вт, а сила тока I равна ([\d,.]+) А",
@@ -517,8 +539,6 @@ def _displayed_parameters(family: str, condition: str) -> dict[str, Fraction] | 
             r"массой ([\d,.]+) кг, если E = ([\d,.]+)( тысяч Дж| Дж)",
             r"массой ([\d,.]+) кг[^.]*энергией ([\d,.]+)( тысяч Дж| Дж)",
         ),
-        R011: (r"[PE] = ([\d,.]+) Дж и h = ([\d,.]+) м",),
-        R012: (r"объёмом ([\d,.]+) м³",),
         R013: (r"U = ([\d,.]+) В",),
         R014: (
             r"из ([\d]+) колец, если a = ([\d,.]+) руб\. и b = ([\d,.]+) руб\.",
@@ -528,7 +548,7 @@ def _displayed_parameters(family: str, condition: str) -> dict[str, Fraction] | 
         R016: (r"b = ([\d,.]+), c = ([\d,.]+), α = ([\d]+)°",),
         R017: (r"S = ([\d,.]+), a = ([\d,.]+), b = ([\d,.]+), r = ([\d,.]+)",),
     }
-    for pattern_index, pattern in enumerate(patterns[family]):
+    for pattern_index, pattern in enumerate(patterns.get(family, ())):
         match = re.search(pattern, condition)
         if match:
             raw = [
@@ -546,8 +566,6 @@ def _displayed_parameters(family: str, condition: str) -> dict[str, Fraction] | 
                 R008: ("a", "b", "S"),
                 R009: ("V", "S"),
                 R010: ("m_kg", "E_J"),
-                R011: ("P_J", "h_m"),
-                R012: ("V",),
                 R013: ("U_V",),
                 R014: ("n", "a", "b"),
                 R015: ("t",),
@@ -614,11 +632,13 @@ def solve_rendered_condition(family_id: str, condition: str) -> Fraction | None:
             if result < 0:
                 return None
         elif family_id == R011:
-            if v["h_m"] <= 0:
+            if v["g"] != Fraction(49, 5) or v["h_m"] <= 0:
                 return None
-            result = v["P_J"] / (Fraction(49, 5) * v["h_m"])
+            result = v["P_J"] / (v["g"] * v["h_m"])
         elif family_id == R012:
-            result = 1000 * Fraction(49, 5) * v["V"]
+            if v["rho"] != 1000 or v["g"] != Fraction(49, 5) or v["V"] <= 0:
+                return None
+            result = v["rho"] * v["g"] * v["V"]
         elif family_id == R013:
             if not re.search(r"C = 10⁻⁴ Ф", condition):
                 return None
@@ -669,30 +689,38 @@ def _formula_and_units_present(family: str, condition: str) -> bool:
         R002: (("a=ω²·r",), ("м/с²", "с⁻¹", "радиус")),
         R003: (("f=1,8·c+32",), ("°c", "фаренгейт")),
         R004: (("f=1,8·c+32",), ("°f", "десятых")),
-        R005: (("sin(α)", "sinα"), ("четырёхугольника", "d₁", "d₂")),
+        R005: (
+            ("s=d₁·d₂·sin(α)/2", "s=d₁·d₂·sinα/2"),
+            ("четырёхугольника", "d₁", "d₂"),
+        ),
         R006: (("d₁·d₂/2",), ("ромба", "м²")),
-        R007: (("a·h/2",), ("треугольника", "м²")),
-        R008: (("(a+b)·h/2",), ("трапеции", "м²")),
-        R009: (("s·h/3",), ("пирамиды", "м³")),
-        R010: (("m·v²/2",), ("кинетическая энергия", "кг")),
-        R011: (("m·g·h",), ("потенциальная энергия", "9,8 м/с²")),
-        R012: (("ρ·g·v",), ("архимеда", "1000 кг/м³", "ньютон")),
-        R013: (("w=c·u²/2",), ("10⁻⁴ ф", "вольтах")),
-        R014: (("a+b·n", "6000+4100·n"), ("колодца", "колец")),
-        R015: (("150+11·(t−5)",), ("поездки", "минут")),
-        R016: (("b·c·sinα/2", "b·c·sin(α)/2"), ("треугольника", "угол")),
-        R017: (("(a+b+c)·r/2",), ("вписанной окружности",)),
+        R007: (("s=a·h/2",), ("треугольника", "м²")),
+        R008: (("s=(a+b)·h/2",), ("трапеции", "м²")),
+        R009: (("v=s·h/3",), ("пирамиды", "м³")),
+        R010: (("m·v²/2",), ("кинетическая энергия", "кг", "джоулях")),
+        R011: (("p=m·g·h", "e=m·g·h"), ("потенциальная энергия", "м/с²")),
+        R012: (("ρ·g·v",), ("архимеда", "кг/м³", "м/с²", "ньютон")),
+        R013: (("w=c·u²/2",), ("10⁻⁴ ф", "вольтах", "джоулях")),
+        R014: (("a+b·n", "c=6000+4100·n"), ("колодца", "колец", "рублях")),
+        R015: (("c=150+11·(t−5)",), ("поездки", "минут", "рублях")),
+        R016: (
+            ("s=b·c·sin(α)/2", "s=b·c·sinα/2"),
+            ("треугольника", "стороны", "угол"),
+        ),
+        R017: (("s=(a+b+c)·r/2",), ("вписанной окружности",)),
     }
     formulas, context = required[family]
-    if not any(signature.lower() in compact for signature in formulas):
+    if sum(compact.count(signature) for signature in formulas) != 1:
         return False
     if not all(token.lower() in rendered for token in context):
         return False
     if family == R015 and "t > 5" not in rendered and "больше 5 минут" not in rendered:
         return False
-    if family == R017 and "сторонами" not in rendered and "стороны" not in rendered:
-        return False
     if family == R010 and "метрах в секунду" not in rendered and "м/с" not in rendered:
+        return False
+    if family == R011 and "кг" not in rendered and "килограмм" not in rendered:
+        return False
+    if family == R017 and "сторонами" not in rendered and "стороны" not in rendered:
         return False
     return True
 
@@ -721,13 +749,146 @@ def _target_asked(family: str, condition: str) -> bool:
     return re.search(patterns[family], text) is not None
 
 
+def _expected_solution_steps(family: str, condition: str) -> tuple[str, ...] | None:
+    """Rebuild a checked derivation solely from the values parsed from the condition."""
+    values = _displayed_parameters(family, condition)
+    result = solve_rendered_condition(family, condition)
+    if values is None or result is None:
+        return None
+    if family == R001:
+        power, current = values["P_W"], values["I_A"]
+        return (
+            "Формула: P = I²·R.",
+            "Выразим сопротивление: R = P/I².",
+            f"Подставим значения: R = {_f(power)}/({_f(current)})².",
+            f"Получаем R = {_f(result)} Ом.",
+        )
+    if family == R002:
+        omega, acceleration = values["omega"], values["a"]
+        return (
+            "Формула: a = ω²·R.",
+            "Выразим радиус: R = a/ω².",
+            f"Подставим: R = {_f(acceleration)}/({_f(omega)})² = {_f(result)} м.",
+        )
+    if family == R003:
+        celsius = values["C"]
+        return (
+            "Формула: F = 1,8·C + 32.",
+            f"Подставим: F = 1,8·({_f(celsius)}) + 32.",
+            f"Получаем F = {_f(result)} °F.",
+        )
+    if family == R004:
+        fahrenheit = values["F"]
+        exact = (fahrenheit - 32) * Fraction(5, 9)
+        return (
+            "Формула: F = 1,8·C + 32.",
+            f"Выразим C: C = (F − 32)/1,8 = ({_f(fahrenheit)} − 32)/1,8.",
+            f"Точное значение: C = {_exact_text(exact)} °C.",
+            f"После округления до десятых: C = {_f(result)} °C.",
+        )
+    if family == R005:
+        area, d1, d2 = values["S"], values["d1"], values["d2"]
+        formula = "S = d₁·d₂·sin(α)/2."
+        return (
+            f"Формула: {formula}",
+            "Выразим синус: sin(α) = 2S/(d₁·d₂).",
+            f"Подставим: sin(α) = 2·{_f(area)}/({_f(d1)}·{_f(d2)}) = {_f(result)}.",
+        )
+    if family == R006:
+        area, d2 = values["S"], values["d2"]
+        return (
+            "Формула: S = d₁·d₂/2.",
+            "Выразим d₁: d₁ = 2S/d₂.",
+            f"Подставим: d₁ = 2·{_f(area)}/{_f(d2)} = {_f(result)} м.",
+        )
+    if family == R007:
+        area, height = values["S"], values["h"]
+        return (
+            "Формула: S = a·h/2.",
+            "Выразим сторону: a = 2S/h.",
+            f"Подставим: a = 2·{_f(area)}/{_f(height)} = {_f(result)} м.",
+        )
+    if family == R008:
+        a, b, area = values["a"], values["b"], values["S"]
+        height = result
+        return (
+            "Формула: S = (a+b)·h/2.",
+            f"Выразим высоту: h = 2S/(a+b) = 2·{_f(area)}/({_f(a)}+{_f(b)}).",
+            f"Получаем h = {_f(height)} м.",
+        )
+    if family == R009:
+        volume, base_area = values["V"], values["S"]
+        return (
+            "Формула: V = S·h/3.",
+            "Выразим высоту: h = 3V/S.",
+            f"Подставим: h = 3·{_f(volume)}/{_f(base_area)} = {_f(result)} м.",
+        )
+    if family == R010:
+        mass, energy = values["m_kg"], values["E_J"]
+        return (
+            "Формула: E = m·v²/2.",
+            "Выразим скорость: v = √(2E/m).",
+            f"Подставим: v = √(2·{_f(energy)} / {_f(mass)}) = {_f(result)} м/с.",
+        )
+    if family == R011:
+        energy, height, gravity = values["P_J"], values["h_m"], values["g"]
+        return (
+            "Формула: P = m·g·h.",
+            "Выразим массу: m = P/(g·h).",
+            f"Подставим: m = {_f(energy)}/({_f(gravity)}·{_f(height)}) = {_f(result)} кг.",
+        )
+    if family == R012:
+        density, gravity, volume = values["rho"], values["g"], values["V"]
+        return (
+            "Формула: F = ρ·g·V.",
+            f"Подставим: F = {_f(density)}·{_f(gravity)}·{_f(volume)}.",
+            f"Получаем F = {_f(result)} Н.",
+        )
+    if family == R013:
+        voltage = values["U_V"]
+        return (
+            "Формула: W = C·U²/2.",
+            f"Подставим: W = 10⁻⁴·({_f(voltage)})²/2.",
+            f"Получаем W = {_f(result)} Дж.",
+        )
+    if family == R014:
+        fixed, per_ring, count = values["a"], values["b"], values["n"]
+        return (
+            "Формула: C = a+b·n.",
+            f"Подставим: C = {_f(fixed)} + {_f(per_ring)}·{_f(count)}.",
+            f"Получаем C = {_f(result)} руб.",
+        )
+    if family == R015:
+        time = values["t"]
+        return (
+            "Формула: C = 150+11·(t−5), применима при t>5.",
+            f"Подставим: C = 150+11·({_f(time)}−5).",
+            f"Получаем C = {_f(result)} руб.",
+        )
+    if family == R016:
+        b, c, angle = values["b"], values["c"], values["angle_degrees"]
+        sine = Fraction(1) if angle == 90 else Fraction(1, 2)
+        return (
+            f"Угол α = {_f(angle)}°, поэтому sin(α) = {_f(sine)}.",
+            "Формула: S = b·c·sin(α)/2.",
+            f"Подставим: S = {_f(b)}·{_f(c)}·{_f(sine)}/2 = {_f(result)}.",
+        )
+    if family == R017:
+        area, a, b, radius = values["S"], values["a"], values["b"], values["r"]
+        return (
+            "Формула: S = (a+b+c)·r/2.",
+            "Выразим c: c = 2S/r − a − b.",
+            f"Подставим: c = 2·{_f(area)}/{_f(radius)} − {_f(a)} − {_f(b)} = {_f(result)}.",
+        )
+    return None
+
+
 def validate_rendered_problem(problem: FormulaProblem) -> bool:
     values = _displayed_parameters(problem.family_id, problem.condition)
     if values is None or not _formula_and_units_present(problem.family_id, problem.condition):
         return False
-    if solve_rendered_condition(problem.family_id, problem.condition) != POLICY.parse(
-        problem.correct_answer
-    ):
+    oracle_value = solve_rendered_condition(problem.family_id, problem.condition)
+    if oracle_value is None or oracle_value != POLICY.parse(problem.correct_answer):
         return False
     for key, value in values.items():
         if (
@@ -735,9 +896,15 @@ def validate_rendered_problem(problem: FormulaProblem) -> bool:
             or Fraction(problem.variables[key].replace(",", ".")) != value
         ):
             return False
-    if problem.family_id == R017:
-        return len(problem.solution) >= 3 and f"{problem.correct_answer}" in problem.solution[-1]
-    return bool(problem.solution and problem.correct_answer in problem.solution[-1])
+    expected_answer = (
+        _format_tenths(oracle_value) if problem.family_id == R004 else POLICY.format(oracle_value)
+    )
+    expected_steps = _expected_solution_steps(problem.family_id, problem.condition)
+    return (
+        expected_steps is not None
+        and problem.correct_answer == expected_answer
+        and problem.solution == expected_steps
+    )
 
 
 Sample = tuple[dict[str, Fraction], str, str, str, tuple[str, ...], tuple[str, ...]]
