@@ -631,7 +631,7 @@ def test_all_family_snapshots_restore_only_condition_derived_solution_steps(fami
 
     changed_boundary = original_steps.copy()
     final_answer = changed_boundary[-1]
-    endpoint = re.search(r"(Ответ: )([\[(])", final_answer)
+    endpoint = re.search(r": ([\[(])", final_answer)
     assert endpoint
     changed_boundary[-1] = (
         final_answer[: endpoint.start(2)]
