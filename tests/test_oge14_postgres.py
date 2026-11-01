@@ -322,5 +322,3 @@ async def test_task14_postgres_duplicate_skip_callback_only_issues_one_current_p
     finally:
         await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
         await pool.close()
-
-

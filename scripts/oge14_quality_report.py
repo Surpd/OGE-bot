@@ -108,4 +108,3 @@ if __name__ == "__main__":
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     print("Wrote reports/oge14-quality.json")
-
