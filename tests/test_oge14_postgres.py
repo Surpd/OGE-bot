@@ -27,7 +27,8 @@ async def test_task14_postgres_hints_answer_and_snapshot_survive_repository_rest
             "migrations/0003_task6_session_quality.sql",
             "migrations/0004_task9_sessions.sql",
             "migrations/0005_task10_sessions.sql",
-            "migrations/0006_task14_sessions.sql",
+        "migrations/0006_task12_sessions.sql",
+            "migrations/0007_task14_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
         repository = PostgresRepository(pool)
@@ -78,7 +79,8 @@ async def test_task14_postgres_concurrent_next_after_solution_viewed_advances_on
             "migrations/0003_task6_session_quality.sql",
             "migrations/0004_task9_sessions.sql",
             "migrations/0005_task10_sessions.sql",
-            "migrations/0006_task14_sessions.sql",
+        "migrations/0006_task12_sessions.sql",
+            "migrations/0007_task14_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
         repository = PostgresRepository(pool)
@@ -132,7 +134,8 @@ async def _new_task14_repository(database_url: str) -> tuple[asyncpg.Pool, Postg
         "migrations/0003_task6_session_quality.sql",
         "migrations/0004_task9_sessions.sql",
         "migrations/0005_task10_sessions.sql",
-        "migrations/0006_task14_sessions.sql",
+        "migrations/0006_task12_sessions.sql",
+        "migrations/0007_task14_sessions.sql",
     ):
         await pool.execute(await read_migration(migration))
     repository = PostgresRepository(pool)
@@ -322,3 +325,7 @@ async def test_task14_postgres_duplicate_skip_callback_only_issues_one_current_p
     finally:
         await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
         await pool.close()
+
+
+
+

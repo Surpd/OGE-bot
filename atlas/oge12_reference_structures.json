@@ -1,0 +1,991 @@
+{
+  "schema_version": "1.0",
+  "research_date": "2026-11-01",
+  "exam": "ОГЭ математика, задание 12",
+  "scope": "проверенная открытая выборка каталога и аналогов, не полный официальный банк ФИПИ",
+  "status": "research_complete_with_known_limits",
+  "number_of_formula_contexts": 17,
+  "warning": "source_text_or_catalog_checked означает просмотр записи/текста сайта; НЕ означает независимую официальную верификацию источника/года или готовность к публикации генератора",
+  "sources": {
+    "catalog_linear_base": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true",
+    "catalog_linear_extended": "https://math-oge.sdamgia.ru/test?theme=27&ttest=true&wclones=1",
+    "catalog_formula_base": "https://math-oge.sdamgia.ru/test?theme=71&ttest=true",
+    "catalog_formula_extended": "https://math-oge.sdamgia.ru/test?theme=71&ttest=true&wclones=1",
+    "demo_2027_problem": "https://math-oge.sdamgia.ru/problem?id=480728",
+    "fipi_documents": "https://fipi.ru/oge/demoversii-specifikacii-kodifikatory"
+  },
+  "families": [
+    {
+      "id": "OGE12-R001",
+      "name": "Электрическая мощность",
+      "formula": "P = I²·R",
+      "operations": [
+        "solve_for_R"
+      ],
+      "context": "электричество",
+      "priority": "P1",
+      "ids": [
+        316914,
+        338155,
+        471237,
+        478040,
+        480728
+      ],
+      "constraints": [
+        "I ≠ 0",
+        "P ≥ 0",
+        "R ≥ 0",
+        "единицы: Вт, А, Ом"
+      ],
+      "source_status": "современный: демонстрация 2027 (проект), варианты 2024/2026",
+      "wording": "Пользуясь этой формулой, найдите сопротивление R",
+      "note": "480728 — проект демоверсии ОГЭ-2027; атрибуция 316914 к ОГЭ-2024/2026 указана порталом.",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R002",
+      "name": "Центростремительное ускорение",
+      "formula": "a = ω²·R",
+      "operations": [
+        "solve_for_R"
+      ],
+      "context": "движение по окружности",
+      "priority": "P1",
+      "ids": [
+        311920,
+        338050,
+        338232,
+        341532,
+        392900,
+        392927
+      ],
+      "constraints": [
+        "ω ≠ 0",
+        "R > 0",
+        "a ≥ 0",
+        "с⁻¹ — единица, не степень числа"
+      ],
+      "source_status": "подтверждено в каталоге; 338232 указан как ОГЭ-2023",
+      "wording": "найдите радиус R (в метрах)",
+      "note": "341532 — более короткая формулировка того же действия.",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R003",
+      "name": "Температура: прямая подстановка",
+      "formula": "F = 1,8·C + 32",
+      "operations": [
+        "evaluate_F"
+      ],
+      "context": "температура",
+      "priority": "P1",
+      "ids": [
+        311768,
+        311542,
+        338138,
+        357575,
+        355423
+      ],
+      "constraints": [
+        "температуры могут быть отрицательными",
+        "считать через точную десятичную дробь"
+      ],
+      "source_status": "каталог + демоверсии 2018–2024, приписываемые порталом №357575",
+      "wording": "Какая температура по шкале Фаренгейта соответствует",
+      "note": "Сохранять обратную задачу отдельно.",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R004",
+      "name": "Температура: обратное преобразование и округление",
+      "formula": "F = 1,8·C + 32",
+      "operations": [
+        "solve_for_C",
+        "round_to_tenths"
+      ],
+      "context": "температура",
+      "priority": "P1",
+      "ids": [
+        311824,
+        341156
+      ],
+      "constraints": [
+        "C=(F−32)/1,8",
+        "округление только если сказано в условии",
+        "отрицательный результат и знак"
+      ],
+      "source_status": "каталог проверен",
+      "wording": "Ответ округлите до десятых",
+      "note": "Обязательно отдельная policy округления; проверять способ tie-breaking.",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R005",
+      "name": "Площадь выпуклого четырёхугольника через диагонали и синус",
+      "formula": "S = d₁·d₂·sin(α)/2",
+      "operations": [
+        "solve_for_sin_alpha",
+        "solve_for_d1",
+        "solve_for_d2"
+      ],
+      "context": "геометрия",
+      "priority": "P1",
+      "ids": [
+        311543,
+        338238,
+        341054,
+        341365,
+        369501
+      ],
+      "constraints": [
+        "d₁ > 0",
+        "d₂ > 0",
+        "0 < sin(α) ≤ 1",
+        "S > 0",
+        "ответ может быть дробью"
+      ],
+      "source_status": "каталог; 311543 приписан досрочному ОГЭ-2024",
+      "wording": "Пользуясь этой формулой, найдите длину диагонали",
+    "note": "Постановки sinα и диагональ — разные операции на одной формуле. Источник 311543 подтверждает задачу на восстановление sin(α) и ответ 0,4. Генератор выбирает точные десятые в геометрическом диапазоне (0; 1]; распределение ответов предварительное, так как отдельно сверено одно опубликованное числовое значение. Это не табличное вычисление sin заданного угла.",
+    "answer_distribution_status": "preliminary_single_exact_source_answer",
+    "generated_sine_domain": "exact tenths 0.1..1.0 inclusive; derived from S = d1*d2*sin(alpha)/2 and 0 < sin(alpha) <= 1",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R006",
+      "name": "Площадь ромба",
+      "formula": "S = d₁·d₂/2",
+      "operations": [
+        "solve_for_d1"
+      ],
+      "context": "геометрия",
+      "priority": "P2",
+      "ids": [
+        311348
+      ],
+      "constraints": [
+        "d₁ > 0",
+        "d₂ > 0",
+        "S > 0",
+        "метры и м²"
+      ],
+      "source_status": "старый диагностический источник",
+      "wording": "найдите диагональ d₁",
+      "note": "Диагональ не получать нулевой.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
+    },
+    {
+      "id": "OGE12-R007",
+      "name": "Площадь треугольника по стороне и высоте",
+      "formula": "S = a·h/2",
+      "operations": [
+        "solve_for_a"
+      ],
+      "context": "геометрия",
+      "priority": "P2",
+      "ids": [
+        311528
+      ],
+      "constraints": [
+        "a > 0",
+        "h > 0",
+        "S > 0"
+      ],
+      "source_status": "старый диагностический источник",
+      "wording": "найдите сторону a",
+      "note": "Формула с синусом — отдельная геометрическая конструкция R016.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
+    },
+    {
+      "id": "OGE12-R008",
+      "name": "Площадь трапеции",
+      "formula": "S = (a+b)·h/2",
+      "operations": [
+        "solve_for_h"
+      ],
+      "context": "геометрия",
+      "priority": "P2",
+      "ids": [
+        311530
+      ],
+      "constraints": [
+        "a > 0",
+        "b > 0",
+        "h > 0",
+        "a+b > 0",
+        "S > 0"
+      ],
+      "source_status": "старый диагностический источник",
+      "wording": "найдите высоту h",
+      "note": "Учитывать скобки в формуле.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
+    },
+    {
+      "id": "OGE12-R009",
+      "name": "Объём пирамиды",
+      "formula": "V = S·h/3",
+      "operations": [
+        "solve_for_h"
+      ],
+      "context": "геометрия",
+      "priority": "P2",
+      "ids": [
+        311541
+      ],
+      "constraints": [
+        "S > 0",
+        "h > 0",
+        "V > 0",
+        "размерности согласованы"
+      ],
+      "source_status": "историческая ГИА-2013",
+      "wording": "Чему равна высота пирамиды?",
+      "note": "Не принимать решение простым масштабированием без знания сторон.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: диагностические/исторические источники не подтверждают современное семейство задания №12."
+    },
+    {
+      "id": "OGE12-R010",
+      "name": "Кинетическая энергия",
+      "formula": "E = m·v²/2",
+      "operations": [
+        "solve_for_v_nonnegative"
+      ],
+      "context": "физика",
+      "priority": "P2",
+      "ids": [
+        459973,
+        463026,
+        474304
+      ],
+      "constraints": [
+        "m > 0",
+        "E ≥ 0",
+        "v ≥ 0",
+        "тысячи джоулей перевести в джоули",
+        "корень конечный и требуемой точности"
+      ],
+      "source_status": "каталог; близкая формула в демоверсии ОГЭ-2026",
+      "wording": "Найдите скорость этого автомобиля в метрах в секунду",
+      "note": "Подкоренное выражение 2E/m.",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R011",
+      "name": "Потенциальная энергия",
+      "formula": "E = m·g·h",
+      "operations": [
+        "solve_for_m"
+      ],
+      "context": "физика",
+      "priority": "P2",
+      "ids": [
+        459974,
+        474301
+      ],
+      "constraints": [
+        "g = 9,8 м/с², когда дано источником",
+        "h > 0",
+        "m > 0",
+        "джоули и килограммы"
+      ],
+      "source_status": "подтверждено в каталоге",
+      "wording": "Найдите массу тела",
+      "note": "В оригинале 459974 энергия обозначена P; не смешивать с электрической мощностью P.",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R012",
+      "name": "Сила Архимеда",
+      "formula": "F = ρ·g·V",
+      "operations": [
+        "evaluate_F"
+      ],
+      "context": "физика",
+      "priority": "P2",
+      "ids": [
+        459972,
+        474300,
+        474302
+      ],
+      "constraints": [
+        "ρ = 1000 кг/м³ для воды, если зафиксировано",
+        "g = 9,8 м/с²",
+        "V > 0",
+        "ньютон"
+      ],
+      "source_status": "подтверждено в каталоге",
+      "wording": "Найдите силу Архимеда",
+      "note": "Не заменять молча среду или значение g.",
+      "ship_eligible": false,
+      "implementation_status": "enabled",
+      "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
+    },
+    {
+      "id": "OGE12-R013",
+      "name": "Энергия конденсатора",
+      "formula": "W = C·U²/2",
+      "operations": [
+        "evaluate_W"
+      ],
+      "context": "физика",
+      "priority": "P3",
+      "ids": [
+        450510
+      ],
+      "constraints": [
+        "C > 0",
+        "U ≥ 0",
+        "степенная запись 10⁻⁴",
+        "результат 0,0072 — четыре знака после запятой"
+      ],
+      "source_status": "каталог",
+      "wording": "Ответ дайте в джоулях",
+      "note": "Различать отрицательный показатель степени у 10 и у единиц.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: источник каталога D14 не подтверждает, что конструкция относится к актуальному заданию №12."
+    },
+    {
+      "id": "OGE12-R014",
+      "name": "Фиксированная и переменная стоимость колодца",
+      "formula": "C = a + b·n",
+      "operations": [
+        "evaluate_C"
+      ],
+      "context": "экономика",
+      "priority": "P3",
+      "ids": [
+        124,
+        311532,
+        314118,
+        314142
+      ],
+      "constraints": [
+        "n целое положительное",
+        "a ≥ 0",
+        "b > 0",
+        "рубли"
+      ],
+      "source_status": "порталом приписана ОГЭ-2023 и ГИА-2013",
+      "wording": "рассчитайте стоимость колодца",
+      "note": "Формула с параметрами тарифов — отдельная конструкция R015.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник; современная применимость не подтверждена."
+    },
+    {
+      "id": "OGE12-R015",
+      "name": "Тариф поездки после порогового времени",
+      "formula": "C = a + b·(t−t₀)",
+      "operations": [
+        "evaluate_C"
+      ],
+      "context": "экономика",
+      "priority": "P3",
+      "ids": [
+        98,
+        202,
+        311531
+      ],
+      "constraints": [
+        "t > t₀",
+        "a ≥ 0",
+        "b > 0",
+        "t,t₀ в минутах",
+        "целый рублёвый ответ"
+      ],
+      "source_status": "историческая ГИА-2013",
+      "wording": "рассчитайте стоимость 15-минутной поездки",
+      "note": "Не генерировать t≤t₀ при формуле только для t>t₀.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: конечный набор параметров не обеспечивает приёмочный порог уникальных fingerprints."
+    },
+    {
+      "id": "OGE12-R016",
+      "name": "Площадь треугольника через две стороны и синус",
+      "formula": "S = b·c·sin(α)/2",
+      "operations": [
+        "evaluate_S"
+      ],
+      "context": "геометрия",
+      "priority": "P3",
+      "ids": [
+        311537
+      ],
+      "constraints": [
+        "b,c > 0",
+        "0 < α < 180°",
+        "использовать точные известные sinα: 30°, 90°, 150° и т.п.",
+        "S > 0"
+      ],
+      "source_status": "историческая ГИА-2013; найдена в расширенном каталоге с аналогами",
+      "wording": "найдите площадь треугольника",
+      "note": "Это было ПРОПУЩЕНО в прежней карте из 14 конструкций.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник; современная применимость не подтверждена."
+    },
+    {
+      "id": "OGE12-R017",
+      "name": "Площадь треугольника через радиус вписанной окружности",
+      "formula": "S = (a+b+c)·r/2",
+      "operations": [
+        "solve_for_c"
+      ],
+      "context": "геометрия",
+      "priority": "P3",
+      "ids": [
+        311538
+      ],
+      "constraints": [
+        "a,b,c>0",
+        "треугольник удовлетворяет неравенствам сторон",
+        "r > 0",
+        "геометрическая согласованность S, r, сторон"
+      ],
+      "source_status": "историческая ГИА-2013; найдена в расширенном каталоге с аналогами",
+      "wording": "Вычислите длину стороны c",
+      "note": "Параметры не независимы: r должен быть радиусом вписанной окружности данного треугольника.",
+      "ship_eligible": false,
+      "implementation_status": "disabled_research_only",
+      "implementation_reason": "Не включена: исторический источник и узкая геометрическая вариативность; требуется дополнительное доказательство разнообразия."
+    }
+  ],
+  "references": [
+    {
+      "task_id": 316914,
+      "url": "https://math-oge.sdamgia.ru/problem?id=316914",
+      "kind": "OGE12-R001",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает основной ОГЭ-2024 и ОГЭ-2026",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 338155,
+      "url": "https://math-oge.sdamgia.ru/problem?id=338155",
+      "kind": "OGE12-R001",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 471237,
+      "url": "https://math-oge.sdamgia.ru/problem?id=471237",
+      "kind": "OGE12-R001",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 478040,
+      "url": "https://math-oge.sdamgia.ru/problem?id=478040",
+      "kind": "OGE12-R001",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 480728,
+      "url": "https://math-oge.sdamgia.ru/problem?id=480728",
+      "kind": "OGE12-R001",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Проект демоверсии ОГЭ-2027 (через Решу ОГЭ и опубликованный проект)",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311920,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311920",
+      "kind": "OGE12-R002",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 338050,
+      "url": "https://math-oge.sdamgia.ru/problem?id=338050",
+      "kind": "OGE12-R002",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 338232,
+      "url": "https://math-oge.sdamgia.ru/problem?id=338232",
+      "kind": "OGE12-R002",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает досрочный ОГЭ-2023",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 341532,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341532",
+      "kind": "OGE12-R002",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 392900,
+      "url": "https://math-oge.sdamgia.ru/problem?id=392900",
+      "kind": "OGE12-R002",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 392927,
+      "url": "https://math-oge.sdamgia.ru/problem?id=392927",
+      "kind": "OGE12-R002",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311768,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311768",
+      "kind": "OGE12-R003",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311542,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311542",
+      "kind": "OGE12-R003",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 338138,
+      "url": "https://math-oge.sdamgia.ru/problem?id=338138",
+      "kind": "OGE12-R003",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 357575,
+      "url": "https://math-oge.sdamgia.ru/problem?id=357575",
+      "kind": "OGE12-R003",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает демоверсии 2018–2024",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 355423,
+      "url": "https://math-oge.sdamgia.ru/problem?id=355423",
+      "kind": "OGE12-R003",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "раздел не перепроверен для этого аналога",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311824,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311824",
+      "kind": "OGE12-R004",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 341156,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341156",
+      "kind": "OGE12-R004",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311543,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311543",
+      "kind": "OGE12-R005",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает досрочный ОГЭ-2024",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 338238,
+      "url": "https://math-oge.sdamgia.ru/problem?id=338238",
+      "kind": "OGE12-R005",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 341054,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341054",
+      "kind": "OGE12-R005",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 341365,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341365",
+      "kind": "OGE12-R005",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 369501,
+      "url": "https://math-oge.sdamgia.ru/problem?id=369501",
+      "kind": "OGE12-R005",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311348,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311348",
+      "kind": "OGE12-R006",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311528,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311528",
+      "kind": "OGE12-R007",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311530,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311530",
+      "kind": "OGE12-R008",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311541,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311541",
+      "kind": "OGE12-R009",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает ГИА-2013",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 459973,
+      "url": "https://math-oge.sdamgia.ru/problem?id=459973",
+      "kind": "OGE12-R010",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 463026,
+      "url": "https://math-oge.sdamgia.ru/problem?id=463026",
+      "kind": "OGE12-R010",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 474304,
+      "url": "https://math-oge.sdamgia.ru/problem?id=474304",
+      "kind": "OGE12-R010",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 459974,
+      "url": "https://math-oge.sdamgia.ru/problem?id=459974",
+      "kind": "OGE12-R011",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 474301,
+      "url": "https://math-oge.sdamgia.ru/problem?id=474301",
+      "kind": "OGE12-R011",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 459972,
+      "url": "https://math-oge.sdamgia.ru/problem?id=459972",
+      "kind": "OGE12-R012",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 474300,
+      "url": "https://math-oge.sdamgia.ru/problem?id=474300",
+      "kind": "OGE12-R012",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 474302,
+      "url": "https://math-oge.sdamgia.ru/problem?id=474302",
+      "kind": "OGE12-R012",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 450510,
+      "url": "https://math-oge.sdamgia.ru/problem?id=450510",
+      "kind": "OGE12-R013",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 124,
+      "url": "https://math-oge.sdamgia.ru/problem?id=124",
+      "kind": "OGE12-R014",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает основной ОГЭ-2023, а также ГИА-2013",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311532,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311532",
+      "kind": "OGE12-R014",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 314118,
+      "url": "https://math-oge.sdamgia.ru/problem?id=314118",
+      "kind": "OGE12-R014",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 314142,
+      "url": "https://math-oge.sdamgia.ru/problem?id=314142",
+      "kind": "OGE12-R014",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 98,
+      "url": "https://math-oge.sdamgia.ru/problem?id=98",
+      "kind": "OGE12-R015",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает ГИА-2013",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 202,
+      "url": "https://math-oge.sdamgia.ru/problem?id=202",
+      "kind": "OGE12-R015",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "Вычисление по формуле",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311531,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311531",
+      "kind": "OGE12-R015",
+      "verification": "analog_id_not_individually_rechecked",
+      "source_provenance": "",
+      "reference_answer": null,
+      "catalog_section_hint": "раздел не перепроверен для этого аналога",
+      "year_attribution_is_portal_claim": false,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311537,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311537",
+      "kind": "OGE12-R016",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает ГИА-2013",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    },
+    {
+      "task_id": 311538,
+      "url": "https://math-oge.sdamgia.ru/problem?id=311538",
+      "kind": "OGE12-R017",
+      "verification": "source_text_or_catalog_checked",
+      "source_provenance": "Портал указывает ГИА-2013",
+      "reference_answer": null,
+      "catalog_section_hint": "Линейные уравнения / расширенные аналоги",
+      "year_attribution_is_portal_claim": true,
+      "status_note": "source_text_or_catalog_checked ≠ independently verified official FIPI item"
+    }
+  ],
+  "implementation": {
+    "status": "partial",
+    "enabled_families": [
+      "OGE12-R001",
+      "OGE12-R002",
+      "OGE12-R003",
+      "OGE12-R004",
+      "OGE12-R005",
+      "OGE12-R010",
+      "OGE12-R011",
+      "OGE12-R012"
+    ],
+    "disabled_family_count": 9,
+    "generator_version": "0.2.0",
+    "quality_report": "reports/oge12-quality.json",
+    "telegram_training": "implemented_on_feature_branch"
+  }
+}

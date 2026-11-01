@@ -345,7 +345,7 @@ async def test_empty_progress_uses_zero_accuracy_without_division_error() -> Non
     text = message.answer.await_args.args[0]
     assert "№6 · выдано 0 · отвечал 0" in text
     assert "№9 · выдано 0 · отвечал 0" in text
-    assert text.count("правильно 0%") == 4
+    assert text.count("правильно 0%") == 5
 
 
 @pytest.mark.asyncio
@@ -401,3 +401,4 @@ async def test_task6_skip_records_skipped_outcome() -> None:
     callback.message.answer.return_value.message_id = callback.message.message_id + 1
     await task6_callback(callback, repository)
     assert repository.outcomes[774][problem_id] == "skipped"
+

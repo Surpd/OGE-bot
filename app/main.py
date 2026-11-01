@@ -41,6 +41,7 @@ def create_app(
                     "0003_task6_session_quality.sql",
                     "0004_task9_sessions.sql",
                     "0005_task10_sessions.sql",
+                    "0006_task12_sessions.sql",
                 ):
                     await pool.execute(await read_migration(f"migrations/{migration}"))
         if telegram_bot is None:
