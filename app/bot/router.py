@@ -594,7 +594,10 @@ async def _send_task12_problem(
             if expected_screen is None:
                 await repository.save_user_state(user_id, "task12")
     sent = await message.answer(
-        f"Задание №12 · расчёты по формулам\n\n{problem['condition']}\n\n"
+        "Задание №12 · расчёты по формулам\n"
+        "Тренировочный аналог, созданный алгоритмически по мотивам указанной структуры; "
+        "это не оригинальное опубликованное задание ОГЭ.\n\n"
+        f"{problem['condition']}\n\n"
         "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
         reply_markup=task12_menu(str(problem["problem_id"])),
     )

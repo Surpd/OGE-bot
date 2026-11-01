@@ -14,7 +14,7 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy, decimal_places, format_decimal
 
-GENERATOR_VERSION = "0.2.0"
+GENERATOR_VERSION = "0.3.0"
 MAX_GENERATION_ATTEMPTS = 64
 MAX_CANDIDATES = 54
 SEEDS_PER_FAMILY = 6
@@ -102,6 +102,7 @@ class FormulaProblem:
             "seed": self.seed,
             "generator_version": self.generator_version,
             "family_id": self.family_id,
+            "content_provenance": "generated_analogue",
             "reference_ids": list(self.reference_ids),
             "variables": self.variables,
             "formula": self.formula,
@@ -231,8 +232,10 @@ def _sample(
     if family == R005:
         d1 = Fraction(rng.randint(1, 6) * 10)
         d2 = Fraction(rng.randint(2, 60))
-        # The generated exact sine values stay on the standard trigonometric table.
-        sine = rng.choice((Fraction(1, 2), Fraction(1)))
+        # This task asks for sin(alpha) from the area formula; it does not ask
+        # the student to evaluate a named standard angle. Keep exact tenths,
+        # including the observed 0.4 sample, within the geometric domain.
+        sine = Fraction(rng.randint(1, 10), 10)
         area = d1 * d2 * sine / 2
         condition = f"Площадь выпуклого четырёхугольника вычисляют по формуле S = d₁·d₂·sin(α)/2, где d₁ и d₂ — диагонали, α — угол между ними. Найдите sin(α), если S = {_f(area)}, d₁ = {_f(d1)}, d₂ = {_f(d2)}."  # noqa: E501
         return (
@@ -257,7 +260,7 @@ def _sample(
             {"S": area, "d2": d2},
             "S = d₁·d₂/2",
             "d1",
-            f"Площадь ромба S (в м²) равна d₁·d₂/2, где d₁ и d₂ — диагонали в метрах. Найдите d₁, если S = {_f(area)} м², d₂ = {_f(d2)} м.",  # noqa: E501
+            f"Площадь ромба S (в м²) вычисляется по формуле S = d₁·d₂/2, где d₁ и d₂ — диагонали в метрах. Найдите d₁, если S = {_f(area)} м², d₂ = {_f(d2)} м.",  # noqa: E501
             (
                 "Найдите неизвестную диагональ из формулы площади ромба.",
                 "Умножьте S на 2 и разделите на d₂.",
@@ -334,7 +337,7 @@ def _sample(
             if energy.denominator == 1 and energy.numerator % 1000 == 0
             else f"{_f(energy)} Дж"
         )
-        condition = f"Кинетическая энергия E автомобиля массой m равна m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой {_f(mass)} кг, если E = {energy_text}. Ответ дайте в метрах в секунду."  # noqa: E501
+        condition = f"Кинетическая энергия E автомобиля массой m вычисляется по формуле E = m·v²/2, где m — масса в килограммах, v — скорость в метрах в секунду, E — энергия в джоулях. Найдите скорость автомобиля массой {_f(mass)} кг, если E = {energy_text}. Ответ дайте в метрах в секунду."  # noqa: E501
         return (
             {"E_J": energy, "m_kg": mass},
             "E = m·v²/2",
@@ -372,7 +375,7 @@ def _sample(
     if family == R012:
         volume = Fraction(rng.randint(1, 500), 100)
         force = Fraction(1000) * Fraction(49, 5) * volume
-        condition = f"Сила Архимеда F для тела в воде равна ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом {_f(volume)} м³. Ответ дайте в ньютонах."  # noqa: E501
+        condition = f"Сила Архимеда F для тела в воде вычисляется по формуле F = ρ·g·V, где ρ = 1000 кг/м³, g = 9,8 м/с², V — объём в м³. Найдите F для тела объёмом {_f(volume)} м³. Ответ дайте в ньютонах."  # noqa: E501
         return (
             {"rho": Fraction(1000), "g": Fraction(49, 5), "V": volume},
             "F = ρ·g·V",
@@ -413,7 +416,7 @@ def _sample(
             {"a": fixed, "b": per_ring, "n": Fraction(count)},
             "C = a + b·n",
             "C",
-            f"Стоимость колодца C (в рублях) равна a+b·n, где a — фиксированная часть, b — стоимость кольца, n — число колец. Найдите C для колодца из {count} колец, если a = 6000 руб. и b = 4100 руб.",  # noqa: E501
+            f"Стоимость колодца C (в рублях) вычисляется по формуле C = a+b·n, где a — фиксированная часть, b — стоимость кольца, n — число колец. Найдите C для колодца из {count} колец, если a = 6000 руб. и b = 4100 руб.",  # noqa: E501
             (
                 "Разделите стоимость на фиксированную и зависящую от числа колец части.",
                 "Умножьте цену одного кольца на их число и прибавьте фиксированную стоимость.",
@@ -693,15 +696,15 @@ def _formula_and_units_present(family: str, condition: str) -> bool:
             ("s=d₁·d₂·sin(α)/2", "s=d₁·d₂·sinα/2"),
             ("четырёхугольника", "d₁", "d₂"),
         ),
-        R006: (("d₁·d₂/2",), ("ромба", "м²")),
+        R006: (("s=d₁·d₂/2",), ("ромба", "м²")),
         R007: (("s=a·h/2",), ("треугольника", "м²")),
         R008: (("s=(a+b)·h/2",), ("трапеции", "м²")),
         R009: (("v=s·h/3",), ("пирамиды", "м³")),
-        R010: (("m·v²/2",), ("кинетическая энергия", "кг", "джоулях")),
+        R010: (("e=m·v²/2",), ("кинетическая энергия", "кг", "джоулях")),
         R011: (("p=m·g·h", "e=m·g·h"), ("потенциальная энергия", "м/с²")),
-        R012: (("ρ·g·v",), ("архимеда", "кг/м³", "м/с²", "ньютон")),
+        R012: (("f=ρ·g·v",), ("архимеда", "кг/м³", "м/с²", "ньютон")),
         R013: (("w=c·u²/2",), ("10⁻⁴ ф", "вольтах", "джоулях")),
-        R014: (("a+b·n", "c=6000+4100·n"), ("колодца", "колец", "рублях")),
+        R014: (("c=a+b·n", "c=6000+4100·n"), ("колодца", "колец", "рублях")),
         R015: (("c=150+11·(t−5)",), ("поездки", "минут", "рублях")),
         R016: (
             ("s=b·c·sin(α)/2", "s=b·c·sinα/2"),
@@ -899,9 +902,38 @@ def validate_rendered_problem(problem: FormulaProblem) -> bool:
     expected_answer = (
         _format_tenths(oracle_value) if problem.family_id == R004 else POLICY.format(oracle_value)
     )
+    expected_formula = {
+        R001: "P = I²·R",
+        R002: "a = ω²·R",
+        R003: "F = 1,8·C + 32",
+        R004: "F = 1,8·C + 32",
+        R005: "S = d₁·d₂·sin(α)/2",
+        R006: "S = d₁·d₂/2",
+        R007: "S = a·h/2",
+        R008: "S = (a+b)·h/2",
+        R009: "V = S·h/3",
+        R010: "E = m·v²/2",
+        R011: "P = m·g·h",
+        R012: "F = ρ·g·V",
+        R013: "W = C·U²/2",
+        R014: "C = a + b·n",
+        R015: "C = a + b·(t−t₀)",
+        R016: "S = b·c·sin(α)/2",
+        R017: "S = (a+b+c)·r/2",
+    }[problem.family_id]
+    expected_target = {
+        R001: "R", R002: "R", R003: "F", R004: "C", R005: "sin_alpha",
+        R006: "d1", R007: "a", R008: "h", R009: "h", R010: "v_nonnegative",
+        R011: "m", R012: "F", R013: "W", R014: "C", R015: "C", R016: "S", R017: "c",
+    }[problem.family_id]
     expected_steps = _expected_solution_steps(problem.family_id, problem.condition)
     return (
-        expected_steps is not None
+        problem.exact_value == oracle_value
+        and problem.formula == expected_formula
+        and problem.target == expected_target
+        and problem.units == {"answer": _answer_unit(problem.family_id)}
+        and problem.constraints == _constraints(problem.family_id)
+        and expected_steps is not None
         and problem.correct_answer == expected_answer
         and problem.solution == expected_steps
     )

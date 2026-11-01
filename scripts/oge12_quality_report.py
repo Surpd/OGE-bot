@@ -95,6 +95,7 @@ def main() -> None:
                     "target": item.target,
                     "units": item.units,
                     "fingerprint": item.fingerprint,
+                    "provenance": "generated_analogue_not_original_exam_task",
                 }
                 for item in samples[:2]
             ]
@@ -107,6 +108,13 @@ def main() -> None:
             "implementation_status": refs[family_id]["implementation_status"],
             "implementation_reason": refs[family_id]["implementation_reason"],
             "source_ids": [str(value) for value in refs[family_id].get("ids", [])],
+            "source_status": refs[family_id].get("source_status"),
+            "source_note": refs[family_id].get("note"),
+            "provenance_policy": (
+                "Generated examples are algorithmic analogues; "
+                "source IDs identify structural references, "
+                "not the generated condition as an original published task."
+            ),
             "sample_count": SAMPLE_COUNT,
             "acceptance_attempts": acceptance_attempts,
             "unique_fingerprints": unique_count,
@@ -118,10 +126,20 @@ def main() -> None:
             ),
             "answer_decimal_places": dict(answer_places),
             "answer_signs": dict(signs),
+            "answer_frequency": dict(Counter(str(value) for value in answers)),
+            "unique_condition_count": len({item.condition for item in samples}),
+            "unique_parameter_set_count": len(
+                {tuple(sorted(item.variables.items())) for item in samples}
+            ),
+            "unique_correct_answer_count": len(set(answers)),
+            "r005_sine_values": (
+                sorted({str(value) for value in answers}) if family_id == "OGE12-R005" else None
+            ),
             "answer_min": str(min(answers)),
             "answer_max": str(max(answers)),
             "authored_fixture": {
                 "source_task_id": str(fixtures[family_id]["origin_task_id"]),
+                "provenance": "authored_research_example_not_verbatim",
                 "condition": fixtures[family_id]["authored_ready_to_use_condition"],
                 "expected_answer": fixtures[family_id]["correct_answer"],
                 "oracle_answer": _format_oracle(
@@ -140,19 +158,26 @@ def main() -> None:
         "enabled_family_ids": list(ENABLED_FAMILIES),
         "disabled_family_ids": [item for item in ALL_FAMILIES if item not in ENABLED_FAMILIES],
         "source_registry_version": structures["schema_version"],
-        "oracle_note": "Rendered conditions, exact formula signatures, units, target variables, and derivation steps are checked independently from generator values; authored research examples are checked against the same family oracle.",  # noqa: E501
+        "oracle_note": "Rendered conditions, both sides of formula signatures, exact coefficients, units, target variables, numeric givens, metadata, and every derivation step are checked independently from generator values; authored research examples are checked against the same family oracle.",  # noqa: E501
         "oracle_mutation_regressions": [
             "R005: change the displayed denominator /2 to /3",
             "R011: change displayed g = 9.8 to g = 19.8",
             "R012: change displayed rho = 1000 to rho = 21000",
             "R001-R017: mutate formula coefficients, units, or target variable",
-            "Enabled families: mutate an intermediate derivation step "
-            "while retaining the final answer",
+            "R001-R017: mutate the left side of the displayed formula",
+            "R001-R017: mutate each derivation step, exact answer, and formula metadata",
         ],
         "trigonometry_policy": {
-            "R005_generated_sine_values": ["1/2", "1"],
+            "R005_generated_sine_values": (
+                "exact tenths in (0, 1], from the area formula; "
+                "source-task answer 0.4 is confirmed"
+            ),
             "R016_generated_angles_degrees": [30, 90, 150],
-            "note": "Only table trigonometric values are generated.",
+            "note": (
+                "R005 asks to recover sin(alpha), not evaluate a named angle; R016 uses "
+                "standard-angle values. The broader R005 response distribution remains "
+                "preliminary because only one exact source answer was cross-checked."
+            ),
         },
         "families": rows,
         "overall": {
