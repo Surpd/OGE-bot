@@ -25,7 +25,7 @@ SOURCES: dict[str, tuple[str, ...]] = {
     "OGE07-C05": ("311420",),
     "OGE07-C06": ("461837",),
 }
-FAMILY_STATUS = {f: "implemented_disabled_pending_full_quality_gates" for f in FAMILIES}
+FAMILY_STATUS = {f: "implemented_disabled_pending_source_review" for f in FAMILIES}
 _NUM = r"(?:−|-)?\d+(?:,\d+)?(?:/\d+)?"
 
 

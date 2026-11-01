@@ -26,6 +26,8 @@ BASE_MIGRATIONS = (
     "migrations/0005_task10_sessions.sql",
     "migrations/0006_task12_sessions.sql",
     "migrations/0007_task14_sessions.sql",
+    "migrations/0008_task13_sessions.sql",
+    "migrations/0009_task8_sessions.sql",
 )
 TASK7_MIGRATION = "migrations/0010_task7_sessions.sql"
 
@@ -100,6 +102,10 @@ async def test_task7_postgres_concurrent_answers_are_serialized_and_screen_isola
         issued = await repository.advance_task7_problem(
             user_id, None, _candidates("OGE07-C01", 702)
         )
+        task7_session_id = await repository.ensure_task7_session(user_id)
+        task8_session_id = await repository.ensure_task8_session(user_id)
+        assert task7_session_id != task8_session_id
+        assert (await repository.task8_progress(user_id))["issued"] == 0
         problem_id = str(issued["problem_id"])
         await repository.save_user_state(user_id, "task7")
         assert await repository.set_task7_condition_message(user_id, problem_id, 77101)
@@ -123,6 +129,7 @@ async def test_task7_postgres_concurrent_answers_are_serialized_and_screen_isola
         assert state is not None and state["state"]["attempts"] == 2
         progress = await repository.task7_progress(user_id)
         assert progress["attempts"] == 2 and progress["answered"] == 1
+        assert (await repository.task8_progress(user_id))["attempts"] == 0
     finally:
         await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
         await pool.close()

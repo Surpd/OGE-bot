@@ -81,15 +81,22 @@ def test_graph_snapshot_restores_identical_png_and_answer() -> None:
 
 
 @pytest.mark.parametrize("family", tuple(GRAPH_SOURCES))
-def test_graph_problem_semantics_png_and_determinism(family: str) -> None:
+def test_graph_problem_semantics_png_and_diversity_across_250_seeds(family: str) -> None:
     first = generate_graph_problem(family, 104)
     assert first == generate_graph_problem(family, 104)
-    assert audit_graph_problem(first)
-    assert audit_png(first.graph_model, first.png)
     assert set(first.reference_ids) == set(GRAPH_SOURCES[family])
-    positions = projection(first.graph_model)
-    assert all(72 <= x < first.graph_model["width"] - 72 for x in positions.values())
-    assert len(set(positions.values())) == len(positions)
+    fingerprints: set[str] = set()
+    for seed in range(250):
+        problem = generate_graph_problem(family, seed)
+        assert audit_graph_problem(problem)
+        snapshot = problem.to_snapshot()
+        fingerprint = snapshot["fingerprint"]
+        assert isinstance(fingerprint, str)
+        fingerprints.add(fingerprint)
+        positions = projection(problem.graph_model)
+        assert all(72 <= x < problem.graph_model["width"] - 72 for x in positions.values())
+        assert len(set(positions.values())) == len(positions)
+    assert len(fingerprints) >= 200
 
 
 @pytest.mark.parametrize("family", tuple(GRAPH_SOURCES))
@@ -102,4 +109,9 @@ def test_graph_mutations_are_rejected(family: str) -> None:
     mutated_points = [dict(point) for point in problem.graph_model["points"]]
     mutated_points[0]["label"] = "Z"
     mutated_model["points"] = mutated_points
+    assert not audit_png(mutated_model, problem.png)
+    mutated_model = dict(problem.graph_model)
+    mutated_ticks = [dict(tick) for tick in problem.graph_model["ticks"]]
+    mutated_ticks[0]["label"] = "999"
+    mutated_model["ticks"] = mutated_ticks
     assert not audit_png(mutated_model, problem.png)
