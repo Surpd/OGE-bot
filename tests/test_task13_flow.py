@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram.types import User
 
-from app.bot.menu import task13_menu
 from app.bot import router
+from app.bot.menu import task13_menu
 from app.bot.router import choose_number, choose_task13, continue_session, task13_callback
 from app.math import inequalities, oge13_scheduler
 from app.math.inequalities import render_option_sheet_snapshot_png
