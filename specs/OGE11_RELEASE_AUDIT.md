@@ -38,4 +38,4 @@ F01–F08 прошли визуальную сверку исходных гра
 - В тестах №11 прошли pixel-level проверки меток и линий, мутации формул/знаков/соответствий/контрольных точек, SHA-256 и восстановление сохранённого PNG без перегенерации.
 - Локально: `pytest -q` — 579 passed, 57 skipped; пропуски включают интеграционные проверки PostgreSQL, для которых требуется CI-сервис. Ruff и mypy прошли.
 - Контрольные PNG для seed `11001`–`11008` сохранены в `artifacts/oge11_release_examples/`; лист для быстрой визуальной проверки — `contact-sheet.png`. Превью проверены в масштабе Telegram 360 px.
-- PostgreSQL 17 CI — ожидается в pull request; merge, production deploy и изменения production Supabase не выполняются.
+- PostgreSQL 17 CI, run 160: Ruff, mypy и все 636 тестов прошли (одно предупреждение); merge, production deploy и изменения production Supabase не выполнялись.
