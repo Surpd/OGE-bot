@@ -9,9 +9,17 @@ from fractions import Fraction
 
 import pytest
 
-from app.math.numbers import FAMILIES, POLICY, _decimal, audit_condition, generate
+from app.math.numbers import (
+    FAMILIES,
+    POLICY,
+    _decimal,
+    audit_condition,
+    audit_explanation,
+    generate,
+)
 from app.math.oge07_graph import (
     GRAPH_SOURCES,
+    audit_graph_explanation,
     audit_graph_problem,
     audit_png,
     generate_graph_problem,
@@ -79,6 +87,99 @@ def test_independent_visible_condition_oracle(family: str) -> None:
             problem.options,
             problem.correct_option_index,
         )
+
+
+@pytest.mark.parametrize("family", FAMILIES)
+def test_text_explanations_match_visible_math_across_250_seeds(family: str) -> None:
+    for seed in range(250):
+        problem = generate(family, seed)
+        assert audit_condition(
+            family, problem.condition, problem.options, problem.correct_option_index
+        )
+        assert audit_explanation(problem), (family, seed, problem.hints, problem.solution)
+
+
+def test_c01_explanation_handles_both_inclusive_boundaries() -> None:
+    problem = generate("OGE07-C01", 1)
+    assert problem.condition.endswith("22/44?")
+    assert problem.solution[0] == "0,4 < 22/44 = 0,5."
+    assert audit_explanation(problem)
+
+    options = list(problem.options)
+    options[problem.correct_option_index - 1] = "[0,5; 0,6]"
+    left_edge = replace(
+        problem,
+        options=tuple(options),
+        hints=(problem.hints[0], "0,5 = 22/44 < 0,6."),
+        solution=("0,5 = 22/44 < 0,6.", problem.solution[1]),
+    )
+    assert audit_explanation(left_edge)
+    assert not audit_explanation(
+        replace(left_edge, solution=("0,4 < 22/44 < 0,5.", left_edge.solution[1]))
+    )
+    assert not audit_explanation(
+        replace(left_edge, hints=(left_edge.hints[0], "0,4 < 22/44 = 0,6."))
+    )
+
+
+@pytest.mark.parametrize(
+    ("family", "expected_index", "expected_answer"),
+    [("OGE07-C02", 3, "между 72 и 73"), ("OGE07-C06", 2, "между 1 и 2")],
+)
+def test_shuffled_answer_number_is_used_in_explanation(
+    family: str, expected_index: int, expected_answer: str
+) -> None:
+    problem = generate(family, 0)
+    assert problem.correct_option_index == expected_index
+    assert problem.options[expected_index - 1] == expected_answer
+    assert problem.solution[-1] == f"Ответ: вариант {expected_index}."
+    assert audit_explanation(problem)
+    wrong = expected_index % 4 + 1
+    solution = (*problem.solution[:-1], f"Ответ: вариант {wrong}.")
+    assert not audit_explanation(replace(problem, solution=solution))
+    changed_sign = (
+        *problem.solution[:-2],
+        problem.solution[-2].replace(" < ", " > "),
+        problem.solution[-1],
+    )
+    assert not audit_explanation(replace(problem, solution=changed_sign))
+
+
+@pytest.mark.parametrize("family", FAMILIES)
+def test_text_explanation_oracle_rejects_sign_boundary_and_answer_mutations(family: str) -> None:
+    problem = generate(family, 29)
+    assert audit_explanation(problem)
+    if family == "OGE07-C01":
+        changed = replace(
+            problem,
+            hints=(problem.hints[0], problem.hints[1].replace(" < ", " > ")),
+        )
+    elif family in {"OGE07-C02", "OGE07-C06"}:
+        changed_step = problem.solution[-2].replace(" < ", " > ")
+        changed = replace(
+            problem,
+            solution=(*problem.solution[:-2], changed_step, *problem.solution[-1:]),
+        )
+    elif family == "OGE07-C03":
+        changed_step = problem.solution[0].replace(" ≤ ", " < ")
+        changed = replace(problem, solution=(changed_step, *problem.solution[1:]))
+    elif family == "OGE07-C04":
+        condition = re.fullmatch(
+            r"Какое из чисел принадлежит отрезку \[(-?\d+); (-?\d+)\]\?",
+            problem.condition,
+        )
+        assert condition is not None
+        upper = int(condition[2])
+        changed_step = problem.solution[0].replace(
+            f"; {upper}]", f"; {upper + 1}]"
+        )
+        changed = replace(problem, solution=(changed_step, *problem.solution[1:]))
+    else:
+        changed = replace(
+            problem,
+            hints=(problem.hints[0], problem.hints[1].replace(" < ", " ≤ ")),
+        )
+    assert not audit_explanation(changed)
 
 
 def test_historical_families_are_not_generator_targets() -> None:
@@ -165,6 +266,7 @@ def test_graph_problem_semantics_png_and_diversity_across_250_seeds(family: str)
     for seed in range(250):
         problem = generate_graph_problem(family, seed)
         assert audit_graph_problem(problem)
+        assert audit_graph_explanation(problem), (family, seed, problem.hints, problem.solution)
         snapshot = problem.to_snapshot()
         fingerprint = snapshot["fingerprint"]
         assert isinstance(fingerprint, str)
@@ -178,6 +280,19 @@ def test_graph_problem_semantics_png_and_diversity_across_250_seeds(family: str)
 @pytest.mark.parametrize("family", tuple(GRAPH_SOURCES))
 def test_graph_mutations_are_rejected(family: str) -> None:
     problem = generate_graph_problem(family, 288)
+    assert audit_graph_explanation(problem)
+    if family == "OGE07-N01":
+        changed_hints = (*problem.hints[:1], problem.hints[1].replace(" < ", " > "))
+        assert not audit_graph_explanation(replace(problem, hints=changed_hints))
+    elif family in {"OGE07-N02", "OGE07-N03"}:
+        changed_solution = (re.sub(r"-?\d+(?:[,/]\d+)?", "9999999", problem.solution[0], count=1),)
+        assert not audit_graph_explanation(replace(problem, solution=changed_solution))
+    elif family == "OGE07-N04":
+        changed_hints = (*problem.hints[:1], problem.hints[1].replace(" < ", " > "))
+        assert not audit_graph_explanation(replace(problem, hints=changed_hints))
+    else:
+        changed_hints = (problem.hints[0], problem.hints[1].replace(" = ", " < "))
+        assert not audit_graph_explanation(replace(problem, hints=changed_hints))
     mutated_model = dict(problem.graph_model)
     mutated_model["correct_option_index"] = problem.correct_option_index % 4 + 1
     assert not audit_graph_problem(replace(problem, graph_model=mutated_model))

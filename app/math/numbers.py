@@ -13,7 +13,9 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
-GENERATOR_VERSION = "0.2.0"
+GENERATOR_VERSION = "0.3.0"
+# Keep numeric parameters stable for this explanation-only revision.
+_PARAMETER_STREAM_VERSION = "0.2.0"
 FAMILIES = tuple(f"OGE07-C{i:02}" for i in range(1, 7))
 ENABLED_FAMILIES: tuple[str, ...] = ()
 POLICY = AnswerPolicy("oge07.single-choice", "1", AnswerFormat.SINGLE_NUMBER)
@@ -107,6 +109,7 @@ def _build(
     random.Random(f"oge07-options:{family}:{seed}").shuffle(options)
     options_tuple = cast(tuple[str, str, str, str], tuple(options))
     index = options.index(correct_text) + 1
+    solution = tuple(step.format(answer_index=index) for step in solution)
     fingerprint = hashlib.sha256(
         (family + "|" + condition + "|" + "|".join(sorted(options))).encode()
     ).hexdigest()
@@ -129,7 +132,7 @@ def _build(
 def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSION) -> Problem:
     if generator_version != GENERATOR_VERSION or family_id not in FAMILIES:
         raise ValueError("Unsupported OGE07 family or generator version")
-    rng = random.Random(f"oge07:{family_id}:{seed}:{generator_version}")
+    rng = random.Random(f"oge07:{family_id}:{seed}:{_PARAMETER_STREAM_VERSION}")
     if family_id == "OGE07-C01":
         q = rng.randrange(2, 101)
         p = rng.randrange(1, q)
@@ -137,8 +140,15 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         lo = Fraction(x * 10 // 1, 10)
         if lo == x:
             lo -= Fraction(1, 10)
+        hi = lo + Fraction(1, 10)
+        if x == lo:
+            relation = f"{_decimal(lo)} = {p}/{q} < {_decimal(hi)}."
+        elif x == hi:
+            relation = f"{_decimal(lo)} < {p}/{q} = {_decimal(hi)}."
+        else:
+            relation = f"{_decimal(lo)} < {p}/{q} < {_decimal(hi)}."
         bounds = [
-            (lo, lo + Fraction(1, 10)),
+            (lo, hi),
             (lo - Fraction(1, 5), lo - Fraction(1, 10)),
             (lo + Fraction(1, 5), lo + Fraction(3, 10)),
             (lo - Fraction(2, 5), lo - Fraction(3, 10)),
@@ -152,10 +162,10 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
             0,
             (
                 "Сравните дробь с границами отрезков.",
-                f"{_decimal(lo)} < {p}/{q} < {_decimal(lo + Fraction(1, 10))}.",
+                relation,
             ),
             (
-                f"{_decimal(lo)} < {p}/{q} < {_decimal(lo + Fraction(1, 10))}.",
+                relation,
                 "Ответ — единственный содержащий число отрезок.",
             ),
         )
@@ -180,7 +190,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
             ),
             (
                 f"{k * k} < {n} < {(k + 1) ** 2}, поэтому {k} < √{n} < {k + 1}.",
-                "Ответ: первый промежуток.",
+                "Ответ: вариант {answer_index}.",
             ),
         )
     if family_id == "OGE07-C03":
@@ -280,7 +290,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         opts,
         0,
         ("Используйте целую часть с учётом знака дроби.", f"{floor} < {p}/{den} < {floor + 1}."),
-        (f"{floor} < {p}/{den} < {floor + 1}.", "Ответ: первый промежуток."),
+        (f"{floor} < {p}/{den} < {floor + 1}.", "Ответ: вариант {answer_index}."),
     )
 
 
@@ -369,3 +379,191 @@ def audit_condition(
         return sum(truths) == 1 and truths[answer - 1]
     except (ValueError, ZeroDivisionError):
         return False
+
+
+def _relation_holds(left: Fraction, operator: str, right: Fraction) -> bool:
+    if operator == "<":
+        return left < right
+    if operator == "≤":
+        return left <= right
+    if operator == "=":
+        return left == right
+    return False
+
+
+def _read_chain(statement: str) -> tuple[Fraction, str, Fraction, str, Fraction] | None:
+    match = re.fullmatch(
+        rf"\s*({_NUM})\s*(≤|<|=)\s*({_NUM})\s*(≤|<|=)\s*({_NUM})\.?\s*",
+        statement,
+    )
+    if not match:
+        return None
+    left, op_left, middle, op_right, right = match.groups()
+    return _parse_number(left), op_left, _parse_number(middle), op_right, _parse_number(right)
+
+
+def audit_explanation(problem: Problem) -> bool:
+    """Independently check the mathematical claims in a visible text explanation."""
+    if not audit_condition(
+        problem.family_id, problem.condition, problem.options, problem.correct_option_index
+    ):
+        return False
+    try:
+        family = problem.family_id
+        if family == "OGE07-C01":
+            match = re.fullmatch(
+                r"Какой из указанных десятичных отрезков содержит число (\d+)/(\d+)\?",
+                problem.condition,
+            )
+            if not match:
+                return False
+            value = Fraction(int(match[1]), int(match[2]))
+            option_match = re.fullmatch(
+                r"\[([^;]+);\s*([^]]+)\]", problem.options[problem.correct_option_index - 1]
+            )
+            if not option_match:
+                return False
+            expected_left, expected_right = map(_parse_number, option_match.groups())
+            for statement in (problem.hints[1], problem.solution[0]):
+                chain = _read_chain(statement)
+                if chain is None:
+                    return False
+                left, op_left, middle, op_right, right = chain
+                if (
+                    (left, right) != (expected_left, expected_right)
+                    or middle != value
+                    or not _relation_holds(left, op_left, middle)
+                    or not _relation_holds(middle, op_right, right)
+                ):
+                    return False
+            return True
+        if family == "OGE07-C02":
+            match = re.fullmatch(
+                r"Между какими двумя последовательными целыми числами заключено число √(\d+)\?",
+                problem.condition,
+            )
+            if not match:
+                return False
+            radicand = int(match[1])
+            lower = math.isqrt(radicand)
+            upper = lower + 1
+            hint = re.fullmatch(r"(\d+)²=(\d+) < (\d+) < (\d+)=(\d+)\.", problem.hints[1])
+            solution = re.fullmatch(
+                r"(\d+) < (\d+) < (\d+), поэтому (\d+) < √(\d+) < (\d+)\.",
+                problem.solution[0],
+            )
+            answer_line = re.fullmatch(r"Ответ: вариант (\d+)\.", problem.solution[1])
+            return bool(
+                hint
+                and solution
+                and answer_line
+                and tuple(map(int, hint.groups()))
+                == (lower, lower * lower, radicand, upper * upper, upper * upper)
+                and tuple(map(int, solution.groups()))
+                == (lower * lower, radicand, upper * upper, lower, radicand, upper)
+                and int(answer_line[1]) == problem.correct_option_index
+                and problem.options[problem.correct_option_index - 1] == f"между {lower} и {upper}"
+            )
+        if family == "OGE07-C03":
+            match = re.fullmatch(
+                r"Какое из чисел принадлежит отрезку \[(\d+); (\d+)\]\?",
+                problem.condition,
+            )
+            if not match:
+                return False
+            lower, upper = map(int, match.groups())
+            hint = re.fullmatch(r"(\d+) ≤ n ≤ (\d+)\.", problem.hints[1])
+            solution = re.fullmatch(
+                r"Только подкоренное выражение (\d+) удовлетворяет (\d+) ≤ n ≤ (\d+)\.",
+                problem.solution[0],
+            )
+            answer = re.fullmatch(r"Ответ: √(\d+)\.", problem.solution[1])
+            return bool(
+                hint
+                and solution
+                and answer
+                and tuple(map(int, hint.groups())) == (lower * lower, upper * upper)
+                and tuple(map(int, solution.groups()))
+                == (int(solution[1]), lower * lower, upper * upper)
+                and lower * lower <= int(solution[1]) <= upper * upper
+                and answer[1] == solution[1]
+                and problem.options[problem.correct_option_index - 1] == f"√{answer[1]}"
+            )
+        if family == "OGE07-C04":
+            match = re.fullmatch(
+                r"Какое из чисел принадлежит отрезку \[(-?\d+); (-?\d+)\]\?",
+                problem.condition,
+            )
+            if not match:
+                return False
+            lower, upper = map(int, match.groups())
+            hint = re.fullmatch(r"(-?\d+) ≤ число ≤ (-?\d+)\.", problem.hints[1])
+            proof = re.fullmatch(
+                r"Только (.+) принадлежит \[(-?\d+); (-?\d+)\]\.",
+                problem.solution[0],
+            )
+            answer = re.fullmatch(r"Ответ: (.+)\.", problem.solution[1])
+            if not hint or not proof or not answer:
+                return False
+            value = _parse_number(proof[1])
+            return bool(
+                tuple(map(int, hint.groups())) == (lower, upper)
+                and tuple(map(int, proof.groups()[1:])) == (lower, upper)
+                and lower <= value <= upper
+                and problem.options[problem.correct_option_index - 1] == proof[1] == answer[1]
+            )
+        if family == "OGE07-C05":
+            match = re.fullmatch(r"Какое число лежит между (-?\d+) и (-?\d+)\?", problem.condition)
+            if not match:
+                return False
+            lower, upper = map(int, match.groups())
+            hint = re.fullmatch(
+                r"Проверьте строгое условие (-?\d+) < x < (-?\d+)\.", problem.hints[1]
+            )
+            proof = re.fullmatch(
+                r"Только (.+) удовлетворяет (-?\d+) < x < (-?\d+)\.",
+                problem.solution[0],
+            )
+            answer = re.fullmatch(r"Ответ: (.+)\.", problem.solution[1])
+            if not hint or not proof or not answer:
+                return False
+            value = _parse_number(proof[1])
+            return bool(
+                tuple(map(int, hint.groups())) == (lower, upper)
+                and tuple(map(int, proof.groups()[1:])) == (lower, upper)
+                and lower < value < upper
+                and problem.options[problem.correct_option_index - 1] == proof[1] == answer[1]
+            )
+        if family == "OGE07-C06":
+            match = re.fullmatch(
+                "Между какими двумя последовательными целыми числами "
+                r"заключена дробь (-?\d+)/(\d+)\?",
+                problem.condition,
+            )
+            if not match:
+                return False
+            value = Fraction(int(match[1]), int(match[2]))
+            lower = value.numerator // value.denominator
+            upper = lower + 1
+            for statement in (problem.hints[1], problem.solution[0]):
+                chain = _read_chain(statement)
+                if chain is None:
+                    return False
+                left, op_left, middle, op_right, right = chain
+                if (
+                    (left, right, middle) != (Fraction(lower), Fraction(upper), value)
+                    or op_left != "<"
+                    or op_right != "<"
+                    or not _relation_holds(left, op_left, middle)
+                    or not _relation_holds(middle, op_right, right)
+                ):
+                    return False
+            answer_line = re.fullmatch(r"Ответ: вариант (\d+)\.", problem.solution[1])
+            return bool(
+                answer_line
+                and int(answer_line[1]) == problem.correct_option_index
+                and problem.options[problem.correct_option_index - 1] == f"между {lower} и {upper}"
+            )
+    except (IndexError, ValueError, ZeroDivisionError):
+        return False
+    return False

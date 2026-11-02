@@ -696,3 +696,106 @@ def audit_graph_problem(problem: GraphProblem) -> bool:
         return sum(truths) == 1 and truths[problem.correct_option_index - 1]
     except (ValueError, ZeroDivisionError, KeyError, TypeError):
         return False
+
+
+def audit_graph_explanation(problem: GraphProblem) -> bool:
+    """Check hints and solution claims against the visible prompt and graph model."""
+    if not audit_graph_problem(problem) or not problem.hints or not problem.solution:
+        return False
+    try:
+        family = problem.family_id
+        model = problem.graph_model
+        answer = problem.options[problem.correct_option_index - 1]
+        if family == "OGE07-N01":
+            condition = re.fullmatch(
+                r"Какой точке на координатной прямой соответствует число √(\d+)\?",
+                problem.condition,
+            )
+            if condition is None:
+                return False
+            radicand = int(condition[1])
+            lower = math.isqrt(radicand)
+            hint = re.fullmatch(r"(\d+)² < (\d+) < (\d+)\.", problem.hints[1])
+            solution = re.fullmatch(
+                r"(\d+) < √(\d+) < (\d+); найдите точку в этом промежутке\.",
+                problem.solution[0],
+            )
+            points_inside = [
+                point
+                for point in model["points"]
+                if lower < _value(point) < lower + 1
+            ]
+            return bool(
+                hint
+                and solution
+                and tuple(map(int, hint.groups())) == (lower, radicand, (lower + 1) ** 2)
+                and tuple(map(int, solution.groups())) == (lower, radicand, lower + 1)
+                and len(points_inside) == 1
+                and points_inside[0]["value_exact"] == {"sqrt": radicand}
+                and points_inside[0]["label"] == answer
+            )
+        if family in {"OGE07-N02", "OGE07-N03"}:
+            condition = re.fullmatch(
+                r"Какой точке на координатной прямой соответствует число "
+                r"(−?-?\d+(?:,\d+)?(?:/\d+)?)\?",
+                problem.condition,
+            )
+            solution = re.fullmatch(
+                "Число (−?-?\\d+(?:,\\d+)?(?:/\\d+)?) отмечено на прямой "
+                r"точкой с такой координатой\.",
+                problem.solution[0],
+            )
+            if condition is None or solution is None:
+                return False
+            target_text = condition[1]
+            explained_text = solution[1]
+            target = Fraction(target_text.replace("−", "-").replace(",", "."))
+            explained = Fraction(explained_text.replace("−", "-").replace(",", "."))
+            points_at_target = [point for point in model["points"] if _value(point) == target]
+            return bool(
+                explained == target
+                and len(points_at_target) == 1
+                and points_at_target[0]["label"] == answer
+            )
+        if family == "OGE07-N04":
+            exact = model["points"][0]["value_exact"]
+            if not isinstance(exact, dict) or "sqrt" not in exact:
+                return False
+            radicand = int(exact["sqrt"])
+            lower = math.isqrt(radicand)
+            hint = re.fullmatch(
+                r"Определите между какими целыми расположена точка A\.", problem.hints[0]
+            )
+            bound = re.fullmatch(r"(\d+) < A < (\d+)\.", problem.hints[1])
+            solution = re.fullmatch(
+                r"Точка A имеет координату √(\d+); сопоставьте её с вариантами корней\.",
+                problem.solution[0],
+            )
+            return bool(
+                hint
+                and bound
+                and solution
+                and tuple(map(int, bound.groups())) == (lower, lower + 1)
+                and int(solution[1]) == radicand
+                and lower * lower < radicand < (lower + 1) ** 2
+                and answer == f"√{radicand}"
+            )
+        if family == "OGE07-N05":
+            exact = _coord(model["points"][0]["value_exact"])
+            hint = re.fullmatch(r"Определите координату точки A по делениям\.", problem.hints[0])
+            hint_value = re.fullmatch(r"Координата A = (-?\d+(?:/\d+)?)\.", problem.hints[1])
+            solution = re.fullmatch(
+                r"Отметка A находится в координате (-?\d+(?:/\d+)?)\.",
+                problem.solution[0],
+            )
+            return bool(
+                hint
+                and hint_value
+                and solution
+                and Fraction(hint_value[1]) == exact
+                and Fraction(solution[1]) == exact
+                and answer == _fmt_fraction(exact)
+            )
+    except (ValueError, ZeroDivisionError, KeyError, IndexError, TypeError):
+        return False
+    return False
