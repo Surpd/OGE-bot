@@ -763,7 +763,7 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
             visible = re.findall(r"\d\)\s*([ka]) ([+−-]), ([bc]) ([+−-])", problem.condition)
             if len(visible) != 3:
                 return False, "visible sign options are malformed"
-            expected_signs = []
+            expected_signs: list[tuple[str, ...]] = []
             for graph_id in problem.digit_graph_ids:
                 graph = problem.graphs[graph_id]
                 if problem.family_id == "OGE11-F03":
