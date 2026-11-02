@@ -17,7 +17,13 @@ GENERATOR_VERSION = "0.3.0"
 # Keep numeric parameters stable for this explanation-only revision.
 _PARAMETER_STREAM_VERSION = "0.2.0"
 FAMILIES = tuple(f"OGE07-C{i:02}" for i in range(1, 7))
-ENABLED_FAMILIES: tuple[str, ...] = ()
+ENABLED_FAMILIES: tuple[str, ...] = (
+    "OGE07-C01",
+    "OGE07-C02",
+    "OGE07-C03",
+    "OGE07-C04",
+    "OGE07-C06",
+)
 POLICY = AnswerPolicy("oge07.single-choice", "1", AnswerFormat.SINGLE_NUMBER)
 SOURCES: dict[str, tuple[str, ...]] = {
     "OGE07-C01": ("317132", "353058"),
@@ -27,7 +33,11 @@ SOURCES: dict[str, tuple[str, ...]] = {
     "OGE07-C05": ("311420",),
     "OGE07-C06": ("461837",),
 }
-FAMILY_STATUS = {f: "implemented_disabled_pending_source_review" for f in FAMILIES}
+FAMILY_STATUS = {
+    family: "enabled" if family in ENABLED_FAMILIES else "hold"
+    for family in FAMILIES
+}
+FAMILY_STATUS["OGE07-C05"] = "hold_historical_source_structure_mismatch"
 _NUM = r"(?:−|-)?\d+(?:,\d+)?(?:/\d+)?"
 
 

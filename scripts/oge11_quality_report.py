@@ -13,6 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.math.oge11 import (  # noqa: E402
     ENABLED_FAMILIES,
     FAMILIES,
+    GENERATOR_VERSION,
     REFERENCE_IDS,
     RENDERER_VERSION,
     all_matching_codes,
@@ -39,7 +40,7 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
         raise ValueError("samples must be between 30 and 1200")
     result: dict[str, object] = {
         "task": 11,
-        "generator_version": "0.1.0",
+        "generator_version": GENERATOR_VERSION,
         "renderer_version": RENDERER_VERSION,
         "quality_level": "main" if samples >= 200 else "fast",
         "source_gate": "passed_for_audited_source_images",
@@ -55,10 +56,13 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
             "OGE11-F01": ["1", "2", "3"],
             "OGE11-F02": ["А", "Б", "В"],
             "OGE11-F03": ["А", "Б", "В"],
-            "OGE11-F04": ["А", "Б", "В"],
+            "OGE11-F04": ["1", "2", "3"],
             "OGE11-F05": ["1", "2", "3"],
-            "OGE11-F06": ["1", "2", "3"],
-            "OGE11-F07": ["1", "2", "3"],
+            "OGE11-F06": {
+                "allowed_layouts": [["А", "Б", "В"], ["1", "2", "3"]],
+                "stored_with_snapshot": True,
+            },
+            "OGE11-F07": ["А", "Б", "В"],
             "OGE11-F08": ["1", "2", "3"],
         },
         "families": {},
@@ -68,6 +72,9 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
         started = time.perf_counter()
         fingerprints: set[str] = set()
         codes: set[str] = set()
+        answer_kinds: dict[str, int] = {}
+        graph_label_sets: dict[str, int] = {}
+        half_coefficient_cases = 0
         verified = 0
         failures: dict[str, int] = {}
         attempts = 0
@@ -83,6 +90,14 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
                 verified += 1
                 fingerprints.add(problem.fingerprint)
                 codes.add(problem.correct_answer)
+                answer_kinds[problem.answer_kind] = answer_kinds.get(problem.answer_kind, 0) + 1
+                label_key = "".join(problem.graph_labels)
+                graph_label_sets[label_key] = graph_label_sets.get(label_key, 0) + 1
+                if family_id == "OGE11-F08" and any(
+                    graph.kind == "inverse" and abs(graph.coefficients[0]) == 0.5
+                    for graph in problem.graphs
+                ):
+                    half_coefficient_cases += 1
             else:
                 failures[reason] = failures.get(reason, 0) + 1
         status = (
@@ -103,6 +118,9 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
             "verified": verified,
             "unique_fingerprints": len(fingerprints),
             "correct_code_permutations": sorted(codes),
+            "answer_kind_counts": answer_kinds,
+            "rendered_graph_label_counts": graph_label_sets,
+            "half_coefficient_cases": half_coefficient_cases,
             "oracle_failures": failures,
             "elapsed_seconds": round(time.perf_counter() - started, 3),
         }
@@ -113,7 +131,10 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
         for record in families.values()
     )
     result["important_limit"] = (
-        "F01-F08 source families were matched against visually inspected catalog graph images. "
+        "F01-F08 source families were matched against individually reviewed catalog graph images. "
+        "F04 uses coefficient-sign letters A/B/V matched to graph panels 1/2/3; F07 uses graph "
+        "letters A/B/V matched to numbered formulas; F06 supports both source orientations. "
+        "F08 includes q=1/2 and its raster oracle enforces visible coefficient separation. "
         "The FIPI 2027 PDF is a draft; its task 11 image was not used as independent visual "
         "evidence. F09/F10 remain research-only and F11 remains blocked."
     )

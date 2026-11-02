@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 from dataclasses import replace
 from fractions import Fraction
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 from PIL import Image, ImageDraw
@@ -28,17 +30,6 @@ from app.math.oge11_render import (
     _pixels,
     audit_png,
 )
-
-_CONTRACT_LABELS = {
-    "OGE11-F01": ("1", "2", "3"),
-    "OGE11-F02": ("А", "Б", "В"),
-    "OGE11-F03": ("А", "Б", "В"),
-    "OGE11-F04": ("А", "Б", "В"),
-    "OGE11-F05": ("1", "2", "3"),
-    "OGE11-F06": ("1", "2", "3"),
-    "OGE11-F07": ("1", "2", "3"),
-    "OGE11-F08": ("1", "2", "3"),
-}
 
 _TEST_GLYPHS = {
     "1": ("00100", "01100", "00100", "00100", "00100", "00100", "01110"),
@@ -113,16 +104,23 @@ def test_panel_pixels_use_labels_required_by_visible_condition(family_id: str) -
     image = Image.open(BytesIO(problem.png_bytes)).convert("RGB")
     pixels = image.load()
     assert pixels is not None
+    expected_labels = (
+        ("А", "Б", "В")
+        if family_id in {"OGE11-F02", "OGE11-F03", "OGE11-F07"}
+        or (family_id == "OGE11-F06" and problem.answer_kind == "formula_options")
+        else ("1", "2", "3")
+    )
     assert (
         tuple(_decode_panel_label(pixels, panel, image.width, image.height) for panel in range(3))
-        == _CONTRACT_LABELS[family_id]
+        == expected_labels
     )
-    audit_png(problem.png_bytes, problem.graphs, problem.graph_order, problem.viewport, family_id)
+    assert problem.graph_labels == expected_labels
+    audit_png(problem.png_bytes, problem.graphs, problem.graph_order, problem.viewport, family_id, problem.graph_labels)
 
 
 @pytest.mark.parametrize(
     ("family_id", "panel", "wrong_label"),
-    [("OGE11-F03", 0, "1"), ("OGE11-F04", 1, "2")],
+    [("OGE11-F03", 0, "1"), ("OGE11-F04", 1, "3")],
 )
 def test_label_mutations_are_rejected_even_with_recomputed_hash(
     family_id: str, panel: int, wrong_label: str
@@ -273,6 +271,116 @@ def test_family_specific_slopes_constant_function_and_hyperbola_quadrants() -> N
                 assert value * x == q
                 assert (value > 0) == (q > 0 and x > 0 or q < 0 and x < 0)
         assert verify(inverse_problem) == (True, "ok")
+
+
+def test_confirmed_source_orientations_and_mappings_are_exact() -> None:
+    source_contracts = {
+        "348381": {
+            "orientation": "coefficient_sign_rows_A_B_V_to_graphs_1_2_3",
+            "coefficient_rows": ["a>0,c>0", "a<0,c>0", "a>0,c<0"],
+            "graph_numbers_by_letter": [3, 2, 1],
+            "independent_code": "321",
+        },
+        "350104": {
+            "orientation": "graphs_A_B_V_to_formula_options_1_2_3",
+            "formula_options": ["y=-3x+3", "y=3x", "y=3x-3"],
+            "formula_numbers_by_letter": [2, 1, 3],
+            "independent_code": "213",
+        },
+        "350202": {
+            "orientation": "formula_rows_A_B_V_to_graphs_1_2_3",
+            "formula_rows": ["y=x/2+3", "y=-x/2+3", "y=x/2-3"],
+            "graph_numbers_by_letter": [1, 3, 2],
+            "independent_code": "132",
+        },
+        "340835": {
+            "orientation": "graphs_A_B_V_to_formula_options_1_2_3",
+            "formula_options": ["y=-2", "y=x-2", "y=-2x"],
+            "formula_numbers_by_letter": [1, 3, 2],
+            "independent_code": "132",
+        },
+        "341668": {
+            "orientation": "function_rows_A_B_V_to_graphs_1_2_3",
+            "formula_rows": ["y=-2/x", "y=2/x", "y=1/(2x)"],
+            "graph_numbers_by_letter": [1, 3, 2],
+            "independent_code": "132",
+            "minimum_abs_coefficient": "1/2",
+        },
+    }
+    audit = json.loads(Path("atlas/oge11_release_audit.json").read_text(encoding="utf-8"))
+    assert {
+        task_id: {key: value for key, value in audit["source_structures"][task_id].items() if key != "family_id"}
+        for task_id in source_contracts
+    } == source_contracts
+    for mapping in audit["source_structures"].values():
+        answer_mapping = mapping.get("graph_numbers_by_letter") or mapping.get("formula_numbers_by_letter")
+        if answer_mapping:
+            assert "".join(str(value) for value in answer_mapping) == mapping["independent_code"]
+
+    f04 = generate("OGE11-F04", 220348381)
+    assert f04.answer_kind == "signs_letters"
+    assert f04.graph_labels == ("1", "2", "3")
+    assert f04.condition.splitlines()[1].startswith("А) a ")
+    assert "c " in f04.condition.splitlines()[1]
+
+    f07 = generate("OGE11-F07", 220340835)
+    assert f07.answer_kind == "formula_options"
+    assert f07.graph_labels == ("А", "Б", "В")
+    assert f07.condition.splitlines()[1].startswith("1) y=")
+
+    layouts = {generate("OGE11-F06", seed).answer_kind for seed in range(50)}
+    assert layouts == {"formula_letters", "formula_options"}
+    for seed in range(50):
+        problem = generate("OGE11-F06", seed)
+        assert problem.graph_labels == (("А", "Б", "В") if problem.answer_kind == "formula_options" else ("1", "2", "3"))
+
+    half = next(generate("OGE11-F08", seed) for seed in range(300) if any(graph.coefficients == (Fraction(1, 2),) for graph in generate("OGE11-F08", seed).graphs))
+    assert "1/(2x)" in half.condition
+    assert verify(half) == (True, "ok")
+
+
+def test_source_orientation_mutations_are_rejected() -> None:
+    f04 = generate("OGE11-F04", 440)
+    lines = f04.condition.splitlines()
+    lines[1], lines[2] = lines[2].replace("Б)", "А)"), lines[1].replace("А)", "Б)")
+    assert verify(replace(f04, condition="\n".join(lines))) == (False, "visible coefficient-sign rows differ from graph models")
+
+    f07 = generate("OGE11-F07", 441)
+    lines = f07.condition.splitlines()
+    lines[1], lines[2] = lines[2].replace("2)", "1)"), lines[1].replace("1)", "2)")
+    assert verify(replace(f07, condition="\n".join(lines))) == (False, "visible formula differs from model")
+
+    f06_letters = next(generate("OGE11-F06", seed) for seed in range(100) if generate("OGE11-F06", seed).answer_kind == "formula_letters")
+    lines = f06_letters.condition.splitlines()
+    lines[1], lines[2] = lines[2].replace("Б)", "А)"), lines[1].replace("А)", "Б)")
+    assert verify(replace(f06_letters, condition="\n".join(lines))) == (False, "visible formula differs from model")
+
+    f06_options = next(generate("OGE11-F06", seed) for seed in range(100) if generate("OGE11-F06", seed).answer_kind == "formula_options")
+    lines = f06_options.condition.splitlines()
+    lines[1], lines[2] = lines[2].replace("2)", "1)"), lines[1].replace("1)", "2)")
+    assert verify(replace(f06_options, condition="\n".join(lines))) == (False, "visible formula differs from model")
+
+    half = next(generate("OGE11-F08", seed) for seed in range(300) if any(graph.coefficients == (Fraction(1, 2),) for graph in generate("OGE11-F08", seed).graphs))
+    changed = half.condition.replace("1/(2x)", "1/x")
+    assert verify(replace(half, condition=changed)) == (False, "visible formula differs from model")
+
+
+def test_snapshot_preserves_both_f06_orientations_and_panel_labels() -> None:
+    examples = {}
+    for seed in range(100):
+        problem = generate("OGE11-F06", seed)
+        examples.setdefault(problem.answer_kind, problem)
+        if len(examples) == 2:
+            break
+    assert set(examples) == {"formula_letters", "formula_options"}
+    for problem in examples.values():
+        snapshot = problem.to_snapshot()
+        assert snapshot["graph_labels"] == list(problem.graph_labels)
+        assert from_snapshot(snapshot) == problem
+
+        snapshot["graph_labels"] = ["1", "2", "3"] if problem.graph_labels[0] == "А" else ["А", "Б", "В"]
+        with pytest.raises(ValueError, match="invalid task-11 snapshot"):
+            from_snapshot(snapshot)
 
 
 @pytest.mark.parametrize("raw", ["", "12", "1234", "112", "１２３", " 123", "123 ", "120"])

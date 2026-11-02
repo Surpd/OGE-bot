@@ -1,0 +1,92 @@
+{
+  "task_number": 7,
+  "sample_size_per_family": 300,
+  "enabled_families": [
+    "OGE07-C01",
+    "OGE07-C02",
+    "OGE07-C03",
+    "OGE07-C04",
+    "OGE07-C06",
+    "OGE07-N01",
+    "OGE07-N04"
+  ],
+  "families": {
+    "OGE07-C01": {
+      "enabled": true,
+      "seeds_checked": 300,
+      "unique_fingerprints": 282,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-C02": {
+      "enabled": true,
+      "seeds_checked": 300,
+      "unique_fingerprints": 297,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-C03": {
+      "enabled": true,
+      "seeds_checked": 300,
+      "unique_fingerprints": 300,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-C04": {
+      "enabled": true,
+      "seeds_checked": 300,
+      "unique_fingerprints": 300,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-C05": {
+      "enabled": false,
+      "seeds_checked": 300,
+      "unique_fingerprints": 297,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-C06": {
+      "enabled": true,
+      "seeds_checked": 300,
+      "unique_fingerprints": 264,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-N01": {
+      "enabled": true,
+      "seeds_checked": 300,
+      "unique_fingerprints": 289,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-N02": {
+      "enabled": false,
+      "seeds_checked": 300,
+      "unique_fingerprints": 277,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-N03": {
+      "enabled": false,
+      "seeds_checked": 300,
+      "unique_fingerprints": 296,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-N04": {
+      "enabled": true,
+      "seeds_checked": 300,
+      "unique_fingerprints": 288,
+      "oracle_failures": [],
+      "passed": true
+    },
+    "OGE07-N05": {
+      "enabled": false,
+      "seeds_checked": 300,
+      "unique_fingerprints": 283,
+      "oracle_failures": [],
+      "passed": true
+    }
+  }
+}

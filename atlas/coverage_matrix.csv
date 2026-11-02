@@ -1,10 +1,10 @@
 ﻿source_task_id,number,source_url,observed_class,family_candidates,verification_status,remarks
 366647,1,https://math-oge.sdamgia.ru/test?theme=135&ttest=true,географическая схема,OGE01-F001,review_needed,"Наблюдение, не полное доказательство покрытия"
 383591,1,https://math-oge.sdamgia.ru/test?theme=136&ttest=true,прикладная таблица,OGE01-F003,review_needed,"Наблюдение, не полное доказательство покрытия"
-311420,7,https://math-oge.sdamgia.ru/problem?id=311420,выбор числа между границами,OGE07-C05,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
-317132,7,https://math-oge.sdamgia.ru/problem?id=317132,дробь в десятичном отрезке,OGE07-C01,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
-317223,7,https://math-oge.sdamgia.ru/problem?id=317223,корень между целыми,OGE07-C02,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
-337389,7,https://math-oge.sdamgia.ru/problem?id=337389,корень в отрезке,OGE07-C03,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
+311420,7,https://math-oge.sdamgia.ru/problem?id=311420,выбор числа между границами,OGE07-C05,hold,"Историческая карточка; цель/параметры не совпадают с реализованным семейством"
+317132,7,https://math-oge.sdamgia.ru/problem?id=317132,дробь в десятичном отрезке,OGE07-C01,enabled,"Source audit: 5/9 ∈ [0.5,0.6], опубликованный вариант 1; generator text oracle and explanation checks pass"
+317223,7,https://math-oge.sdamgia.ru/problem?id=317223,корень между целыми,OGE07-C02,enabled,"Checked directly: √53 ∈ [7,8], option 4; 49 < 53 < 64"
+337389,7,https://math-oge.sdamgia.ru/problem?id=337389,корень в отрезке,OGE07-C03,enabled,"Source audit: [6,7] contains √42, independently squared, option 4"
 149,10,https://math-oge.sdamgia.ru/test?theme=20&ttest=true,дополнение,OGE10-F002,review_needed,"Наблюдение, не полное доказательство покрытия"
 132730,10,https://math-oge.sdamgia.ru/test?theme=20&ttest=true,бинарное событие,OGE10-F001,review_needed,"Наблюдение, не полное доказательство покрытия"
 132732,10,https://math-oge.sdamgia.ru/test?theme=20&ttest=true,категории,OGE10-F001,review_needed,"Наблюдение, не полное доказательство покрытия"
@@ -36,13 +36,13 @@
 311517,16,https://math-oge.sdamgia.ru/test?theme=12&ttest=true,центральный и вписанный углы,OGE16-F001,review_needed,"Наблюдение, не полное доказательство покрытия"
 311956,16,https://math-oge.sdamgia.ru/test?theme=12&ttest=true,вписанный угол и центральный,OGE16-F001,review_needed,"Наблюдение, не полное доказательство покрытия"
 314811,16,https://math-oge.sdamgia.ru/test?theme=12&ttest=true,центральный угол задан напрямую,OGE16-F001,review_needed,"Наблюдение, не полное доказательство покрытия"
-369728,7,https://math-oge.sdamgia.ru/problem?id=369728,дробь в отрезке,OGE07-C04,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
-461837,7,https://math-oge.sdamgia.ru/problem?id=461837,дробь между соседними целыми,OGE07-C06,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
-384400,7,https://math-oge.sdamgia.ru/problem?id=384400,корень соответствует точке на прямой,OGE07-N01,implemented_disabled,PNG аналог; исходная картинка и противоречивая атрибуция не проверены
-311380,7,https://math-oge.sdamgia.ru/problem?id=311380,дробь соответствует точке на прямой,OGE07-N02,implemented_disabled,PNG аналог; исходная картинка не проверена
-317102,7,https://math-oge.sdamgia.ru/problem?id=317102,десятичное соответствует точке на прямой,OGE07-N03,implemented_disabled,PNG аналог; указанная порталом атрибуция 2020 недостоверна
-317005,7,https://math-oge.sdamgia.ru/problem?id=317005,корень по точке A,OGE07-N04,implemented_disabled,PNG аналог; исходная картинка не проверена
-311392,7,https://math-oge.sdamgia.ru/problem?id=311392,дробь по точке A,OGE07-N05,implemented_disabled,PNG аналог; исходная картинка не проверена
+369728,7,https://math-oge.sdamgia.ru/problem?id=369728,дробь в отрезке,OGE07-C04,enabled,"Source audit: 68/19 ∈ [3,4], option 3; exact rational membership"
+461837,7,https://math-oge.sdamgia.ru/problem?id=461837,дробь между соседними целыми,OGE07-C06,enabled,"Source audit: 131/12 = 10+11/12, between 10 and 11, option 1"
+384400,7,https://math-oge.sdamgia.ru/problem?id=384400,корень соответствует точке на прямой,OGE07-N01,enabled,"Original graph inspected: √85 maps to A; four points and integer ticks"
+311380,7,https://math-oge.sdamgia.ru/problem?id=311380,дробь соответствует точке на прямой,OGE07-N02,hold,"Historical graph has fractional ticks not represented in current renderer"
+317102,7,https://math-oge.sdamgia.ru/problem?id=317102,десятичное соответствует точке на прямой,OGE07-N03,hold,"Current generated condition omits three visible source point coordinates"
+317005,7,https://math-oge.sdamgia.ru/problem?id=317005,корень по точке A,OGE07-N04,enabled,"Original graph inspected: point A between 2 and 3, nearer 2; answer √5"
+311392,7,https://math-oge.sdamgia.ru/problem?id=311392,дробь по точке A,OGE07-N05,hold,"Historical fractional-subdivision diagram; no match to integer-only renderer"
 339085,11,https://math-oge.sdamgia.ru/problem?id=339085,Формулы → графики; смешанная триада,OGE11-F01,text_formula_solution,Текстовый прототип перепроверен; графика SVG не проверена; runtime off
 FIPI-DEMO-2027-11,11,https://pro-schools.ru/fipi/oge/demo/2027/ma-9-oge-2027-demo.pdf,Графики → формулы; проект демоверсии 2027,OGE11-F02,draft_official_demo_mirror,"PDF — проект на зеркале; код из таблицы 132; runtime off, каталогные SVG не проверены"
 341702,11,https://math-oge.sdamgia.ru/problem?id=341702,Знаки k и b прямой,OGE11-F03,text_formula_solution,Тип и текст условия перепроверены; графика SVG не проверена; runtime off
@@ -51,3 +51,13 @@ FIPI-DEMO-2027-11,11,https://pro-schools.ru/fipi/oge/demo/2027/ma-9-oge-2027-dem
 350104,11,https://math-oge.sdamgia.ru/problem?id=350104,Общие прямые y=kx+b,OGE11-F06,text_formula_solution,Текст и опубликованное соответствие перепроверены; графика SVG не проверена; runtime off
 340835,11,https://math-oge.sdamgia.ru/problem?id=340835,Постоянная горизонтальная функция и прямые,OGE11-F07,text_formula_solution,Текстовый прототип перепроверен; графика SVG не проверена; runtime off
 341668,11,https://math-oge.sdamgia.ru/problem?id=341668,Гиперболы y=q/x; знак и модуль q,OGE11-F08,text_formula_solution,Текстовый прототип перепроверен; графика SVG не проверена; runtime off
+353058,7,https://math-oge.sdamgia.ru/problem?id=353058,рациональное число в закрытом десятичном промежутке,OGE07-C01,enabled,"Проверено: 7/11 ∈ [0.6,0.7], вариант 3"
+337311,7,https://math-oge.sdamgia.ru/problem?id=337311,корень между двумя числами,OGE07-C02,enabled,"Проверено: √73 ∈ (8,9), вариант 1; 64 < 73 < 81"
+352483,7,https://math-oge.sdamgia.ru/problem?id=352483,корень между двумя числами,OGE07-C02,enabled,"ОГЭ 2024: √60 ∈ (7,8), вариант 2; 49 < 60 < 64"
+425018,7,https://math-oge.sdamgia.ru/problem?id=425018,корень между двумя числами,OGE07-C02,enabled,"ОГЭ 2022: √57 ∈ (7,8), вариант 2; 49 < 57 < 64"
+406570,7,https://math-oge.sdamgia.ru/problem?id=406570,корень в закрытом промежутке,OGE07-C03,enabled,"Проверено: √61 ∈ [7,8], вариант 4"
+322293,7,https://math-oge.sdamgia.ru/problem?id=322293,корень соответствует точке на прямой,OGE07-N01,enabled,"Оригинальная картинка просмотрена; √53 соответствует точке A"
+449733,7,https://math-oge.sdamgia.ru/problem?id=449733,дублирующая точечная задача с корнем,OGE07-N01,duplicate,"Карточка явно дублирует 384400; не считается независимым подтверждением"
+474133,7,https://math-oge.sdamgia.ru/problem?id=474133,дробь соответствует точке на прямой,OGE07-N02,hold,"Оригинальная картинка просмотрена: 58/7 соответствует C; держим до отделения от исторической структуры 311380"
+370464,7,https://math-oge.sdamgia.ru/problem?id=370464,десятичное число соответствует точке,OGE07-N03,hold,"Проверено: 0,271 соответствует D; generator не показывает координаты остальных точек"
+317074,7,https://math-oge.sdamgia.ru/problem?id=317074,рациональная координата точки A,OGE07-N05,hold,"Оригинальная картинка просмотрена: деления подписаны десятыми; текущая модель отображает только целые деления"
