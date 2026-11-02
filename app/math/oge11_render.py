@@ -20,6 +20,31 @@ PLOT = (155, 72, 545, 462)
 CURVE = (34, 83, 180)
 BACKGROUND = (255, 255, 255)
 
+# Renderer mapping. The separate audit contract below is intentionally not
+# derived from this table; tests compare visible pixels to the exam wording.
+_RENDER_PANEL_LABELS = {
+    "OGE11-F01": ("1", "2", "3"),
+    "OGE11-F02": ("А", "Б", "В"),
+    "OGE11-F03": ("А", "Б", "В"),
+    "OGE11-F04": ("А", "Б", "В"),
+    "OGE11-F05": ("1", "2", "3"),
+    "OGE11-F06": ("1", "2", "3"),
+    "OGE11-F07": ("1", "2", "3"),
+    "OGE11-F08": ("1", "2", "3"),
+}
+
+# Independent verification contract transcribed from the visible task forms.
+_AUDIT_EXPECTED_PANEL_LABELS = {
+    "OGE11-F01": ("1", "2", "3"),
+    "OGE11-F02": ("А", "Б", "В"),
+    "OGE11-F03": ("А", "Б", "В"),
+    "OGE11-F04": ("А", "Б", "В"),
+    "OGE11-F05": ("1", "2", "3"),
+    "OGE11-F06": ("1", "2", "3"),
+    "OGE11-F07": ("1", "2", "3"),
+    "OGE11-F08": ("1", "2", "3"),
+}
+
 
 _GLYPHS = {
     "0": ("01110", "10001", "10011", "10101", "11001", "10001", "01110"),
@@ -139,8 +164,10 @@ def render_graphs(
 ) -> tuple[bytes, dict[str, Any]]:
     image = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(image)
+    if family_id not in _RENDER_PANEL_LABELS:
+        raise ValueError(f"unsupported task-11 family for renderer: {family_id}")
     for panel, graph_index in enumerate(graph_order):
-        label = ("А", "Б", "В")[panel] if family_id == "OGE11-F02" else str(panel + 1)
+        label = _RENDER_PANEL_LABELS[family_id][panel]
         _bitmap_text(draw, label, 24, panel * ROW_HEIGHT + 18, 4)
         _draw_graph(draw, graphs[graph_index], panel, viewport)
     semantics = {
@@ -173,21 +200,18 @@ def audit_png(
     pixels = image.load()
     if pixels is None:
         raise ValueError("PNG pixel data is unavailable")
+    expected_labels = _AUDIT_EXPECTED_PANEL_LABELS.get(family_id)
+    if expected_labels is None:
+        raise ValueError("unknown family label contract")
+    if tuple(sorted(graph_order)) != (0, 1, 2):
+        raise ValueError("graph panel order is not a permutation")
     curve_pixels = 0
     for panel, graph_index in enumerate(graph_order):
-        label = ("А", "Б", "В")[panel] if family_id == "OGE11-F02" else str(panel + 1)
-        scale = 4
-        for row, pattern in enumerate(_GLYPHS[label]):
-            for column, expected in enumerate(pattern):
-                for dy in range(scale):
-                    for dx in range(scale):
-                        actual = pixels[
-                            24 + column * scale + dx, panel * ROW_HEIGHT + 18 + row * scale + dy
-                        ]
-                        if (actual == (20, 20, 20)) != (expected == "1"):
-                            raise ValueError("graph panel label pixels do not match order")
+        actual_label = _decode_panel_label(pixels, panel, image.width, image.height)
+        if actual_label != expected_labels[panel]:
+            raise ValueError("graph panel label pixels do not match family contract")
         graph = graphs[graph_index]
-        probes = (Fraction(-2), Fraction(-1), Fraction(1), Fraction(2))
+        probes = tuple(Fraction(value) for value in (-4, -3, -2, -1, 1, 2, 3, 4))
         visible = 0
         for x in probes:
             try:
@@ -206,6 +230,7 @@ def audit_png(
                 visible += 1
         if visible < 2:
             raise ValueError("mathematical landmark is missing from raster")
+        _audit_curve_pixels(pixels, graph, panel, viewport, image.width, image.height)
         if graph.kind == "inverse":
             left_has_curve = any(
                 _has_curve_near(
@@ -230,6 +255,78 @@ def audit_png(
         curve_pixels += visible
     if curve_pixels < 6:
         raise ValueError("insufficient graph landmarks")
+
+
+def _decode_panel_label(pixels: Any, panel: int, width: int, height: int) -> str:
+    """Decode the rendered glyph from pixels without consulting PNG metadata."""
+    origin_x, origin_y, scale = 24, panel * ROW_HEIGHT + 18, 4
+    matches: list[str] = []
+    for label, glyph in _GLYPHS.items():
+        matches_glyph = True
+        for row, pattern in enumerate(glyph):
+            for column, expected in enumerate(pattern):
+                for dy in range(scale):
+                    for dx in range(scale):
+                        x = origin_x + column * scale + dx
+                        y = origin_y + row * scale + dy
+                        if x >= width or y >= height:
+                            raise ValueError("panel label lies outside image")
+                        actual = pixels[x, y]
+                        expected_color = (20, 20, 20) if expected == "1" else BACKGROUND
+                        if actual != expected_color:
+                            matches_glyph = False
+                            break
+                    if not matches_glyph:
+                        break
+                if not matches_glyph:
+                    break
+        if matches_glyph:
+            matches.append(label)
+    if len(matches) != 1:
+        raise ValueError("panel label is missing, ambiguous, or corrupted")
+    return matches[0]
+
+
+def _audit_curve_pixels(
+    pixels: Any,
+    graph: Graph,
+    panel: int,
+    viewport: tuple[Fraction, Fraction, Fraction, Fraction],
+    width: int,
+    height: int,
+) -> None:
+    """Compare decoded blue raster pixels to model values across the full plot."""
+    xmin, xmax, ymin, ymax = viewport
+    left, top, right, bottom = PLOT
+    panel_top = panel * ROW_HEIGHT
+    observed = 0
+    for px in range(left, min(right + 1, width), 4):
+        x_value = xmin + Fraction(px - left, right - left) * (xmax - xmin)
+        if graph.kind == "inverse" and abs(x_value) < Fraction(1, 2):
+            # The near-asymptote branch is intentionally clipped by the viewport.
+            continue
+        expected_y = graph.value(x_value)
+        if not ymin - Fraction(1, 10) <= expected_y <= ymax + Fraction(1, 10):
+            continue
+        expected_py = (
+            panel_top + top + round(float((ymax - expected_y) * (bottom - top) / (ymax - ymin)))
+        )
+        candidates: list[int] = []
+        for y in range(
+            max(panel_top + top, expected_py - 8), min(panel_top + bottom, expected_py + 9) + 1
+        ):
+            red, green, blue = pixels[px, y]
+            if blue > red + 30 and blue > green + 20:
+                candidates.append(y)
+        if not candidates:
+            raise ValueError("model curve is missing at sampled raster column")
+        for py in candidates:
+            y_value = ymax - Fraction(py - panel_top - top, bottom - top) * (ymax - ymin)
+            if abs(float(y_value - expected_y)) > 0.28:
+                raise ValueError("raster curve does not match mathematical model")
+        observed += 1
+    if observed < 20:
+        raise ValueError("insufficient model-to-raster curve samples")
 
 
 def _has_curve_near(pixels: Any, x: int, y: int, width: int, height: int) -> bool:

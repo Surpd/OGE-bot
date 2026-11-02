@@ -13,6 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.math.oge11 import (  # noqa: E402
     FAMILIES,
     REFERENCE_IDS,
+    RENDERER_VERSION,
     all_matching_codes,
     generate,
     verify,
@@ -28,7 +29,7 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
     result: dict[str, object] = {
         "task": 11,
         "generator_version": "0.1.0",
-        "renderer_version": "0.1.0",
+        "renderer_version": RENDERER_VERSION,
         "quality_level": "main" if samples >= 200 else "fast",
         "source_gate": "blocked_pending_independent_source_image_audit",
         "runtime_enabled_families": [],
@@ -37,9 +38,18 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
             "exact Fraction viewport [-5,5]x[-5,5]"
         ),
         "image_integrity": (
-            "SHA-256 of immutable PNG bytes stored with base64 PNG and "
-            "semantic graph snapshot"
+            "SHA-256 of immutable PNG bytes stored with base64 PNG and semantic graph snapshot"
         ),
+        "visible_panel_label_contract": {
+            "OGE11-F01": ["1", "2", "3"],
+            "OGE11-F02": ["А", "Б", "В"],
+            "OGE11-F03": ["А", "Б", "В"],
+            "OGE11-F04": ["А", "Б", "В"],
+            "OGE11-F05": ["1", "2", "3"],
+            "OGE11-F06": ["1", "2", "3"],
+            "OGE11-F07": ["1", "2", "3"],
+            "OGE11-F08": ["1", "2", "3"],
+        },
         "families": {},
     }
     families: dict[str, object] = {}

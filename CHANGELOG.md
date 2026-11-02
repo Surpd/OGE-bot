@@ -1,10 +1,12 @@
 # Changelog
 
-## 2026-11-02 — OGE task 11 implementation candidate (branch, PR pending)
+## 2026-11-02 — OGE task 11 renderer correction (PR #13, no merge/deploy)
 - Added exact Fraction graph models for F01–F08, deterministic matching, a PNG renderer, pixel landmark checks, immutable image-hash snapshots, and bounded fail-closed generation. Families F09/F10 remain research-only; F11 remains blocked.
 - Added isolated task11 Telegram and PostgreSQL session handling, shared UX adapter coverage, migration `0011_task11_sessions.sql`, progress and history reporting. Runtime family flags stay off because source graph SVGs could not be independently inspected.
 - Rechecked source text for the listed task IDs. Found a condition/solution conflict in №406334 and an incorrect explanation of `c` in №348381; source image audit remains incomplete for catalog examples. Coverage and quality reports record these limits.
-- Local quality generation passed with 300 unique variants and zero oracle failures per F01–F08; bounded rejection was 0–66 constructions per 300 accepted tasks. Local pytest: 555 passed, 57 skipped; Ruff and mypy pass. PostgreSQL integration tests were skipped because no local database URL is configured; PG17 CI is pending.
+- Corrected panel labels for F03/F04 and bumped renderer version to 0.2.0. The pixel oracle now decodes labels independently and checks graph samples against models; mutation regressions cover wrong/swapped labels, swapped graph panels, formulas, answer/order mappings, control points, hashes and snapshots.
+- Main quality report: 300 verified seeds per family, at least 298 unique models per family, all six answer codes, zero oracle failures. Local full suite: 577 passed, 57 skipped; Ruff and mypy pass. PostgreSQL integration tests are exercised by PostgreSQL 17 CI; source graph originals remain unaudited, so every family stays disabled.
+- Eight 700×1530 controls and eight width-360 previews are in local `artifacts/oge11_preview/`; combined image payload is about 275 KB. They are not committed to the repository.
 
 ## 2026-11-02 — OGE task 13 final acceptance (PR, без merge/deploy)
 - Включены девять проверенных пилотных семейств L01/L02/Q01–Q04/S01–S03; Q05/Q06/S04 остаются выключенными с задокументированными причинами.

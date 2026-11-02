@@ -1,12 +1,54 @@
 {
   "task": 11,
   "generator_version": "0.1.0",
-  "renderer_version": "0.1.0",
+  "renderer_version": "0.2.0",
   "quality_level": "main",
   "source_gate": "blocked_pending_independent_source_image_audit",
   "runtime_enabled_families": [],
   "image_format": "PNG; 700x1530; three vertically stacked independent graph panels; exact Fraction viewport [-5,5]x[-5,5]",
   "image_integrity": "SHA-256 of immutable PNG bytes stored with base64 PNG and semantic graph snapshot",
+  "visible_panel_label_contract": {
+    "OGE11-F01": [
+      "1",
+      "2",
+      "3"
+    ],
+    "OGE11-F02": [
+      "А",
+      "Б",
+      "В"
+    ],
+    "OGE11-F03": [
+      "А",
+      "Б",
+      "В"
+    ],
+    "OGE11-F04": [
+      "А",
+      "Б",
+      "В"
+    ],
+    "OGE11-F05": [
+      "1",
+      "2",
+      "3"
+    ],
+    "OGE11-F06": [
+      "1",
+      "2",
+      "3"
+    ],
+    "OGE11-F07": [
+      "1",
+      "2",
+      "3"
+    ],
+    "OGE11-F08": [
+      "1",
+      "2",
+      "3"
+    ]
+  },
   "families": {
     "OGE11-F01": {
       "status": "pass",
@@ -18,8 +60,8 @@
       ],
       "source_image_independently_verified": false,
       "attempts": 300,
-      "candidate_construction_attempts": 313,
-      "rejected_constructions": 13,
+      "candidate_construction_attempts": 380,
+      "rejected_constructions": 80,
       "verified": 300,
       "unique_fingerprints": 300,
       "correct_code_permutations": [
@@ -31,7 +73,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 7.913
+      "elapsed_seconds": 24.797
     },
     "OGE11-F02": {
       "status": "pass",
@@ -43,8 +85,8 @@
       ],
       "source_image_independently_verified": false,
       "attempts": 300,
-      "candidate_construction_attempts": 315,
-      "rejected_constructions": 15,
+      "candidate_construction_attempts": 391,
+      "rejected_constructions": 91,
       "verified": 300,
       "unique_fingerprints": 300,
       "correct_code_permutations": [
@@ -56,7 +98,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 7.822
+      "elapsed_seconds": 39.816
     },
     "OGE11-F03": {
       "status": "pass",
@@ -67,8 +109,8 @@
       ],
       "source_image_independently_verified": false,
       "attempts": 300,
-      "candidate_construction_attempts": 300,
-      "rejected_constructions": 0,
+      "candidate_construction_attempts": 604,
+      "rejected_constructions": 304,
       "verified": 300,
       "unique_fingerprints": 300,
       "correct_code_permutations": [
@@ -80,7 +122,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 7.128
+      "elapsed_seconds": 50.36
     },
     "OGE11-F04": {
       "status": "pass",
@@ -104,7 +146,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 7.931
+      "elapsed_seconds": 16.051
     },
     "OGE11-F05": {
       "status": "pass",
@@ -115,10 +157,10 @@
       ],
       "source_image_independently_verified": false,
       "attempts": 300,
-      "candidate_construction_attempts": 300,
-      "rejected_constructions": 0,
+      "candidate_construction_attempts": 441,
+      "rejected_constructions": 141,
       "verified": 300,
-      "unique_fingerprints": 297,
+      "unique_fingerprints": 298,
       "correct_code_permutations": [
         "123",
         "132",
@@ -128,7 +170,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 7.517
+      "elapsed_seconds": 18.491
     },
     "OGE11-F06": {
       "status": "pass",
@@ -140,8 +182,8 @@
       ],
       "source_image_independently_verified": false,
       "attempts": 300,
-      "candidate_construction_attempts": 300,
-      "rejected_constructions": 0,
+      "candidate_construction_attempts": 442,
+      "rejected_constructions": 142,
       "verified": 300,
       "unique_fingerprints": 300,
       "correct_code_permutations": [
@@ -153,7 +195,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 7.06
+      "elapsed_seconds": 18.937
     },
     "OGE11-F07": {
       "status": "pass",
@@ -164,8 +206,8 @@
       ],
       "source_image_independently_verified": false,
       "attempts": 300,
-      "candidate_construction_attempts": 300,
-      "rejected_constructions": 0,
+      "candidate_construction_attempts": 409,
+      "rejected_constructions": 109,
       "verified": 300,
       "unique_fingerprints": 300,
       "correct_code_permutations": [
@@ -177,7 +219,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 6.729
+      "elapsed_seconds": 17.143
     },
     "OGE11-F08": {
       "status": "pass",
@@ -201,7 +243,7 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 8.784
+      "elapsed_seconds": 14.032
     }
   },
   "all_families_pass": true,

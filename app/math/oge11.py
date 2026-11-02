@@ -20,7 +20,7 @@ from uuid import NAMESPACE_URL, uuid5
 from app.math.oge11_render import render_graphs
 
 GENERATOR_VERSION = "0.1.0"
-RENDERER_VERSION = "0.1.0"
+RENDERER_VERSION = "0.2.0"
 POLICY_ID = "oge11.three-digit-bijection"
 POLICY_VERSION = "1"
 ENABLED_FAMILIES: tuple[str, ...] = ()
@@ -38,6 +38,54 @@ REFERENCE_IDS = {
 MAX_CANDIDATES = 1200
 _LETTERS = ("А", "Б", "В")
 _DIGITS = ("1", "2", "3")
+
+# Independent visible-condition contract: (answer kind, exact first line).
+_VISIBLE_TASK_CONTRACTS = {
+    "OGE11-F01": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
+    "OGE11-F02": ("formula_options", "Соотнесите графики А, Б, В с формулами из списка 1, 2, 3:"),
+    "OGE11-F03": ("signs", "Соотнесите графики А, Б, В со знаками коэффициентов k и b:"),
+    "OGE11-F04": ("signs", "Соотнесите графики А, Б, В со знаками коэффициентов a и c:"),
+    "OGE11-F05": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
+    "OGE11-F06": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
+    "OGE11-F07": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
+    "OGE11-F08": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
+}
+
+_EXPECTED_HINTS = {
+    "OGE11-F01": (
+        "Сначала определите вид графика или формулы.",
+        "Проверьте контрольные точки и внесите соответствия по порядку А, Б, В.",
+    ),
+    "OGE11-F02": (
+        "Сначала определите вид каждого графика.",
+        "Проверьте контрольные точки и внесите соответствия по порядку А, Б, В.",
+    ),
+    "OGE11-F03": (
+        "Знак k задаёт направление прямой; знак b — её пересечение с Oy, то есть y(0).",
+        "Сопоставьте графики А, Б, В с вариантами знаков 1, 2, 3.",
+    ),
+    "OGE11-F04": (
+        "Знак a задаёт ветви параболы; c равно y(0), точке пересечения с Oy.",
+        "Сопоставьте графики А, Б, В с вариантами знаков 1, 2, 3.",
+    ),
+    "OGE11-F05": (
+        "У прямой через начало координат знак и величину наклона показывает её направление.",
+        "Сопоставьте формулы А, Б, В с графиками 1, 2, 3.",
+    ),
+    "OGE11-F06": (
+        "Сравните наклон прямой и её значение y(0).",
+        "Сопоставьте формулы А, Б, В с графиками 1, 2, 3.",
+    ),
+    "OGE11-F07": (
+        "Горизонтальный график задаёт постоянную функцию.",
+        "Сопоставьте формулы А, Б, В с графиками 1, 2, 3.",
+    ),
+    "OGE11-F08": (
+        "У y=q/x ветви лежат в I и III четвертях при q>0, во II и IV при q<0.",
+        "Сравните четверти и контрольные точки, затем сопоставьте формулы "
+        "А, Б, В с графиками 1, 2, 3.",
+    ),
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -353,18 +401,9 @@ def _generate_candidate(
     image_hash = hashlib.sha256(png).hexdigest()
     problem_id = str(uuid5(NAMESPACE_URL, f"oge11:{family_id}:{seed}:{generator_version}"))
     solution = _build_solution(family_id, graphs, letter_graph_ids, digit_graph_ids, answer_kind)
-    fingerprint_payload = {
-        "family": family_id,
-        "graphs": [g.as_json() for g in graphs],
-        "letter_graph_ids": letter_graph_ids,
-        "digit_graph_ids": digit_graph_ids,
-        "condition": condition,
-        "image_sha256": image_hash,
-        "viewport": [_fraction_text(v) for v in viewport],
-    }
-    fingerprint = hashlib.sha256(
-        json.dumps(fingerprint_payload, sort_keys=True, ensure_ascii=False).encode()
-    ).hexdigest()
+    fingerprint = _semantic_fingerprint(
+        family_id, graphs, letter_graph_ids, digit_graph_ids, condition, image_hash, viewport
+    )
     return Oge11Problem(
         problem_id,
         seed,
@@ -379,10 +418,7 @@ def _generate_candidate(
         answer_kind,
         options,
         code,
-        (
-            "Сначала определите вид графика или указанные знаки.",
-            "Проверьте контрольную точку и внесите соответствия по порядку А, Б, В.",
-        ),
+        _EXPECTED_HINTS[family_id],
         solution,
         png,
         image_hash,
@@ -408,19 +444,23 @@ def from_snapshot(value: dict[str, object]) -> Oge11Problem:
         raw_graphs = value["graphs"]
         if not isinstance(raw_graphs, list) or len(raw_graphs) != 3:
             raise ValueError("snapshot must contain three graph models")
-        graphs = cast(tuple[Graph, Graph, Graph], tuple(
-            Graph(
-                str(item["kind"]),
-                tuple(Fraction(str(coefficient)) for coefficient in item["coefficients"]),
-            )
-            for item in raw_graphs
-            if isinstance(item, dict)
-        ))
+        graphs = cast(
+            tuple[Graph, Graph, Graph],
+            tuple(
+                Graph(
+                    str(item["kind"]),
+                    tuple(Fraction(str(coefficient)) for coefficient in item["coefficients"]),
+                )
+                for item in raw_graphs
+                if isinstance(item, dict)
+            ),
+        )
         if len(graphs) != 3:
             raise ValueError("invalid graph model")
         viewport_value = value["viewport"]
         if not isinstance(viewport_value, list) or len(viewport_value) != 4:
             raise ValueError("invalid viewport")
+
         def int_tuple(name: str) -> tuple[int, int, int]:
             raw = value[name]
             if (
@@ -516,10 +556,65 @@ def _build_solution(
     return tuple(steps)
 
 
+def _semantic_fingerprint(
+    family_id: str,
+    graphs: tuple[Graph, Graph, Graph],
+    letters: tuple[int, int, int],
+    digits: tuple[int, int, int],
+    condition: str,
+    image_sha256: str,
+    viewport: tuple[Fraction, Fraction, Fraction, Fraction],
+) -> str:
+    payload = {
+        "family": family_id,
+        "graphs": [graph.as_json() for graph in graphs],
+        "letter_graph_ids": letters,
+        "digit_graph_ids": digits,
+        "condition": condition,
+        "image_sha256": image_sha256,
+        "viewport": [_fraction_text(value) for value in viewport],
+    }
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()
+
+
+def _audit_solution(problem: Oge11Problem) -> bool:
+    """Check each written step from the graph models without using the builder."""
+    if len(problem.solution) != 4:
+        return False
+    expected_steps: list[str] = []
+    for letter, graph_id in zip(_LETTERS, problem.letter_graph_ids, strict=True):
+        graph = problem.graphs[graph_id]
+        if problem.family_id == "OGE11-F03":
+            k, b = graph.coefficients
+            expected_steps.append(
+                f"{letter}: k={'+' if k > 0 else '−'} по направлению прямой; "
+                f"b={'+' if b > 0 else '−'} по точке (0, b)."
+            )
+        elif problem.family_id == "OGE11-F04":
+            a, _, c = graph.coefficients
+            expected_steps.append(
+                f"{letter}: a={'+' if a > 0 else '−'} по ветвям параболы; "
+                f"c={'+' if c > 0 else '−'} по значению y(0)."
+            )
+        else:
+            expected_steps.append(
+                f"{letter}: график имеет вид {graph.kind}; контрольные значения "
+                f"подтверждают {graph.formula()}."
+            )
+    expected_steps.append("Запишите номера соответствующих объектов в порядке А, Б, В.")
+    return tuple(expected_steps) == problem.solution
+
+
 def verify(problem: Oge11Problem) -> tuple[bool, str]:
     """Independent semantic and raster audit; returns a stable failure category."""
     if problem.family_id not in FAMILIES:
         return False, "unknown family"
+    if problem.generator_version != GENERATOR_VERSION:
+        return False, "unsupported generator version"
+    if problem.renderer_version != RENDERER_VERSION:
+        return False, "unsupported renderer version"
     if hashlib.sha256(problem.png_bytes).hexdigest() != problem.image_sha256:
         return False, "snapshot integrity violation"
     if re.fullmatch(r"[123]{3}", problem.correct_answer) is None or set(
@@ -527,7 +622,31 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
     ) != set("123"):
         return False, "invalid answer code"
     try:
+        expected_kind, expected_header = _VISIBLE_TASK_CONTRACTS[problem.family_id]
+        condition_lines = problem.condition.splitlines()
+        if (
+            problem.answer_kind != expected_kind
+            or not condition_lines
+            or condition_lines[0] != expected_header
+        ):
+            return False, "visible task structure differs from family contract"
+        if problem.hints != _EXPECTED_HINTS[problem.family_id]:
+            return False, "hints do not match family model"
         _validate_graphs(problem.graphs)
+        if (
+            len(problem.letter_graph_ids) != 3
+            or set(problem.letter_graph_ids) != {0, 1, 2}
+            or len(problem.digit_graph_ids) != 3
+            or set(problem.digit_graph_ids) != {0, 1, 2}
+            or len(problem.options) != 3
+            or len(set(problem.options)) != 3
+        ):
+            return False, "matching sides are ambiguous or incomplete"
+        if problem.family_id in {"OGE11-F02", "OGE11-F03", "OGE11-F04"}:
+            if problem.letter_graph_ids != problem.graph_order:
+                return False, "letter labels do not identify visible graph panels"
+        elif problem.digit_graph_ids != problem.graph_order:
+            return False, "digit labels do not identify visible graph panels"
         if problem.answer_kind == "formula_letters":
             visible = re.findall(r"[АБВ]\)\s*(y=[^\n]+)", problem.condition)
             parsed = tuple(_parse_formula(item) for item in visible)
@@ -535,6 +654,11 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
                 problem.graphs[i] for i in problem.letter_graph_ids
             ):
                 return False, "visible formula differs from model"
+            if (
+                tuple(item[1] for item in re.findall(r"([АБВ])\)\s*(y=[^\n]+)", problem.condition))
+                != problem.options
+            ):
+                return False, "visible formula options differ from stored options"
         elif problem.answer_kind == "formula_options":
             visible = re.findall(r"\d\)\s*(y=[^\n]+)", problem.condition)
             parsed = tuple(_parse_formula(item) for item in visible)
@@ -542,6 +666,8 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
                 problem.graphs[i] for i in problem.digit_graph_ids
             ):
                 return False, "visible formula differs from model"
+            if tuple(parsed_formula.formula() for parsed_formula in parsed) != problem.options:
+                return False, "visible formula options differ from stored options"
         elif problem.answer_kind == "signs":
             visible = re.findall(r"\d\)\s*([ka]) ([+−-]), ([bc]) ([+−-])", problem.condition)
             if len(visible) != 3:
@@ -561,19 +687,21 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
             ]
             if normalized != expected_signs:
                 return False, "visible sign options differ from model"
+            if (
+                tuple(
+                    f"{left} {sign_left}, {right} {sign_right}"
+                    for left, sign_left, right, sign_right in normalized
+                )
+                != problem.options
+            ):
+                return False, "visible sign options differ from stored options"
         expected = "".join(
             str(problem.digit_graph_ids.index(graph_id) + 1)
             for graph_id in problem.letter_graph_ids
         )
         if expected != problem.correct_answer:
             return False, "wrong matching code"
-        if problem.solution != _build_solution(
-            problem.family_id,
-            problem.graphs,
-            problem.letter_graph_ids,
-            problem.digit_graph_ids,
-            problem.answer_kind,
-        ):
+        if not _audit_solution(problem):
             return False, "invalid reasoning step"
         from app.math.oge11_render import audit_png
 
@@ -584,6 +712,16 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
             problem.viewport,
             problem.family_id,
         )
+        if problem.fingerprint != _semantic_fingerprint(
+            problem.family_id,
+            problem.graphs,
+            problem.letter_graph_ids,
+            problem.digit_graph_ids,
+            problem.condition,
+            problem.image_sha256,
+            problem.viewport,
+        ):
+            return False, "semantic fingerprint mismatch"
     except (ValueError, OSError, IndexError, ZeroDivisionError):
         return False, "graph or formula audit failed"
     return True, "ok"

@@ -36,6 +36,11 @@ final 2027 exam. `atlas/oge11_source_cases.csv` carries the source-level matrix.
   viewport `[-5,5] × [-5,5]`, axis ticks and control-point pixel checks. The
   exact PNG bytes and SHA-256 are stored in the immutable problem snapshot and
   reused on resume. It is not a static or generated illustration.
+- Panel identifiers follow each condition's two sides: F01 and F05–F08 show
+  graph panels `1, 2, 3` while formulas are `А, Б, В`; F02–F04 show graph
+  panels `А, Б, В` while formula/sign options are `1, 2, 3`. This convention
+  was reconciled against the reviewed source wording; catalog graph images are
+  still not independently verified.
 - Answer policy `oge11.three-digit-bijection@1` accepts exactly one ASCII
   permutation of `123`; answers remain strings.
 
