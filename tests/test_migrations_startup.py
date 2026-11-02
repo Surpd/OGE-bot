@@ -70,6 +70,7 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
             "0007_task14_sessions.sql",
             "0008_task13_sessions.sql",
             "0009_task8_sessions.sql",
+            "0011_task11_sessions.sql",
         }.issubset(expected_versions)
         assert [int(version[:4]) for version in expected_versions] == sorted(
             int(version[:4]) for version in expected_versions
@@ -84,6 +85,9 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
             assert await repository._pool.fetchval(
                 "SELECT to_regclass('sessions_one_active_task8_per_user') IS NOT NULL"
             )
+            assert await repository._pool.fetchval(
+                "SELECT to_regclass('sessions_one_active_task11_per_user') IS NOT NULL"
+            )
             assert await repository._pool.fetch(
                 Path("scripts/preflight_active_sessions.sql").read_text(encoding="utf-8")
             ) == []
@@ -93,7 +97,7 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
 
 
 @pytest.mark.asyncio
-async def test_read_only_active_session_preflight_reports_task14_task13_task8() -> None:
+async def test_read_only_active_session_preflight_reports_supported_task_modes() -> None:
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
         pytest.skip("DATABASE_URL not configured")
@@ -101,7 +105,7 @@ async def test_read_only_active_session_preflight_reports_task14_task13_task8() 
     pool = await asyncpg.create_pool(test_url)
     try:
         await pool.execute(await read_migration("migrations/0001_foundation.sql"))
-        for mode in ("task14", "task13", "task8"):
+        for mode in ("task14", "task13", "task8", "task11"):
             user_id = await pool.fetchval(
                 "INSERT INTO users (telegram_user_id) VALUES ($1) RETURNING id",
                 int(uuid4().int % (2**62)) + 1,
@@ -116,8 +120,8 @@ async def test_read_only_active_session_preflight_reports_task14_task13_task8() 
         query = Path("scripts/preflight_active_sessions.sql").read_text(encoding="utf-8")
         rows = await pool.fetch(query)
         after = await pool.fetchval("SELECT count(*) FROM sessions")
-        assert before == after == 6
-        assert [row["mode"] for row in rows] == ["task14", "task13", "task8"]
+        assert before == after == 8
+        assert [row["mode"] for row in rows] == ["task14", "task13", "task8", "task11"]
         assert all(row["affected_users"] == 1 for row in rows)
         assert all(row["affected_sessions"] == 2 for row in rows)
     finally:

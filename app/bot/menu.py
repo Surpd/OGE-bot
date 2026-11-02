@@ -34,14 +34,18 @@ def main_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
 
 
-def number_menu(*, include_task13: bool = False) -> ReplyKeyboardMarkup:
+def number_menu(
+    *, include_task13: bool = False, include_task11: bool = False
+) -> ReplyKeyboardMarkup:
     rows = [
         [KeyboardButton(text="№6 · Вычисления")],
         [KeyboardButton(text="№8 · Степени и корни")],
         [KeyboardButton(text="№9 · Уравнения")],
         [KeyboardButton(text="№10 · Вероятность")],
-        [KeyboardButton(text="№12 · Формулы")],
     ]
+    if include_task11:
+        rows.append([KeyboardButton(text="№11 · Графики функций")])
+    rows.append([KeyboardButton(text="№12 · Формулы")])
     if include_task13:
         rows.append([KeyboardButton(text="№13 · Неравенства")])
     rows.extend([[KeyboardButton(text="№14 · Прогрессии")], [KeyboardButton(text="↩ В меню")]])
@@ -155,6 +159,26 @@ def task14_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMa
             ],
             [InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t14:skip:{problem_id}")],
             [InlineKeyboardButton(text="↩ В меню", callback_data=f"t14:menu:{problem_id}")],
+        ]
+    )
+
+
+def task11_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
+    if completed:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="➡ Следующее", callback_data=f"t11:next:{problem_id}")],
+                [InlineKeyboardButton(text="↩ В меню", callback_data=f"t11:menu:{problem_id}")],
+            ]
+        )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💡 Подсказка", callback_data=f"t11:hint:{problem_id}"),
+                InlineKeyboardButton(text="📘 Разбор", callback_data=f"t11:solution:{problem_id}"),
+            ],
+            [InlineKeyboardButton(text="⏭ Пропустить", callback_data=f"t11:skip:{problem_id}")],
+            [InlineKeyboardButton(text="↩ В меню", callback_data=f"t11:menu:{problem_id}")],
         ]
     )
 

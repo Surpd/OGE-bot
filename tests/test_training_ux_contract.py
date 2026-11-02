@@ -19,6 +19,7 @@ from app.bot.router import (
     choose_task8,
     choose_task9,
     choose_task10,
+    choose_task11,
     choose_task12,
     choose_task13,
     choose_task14,
@@ -33,6 +34,8 @@ from app.bot.router import (
     task9_callback,
     task10_answer,
     task10_callback,
+    task11_answer,
+    task11_callback,
     task12_answer,
     task12_callback,
     task13_answer,
@@ -47,6 +50,8 @@ from app.math.oge8 import R04
 from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
+from app.math.oge11 import FAMILIES as TASK11_FAMILIES
+from app.math.oge11_scheduler import build_task11_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
 from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
@@ -101,6 +106,19 @@ TRAININGS = (
         build_task10_candidate_batch,
         "task10_state",
         "task10_progress",
+    ),
+    TrainingAdapter(
+        11,
+        choose_task11,
+        task11_answer,
+        task11_callback,
+        "advance_task11_problem",
+        "set_task11_condition_message",
+        lambda state, seed: build_task11_candidate_batch(
+            state, seed, enabled_families=TASK11_FAMILIES[:1]
+        ),
+        "task11_state",
+        "task11_progress",
     ),
     TrainingAdapter(
         12,
@@ -179,6 +197,11 @@ async def test_number_menu_matches_registered_training_adapters() -> None:
     assert 7 not in menu_numbers
 
 
+@pytest.fixture(autouse=True)
+def enable_task11_for_contract_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", TASK11_FAMILIES[:1])
+
+
 _message_id = 910_000
 
 
@@ -217,6 +240,8 @@ async def _open(repository: MemoryRepository, training: TrainingAdapter, user_id
 
 def _wrong_answer(training: TrainingAdapter, problem: dict[str, object]) -> str:
     correct = str(problem["correct_answer"])
+    if training.number == 11:
+        return next(code for code in ("123", "132", "213", "231", "312", "321") if code != correct)
     if training.number in {7, 13}:
         return str(int(correct) % 4 + 1)
     return "-999999" if correct == "999999" else "999999"
