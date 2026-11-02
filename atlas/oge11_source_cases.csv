@@ -1,4 +1,4 @@
-task_id,source_url,exam_number,source_kind,family_ids,publication_claim,verification_status,independent_image_audit,independent_answer_audit,observed_published_answer,notes,last_checked_at
+﻿task_id,source_url,exam_number,source_kind,family_ids,publication_claim,verification_status,independent_image_audit,independent_answer_audit,observed_published_answer,notes,last_checked_at
 339085,https://math-oge.sdamgia.ru/problem?id=339085,11,catalog,OGE11-F01;OGE11-F09,bank_fipi_attributed,independent_image_and_answer_audit,yes,yes,123,Original graph SVGs visually inspected; independent mapping matches 123.,2026-11-02
 340583,https://math-oge.sdamgia.ru/problem?id=340583,11,catalog,OGE11-F02,demonstrations_2015_2024,independent_image_and_answer_audit,yes,yes,132,Original graph SVGs visually inspected; independent mapping matches 132.,2026-11-02
 340835,https://math-oge.sdamgia.ru/problem?id=340835,11,catalog,OGE11-F07,catalog,independent_image_and_answer_audit,yes,yes,132,Original graph images visually inspected; independent mapping matches 132.,2026-11-02
