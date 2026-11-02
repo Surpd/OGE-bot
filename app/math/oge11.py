@@ -591,7 +591,7 @@ def _build_solution(
     answer_kind: str,
 ) -> tuple[str, ...]:
     steps: list[str] = []
-    for index, (letter, graph_index) in enumerate(zip(_LETTERS, letters, strict=True)):
+    for letter, graph_index in zip(_LETTERS, letters, strict=True):
         graph = graphs[graph_index]
         if family == "OGE11-F03":
             k, b = graph.coefficients
