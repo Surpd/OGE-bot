@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-02 — OGE Bot 1.0: архитектура и интерфейс (PR, без релиза)
+- Единый реестр №6–14, inline-навигация и одноразовая привязка меню в PostgreSQL; неподготовленные режимы скрыты.
+- Общий числовой engine №8/10/12/14, выбор подтверждённого типа с сохранением предпочтения, совместимые адаптеры исторических/графических тренировок.
+- Общий безопасный транспорт HTML и типизированные математические фрагменты; ученические технические дисклеймеры убраны, metadata и snapshots сохранены.
+- Страницы общей статистики, номеров, типов, истории и ошибок различают попытки и помощь; неизвестные исторические данные не превращаются в фиктивную точность.
+- Добавлены регрессии навигации, представления, сохранения выбора, PostgreSQL конкуренции и миграционной совместимости. Production не изменён.
+
+
 ## 2026-11-02 — OGE task 11 source-structure correction (PR #15 follow-up)
 - Synced PR #15 with `main` after PR #14 (`0c15c0b`); preserved the existing PR branch and merged the updated base without rewriting history.
 - Corrected F04 to coefficient sign rows А/Б/В → numbered graphs 1/2/3; corrected F07 to graph letters А/Б/В → numbered formula options.
