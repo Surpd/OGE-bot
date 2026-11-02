@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — OGE task 11 implementation candidate (branch, PR pending)
+- Added exact Fraction graph models for F01–F08, deterministic matching, a PNG renderer, pixel landmark checks, immutable image-hash snapshots, and bounded fail-closed generation. Families F09/F10 remain research-only; F11 remains blocked.
+- Added isolated task11 Telegram and PostgreSQL session handling, shared UX adapter coverage, migration `0011_task11_sessions.sql`, progress and history reporting. Runtime family flags stay off because source graph SVGs could not be independently inspected.
+- Rechecked source text for the listed task IDs. Found a condition/solution conflict in №406334 and an incorrect explanation of `c` in №348381; source image audit remains incomplete for catalog examples. Coverage and quality reports record these limits.
+- Local quality generation passed with 300 unique variants and zero oracle failures per F01–F08; bounded rejection was 0–66 constructions per 300 accepted tasks. Local pytest: 555 passed, 57 skipped; Ruff and mypy pass. PostgreSQL integration tests were skipped because no local database URL is configured; PG17 CI is pending.
+
 ## 2026-11-02 — OGE task 13 final acceptance (PR, без merge/deploy)
 - Включены девять проверенных пилотных семейств L01/L02/Q01–Q04/S01–S03; Q05/Q06/S04 остаются выключенными с задокументированными причинами.
 - №13 добавлен в общий UX-harness для меню, ответов, двух попыток, skip/next, разбора, устаревших Reply и независимости сессий; задача появляется в меню при непустом списке разрешённых семейств.

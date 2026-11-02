@@ -1,0 +1,1471 @@
+{
+  "schema_version": "2.0",
+  "exam_number": 11,
+  "as_of": "2026-11-02",
+  "notes": "enabled_candidate = candidate for implementation, never automatically enabled for students; 27 catalog prototypes vs 1 official project demo + 1 quarantined supplemental case",
+  "families": [
+    {
+      "family_id": "OGE11-F01",
+      "exam_number": 11,
+      "name": "Разнородные функции: формулы АБВ → графики 123",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "339085",
+          "url": "https://math-oge.sdamgia.ru/problem?id=339085",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349172",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349172",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349265",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349265",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349308",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349308",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "424907",
+          "url": "https://math-oge.sdamgia.ru/problem?id=424907",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Три разнотипные функции: буквенные формулы → номер одного из трёх графиков",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "linear_k": "{-3,-2,-1,-1/2,1/2,1,2,3}",
+          "linear_b": "целое -3..3",
+          "quadratic_a": "{-2,-1,-1/2,1/2,1,2}",
+          "quadratic_b": "целое -4..4",
+          "quadratic_c": "целое -4..4",
+          "inverse_q": "{-9,-6,-4,-2,-1,1,2,4,6,9}"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Выбрать ненулевую прямую kx+b, невырожденную параболу ax²+bx+c и гиперболу q/x. Рациональные коэффициенты и три уникальные функции. Построить графики и независимыми перестановками перемешать буквенные формулы и номерные графики. Вычислить биекцию из объектов, не из индекса создания.",
+      "degenerate_cases": [
+        "a=0",
+        "q=0",
+        "все характерные части кривых вне viewport",
+        "два одинаковых математических объекта"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f01.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Тип функции → отличительное свойство → однозначная биекция.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "путают знак коэффициента гиперболы и параболу; переворачивают порядок АБВ"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic–moderate",
+      "known_exclusions": [
+        "a=0",
+        "q=0",
+        "все характерные части кривых вне viewport",
+        "два одинаковых математических объекта"
+      ],
+      "risks": [
+        "Формулы относятся к трём различным типам функций, выбор единственной биекции.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F02",
+      "exam_number": 11,
+      "name": "Разнородные функции: графики АБВ → формулы 123",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "FIPI-DEMO-2027-11",
+          "url": "https://pro-schools.ru/fipi/oge/demo/2027/ma-9-oge-2027-demo.pdf",
+          "provenance": "exam_attributed_not_independently_verified",
+          "verification_status": "draft_pdf_visual_and_answer_verified_via_mirror",
+          "last_checked_at": "2026-11-02",
+          "official_listing": "https://fipi.ru/oge/demoversii-specifikacii-kodifikatory",
+          "image_independently_verified": true
+        },
+        {
+          "task_id": "340583",
+          "url": "https://math-oge.sdamgia.ru/problem?id=340583",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "406283",
+          "url": "https://math-oge.sdamgia.ru/problem?id=406283",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "406334",
+          "url": "https://math-oge.sdamgia.ru/problem?id=406334",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "461891",
+          "url": "https://math-oge.sdamgia.ru/problem?id=461891",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Три разнотипных графика с буквами → три нумерованные формулы",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "linear_k": "{-3,-2,-1,-1/2,1/2,1,2,3}",
+          "linear_b": "целое -3..3",
+          "quadratic_a": "{-2,-1,-1/2,1/2,1,2}",
+          "quadratic_b": "целое -4..4",
+          "quadratic_c": "целое -4..4",
+          "inverse_q": "{-9,-6,-4,-2,-1,1,2,4,6,9}"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Как F01, но буквы принадлежат графикам, номера — формулам; рендерить 3 отдельные панели А,Б,В и список 1,2,3. Оба порядка независимо случайные.",
+      "degenerate_cases": [
+        "неверная ориентация букв и цифр",
+        "парабола невидима целиком",
+        "гипербола пересекает ось или её ветви соединены"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f02.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Определить тип каждого графика, сопоставить с формулой и записать три номера по АБВ.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "ответ соответствием формула→график вместо график→формула"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic–moderate",
+      "known_exclusions": [
+        "неверная ориентация букв и цифр",
+        "парабола невидима целиком",
+        "гипербола пересекает ось или её ветви соединены"
+      ],
+      "risks": [
+        "Порядок обратный F01; правильный код относится к буквам графиков, а не к формульному списку.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 1
+    },
+    {
+      "family_id": "OGE11-F03",
+      "exam_number": 11,
+      "name": "Прямые: признаки k и b",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "341702",
+          "url": "https://math-oge.sdamgia.ru/problem?id=341702",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "448863",
+          "url": "https://math-oge.sdamgia.ru/problem?id=448863",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Три прямые y=kx+b → варианты признаков знаков k и b",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "abs_k": "{1/2,1,2,3}",
+          "abs_b": "{1,2,3,4}",
+          "signs": "(k±, b±), 3 из 4 комбинаций"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Выбирать три разные пары знаков из четырёх возможных (±k, ±b), исключить 0, создать три линейных графика. Перемешать графики и комбинации знаков, требовать однозначную биекцию.",
+      "degenerate_cases": [
+        "k=0",
+        "b=0",
+        "пересечение с Oy вне изображения",
+        "три одинаковых пары знаков"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f03.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Прямая растёт/убывает → знак k; пересечение Oy выше/ниже 0 → знак b.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "определяет b по пересечению с Ox или знак k по y(0)"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic",
+      "known_exclusions": [
+        "k=0",
+        "b=0",
+        "пересечение с Oy вне изображения",
+        "три одинаковых пары знаков"
+      ],
+      "risks": [
+        "Определить знаки коэффициентов из наклона и пересечения с Oy; нулевые случаи только по источнику.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F04",
+      "exam_number": 11,
+      "name": "Параболы: знаки a и c",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "348381",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348381",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349246",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349246",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349771",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349771",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349876",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349876",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Три параболы y=ax²+bx+c → варианты признаков знаков a и c",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "abs_a": "{1/2,1,2}",
+          "b": "целое -3..3",
+          "abs_c": "{1,2,3,4}",
+          "signs": "3 из 4 пар (±a, ±c)"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Выбрать три различные пары знаков из четырёх; a и c ненулевые, b ограничить и проверять вершину/пересечение с Oy. Правильный код по направлениям ветвей и значению y(0), не по высоте вершины.",
+      "degenerate_cases": [
+        "a=0",
+        "c=0",
+        "x=0 вне графического viewport",
+        "отрезана ось Oy",
+        "незаметная вершина"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f04.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Ветви вверх/вниз → знак a; при x=0 определить ординату → знак c.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "принимают ординату вершины за c"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic–moderate",
+      "known_exclusions": [
+        "a=0",
+        "c=0",
+        "x=0 вне графического viewport",
+        "отрезана ось Oy",
+        "незаметная вершина"
+      ],
+      "risks": [
+        "Определить направление ветвей и y(0)=c, не путать c с ординатой вершины.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F05",
+      "exam_number": 11,
+      "name": "Прямые через начало координат: направление и крутизна",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "349706",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349706",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "350827",
+          "url": "https://math-oge.sdamgia.ru/problem?id=350827",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Три прямые через начало y=kx: знак и относительная крутизна",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "k": "{-3,-2,-1,-1/2,-1/3,1/3,1/2,1,2,3}",
+          "b": "строго 0"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Выбрать 3 различных ненулевых рациональных k, в том числе при проверенной структуре 1–2 положительных и отрицательных. Одинаковый масштаб 3 панелей, проверка контрольной точки x=1 или x=2.",
+      "degenerate_cases": [
+        "k=0",
+        "одинаковые k",
+        "неодинаковая шкала при сравнении наклона",
+        "линия визуально слилась с осью"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f05.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Направление подъёма → знак; значение при x=1/2 → величина наклона.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "путают знак k и абсолютную крутизну"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic",
+      "known_exclusions": [
+        "k=0",
+        "одинаковые k",
+        "неодинаковая шкала при сравнении наклона",
+        "линия визуально слилась с осью"
+      ],
+      "risks": [
+        "Отличать k>0/k<0 и величину |k| при общих единичных масштабах.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F06",
+      "exam_number": 11,
+      "name": "Линейные функции со сдвигом, равные/противоположные наклоны",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "350104",
+          "url": "https://math-oge.sdamgia.ru/problem?id=350104",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "350202",
+          "url": "https://math-oge.sdamgia.ru/problem?id=350202",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "351013",
+          "url": "https://math-oge.sdamgia.ru/problem?id=351013",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "351048",
+          "url": "https://math-oge.sdamgia.ru/problem?id=351048",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "351276",
+          "url": "https://math-oge.sdamgia.ru/problem?id=351276",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Три прямые y=kx+b с разными пересечениями и/или равной крутизной",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "k": "{-3,-2,-1,1,2,3}",
+          "b": "целое -4..4",
+          "allow_equal_k": "да, если b различно и это соответствует источнику"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Выбрать три уникальные пары рациональных (k,b), со схожими наклонами допустимо лишь при разном b, сохранить общий viewport и видимые осевые пересечения. Перемешать графики/формулы.",
+      "degenerate_cases": [
+        "обрезано важное пересечение",
+        "k=0 без семейства F07",
+        "формулы разных пар задают один график",
+        "слишком близкие линии"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f06.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Знак и наклон k → точка (0,b) → полная сверка.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "смотрят только k и игнорируют b"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic–moderate",
+      "known_exclusions": [
+        "обрезано важное пересечение",
+        "k=0 без семейства F07",
+        "формулы разных пар задают один график",
+        "слишком близкие линии"
+      ],
+      "risks": [
+        "Не разрешать неоднозначность из-за произвольного масштаба осей.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F07",
+      "exam_number": 11,
+      "name": "Горизонтальная постоянная функция в сравнении с прямыми",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "340835",
+          "url": "https://math-oge.sdamgia.ru/problem?id=340835",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "340887",
+          "url": "https://math-oge.sdamgia.ru/problem?id=340887",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "355408",
+          "url": "https://math-oge.sdamgia.ru/problem?id=355408",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Горизонтальная постоянная функция y=c в сравнении с двумя непостоянными прямыми",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "constant_c": "целое ±1..±4",
+          "k_other": "{-3,-2,-1,1,2,3}",
+          "b_other": "целое -4..4"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Одна функция y=c (c≠0), две различные y=kx+b c k≠0; графики строятся по единому масштабу, формулы и порядок переставляются.",
+      "degenerate_cases": [
+        "постоянная c=0 без отдельного подтверждения",
+        "две идентичные наклонные прямые",
+        "горизонталь вне видимых границ"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f07.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Найти линию с k=0; для остальных сверить направление и b.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "считает горизонтальную линию осью Ox или путает y=c и x=c"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic",
+      "known_exclusions": [
+        "постоянная c=0 без отдельного подтверждения",
+        "две идентичные наклонные прямые",
+        "горизонталь вне видимых границ"
+      ],
+      "risks": [
+        "Различать y=c (k=0), y=kx и y=kx+b.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F08",
+      "exam_number": 11,
+      "name": "Гиперболы: знак и масштаб k/x",
+      "status": "enabled_candidate",
+      "status_reason": "Структура и формулировка подтверждены на опубликованных страницах, но все неофициальные исходные графики требуют отдельного аудита перед активацией.",
+      "sources": [
+        {
+          "task_id": "341668",
+          "url": "https://math-oge.sdamgia.ru/problem?id=341668",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "351623",
+          "url": "https://math-oge.sdamgia.ru/problem?id=351623",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "351857",
+          "url": "https://math-oge.sdamgia.ru/problem?id=351857",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Три гиперболы y=q/x: знак q и |q| при едином масштабе",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "q": "{-9,-6,-4,-2,-1,-1/2,1/2,1,2,4,6,9}"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Выбирать q_i различного знака/модуля с инвариантным контролем четвертей и значений при x=1 или 2; строить две раздельные ветви каждой на общем viewport; перемешивать подписи/формулы.",
+      "degenerate_cases": [
+        "q=0",
+        "вся ветвь исчезла из viewport",
+        "пересечение асимптот или ветвей при x=0",
+        "одна панель имеет собственную шкалу"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f08.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Знак q → четверти; контрольная точка (1,q) либо (2,q/2) → величина.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "считает гиперболы с разными |q| одинаковыми или путает четверти"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "moderate",
+      "known_exclusions": [
+        "q=0",
+        "вся ветвь исчезла из viewport",
+        "пересечение асимптот или ветвей при x=0",
+        "одна панель имеет собственную шкалу"
+      ],
+      "risks": [
+        "Ветви I/III или II/IV и положение при одном x; исключить x=0.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F09",
+      "exam_number": 11,
+      "name": "Смешанная задача: парабола общего вида, вершина не на Oy",
+      "status": "research_only",
+      "status_reason": "Подструктура F01/F02, пока не отдельный тип; не удваивать семейства.",
+      "sources": [
+        {
+          "task_id": "339085",
+          "url": "https://math-oge.sdamgia.ru/problem?id=339085",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349172",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349172",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349265",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349265",
+          "provenance": "catalog_verified",
+          "verification_status": "text_formula_solution",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        },
+        {
+          "task_id": "349308",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349308",
+          "provenance": "unverified",
+          "verification_status": "catalog_index_only",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "НЕ новое семейство: смешанная триада с параболой b≠0 как подслучай F01/F02",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "subtype_of": "OGE11-F01/OGE11-F02",
+          "b": "ненулевое целое -4..4"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "Повторно использовать F01 или F02 с ограничением b≠0, если конкретный прототип требует вершину вне Oy. Не считать изменения коэффициентов новым видом задания.",
+      "degenerate_cases": [
+        "дублирование отдельного семейства без отличной операции ответа"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f09.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Вершина h=-b/(2a), значение c=f(0), затем смешанная биекция.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "путают вершину и пересечение c"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "moderate",
+      "known_exclusions": [
+        "дублирование отдельного семейства без отличной операции ответа"
+      ],
+      "risks": [
+        "Проверять вершину -b/(2a), пересечение с Oy и знак a, не гарантировать легкие целые корни.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F10",
+      "exam_number": 11,
+      "name": "График квадратного корня (базовый) среди других",
+      "status": "research_only",
+      "status_reason": "Противоречивое решение №369530",
+      "sources": [
+        {
+          "task_id": "369530",
+          "url": "https://math-oge.sdamgia.ru/problem?id=369530",
+          "provenance": "conflicted",
+          "verification_status": "published_formula_solution_conflict",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "sqrt(x) среди графиков/формул; опубликованный разбор не согласован с условием",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "root": "только sqrt(x) без сдвигов"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "НЕ ВКЛЮЧАТЬ до изображения + независимого ответа. Если подтверждено: взять sqrt(x) только с x≥0 и минимум два других графика, без неподтвержденных сдвигов.",
+      "degenerate_cases": [
+        "x<0",
+        "sqrt(x-h)+v без источников",
+        "использование ошибочного разбора №369530 как истинного"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f10.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Точка старта (0,0), домен x≥0 и монотонность, затем сопоставление.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "продолжает график в x<0"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "basic–moderate",
+      "known_exclusions": [
+        "x<0",
+        "sqrt(x-h)+v без источников",
+        "использование ошибочного разбора №369530 как истинного"
+      ],
+      "risks": [
+        "Задание существует в каталоге, но решение карточки противоречиво; до проверки картинки и формул отключить.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    },
+    {
+      "family_id": "OGE11-F11",
+      "exam_number": 11,
+      "name": "Графики вида sqrt(x-h)+v, k/(x-h)+v",
+      "status": "blocked",
+      "status_reason": "Нет подтверждённого образца",
+      "sources": [
+        {
+          "task_id": "catalog-negative-scan-2026-11-02",
+          "url": "https://math-oge.sdamgia.ru/test?theme=8&ttest=true",
+          "provenance": "unverified",
+          "verification_status": "no_confirmed_example_found",
+          "last_checked_at": "2026-11-02",
+          "image_independently_verified": false
+        }
+      ],
+      "mathematical_structure": "Не подтвержденные для позиции №11 сдвиги корня/гиперболы",
+      "question_intent": "Сопоставление трёх буквенных объектов с пронумерованными 1,2,3",
+      "wording_variations": [
+        "Установите соответствие между функциями и их графиками",
+        "Установите соответствие между графиками функций и формулами, которые их задают",
+        "Сопоставьте графики и знаки коэффициентов"
+      ],
+      "parameter_model": {
+        "generation_proposal": {
+          "scope": "sqrt(x-h)+v, q/(x-h)+v"
+        },
+        "bounds_are_exam_frequency_evidence": false,
+        "exact_arithmetic": "Fraction",
+        "seed": "family_id + seed + generator_version"
+      },
+      "generation_algorithm": "НЕ РЕАЛИЗОВЫВАТЬ. Появление нового ID с оригиналом и проверенным рисунком — условие возобновления исследования.",
+      "degenerate_cases": [
+        "любая активная выдача до аттестации"
+      ],
+      "answer_policy": {
+        "policy_id": "oge11.f11.three_digit_bijection",
+        "version": "1",
+        "format": "3-character string, exactly a permutation of 123",
+        "allowed": [
+          "123",
+          "132",
+          "213",
+          "231",
+          "312",
+          "321"
+        ],
+        "do_not_parse_as_integer": true,
+        "letter_order": "АБВ"
+      },
+      "rendering": {
+        "mode": "3 graph panes / 3 formulas or signs, with immutable visible numbering",
+        "mathematical_semantics": "exact Fraction coefficients + signed domain + mapping",
+        "media": "PNG, rendered from saved semantic model; no static legacy PNG",
+        "language": "ru"
+      },
+      "graphics": {
+        "model": "exact function models with affine viewport and unit scale",
+        "requirements": [
+          "3 separate labeled panels",
+          "axis marks and visible distinguishing landmarks",
+          "2 disconnected inverse branches",
+          "no crop/overlap",
+          "PNG hash linked to snapshot"
+        ]
+      },
+      "oracle": {
+        "independent_math": "parse visible formulas or signs; reconstruct graph invariants using Fraction and control points; enumerate all 6 bijections",
+        "independent_graph": "pixel/landmark audit plus semantic plot model and byte hash; fail closed on impossible image proof",
+        "mutations": [
+          "alter coefficients while keeping image",
+          "swap graph labels but not answer",
+          "change graph scale",
+          "change PNG hash",
+          "corrupt solution step"
+        ]
+      },
+      "hints_and_solution": {
+        "hint_1": "Классифицировать кривые или знак коэффициента без раскрытия кода",
+        "hint_2": "Показать ключевую контрольную точку/ветви/пересечение",
+        "full_solution": "Заблокировать до новых доказательных источников.",
+        "no_answer_in_first_wrong_attempt": true
+      },
+      "student_errors": [
+        "область определения и асимптоты сдвинуты неверно"
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "see-ORACLE_TEST_VECTORS.json",
+          "type": "positive and mutations"
+        }
+      ],
+      "diversity_expectations": {
+        "min_unique_typical": 200,
+        "max_attempts": 1200,
+        "finite_exception_requires_evidence": true,
+        "all_six_permutations_required": true
+      },
+      "difficulty": "unknown",
+      "known_exclusions": [
+        "любая активная выдача до аттестации"
+      ],
+      "risks": [
+        "Реальных современных источников этих сдвигов в рамках №11 не найдено. Не включать без нового подтверждения.",
+        "Источники по большинству ID — портал, а не оригинальный КИМ; картинка ещё не индивидуально проверена."
+      ],
+      "release_default_enabled": false,
+      "source_images_checked_count": 0
+    }
+  ]
+}

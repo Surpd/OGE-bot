@@ -3,7 +3,7 @@ WITH duplicate_users AS (
     SELECT mode, user_id, count(*) AS active_sessions
     FROM sessions
     WHERE finished_at IS NULL
-      AND mode IN ('task14', 'task13', 'task8')
+      AND mode IN ('task14', 'task13', 'task8', 'task11')
     GROUP BY mode, user_id
     HAVING count(*) > 1
 )
@@ -18,4 +18,5 @@ ORDER BY CASE mode
     WHEN 'task14' THEN 1
     WHEN 'task13' THEN 2
     WHEN 'task8' THEN 3
+    WHEN 'task11' THEN 4
 END;

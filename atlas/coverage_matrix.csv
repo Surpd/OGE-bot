@@ -38,8 +38,16 @@
 314811,16,https://math-oge.sdamgia.ru/test?theme=12&ttest=true,центральный угол задан напрямую,OGE16-F001,review_needed,"Наблюдение, не полное доказательство покрытия"
 369728,7,https://math-oge.sdamgia.ru/problem?id=369728,дробь в отрезке,OGE07-C04,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
 461837,7,https://math-oge.sdamgia.ru/problem?id=461837,дробь между соседними целыми,OGE07-C06,implemented_disabled,"Параметрический аналог; 250 seed проходят oracle, оригинал отдельно не перепроверен"
-384400,7,https://math-oge.sdamgia.ru/problem?id=384400,корень соответствует точке на прямой,OGE07-N01,implemented_disabled,"PNG аналог; исходная картинка и противоречивая атрибуция не проверены"
-311380,7,https://math-oge.sdamgia.ru/problem?id=311380,дробь соответствует точке на прямой,OGE07-N02,implemented_disabled,"PNG аналог; исходная картинка не проверена"
-317102,7,https://math-oge.sdamgia.ru/problem?id=317102,десятичное соответствует точке на прямой,OGE07-N03,implemented_disabled,"PNG аналог; указанная порталом атрибуция 2020 недостоверна"
-317005,7,https://math-oge.sdamgia.ru/problem?id=317005,корень по точке A,OGE07-N04,implemented_disabled,"PNG аналог; исходная картинка не проверена"
-311392,7,https://math-oge.sdamgia.ru/problem?id=311392,дробь по точке A,OGE07-N05,implemented_disabled,"PNG аналог; исходная картинка не проверена"
+384400,7,https://math-oge.sdamgia.ru/problem?id=384400,корень соответствует точке на прямой,OGE07-N01,implemented_disabled,PNG аналог; исходная картинка и противоречивая атрибуция не проверены
+311380,7,https://math-oge.sdamgia.ru/problem?id=311380,дробь соответствует точке на прямой,OGE07-N02,implemented_disabled,PNG аналог; исходная картинка не проверена
+317102,7,https://math-oge.sdamgia.ru/problem?id=317102,десятичное соответствует точке на прямой,OGE07-N03,implemented_disabled,PNG аналог; указанная порталом атрибуция 2020 недостоверна
+317005,7,https://math-oge.sdamgia.ru/problem?id=317005,корень по точке A,OGE07-N04,implemented_disabled,PNG аналог; исходная картинка не проверена
+311392,7,https://math-oge.sdamgia.ru/problem?id=311392,дробь по точке A,OGE07-N05,implemented_disabled,PNG аналог; исходная картинка не проверена
+339085,11,https://math-oge.sdamgia.ru/problem?id=339085,Формулы → графики; смешанная триада,OGE11-F01,text_formula_solution,Текстовый прототип перепроверен; графика SVG не проверена; runtime off
+FIPI-DEMO-2027-11,11,https://pro-schools.ru/fipi/oge/demo/2027/ma-9-oge-2027-demo.pdf,Графики → формулы; проект демоверсии 2027,OGE11-F02,draft_official_demo_mirror,"PDF — проект на зеркале; код из таблицы 132; runtime off, каталогные SVG не проверены"
+341702,11,https://math-oge.sdamgia.ru/problem?id=341702,Знаки k и b прямой,OGE11-F03,text_formula_solution,Тип и текст условия перепроверены; графика SVG не проверена; runtime off
+348381,11,https://math-oge.sdamgia.ru/problem?id=348381,Знаки a и c параболы,OGE11-F04,text_formula_solution,Объяснение источника ошибочно называет c ординатой вершины; рисунок не проверен; runtime off
+349706,11,https://math-oge.sdamgia.ru/problem?id=349706,Прямые через начало координат; наклон,OGE11-F05,text_formula_solution,Текстовый прототип перепроверен; графика SVG не проверена; runtime off
+350104,11,https://math-oge.sdamgia.ru/problem?id=350104,Общие прямые y=kx+b,OGE11-F06,text_formula_solution,Текст и опубликованное соответствие перепроверены; графика SVG не проверена; runtime off
+340835,11,https://math-oge.sdamgia.ru/problem?id=340835,Постоянная горизонтальная функция и прямые,OGE11-F07,text_formula_solution,Текстовый прототип перепроверен; графика SVG не проверена; runtime off
+341668,11,https://math-oge.sdamgia.ru/problem?id=341668,Гиперболы y=q/x; знак и модуль q,OGE11-F08,text_formula_solution,Текстовый прототип перепроверен; графика SVG не проверена; runtime off
