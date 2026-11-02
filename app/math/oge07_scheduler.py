@@ -10,7 +10,11 @@ from app.math.numbers import generate
 from app.math.oge07_graph import GRAPH_SOURCES, generate_graph_problem
 
 ALL_FAMILIES = (*TEXT_FAMILIES, *GRAPH_SOURCES)
-ENABLED_FAMILIES: tuple[str, ...] = tuple(TEXT_ENABLED)
+ENABLED_FAMILIES: tuple[str, ...] = (
+    *TEXT_ENABLED,
+    "OGE07-N01",
+    "OGE07-N04",
+)
 MAX_CANDIDATES = 54
 SEEDS_PER_FAMILY = 6
 
@@ -19,9 +23,8 @@ def build_task7_candidate_batch(
     state: dict[str, object], seed: int, *, family_ids: tuple[str, ...] | None = None
 ) -> list[dict[str, object]]:
     """Build candidates in stable shuffled order; no fallback to held families."""
-    selected = tuple(
-        f for f in (family_ids if family_ids is not None else ENABLED_FAMILIES) if f in ALL_FAMILIES
-    )
+    requested = family_ids if family_ids is not None else ENABLED_FAMILIES
+    selected = tuple(f for f in requested if f in ENABLED_FAMILIES and f in ALL_FAMILIES)
     if not selected:
         return []
     recent_raw = state.get("recent_fingerprints", [])

@@ -30,6 +30,7 @@ from app.math.inequalities import POLICY as TASK13_ANSWER_POLICY
 from app.math.inequalities import render_option_sheet_snapshot_png
 from app.math.inequalities import validate_snapshot as validate_task13_snapshot
 from app.math.numbers import POLICY as TASK7_ANSWER_POLICY
+from app.math.oge07_scheduler import ENABLED_FAMILIES as TASK7_ENABLED_FAMILIES
 from app.math.oge07_scheduler import build_task7_candidate_batch
 from app.math.oge07_validation import validate_task7_snapshot
 from app.math.oge8 import POLICY as TASK8_ANSWER_POLICY
@@ -319,6 +320,7 @@ async def choose_number(message: Message, repository: Repository) -> None:
     await message.answer(
         "Выберите номер задания:",
         reply_markup=number_menu(
+            include_task7=bool(TASK7_ENABLED_FAMILIES),
             include_task13=bool(TASK13_ENABLED_FAMILIES),
             include_task11=bool(TASK11_ENABLED_FAMILIES),
         ),
@@ -1544,6 +1546,13 @@ async def _send_task7_problem(
             reply_markup=main_menu(),
         )
         return False
+    if isinstance(current, dict) and current.get("family_id") not in TASK7_ENABLED_FAMILIES:
+        await repository.save_user_state(user_id, "main_menu")
+        await message.answer(
+            "Сохранённое семейство №7 сейчас выключено. Задание не отправлено и не заменено новым.",
+            reply_markup=main_menu(),
+        )
+        return False
     if action == "resume":
         if not isinstance(current, dict) or state_value.get("status") != "active":
             await message.answer("Нет незавершённой тренировки №7.", reply_markup=main_menu())
@@ -1581,7 +1590,10 @@ async def _send_task7_problem(
                 return False
             if expected_screen is None:
                 await repository.save_user_state(user_id, "task7")
-    if not validate_task7_snapshot(problem):
+    if (
+        problem.get("family_id") not in TASK7_ENABLED_FAMILIES
+        or not validate_task7_snapshot(problem)
+    ):
         await repository.save_user_state(user_id, "main_menu")
         await message.answer(
             "Сохранённое задание №7 повреждено или использует неподдерживаемую версию. "
@@ -1622,6 +1634,9 @@ async def _send_task7_problem(
 
 
 async def choose_task7(message: Message, repository: Repository) -> None:
+    if not TASK7_ENABLED_FAMILIES:
+        await message.answer("Семейства задания №7 проходят приёмку и пока выключены.")
+        return
     await _send_task7_problem(message, repository, action="start")
 
 
@@ -1657,6 +1672,10 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
     problem = state.get("problem") if state else None
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
         await callback.answer("Это задание уже сменилось.")
+        return
+    if problem.get("family_id") not in TASK7_ENABLED_FAMILIES:
+        await repository.save_user_state(user_id, "main_menu")
+        await callback.answer("Это семейство задания №7 выключено.", show_alert=True)
         return
     if not validate_task7_snapshot(problem):
         await repository.save_user_state(user_id, "main_menu")
@@ -1721,6 +1740,10 @@ async def task7_answer(message: Message, repository: Repository) -> None:
         or session_state.get("status") != "active"
     ):
         await message.answer("Сначала откройте активную тренировку №7.")
+        return
+    if problem.get("family_id") not in TASK7_ENABLED_FAMILIES:
+        await repository.save_user_state(user_id, "main_menu")
+        await message.answer("Это семейство задания №7 выключено; ответ не обработан.")
         return
     if not validate_task7_snapshot(problem):
         await repository.save_user_state(user_id, "main_menu")

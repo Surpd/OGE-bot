@@ -35,14 +35,16 @@ def main_menu(*, has_session: bool = False) -> ReplyKeyboardMarkup:
 
 
 def number_menu(
-    *, include_task13: bool = False, include_task11: bool = False
+    *, include_task7: bool = False, include_task13: bool = False, include_task11: bool = False
 ) -> ReplyKeyboardMarkup:
-    rows = [
-        [KeyboardButton(text="№6 · Вычисления")],
+    rows = [[KeyboardButton(text="№6 · Вычисления")]]
+    if include_task7:
+        rows.append([KeyboardButton(text="№7 · Числа и координатная прямая")])
+    rows.extend([
         [KeyboardButton(text="№8 · Степени и корни")],
         [KeyboardButton(text="№9 · Уравнения")],
         [KeyboardButton(text="№10 · Вероятность")],
-    ]
+    ])
     if include_task11:
         rows.append([KeyboardButton(text="№11 · Графики функций")])
     rows.append([KeyboardButton(text="№12 · Формулы")])

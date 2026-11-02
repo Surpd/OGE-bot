@@ -10,6 +10,9 @@ from fractions import Fraction
 import pytest
 
 from app.math.numbers import (
+    ENABLED_FAMILIES as TEXT_ENABLED_FAMILIES,
+)
+from app.math.numbers import (
     FAMILIES,
     POLICY,
     _decimal,
@@ -58,12 +61,12 @@ def test_generation_is_deterministic_and_has_four_options(family: str) -> None:
 
 @pytest.mark.parametrize("family", FAMILIES)
 def test_generation_has_diverse_fingerprints(family: str) -> None:
-    assert len({generate(family, seed).fingerprint for seed in range(250)}) >= 200
+    assert len({generate(family, seed).fingerprint for seed in range(300)}) >= 200
 
 
 @pytest.mark.parametrize("family", FAMILIES)
 def test_independent_visible_condition_oracle(family: str) -> None:
-    for seed in range(250):
+    for seed in range(300):
         problem = generate(family, seed)
         assert audit_condition(
             family, problem.condition, problem.options, problem.correct_option_index
@@ -90,8 +93,8 @@ def test_independent_visible_condition_oracle(family: str) -> None:
 
 
 @pytest.mark.parametrize("family", FAMILIES)
-def test_text_explanations_match_visible_math_across_250_seeds(family: str) -> None:
-    for seed in range(250):
+def test_text_explanations_match_visible_math_across_300_seeds(family: str) -> None:
+    for seed in range(300):
         problem = generate(family, seed)
         assert audit_condition(
             family, problem.condition, problem.options, problem.correct_option_index
@@ -187,9 +190,18 @@ def test_historical_families_are_not_generator_targets() -> None:
         generate("OGE07-H03", 1)
 
 
-def test_all_families_are_closed_until_acceptance_and_scheduler_fails_closed() -> None:
-    assert ENABLED_FAMILIES == ()
-    assert build_task7_candidate_batch({}, 1) == []
+def test_only_audited_families_are_enabled_and_scheduler_fails_closed() -> None:
+    expected = {
+        "OGE07-C01", "OGE07-C02", "OGE07-C03", "OGE07-C04", "OGE07-C06",
+        "OGE07-N01", "OGE07-N04",
+    }
+    assert set(ENABLED_FAMILIES) == expected
+    assert set(TEXT_ENABLED_FAMILIES) == expected.intersection(FAMILIES)
+    assert build_task7_candidate_batch({}, 1, family_ids=()) == []
+    assert build_task7_candidate_batch({}, 1, family_ids=("OGE07-C05", "OGE07-N03")) == []
+    selected = build_task7_candidate_batch({}, 1, family_ids=("OGE07-C02", "OGE07-N04"))
+    assert selected
+    assert {item["family_id"] for item in selected} == {"OGE07-C02", "OGE07-N04"}
 
 
 def test_graph_snapshot_restores_identical_png_and_answer() -> None:
@@ -258,12 +270,12 @@ def test_graph_audit_checks_exact_visible_point_condition(family: str) -> None:
 
 
 @pytest.mark.parametrize("family", tuple(GRAPH_SOURCES))
-def test_graph_problem_semantics_png_and_diversity_across_250_seeds(family: str) -> None:
+def test_graph_problem_semantics_png_and_diversity_across_300_seeds(family: str) -> None:
     first = generate_graph_problem(family, 104)
     assert first == generate_graph_problem(family, 104)
     assert set(first.reference_ids) == set(GRAPH_SOURCES[family])
     fingerprints: set[str] = set()
-    for seed in range(250):
+    for seed in range(300):
         problem = generate_graph_problem(family, seed)
         assert audit_graph_problem(problem)
         assert audit_graph_explanation(problem), (family, seed, problem.hints, problem.solution)
