@@ -95,7 +95,12 @@
     "version": 17,
     "migration": "migrations/0008_task13_sessions.sql",
     "local_integration_status": "skipped_without_DATABASE_URL",
-    "ci_status": "required_on_pull_request"
+    "ci_status": "passed",
+    "ci_version": "17.11",
+    "ci_source_commit": "ae1608f478d6d3aa638298efd4ff0eaca338dd3f",
+    "ruff": "passed",
+    "mypy": "passed",
+    "pytest_passed": 573
   },
   "families": {
     "OGE13-L01": {

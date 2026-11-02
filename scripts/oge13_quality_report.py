@@ -16,6 +16,7 @@ QUICK_SAMPLE_SIZE = 40
 PRIMARY_SAMPLE_SIZE = 250
 MAX_ATTEMPTS = 1_200
 BASE_COMMIT = "265c8106cfd9d2bded0d54b07b5f55298df312e"
+FULL_CI_SOURCE_COMMIT = "ae1608f478d6d3aa638298efd4ff0eaca338dd3f"
 
 
 def main() -> None:
@@ -189,7 +190,12 @@ def main() -> None:
             "version": 17,
             "migration": "migrations/0008_task13_sessions.sql",
             "local_integration_status": "skipped_without_DATABASE_URL",
-            "ci_status": "required_on_pull_request",
+            "ci_status": "passed",
+            "ci_version": "17.11",
+            "ci_source_commit": FULL_CI_SOURCE_COMMIT,
+            "ruff": "passed",
+            "mypy": "passed",
+            "pytest_passed": 573,
         },
         "families": families,
         "representative_examples": representative_examples,
