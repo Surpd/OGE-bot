@@ -77,6 +77,7 @@ async def test_enabled_task13_is_shown_in_number_menu() -> None:
 
 @pytest.mark.asyncio
 async def test_disabled_task13_families_are_not_issued_to_students() -> None:
+    oge13_scheduler.ENABLED_FAMILIES = ()
     repository = MemoryRepository()
     message = _message(913_000)
 
