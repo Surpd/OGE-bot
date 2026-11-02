@@ -224,8 +224,8 @@ def test_snapshot_restores_exact_png_and_rejects_bad_or_unsupported_images(monke
         from_snapshot(snapshot)
 
 
-def test_task11_remains_disabled_for_learners() -> None:
-    assert ENABLED_FAMILIES == ()
+def test_audited_task11_families_are_enabled_for_learners() -> None:
+    assert ENABLED_FAMILIES == FAMILIES
 
 
 def test_family_specific_sign_and_intercept_rules() -> None:

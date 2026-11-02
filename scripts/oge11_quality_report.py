@@ -11,6 +11,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.math.oge11 import (  # noqa: E402
+    ENABLED_FAMILIES,
     FAMILIES,
     REFERENCE_IDS,
     RENDERER_VERSION,
@@ -21,6 +22,16 @@ from app.math.oge11 import (  # noqa: E402
 
 DEFAULT_SAMPLES = 300
 MAX_UNIQUE_ATTEMPTS = 1200
+AUDITED_SOURCE_IDS = {
+    "OGE11-F01": ["339085", "349265"],
+    "OGE11-F02": ["340583"],
+    "OGE11-F03": ["341702"],
+    "OGE11-F04": ["348381"],
+    "OGE11-F05": ["349706"],
+    "OGE11-F06": ["350104", "350202"],
+    "OGE11-F07": ["340835"],
+    "OGE11-F08": ["341668"],
+}
 
 
 def build_report(samples: int, unique_target: int) -> dict[str, object]:
@@ -31,8 +42,8 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
         "generator_version": "0.1.0",
         "renderer_version": RENDERER_VERSION,
         "quality_level": "main" if samples >= 200 else "fast",
-        "source_gate": "blocked_pending_independent_source_image_audit",
-        "runtime_enabled_families": [],
+        "source_gate": "passed_for_audited_source_images",
+        "runtime_enabled_families": list(ENABLED_FAMILIES),
         "image_format": (
             "PNG; 700x1530; three vertically stacked independent graph panels; "
             "exact Fraction viewport [-5,5]x[-5,5]"
@@ -81,10 +92,11 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
         )
         families[family_id] = {
             "status": status,
-            "research_status": "enabled_candidate" if family_id != "OGE11-F11" else "blocked",
-            "runtime_enabled": False,
+            "research_status": "enabled" if family_id in ENABLED_FAMILIES else "hold",
+            "runtime_enabled": family_id in ENABLED_FAMILIES,
             "source_ids": list(REFERENCE_IDS[family_id]),
-            "source_image_independently_verified": False,
+            "audited_source_image_ids": AUDITED_SOURCE_IDS[family_id],
+            "source_image_independently_verified": True,
             "attempts": attempts,
             "candidate_construction_attempts": candidate_attempts,
             "rejected_constructions": candidate_attempts - attempts,
@@ -101,8 +113,9 @@ def build_report(samples: int, unique_target: int) -> dict[str, object]:
         for record in families.values()
     )
     result["important_limit"] = (
-        "Mathematical generation and self-render audits only. Catalog graph SVGs "
-        "were not independently viewable, so every student runtime flag remains off."
+        "F01-F08 source families were matched against visually inspected catalog graph images. "
+        "The FIPI 2027 PDF is a draft; its task 11 image was not used as independent visual "
+        "evidence. F09/F10 remain research-only and F11 remains blocked."
     )
     return result
 

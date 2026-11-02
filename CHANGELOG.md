@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-02 — OGE task 11 source audit and family enablement
+- Visually reviewed original graph images for task IDs 339085, 349265, 340583, 341702, 348381, 349706, 350104, 350202, 340835 and 341668; independently recomputed codes and documented generator correspondence in `specs/OGE11_RELEASE_AUDIT.md`.
+- Enabled only audited implementation families F01–F08. F09/F10 remain research-only and F11 remains blocked. Added menu visibility and scheduler allow-list regressions for №11.
+- Recorded the incorrect `c` explanation on source 348381 while confirming code 321 from the visible graph. The FIPI 2027 example is treated as a draft; its PDF image is not counted as visual evidence.
+- 300-seed generator acceptance passed for each family (298–300 unique variants; all six answer codes); local suite: 579 passed, 57 PostgreSQL-dependent tests skipped; Ruff and mypy passed. PostgreSQL 17 CI runs on the pull request.
+- Added eight generated control PNGs and a Telegram-width contact sheet under `artifacts/oge11_release_examples/`.
+
 ## 2026-11-02 — OGE task 11 renderer correction (PR #13, no merge/deploy)
 - Added exact Fraction graph models for F01–F08, deterministic matching, a PNG renderer, pixel landmark checks, immutable image-hash snapshots, and bounded fail-closed generation. Families F09/F10 remain research-only; F11 remains blocked.
 - Added isolated task11 Telegram and PostgreSQL session handling, shared UX adapter coverage, migration `0011_task11_sessions.sql`, progress and history reporting. Runtime family flags stay off because source graph SVGs could not be independently inspected.

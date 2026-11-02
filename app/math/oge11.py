@@ -1,7 +1,7 @@
 """Deterministic OGE task 11 graph and coefficient matching problems.
 
-The public runtime gate deliberately remains closed until the source image audit
-for each family is complete. Generation is available to quality tooling only.
+The runtime gate lists only families that passed the independent source-image
+audit and the generator acceptance checks.
 """
 
 from __future__ import annotations
@@ -23,8 +23,8 @@ GENERATOR_VERSION = "0.1.0"
 RENDERER_VERSION = "0.2.0"
 POLICY_ID = "oge11.three-digit-bijection"
 POLICY_VERSION = "1"
-ENABLED_FAMILIES: tuple[str, ...] = ()
 FAMILIES = tuple(f"OGE11-F{i:02d}" for i in range(1, 9))
+ENABLED_FAMILIES: tuple[str, ...] = FAMILIES
 REFERENCE_IDS = {
     "OGE11-F01": ("339085", "349265"),
     "OGE11-F02": ("FIPI-DEMO-2027-11", "340583"),

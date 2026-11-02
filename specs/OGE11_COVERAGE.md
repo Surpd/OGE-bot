@@ -1,27 +1,29 @@
 # OGE task 11 coverage and release status
 
-As of 2026-11-02, branch base `4cc5631bb5d1f35dc8f957b3ab47a1215784e7b9`.
-The implementation is a development candidate. No task-11 family is enabled for students.
+As of 2026-11-02, branch base `faf25fd23ad141c9ba0a83948e525cec9115cb12`.
+F01–F08 passed independent catalog image review and are enabled in this branch.
+See `specs/OGE11_RELEASE_AUDIT.md` for source-by-source findings.
 
 | Family | Research status | Runtime | Text prototype IDs | Source image audit |
 |---|---|---:|---|---|
-| F01 | enabled_candidate | off | 339085, 349265 | not independently verified |
-| F02 | enabled_candidate | off | FIPI-DEMO-2027-11 (draft), 340583 | source page SVG unavailable to audit; demo is a project mirror |
-| F03 | enabled_candidate | off | 341702 | not independently verified |
-| F04 | enabled_candidate | off | 348381 | not independently verified; published solution confuses c with vertex ordinate |
-| F05 | enabled_candidate | off | 349706 | not independently verified |
-| F06 | enabled_candidate | off | 350104, 350202 | not independently verified |
-| F07 | enabled_candidate | off | 340835 | not independently verified |
-| F08 | enabled_candidate | off | 341668 | not independently verified |
+| F01 | enabled | on | 339085, 349265 | all 6 original graphs reviewed; codes 123, 132 |
+| F02 | enabled | on | 340583; FIPI-DEMO-2027-11 (draft) | 340583's 3 SVGs reviewed; code 132; draft image is supplementary, not visual evidence |
+| F03 | enabled | on | 341702 | all 3 original graphs reviewed; code 132; `b=y(0)` |
+| F04 | enabled | on | 348381 | all 3 original graphs reviewed; code 321; published explanation misstates `c` |
+| F05 | enabled | on | 349706 | all 3 original graphs reviewed; code 132 |
+| F06 | enabled | on | 350104, 350202 | all 6 original graphs reviewed; codes 213, 132 |
+| F07 | enabled | on | 340835 | all 3 original graphs reviewed; code 132 |
+| F08 | enabled | on | 341668 | all 3 original graphs reviewed; code 132 |
 | F09 | research_only | off | subtype of F01/F02 | not a distinct generator |
 | F10 | research_only | off | 369530 | condition/solution conflict |
 | F11 | blocked | off | no confirmed example | shifted root/hyperbola forms unsupported |
 
-The visible text and mathematical type were re-read for representative catalog
-examples. The portal's embedded SVG images were not returned by the available
-read-only viewer, so no catalog graph image or published graph code is marked
-independently verified. The FIPI-2027 example is a draft mirrored PDF, not the
-final 2027 exam. `atlas/oge11_source_cases.csv` carries the source-level matrix.
+The listed catalog images were loaded from their original `get_file` resources
+and visually reviewed in the browser. Codes were recomputed from visible graphs
+and formulas, not inferred from published solutions. The FIPI-2027 example is a
+draft mirrored PDF, not the final exam; its published code 132 is supplementary
+metadata. `atlas/oge11_source_cases.csv` and `atlas/oge11_release_audit.json`
+carry source-level records and implementation-family decisions.
 
 ## Implemented mathematical and image scope
 
@@ -39,13 +41,11 @@ final 2027 exam. `atlas/oge11_source_cases.csv` carries the source-level matrix.
 - Panel identifiers follow each condition's two sides: F01 and F05–F08 show
   graph panels `1, 2, 3` while formulas are `А, Б, В`; F02–F04 show graph
   panels `А, Б, В` while formula/sign options are `1, 2, 3`. This convention
-  was reconciled against the reviewed source wording; catalog graph images are
-  still not independently verified.
+  was checked against reviewed source wording and graph images.
 - Answer policy `oge11.three-digit-bijection@1` accepts exactly one ASCII
   permutation of `123`; answers remain strings.
 
 Quality numbers are in `reports/oge11-quality.json`. They cover generated
-mathematical analogues and the renderer's own pixel landmarks, not original
-catalog image authenticity or full exam-bank coverage. F09/F10/F11 are not
-generated for students. Publication needs a separate image/source audit and
-runtime approval.
+mathematical analogues, independent mathematical and pixel oracles, and the
+renderer. They do not establish full exam-bank coverage. F09/F10 remain
+research-only and F11 remains blocked.

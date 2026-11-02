@@ -7,6 +7,7 @@ from aiogram.types import User
 
 from app.bot import router
 from app.bot.router import choose_number, choose_task11
+from app.math.oge11 import FAMILIES, from_snapshot, verify
 from app.math.oge11_scheduler import build_task11_candidate_batch
 from app.persistence.repository import MemoryRepository
 
@@ -36,6 +37,21 @@ async def test_disabled_task11_is_hidden_from_number_menu(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
+async def test_enabled_task11_is_visible_in_number_menu(monkeypatch) -> None:
+    monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", FAMILIES)
+    message = _message(911_004, "🧮 По номеру")
+
+    await choose_number(message, MemoryRepository())
+
+    labels = [
+        button.text
+        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for button in row
+    ]
+    assert "№11 · Графики функций" in labels
+
+
+@pytest.mark.asyncio
 async def test_disabled_task11_cannot_issue_a_candidate(monkeypatch) -> None:
     monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", ())
     message = _message(911_002, "№11")
@@ -50,3 +66,14 @@ async def test_disabled_task11_cannot_issue_a_candidate(monkeypatch) -> None:
 
 def test_scheduler_emits_nothing_without_explicitly_enabled_family() -> None:
     assert build_task11_candidate_batch({}, 911_003, enabled_families=()) == []
+
+
+def test_scheduler_emits_only_enabled_task11_families() -> None:
+    enabled = ("OGE11-F04", "OGE11-F08")
+    candidates = build_task11_candidate_batch({}, 911_005, enabled_families=enabled)
+
+    assert candidates
+    for snapshot in candidates:
+        problem = from_snapshot(snapshot)
+        assert problem.family_id in enabled
+        assert verify(problem) == (True, "ok")

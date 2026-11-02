@@ -1,0 +1,122 @@
+{
+  "as_of": "2026-11-02",
+  "branch_base": "faf25fd23ad141c9ba0a83948e525cec9115cb12",
+  "task": 11,
+  "source_method": "Original catalog get_file graph images opened and visually reviewed separately from page solutions; codes independently recomputed from formulas and visible graph features.",
+  "fipi_2027_status": "draft; mirrored PDF; text and answer table reviewed; graph image not counted as visually audited evidence",
+  "enabled_families": [
+    "OGE11-F01",
+    "OGE11-F02",
+    "OGE11-F03",
+    "OGE11-F04",
+    "OGE11-F05",
+    "OGE11-F06",
+    "OGE11-F07",
+    "OGE11-F08"
+  ],
+  "families": [
+    {
+      "family_id": "OGE11-F01",
+      "status": "enabled",
+      "visual_source_ids": [
+        "339085",
+        "349265"
+      ],
+      "mathematical_structure": "mixed_linear_quadratic_inverse",
+      "independently_recomputed_codes": [
+        "123",
+        "132"
+      ]
+    },
+    {
+      "family_id": "OGE11-F02",
+      "status": "enabled",
+      "visual_source_ids": [
+        "340583"
+      ],
+      "mathematical_structure": "mixed_quadratic_linear_inverse",
+      "independently_recomputed_codes": [
+        "132"
+      ]
+    },
+    {
+      "family_id": "OGE11-F03",
+      "status": "enabled",
+      "visual_source_ids": [
+        "341702"
+      ],
+      "mathematical_structure": "linear_signs_k_b",
+      "independently_recomputed_codes": [
+        "132"
+      ]
+    },
+    {
+      "family_id": "OGE11-F04",
+      "status": "enabled",
+      "visual_source_ids": [
+        "348381"
+      ],
+      "mathematical_structure": "quadratic_signs_a_c",
+      "independently_recomputed_codes": [
+        "321"
+      ]
+    },
+    {
+      "family_id": "OGE11-F05",
+      "status": "enabled",
+      "visual_source_ids": [
+        "349706"
+      ],
+      "mathematical_structure": "lines_through_origin_slope",
+      "independently_recomputed_codes": [
+        "132"
+      ]
+    },
+    {
+      "family_id": "OGE11-F06",
+      "status": "enabled",
+      "visual_source_ids": [
+        "350104",
+        "350202"
+      ],
+      "mathematical_structure": "general_lines_slope_intercept",
+      "independently_recomputed_codes": [
+        "213",
+        "132"
+      ]
+    },
+    {
+      "family_id": "OGE11-F07",
+      "status": "enabled",
+      "visual_source_ids": [
+        "340835"
+      ],
+      "mathematical_structure": "constant_and_linear",
+      "independently_recomputed_codes": [
+        "132"
+      ]
+    },
+    {
+      "family_id": "OGE11-F08",
+      "status": "enabled",
+      "visual_source_ids": [
+        "341668"
+      ],
+      "mathematical_structure": "inverse_proportion_sign_and_magnitude",
+      "independently_recomputed_codes": [
+        "132"
+      ]
+    }
+  ],
+  "excluded": {
+    "F09": "research_only",
+    "F10": "research_only",
+    "F11": "blocked"
+  },
+  "known_source_issue": {
+    "task_id": "348381",
+    "published_answer": "321",
+    "issue": "Solution says c determines vertex ordinate. Correct property is c=y(0), the y-axis intercept; visible graph yields 321."
+  },
+  "coverage_limit": "Confirms only the listed prototypes and their constrained generator constructions, not every catalog task or the whole exam bank."
+}

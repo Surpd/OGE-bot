@@ -3,8 +3,17 @@
   "generator_version": "0.1.0",
   "renderer_version": "0.2.0",
   "quality_level": "main",
-  "source_gate": "blocked_pending_independent_source_image_audit",
-  "runtime_enabled_families": [],
+  "source_gate": "passed_for_audited_source_images",
+  "runtime_enabled_families": [
+    "OGE11-F01",
+    "OGE11-F02",
+    "OGE11-F03",
+    "OGE11-F04",
+    "OGE11-F05",
+    "OGE11-F06",
+    "OGE11-F07",
+    "OGE11-F08"
+  ],
   "image_format": "PNG; 700x1530; three vertically stacked independent graph panels; exact Fraction viewport [-5,5]x[-5,5]",
   "image_integrity": "SHA-256 of immutable PNG bytes stored with base64 PNG and semantic graph snapshot",
   "visible_panel_label_contract": {
@@ -52,13 +61,17 @@
   "families": {
     "OGE11-F01": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "339085",
         "349265"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "339085",
+        "349265"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 380,
       "rejected_constructions": 80,
@@ -73,17 +86,20 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 24.797
+      "elapsed_seconds": 26.299
     },
     "OGE11-F02": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "FIPI-DEMO-2027-11",
         "340583"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "340583"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 391,
       "rejected_constructions": 91,
@@ -98,16 +114,19 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 39.816
+      "elapsed_seconds": 25.056
     },
     "OGE11-F03": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "341702"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "341702"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 604,
       "rejected_constructions": 304,
@@ -122,16 +141,19 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 50.36
+      "elapsed_seconds": 32.897
     },
     "OGE11-F04": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "348381"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "348381"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 366,
       "rejected_constructions": 66,
@@ -146,16 +168,19 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 16.051
+      "elapsed_seconds": 21.497
     },
     "OGE11-F05": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "349706"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "349706"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 441,
       "rejected_constructions": 141,
@@ -170,17 +195,21 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 18.491
+      "elapsed_seconds": 23.296
     },
     "OGE11-F06": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "350104",
         "350202"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "350104",
+        "350202"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 442,
       "rejected_constructions": 142,
@@ -195,16 +224,19 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 18.937
+      "elapsed_seconds": 22.445
     },
     "OGE11-F07": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "340835"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "340835"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 409,
       "rejected_constructions": 109,
@@ -219,16 +251,19 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 17.143
+      "elapsed_seconds": 20.711
     },
     "OGE11-F08": {
       "status": "pass",
-      "research_status": "enabled_candidate",
-      "runtime_enabled": false,
+      "research_status": "enabled",
+      "runtime_enabled": true,
       "source_ids": [
         "341668"
       ],
-      "source_image_independently_verified": false,
+      "audited_source_image_ids": [
+        "341668"
+      ],
+      "source_image_independently_verified": true,
       "attempts": 300,
       "candidate_construction_attempts": 300,
       "rejected_constructions": 0,
@@ -243,9 +278,9 @@
         "321"
       ],
       "oracle_failures": {},
-      "elapsed_seconds": 14.032
+      "elapsed_seconds": 20.855
     }
   },
   "all_families_pass": true,
-  "important_limit": "Mathematical generation and self-render audits only. Catalog graph SVGs were not independently viewable, so every student runtime flag remains off."
+  "important_limit": "F01-F08 source families were matched against visually inspected catalog graph images. The FIPI 2027 PDF is a draft; its task 11 image was not used as independent visual evidence. F09/F10 remain research-only and F11 remains blocked."
 }
