@@ -30,7 +30,7 @@ async def test_disabled_task11_is_hidden_from_number_menu(monkeypatch) -> None:
 
     labels = [
         button.text
-        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
     assert not any(label and label.startswith("№11") for label in labels)
@@ -45,7 +45,7 @@ async def test_enabled_task11_is_visible_in_number_menu(monkeypatch) -> None:
 
     labels = [
         button.text
-        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
     assert "№11 · Графики функций" in labels

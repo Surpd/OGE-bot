@@ -4,8 +4,21 @@ from uuid import UUID
 
 import asyncpg
 
+from app.persistence.training_preferences import (
+    MemoryTrainingPreferences,
+    PostgresTrainingPreferences,
+)
+
 
 class Repository(Protocol):
+    async def training_family(self, user_id: int, number: int) -> str | None: ...
+
+    async def set_training_family(self, user_id: int, number: int, family: str | None) -> None: ...
+
+    async def set_navigation_message(self, user_id: int, screen: str, message_id: int) -> bool: ...
+
+    async def claim_navigation_message(self, user_id: int, message_id: int) -> bool: ...
+
     async def register_user(self, telegram_user_id: int) -> None: ...
 
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None: ...
@@ -449,7 +462,6 @@ class Repository(Protocol):
         self, telegram_user_id: int, limit: int = 5
     ) -> list[dict[str, object]]: ...
 
-
     async def task11_history(
         self, telegram_user_id: int, limit: int = 5
     ) -> list[dict[str, object]]: ...
@@ -506,6 +518,7 @@ class Repository(Protocol):
     ) -> dict[str, object] | None: ...
 
     async def task13_progress(self, telegram_user_id: int) -> dict[str, int]: ...
+
 
 class _Task10PostgresMixin:
     _pool: asyncpg.Pool
@@ -3091,7 +3104,7 @@ class _Task13PostgresMixin:
                FROM users u LEFT JOIN issued_problems p ON p.user_id=u.id
                LEFT JOIN attempts a ON a.problem_id=p.id
                WHERE u.telegram_user_id=$1 AND (p.id IS NULL OR EXISTS
-                   (SELECT 1 FROM sessions s WHERE s.id=p.session_id AND s.mode='task13'))
+                   (SELECT 1 FROM sessions s WHERE s.id=p.session_id AND s.mode='task13', 'task7'))
                GROUP BY u.id""",
             telegram_user_id,
         )
@@ -3115,6 +3128,7 @@ class _Task13PostgresMixin:
                 )
             }
         )
+
 
 class _Task7PostgresMixin:
     _pool: asyncpg.Pool
@@ -3573,6 +3587,7 @@ class _Task7PostgresMixin:
 
 
 class PostgresRepository(
+    PostgresTrainingPreferences,
     _Task10PostgresMixin,
     _Task12PostgresMixin,
     _Task14PostgresMixin,
@@ -3583,6 +3598,27 @@ class PostgresRepository(
 ):
     def __init__(self, pool: asyncpg.Pool) -> None:
         self._pool = pool
+
+    async def set_navigation_message(self, user_id: int, screen: str, message_id: int) -> bool:
+        result = await self._pool.fetchval(
+            """UPDATE users SET current_state = jsonb_set(
+                   current_state, '{navigation_message_id}', to_jsonb($3::bigint), true)
+               WHERE telegram_user_id=$1 AND current_state->>'screen'=$2 RETURNING true""",
+            user_id,
+            screen,
+            message_id,
+        )
+        return result is True
+
+    async def claim_navigation_message(self, user_id: int, message_id: int) -> bool:
+        result = await self._pool.fetchval(
+            """UPDATE users SET current_state = current_state - 'navigation_message_id'
+               WHERE telegram_user_id=$1
+                 AND current_state->>'navigation_message_id'=$2::text RETURNING true""",
+            user_id,
+            str(message_id),
+        )
+        return result is True
 
     async def register_user(self, telegram_user_id: int) -> None:
         await self._pool.execute(
@@ -3595,10 +3631,11 @@ class PostgresRepository(
         await self._pool.execute(
             """UPDATE users SET current_state = CASE
                  WHEN $2 IN ('task6', 'task9', 'task10', 'task12', 'task14', 'task11', 'task8',
-                             'task13')
+                             'task13', 'task7')
                    THEN jsonb_build_object(
                    'screen', $2::text, 'resume_mode', $2::text)
-                 ELSE jsonb_set(COALESCE(current_state, '{}'::jsonb), '{screen}',
+                 ELSE jsonb_set(COALESCE(current_state, '{}'::jsonb)
+                                  - 'navigation_message_id', '{screen}',
                                 to_jsonb($2::text), true)
                END WHERE telegram_user_id = $1""",
             telegram_user_id,
@@ -3614,7 +3651,15 @@ class PostgresRepository(
         expected_prompt_message_id: int | None = None,
     ) -> bool:
         if mode not in {
-            "task6", "task9", "task10", "task12", "task14", "task11", "task8", "task13"
+            "task6",
+            "task9",
+            "task10",
+            "task12",
+            "task14",
+            "task11",
+            "task8",
+            "task13",
+            "task7",
         }:
             return False
         async with self._pool.acquire() as connection, connection.transaction():
@@ -4598,11 +4643,13 @@ class PostgresRepository(
         )
 
 
-class MemoryRepository:
+class MemoryRepository(MemoryTrainingPreferences):
     """Small adapter for isolated handler tests; production always uses PostgreSQL."""
 
     def __init__(self) -> None:
+        self.training_preferences: dict[tuple[int, int], str | None] = {}
         self.users: set[int] = set()
+        self.navigation_messages: dict[int, tuple[str, int]] = {}
         self.states: dict[int, str] = {}
         self.resume_modes: dict[int, str] = {}
         self.updates: dict[int, str] = {}
@@ -4663,12 +4710,35 @@ class MemoryRepository:
         self.solutions7: dict[int, set[str]] = {}
         self.solutions11: dict[int, set[str]] = {}
 
+    async def set_navigation_message(self, user_id: int, screen: str, message_id: int) -> bool:
+        if self.states.get(user_id) != screen:
+            return False
+        self.navigation_messages[user_id] = (screen, message_id)
+        return True
+
+    async def claim_navigation_message(self, user_id: int, message_id: int) -> bool:
+        if self.navigation_messages.get(user_id) != (self.states.get(user_id), message_id):
+            return False
+        del self.navigation_messages[user_id]
+        return True
+
     async def register_user(self, telegram_user_id: int) -> None:
         self.users.add(telegram_user_id)
 
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None:
+        self.navigation_messages.pop(telegram_user_id, None)
         self.states[telegram_user_id] = screen
-        if screen in {"task6", "task9", "task10", "task12", "task14", "task11", "task8", "task13"}:
+        if screen in {
+            "task6",
+            "task9",
+            "task10",
+            "task12",
+            "task14",
+            "task11",
+            "task8",
+            "task13",
+            "task7",
+        }:
             self.resume_modes[telegram_user_id] = screen
 
     async def transition_task_screen(
@@ -6851,7 +6921,6 @@ class MemoryRepository:
         ]
         return list(reversed(history[-max(1, min(limit, 20)) :]))
 
-
     async def ensure_task13_session(self, telegram_user_id: int) -> str:
         saved = self.training13.setdefault(
             telegram_user_id,
@@ -7118,6 +7187,7 @@ class MemoryRepository:
             "solutions_viewed": len(self.solutions13.get(telegram_user_id, set())),
             "skipped": sum(outcome == "skipped" for outcome in outcomes.values()),
         }
+
 
 async def read_migration(path: str) -> str:
     from pathlib import Path

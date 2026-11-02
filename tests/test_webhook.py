@@ -275,8 +275,8 @@ async def test_start_registers_user_and_returns_main_menu() -> None:
     await start(message, repository)
     assert repository.users == {12345}
     assert repository.states[12345] == "main_menu"
-    message.answer.assert_awaited_once()
-    assert "Привет" in message.answer.await_args.args[0]
+    assert message.answer.await_count == 2
+    assert "Привет" in message.answer.await_args_list[0].args[0]
 
 
 @pytest.mark.asyncio
@@ -305,7 +305,7 @@ async def test_continue_button_handles_missing_session() -> None:
     message = AsyncMock()
     message.from_user = User(id=12347, is_bot=False, first_name="Student")
     await continue_session(message, MemoryRepository())
-    assert "нет незавершённой тренировки" in message.answer.await_args.args[0]
+    assert "Нет незавершённых заданий" in message.answer.await_args.args[0]
 
 
 def test_production_startup_registers_the_webhook(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -328,5 +328,5 @@ def test_production_startup_registers_the_webhook(monkeypatch: pytest.MonkeyPatc
 
 def test_main_menu_contains_the_product_sections() -> None:
     markup = main_menu()
-    labels = {button.text for row in markup.keyboard for button in row}
+    labels = {button.text for row in markup.inline_keyboard for button in row}
     assert labels == set(MAIN_MENU) - {"▶ Продолжить"}

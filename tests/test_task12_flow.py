@@ -67,13 +67,14 @@ async def test_task12_two_attempts_hints_solution_and_progress() -> None:
 
 
 @pytest.mark.asyncio
-async def test_task12_generated_content_is_labeled_as_an_analogue() -> None:
+async def test_task12_provenance_is_saved_without_technical_student_disclaimer() -> None:
     repository = MemoryRepository()
     message = _message(1006, "№12 · Формулы")
     await choose_task12(message, repository)
     text = message.answer.await_args.args[0]
-    assert "Тренировочный аналог" in text
-    assert "не оригинальное опубликованное задание ОГЭ" in text
+    assert "Тренировочный аналог" not in text
+    assert "не оригинальное опубликованное задание ОГЭ" not in text
+    assert "<b>Задание №12" in text
     saved = await repository.task12_state(1006)
     assert saved is not None
     assert saved["problem"]["content_provenance"] == "generated_analogue"
