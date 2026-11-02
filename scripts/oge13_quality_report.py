@@ -15,7 +15,7 @@ from app.math.inequalities import ALL_FAMILIES, ENABLED_FAMILIES, generate, vali
 QUICK_SAMPLE_SIZE = 40
 PRIMARY_SAMPLE_SIZE = 250
 MAX_ATTEMPTS = 1_200
-BASE_COMMIT = "06183a1d5407a305791d047add4d29e8a7b2cc51"
+BASE_COMMIT = "265c8106cfd9d2bded0d54b07b5f55298df312e"
 
 
 def main() -> None:
@@ -48,7 +48,7 @@ def main() -> None:
             raise RuntimeError(f"A displayed answer position was absent for {family_id}")
         max_primary_attempts = max(max_primary_attempts, attempts)
         families[family_id] = {
-            "publication_status": "disabled",
+            "publication_status": "enabled" if family_id in ENABLED_FAMILIES else "disabled",
             "quick_cases": QUICK_SAMPLE_SIZE,
             "primary_unique_conditions": len(unique),
             "primary_seed_attempts": attempts,
@@ -63,8 +63,8 @@ def main() -> None:
             "source_task_ids": list(problem.reference_ids),
         }
 
-    if ENABLED_FAMILIES:
-        raise RuntimeError("New OGE-13 families must stay disabled for student delivery")
+    if any(family_id not in ALL_FAMILIES for family_id in ENABLED_FAMILIES):
+        raise RuntimeError("An unknown OGE-13 family is enabled")
 
     representative_examples = {}
     representative_seeds = {
@@ -95,7 +95,7 @@ def main() -> None:
     report = {
         "report_version": 3,
         "as_of": datetime.now(timezone(timedelta(hours=3))).date().isoformat(),
-        "branch": "feat/oge13-generators-v1",
+        "branch": "feat/oge13-enable-v1",
         "base_commit": BASE_COMMIT,
         "generator_version": "0.2.0",
         "family_count": len(ALL_FAMILIES),

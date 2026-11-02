@@ -23,6 +23,7 @@ from app.math.inequalities import (
     validate,
     validate_snapshot,
 )
+from app.math.oge13_scheduler import build_task13_candidate_batch
 
 
 def _test_linear_expression(expression: str) -> tuple[Fraction, Fraction]:
@@ -372,8 +373,8 @@ def _critical_probe_points(condition: str, family: str, options=()) -> tuple[Fra
     return tuple(sorted(probes))
 
 
-def test_all_pilot_families_are_deterministic_disabled_and_audited() -> None:
-    assert ENABLED_FAMILIES == ()
+def test_all_pilot_families_are_deterministic_enabled_and_audited() -> None:
+    assert ENABLED_FAMILIES == FAMILIES
     for family in FAMILIES:
         first = generate(family, 24013)
         second = generate(family, 24013)
@@ -385,6 +386,13 @@ def test_all_pilot_families_are_deterministic_disabled_and_audited() -> None:
         assert _oracle_matching_options(first) == [first.correct_option_number]
         assert first.condition_audit
         assert first.to_snapshot()["correct_answer"] == str(first.correct_option_number)
+
+
+def test_enabled_family_queue_yields_candidates_for_every_pilot_family() -> None:
+    candidates = build_task13_candidate_batch({}, 13013)
+
+    assert candidates
+    assert {str(candidate["family_id"]) for candidate in candidates} == set(ENABLED_FAMILIES)
 
 
 @pytest.mark.parametrize(

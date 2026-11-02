@@ -17,7 +17,17 @@ from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
 GENERATOR_VERSION = "0.2.0"
 SUPPORTED_GENERATOR_VERSIONS = frozenset({GENERATOR_VERSION})
-ENABLED_FAMILIES: tuple[str, ...] = ()
+ENABLED_FAMILIES: tuple[str, ...] = (
+    "OGE13-L01",
+    "OGE13-L02",
+    "OGE13-Q01",
+    "OGE13-Q02",
+    "OGE13-Q03",
+    "OGE13-Q04",
+    "OGE13-S01",
+    "OGE13-S02",
+    "OGE13-S03",
+)
 FAMILIES = (
     "OGE13-L01",
     "OGE13-L02",

@@ -1,11 +1,11 @@
 {
   "report_version": 3,
   "as_of": "2026-11-02",
-  "branch": "feat/oge13-generators-v1",
-  "base_commit": "06183a1d5407a305791d047add4d29e8a7b2cc51",
+  "branch": "feat/oge13-enable-v1",
+  "base_commit": "265c8106cfd9d2bded0d54b07b5f55298df312e",
   "generator_version": "0.2.0",
   "family_count": 9,
-  "production_enabled_count": 0,
+  "production_enabled_count": 9,
   "quick_cases_per_family": 40,
   "primary_unique_conditions_per_family": 250,
   "max_seed_attempts_observed": 285,
@@ -99,7 +99,7 @@
   },
   "families": {
     "OGE13-L01": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 278,
@@ -122,7 +122,7 @@
       ]
     },
     "OGE13-L02": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 267,
@@ -145,7 +145,7 @@
       ]
     },
     "OGE13-Q01": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 285,
@@ -167,7 +167,7 @@
       ]
     },
     "OGE13-Q02": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 267,
@@ -189,7 +189,7 @@
       ]
     },
     "OGE13-Q03": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 282,
@@ -211,7 +211,7 @@
       ]
     },
     "OGE13-Q04": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 265,
@@ -234,7 +234,7 @@
       ]
     },
     "OGE13-S01": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 250,
@@ -257,7 +257,7 @@
       ]
     },
     "OGE13-S02": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 250,
@@ -280,7 +280,7 @@
       ]
     },
     "OGE13-S03": {
-      "publication_status": "disabled",
+      "publication_status": "enabled",
       "quick_cases": 40,
       "primary_unique_conditions": 250,
       "primary_seed_attempts": 250,

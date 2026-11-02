@@ -5,8 +5,9 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram.types import User
 
-from app.bot.menu import number_menu, task13_menu
-from app.bot.router import choose_task13, continue_session, task13_callback
+from app.bot.menu import task13_menu
+from app.bot import router
+from app.bot.router import choose_number, choose_task13, continue_session, task13_callback
 from app.math import inequalities, oge13_scheduler
 from app.math.inequalities import render_option_sheet_snapshot_png
 from app.persistence.repository import MemoryRepository
@@ -47,11 +48,31 @@ def _callback(
     return callback
 
 
-def test_disabled_task13_is_hidden_from_number_menu() -> None:
+@pytest.mark.asyncio
+async def test_disabled_task13_is_hidden_from_number_menu(monkeypatch) -> None:
     oge13_scheduler.ENABLED_FAMILIES = ()
-    labels = [button.text for row in number_menu().keyboard for button in row]
+    monkeypatch.setattr(router, "TASK13_ENABLED_FAMILIES", ())
+    message = _message(913_000, "🧮 По номеру")
+    await choose_number(message, MemoryRepository())
+    labels = [
+        button.text
+        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for button in row
+    ]
     assert not any(label and label.startswith("№13") for label in labels)
     assert any(label and label.startswith("№8") for label in labels)
+
+
+@pytest.mark.asyncio
+async def test_enabled_task13_is_shown_in_number_menu() -> None:
+    message = _message(913_000, "🧮 По номеру")
+    await choose_number(message, MemoryRepository())
+    labels = [
+        button.text
+        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for button in row
+    ]
+    assert any(label and label.startswith("№13") for label in labels)
 
 
 @pytest.mark.asyncio

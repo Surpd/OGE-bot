@@ -23,7 +23,7 @@
       "mathematical_shape": "linear_a_x_plus_b_vs_c_x_plus_d",
       "answer_layout": "text_intervals",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Ненулевой коэффициент при x после переноса; один луч с верной границей. Переход с делением на отрицательное число должен менять знак.",
       "distractor_types": "Равнозначное направление, неверная граница, включённая вместо исключённой точка, знак луча.",
       "requirements": [
@@ -52,7 +52,7 @@
       "mathematical_shape": "linear_inequality_inclusive",
       "answer_layout": "four_graphs",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Разрешены <,≤,>,≥ строго по подтверждённому виду образца; длина дробной границы не более 1–2 знаков.",
       "distractor_types": "Пустая/закрашенная точка, направление, правильная и ложная граница.",
       "requirements": [
@@ -79,7 +79,7 @@
       "mathematical_shape": "x_times_x_minus_r_strict",
       "answer_layout": "text_intervals",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Два различных рациональных простых корня, один ноль; исключить корни при строгом знаке.",
       "distractor_types": "Внешний интервал, замкнутый вместо открытого, неправильная граница.",
       "requirements": [
@@ -106,7 +106,7 @@
       "mathematical_shape": "x_times_x_plus_r_nonstrict",
       "answer_layout": "text_or_graph",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Два различных корня, включая 0; исходный старший коэффициент положителен; интервалы наружу при ≥0.",
       "distractor_types": "Внутренний промежуток, удалённые концы, неверная граница.",
       "requirements": [
@@ -133,7 +133,7 @@
       "mathematical_shape": "negative_x_squared_minus_kx_nonstrict",
       "answer_layout": "text_intervals",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "При смене знака всего многочлена переворачивать сравнение; два целых различных корня; интервалы наружу.",
       "distractor_types": "Ошибка смены знака, пропуск концов, замена объединения пересечением.",
       "requirements": [
@@ -162,7 +162,7 @@
       "mathematical_shape": "factored_two_roots_strict_sign",
       "answer_layout": "four_graphs",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Корни строго различны, можно менять оба, а также допустимое строгое направление знака, подтверждённое двумя реальными источниками.",
       "distractor_types": "Перепутать внутри/снаружи, включить корни, сдвинуть границы.",
       "requirements": [
@@ -245,7 +245,7 @@
       "mathematical_shape": "intersection_closed_bounded",
       "answer_layout": "four_graphs",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Сохранять формы a·x+b≤c и d·x+e≥f (источник 340580: x+2,6≤0; x+5≥1); варьировать положительные коэффициенты, переносимые константы и точные десятичные числа так, чтобы пересечение было замкнутым отрезком.",
       "distractor_types": "Разворот границы, изменение включения, только одна строка системы.",
       "requirements": [
@@ -274,7 +274,7 @@
       "mathematical_shape": "intersection_redundant_ray",
       "answer_layout": "four_graphs",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Сохранять формы a·x+b≥c и d·x+e≥f (источник 348461: x+3≥−2; x+1,1≥0); коэффициенты и переносимые константы генерировать отдельно, затем сравнивать обе границы лучей.",
       "distractor_types": "Выбор слабой границы, неверное направление, неверная закраска точки.",
       "requirements": [
@@ -303,7 +303,7 @@
       "mathematical_shape": "intersection_open_bounded",
       "answer_layout": "four_graphs_with_optional_empty_text",
       "research_state": "pilot",
-      "production_enabled": false,
+      "production_enabled": true,
       "parameter_contract": "Сохранять систему x>a и c−d·x>e с d>0 (источник 333109: x>3; 4−x>0); переносить константы и менять знак при делении на отрицательный коэффициент, обе границы строгие.",
       "distractor_types": "Отдельные лучи, замкнутые границы, текст «нет решений». ",
       "requirements": [
