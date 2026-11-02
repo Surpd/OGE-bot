@@ -1,7 +1,7 @@
 """Deterministic OGE task 11 graph and coefficient matching problems.
 
-The public runtime gate deliberately remains closed until the source image audit
-for each family is complete. Generation is available to quality tooling only.
+The runtime gate lists only families that passed the independent source-image
+audit and the generator acceptance checks.
 """
 
 from __future__ import annotations
@@ -19,12 +19,12 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.oge11_render import render_graphs
 
-GENERATOR_VERSION = "0.1.0"
-RENDERER_VERSION = "0.2.0"
+GENERATOR_VERSION = "0.2.0"
+RENDERER_VERSION = "0.3.0"
 POLICY_ID = "oge11.three-digit-bijection"
 POLICY_VERSION = "1"
-ENABLED_FAMILIES: tuple[str, ...] = ()
 FAMILIES = tuple(f"OGE11-F{i:02d}" for i in range(1, 9))
+ENABLED_FAMILIES: tuple[str, ...] = FAMILIES
 REFERENCE_IDS = {
     "OGE11-F01": ("339085", "349265"),
     "OGE11-F02": ("FIPI-DEMO-2027-11", "340583"),
@@ -44,10 +44,16 @@ _VISIBLE_TASK_CONTRACTS = {
     "OGE11-F01": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
     "OGE11-F02": ("formula_options", "Соотнесите графики А, Б, В с формулами из списка 1, 2, 3:"),
     "OGE11-F03": ("signs", "Соотнесите графики А, Б, В со знаками коэффициентов k и b:"),
-    "OGE11-F04": ("signs", "Соотнесите графики А, Б, В со знаками коэффициентов a и c:"),
+    "OGE11-F04": (
+        "signs_letters",
+        "Соотнесите знаки коэффициентов с графиками 1, 2, 3:",
+    ),
     "OGE11-F05": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
     "OGE11-F06": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
-    "OGE11-F07": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
+    "OGE11-F07": (
+        "formula_options",
+        "Соотнесите графики А, Б, В с формулами из списка 1, 2, 3:",
+    ),
     "OGE11-F08": ("formula_letters", "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"),
 }
 
@@ -65,8 +71,8 @@ _EXPECTED_HINTS = {
         "Сопоставьте графики А, Б, В с вариантами знаков 1, 2, 3.",
     ),
     "OGE11-F04": (
-        "Знак a задаёт ветви параболы; c равно y(0), точке пересечения с Oy.",
-        "Сопоставьте графики А, Б, В с вариантами знаков 1, 2, 3.",
+        "Знак a задаёт направление ветвей; c — значение y(0), точка пересечения с Oy.",
+        "Сопоставьте пары знаков с параболами и запишите номера графиков в порядке А, Б, В.",
     ),
     "OGE11-F05": (
         "У прямой через начало координат знак и величину наклона показывает её направление.",
@@ -78,7 +84,7 @@ _EXPECTED_HINTS = {
     ),
     "OGE11-F07": (
         "Горизонтальный график задаёт постоянную функцию.",
-        "Сопоставьте формулы А, Б, В с графиками 1, 2, 3.",
+        "Сопоставьте графики А, Б, В с формулами 1, 2, 3.",
     ),
     "OGE11-F08": (
         "У y=q/x ветви лежат в I и III четвертях при q>0, во II и IV при q<0.",
@@ -119,7 +125,9 @@ class Graph:
             return f"y={_term(a, 'x²')}{_signed(b, 'x')}{_signed(c)}"
         if self.kind == "inverse":
             (q,) = self.coefficients
-            return f"y={_fraction_text(q)}/x"
+            if q.denominator == 1:
+                return f"y={_fraction_text(q)}/x"
+            return f"y={q.numerator}/({q.denominator}x)"
         (c,) = self.coefficients
         return f"y={_fraction_text(c)}"
 
@@ -137,6 +145,7 @@ class Oge11Problem:
     condition: str
     graphs: tuple[Graph, Graph, Graph]
     graph_order: tuple[int, int, int]
+    graph_labels: tuple[str, str, str]
     letter_graph_ids: tuple[int, int, int]
     digit_graph_ids: tuple[int, int, int]
     answer_kind: str
@@ -161,6 +170,7 @@ class Oge11Problem:
             "condition": self.condition,
             "graphs": [graph.as_json() for graph in self.graphs],
             "graph_order": list(self.graph_order),
+            "graph_labels": list(self.graph_labels),
             "letter_graph_ids": list(self.letter_graph_ids),
             "digit_graph_ids": list(self.digit_graph_ids),
             "answer_kind": self.answer_kind,
@@ -239,6 +249,9 @@ def _parse_formula(text: str) -> Graph:
     match = re.fullmatch(r"y=([+-]?\d+(?:/\d+)?)/x", source)
     if match:
         return _inverse(Fraction(match[1]))
+    match = re.fullmatch(r"y=([+-]?\d+)/\((\d+)x\)", source)
+    if match:
+        return _inverse(Fraction(int(match[1]), int(match[2])))
     match = re.fullmatch(r"y=([+-]?\d+(?:/\d+)?)", source)
     if match:
         return Graph("constant", (Fraction(match[1]),))
@@ -299,12 +312,26 @@ def _random_graph(
             return Graph("constant", (Fraction(rng.choice((-3, -2, -1, 1, 2, 3))),))
         return _linear(rng.choice((-3, -2, -1, 1, 2, 3)), rng.randint(-3, 3))
     if family_id == "OGE11-F08":
-        return _inverse(rng.choice((-9, -6, -4, -2, -1, 1, 2, 4, 6, 9)))
+        return _inverse(
+            rng.choice(
+                (
+                    Fraction(-2),
+                    Fraction(-1),
+                    Fraction(-1, 2),
+                    Fraction(1, 2),
+                    Fraction(1),
+                    Fraction(2),
+                )
+            )
+        )
     raise ValueError(f"Unknown task-11 family: {family_id}")
 
 
 def _format_condition(
-    family: str, graphs: tuple[Graph, Graph, Graph], order: tuple[int, int, int]
+    family: str,
+    graphs: tuple[Graph, Graph, Graph],
+    order: tuple[int, int, int],
+    answer_kind: str | None = None,
 ) -> tuple[str, str, tuple[str, str, str]]:
     if family == "OGE11-F03":
         ordered = tuple(graphs[index] for index in order)
@@ -319,15 +346,16 @@ def _format_condition(
     if family == "OGE11-F04":
         ordered = tuple(graphs[index] for index in order)
         options = tuple(
-            f"a {'+' if g.coefficients[0] > 0 else '−'}, c {'+' if g.coefficients[2] > 0 else '−'}"
+            f"a {'>' if g.coefficients[0] > 0 else '<'} 0, "
+            f"c {'>' if g.coefficients[2] > 0 else '<'} 0"
             for g in ordered
         )
-        text = "Соотнесите графики А, Б, В со знаками коэффициентов a и c:\n" + "\n".join(
-            f"{i + 1}) {option}" for i, option in enumerate(options)
+        text = "Соотнесите знаки коэффициентов с графиками 1, 2, 3:\n" + "\n".join(
+            f"{_LETTERS[i]}) {option}" for i, option in enumerate(options)
         )
-        return text, "signs", cast(tuple[str, str, str], options)
+        return text, "signs_letters", cast(tuple[str, str, str], options)
     formula_map = {index: graphs[index].formula() for index in range(3)}
-    if family == "OGE11-F02":
+    if answer_kind == "formula_options" or family in {"OGE11-F02", "OGE11-F07"}:
         numbered = tuple(formula_map[index] for index in order)
         return (
             "Соотнесите графики А, Б, В с формулами из списка 1, 2, 3:\n"
@@ -342,6 +370,18 @@ def _format_condition(
         "formula_letters",
         cast(tuple[str, str, str], formulas),
     )
+
+
+def _expected_hints(family_id: str, answer_kind: str) -> tuple[str, str]:
+    hints = _EXPECTED_HINTS[family_id]
+    if family_id == "OGE11-F06":
+        direction = (
+            "Сопоставьте графики А, Б, В с формулами 1, 2, 3."
+            if answer_kind == "formula_options"
+            else "Сопоставьте формулы А, Б, В с графиками 1, 2, 3."
+        )
+        return hints[0], direction
+    return hints
 
 
 def _generate_candidate(
@@ -378,16 +418,26 @@ def _generate_candidate(
     graph_order = list(range(3))
     rng.shuffle(formula_order)
     rng.shuffle(graph_order)
+    orientation = (
+        rng.choice(("formula_letters", "formula_options"))
+        if family_id == "OGE11-F06"
+        else None
+    )
     condition, answer_kind, options = _format_condition(
-        family_id, graphs, cast(tuple[int, int, int], tuple(formula_order))
+        family_id, graphs, cast(tuple[int, int, int], tuple(formula_order)), orientation
     )
     graph_side_ids = cast(tuple[int, int, int], tuple(graph_order))
-    if family_id == "OGE11-F02":
+    if family_id == "OGE11-F04":
+        # Letters identify coefficient-sign rows; digits identify graph panels.
+        letter_graph_ids = cast(tuple[int, int, int], tuple(formula_order))
+        digit_graph_ids = graph_side_ids
+        mappings = [digit_graph_ids.index(graph_index) + 1 for graph_index in letter_graph_ids]
+    elif answer_kind == "formula_options":
         # Graph letters identify graph order; answer digit points at formula order.
         letter_graph_ids = graph_side_ids
         digit_graph_ids = cast(tuple[int, int, int], tuple(formula_order))
         mappings = [digit_graph_ids.index(graph_index) + 1 for graph_index in letter_graph_ids]
-    elif family_id in {"OGE11-F03", "OGE11-F04"}:
+    elif family_id == "OGE11-F03":
         letter_graph_ids = graph_side_ids
         digit_graph_ids = cast(tuple[int, int, int], tuple(formula_order))
         mappings = [digit_graph_ids.index(graph_index) + 1 for graph_index in letter_graph_ids]
@@ -396,8 +446,16 @@ def _generate_candidate(
         digit_graph_ids = graph_side_ids
         mappings = [digit_graph_ids.index(graph_index) + 1 for graph_index in letter_graph_ids]
     code = "".join(str(item) for item in mappings)
+    graph_labels = (
+        ("А", "Б", "В")
+        if family_id in {"OGE11-F02", "OGE11-F03", "OGE11-F07"}
+        or (family_id == "OGE11-F06" and answer_kind == "formula_options")
+        else ("1", "2", "3")
+    )
     viewport = (Fraction(-5), Fraction(5), Fraction(-5), Fraction(5))
-    png, render_audit = render_graphs(graphs, graph_side_ids, family_id, RENDERER_VERSION, viewport)
+    png, render_audit = render_graphs(
+        graphs, graph_side_ids, family_id, RENDERER_VERSION, viewport, graph_labels
+    )
     image_hash = hashlib.sha256(png).hexdigest()
     problem_id = str(uuid5(NAMESPACE_URL, f"oge11:{family_id}:{seed}:{generator_version}"))
     solution = _build_solution(family_id, graphs, letter_graph_ids, digit_graph_ids, answer_kind)
@@ -413,12 +471,13 @@ def _generate_candidate(
         condition,
         graphs,
         graph_side_ids,
+        graph_labels,
         letter_graph_ids,
         digit_graph_ids,
         answer_kind,
         options,
         code,
-        _EXPECTED_HINTS[family_id],
+        _expected_hints(family_id, answer_kind),
         solution,
         png,
         image_hash,
@@ -494,6 +553,7 @@ def from_snapshot(value: dict[str, object]) -> Oge11Problem:
             condition=str(value["condition"]),
             graphs=graphs,
             graph_order=int_tuple("graph_order"),
+            graph_labels=cast(tuple[str, str, str], string_tuple("graph_labels")),
             letter_graph_ids=int_tuple("letter_graph_ids"),
             digit_graph_ids=int_tuple("digit_graph_ids"),
             answer_kind=str(value["answer_kind"]),
@@ -533,23 +593,31 @@ def _build_solution(
     steps: list[str] = []
     for letter, graph_index in zip(_LETTERS, letters, strict=True):
         graph = graphs[graph_index]
-        if answer_kind == "signs":
-            if family == "OGE11-F03":
-                k, b = graph.coefficients
-                step = (
-                    f"{letter}: k={'+' if k > 0 else '−'} по направлению прямой; "
-                    f"b={'+' if b > 0 else '−'} по точке (0, b)."
-                )
-            else:
-                a, _, c = graph.coefficients
-                step = (
-                    f"{letter}: a={'+' if a > 0 else '−'} по ветвям параболы; "
-                    f"c={'+' if c > 0 else '−'} по значению y(0)."
-                )
-        else:
+        if family == "OGE11-F03":
+            k, b = graph.coefficients
+            option = digits.index(graph_index) + 1
             step = (
-                f"{letter}: график имеет вид {graph.kind}; контрольные значения "
-                f"подтверждают {graph.formula()}."
+                f"{letter}: k={'+' if k > 0 else '−'} по направлению прямой, "
+                f"b={'+' if b > 0 else '−'} по y(0); это вариант {option}."
+            )
+        elif family == "OGE11-F04":
+            a, _, c = graph.coefficients
+            panel = digits.index(graph_index) + 1
+            step = (
+                f"{letter}: a {'>' if a > 0 else '<'} 0 по ветвям, "
+                f"c {'>' if c > 0 else '<'} 0 по y(0); это график {panel}."
+            )
+        elif answer_kind == "formula_options":
+            option = digits.index(graph_index) + 1
+            step = (
+                f"{letter}: график {graph.kind} подтверждает формулу "
+                f"{option}) {graph.formula()}."
+            )
+        else:
+            panel = digits.index(graph_index) + 1
+            step = (
+                f"{letter}) {graph.formula()} задаёт график {panel}; "
+                f"контрольные значения соответствуют виду {graph.kind}."
             )
         steps.append(step)
     steps.append("Запишите номера соответствующих объектов в порядке А, Б, В.")
@@ -588,20 +656,29 @@ def _audit_solution(problem: Oge11Problem) -> bool:
         graph = problem.graphs[graph_id]
         if problem.family_id == "OGE11-F03":
             k, b = graph.coefficients
+            option = problem.digit_graph_ids.index(graph_id) + 1
             expected_steps.append(
-                f"{letter}: k={'+' if k > 0 else '−'} по направлению прямой; "
-                f"b={'+' if b > 0 else '−'} по точке (0, b)."
+                f"{letter}: k={'+' if k > 0 else '−'} по направлению прямой, "
+                f"b={'+' if b > 0 else '−'} по y(0); это вариант {option}."
             )
         elif problem.family_id == "OGE11-F04":
             a, _, c = graph.coefficients
+            panel = problem.digit_graph_ids.index(graph_id) + 1
             expected_steps.append(
-                f"{letter}: a={'+' if a > 0 else '−'} по ветвям параболы; "
-                f"c={'+' if c > 0 else '−'} по значению y(0)."
+                f"{letter}: a {'>' if a > 0 else '<'} 0 по ветвям, "
+                f"c {'>' if c > 0 else '<'} 0 по y(0); это график {panel}."
+            )
+        elif problem.answer_kind == "formula_options":
+            option = problem.digit_graph_ids.index(graph_id) + 1
+            expected_steps.append(
+                f"{letter}: график {graph.kind} подтверждает формулу "
+                f"{option}) {graph.formula()}."
             )
         else:
+            panel = problem.digit_graph_ids.index(graph_id) + 1
             expected_steps.append(
-                f"{letter}: график имеет вид {graph.kind}; контрольные значения "
-                f"подтверждают {graph.formula()}."
+                f"{letter}) {graph.formula()} задаёт график {panel}; "
+                f"контрольные значения соответствуют виду {graph.kind}."
             )
     expected_steps.append("Запишите номера соответствующих объектов в порядке А, Б, В.")
     return tuple(expected_steps) == problem.solution
@@ -623,14 +700,28 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
         return False, "invalid answer code"
     try:
         expected_kind, expected_header = _VISIBLE_TASK_CONTRACTS[problem.family_id]
+        if problem.family_id == "OGE11-F06":
+            expected_kind = problem.answer_kind
+            expected_header = (
+                "Соотнесите графики А, Б, В с формулами из списка 1, 2, 3:"
+                if problem.answer_kind == "formula_options"
+                else "Соотнесите формулы А, Б, В с графиками 1, 2, 3:"
+            )
+        expected_graph_labels = (
+            ("А", "Б", "В")
+            if problem.family_id in {"OGE11-F02", "OGE11-F03", "OGE11-F07"}
+            or (problem.family_id == "OGE11-F06" and problem.answer_kind == "formula_options")
+            else ("1", "2", "3")
+        )
         condition_lines = problem.condition.splitlines()
         if (
             problem.answer_kind != expected_kind
             or not condition_lines
             or condition_lines[0] != expected_header
+            or problem.graph_labels != expected_graph_labels
         ):
             return False, "visible task structure differs from family contract"
-        if problem.hints != _EXPECTED_HINTS[problem.family_id]:
+        if problem.hints != _expected_hints(problem.family_id, problem.answer_kind):
             return False, "hints do not match family model"
         _validate_graphs(problem.graphs)
         if (
@@ -642,7 +733,7 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
             or len(set(problem.options)) != 3
         ):
             return False, "matching sides are ambiguous or incomplete"
-        if problem.family_id in {"OGE11-F02", "OGE11-F03", "OGE11-F04"}:
+        if problem.graph_labels == ("А", "Б", "В"):
             if problem.letter_graph_ids != problem.graph_order:
                 return False, "letter labels do not identify visible graph panels"
         elif problem.digit_graph_ids != problem.graph_order:
@@ -672,7 +763,7 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
             visible = re.findall(r"\d\)\s*([ka]) ([+−-]), ([bc]) ([+−-])", problem.condition)
             if len(visible) != 3:
                 return False, "visible sign options are malformed"
-            expected_signs = []
+            expected_signs: list[tuple[str, ...]] = []
             for graph_id in problem.digit_graph_ids:
                 graph = problem.graphs[graph_id]
                 if problem.family_id == "OGE11-F03":
@@ -695,6 +786,18 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
                 != problem.options
             ):
                 return False, "visible sign options differ from stored options"
+        elif problem.answer_kind == "signs_letters":
+            visible = re.findall(r"[АБВ]\)\s*a ([<>]) 0, c ([<>]) 0", problem.condition)
+            if len(visible) != 3:
+                return False, "visible coefficient-sign rows are malformed"
+            expected_signs = []
+            for graph_id in problem.letter_graph_ids:
+                a, _, c = problem.graphs[graph_id].coefficients
+                expected_signs.append((">" if a > 0 else "<", ">" if c > 0 else "<"))
+            if visible != expected_signs:
+                return False, "visible coefficient-sign rows differ from graph models"
+            if tuple(f"a {a} 0, c {c} 0" for a, c in visible) != problem.options:
+                return False, "visible coefficient-sign rows differ from stored options"
         expected = "".join(
             str(problem.digit_graph_ids.index(graph_id) + 1)
             for graph_id in problem.letter_graph_ids
@@ -711,6 +814,7 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
             problem.graph_order,
             problem.viewport,
             problem.family_id,
+            problem.graph_labels,
         )
         if problem.fingerprint != _semantic_fingerprint(
             problem.family_id,

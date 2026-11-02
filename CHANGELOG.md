@@ -1,10 +1,22 @@
 # Changelog
 
+## 2026-11-02 — OGE task 11 source-structure correction (PR #15 follow-up)
+- Synced PR #15 with `main` after PR #14 (`0c15c0b`); preserved the existing PR branch and merged the updated base without rewriting history.
+- Corrected F04 to coefficient sign rows А/Б/В → numbered graphs 1/2/3; corrected F07 to graph letters А/Б/В → numbered formula options.
+- F06 now generates both reviewed source orientations and snapshots the chosen graph labels; hints and worked solutions follow the same mapping.
+- F08 includes `q=1/2`, renders it as `1/(2x)`, and rejects inverse triples whose unit-scale raster values are less than 10 px apart.
+- Added exact source-ID matching contracts and mutation tests for swapped letter/number labels; refreshed the per-family quality report and source research notes.
+
+## 2026-11-02 — OGE task 11 source audit and family enablement
+- Visually reviewed original graph images for task IDs 339085, 349265, 340583, 341702, 348381, 349706, 350104, 350202, 340835 and 341668; independently recomputed codes and documented generator correspondence in `specs/OGE11_RELEASE_AUDIT.md`.
+- Enabled only audited implementation families F01–F08. F09/F10 remain research-only and F11 remains blocked. Added menu visibility and scheduler allow-list regressions for №11.
+- Recorded the incorrect `c` explanation on source 348381 while confirming code 321 from the visible graph. The FIPI 2027 example is treated as a draft; its PDF image is not counted as visual evidence.
+- 300-seed generator acceptance passed for each family (298–300 unique variants; all six answer codes); local suite: 579 passed, 57 PostgreSQL-dependent tests skipped; Ruff and mypy passed. PostgreSQL 17 CI run 160 passed all 636 tests (one warning).
+- Added eight generated control PNGs and a Telegram-width contact sheet under `artifacts/oge11_release_examples/`.
 ## 2026-11-02 — OGE task 7 source acceptance (PR feat/oge07-enable-v1)
 - Individually reviewed source cards and original diagrams for the implemented task 7 candidates; enabled C01/C02/C03/C04/C06/N01/N04.
 - Held C05 for historical source/goal mismatch; held N02/N03/N05 where the source structure or visible coordinates are not fully represented by the current graph model.
 - Added a source audit, per-source coverage decisions, a 300-seed quality report, and conditional task 7 menu visibility. No merge, deployment, or production database changes.
-
 ## 2026-11-02 — OGE task 11 renderer correction (PR #13, no merge/deploy)
 - Added exact Fraction graph models for F01–F08, deterministic matching, a PNG renderer, pixel landmark checks, immutable image-hash snapshots, and bounded fail-closed generation. Families F09/F10 remain research-only; F11 remains blocked.
 - Added isolated task11 Telegram and PostgreSQL session handling, shared UX adapter coverage, migration `0011_task11_sessions.sql`, progress and history reporting. Runtime family flags stay off because source graph SVGs could not be independently inspected.

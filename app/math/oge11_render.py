@@ -22,14 +22,14 @@ BACKGROUND = (255, 255, 255)
 
 # Renderer mapping. The separate audit contract below is intentionally not
 # derived from this table; tests compare visible pixels to the exam wording.
-_RENDER_PANEL_LABELS = {
+_DEFAULT_PANEL_LABELS = {
     "OGE11-F01": ("1", "2", "3"),
     "OGE11-F02": ("А", "Б", "В"),
     "OGE11-F03": ("А", "Б", "В"),
-    "OGE11-F04": ("А", "Б", "В"),
+    "OGE11-F04": ("1", "2", "3"),
     "OGE11-F05": ("1", "2", "3"),
     "OGE11-F06": ("1", "2", "3"),
-    "OGE11-F07": ("1", "2", "3"),
+    "OGE11-F07": ("А", "Б", "В"),
     "OGE11-F08": ("1", "2", "3"),
 }
 
@@ -38,10 +38,10 @@ _AUDIT_EXPECTED_PANEL_LABELS = {
     "OGE11-F01": ("1", "2", "3"),
     "OGE11-F02": ("А", "Б", "В"),
     "OGE11-F03": ("А", "Б", "В"),
-    "OGE11-F04": ("А", "Б", "В"),
+    "OGE11-F04": ("1", "2", "3"),
     "OGE11-F05": ("1", "2", "3"),
     "OGE11-F06": ("1", "2", "3"),
-    "OGE11-F07": ("1", "2", "3"),
+    "OGE11-F07": ("А", "Б", "В"),
     "OGE11-F08": ("1", "2", "3"),
 }
 
@@ -161,19 +161,24 @@ def render_graphs(
     family_id: str,
     renderer_version: str,
     viewport: tuple[Fraction, Fraction, Fraction, Fraction],
+    graph_labels: tuple[str, str, str] | None = None,
 ) -> tuple[bytes, dict[str, Any]]:
     image = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(image)
-    if family_id not in _RENDER_PANEL_LABELS:
+    if family_id not in _DEFAULT_PANEL_LABELS:
         raise ValueError(f"unsupported task-11 family for renderer: {family_id}")
+    labels = graph_labels or _DEFAULT_PANEL_LABELS[family_id]
+    if labels not in (("1", "2", "3"), ("А", "Б", "В")):
+        raise ValueError("unsupported graph panel labels")
     for panel, graph_index in enumerate(graph_order):
-        label = _RENDER_PANEL_LABELS[family_id][panel]
+        label = labels[panel]
         _bitmap_text(draw, label, 24, panel * ROW_HEIGHT + 18, 4)
         _draw_graph(draw, graphs[graph_index], panel, viewport)
     semantics = {
         "family_id": family_id,
         "renderer_version": renderer_version,
         "graph_order": list(graph_order),
+        "graph_labels": list(labels),
         "graphs": [graph.as_json() for graph in graphs],
         "viewport": [str(value) for value in viewport],
         "plot_box": list(PLOT),
@@ -193,6 +198,7 @@ def audit_png(
     graph_order: tuple[int, int, int],
     viewport: tuple[Fraction, Fraction, Fraction, Fraction],
     family_id: str,
+    graph_labels: tuple[str, str, str] | None = None,
 ) -> None:
     image = Image.open(io.BytesIO(png_bytes)).convert("RGB")
     if image.size != (WIDTH, HEIGHT):
@@ -200,7 +206,7 @@ def audit_png(
     pixels = image.load()
     if pixels is None:
         raise ValueError("PNG pixel data is unavailable")
-    expected_labels = _AUDIT_EXPECTED_PANEL_LABELS.get(family_id)
+    expected_labels = graph_labels or _AUDIT_EXPECTED_PANEL_LABELS.get(family_id)
     if expected_labels is None:
         raise ValueError("unknown family label contract")
     if tuple(sorted(graph_order)) != (0, 1, 2):
@@ -255,6 +261,18 @@ def audit_png(
         curve_pixels += visible
     if curve_pixels < 6:
         raise ValueError("insufficient graph landmarks")
+    if all(graphs[index].kind == "inverse" for index in graph_order):
+        ordinates = [
+            _pixels(1.0, float(graphs[index].value(Fraction(1))), viewport, 0)[1]
+            for index in graph_order
+        ]
+        separations = (
+            abs(ordinates[0] - ordinates[1]),
+            abs(ordinates[0] - ordinates[2]),
+            abs(ordinates[1] - ordinates[2]),
+        )
+        if min(separations) < 10:
+            raise ValueError("inverse graphs are not visually distinguishable at unit scale")
 
 
 def _decode_panel_label(pixels: Any, panel: int, width: int, height: int) -> str:
