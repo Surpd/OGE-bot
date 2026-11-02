@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram.types import User
 
-from app.bot.menu import number_menu
+from app.bot import router
 from app.bot.router import (
     _send_task7_problem,
     choose_task6,
@@ -20,6 +20,7 @@ from app.bot.router import (
     choose_task9,
     choose_task10,
     choose_task12,
+    choose_task13,
     choose_task14,
     show_progress_details,
     task6_answer,
@@ -34,6 +35,8 @@ from app.bot.router import (
     task10_callback,
     task12_answer,
     task12_callback,
+    task13_answer,
+    task13_callback,
     task14_answer,
     task14_callback,
     unknown_message,
@@ -45,6 +48,7 @@ from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
+from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.progressions import A01
 from app.math.scheduler import build_candidate_batch
@@ -110,6 +114,17 @@ TRAININGS = (
         "task12_progress",
     ),
     TrainingAdapter(
+        13,
+        choose_task13,
+        task13_answer,
+        task13_callback,
+        "advance_task13_problem",
+        "set_task13_condition_message",
+        build_task13_candidate_batch,
+        "task13_state",
+        "task13_progress",
+    ),
+    TrainingAdapter(
         8,
         choose_task8,
         task8_answer,
@@ -148,10 +163,13 @@ TRAINING_CASES = pytest.mark.parametrize(
 )
 
 
-def test_number_menu_matches_registered_training_adapters() -> None:
+@pytest.mark.asyncio
+async def test_number_menu_matches_registered_training_adapters() -> None:
+    message = _message(910_013, "🧮 По номеру")
+    await router.choose_number(message, MemoryRepository())
     menu_numbers = {
         int(match.group(1))
-        for row in number_menu().keyboard
+        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
         for button in row
         if (match := re.match(r"№(\d+)", button.text or "")) is not None
     }
@@ -199,7 +217,7 @@ async def _open(repository: MemoryRepository, training: TrainingAdapter, user_id
 
 def _wrong_answer(training: TrainingAdapter, problem: dict[str, object]) -> str:
     correct = str(problem["correct_answer"])
-    if training.number == 7:
+    if training.number in {7, 13}:
         return str(int(correct) % 4 + 1)
     return "-999999" if correct == "999999" else "999999"
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-02 — OGE task 13 final acceptance (PR, без merge/deploy)
+- Включены девять проверенных пилотных семейств L01/L02/Q01–Q04/S01–S03; Q05/Q06/S04 остаются выключенными с задокументированными причинами.
+- №13 добавлен в общий UX-harness для меню, ответов, двух попыток, skip/next, разбора, устаревших Reply и независимости сессий; задача появляется в меню при непустом списке разрешённых семейств.
+- QA отчёт обновлён для текущей ветки и фиксирует статус публикации, разнообразие и независимые oracle-проверки. Полный GitHub CI прошёл: Ruff, mypy и 573 pytest на PostgreSQL 17.11.
+- Миграции, production Supabase и production deployment не менялись.
+
 ## 2026-11-02 — OGE task 7 (PR in progress)
 - Added parameterized C01–C06 generators with independent visible-condition oracles, and candidate number-line structures N01–N05 with saved graph models, PNG renderer and raster oracle.
 - Added the Telegram flow, separate task7 persistence, migration 0010 and shared UX/PostgreSQL lifecycle coverage. All task7 families remain disabled and №7 stays out of the learner menu pending acceptance.
