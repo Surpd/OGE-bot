@@ -79,6 +79,14 @@ def _replace_panel_label(problem, panel: int, new_label: str):
     return _reintegrity(problem, image)
 
 
+def _find_half_inverse_problem():
+    for seed in range(300):
+        problem = generate("OGE11-F08", seed)
+        if any(graph.coefficients == (Fraction(1, 2),) for graph in problem.graphs):
+            return problem
+    raise AssertionError("F08 did not generate q=1/2 within 300 seeds")
+
+
 @pytest.mark.parametrize("family_id", FAMILIES)
 def test_generation_is_deterministic_and_independently_verified(family_id: str) -> None:
     first = generate(family_id, 20261102)
@@ -115,7 +123,14 @@ def test_panel_pixels_use_labels_required_by_visible_condition(family_id: str) -
         == expected_labels
     )
     assert problem.graph_labels == expected_labels
-    audit_png(problem.png_bytes, problem.graphs, problem.graph_order, problem.viewport, family_id, problem.graph_labels)
+    audit_png(
+        problem.png_bytes,
+        problem.graphs,
+        problem.graph_order,
+        problem.viewport,
+        family_id,
+        problem.graph_labels,
+    )
 
 
 @pytest.mark.parametrize(
@@ -308,12 +323,20 @@ def test_confirmed_source_orientations_and_mappings_are_exact() -> None:
         },
     }
     audit = json.loads(Path("atlas/oge11_release_audit.json").read_text(encoding="utf-8"))
-    assert {
-        task_id: {key: value for key, value in audit["source_structures"][task_id].items() if key != "family_id"}
+    source_structures = audit["source_structures"]
+    observed_contracts = {
+        task_id: {
+            key: value
+            for key, value in source_structures[task_id].items()
+            if key != "family_id"
+        }
         for task_id in source_contracts
-    } == source_contracts
+    }
+    assert observed_contracts == source_contracts
     for mapping in audit["source_structures"].values():
-        answer_mapping = mapping.get("graph_numbers_by_letter") or mapping.get("formula_numbers_by_letter")
+        answer_mapping = mapping.get("graph_numbers_by_letter") or mapping.get(
+            "formula_numbers_by_letter"
+        )
         if answer_mapping:
             assert "".join(str(value) for value in answer_mapping) == mapping["independent_code"]
 
@@ -328,13 +351,18 @@ def test_confirmed_source_orientations_and_mappings_are_exact() -> None:
     assert f07.graph_labels == ("А", "Б", "В")
     assert f07.condition.splitlines()[1].startswith("1) y=")
 
-    layouts = {generate("OGE11-F06", seed).answer_kind for seed in range(50)}
+    f06_candidates = [generate("OGE11-F06", seed) for seed in range(50)]
+    layouts = {problem.answer_kind for problem in f06_candidates}
     assert layouts == {"formula_letters", "formula_options"}
-    for seed in range(50):
-        problem = generate("OGE11-F06", seed)
-        assert problem.graph_labels == (("А", "Б", "В") if problem.answer_kind == "formula_options" else ("1", "2", "3"))
+    for problem in f06_candidates:
+        expected = (
+            ("А", "Б", "В")
+            if problem.answer_kind == "formula_options"
+            else ("1", "2", "3")
+        )
+        assert problem.graph_labels == expected
 
-    half = next(generate("OGE11-F08", seed) for seed in range(300) if any(graph.coefficients == (Fraction(1, 2),) for graph in generate("OGE11-F08", seed).graphs))
+    half = _find_half_inverse_problem()
     assert "1/(2x)" in half.condition
     assert verify(half) == (True, "ok")
 
@@ -343,24 +371,41 @@ def test_source_orientation_mutations_are_rejected() -> None:
     f04 = generate("OGE11-F04", 440)
     lines = f04.condition.splitlines()
     lines[1], lines[2] = lines[2].replace("Б)", "А)"), lines[1].replace("А)", "Б)")
-    assert verify(replace(f04, condition="\n".join(lines))) == (False, "visible coefficient-sign rows differ from graph models")
+    assert verify(replace(f04, condition="\n".join(lines))) == (
+        False,
+        "visible coefficient-sign rows differ from graph models",
+    )
 
     f07 = generate("OGE11-F07", 441)
     lines = f07.condition.splitlines()
     lines[1], lines[2] = lines[2].replace("2)", "1)"), lines[1].replace("1)", "2)")
-    assert verify(replace(f07, condition="\n".join(lines))) == (False, "visible formula differs from model")
+    assert verify(replace(f07, condition="\n".join(lines))) == (
+        False,
+        "visible formula differs from model",
+    )
 
-    f06_letters = next(generate("OGE11-F06", seed) for seed in range(100) if generate("OGE11-F06", seed).answer_kind == "formula_letters")
+    f06_candidates = [generate("OGE11-F06", seed) for seed in range(100)]
+    f06_letters = next(
+        problem for problem in f06_candidates if problem.answer_kind == "formula_letters"
+    )
     lines = f06_letters.condition.splitlines()
     lines[1], lines[2] = lines[2].replace("Б)", "А)"), lines[1].replace("А)", "Б)")
-    assert verify(replace(f06_letters, condition="\n".join(lines))) == (False, "visible formula differs from model")
+    assert verify(replace(f06_letters, condition="\n".join(lines))) == (
+        False,
+        "visible formula differs from model",
+    )
 
-    f06_options = next(generate("OGE11-F06", seed) for seed in range(100) if generate("OGE11-F06", seed).answer_kind == "formula_options")
+    f06_options = next(
+        problem for problem in f06_candidates if problem.answer_kind == "formula_options"
+    )
     lines = f06_options.condition.splitlines()
     lines[1], lines[2] = lines[2].replace("2)", "1)"), lines[1].replace("1)", "2)")
-    assert verify(replace(f06_options, condition="\n".join(lines))) == (False, "visible formula differs from model")
+    assert verify(replace(f06_options, condition="\n".join(lines))) == (
+        False,
+        "visible formula differs from model",
+    )
 
-    half = next(generate("OGE11-F08", seed) for seed in range(300) if any(graph.coefficients == (Fraction(1, 2),) for graph in generate("OGE11-F08", seed).graphs))
+    half = _find_half_inverse_problem()
     changed = half.condition.replace("1/(2x)", "1/x")
     assert verify(replace(half, condition=changed)) == (False, "visible formula differs from model")
 
@@ -378,7 +423,11 @@ def test_snapshot_preserves_both_f06_orientations_and_panel_labels() -> None:
         assert snapshot["graph_labels"] == list(problem.graph_labels)
         assert from_snapshot(snapshot) == problem
 
-        snapshot["graph_labels"] = ["1", "2", "3"] if problem.graph_labels[0] == "А" else ["А", "Б", "В"]
+        snapshot["graph_labels"] = (
+            ["1", "2", "3"]
+            if problem.graph_labels[0] == "А"
+            else ["А", "Б", "В"]
+        )
         with pytest.raises(ValueError, match="invalid task-11 snapshot"):
             from_snapshot(snapshot)
 

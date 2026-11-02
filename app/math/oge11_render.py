@@ -266,7 +266,12 @@ def audit_png(
             _pixels(1.0, float(graphs[index].value(Fraction(1))), viewport, 0)[1]
             for index in graph_order
         ]
-        if min(abs(left - right) for left, right in ((ordinates[0], ordinates[1]), (ordinates[0], ordinates[2]), (ordinates[1], ordinates[2]))) < 10:
+        separations = (
+            abs(ordinates[0] - ordinates[1]),
+            abs(ordinates[0] - ordinates[2]),
+            abs(ordinates[1] - ordinates[2]),
+        )
+        if min(separations) < 10:
             raise ValueError("inverse graphs are not visually distinguishable at unit scale")
 
 

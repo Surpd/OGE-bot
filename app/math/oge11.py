@@ -72,7 +72,7 @@ _EXPECTED_HINTS = {
     ),
     "OGE11-F04": (
         "Знак a задаёт направление ветвей; c — значение y(0), точка пересечения с Oy.",
-        "Сначала сопоставьте каждую пару знаков с параболой, затем запишите номера графиков в порядке А, Б, В.",
+        "Сопоставьте пары знаков с параболами и запишите номера графиков в порядке А, Б, В.",
     ),
     "OGE11-F05": (
         "У прямой через начало координат знак и величину наклона показывает её направление.",
@@ -312,7 +312,18 @@ def _random_graph(
             return Graph("constant", (Fraction(rng.choice((-3, -2, -1, 1, 2, 3))),))
         return _linear(rng.choice((-3, -2, -1, 1, 2, 3)), rng.randint(-3, 3))
     if family_id == "OGE11-F08":
-        return _inverse(rng.choice((Fraction(-2), Fraction(-1), Fraction(-1, 2), Fraction(1, 2), Fraction(1), Fraction(2))))
+        return _inverse(
+            rng.choice(
+                (
+                    Fraction(-2),
+                    Fraction(-1),
+                    Fraction(-1, 2),
+                    Fraction(1, 2),
+                    Fraction(1),
+                    Fraction(2),
+                )
+            )
+        )
     raise ValueError(f"Unknown task-11 family: {family_id}")
 
 
@@ -335,7 +346,8 @@ def _format_condition(
     if family == "OGE11-F04":
         ordered = tuple(graphs[index] for index in order)
         options = tuple(
-            f"a {'>' if g.coefficients[0] > 0 else '<'} 0, c {'>' if g.coefficients[2] > 0 else '<'} 0"
+            f"a {'>' if g.coefficients[0] > 0 else '<'} 0, "
+            f"c {'>' if g.coefficients[2] > 0 else '<'} 0"
             for g in ordered
         )
         text = "Соотнесите знаки коэффициентов с графиками 1, 2, 3:\n" + "\n".join(
