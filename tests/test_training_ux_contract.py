@@ -41,7 +41,7 @@ from app.bot.router import (
     task14_callback,
     unknown_message,
 )
-from app.math import oge07_scheduler, oge14_scheduler, oge8_scheduler
+from app.math import oge07_scheduler, oge8_scheduler, oge14_scheduler
 from app.math.oge07_scheduler import build_task7_candidate_batch
 from app.math.oge8 import R04
 from app.math.oge8_scheduler import build_task8_candidate_batch
