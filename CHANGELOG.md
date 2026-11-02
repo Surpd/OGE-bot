@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-02 — OGE task 7 source acceptance (PR feat/oge07-enable-v1)
+- Individually reviewed source cards and original diagrams for the implemented task 7 candidates; enabled C01/C02/C03/C04/C06/N01/N04.
+- Held C05 for historical source/goal mismatch; held N02/N03/N05 where the source structure or visible coordinates are not fully represented by the current graph model.
+- Added a source audit, per-source coverage decisions, a 300-seed quality report, and conditional task 7 menu visibility. No merge, deployment, or production database changes.
+
 ## 2026-11-02 — OGE task 11 renderer correction (PR #13, no merge/deploy)
 - Added exact Fraction graph models for F01–F08, deterministic matching, a PNG renderer, pixel landmark checks, immutable image-hash snapshots, and bounded fail-closed generation. Families F09/F10 remain research-only; F11 remains blocked.
 - Added isolated task11 Telegram and PostgreSQL session handling, shared UX adapter coverage, migration `0011_task11_sessions.sql`, progress and history reporting. Runtime family flags stay off because source graph SVGs could not be independently inspected.

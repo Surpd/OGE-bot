@@ -45,6 +45,7 @@ from app.bot.router import (
     unknown_message,
 )
 from app.math import oge07_scheduler, oge8_scheduler, oge14_scheduler
+from app.math.oge07_graph import generate_graph_problem
 from app.math.oge07_scheduler import build_task7_candidate_batch
 from app.math.oge8 import R04
 from app.math.oge8_scheduler import build_task8_candidate_batch
@@ -191,15 +192,37 @@ async def test_number_menu_matches_registered_training_adapters() -> None:
         for button in row
         if (match := re.match(r"№(\d+)", button.text or "")) is not None
     }
-    registered_numbers = {training.number for training in TRAININGS if training.number != 7}
+    registered_numbers = {training.number for training in TRAININGS}
 
     assert menu_numbers == registered_numbers
-    assert 7 not in menu_numbers
+    assert 7 in menu_numbers
+
+
+@pytest.mark.asyncio
+async def test_task7_is_hidden_and_cannot_start_when_release_flags_are_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(router, "TASK7_ENABLED_FAMILIES", ())
+    repository = MemoryRepository()
+    menu_message = _message(910_014, "🧮 По номеру")
+    await router.choose_number(menu_message, repository)
+    labels = [
+        button.text
+        for row in menu_message.answer.await_args.kwargs["reply_markup"].keyboard
+        for button in row
+    ]
+    assert not any(label and label.startswith("№7") for label in labels)
+
+    blocked_message = _message(910_014, router.TASK7_LABEL)
+    await choose_task7(blocked_message, repository)
+    assert "пока выключены" in blocked_message.answer.await_args.args[0]
+    assert await repository.task7_state(910_014) is None
 
 
 @pytest.fixture(autouse=True)
 def enable_task11_for_contract_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", TASK11_FAMILIES[:1])
+    monkeypatch.setattr(router, "TASK7_ENABLED_FAMILIES", oge07_scheduler.ENABLED_FAMILIES)
 
 
 _message_id = 910_000
@@ -512,3 +535,27 @@ async def test_task7_rejects_corrupt_snapshot_without_regenerating(
     assert len(repository.issued7[user_id]) == 1
     assert resume_message.answer_photo.await_count == 0
     assert "не заменено новым заданием" in resume_message.answer.await_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_task7_resume_rejects_held_family_snapshot_without_regenerating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(router, "TASK7_ENABLED_FAMILIES", ("OGE07-C01",))
+    repository = MemoryRepository()
+    user_id = 973_008
+    await repository.ensure_task7_session(user_id)
+    held_snapshot = generate_graph_problem("OGE07-N05", 17).to_snapshot()
+    await repository.advance_task7_problem(user_id, None, [held_snapshot])
+    await repository.save_user_state(user_id, "task7")
+
+    resume_message = _message(user_id, "resume")
+    sent = await _send_task7_problem(resume_message, repository, action="resume")
+
+    persisted = await repository.task7_state(user_id)
+    assert sent is False
+    assert persisted is not None
+    assert persisted["problem"]["family_id"] == "OGE07-N05"
+    assert len(repository.issued7[user_id]) == 1
+    assert resume_message.answer_photo.await_count == 0
+    assert "Сохранённое семейство №7 сейчас выключено" in resume_message.answer.await_args.args[0]
