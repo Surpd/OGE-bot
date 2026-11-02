@@ -3104,7 +3104,7 @@ class _Task13PostgresMixin:
                FROM users u LEFT JOIN issued_problems p ON p.user_id=u.id
                LEFT JOIN attempts a ON a.problem_id=p.id
                WHERE u.telegram_user_id=$1 AND (p.id IS NULL OR EXISTS
-                   (SELECT 1 FROM sessions s WHERE s.id=p.session_id AND s.mode='task13', 'task7'))
+                   (SELECT 1 FROM sessions s WHERE s.id=p.session_id AND s.mode='task13'))
                GROUP BY u.id""",
             telegram_user_id,
         )
