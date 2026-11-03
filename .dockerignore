@@ -4,6 +4,8 @@
 __pycache__
 .pytest_cache
 tests
-atlas
+atlas/*
+!atlas/atlas.json
+!atlas/oge*_reference_structures.json
 specs
 .github

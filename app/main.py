@@ -1,6 +1,7 @@
 import hmac
 import logging
 import re
+import traceback
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -19,6 +20,29 @@ logger = logging.getLogger("oge_trainer")
 _MIGRATION_PATTERN = re.compile(r"(?P<number>\d{4})_[a-z0-9_]+\.sql\Z")
 _MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations"
 _MIGRATION_LOCK_ID = 74120608
+
+
+def _safe_traceback(error: BaseException) -> str:
+    """Stack locations/types only: no exception text, source lines or locals.
+
+    Telegram/DB exception strings can contain tokens, payloads and SQL arguments.
+    Even file paths are reduced to basenames to avoid disclosing host/user paths.
+    """
+    chains: list[str] = []
+    seen: set[int] = set()
+    while id(error) not in seen and len(chains) < 3:
+        seen.add(id(error))
+        frames = list(traceback.walk_tb(error.__traceback__))[-40:]
+        locations = " -> ".join(
+            f"{Path(frame.f_code.co_filename).name}:{line}:{frame.f_code.co_name}"
+            for frame, line in frames
+        )
+        chains.append(f"{type(error).__name__} [{locations}]")
+        parent = error.__cause__ or error.__context__
+        if parent is None:
+            break
+        error = parent
+    return " caused_by ".join(chains)
 
 
 def _migration_files() -> list[Path]:
@@ -199,11 +223,19 @@ def create_app(
             await dispatcher.feed_update(telegram_bot, update, repository=repo)
             await repo.finish_update(update_id)
         except Exception as exc:
-            await repo.finish_update(update_id, failed=True)
             logger.error(
-                "telegram_update_failed",
-                extra={"update_id": update_id, "error_type": type(exc).__name__},
+                "telegram_update_failed error_type=%s traceback=%s",
+                type(exc).__name__,
+                _safe_traceback(exc),
             )
+            try:
+                await repo.finish_update(update_id, failed=True)
+            except Exception as cleanup_error:
+                logger.error(
+                    "telegram_update_cleanup_failed error_type=%s traceback=%s",
+                    type(cleanup_error).__name__,
+                    _safe_traceback(cleanup_error),
+                )
             raise HTTPException(status_code=500, detail="Update processing failed") from None
         return Response(status_code=200)
 

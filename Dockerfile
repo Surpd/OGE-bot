@@ -5,6 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /srv/oge-trainer
 COPY pyproject.toml uv.lock README.md ./
 COPY app ./app
+COPY atlas ./atlas
 COPY migrations ./migrations
 RUN uv sync --frozen --no-dev
 USER 10001:10001
