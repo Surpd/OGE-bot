@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Legacy reply text remains accepted by the router, but unavailable modes are hidden.
-MAIN_MENU = ("🧮 По номеру", "📊 Прогресс", "▶ Продолжить")
+MAIN_MENU = ("🧮 По номеру", "📊 Прогресс", "Вид формул", "▶ Продолжить")
 TASK6_MENU = ("💡 Подсказка", "📘 Разбор", "⏭ Пропустить", "↩ В меню")
 
 
@@ -11,6 +11,7 @@ def _button(text: str, data: str) -> InlineKeyboardButton:
 
 def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
     rows = [[_button("🧮 По номеру", "nav:numbers"), _button("📊 Прогресс", "nav:progress")]]
+    rows.append([_button("Вид формул", "nav:display")])
     if has_session:
         rows.insert(0, [_button("▶ Продолжить", "nav:resume")])
     return InlineKeyboardMarkup(inline_keyboard=rows)

@@ -68,7 +68,8 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
         entries = insights[section]
         if not entries:
             lines.append("Пока нет записей.")
-        for record in entries[offset:offset + PAGE_SIZE]:
+        visible = entries if insights.get("paginated") else entries[offset:offset + PAGE_SIZE]
+        for record in visible:
             if section == "families":
                 lines.extend(["", f"№{record['number']} · {record['name']}", _counts(record)])
             else:
@@ -78,17 +79,18 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
                 condition = " ".join(str(record.get("condition", "")).split())[:120]
                 lines.extend(["", f"№{record['number']} · {record['family_name']}",
                               f"{stamp} · {outcome}", condition])
+        total = insights.get("page_total", len(entries))
         if entries:
-            lines.append(f"\nЗаписи {min(offset + 1, len(entries))}–"
-                         f"{min(offset + PAGE_SIZE, len(entries))} из {len(entries)}")
+            lines.append(f"\nЗаписи {min(offset + 1, total)}–"
+                         f"{min(offset + PAGE_SIZE, total)} из {total}")
     return "\n".join(lines)
 
 
 async def show_progress(message: Message, repository: Any, telegram_user_id: int,
                         page: str = "summary") -> None:
-    insights = await training_insights(repository, telegram_user_id)
+    insights = await training_insights(repository, telegram_user_id, page)
     section = page.partition(":")[0]
-    total = len(insights.get(section, [])) if section in {"families", "history", "errors"} else 0
+    total = insights["page_total"] if section in {"families", "history", "errors"} else 0
     await message.answer(render_progress(insights, page),
                          reply_markup=progress_keyboard(page, total), parse_mode=None)
 

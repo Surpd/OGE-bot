@@ -11,13 +11,21 @@ from app.persistence.training_preferences import (
 
 
 class Repository(Protocol):
+    async def math_display(self, user_id: int) -> str: ...
+
+    async def set_math_display(self, user_id: int, mode: str) -> None: ...
+
     async def training_family(self, user_id: int, number: int) -> str | None: ...
 
     async def set_training_family(self, user_id: int, number: int, family: str | None) -> None: ...
 
-    async def set_navigation_message(self, user_id: int, screen: str, message_id: int) -> bool: ...
+    async def set_navigation_message(
+        self, user_id: int, screen: str, message_id: int, revision: str | None = None
+    ) -> bool: ...
 
-    async def claim_navigation_message(self, user_id: int, message_id: int) -> bool: ...
+    async def claim_navigation_message(
+        self, user_id: int, message_id: int, revision: str | None = None
+    ) -> bool: ...
 
     async def register_user(self, telegram_user_id: int) -> None: ...
 
@@ -3599,24 +3607,34 @@ class PostgresRepository(
     def __init__(self, pool: asyncpg.Pool) -> None:
         self._pool = pool
 
-    async def set_navigation_message(self, user_id: int, screen: str, message_id: int) -> bool:
+    async def set_navigation_message(
+        self, user_id: int, screen: str, message_id: int, revision: str | None = None
+    ) -> bool:
         result = await self._pool.fetchval(
             """UPDATE users SET current_state = jsonb_set(
-                   current_state, '{navigation_message_id}', to_jsonb($3::bigint), true)
+                   jsonb_set(current_state, '{navigation_message_id}', to_jsonb($3::bigint), true),
+                   '{navigation_revision}', COALESCE(to_jsonb($4::text), 'null'::jsonb), true)
                WHERE telegram_user_id=$1 AND current_state->>'screen'=$2 RETURNING true""",
             user_id,
             screen,
             message_id,
+            revision,
         )
         return result is True
 
-    async def claim_navigation_message(self, user_id: int, message_id: int) -> bool:
+    async def claim_navigation_message(
+        self, user_id: int, message_id: int, revision: str | None = None
+    ) -> bool:
         result = await self._pool.fetchval(
-            """UPDATE users SET current_state = current_state - 'navigation_message_id'
+            """UPDATE users SET current_state =
+                   current_state - 'navigation_message_id' - 'navigation_revision'
                WHERE telegram_user_id=$1
-                 AND current_state->>'navigation_message_id'=$2::text RETURNING true""",
+                 AND current_state->>'navigation_message_id'=$2::text
+                 AND current_state->>'navigation_revision' IS NOT DISTINCT FROM $3::text
+               RETURNING true""",
             user_id,
             str(message_id),
+            revision,
         )
         return result is True
 
@@ -3635,7 +3653,7 @@ class PostgresRepository(
                    THEN jsonb_build_object(
                    'screen', $2::text, 'resume_mode', $2::text)
                  ELSE jsonb_set(COALESCE(current_state, '{}'::jsonb)
-                                  - 'navigation_message_id', '{screen}',
+                                  - 'navigation_message_id' - 'navigation_revision', '{screen}',
                                 to_jsonb($2::text), true)
                END WHERE telegram_user_id = $1""",
             telegram_user_id,
@@ -4648,8 +4666,9 @@ class MemoryRepository(MemoryTrainingPreferences):
 
     def __init__(self) -> None:
         self.training_preferences: dict[tuple[int, int], str | None] = {}
+        self.math_preferences: dict[int, str] = {}
         self.users: set[int] = set()
-        self.navigation_messages: dict[int, tuple[str, int]] = {}
+        self.navigation_messages: dict[int, tuple[str, int, str | None]] = {}
         self.states: dict[int, str] = {}
         self.resume_modes: dict[int, str] = {}
         self.updates: dict[int, str] = {}
@@ -4710,14 +4729,19 @@ class MemoryRepository(MemoryTrainingPreferences):
         self.solutions7: dict[int, set[str]] = {}
         self.solutions11: dict[int, set[str]] = {}
 
-    async def set_navigation_message(self, user_id: int, screen: str, message_id: int) -> bool:
+    async def set_navigation_message(
+        self, user_id: int, screen: str, message_id: int, revision: str | None = None
+    ) -> bool:
         if self.states.get(user_id) != screen:
             return False
-        self.navigation_messages[user_id] = (screen, message_id)
+        self.navigation_messages[user_id] = (screen, message_id, revision)
         return True
 
-    async def claim_navigation_message(self, user_id: int, message_id: int) -> bool:
-        if self.navigation_messages.get(user_id) != (self.states.get(user_id), message_id):
+    async def claim_navigation_message(
+        self, user_id: int, message_id: int, revision: str | None = None
+    ) -> bool:
+        expected = (self.states.get(user_id), message_id, revision)
+        if self.navigation_messages.get(user_id) != expected:
             return False
         del self.navigation_messages[user_id]
         return True

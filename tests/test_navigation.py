@@ -9,8 +9,45 @@ def callbacks(markup):
 
 
 def test_main_menu_only_exposes_implemented_sections():
-    assert callbacks(menu.main_menu()) == ["nav:numbers", "nav:progress"]
+    assert callbacks(menu.main_menu()) == ["nav:numbers", "nav:progress", "nav:display"]
     assert callbacks(menu.main_menu(has_session=True))[0] == "nav:resume"
+
+
+@pytest.mark.asyncio
+async def test_same_menu_message_rejects_previous_keyboard_revision():
+    from app.persistence.repository import MemoryRepository
+
+    repository = MemoryRepository()
+    await repository.save_user_state(42, "main_menu")
+    assert await repository.set_navigation_message(42, "main_menu", 12, "old")
+    assert await repository.claim_navigation_message(42, 12, "old")
+    assert await repository.set_navigation_message(42, "main_menu", 12, "new")
+    assert not await repository.claim_navigation_message(42, 12, "old")
+    assert not await repository.claim_navigation_message(42, 12)
+    assert await repository.claim_navigation_message(42, 12, "new")
+
+
+@pytest.mark.asyncio
+async def test_menu_navigation_edits_existing_message_without_sending_another():
+    from datetime import datetime
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from aiogram.types import Chat, Message, User
+
+    from app.bot.navigation import NavigationMessage, prepare_navigation_markup
+    from app.persistence.repository import MemoryRepository
+
+    sent = Message(message_id=12, date=datetime.now(), chat=Chat(id=42, type="private"))
+    source = SimpleNamespace(edit_text=AsyncMock(return_value=sent), answer=AsyncMock())
+    callback = SimpleNamespace(from_user=User(id=42, is_bot=False, first_name="Student"))
+    repository = MemoryRepository()
+    await repository.save_user_state(42, "main_menu")
+    proxy = NavigationMessage(source, callback, repository)
+    result = await proxy.answer("Меню", reply_markup=prepare_navigation_markup(menu.main_menu()))
+    assert result.message_id == 12
+    source.edit_text.assert_awaited_once()
+    source.answer.assert_not_awaited()
 
 
 def test_number_menu_is_compact_and_gated():
@@ -69,7 +106,7 @@ async def test_stale_navigation_never_changes_training(monkeypatch):
     repository = SimpleNamespace(claim_navigation_message=AsyncMock(return_value=False))
     await navigation_callback(callback, repository)
     target.assert_not_awaited()
-    repository.claim_navigation_message.assert_awaited_once_with(1, 12)
+    repository.claim_navigation_message.assert_awaited_once_with(1, 12, None)
 
 
 @pytest.mark.asyncio
@@ -122,5 +159,8 @@ async def test_start_removes_legacy_reply_keyboard_before_bound_inline_menu():
     assert isinstance(first.kwargs["reply_markup"], ReplyKeyboardRemove)
     assert isinstance(last.kwargs["reply_markup"], InlineKeyboardMarkup)
     assert "Выберите раздел" in last.args[0]
-    assert await repository.claim_navigation_message(123, 201)
+    from app.bot.navigation import navigation_revision
+
+    revision = navigation_revision(last.kwargs["reply_markup"])
+    assert await repository.claim_navigation_message(123, 201, revision)
     assert not await repository.claim_navigation_message(123, 200)

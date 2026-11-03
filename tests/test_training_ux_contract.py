@@ -506,7 +506,11 @@ async def test_task7_history_is_visible_in_detailed_progress(
 
     assert "№7: решено 1 из 1" in details.answer.await_args.args[0]
     buttons = details.answer.await_args.kwargs["reply_markup"].inline_keyboard
-    assert any(button.callback_data == "progress:history" for row in buttons for button in row)
+    assert any(
+        (button.callback_data or "").partition("~")[0] == "progress:history"
+        for row in buttons
+        for button in row
+    )
     from app.bot.progress import show_progress as show_progress_page
     from app.persistence.training_insights import family_name
 

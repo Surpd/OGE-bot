@@ -56,6 +56,14 @@ async def test_postgres_rejects_stale_navigation_on_the_same_screen(navigation_p
     assert not await repository.set_navigation_message(user_id, "progress", 102)
     assert await repository.claim_navigation_message(user_id, 101)
     assert not await repository.claim_navigation_message(user_id, 101)
+    # Editing an existing menu keeps its Telegram ID. Only its current
+    # keyboard revision may change the screen.
+    assert await repository.set_navigation_message(user_id, "main_menu", 101, "old")
+    assert await repository.claim_navigation_message(user_id, 101, "old")
+    assert await repository.set_navigation_message(user_id, "main_menu", 101, "new")
+    assert not await repository.claim_navigation_message(user_id, 101, "old")
+    assert not await repository.claim_navigation_message(user_id, 101)
+    assert await repository.claim_navigation_message(user_id, 101, "new")
 
 
 @pytest.mark.asyncio
@@ -77,6 +85,10 @@ async def test_postgres_navigation_survives_repository_restart_and_is_user_scope
     assert await repository.set_navigation_message(user_id, "main_menu", 300)
     assert await other_repository.set_navigation_message(other_user_id, "main_menu", 301)
     restarted = PostgresRepository(navigation_pool)
+    assert await restarted.math_display(user_id) == "auto"
+    await repository.set_math_display(user_id, "png")
+    assert await restarted.math_display(user_id) == "png"
+    assert await restarted.math_display(other_user_id) == "auto"
     assert not await restarted.claim_navigation_message(other_user_id, 300)
     assert await restarted.claim_navigation_message(user_id, 300)
     assert await restarted.claim_navigation_message(other_user_id, 301)

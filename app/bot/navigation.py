@@ -1,17 +1,47 @@
 """Inline navigation; callbacks must claim the current persisted menu message."""
 
+import secrets
 from typing import Any, cast
 
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.persistence.repository import Repository
+
+
+def navigation_revision(markup: object) -> str | None:
+    if not isinstance(markup, InlineKeyboardMarkup):
+        return None
+    for row in markup.inline_keyboard:
+        for button in row:
+            if button.callback_data and "~" in button.callback_data:
+                return button.callback_data.rpartition("~")[2]
+    return None
+
+
+def prepare_navigation_markup(markup: object) -> object:
+    """Each rendered keyboard has a revision, even when its message ID is reused."""
+    if navigation_screen(markup) is None or navigation_revision(markup) is not None:
+        return markup
+    assert isinstance(markup, InlineKeyboardMarkup)
+    revision = secrets.token_hex(6)
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [button.model_copy(update={"callback_data": f"{button.callback_data}~{revision}"})
+         if button.callback_data else button for button in row]
+        for row in markup.inline_keyboard
+    ])
 
 
 def navigation_screen(markup: object) -> str | None:
     if not isinstance(markup, InlineKeyboardMarkup):
         return None
-    callbacks = {button.callback_data for row in markup.inline_keyboard for button in row}
+    callbacks = {
+        button.callback_data.partition("~")[0] if button.callback_data else None
+        for row in markup.inline_keyboard for button in row
+    }
     for value in callbacks:
+        if value and value.startswith("nav:math:"):
+            return "display_settings"
         if value and value.startswith(("nav:family:", "nav:families:", "nav:begin:")):
             return f"family_selection:{value.split(':')[2]}"
     if "nav:task:6" in callbacks:
@@ -26,9 +56,10 @@ def navigation_screen(markup: object) -> str | None:
 
 
 async def bind_navigation(
-    message: Message, repository: Repository, user_id: int, screen: str
+    message: Message, repository: Repository, user_id: int, screen: str,
+    revision: str | None = None,
 ) -> None:
-    await repository.set_navigation_message(user_id, screen, message.message_id)
+    await repository.set_navigation_message(user_id, screen, message.message_id, revision)
 
 
 class NavigationMessage:
@@ -44,11 +75,42 @@ class NavigationMessage:
         return getattr(self._message, name)
 
     async def answer(self, text: str, **kwargs: Any) -> Message:
-        sent = await self._message.answer(text, **kwargs)
         screen = navigation_screen(kwargs.get("reply_markup"))
         if screen is not None:
-            await bind_navigation(sent, self._repository, self.from_user.id, screen)
+            try:
+                edited = await self._message.edit_text(text, **kwargs)
+                sent = edited if isinstance(edited, Message) else self._message
+            except TelegramBadRequest:
+                # Expired/deleted menus may no longer be editable. Create one
+                # replacement; transport/network failures are not retried here.
+                sent = await self._message.answer(text, **kwargs)
+            await bind_navigation(sent, self._repository, self.from_user.id, screen,
+                                  navigation_revision(kwargs.get("reply_markup")))
+        else:
+            sent = await self._message.answer(text, **kwargs)
         return sent
+
+
+async def show_display_options(message: Message, repository: Repository) -> None:
+    from app.bot.presentation import send_text
+
+    if message.from_user is None:
+        return
+    user_id = message.from_user.id
+    await repository.save_user_state(user_id, "display_settings")
+    mode = await repository.math_display(user_id)
+    label = "картинкой" if mode == "png" else "обычное оформление"
+    await send_text(
+        message, repository,
+        f"Вид формул: {label}.\n\n"
+        "Если формулы не видны в вашем Telegram, выберите «Картинкой», "
+        "затем продолжите сохранённое задание из меню.",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Обычное оформление", callback_data="nav:math:auto"),
+             InlineKeyboardButton(text="Картинкой", callback_data="nav:math:png")],
+            [InlineKeyboardButton(text="В меню", callback_data="nav:main")],
+        ]),
+    )
 
 
 async def navigation_callback(callback: CallbackQuery, repository: Repository) -> None:
@@ -57,13 +119,14 @@ async def navigation_callback(callback: CallbackQuery, repository: Repository) -
     if not isinstance(callback.message, Message) or not callback.data:
         await callback.answer()
         return
-    data = callback.data
+    data, _, revision = callback.data.partition("~")
     targets = {
         "nav:main": handlers.return_to_menu,
         "nav:numbers": handlers.choose_number,
         "nav:resume": handlers.continue_session,
         "nav:progress": handlers.show_progress,
         "nav:details": handlers.show_progress_details,
+        "nav:display": show_display_options,
     }
     target = targets.get(data)
     if data.startswith("nav:task:"):
@@ -87,17 +150,24 @@ async def navigation_callback(callback: CallbackQuery, repository: Repository) -
             elif action == "begin":
                 target = getattr(handlers, f"choose_task{int(value)}")
     progress_page = data.removeprefix("progress:") if data.startswith("progress:") else None
-    if target is None and progress_page is None and family_action is None:
+    display_mode = data.removeprefix("nav:math:") if data.startswith("nav:math:") else None
+    if display_mode not in {None, "auto", "png"}:
+        await callback.answer("Этот вид формул недоступен.")
+        return
+    if target is None and progress_page is None and family_action is None and display_mode is None:
         await callback.answer("Этот раздел недоступен.")
         return
     if not await repository.claim_navigation_message(
-        callback.from_user.id, callback.message.message_id
+        callback.from_user.id, callback.message.message_id, revision or None
     ):
         await callback.answer("Это меню устарело. Откройте /start.")
         return
     await callback.answer()
     message = cast(Message, NavigationMessage(callback.message, callback, repository))
-    if family_action is not None:
+    if display_mode is not None:
+        await repository.set_math_display(callback.from_user.id, display_mode)
+        await show_display_options(message, repository)
+    elif family_action is not None:
         from app.bot.family_selection import select_family, show_families
 
         number, selection = family_action
@@ -111,11 +181,8 @@ async def navigation_callback(callback: CallbackQuery, repository: Repository) -
         from app.persistence.training_insights import training_insights
 
         await repository.save_user_state(callback.from_user.id, "progress")
-        insights = await training_insights(repository, callback.from_user.id)
-        section = progress_page.partition(":")[0]
-        total = (
-            len(insights.get(section, [])) if section in {"families", "history", "errors"} else 0
-        )
+        insights = await training_insights(repository, callback.from_user.id, progress_page)
+        total = insights["page_total"]
         await send_text(
             message,
             repository,
