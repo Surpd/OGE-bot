@@ -82,4 +82,8 @@ async def test_callback_bot_sender_binds_navigation_to_explicit_user(photo):
         await send_text(message, repository, "Меню", reply_markup=markup, user_id_override=42)
         call = message.answer.await_args
     assert "user_id_override" not in call.kwargs
-    repository.set_navigation_message.assert_awaited_once_with(42, "main_menu", 982)
+    from app.bot.navigation import navigation_revision
+
+    repository.set_navigation_message.assert_awaited_once_with(
+        42, "main_menu", 982, navigation_revision(call.kwargs["reply_markup"])
+    )

@@ -537,7 +537,7 @@ async def task11_callback(callback: CallbackQuery, repository: Repository) -> No
     if action == "hint":
         hint = await repository.task11_hint(user_id, expected_id, condition_id)
         await send_text(
-            message, repository, hint_message(hint) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
         )
     elif action == "solution":
         revealed = await repository.task11_reveal_solution(user_id, expected_id, condition_id)
@@ -963,7 +963,7 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
     if action == "hint":
         hint = await repository.task7_hint(user_id, expected_id, prompt_id)
         await send_text(
-            message, repository, hint_message(hint) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
         )
     elif action == "solution":
         revealed = await repository.task7_reveal_solution(user_id, expected_id, prompt_id)
@@ -1186,6 +1186,11 @@ async def _send_task13_problem(
         + "Выберите один из вариантов (1–4) кнопкой или напишите его номер в чат."
     )
     markup = task13_menu(problem_id, choices=True)
+    system_rows = (
+        tuple(str(problem["condition"]).splitlines())
+        if str(problem.get("family_id", "")).startswith("OGE13-S")
+        else None
+    )
     if graph_choice:
         try:
             image = render_option_sheet_snapshot_png(problem)
@@ -1204,9 +1209,12 @@ async def _send_task13_problem(
             BufferedInputFile(image, filename="oge13-options.png"),
             caption=caption,
             reply_markup=markup,
+            math_system_rows=system_rows,
         )
     else:
-        sent = await send_text(message, repository, caption, reply_markup=markup)
+        sent = await send_text(
+            message, repository, caption, reply_markup=markup, math_system_rows=system_rows
+        )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
         await repository.set_task13_condition_message(
@@ -1297,7 +1305,7 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
     if action == "hint":
         hint = await repository.task13_hint(user_id, expected_id, prompt_id)
         await send_text(
-            message, repository, hint_message(hint) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
         )
     elif action == "solution":
         revealed = await repository.task13_reveal_solution(user_id, expected_id, prompt_id)
@@ -1522,7 +1530,7 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id, expected_problem_id, expected_prompt_message_id=control_message_id
         )
         await send_text(
-            message, repository, hint_message(hint) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
         )
     elif action == "solution":
         revealed = await repository.task6_reveal_solution(
@@ -1570,7 +1578,9 @@ async def task6_hint(message: Message, repository: Repository) -> None:
         else None
     )
     await send_text(
-        message, repository, hint_message(hint) if hint else "Сначала откройте активное задание."
+        message,
+        repository,
+        hint_message(hint, problem) if hint else "Сначала откройте активное задание.",
     )
 
 
@@ -1775,7 +1785,7 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id, expected_problem_id, expected_prompt_message_id=control_message_id
         )
         await send_text(
-            message, repository, hint_message(hint) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
         )
     elif action == "solution":
         revealed = await repository.task9_reveal_solution(
@@ -1956,7 +1966,7 @@ async def show_progress_details(message: Message, repository: Repository) -> Non
     if user_id is None:
         return
     await repository.save_user_state(user_id, "progress")
-    insights = await training_insights(repository, user_id)
+    insights = await training_insights(repository, user_id, "numbers")
     await send_text(
         message,
         repository,
