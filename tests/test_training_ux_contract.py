@@ -188,7 +188,7 @@ async def test_number_menu_matches_registered_training_adapters() -> None:
     await router.choose_number(message, MemoryRepository())
     menu_numbers = {
         int(match.group(1))
-        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
         if (match := re.match(r"№(\d+)", button.text or "")) is not None
     }
@@ -208,7 +208,7 @@ async def test_task7_is_hidden_and_cannot_start_when_release_flags_are_empty(
     await router.choose_number(menu_message, repository)
     labels = [
         button.text
-        for row in menu_message.answer.await_args.kwargs["reply_markup"].keyboard
+        for row in menu_message.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
     assert not any(label and label.startswith("№7") for label in labels)
@@ -504,11 +504,23 @@ async def test_task7_history_is_visible_in_detailed_progress(
     details = _message(user_id, "📊 Подробнее")
     await show_progress_details(details, repository)
 
-    rendered = details.answer.await_args.args[0]
-    assert "История №7" in rendered
-    assert str(problem["family_id"]) in rendered
-    assert str(problem["condition"]) in rendered
-    assert "верно" in rendered
+    assert "№7: решено 1 из 1" in details.answer.await_args.args[0]
+    buttons = details.answer.await_args.kwargs["reply_markup"].inline_keyboard
+    assert any(
+        (button.callback_data or "").partition("~")[0] == "progress:history"
+        for row in buttons
+        for button in row
+    )
+    from app.bot.progress import show_progress as show_progress_page
+    from app.persistence.training_insights import family_name
+
+    history = _message(user_id, "История")
+    await show_progress_page(history, repository, user_id, page="history")
+    rendered = history.answer.await_args.args[0]
+    assert "История" in rendered and "№7" in rendered
+    assert family_name(str(problem["family_id"])) in rendered
+    assert " ".join(str(problem["condition"]).split())[:120] in rendered
+    assert "решено" in rendered
 
 
 @pytest.mark.asyncio

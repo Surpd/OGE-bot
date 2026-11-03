@@ -326,15 +326,15 @@ async def test_progress_counts_issued_answered_solved_and_attempts() -> None:
     progress_message = _message(780, "📊 Прогресс")
     await show_progress(progress_message, repository)
     text = progress_message.answer.await_args.args[0]
-    assert "№6 · выдано 1" in text
-    assert "отвечал 1" in text
-    assert "решил 1" in text
-    assert "правильно 100%" in text
+    assert "Выдано: 1 · Решено: 1" in text
+    assert "С 1-й: 0 · Со 2-й: 1" in text
+    assert "Ответов: 2" in text
+    assert "%" not in text
     details = _message(780, "📊 Подробнее")
     await show_progress_details(details, repository)
     details_text = details.answer.await_args.args[0]
-    assert "неверных попыток — 1" in details_text
-    assert "правильно с первой попытки — 0" in details_text
+    assert "№6: решено 1 из 1" in details_text
+    assert "1-я/2-я: 0/1" in details_text
 
 
 @pytest.mark.asyncio
@@ -343,9 +343,9 @@ async def test_empty_progress_uses_zero_accuracy_without_division_error() -> Non
     message = _message(772, "📊 Прогресс")
     await show_progress(message, repository)
     text = message.answer.await_args.args[0]
-    assert "№6 · выдано 0 · отвечал 0" in text
-    assert "№9 · выдано 0 · отвечал 0" in text
-    assert text.count("правильно 0%") == 9
+    assert "Выдано: 0 · Решено: 0" in text
+    assert "%" not in text
+    assert "оценка освоения" not in text
 
 
 @pytest.mark.asyncio

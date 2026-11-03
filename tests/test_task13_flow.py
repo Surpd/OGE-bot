@@ -56,7 +56,7 @@ async def test_disabled_task13_is_hidden_from_number_menu(monkeypatch) -> None:
     await choose_number(message, MemoryRepository())
     labels = [
         button.text
-        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
     assert not any(label and label.startswith("№13") for label in labels)
@@ -69,7 +69,7 @@ async def test_enabled_task13_is_shown_in_number_menu() -> None:
     await choose_number(message, MemoryRepository())
     labels = [
         button.text
-        for row in message.answer.await_args.kwargs["reply_markup"].keyboard
+        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
     assert any(label and label.startswith("№13") for label in labels)
