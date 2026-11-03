@@ -28,6 +28,8 @@
 
 | LL-20 | Container runtime assets | Новый UI читал atlas из репозитория, но Dockerfile/.dockerignore не включали каталог в production. Проверки из checkout скрывали FileNotFoundError. | Проверять настоящий Dispatcher с PostgreSQL и runtime-набором файлов образа; копировать только необходимые runtime JSON. Логировать безопасные кадры traceback, а не исключение с payload. | Inline UI / release | `tests/test_inline_dispatcher_postgres.py::test_dispatcher_postgres_with_production_container_assets`; `tests/test_webhook.py::test_webhook_error_has_safe_traceback_and_remains_a_failure` | covered |
 
+| LL-21 | Callback acknowledgement | Отклонённый по revision callback мог иметь уже истёкший Telegram query. Ошибка необязательного AnswerCallbackQuery давала HTTP 500 и повторную доставку; ранний ACK мог прервать корректный переход после claim. | Разделять действие и уведомление. Узко обрабатывать только известный expired/invalid query для AnswerCallbackQuery, сохранять транзакционные guard и HTTP-ошибки остальных операций. | Все inline callbacks | `tests/test_inline_dispatcher_postgres.py::test_expired_stale_callback_webhook_postgres`; `tests/test_inline_dispatcher_postgres.py::test_unrelated_callback_api_error_is_not_hidden` | covered |
+
 ## Добавление урока
 
 Добавляй запись только после подтверждённого дефекта. Укажи минимальный тест, который

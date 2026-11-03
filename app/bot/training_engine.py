@@ -8,6 +8,7 @@ from typing import Any, Protocol, cast
 
 from aiogram.types import CallbackQuery, Message
 
+from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu, training_menu
 from app.bot.presentation import hint_message, send_text
 from app.bot.training_ux import matches_current_condition
@@ -186,21 +187,21 @@ async def training_callback(
 
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != f"t{adapter.number}" or callback.message is None:
-        await callback.answer()
+        await answer_callback(callback)
         return
     _, action, expected_id = parts
     user_id = callback.from_user.id
     message = cast(Message, callback.message)
     prompt_id = getattr(message, "message_id", None)
     if type(prompt_id) is not int:
-        await callback.answer("Кнопка больше не связана с заданием.")
+        await answer_callback(callback, "Кнопка больше не связана с заданием.")
         return
     if action == "menu":
         changed = await repository.transition_task_screen(
             user_id, adapter.mode, expected_id, "main_menu", prompt_id
         )
         if not changed:
-            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            await answer_callback(callback, "Тренировка приостановлена или задание уже сменилось.")
             return
         await send_text(
             message,
@@ -209,15 +210,15 @@ async def training_callback(
             reply_markup=main_menu(has_session=await _has_resumable_session(repository, user_id)),
             user_id_override=user_id,
         )
-        await callback.answer()
+        await answer_callback(callback)
         return
     if await repository.user_state(user_id) != adapter.mode:
-        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        await answer_callback(callback, "Тренировка приостановлена. Нажмите «Продолжить».")
         return
     state = await adapter.operation(repository, "state")(user_id)
     problem = state.get("problem") if state else None
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
-        await callback.answer("Это задание уже сменилось.")
+        await answer_callback(callback, "Это задание уже сменилось.")
         return
     if action in {"next", "skip"}:
         advanced = await send_problem(
@@ -231,7 +232,7 @@ async def training_callback(
             user_id_override=user_id,
             skip_active=action == "skip",
         )
-        await callback.answer(None if advanced else "Это задание уже сменилось.")
+        await answer_callback(callback, None if advanced else "Это задание уже сменилось.")
         return
     if action == "hint":
         hint = await adapter.operation(repository, "hint")(user_id, expected_id, prompt_id)
@@ -244,7 +245,7 @@ async def training_callback(
         )
         snapshot = revealed.get("problem") if revealed else None
         if not isinstance(snapshot, dict):
-            await callback.answer("Это задание уже сменилось.")
+            await answer_callback(callback, "Это задание уже сменилось.")
             return
         steps = snapshot.get("solution", [])
         sent = await send_text(
@@ -265,9 +266,9 @@ async def training_callback(
             )
             await _disable_stale_keyboard(sent, saved)
     else:
-        await callback.answer()
+        await answer_callback(callback)
         return
-    await callback.answer()
+    await answer_callback(callback)
 
 
 async def training_answer(
