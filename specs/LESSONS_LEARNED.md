@@ -26,6 +26,8 @@
 
 | LL-19 | Inline navigation | Меню, отправленное из callback, принадлежит боту; привязка по sender могла сохранять меню не тому пользователю. Старое меню могло повторно менять экран. | Передавать callback user явно, атомарно принимать только текущий ID навигации, инвалидировать его при смене экрана. | Все номера | `tests/test_math_presentation.py::test_callback_bot_sender_binds_navigation_to_explicit_user`; `tests/test_navigation_postgres.py::test_postgres_concurrent_duplicate_claims_have_one_winner` | covered |
 
+| LL-20 | Container runtime assets | Новый UI читал atlas из репозитория, но Dockerfile/.dockerignore не включали каталог в production. Проверки из checkout скрывали FileNotFoundError. | Проверять настоящий Dispatcher с PostgreSQL и runtime-набором файлов образа; копировать только необходимые runtime JSON. Логировать безопасные кадры traceback, а не исключение с payload. | Inline UI / release | `tests/test_inline_dispatcher_postgres.py::test_dispatcher_postgres_with_production_container_assets`; `tests/test_webhook.py::test_webhook_error_has_safe_traceback_and_remains_a_failure` | covered |
+
 ## Добавление урока
 
 Добавляй запись только после подтверждённого дефекта. Укажи минимальный тест, который

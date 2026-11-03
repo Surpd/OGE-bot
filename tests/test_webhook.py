@@ -60,6 +60,34 @@ def test_update_is_idempotent(client) -> None:
     assert len(repository.updates) == 1
 
 
+def test_webhook_error_has_safe_traceback_and_remains_a_failure(client, monkeypatch, caplog):
+    test_client, repository = client
+    marker = "PRIVATE_TOKEN_CHAT_PAYLOAD"
+
+    async def fail(*args, **kwargs):
+        try:
+            raise ValueError(marker)
+        except ValueError as cause:
+            raise RuntimeError(marker) from cause
+
+    monkeypatch.setattr(test_client.app.state.dispatcher, "feed_update", fail)
+    with caplog.at_level("ERROR", logger="oge_trainer"):
+        response = test_client.post(
+            "/telegram/webhook",
+            json={"update_id": 101},
+            headers={"X-Telegram-Bot-Api-Secret-Token": "test-webhook-secret"},
+        )
+    assert response.status_code == 500
+    assert repository.updates[101] == "failed"
+    records = [r for r in caplog.records if r.name == "oge_trainer"]
+    diagnostic = "\n".join(r.getMessage() for r in records)
+    assert "telegram_update_failed error_type=RuntimeError" in diagnostic
+    assert "traceback=" in diagnostic and "test_webhook.py:" in diagnostic
+    assert "ValueError" in diagnostic and "fail" in diagnostic
+    assert marker not in diagnostic and "test-webhook-secret" not in diagnostic
+    assert all(r.exc_info is None for r in records)
+
+
 @pytest.mark.asyncio
 async def test_postgres_registration_and_state_survive_new_repository() -> None:
     database_url = os.getenv("DATABASE_URL")
