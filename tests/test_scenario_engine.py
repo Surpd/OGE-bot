@@ -100,10 +100,15 @@ class _Adapter:
         assert rendered.shared_context == "Shared context"
 
 
-def test_story_discovery_finds_merged_stories_without_exposing_task_numbers() -> None:
+def test_story_discovery_finds_installed_adapters_and_fails_closed() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
     discovered = discover_story_registry()
-    assert {"TYRES", "PAPER", "TARIFF", "GARDEN"}.issubset(discovered.story_codes)
+    assert {"TYRES", "PAPER", "TARIFF", "GARDEN", "ROUTE"}.issubset(discovered.story_codes)
+    assert all(
+        not registration.available
+        for story_code in discovered.story_codes
+        for registration in discovered.adapter(story_code).family_registry
+    )
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
