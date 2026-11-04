@@ -15,6 +15,7 @@ from fastapi import FastAPI, Header, HTTPException, Request, Response
 from app.bot.router import build_router
 from app.config import get_settings
 from app.persistence.repository import PostgresRepository, Repository, read_migration
+from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 logger = logging.getLogger("oge_trainer")
 _MIGRATION_PATTERN = re.compile(r"(?P<number>\d{4})_[a-z0-9_]+\.sql\Z")
@@ -138,6 +139,7 @@ def create_app(
     *,
     repository: Repository | None = None,
     bot: Bot | None = None,
+    scenario_repository: ScenarioPostgresRepository | None = None,
     run_schema_migrations: bool = True,
 ) -> FastAPI:
     settings = get_settings()
@@ -158,6 +160,9 @@ def create_app(
                 except BaseException:
                     await pool.close()
                     raise
+        oge15_repo = scenario_repository
+        if oge15_repo is None and pool is not None:
+            oge15_repo = ScenarioPostgresRepository(pool)
         if telegram_bot is None:
             if not settings.telegram_bot_token:
                 raise RuntimeError("TELEGRAM_BOT_TOKEN is required")
@@ -178,6 +183,7 @@ def create_app(
         dispatcher = Dispatcher()
         dispatcher.include_router(build_router())
         application.state.repository = repo
+        application.state.oge15_repository = oge15_repo
         application.state.bot = telegram_bot
         application.state.dispatcher = dispatcher
         yield
@@ -220,7 +226,12 @@ def create_app(
             update = Update.model_validate(payload)
             dispatcher: Dispatcher = request.app.state.dispatcher
             telegram_bot: Bot = request.app.state.bot
-            await dispatcher.feed_update(telegram_bot, update, repository=repo)
+            await dispatcher.feed_update(
+                telegram_bot,
+                update,
+                repository=repo,
+                oge15_repository=request.app.state.oge15_repository,
+            )
             await repo.finish_update(update_id)
         except Exception as exc:
             logger.error(

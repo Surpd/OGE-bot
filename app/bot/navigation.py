@@ -1,6 +1,7 @@
 """Inline navigation; callbacks must claim the current persisted menu message."""
 
 import secrets
+from collections.abc import Awaitable, Callable
 from typing import Any, cast
 
 from aiogram.exceptions import TelegramBadRequest
@@ -8,6 +9,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 
 from app.bot.callbacks import answer_callback
 from app.persistence.repository import Repository
+from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 
 def navigation_revision(markup: object) -> str | None:
@@ -134,7 +136,11 @@ async def show_display_options(message: Message, repository: Repository) -> None
     )
 
 
-async def navigation_callback(callback: CallbackQuery, repository: Repository) -> None:
+async def navigation_callback(
+    callback: CallbackQuery,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     from app.bot import router as handlers
 
     if not isinstance(callback.message, Message) or not callback.data:
@@ -210,6 +216,17 @@ async def navigation_callback(callback: CallbackQuery, repository: Repository) -
             reply_markup=progress_keyboard(progress_page, total),
         )
     elif target is not None:
-        await target(message, repository)
+        if data == "nav:resume":
+            await handlers.continue_session(
+                message,
+                repository,
+                oge15_repository,
+                user_id_override=callback.from_user.id,
+            )
+        elif data == "nav:main":
+            await handlers.return_to_menu(message, repository, oge15_repository)
+        else:
+            handler = cast(Callable[[Message, Repository], Awaitable[None]], target)
+            await handler(message, repository)
     # Complete the guarded transition before an optional notification can fail.
     await answer_callback(callback)

@@ -184,6 +184,25 @@ class ScenarioPostgresRepository:
             snapshot=snapshot,
         )
 
+    async def resume_paused(
+        self, telegram_user_id: int, session_id: UUID
+    ) -> ScenarioSession | None:
+        """Atomically reopen one owned paused session and return its same snapshot."""
+        async with self._pool.acquire() as connection, connection.transaction():
+            resumed = await connection.fetchval(
+                """UPDATE oge15_sessions AS session SET status='active',
+                          navigation_revision=navigation_revision+1
+                   FROM users AS app_user
+                   WHERE session.user_id=app_user.id AND app_user.telegram_user_id=$1
+                     AND session.id=$2 AND session.status='paused'
+                   RETURNING session.id""",
+                telegram_user_id,
+                session_id,
+            )
+            if resumed is None:
+                return None
+        return await self.resume_session(telegram_user_id)
+
     async def set_condition_message(
         self, telegram_user_id: int, session_id: UUID, position: int, message_id: int
     ) -> bool:
