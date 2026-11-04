@@ -103,7 +103,8 @@ class _Adapter:
 def test_story_discovery_finds_installed_adapters_and_fails_closed() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
     discovered = discover_story_registry()
-    assert {"TYRES", "PAPER", "TARIFF", "GARDEN", "ROUTE"}.issubset(discovered.story_codes)
+    assert {"TYRES", "PAPER", "TARIFF", "GARDEN", "ROUTE", "STOVE", "FLAT"}.issubset(discovered.story_codes)
+    assert discovered.available_stories(PracticeMode.FULL) == ()
     assert all(
         not registration.available
         for story_code in discovered.story_codes
