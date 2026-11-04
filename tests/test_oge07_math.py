@@ -9,6 +9,7 @@ from fractions import Fraction
 
 import pytest
 
+from app.math import oge07_graph
 from app.math.numbers import (
     ENABLED_FAMILIES as TEXT_ENABLED_FAMILIES,
 )
@@ -204,13 +205,20 @@ def test_only_audited_families_are_enabled_and_scheduler_fails_closed() -> None:
     assert {item["family_id"] for item in selected} == {"OGE07-C02", "OGE07-N04"}
 
 
-def test_graph_snapshot_restores_identical_png_and_answer() -> None:
+def test_graph_snapshot_restores_identical_png_and_answer(monkeypatch) -> None:
     problem = generate_graph_problem("OGE07-N01", 104)
     snapshot = problem.to_snapshot()
     restored_png = base64.b64decode(str(snapshot["graph_png_base64"]))
     assert restored_png == problem.png
     assert snapshot["graph_model"] == problem.graph_model
     assert snapshot["correct_answer"] == str(problem.correct_option_index)
+
+    def unexpected_render(*args, **kwargs):
+        pytest.fail("Validation rendered a second PNG")
+
+    monkeypatch.setattr(oge07_graph, "render_png", unexpected_render)
+    assert validate_task7_snapshot(snapshot)
+
 
 
 @pytest.mark.parametrize("family", (*FAMILIES, *GRAPH_SOURCES))

@@ -24,9 +24,9 @@ from app.math.oge07_graph import (
     GRAPH_SOURCES,
     GraphModel,
     GraphProblem,
+    _build_graph_problem,
     audit_graph_explanation,
     audit_graph_problem,
-    generate_graph_problem,
 )
 
 
@@ -77,9 +77,11 @@ def validate_task7_snapshot(value: object) -> bool:
                 return False
             expected_problem = generate(family, seed, TEXT_GENERATOR_VERSION)
             expected = expected_problem.to_snapshot()
-            return audit_condition(
-                family, str(snapshot.get("condition", "")), options, answer_index
-            ) and audit_explanation(expected_problem) and _matches_expected(snapshot, expected)
+            return (
+                audit_condition(family, str(snapshot.get("condition", "")), options, answer_index)
+                and audit_explanation(expected_problem)
+                and _matches_expected(snapshot, expected)
+            )
         if family not in GRAPH_SOURCES:
             return False
         if snapshot.get("generator_version") != GRAPH_GENERATOR_VERSION:
@@ -103,7 +105,7 @@ def validate_task7_snapshot(value: object) -> bool:
             hints=tuple(cast(list[str], snapshot.get("hints", []))),
             solution=tuple(cast(list[str], snapshot.get("solution", []))),
         )
-        expected_graph = generate_graph_problem(family, seed)
+        expected_graph = _build_graph_problem(family, seed, png)
         expected = expected_graph.to_snapshot()
         return (
             audit_graph_problem(graph)

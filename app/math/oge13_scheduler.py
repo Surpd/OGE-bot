@@ -21,7 +21,9 @@ def _deck(seed: int, last_family: str | None = None) -> list[str]:
     return deck
 
 
-def build_task13_candidate_batch(state: dict[str, object], seed: int) -> list[dict[str, object]]:
+def build_task13_candidate_batch(
+    state: dict[str, object], seed: int, *, limit: int = MAX_CANDIDATES
+) -> list[dict[str, object]]:
     enabled = tuple(ENABLED_FAMILIES)
     stored = state.get("family_queue")
     if (
@@ -65,6 +67,6 @@ def build_task13_candidate_batch(state: dict[str, object], seed: int) -> list[di
                 }
             )
             candidates.append(snapshot)
-            if len(candidates) >= MAX_CANDIDATES:
+            if len(candidates) >= limit:
                 return candidates
     return candidates
