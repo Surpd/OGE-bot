@@ -8,10 +8,10 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-import hashlib
-import json
-import math
-import random
+from hashlib import sha256
+from json import dumps
+from math import isfinite
+from random import Random
 from types import MappingProxyType
 from typing import Protocol
 
@@ -38,7 +38,7 @@ class ScenarioUnavailable(RuntimeError):
 
 
 def _freeze_json(value: object) -> JsonValue:
-    if isinstance(value, float) and not math.isfinite(value):
+    if isinstance(value, float) and not isfinite(value):
         raise ValueError("Scenario snapshot data cannot contain non-finite numbers")
     if value is None or isinstance(value, str | bool | int | float):
         return value
@@ -476,7 +476,7 @@ def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> P
     else:
         if not available:
             raise ScenarioUnavailable("No enabled OGE 1–5 story adapters are installed")
-        story_code = random.Random(request.seed).choice(available)
+        story_code = Random(request.seed).choice(available)
 
     adapter = registry.adapter(story_code)
     scenario = adapter.generator.generate_scenario(request.seed)
@@ -492,7 +492,7 @@ def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> P
         eligible_positions = registry.available_positions(story_code)
         if not eligible_positions:
             raise ScenarioUnavailable("Selected story has no enabled question positions")
-        selected_positions = (random.Random(request.seed ^ 0x15).choice(eligible_positions),)
+        selected_positions = (Random(request.seed ^ 0x15).choice(eligible_positions),)
 
     questions: list[QuestionSnapshot] = []
     draft_questions: list[QuestionDraft] = []
@@ -538,10 +538,10 @@ def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> P
 
 
 def snapshot_digest(snapshot: ScenarioSnapshot) -> str:
-    encoded = json.dumps(
+    encoded = dumps(
         snapshot.to_snapshot(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+    return sha256(encoded).hexdigest()
 
 
 def discover_story_registry() -> FamilyRegistry:
