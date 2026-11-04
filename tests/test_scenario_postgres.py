@@ -174,6 +174,21 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
             "UPDATE oge15_sessions SET status='completed', finished_at=now() WHERE id=$1",
             created.session_id,
         )
+        single = await restarted_store.start_session(
+            user_id, snapshot, PracticeMode.SINGLE, (4,)
+        )
+        assert await pool.fetchval(
+            "SELECT count(*) FROM oge15_question_progress WHERE session_id=$1",
+            single.session_id,
+        ) == 1
+        assert await pool.fetchval(
+            "SELECT jsonb_array_length(snapshot->'questions') FROM oge15_scenarios WHERE id=$1",
+            single.scenario_id,
+        ) == 5
+        await pool.execute(
+            "UPDATE oge15_sessions SET status='completed', finished_at=now() WHERE id=$1",
+            single.session_id,
+        )
         assert await pool.fetchval("SELECT count(*) FROM oge15_protected_assets") == 0
         assert await pool.fetchval("SELECT count(*) FROM oge15_assets") == 1
     finally:

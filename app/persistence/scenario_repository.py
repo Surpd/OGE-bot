@@ -56,8 +56,8 @@ class ScenarioPostgresRepository:
             len(positions) != 1 or positions[0] not in range(1, 6)
         ):
             raise ValueError("Single mode must select exactly one question position")
-        if tuple(question.position for question in snapshot.questions) != positions:
-            raise ValueError("Session positions must match the questions in its immutable snapshot")
+        if tuple(question.position for question in snapshot.questions) != (1, 2, 3, 4, 5):
+            raise ValueError("Scenario snapshot must preserve all five related questions")
         encoded = json.dumps(
             snapshot.to_snapshot(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
         )
@@ -146,12 +146,12 @@ class ScenarioPostgresRepository:
                           progress.attempt_count, progress.hints_used,
                           progress.prompt_message_id, scenario.snapshot
                    FROM oge15_sessions AS session
-                   JOIN users AS user ON user.id = session.user_id
+                   JOIN users AS app_user ON app_user.id = session.user_id
                    JOIN oge15_scenarios AS scenario ON scenario.id = session.scenario_id
                    JOIN oge15_question_progress AS progress
                      ON progress.session_id=session.id
                     AND progress.position=session.current_position
-                   WHERE user.telegram_user_id=$1 AND session.status <> 'completed'
+                   WHERE app_user.telegram_user_id=$1 AND session.status <> 'completed'
                    ORDER BY session.started_at DESC LIMIT 1""",
                 telegram_user_id,
             )
@@ -186,10 +186,10 @@ class ScenarioPostgresRepository:
                 """UPDATE oge15_question_progress AS progress
                    SET prompt_message_id=$3, updated_at=now()
                    FROM oge15_sessions AS session
-                   JOIN users AS user ON user.id=session.user_id
+                   JOIN users AS app_user ON app_user.id=session.user_id
                    WHERE progress.session_id=$1 AND progress.position=$2
                      AND session.id=progress.session_id AND session.status='active'
-                     AND user.telegram_user_id=$4
+                     AND app_user.telegram_user_id=$4
                      AND session.current_position=progress.position AND progress.status='active'
                    RETURNING progress.position""",
                 session_id,
@@ -208,9 +208,9 @@ class ScenarioPostgresRepository:
         async with self._pool.acquire() as connection:
             updated = await connection.fetchval(
                 """UPDATE oge15_sessions AS session SET control_message_id=$3
-                   FROM users AS user
-                   WHERE session.id=$1 AND session.user_id=user.id
-                     AND user.telegram_user_id=$4 AND session.navigation_revision=$2
+                   FROM users AS app_user
+                   WHERE session.id=$1 AND session.user_id=app_user.id
+                     AND app_user.telegram_user_id=$4 AND session.navigation_revision=$2
                      AND session.status='active' RETURNING session.id""",
                 session_id,
                 expected_revision,
@@ -233,8 +233,8 @@ class ScenarioPostgresRepository:
         async with self._pool.acquire() as connection, connection.transaction():
             session = await connection.fetchrow(
                 """SELECT session.current_position, session.status FROM oge15_sessions AS session
-                   JOIN users AS user ON user.id=session.user_id
-                   WHERE session.id=$1 AND user.telegram_user_id=$2 FOR UPDATE OF session""",
+                   JOIN users AS app_user ON app_user.id=session.user_id
+                   WHERE session.id=$1 AND app_user.telegram_user_id=$2 FOR UPDATE OF session""",
                 session_id,
                 telegram_user_id,
             )
@@ -318,8 +318,8 @@ class ScenarioPostgresRepository:
                 """SELECT session.mode, session.status, session.current_position,
                           session.navigation_revision, session.control_message_id
                    FROM oge15_sessions AS session
-                   JOIN users AS user ON user.id=session.user_id
-                   WHERE session.id=$1 AND user.telegram_user_id=$2 FOR UPDATE OF session""",
+                   JOIN users AS app_user ON app_user.id=session.user_id
+                   WHERE session.id=$1 AND app_user.telegram_user_id=$2 FOR UPDATE OF session""",
                 session_id,
                 telegram_user_id,
             )
@@ -433,8 +433,8 @@ class ScenarioPostgresRepository:
                 """SELECT position, issued, correct, skipped, solutions_viewed,
                           hints_used, attempts, first_attempts, second_attempts
                    FROM oge15_position_stats AS stats
-                   JOIN users AS user ON user.id=stats.user_id
-                   WHERE user.telegram_user_id=$1 ORDER BY position""",
+                   JOIN users AS app_user ON app_user.id=stats.user_id
+                   WHERE app_user.telegram_user_id=$1 ORDER BY position""",
                 telegram_user_id,
             )
         return {

@@ -127,6 +127,8 @@ def test_single_plan_keeps_shared_scenario_but_selects_one_question() -> None:
     )
     assert plan.selected_positions == (4,)
     assert len(plan.snapshot.questions) == 5
+    assert tuple(question.position for question in plan.snapshot.questions) == (1, 2, 3, 4, 5)
+    assert adapter.oracle_calls == 5
     assert plan.snapshot.shared_context == "Shared context"
     assert adapter.render_calls == 1
 

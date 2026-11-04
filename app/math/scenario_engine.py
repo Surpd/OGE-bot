@@ -205,14 +205,10 @@ class ScenarioSnapshot:
         object.__setattr__(self, "questions", tuple(self.questions))
         object.__setattr__(self, "provenance", tuple(self.provenance))
         positions = tuple(question.position for question in self.questions)
-        if positions not in (POSITIONS,) and (
-            len(positions) != 1 or positions[0] not in POSITIONS
-        ):
-            raise ValueError(
-                "A snapshot must contain one selected question or the full ordered set"
-            )
+        if positions != POSITIONS:
+            raise ValueError("A scenario snapshot must contain the full ordered question set")
         if any(question.scenario_seed != self.seed for question in self.questions):
-            raise ValueError("All snapshot questions must use the scenario seed")
+            raise ValueError("All snapshot questions must use the same scenario seed")
         if not self.shared_context.strip():
             raise ValueError("Scenario snapshot must preserve the rendered shared context")
 
@@ -433,9 +429,7 @@ class FamilyRegistry:
         result = []
         for code in self.story_codes:
             available = self.available_positions(code)
-            if (mode is PracticeMode.FULL and available == POSITIONS) or (
-                mode is PracticeMode.SINGLE and (position is None or position in available)
-            ):
+            if available == POSITIONS and (position is None or position in available):
                 result.append(code)
         return tuple(result)
 
@@ -498,7 +492,7 @@ def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> P
 
     questions: list[QuestionSnapshot] = []
     draft_questions: list[QuestionDraft] = []
-    for position in selected_positions:
+    for position in POSITIONS:
         question = adapter.question_builder.build_question(scenario, position)
         if question.position != position or question.scenario_seed != scenario.seed:
             raise ValueError("Question builder returned a mismatched position or scenario seed")
