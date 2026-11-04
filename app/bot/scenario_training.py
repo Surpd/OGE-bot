@@ -21,7 +21,6 @@ from asyncpg import UniqueViolationError
 
 from app.bot.callbacks import answer_callback
 from app.bot.training_ux import matches_current_condition
-from app.config import get_settings
 from app.math.scenario_engine import (
     FamilyRegistry,
     PracticeMode,
@@ -147,8 +146,8 @@ def _keyboard(rows: list[list[InlineKeyboardButton]]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def _authorized(user_id: int | None) -> bool:
-    return get_settings().can_use_oge15_pilot(user_id)
+def _has_user(user_id: int | None) -> bool:
+    return user_id is not None and user_id > 0
 
 
 def _story_keyboard() -> InlineKeyboardMarkup:
@@ -168,7 +167,7 @@ async def show_pilot(
     repository: Repository | None = None,
 ) -> None:
     user_id = message.from_user.id if message.from_user else None
-    if not _authorized(user_id):
+    if not _has_user(user_id):
         return
     if oge15_repository is None:
         await message.answer("Практические задания №1–5 пока недоступны.")
@@ -176,7 +175,7 @@ async def show_pilot(
     if repository is not None and user_id is not None:
         await repository.save_user_state(user_id, "oge15_menu")
     await message.answer(
-        "Практические задания №1–5 · закрытый пилот\nВыберите сюжет:",
+        "Практические задания №1–5\nВыберите сюжет:",
         reply_markup=_story_keyboard(),
     )
 
@@ -303,8 +302,8 @@ async def _start_session(
     position_text: str | None,
 ) -> None:
     user_id = callback.from_user.id
-    if not _authorized(user_id) or not isinstance(callback.message, Message):
-        await answer_callback(callback, "Закрытый пилот недоступен.")
+    if not _has_user(user_id) or not isinstance(callback.message, Message):
+        await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
     if await store.resume_session(user_id) is not None:
         await answer_callback(callback, "Сначала продолжите или завершите текущую практику.")
@@ -367,7 +366,7 @@ async def answer_message(
     repository: Repository | None = None,
 ) -> None:
     user_id = message.from_user.id if message.from_user else None
-    if not _authorized(user_id) or user_id is None or message.text is None:
+    if not _has_user(user_id) or user_id is None or message.text is None:
         raise SkipHandler
     if oge15_repository is None or repository is None:
         raise SkipHandler
@@ -426,11 +425,11 @@ async def handle_callback(
     oge15_repository: ScenarioPostgresRepository | None = None,
     repository: Repository | None = None,
 ) -> None:
-    if not _authorized(callback.from_user.id):
-        await answer_callback(callback, "Закрытый пилот недоступен.")
+    if not _has_user(callback.from_user.id):
+        await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
     if oge15_repository is None:
-        await answer_callback(callback, "Закрытый пилот недоступен.")
+        await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
     data = callback.data or ""
     if data == "oge15:home":
