@@ -12,7 +12,6 @@ from test_navigation_postgres import navigation_pool as postgres_db_fixture  # n
 
 from app.bot import router, scenario_training
 from app.bot.router import build_router
-from app.config import Settings
 from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
@@ -29,19 +28,22 @@ async def oge15_navigation_pool(postgres_db_fixture):  # noqa: F811
 
 
 
-def test_pilot_configuration_is_closed_by_default_and_fails_closed() -> None:
-    assert not Settings().can_use_oge15_pilot(1)
-    assert not Settings(oge15_pilot_enabled=True).can_use_oge15_pilot(1)
-    settings = Settings(oge15_pilot_enabled=True, oge15_pilot_user_ids="7, 11")
-    assert settings.can_use_oge15_pilot(7)
-    assert settings.can_use_oge15_pilot(11)
-    assert not settings.can_use_oge15_pilot(8)
-    invalid = Settings(oge15_pilot_enabled=True, oge15_pilot_user_ids="7, nope")
-    assert not invalid.can_use_oge15_pilot(7)
+def test_oge15_public_number_menu_and_story_exclusions() -> None:
+    from app.bot.menu import number_menu
+
+    buttons = [b for row in number_menu().inline_keyboard for b in row]
+    assert any(
+        b.text == "№1–5 · Практические задания" and b.callback_data == "oge15:home"
+        for b in buttons
+    )
+    assert scenario_training._has_user(7)
+    assert scenario_training._has_user(987654321)
+    assert not scenario_training._has_user(None)
+    assert "ROUTE" not in scenario_training.STORY_NAMES
 
 
-def test_pilot_registry_is_explicit_and_excludes_unconfirmed_or_blocked_families() -> None:
-    registry = scenario_training.pilot_registry()
+def test_public_registry_is_explicit_and_excludes_unconfirmed_or_blocked_families() -> None:
+    registry = scenario_training.public_registry()
     family_owners: dict[str, str] = {}
     policy_types: dict[tuple[str, str], type[object]] = {}
     assert registry.story_codes == ("FLAT", "GARDEN", "PAPER", "ROUTE", "STOVE", "TARIFF", "TYRES")
@@ -67,9 +69,9 @@ def test_pilot_registry_is_explicit_and_excludes_unconfirmed_or_blocked_families
             previous_type = policy_types.setdefault(policy_key, type(policy))
             assert previous_type is type(policy)
             if family.available:
-                assert family.family_id in scenario_training.PILOT_FAMILIES[code]
+                assert family.family_id in scenario_training.PUBLIC_FAMILIES[code]
                 assert family.status.value == "enabled_candidate"
-    # Constructing the pilot registry never mutates ordinary adapter defaults.
+    # Constructing the public registry never mutates ordinary adapter defaults.
     from app.math.scenario_engine import discover_story_registry
 
     defaults = discover_story_registry()
@@ -82,10 +84,10 @@ def test_pilot_registry_is_explicit_and_excludes_unconfirmed_or_blocked_families
 
 
 @pytest.mark.parametrize("story_code", ("TYRES", "PAPER", "STOVE", "TARIFF", "GARDEN", "FLAT"))
-def test_each_pilot_story_builds_single_and_full_from_one_validated_snapshot(
+def test_each_public_story_builds_single_and_full_from_one_validated_snapshot(
     story_code: str,
 ) -> None:
-    registry = scenario_training.pilot_registry()
+    registry = scenario_training.public_registry()
     single = build_practice_plan(
         PracticeRequest(PracticeMode.SINGLE, 90125, story_code=story_code, position=3), registry
     )
@@ -115,8 +117,8 @@ async def _feed(
 
 
 @pytest.mark.asyncio
-async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
-    oge15_navigation_pool, monkeypatch
+async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
+    oge15_navigation_pool
 ) -> None:
     transport = TelegramSession()
     bot = Bot("123456:TEST", session=transport)
@@ -128,12 +130,6 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
     user = User(id=user_id, is_bot=False, first_name="Synthetic pilot")
     await repository.register_user(user_id)
     await repository.save_user_state(user_id, "main_menu")
-    monkeypatch.setattr(
-        scenario_training,
-        "get_settings",
-        lambda: Settings(oge15_pilot_enabled=True, oge15_pilot_user_ids=str(user_id)),
-    )
-    monkeypatch.setattr(router, "get_settings", scenario_training.get_settings)
     update_id = 1
 
     async def callback(message: Message, label: str) -> Message:
@@ -417,7 +413,7 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
         assert stats[0]["skipped"] == 2
         assert stats[0]["solutions_viewed"] == 1
 
-        # Route callbacks forged by a non-allowlisted account cannot open the pilot.
+        # Another user can open the public menu but cannot change the first user's session.
         outsider_id = user_id + 1
         outsider = User(id=outsider_id, is_bot=False, first_name="Outsider")
         update_id += 1

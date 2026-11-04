@@ -19,7 +19,6 @@ def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
 
 def number_menu(
     *, include_task7: bool = False, include_task13: bool = False, include_task11: bool = False,
-    include_oge15: bool = False,
 ) -> InlineKeyboardMarkup:
     from app.bot.trainings import TRAININGS
 
@@ -30,8 +29,7 @@ def number_menu(
         if release_flags.get(training.number, training.available)
     ]
     rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
-    if include_oge15:
-        rows.append([_button("Практические задания №1–5 · закрытый пилот", "oge15:home")])
+    rows.insert(0, [_button("№1–5 · Практические задания", "oge15:home")])
     rows.append([_button("↩ В меню", "nav:main")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 

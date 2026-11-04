@@ -1,4 +1,4 @@
-"""Telegram UX for fail-closed OGE 1–5 scenario sessions."""
+"""Telegram UX for public OGE 1–5 scenario sessions."""
 
 from __future__ import annotations
 
@@ -21,7 +21,6 @@ from asyncpg import UniqueViolationError
 
 from app.bot.callbacks import answer_callback
 from app.bot.training_ux import matches_current_condition
-from app.config import get_settings
 from app.math.scenario_engine import (
     FamilyRegistry,
     PracticeMode,
@@ -38,7 +37,7 @@ from app.persistence.scenario_repository import (
     ScenarioSession,
 )
 
-PILOT_LABEL = "Практические задания №1–5"
+PUBLIC_LABEL = "Практические задания №1–5"
 STORY_NAMES = {
     "TYRES": "Шины",
     "PAPER": "Бумага",
@@ -47,7 +46,7 @@ STORY_NAMES = {
     "GARDEN": "Участки",
     "FLAT": "Квартиры",
 }
-PILOT_FAMILIES = {
+PUBLIC_FAMILIES = {
     "TYRES": frozenset(
         {
             "TYRES-DIAMETER",
@@ -109,13 +108,13 @@ PILOT_FAMILIES = {
 
 
 @lru_cache(maxsize=1)
-def pilot_registry() -> FamilyRegistry:
-    """Create a separate explicit pilot allowlist without changing adapter defaults."""
+def public_registry() -> FamilyRegistry:
+    """Create a separate explicit public allowlist without changing adapter defaults."""
     adapters = []
     discovered = discover_story_registry()
     for story_code in discovered.story_codes:
         adapter = discovered.adapter(story_code)
-        allowed = PILOT_FAMILIES.get(adapter.story_code, frozenset())
+        allowed = PUBLIC_FAMILIES.get(adapter.story_code, frozenset())
         families = tuple(
             replace(
                 family,
@@ -147,8 +146,8 @@ def _keyboard(rows: list[list[InlineKeyboardButton]]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def _authorized(user_id: int | None) -> bool:
-    return get_settings().can_use_oge15_pilot(user_id)
+def _has_user(user_id: int | None) -> bool:
+    return user_id is not None and user_id > 0
 
 
 def _story_keyboard() -> InlineKeyboardMarkup:
@@ -162,13 +161,13 @@ def _story_keyboard() -> InlineKeyboardMarkup:
     return _keyboard(rows)
 
 
-async def show_pilot(
+async def show_public_oge15(
     message: Message,
     oge15_repository: ScenarioPostgresRepository | None = None,
     repository: Repository | None = None,
 ) -> None:
     user_id = message.from_user.id if message.from_user else None
-    if not _authorized(user_id):
+    if not _has_user(user_id):
         return
     if oge15_repository is None:
         await message.answer("Практические задания №1–5 пока недоступны.")
@@ -176,7 +175,7 @@ async def show_pilot(
     if repository is not None and user_id is not None:
         await repository.save_user_state(user_id, "oge15_menu")
     await message.answer(
-        "Практические задания №1–5 · закрытый пилот\nВыберите сюжет:",
+        "Практические задания №1–5\nВыберите сюжет:",
         reply_markup=_story_keyboard(),
     )
 
@@ -239,7 +238,7 @@ async def render_session(
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
     if show_assets:
         await message.answer(snapshot.shared_context)
-        adapter = pilot_registry().adapter(snapshot.story_code)
+        adapter = public_registry().adapter(snapshot.story_code)
         for asset in snapshot.assets:
             data = restore_asset_bytes(adapter.renderer, snapshot, asset)
             extension = "png" if asset.content_type == "image/png" else "svg"
@@ -303,8 +302,8 @@ async def _start_session(
     position_text: str | None,
 ) -> None:
     user_id = callback.from_user.id
-    if not _authorized(user_id) or not isinstance(callback.message, Message):
-        await answer_callback(callback, "Закрытый пилот недоступен.")
+    if not _has_user(user_id) or not isinstance(callback.message, Message):
+        await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
     if await store.resume_session(user_id) is not None:
         await answer_callback(callback, "Сначала продолжите или завершите текущую практику.")
@@ -314,7 +313,7 @@ async def _start_session(
         mode, secrets.randbelow(2**63), None if code == "RANDOM" else code, position
     )
     try:
-        plan = build_practice_plan(request, pilot_registry())
+        plan = build_practice_plan(request, public_registry())
     except (ScenarioUnavailable, ValueError):
         await answer_callback(callback, "Для этого сюжета сейчас нет доступного набора.")
         return
@@ -367,7 +366,7 @@ async def answer_message(
     repository: Repository | None = None,
 ) -> None:
     user_id = message.from_user.id if message.from_user else None
-    if not _authorized(user_id) or user_id is None or message.text is None:
+    if not _has_user(user_id) or user_id is None or message.text is None:
         raise SkipHandler
     if oge15_repository is None or repository is None:
         raise SkipHandler
@@ -387,7 +386,7 @@ async def answer_message(
     question = next(
         item for item in session.snapshot.questions if item.position == session.current_position
     )
-    adapter = pilot_registry().adapter(session.snapshot.story_code)
+    adapter = public_registry().adapter(session.snapshot.story_code)
     policy = adapter.answer_policies[(question.answer_policy_id, question.answer_policy_version)]
     if not _valid_answer_format(
         session.snapshot.story_code, question.answer_policy_id, message.text
@@ -426,11 +425,11 @@ async def handle_callback(
     oge15_repository: ScenarioPostgresRepository | None = None,
     repository: Repository | None = None,
 ) -> None:
-    if not _authorized(callback.from_user.id):
-        await answer_callback(callback, "Закрытый пилот недоступен.")
+    if not _has_user(callback.from_user.id):
+        await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
     if oge15_repository is None:
-        await answer_callback(callback, "Закрытый пилот недоступен.")
+        await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
     data = callback.data or ""
     if data == "oge15:home":

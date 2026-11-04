@@ -22,7 +22,8 @@ from app.bot.menu import (
 from app.bot.navigation import navigation_callback
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_training import (
-    PILOT_LABEL,
+    PUBLIC_LABEL,
+    show_public_oge15,
 )
 from app.bot.scenario_training import (
     answer_message as oge15_answer,
@@ -33,9 +34,6 @@ from app.bot.scenario_training import (
 from app.bot.scenario_training import (
     render_session as render_oge15_session,
 )
-from app.bot.scenario_training import (
-    show_pilot as show_oge15_pilot,
-)
 from app.bot.training_engine import (
     NUMERIC_TRAININGS,
     send_problem,
@@ -44,7 +42,6 @@ from app.bot.training_engine import (
 )
 from app.bot.training_ux import matches_current_condition
 from app.bot.trainings import TRAININGS
-from app.config import get_settings
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
 from app.math.inequalities import POLICY as TASK13_ANSWER_POLICY
@@ -118,7 +115,6 @@ async def _has_resumable_session(
             return True
     return bool(
         oge15_repository is not None
-        and get_settings().can_use_oge15_pilot(user_id)
         and await oge15_repository.resume_session(user_id) is not None
     )
 
@@ -222,7 +218,6 @@ async def start(
     has_session = await _has_resumable_session(repository, message.from_user.id)
     if (
         oge15_repository is not None
-        and get_settings().can_use_oge15_pilot(message.from_user.id)
         and await oge15_repository.resume_session(message.from_user.id) is not None
     ):
         has_session = True
@@ -271,7 +266,7 @@ async def continue_session(
     user_id: int = actor_id
 
     async def resume_pilot() -> bool:
-        if oge15_repository is None or not get_settings().can_use_oge15_pilot(user_id):
+        if oge15_repository is None:
             return False
         scenario_session = await oge15_repository.resume_session(user_id)
         if scenario_session is not None and scenario_session.status == "paused":
@@ -321,7 +316,6 @@ async def choose_number(message: Message, repository: Repository) -> None:
             include_task7=bool(TASK7_ENABLED_FAMILIES),
             include_task13=bool(TASK13_ENABLED_FAMILIES),
             include_task11=bool(TASK11_ENABLED_FAMILIES),
-            include_oge15=get_settings().can_use_oge15_pilot(user_id),
         ),
     )
 
@@ -2120,8 +2114,8 @@ def build_router() -> Router:
     router.message.register(choose_task8, F.text == TASK8_LABEL)
     router.message.register(choose_task13, F.text == TASK13_LABEL)
     router.message.register(choose_task11, F.text == TASK11_LABEL)
-    router.message.register(show_oge15_pilot, Command("oge15"))
-    router.message.register(show_oge15_pilot, F.text == PILOT_LABEL)
+    router.message.register(show_public_oge15, Command("oge15"))
+    router.message.register(show_public_oge15, F.text == PUBLIC_LABEL)
     # Transitions are inline callbacks bound to a specific problem ID. Text commands
     # have no reliable association with the task shown when the user tapped them.
     router.message.register(task6_hint, F.text == "💡 Подсказка")
