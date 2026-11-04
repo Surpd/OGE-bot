@@ -44,7 +44,6 @@ from app.bot.training_engine import (
 )
 from app.bot.training_ux import matches_current_condition
 from app.bot.trainings import TRAININGS
-from app.config import get_settings
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
 from app.math.inequalities import POLICY as TASK13_ANSWER_POLICY
@@ -118,7 +117,6 @@ async def _has_resumable_session(
             return True
     return bool(
         oge15_repository is not None
-        and get_settings().can_use_oge15_pilot(user_id)
         and await oge15_repository.resume_session(user_id) is not None
     )
 
@@ -222,7 +220,6 @@ async def start(
     has_session = await _has_resumable_session(repository, message.from_user.id)
     if (
         oge15_repository is not None
-        and get_settings().can_use_oge15_pilot(message.from_user.id)
         and await oge15_repository.resume_session(message.from_user.id) is not None
     ):
         has_session = True
@@ -271,7 +268,7 @@ async def continue_session(
     user_id: int = actor_id
 
     async def resume_pilot() -> bool:
-        if oge15_repository is None or not get_settings().can_use_oge15_pilot(user_id):
+        if oge15_repository is None:
             return False
         scenario_session = await oge15_repository.resume_session(user_id)
         if scenario_session is not None and scenario_session.status == "paused":
@@ -321,7 +318,6 @@ async def choose_number(message: Message, repository: Repository) -> None:
             include_task7=bool(TASK7_ENABLED_FAMILIES),
             include_task13=bool(TASK13_ENABLED_FAMILIES),
             include_task11=bool(TASK11_ENABLED_FAMILIES),
-            include_oge15=get_settings().can_use_oge15_pilot(user_id),
         ),
     )
 
