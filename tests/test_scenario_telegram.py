@@ -258,13 +258,10 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
         assert after_hint.attempt_count == 0
 
         question = next(q for q in session.snapshot.questions if q.position == 1)
-        condition = max(
-            (
-                item
-                for item in transport.messages.values()
-                if item.text and "Задание №1 из 5" in item.text
-            ),
-            key=lambda item: item.message_id,
+        assert after_hint.prompt_message_id is not None
+        condition = next(
+            item for item in transport.messages.values()
+            if item.message_id == after_hint.prompt_message_id
         )
         # The answer is an ordinary message with no reply_to_message.
         update_id += 1
