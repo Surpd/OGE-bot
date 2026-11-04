@@ -194,7 +194,13 @@ async def test_number_menu_matches_registered_training_adapters() -> None:
     }
     registered_numbers = {training.number for training in TRAININGS}
 
-    assert menu_numbers == registered_numbers
+    assert menu_numbers == registered_numbers | {1}
+    assert any(
+        button.text == "№1–5 · Практические задания"
+        and (button.callback_data or "").startswith("oge15:home")
+        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
+        for button in row
+    )
     assert 7 in menu_numbers
 
 
