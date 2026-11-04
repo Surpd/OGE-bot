@@ -16,6 +16,7 @@ from app.math.scenario_engine import (
     PracticeRequest,
     ScenarioSnapshot,
     build_practice_plan,
+    discover_story_registry,
     restore_asset_bytes,
 )
 from app.math.scenarios.stories.PAPER import (
@@ -49,6 +50,9 @@ def _bundle(adapter, seed: int):
 
 def test_registry_exposes_only_the_six_source_checked_candidate_families(adapter) -> None:
     registry = FamilyRegistry((adapter,))
+    discovered = discover_story_registry()
+    assert "PAPER" in discovered.story_codes
+    assert discovered.available_positions("PAPER") == (1, 2, 3, 4, 5)
     available = {family.family_id for family in adapter.family_registry if family.available}
     assert available == set(_SOURCE_IDS)
     assert registry.available_stories(PracticeMode.FULL) == ("PAPER",)
