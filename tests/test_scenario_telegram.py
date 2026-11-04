@@ -33,7 +33,7 @@ def test_oge15_public_number_menu_and_story_exclusions() -> None:
 
     buttons = [b for row in number_menu().inline_keyboard for b in row]
     assert any(
-        b.text == "№1–5 · Практические задания" and b.callback_data == "oge15:home"
+        b.text == "№1–5 · Практические задания" and b.callback_data == "nav:oge15"
         for b in buttons
     )
     assert scenario_training._has_user(7)
@@ -485,5 +485,98 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         )
         await callback(controls, "Завершить")
         assert await scenario_repository.resume_session(user_id) is None
+    finally:
+        await bot.session.close()
+
+
+@pytest.mark.asyncio
+async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
+    oge15_navigation_pool,
+) -> None:
+    transport = TelegramSession()
+    bot = Bot("123456:TEST", session=transport)
+    dispatcher = Dispatcher()
+    dispatcher.include_router(build_router())
+    repository = PostgresRepository(oge15_navigation_pool)
+    scenario_repository = ScenarioPostgresRepository(oge15_navigation_pool)
+    user_id = int(uuid4().int % (2**62)) + 1
+    user = User(id=user_id, is_bot=False, first_name="Menu regression")
+    await repository.register_user(user_id)
+    await repository.save_user_state(user_id, "main_menu")
+    update_id = 1
+
+    async def tap(message: Message, label: str, *, repeat: bool = False) -> Message:
+        nonlocal update_id
+        data = next(
+            button.callback_data
+            for row in message.reply_markup.inline_keyboard
+            for button in row
+            if button.text == label
+        )
+        update_id += 1
+        update = Update(
+            update_id=update_id,
+            callback_query=CallbackQuery(
+                id=f"public-nav-{update_id}",
+                from_user=user,
+                chat_instance="public-nav",
+                message=message,
+                data=data,
+            ),
+        )
+        await _feed(dispatcher, bot, repository, scenario_repository, update)
+        if repeat:
+            update_id += 1
+            await _feed(
+                dispatcher, bot, repository, scenario_repository,
+                update.model_copy(update={"update_id": update_id}),
+            )
+        return max(transport.messages.values(), key=lambda item: item.message_id)
+
+    try:
+        await _feed(
+            dispatcher, bot, repository, scenario_repository,
+            Update(update_id=update_id, message=Message(
+                message_id=10, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/start",
+            )),
+        )
+        main = max(transport.messages.values(), key=lambda item: item.message_id)
+        number_menu = await tap(main, "🧮 По номеру")
+        oge15_button = next(
+            button for row in number_menu.reply_markup.inline_keyboard
+            for button in row if button.text == "№1–5 · Практические задания"
+        )
+        assert oge15_button.callback_data is not None
+        assert oge15_button.callback_data.startswith("nav:oge15~")
+        selection = await tap(number_menu, "№1–5 · Практические задания", repeat=True)
+        assert any(
+            "Выберите сюжет" in (message.text or "")
+            for message in transport.messages.values()
+        )
+        story = await tap(selection, "Шины")
+        mode = await tap(story, "Вся пятёрка")
+        session = await scenario_repository.resume_session(user_id)
+        assert session is not None and session.snapshot.story_code == "TYRES"
+        assert session.mode is PracticeMode.FULL
+        assert any(
+            "Задание №1 из 5" in (message.text or "")
+            for message in transport.messages.values()
+        )
+
+        # The command remains a public entry point and can be used after returning.
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, scenario_repository,
+            Update(update_id=update_id, message=Message(
+                message_id=11, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        assert any(
+            "Выберите сюжет" in (message.text or "")
+            for message in transport.messages.values()
+        )
+        assert mode.message_id > 0
     finally:
         await bot.session.close()

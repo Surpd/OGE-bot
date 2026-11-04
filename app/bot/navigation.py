@@ -8,6 +8,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.callbacks import answer_callback
+from app.bot.scenario_training import show_public_oge15
 from app.persistence.repository import Repository
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
@@ -156,6 +157,8 @@ async def navigation_callback(
         "nav:display": show_display_options,
     }
     target = targets.get(data)
+    if data == "nav:oge15":
+        target = show_public_oge15
     if data.startswith("nav:task:"):
         from app.bot.trainings import TRAININGS
 
@@ -215,6 +218,8 @@ async def navigation_callback(
             render_progress(insights, progress_page),
             reply_markup=progress_keyboard(progress_page, total),
         )
+    elif data == "nav:oge15":
+        await show_public_oge15(message, oge15_repository, repository)
     elif target is not None:
         if data == "nav:resume":
             await handlers.continue_session(

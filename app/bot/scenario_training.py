@@ -495,7 +495,7 @@ async def handle_callback(
             "pause",
             "resume",
         }:
-            await answer_callback(callback, "Это действие недоступно.")
+            await answer_callback(callback, "Это меню устарело. Откройте /start.")
             return
         question = next(
             (item for item in session.snapshot.questions if item.position == position), None
@@ -575,4 +575,4 @@ async def handle_callback(
                 user_id_override=callback.from_user.id,
             )
         return
-    await answer_callback(callback, "Это действие недоступно.")
+    await answer_callback(callback, "Это меню устарело. Откройте /start.")
