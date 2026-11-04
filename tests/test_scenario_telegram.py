@@ -10,7 +10,7 @@ from aiogram.types import CallbackQuery, Chat, Message, Update, User
 from test_inline_dispatcher_postgres import TelegramSession
 from test_navigation_postgres import navigation_pool as postgres_db_fixture  # noqa: F401, F811
 
-from app.bot import scenario_training
+from app.bot import router, scenario_training
 from app.bot.router import build_router
 from app.config import Settings
 from app.math.scenario_engine import (
@@ -20,7 +20,7 @@ from app.math.scenario_engine import (
     restore_asset_bytes,
 )
 from app.persistence.repository import PostgresRepository
-from app.persistence.scenario_repository import ScenarioPostgresRepository
+from app.persistence.scenario_repository import AttemptResult, ScenarioPostgresRepository
 
 
 @pytest.fixture
@@ -133,6 +133,7 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
         "get_settings",
         lambda: Settings(oge15_pilot_enabled=True, oge15_pilot_user_ids=str(user_id)),
     )
+    monkeypatch.setattr(router, "get_settings", scenario_training.get_settings)
     update_id = 1
 
     async def callback(message: Message, label: str) -> Message:
@@ -161,6 +162,31 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
             ),
         )
         return max(transport.messages.values(), key=lambda item: item.message_id)
+
+    async def send(text: str, message_id: int, reply: Message | None = None) -> None:
+        nonlocal update_id
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, scenario_repository,
+            Update(
+                update_id=update_id,
+                message=Message(
+                    message_id=message_id,
+                    date=datetime.now(UTC),
+                    chat=Chat(id=user_id, type="private"),
+                    from_user=user,
+                    text=text,
+                    reply_to_message=reply,
+                ),
+            ),
+        )
+
+    def assert_terminal_since(message_id: int) -> None:
+        assert all(
+            "Напишите ответ" not in (item.text or "")
+            for item in transport.messages.values()
+            if item.message_id > message_id
+        )
 
     try:
         update_id += 1
@@ -261,6 +287,7 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
         solved = await scenario_repository.resume_session(user_id)
         assert solved is not None and solved.question_status == "solved"
         assert solved.attempt_count == 1
+        assert_terminal_since(condition.message_id)
 
         controls = max(
             (item for item in transport.messages.values() if item.reply_markup is not None),
@@ -301,26 +328,45 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
         )
         assert (await scenario_repository.resume_session(user_id)).attempt_count == 0
 
-        # Syntax-invalid text is not an attempt; two numeric misses close the item.
-        update_id += 1
-        await _feed(
-            dispatcher,
-            bot,
-            repository,
-            scenario_repository,
-            Update(
-                update_id=update_id,
-                message=Message(
-                    message_id=old_prompt_id + 20,
-                    date=datetime.now(UTC),
-                    chat=Chat(id=user_id, type="private"),
-                    from_user=user,
-                    text="не число",
-                ),
-            ),
-        )
+        assert resumed.prompt_message_id is not None
+        current_prompt = resumed.prompt_message_id
+        await send("0", current_prompt + 10, reply=condition)
+        assert await scenario_repository.record_attempt(
+            telegram_user_id=user_id,
+            session_id=resumed.session_id,
+            position=2,
+            telegram_message_id=current_prompt + 11,
+            reply_to_message_id=condition.message_id,
+            raw_answer="0",
+            normalized_answer="0",
+            is_correct=False,
+        ) is AttemptResult.STALE
+
+        for offset, invalid in enumerate(("не число", "12/", "1,2.3", "---", "1/0"), 12):
+            await send(invalid, current_prompt + offset)
         assert (await scenario_repository.resume_session(user_id)).attempt_count == 0
-        for attempt_offset in (21, 22):
+        assert await oge15_navigation_pool.fetchval(
+            "SELECT count(*) FROM oge15_attempts WHERE session_id=$1 AND position=2",
+            resumed.session_id,
+        ) == 0
+
+        # The general Continue button follows the last selected independent training.
+        await send(router.TASK6_LABEL, current_prompt + 30)
+        classic = await repository.task6_state(user_id)
+        assert classic is not None and classic["problem"] is not None
+        await send("▶ Продолжить", current_prompt + 31)
+        assert await repository.user_state(user_id) == "task6"
+        assert (await repository.task6_state(user_id))["problem"] == classic["problem"]
+        assert await scenario_repository.resume_session(user_id) == resumed
+
+        await callback(controls, "⏸ Пауза")
+        pause_message = max(transport.messages.values(), key=lambda item: item.message_id)
+        await callback(pause_message, "▶ Продолжить")
+        await send("▶ Продолжить", current_prompt + 32)
+        assert await repository.user_state(user_id) == "oge15"
+        assert (await repository.task6_state(user_id))["problem"] == classic["problem"]
+        current_prompt = (await scenario_repository.resume_session(user_id)).prompt_message_id
+        for attempt_offset in (40, 41):
             update_id += 1
             await _feed(
                 dispatcher,
@@ -330,7 +376,7 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
                 Update(
                     update_id=update_id,
                     message=Message(
-                        message_id=old_prompt_id + attempt_offset,
+                        message_id=current_prompt + attempt_offset,
                         date=datetime.now(UTC),
                         chat=Chat(id=user_id, type="private"),
                         from_user=user,
@@ -341,6 +387,7 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
         failed = await scenario_repository.resume_session(user_id)
         assert failed is not None and failed.question_status == "failed"
         assert failed.attempt_count == 2
+        assert_terminal_since(failed.prompt_message_id)
 
         controls = max(
             (item for item in transport.messages.values() if item.reply_markup is not None),
@@ -352,7 +399,9 @@ async def test_dispatcher_closed_pilot_full_session_answers_pause_and_resume(
             (item for item in transport.messages.values() if item.reply_markup is not None),
             key=lambda item: item.message_id,
         )
+        active_controls_id = controls.message_id
         controls = await callback(controls, "📘 Разбор")
+        assert_terminal_since(active_controls_id)
         terminal = await scenario_repository.resume_session(user_id)
         assert terminal is not None and terminal.question_status == "solution_viewed"
         controls = await callback(controls, "➡ Следующий вопрос")

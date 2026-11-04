@@ -257,6 +257,7 @@ class ScenarioPostgresRepository:
         raw_answer: str,
         normalized_answer: str | None,
         is_correct: bool,
+        reply_to_message_id: int | None = None,
     ) -> AttemptResult:
         async with self._pool.acquire() as connection, connection.transaction():
             session = await connection.fetchrow(
@@ -280,6 +281,11 @@ class ScenarioPostgresRepository:
             )
             if progress is None or progress["status"] != "active":
                 return AttemptResult.CLOSED
+            if (
+                reply_to_message_id is not None
+                and reply_to_message_id != progress["prompt_message_id"]
+            ):
+                return AttemptResult.STALE
             if (
                 progress["prompt_message_id"] is not None
                 and telegram_message_id <= progress["prompt_message_id"]

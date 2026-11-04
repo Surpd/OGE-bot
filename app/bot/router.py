@@ -265,27 +265,31 @@ async def continue_session(
     oge15_repository: ScenarioPostgresRepository | None = None,
     user_id_override: int | None = None,
 ) -> None:
-    user_id = user_id_override if user_id_override is not None else _user_id(message)
-    if user_id is None:
+    actor_id = user_id_override if user_id_override is not None else _user_id(message)
+    if actor_id is None:
         return
-    if oge15_repository is not None and get_settings().can_use_oge15_pilot(user_id):
+    user_id: int = actor_id
+
+    async def resume_pilot() -> bool:
+        if oge15_repository is None or not get_settings().can_use_oge15_pilot(user_id):
+            return False
         scenario_session = await oge15_repository.resume_session(user_id)
-        if scenario_session is not None:
-            if scenario_session.status == "paused":
-                scenario_session = await oge15_repository.resume_paused(
-                    user_id, scenario_session.session_id
-                )
-            if scenario_session is not None:
-                await repository.save_user_state(user_id, "oge15")
-                await render_oge15_session(
-                    message,
-                    oge15_repository,
-                    scenario_session,
-                    show_assets=False,
-                    user_id_override=user_id,
-                )
-                return
+        if scenario_session is not None and scenario_session.status == "paused":
+            scenario_session = await oge15_repository.resume_paused(
+                user_id, scenario_session.session_id
+            )
+        if scenario_session is None:
+            return False
+        await repository.save_user_state(user_id, "oge15")
+        await render_oge15_session(
+            message, oge15_repository, scenario_session, show_assets=False,
+            user_id_override=user_id,
+        )
+        return True
+
     last = await repository.last_training_mode(user_id)
+    if last == "oge15" and await resume_pilot():
+        return
     ordered = sorted(TRAININGS, key=lambda item: item.mode != last)
     for training in ordered:
         state = await getattr(repository, f"task{training.number}_state")(user_id)
@@ -297,6 +301,8 @@ async def continue_session(
             )
             await sender(message, repository, action="resume")
             return
+    if last != "oge15" and await resume_pilot():
+        return
     await repository.save_user_state(user_id, "main_menu")
     await send_text(
         message, repository, "Нет незавершённых заданий. Выберите номер.", reply_markup=main_menu()

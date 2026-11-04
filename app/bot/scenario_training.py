@@ -20,6 +20,7 @@ from aiogram.types import (
 from asyncpg import UniqueViolationError
 
 from app.bot.callbacks import answer_callback
+from app.bot.training_ux import matches_current_condition
 from app.config import get_settings
 from app.math.scenario_engine import (
     FamilyRegistry,
@@ -252,18 +253,16 @@ async def render_session(
         if session.mode is PracticeMode.FULL
         else f"Задание №{session.current_position}"
     )
-    prompt = await message.answer(
-        f"{story} · {progress}\n\n{question.condition}\n\nНапишите ответ сообщением в чат."
-    )
     telegram_user_id = user_id_override or (
         message.from_user.id if message.from_user else 0
     )
-    await store.set_condition_message(
-        telegram_user_id,
-        session.session_id,
-        session.current_position,
-        prompt.message_id,
-    )
+    if session.question_status == "active":
+        prompt = await message.answer(
+            f"{story} · {progress}\n\n{question.condition}\n\nНапишите ответ сообщением в чат."
+        )
+        await store.set_condition_message(
+            telegram_user_id, session.session_id, session.current_position, prompt.message_id
+        )
     rows: list[list[InlineKeyboardButton]] = []
     callback_prefix = (
         f"oge15:act:{session.session_id}:{session.current_position}:{session.navigation_revision}"
@@ -335,6 +334,33 @@ async def _start_session(
     await answer_callback(callback)
 
 
+def _valid_answer_format(story: str, policy_id: str, text: str) -> bool:
+    value = text.strip()
+    if story in {"STOVE", "FLAT", "TARIFF"} and policy_id != "digit_sequence_exact_3":
+        value = value.replace(" ", "")
+    if story == "TARIFF":
+        value = value.replace("\ ", "")
+
+    if policy_id == "paper.mapping_four":
+        return bool(re.fullmatch(r"[1-4]{4}", value)) and len(set(value)) == 4
+    if policy_id == "digit_sequence_exact_3":
+        return bool(re.fullmatch(r"[1-3]{3}", value))
+    if policy_id.endswith("months-minutes"):
+        return bool(re.fullmatch(r"\d{4,8}", value))
+    if policy_id in {"paper.ratio_tenths", "paper.diagonal_ratio_tenths"}:
+        return bool(re.fullmatch(r"\d+[.,]\d", value))
+    if story == "PAPER":
+        return bool(re.fullmatch(r"[1-9]\d*", value))
+    if story == "GARDEN":
+        return bool(re.fullmatch(r"\d+", value))
+    if story in {"FLAT", "TARIFF"}:
+        return bool(re.fullmatch(r"\d+(?:[.,]\d{1,2})?", value))
+    if story == "STOVE":
+        return bool(re.fullmatch(r"[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)", value))
+    # The current pilot policies expect decimal notation rather than slash fractions.
+    return bool(re.fullmatch(r"[+-]?\d+(?:[.,]\d+)?", value))
+
+
 async def answer_message(
     message: Message,
     oge15_repository: ScenarioPostgresRepository | None = None,
@@ -349,22 +375,34 @@ async def answer_message(
         raise SkipHandler
     store = oge15_repository
     session = await store.resume_session(user_id)
-    if session is None or session.status != "active" or session.question_status != "active":
+    if session is None or session.status != "active":
         raise SkipHandler
-    if message.text.startswith("/") or not re.fullmatch(r"[0-9\s,+./%\-]+", message.text):
-        await message.answer("Введите числовой ответ сообщением в чат.")
+    if session.question_status != "active":
+        await message.answer("Задание завершено. Используйте кнопки под результатом.")
+        return
+    if not matches_current_condition(
+        message, {"problem_prompt_message_id": session.prompt_message_id}
+    ):
         return
     question = next(
         item for item in session.snapshot.questions if item.position == session.current_position
     )
     adapter = pilot_registry().adapter(session.snapshot.story_code)
     policy = adapter.answer_policies[(question.answer_policy_id, question.answer_policy_version)]
+    if not _valid_answer_format(
+        session.snapshot.story_code, question.answer_policy_id, message.text
+    ):
+        await message.answer("Введите ответ в формате, указанном в условии.")
+        return
     is_correct = policy.accepts(message.text, question.canonical_answer)
     result = await store.record_attempt(
         telegram_user_id=user_id,
         session_id=session.session_id,
         position=session.current_position,
         telegram_message_id=message.message_id,
+        reply_to_message_id=(
+            message.reply_to_message.message_id if message.reply_to_message else None
+        ),
         raw_answer=message.text,
         normalized_answer=message.text.strip(),
         is_correct=is_correct,
