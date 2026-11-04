@@ -73,6 +73,12 @@ def test_independent_oracle_rejects_question_answer_mutations() -> None:
         oracle.validate_question(scenario, question, rendered)
         with pytest.raises(ValueError):
             oracle.validate_question(scenario, replace(question, canonical_answer="999"), rendered)
+    with pytest.raises(ValueError):
+        oracle.validate_question(
+            scenario,
+            _Builder().build_question(scenario, 5),
+            replace(rendered, shared_context=rendered.shared_context.replace("7.84", "8.84")),
+        )
 
 
 def test_svg_mutations_for_building_scale_path_width_and_labels_are_rejected() -> None:

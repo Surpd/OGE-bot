@@ -210,11 +210,26 @@ class _Builder:
 
 
 class _Renderer:
+    @staticmethod
+    def _shared_context(scenario: ScenarioDraft) -> str:
+        context = scenario.context
+        heat = cast(Mapping[str, int], context["heat"])
+        return (
+            "План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.\n"
+            f"Плитка: дорожки — {context['path_tiles']} шт.; площадка — {context['pad_tiles']} шт.; "
+            f"в пачке {context['tiles_per_pack']} шт.\n"
+            "Отопление | начальные затраты | расходы за час\n"
+            f"Газ | {heat['gas_upfront']} руб. | {heat['gas_hourly_cents'] / 100:.2f} руб./ч\n"
+            f"Электричество | {heat['electric_upfront']} руб. | "
+            f"{heat['electric_hourly_cents'] / 100:.2f} руб./ч\n"
+            "Все пять вопросов относятся к одному плану. Аналог ОГЭ."
+        )
+
     def render_scenario(self, scenario: ScenarioDraft) -> RenderedScenario:
         image = _svg(scenario.context)
         digest = sha256(image).hexdigest()
         ref = ScenarioAssetRef(digest, "image/svg+xml", f"sha256/{digest}.svg")
-        return RenderedScenario("План участка: клетка 2 м; схема и данные приведены ниже.", (ref,))
+        return RenderedScenario(self._shared_context(scenario), (ref,))
 
     def restore_asset(self, snapshot: ScenarioSnapshot, asset: ScenarioAssetRef) -> bytes:
         if asset.content_type != "image/svg+xml":
@@ -248,6 +263,8 @@ class _Oracle:
         self, scenario: ScenarioDraft, question: QuestionDraft, rendered: RenderedScenario
     ) -> None:
         self.validate_scenario(scenario)
+        if rendered.shared_context != _Renderer._shared_context(scenario):
+            raise ValueError("Shared plan/table text differs from the immutable world")
         if (
             question.scenario_seed != scenario.seed
             or question.family_id != FAMILIES[question.position - 1]
