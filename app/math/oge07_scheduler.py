@@ -20,7 +20,11 @@ SEEDS_PER_FAMILY = 6
 
 
 def build_task7_candidate_batch(
-    state: dict[str, object], seed: int, *, family_ids: tuple[str, ...] | None = None
+    state: dict[str, object],
+    seed: int,
+    *,
+    family_ids: tuple[str, ...] | None = None,
+    limit: int = MAX_CANDIDATES,
 ) -> list[dict[str, object]]:
     """Build candidates in stable shuffled order; no fallback to held families."""
     requested = family_ids if family_ids is not None else ENABLED_FAMILIES
@@ -50,6 +54,6 @@ def build_task7_candidate_batch(
             snapshot["_family_queue_after"] = families[families.index(family) + 1 :]
             snapshot["_last_family_after"] = family
             candidates.append(snapshot)
-            if len(candidates) >= MAX_CANDIDATES:
+            if len(candidates) >= limit:
                 return candidates
     return candidates

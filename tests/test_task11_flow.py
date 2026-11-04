@@ -7,6 +7,7 @@ from aiogram.types import User
 
 from app.bot import router
 from app.bot.router import choose_number, choose_task11
+from app.math import oge11_render
 from app.math.oge11 import FAMILIES, from_snapshot, verify
 from app.math.oge11_scheduler import build_task11_candidate_batch
 from app.persistence.repository import MemoryRepository
@@ -77,3 +78,29 @@ def test_scheduler_emits_only_enabled_task11_families() -> None:
         problem = from_snapshot(snapshot)
         assert problem.family_id in enabled
         assert verify(problem) == (True, "ok")
+
+
+@pytest.mark.asyncio
+async def test_task11_issuance_audits_only_the_selected_graph(monkeypatch) -> None:
+    audits = 0
+    audit_png = oge11_render.audit_png
+
+    def counted_audit(*args, **kwargs):
+        nonlocal audits
+        audits += 1
+        return audit_png(*args, **kwargs)
+
+    monkeypatch.setattr(oge11_render, "audit_png", counted_audit)
+    monkeypatch.setattr(router.secrets, "randbelow", lambda _: 911_005)
+    monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", ("OGE11-F04", "OGE11-F08"))
+    repository = MemoryRepository()
+    message = _message(911_010, "11")
+
+    await choose_task11(message, repository)
+
+    message.answer_photo.assert_awaited_once()
+    state = await repository.task11_state(911_010)
+    assert state is not None
+    restored = from_snapshot(state["problem"], audit_raster=False)
+    assert audits == restored.generation_attempts
+    assert message.answer_photo.await_args.args[0].data == restored.png_bytes

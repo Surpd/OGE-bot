@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 
-from app.math.oge11 import ENABLED_FAMILIES, FAMILIES, generate, verify
+from app.math.oge11 import ENABLED_FAMILIES, FAMILIES, generate
 
 MAX_CANDIDATES = 32
 SEEDS_PER_FAMILY = 6
@@ -23,6 +23,7 @@ def build_task11_candidate_batch(
     *,
     enabled_families: tuple[str, ...] = ENABLED_FAMILIES,
     allow_disabled_for_quality: bool = False,
+    limit: int = MAX_CANDIDATES,
 ) -> list[dict[str, object]]:
     """Return snapshot candidates; learner sessions only use approved runtime families."""
     families = FAMILIES if allow_disabled_for_quality else enabled_families
@@ -47,9 +48,6 @@ def build_task11_candidate_batch(
         for _ in range(SEEDS_PER_FAMILY):
             attempts += 1
             problem = generate(family_id, rng.randrange(2**63))
-            valid, reason = verify(problem)
-            if not valid:
-                raise ValueError(f"task-11 quality gate failed for {family_id}: {reason}")
             if problem.fingerprint in seen:
                 continue
             seen.add(problem.fingerprint)
@@ -62,6 +60,6 @@ def build_task11_candidate_batch(
                 }
             )
             candidates.append(snapshot)
-            if len(candidates) >= MAX_CANDIDATES:
+            if len(candidates) >= limit:
                 return candidates
     return candidates
