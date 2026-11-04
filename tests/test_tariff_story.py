@@ -36,6 +36,48 @@ def _registry(adapter):
     return FamilyRegistry((adapter,))
 
 
+def _question_content_fingerprint(question, context) -> tuple[object, ...]:
+    common = (
+        question.family_id,
+        question.condition,
+        question.canonical_answer,
+        question.solution_steps,
+    )
+    if question.position == 1:
+        return common
+    if question.position == 2:
+        month = question.math_model["month_index"]
+        tariff = context["tariff"]
+        relevant_tariff = tuple(
+            tariff[key]
+            for key in (
+                "monthly_fee_cents",
+                "included_minutes",
+                "included_gb_quarters",
+                "extra_minute_cents",
+                "data_pack_quarters",
+                "data_pack_price_cents",
+                "included_sms_month",
+                "annual_sms",
+            )
+        )
+        return common + (
+            context["minutes"][month],
+            context["gb_quarters"][month],
+            relevant_tariff,
+        )
+    if question.position == 3:
+        return common + (tuple(context["minutes"]),)
+    if question.position == 4:
+        return common
+    isp = context["isp"]
+    table = tuple(
+        tuple(plan[key] for key in ("name", "monthly_fee_cents", "included_mb", "per_mb_cents"))
+        for plan in isp["plans"]
+    )
+    return common + (question.math_model["usage_mb"], table)
+
+
 def test_seed_is_deterministic_and_full_bundle_uses_source_compatible_set(adapter) -> None:
     first = adapter.generator.generate_scenario(924)
     second = adapter.generator.generate_scenario(924)
@@ -68,25 +110,24 @@ def test_every_position_builds_in_single_mode_from_the_same_world(adapter) -> No
         )
 
 
-def test_256_seed_independent_oracle_and_200_unique_worlds_per_enabled_family(adapter) -> None:
+def test_1200_seed_oracle_and_per_question_content_diversity(adapter) -> None:
     registry = _registry(adapter)
     fingerprints: dict[str, set[tuple[object, ...]]] = {
         family: set() for family in IMPLEMENTED_FAMILIES
     }
-    for seed in range(256):
+    for seed in range(1200):
         plan = build_practice_plan(PracticeRequest(PracticeMode.FULL, seed, "TARIFF"), registry)
         context = plan.snapshot.context
         for question in plan.snapshot.questions:
             family = question.family_id
-            fingerprints[family].add(
-                (
-                    tuple(context["minutes"]),
-                    tuple(context["gb_quarters"]),
-                    question.condition,
-                    question.canonical_answer,
-                )
-            )
-    assert all(len(items) >= 200 for items in fingerprints.values())
+            fingerprints[family].add(_question_content_fingerprint(question, context))
+    assert {family: len(items) for family, items in fingerprints.items()} == {
+        MINUTES_FAMILY: 1200,
+        BILL_FAMILY: 992,
+        MINIMUM_FAMILY: 1200,
+        PERCENT_FAMILY: 4,
+        "TARIFF-F12-HOME-ISP": 220,
+    }
 
 
 def test_snapshot_keeps_graph_and_table_assets_restorable(adapter) -> None:
@@ -100,6 +141,24 @@ def test_snapshot_keeps_graph_and_table_assets_restorable(adapter) -> None:
         content = restore_asset_bytes(adapter.renderer, plan.snapshot, asset)
         assert content
         assert len(content) < 100_000
+
+
+def test_renderer_does_not_retain_assets_across_scenarios(adapter) -> None:
+    renderer = adapter.renderer
+    plan = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 842, "TARIFF"), _registry(adapter)
+    )
+    before = tuple(
+        restore_asset_bytes(renderer, plan.snapshot, asset) for asset in plan.snapshot.assets
+    )
+    for seed in range(256):
+        scenario = adapter.generator.generate_scenario(seed)
+        renderer.render_scenario(scenario)
+    after = tuple(
+        restore_asset_bytes(renderer, plan.snapshot, asset) for asset in plan.snapshot.assets
+    )
+    assert before == after
+    assert not hasattr(renderer, "_asset_cache")
 
 
 def test_money_uses_exact_kopecks_and_ceil_for_partial_data_packages(adapter) -> None:
@@ -131,12 +190,35 @@ def test_research_vectors_for_bill_percentage_and_home_internet(adapter) -> None
 
     isp = {
         "plans": (
-            {"monthly_fee_cents": 0, "included_mb": 0, "per_mb_cents": 150},
-            {"monthly_fee_cents": 20_400, "included_mb": 200, "per_mb_cents": 120},
-            {"monthly_fee_cents": 67_200, "included_mb": 700, "per_mb_cents": 0},
+            {
+                "name": "Поминутный",
+                "monthly_fee_cents": 0,
+                "included_mb": 0,
+                "per_mb_cents": 150,
+            },
+            {
+                "name": "Домашний-200",
+                "monthly_fee_cents": 20_400,
+                "included_mb": 200,
+                "per_mb_cents": 120,
+            },
+            {
+                "name": "Домашний-700",
+                "monthly_fee_cents": 67_200,
+                "included_mb": 700,
+                "per_mb_cents": 50,
+            },
         )
     }
     assert _isp_costs_cents(isp, 700) == (105_000, 80_400, 67_200)
+    assert _isp_costs_cents(isp, 1_000) == (150_000, 116_400, 82_200)
+
+    context["isp"] = {"usage_mb": 1_000, "plans": isp["plans"]}
+    scenario_1000 = replace(scenario, context=context)
+    rendered_1000 = adapter.renderer.render_scenario(scenario_1000)
+    question_1000 = adapter.question_builder.build_question(scenario_1000, 5)
+    adapter.independent_oracle.validate_question(scenario_1000, question_1000, rendered_1000)
+    assert question_1000.canonical_answer == "822"
 
 
 def test_answer_policies_preserve_month_code_and_normalize_money() -> None:
@@ -183,12 +265,18 @@ def test_oracle_rejects_question_answer_mutation(adapter) -> None:
         adapter.independent_oracle.validate_question(scenario, mutated, rendered)
 
 
-def test_oracle_rejects_rendered_graph_axis_mutation(adapter) -> None:
+def test_oracle_rejects_rendered_graph_axis_mutation(adapter, monkeypatch) -> None:
     scenario = adapter.generator.generate_scenario(904)
     rendered = adapter.renderer.render_scenario(scenario)
     original = adapter.renderer.asset_bytes(scenario, "usage-chart")
-    adapter.renderer._asset_cache[(scenario.seed, "usage-chart")] = original.replace(
-        b">400</text>", b">500</text>", 1
+    original_asset_bytes = adapter.renderer.asset_bytes
+    mutated = original.replace(b">400</text>", b">500</text>", 1)
+    monkeypatch.setattr(
+        adapter.renderer,
+        "asset_bytes",
+        lambda current, name: mutated
+        if name == "usage-chart"
+        else original_asset_bytes(current, name),
     )
     question = adapter.question_builder.build_question(scenario, 1)
     with pytest.raises(ValueError, match="axis|graph|chart|label"):

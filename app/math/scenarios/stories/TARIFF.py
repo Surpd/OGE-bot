@@ -192,7 +192,6 @@ class TariffGenerator:
         old_fee_cents = 35_000
         increase_percent = rng.choice((10, 20, 40, 50))
         new_fee_cents = old_fee_cents * (100 + increase_percent) // 100
-        usage_mb = 10 * rng.randint(30, 120)
         plans = [
             {"name": "Поминутный", "monthly_fee_cents": 0, "included_mb": 0, "per_mb_cents": 150},
             {
@@ -205,20 +204,17 @@ class TariffGenerator:
                 "name": "Домашний-700",
                 "monthly_fee_cents": 67_200,
                 "included_mb": 700,
-                "per_mb_cents": 0,
+                "per_mb_cents": 50,
             },
         ]
+        isp_options = []
+        for usage in range(100, 1_201, 5):
+            candidate = {"plans": plans}
+            costs = _isp_costs_cents(candidate, usage)
+            if costs.count(min(costs)) == 1:
+                isp_options.append(usage)
+        usage_mb = rng.choice(isp_options)
         isp: dict[str, object] = {"usage_mb": usage_mb, "plans": plans}
-        costs = _isp_costs_cents(isp, usage_mb)
-        # Exclude ties as the examined source has one uniquely cheapest plan.
-        if costs.count(min(costs)) != 1:
-            for usage_mb in range(300, 1201, 10):
-                costs = _isp_costs_cents(isp, usage_mb)
-                if costs.count(min(costs)) == 1:
-                    isp["usage_mb"] = usage_mb
-                    break
-            else:
-                raise ValueError("No unambiguous internet plan in the supported range")
         context: dict[str, object] = {
             "world_version": WORLD_VERSION,
             "compatible_set_id": compatible_set_id,
@@ -254,9 +250,6 @@ class TariffGenerator:
 
 
 class TariffRenderer:
-    def __init__(self) -> None:
-        self._asset_cache: dict[tuple[int, str], bytes] = {}
-
     @staticmethod
     def _chart_svg(context: Mapping[str, object]) -> bytes:
         minutes = context["minutes"]
@@ -284,9 +277,7 @@ class TariffRenderer:
             value = tick / 2
             y = bottom - (bottom - top) * value / 4
             label = f"{value:g}".replace(".", ",")
-            lines.append(
-                f'<text x="{right + 13}" y="{y + 8:.2f}" font-size="25">{label}</text>'
-            )
+            lines.append(f'<text x="{right + 13}" y="{y + 8:.2f}" font-size="25">{label}</text>')
         lines.extend(
             [
                 f'<path d="M {left} {top} V {bottom} H {right}" fill="none" stroke="#24324a" stroke-width="2"/>',  # noqa: E501
@@ -335,12 +326,21 @@ class TariffRenderer:
         if not isinstance(isp, Mapping) or not isinstance(isp["plans"], tuple | list):
             raise ValueError("Invalid ISP table")
         width, height = 760, 235
-        rows = [
-            ["План", "Абонплата", "Включено", "Сверх пакета"],
-            ["Поминутный", "нет", "нет", "1,50 руб./МБ"],
-            ["Домашний-200", "204 руб./мес.", "200 МБ", "1,20 руб./МБ"],
-            ["Домашний-700", "672 руб./мес.", "700 МБ", "нет"],
-        ]
+        rows = [["План", "Абонплата", "Включено", "Сверх пакета"]]
+        for plan in isp["plans"]:
+            if not isinstance(plan, Mapping):
+                raise ValueError("Invalid home internet plan")
+            fee = _as_int(plan["monthly_fee_cents"])
+            included = _as_int(plan["included_mb"])
+            per_mb = _as_int(plan["per_mb_cents"])
+            rows.append(
+                [
+                    str(plan["name"]),
+                    "нет" if fee == 0 else f"{_rubles(fee)} руб./мес.",
+                    "нет" if included == 0 else f"{included} МБ",
+                    f"{_rubles(per_mb)} руб./МБ",
+                ]
+            )
         x = (22, 250, 430, 570)
         y0, row_h = 34, 47
         parts = [
@@ -386,17 +386,21 @@ class TariffRenderer:
             "Месяцы указаны в календарном порядке с января по декабрь."
         )
         assets: list[ScenarioAssetRef] = []
-        for name, content_type, content in (
+        for _name, content_type, content in (
             ("usage-chart", "image/svg+xml", self._chart_svg(context)),
             ("home-internet-table", "image/svg+xml", self._table_svg(context)),
         ):
             digest = sha256(content).hexdigest()
-            self._asset_cache[(scenario.seed, name)] = content
             assets.append(ScenarioAssetRef(digest, content_type, f"sha256/{digest}.svg"))
         return RenderedScenario(shared, tuple(assets))
 
     def asset_bytes(self, scenario: ScenarioDraft, name: str) -> bytes:
-        return self._asset_cache.get((scenario.seed, name), b"")
+        context = cast(Mapping[str, object], scenario.context)
+        if name == "usage-chart":
+            return self._chart_svg(context)
+        if name == "home-internet-table":
+            return self._table_svg(context)
+        return b""
 
     def restore_asset(self, snapshot: ScenarioSnapshot, asset: ScenarioAssetRef) -> bytes:
         context = snapshot.context
