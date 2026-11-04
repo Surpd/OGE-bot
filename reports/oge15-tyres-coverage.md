@@ -1,7 +1,7 @@
 # TYRES — покрытие и статус проверки
 
-**Адаптер:** `app/math/scenarios/stories/TYRES.py`  
-**Исследование:** `OGE_1_5_ALL_STORIES_RESEARCH_V1.zip`, `STORIES/TYRES/RESEARCH.md`, `FAMILIES.json`, `SOURCE_INDEX.csv` (2026-11-02).  
+**Адаптер:** `app/math/scenarios/stories/TYRES.py`
+**Исследование:** `OGE_1_5_ALL_STORIES_RESEARCH_V1.zip`, `STORIES/TYRES/RESEARCH.md`, `FAMILIES.json`, `SOURCE_INDEX.csv` (2026-11-02).
 **Специализированный V2:** недоступен; реализация ограничена проверенным полным комплектом 2026 и не заявляет полное покрытие банка.
 
 ## Семейства
