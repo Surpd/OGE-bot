@@ -191,3 +191,10 @@
 # 2026-11-02
 
 - Реализованы параметрические генераторы №8 для проверенных структур произведения корней (R04) и сокращения радикального члена в квадрате двучлена (R08), независимый oracle видимого условия и отдельный Telegram/PostgreSQL-поток. Остальные структуры atlas остаются выключенными.
+## 2026-11-04 — адаптер STOVE
+
+- Added an isolated STOVE story adapter for OGE questions 1–5 with 12 researched
+  candidate families, shared deterministic room/catalog data, independent visible
+  data oracles, and reproducible table/arch SVG and PNG assets. Families remain
+  disabled for student delivery pending release review. Added dedicated coverage
+  and 250-seed quality reports.
