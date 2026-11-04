@@ -1,0 +1,70 @@
+{
+  "story_code": "ROUTE",
+  "generator_version": "route-grid4-v1",
+  "compatibility_matrix_version": "route-grid4-bundle-v1",
+  "seed_count": 1200,
+  "seed_range": [
+    1,
+    1200
+  ],
+  "oracle_passes": 6000,
+  "renderer_formats": [
+    "image/svg+xml",
+    "image/png"
+  ],
+  "family_quality": [
+    {
+      "family_id": "ROUTE-F01-GRID-MATCH",
+      "position": 1,
+      "status": "enabled_candidate",
+      "enabled": false,
+      "attempts": 1200,
+      "unique_fingerprints": 1200,
+      "acceptance_minimum": 200,
+      "acceptance_budget": 1200
+    },
+    {
+      "family_id": "ROUTE-F03-ROAD-SUM",
+      "position": 2,
+      "status": "enabled_candidate",
+      "enabled": false,
+      "attempts": 1200,
+      "unique_fingerprints": 1200,
+      "acceptance_minimum": 200,
+      "acceptance_budget": 1200
+    },
+    {
+      "family_id": "ROUTE-F05-PYTHAGORAS",
+      "position": 3,
+      "status": "enabled_candidate",
+      "enabled": false,
+      "attempts": 1200,
+      "unique_fingerprints": 1200,
+      "acceptance_minimum": 200,
+      "acceptance_budget": 1200
+    },
+    {
+      "family_id": "ROUTE-F06-HIGHWAY-TIME",
+      "position": 4,
+      "status": "enabled_candidate",
+      "enabled": false,
+      "attempts": 1200,
+      "unique_fingerprints": 1200,
+      "acceptance_minimum": 200,
+      "acceptance_budget": 1200
+    },
+    {
+      "family_id": "ROUTE-F09-SHOPPING-MIN",
+      "position": 5,
+      "status": "enabled_candidate",
+      "enabled": false,
+      "attempts": 1200,
+      "unique_fingerprints": 1200,
+      "acceptance_minimum": 200,
+      "acceptance_budget": 1200
+    }
+  ],
+  "all_acceptance_thresholds_met": true,
+  "student_enabled": false,
+  "visual_source_audit": "pending; original source images were unavailable in the research archive"
+}
