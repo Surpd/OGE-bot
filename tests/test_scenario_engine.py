@@ -100,10 +100,10 @@ class _Adapter:
         assert rendered.shared_context == "Shared context"
 
 
-def test_story_discovery_finds_tyres_without_connecting_the_number_to_the_menu() -> None:
+def test_story_discovery_finds_merged_stories_without_exposing_task_numbers() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
     discovered = discover_story_registry()
-    assert {"TYRES", "PAPER"}.issubset(discovered.story_codes)
+    assert {"TYRES", "PAPER", "TARIFF"}.issubset(discovered.story_codes)
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
