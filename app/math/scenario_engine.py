@@ -292,9 +292,12 @@ class ScenarioSnapshot:
         frozen_context = _freeze_json(context)
         if not isinstance(frozen_context, Mapping):
             raise ValueError("Scenario snapshot context must be an object")
+        raw_seed = value["seed"]
+        if isinstance(raw_seed, bool) or not isinstance(raw_seed, int):
+            raise ValueError("Scenario snapshot seed must be an integer")
         return cls(
             story_code=str(value["story_code"]),
-            seed=int(value["seed"]),
+            seed=raw_seed,
             generator_version=str(value["generator_version"]),
             compatibility_matrix_version=str(value["compatibility_matrix_version"]),
             context=frozen_context,
@@ -482,6 +485,7 @@ def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> P
         raise ValueError("Scenario generator returned a different story or seed")
     adapter.independent_oracle.validate_scenario(scenario)
     rendered = adapter.renderer.render_scenario(scenario)
+    selected_positions: tuple[int, ...]
     if request.mode is PracticeMode.FULL:
         selected_positions = POSITIONS
     elif request.position is not None:
