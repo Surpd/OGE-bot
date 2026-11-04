@@ -100,9 +100,11 @@ class _Adapter:
         assert rendered.shared_context == "Shared context"
 
 
-def test_story_registry_starts_empty_and_discovery_has_no_demo_families() -> None:
+def test_story_discovery_finds_tyres_without_connecting_the_number_to_the_menu() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
-    assert discover_story_registry().story_codes == ()
+    discovered = discover_story_registry()
+    assert discovered.story_codes == ("TYRES",)
+    assert discovered.available_stories(PracticeMode.FULL) == ("TYRES",)
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
