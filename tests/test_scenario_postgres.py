@@ -173,7 +173,9 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
         assert stats[0]["issued"] == 2
 
         await pool.execute(
-            "UPDATE oge15_scenarios SET snapshot=jsonb_set(snapshot, '{shared_context}', '\"tampered\"'::jsonb) WHERE id=$1",
+            """UPDATE oge15_scenarios
+               SET snapshot=jsonb_set(snapshot, '{shared_context}', '"tampered"'::jsonb)
+               WHERE id=$1""",
             created.scenario_id,
         )
         with pytest.raises(ScenarioIntegrityError, match="SHA-256"):
