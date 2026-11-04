@@ -3,8 +3,6 @@
 Story modules implement these protocols; this module contains no story math.
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -151,7 +149,7 @@ class QuestionSnapshot:
         object.__setattr__(self, "math_model", math_model)
 
     @classmethod
-    def from_draft(cls, draft: QuestionDraft) -> QuestionSnapshot:
+    def from_draft(cls, draft: QuestionDraft) -> "QuestionSnapshot":
         return cls(**{field: getattr(draft, field) for field in cls.__dataclass_fields__})
 
     def to_snapshot(self) -> dict[str, object]:
@@ -240,7 +238,7 @@ class ScenarioSnapshot:
         }
 
     @classmethod
-    def from_snapshot(cls, value: Mapping[str, object]) -> ScenarioSnapshot:
+    def from_snapshot(cls, value: Mapping[str, object]) -> "ScenarioSnapshot":
         if value.get("schema_version") != 1:
             raise ValueError("Unsupported scenario snapshot schema version")
         raw_questions = value.get("questions")
