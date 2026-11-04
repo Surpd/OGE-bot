@@ -10,8 +10,8 @@
 | F01 — границы объёма | 1 | [383591](https://math-oge.sdamgia.ru/problem?id=383591), [406325](https://math-oge.sdamgia.ru/problem?id=406325) | `enabled_candidate` | Реализовано; минимум/максимум — отдельный видимый параметр |
 | F02 — соответствие по атрибуту | 1 | [408218](https://math-oge.sdamgia.ru/problem?id=408218), [408219](https://math-oge.sdamgia.ru/problem?id=408219), [448919](https://math-oge.sdamgia.ru/problem?id=448919) | `enabled_candidate` | Реализовано; масса и цена уникальны |
 | F03 — объём помещения | 2 | [383592](https://math-oge.sdamgia.ru/problem?id=383592), [392833](https://math-oge.sdamgia.ru/problem?id=392833) | `enabled_candidate` | Реализовано точными десятичными дробями |
-| F04 — площадь пола | 2 | [408225](https://math-oge.sdamgia.ru/problem?id=408225) | `enabled_candidate` | Реализовано отдельно от площади стен |
-| F05 — стены без двери | 2 | [406273](https://math-oge.sdamgia.ru/problem?id=406273) | `enabled_candidate` | Реализовано с точным переводом см² в м² |
+| F04 — площадь пола | 3 | [408225](https://math-oge.sdamgia.ru/problem?id=408225) | `enabled_candidate` | Реализовано отдельно от площади стен |
+| F05 — стены без двери | 3 | [406273](https://math-oge.sdamgia.ru/problem?id=406273) | `enabled_candidate` | Реализовано с точным переводом см² в м² |
 | F06 — электрическая печь и расходы | 3 | [383593](https://math-oge.sdamgia.ru/problem?id=383593) | `enabled_candidate` | Реализовано: печь + установка + доставка |
 | F07 — подходящая дровяная печь и доставка | 3 | [448921](https://math-oge.sdamgia.ru/problem?id=448921) | `enabled_candidate` | Реализовано с уникальной проверкой диапазона объёма |
 | F08 — сравнение стоимости | 3 | [406274](https://math-oge.sdamgia.ru/problem?id=406274), [392860](https://math-oge.sdamgia.ru/problem?id=392860) | `enabled_candidate` | Реализовано с явным режимом «с/без установки» и направлением разности |

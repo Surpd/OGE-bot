@@ -164,7 +164,7 @@ def test_oracle_rejects_visible_text_mutations() -> None:
 def test_oracle_rejects_wall_units_and_changed_arc_asset() -> None:
     adapter, scenario, rendered, _ = _fixture(77)
     walls = adapter.question_builder.build_question_for_family(
-        scenario, 2, "STOVE-F05-WALL-AREA-NET"
+        scenario, 3, "STOVE-F05-WALL-AREA-NET"
     )
     wrong_units = replace(walls, condition=walls.condition.replace("см ×", "м ×"))
     with pytest.raises(ValueError):
@@ -206,9 +206,8 @@ def test_archive_positive_examples_are_independently_supported() -> None:
     assert "".join(str({40: 1, 48: 2, 15: 3}[value]) for value in (15, 40, 48)) == "312"
     assert Fraction(35, 10) * Fraction(22, 10) * 2 == Fraction(154, 10)
     assert Fraction(35, 10) * Fraction(22, 10) == Fraction(77, 10)
-    wall_area = (
-        2 * (Fraction(35, 10) + Fraction(22, 10)) * 2
-        - Fraction(60, 100) * Fraction(180, 100)
+    wall_area = 2 * (Fraction(35, 10) + Fraction(22, 10)) * 2 - Fraction(60, 100) * Fraction(
+        180, 100
     )
     assert wall_area == Fraction(2172, 100)
     assert 15_000 + 6_500 + 800 == 22_300

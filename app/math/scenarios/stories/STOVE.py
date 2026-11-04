@@ -76,8 +76,8 @@ _FAMILY_POSITION: Mapping[str, int] = MappingProxyType(
         family_id: position
         for position, ids in {
             1: FAMILY_IDS[:2],
-            2: FAMILY_IDS[2:5],
-            3: FAMILY_IDS[5:8],
+            2: FAMILY_IDS[2:3],
+            3: FAMILY_IDS[3:8],
             4: FAMILY_IDS[8:11],
             5: FAMILY_IDS[11:],
         }.items()
@@ -173,8 +173,8 @@ class StoveGenerator:
         # Per-position family choice is deterministic and stable for the seed.
         family_plan = {
             "1": FAMILY_IDS[rng.randrange(2)],
-            "2": FAMILY_IDS[2 + rng.randrange(3)],
-            "3": FAMILY_IDS[5 + rng.randrange(3)],
+            "2": FAMILY_IDS[2],
+            "3": FAMILY_IDS[3 + rng.randrange(5)],
             "4": FAMILY_IDS[8 + rng.randrange(3)],
             "5": FAMILY_IDS[11],
         }
@@ -494,12 +494,12 @@ class StoveQuestionBuilder:
             )
         policy_id = (
             "digit_sequence_exact_3"
-            if position == 1
-            else (
-                "integer_rubles"
-                if position in (3, 4) and family_id != FAMILY_IDS[2]
-                else ("integer_centimeters" if position == 5 else "decimal_exact")
-            )
+            if family_id in FAMILY_IDS[:2]
+            else "integer_centimeters"
+            if family_id == FAMILY_IDS[11]
+            else "decimal_exact"
+            if family_id in FAMILY_IDS[2:5]
+            else "integer_rubles"
         )
         return QuestionDraft(
             position=position,
@@ -1102,9 +1102,9 @@ class StoveAdapter:
             status=FamilyStatus.ENABLED_CANDIDATE,
             answer_policy_id=(
                 "digit_sequence_exact_3"
-                if _FAMILY_POSITION[family_id] == 1
+                if family_id in FAMILY_IDS[:2]
                 else "integer_centimeters"
-                if _FAMILY_POSITION[family_id] == 5
+                if family_id == FAMILY_IDS[11]
                 else "decimal_exact"
                 if family_id in FAMILY_IDS[2:5]
                 else "integer_rubles"
