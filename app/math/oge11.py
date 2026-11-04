@@ -497,8 +497,12 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
     raise RuntimeError(f"bounded generation exhausted for {family_id}: {last_reason}")
 
 
-def from_snapshot(value: dict[str, object]) -> Oge11Problem:
-    """Restore a saved task without rerunning generation or rendering."""
+def from_snapshot(value: dict[str, object], *, audit_raster: bool = True) -> Oge11Problem:
+    """Restore a saved task without rerunning generation or rendering.
+
+    Skip the raster pass only when the same PNG was audited during issuance.
+    The image digest and semantic fingerprint are always checked.
+    """
     try:
         raw_graphs = value["graphs"]
         if not isinstance(raw_graphs, list) or len(raw_graphs) != 3:
@@ -577,7 +581,7 @@ def from_snapshot(value: dict[str, object]) -> Oge11Problem:
         or value.get("answer_policy_version") != POLICY_VERSION
     ):
         raise ValueError("unsupported task-11 answer policy snapshot")
-    valid, reason = verify(result)
+    valid, reason = verify(result, audit_raster=audit_raster)
     if not valid:
         raise ValueError(f"invalid task-11 snapshot: {reason}")
     return result
@@ -684,7 +688,7 @@ def _audit_solution(problem: Oge11Problem) -> bool:
     return tuple(expected_steps) == problem.solution
 
 
-def verify(problem: Oge11Problem) -> tuple[bool, str]:
+def verify(problem: Oge11Problem, *, audit_raster: bool = True) -> tuple[bool, str]:
     """Independent semantic and raster audit; returns a stable failure category."""
     if problem.family_id not in FAMILIES:
         return False, "unknown family"
@@ -806,16 +810,17 @@ def verify(problem: Oge11Problem) -> tuple[bool, str]:
             return False, "wrong matching code"
         if not _audit_solution(problem):
             return False, "invalid reasoning step"
-        from app.math.oge11_render import audit_png
+        if audit_raster:
+            from app.math.oge11_render import audit_png
 
-        audit_png(
-            problem.png_bytes,
-            problem.graphs,
-            problem.graph_order,
-            problem.viewport,
-            problem.family_id,
-            problem.graph_labels,
-        )
+            audit_png(
+                problem.png_bytes,
+                problem.graphs,
+                problem.graph_order,
+                problem.viewport,
+                problem.family_id,
+                problem.graph_labels,
+            )
         if problem.fingerprint != _semantic_fingerprint(
             problem.family_id,
             problem.graphs,

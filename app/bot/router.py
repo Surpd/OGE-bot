@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import logging
 import secrets
@@ -413,6 +414,7 @@ async def _send_task11_problem(
     state = await repository.task11_state(user_id)
     state_value = cast(dict[str, object], state.get("state", {})) if state else {}
     current = state.get("problem") if state else None
+    freshly_generated = False
     if action == "resume":
         if not isinstance(current, dict) or state_value.get("status") != "active":
             await send_text(
@@ -430,8 +432,12 @@ async def _send_task11_problem(
             action = "advance"
         if action == "advance" and expected_problem_id is None and isinstance(current, dict):
             expected_problem_id = str(current.get("problem_id", ""))
-        candidates = build_task11_candidate_batch(
-            state_value, secrets.randbelow(2**63), enabled_families=TASK11_ENABLED_FAMILIES
+        candidates = await asyncio.to_thread(
+            build_task11_candidate_batch,
+            state_value,
+            secrets.randbelow(2**63),
+            enabled_families=TASK11_ENABLED_FAMILIES,
+            limit=1,
         )
         if not candidates:
             await send_text(
@@ -455,12 +461,16 @@ async def _send_task11_problem(
                 message, repository, "Не удалось подготовить задание №11. Попробуйте ещё раз."
             )
             return False
+        freshly_generated = problem.get("_transitioned") is True
         if action == "advance" and problem.get("_transitioned") is False:
             return False
         if expected_screen is None:
             await repository.save_user_state(user_id, "task11")
     try:
-        restored = task11_from_snapshot(problem)
+        # Fresh candidates have already passed the independent raster oracle in generate().
+        restored = await asyncio.to_thread(
+            task11_from_snapshot, problem, audit_raster=not freshly_generated
+        )
     except ValueError:
         await send_text(
             message, repository, "Сохранённое задание №11 повреждено; ответ не обработан."
@@ -787,7 +797,7 @@ async def _send_task7_problem(
             reply_markup=main_menu(),
         )
         return False
-    if isinstance(current, dict) and not validate_task7_snapshot(current):
+    if isinstance(current, dict) and not await asyncio.to_thread(validate_task7_snapshot, current):
         await repository.save_user_state(user_id, "main_menu")
         await send_text(
             message,
@@ -828,7 +838,9 @@ async def _send_task7_problem(
                 action = "advance"
             if action == "advance" and expected_problem_id is None and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
-            candidates = build_task7_candidate_batch(state_value, secrets.randbelow(2**63))
+            candidates = await asyncio.to_thread(
+                build_task7_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
+            )
             try:
                 problem = await repository.advance_task7_problem(
                     user_id,
@@ -847,8 +859,8 @@ async def _send_task7_problem(
                 return False
             if expected_screen is None:
                 await repository.save_user_state(user_id, "task7")
-    if problem.get("family_id") not in TASK7_ENABLED_FAMILIES or not validate_task7_snapshot(
-        problem
+    if problem.get("family_id") not in TASK7_ENABLED_FAMILIES or (
+        problem is not current and not await asyncio.to_thread(validate_task7_snapshot, problem)
     ):
         await repository.save_user_state(user_id, "main_menu")
         await send_text(
@@ -1142,7 +1154,9 @@ async def _send_task13_problem(
                 action = "advance"
             if action == "advance" and expected_problem_id is None and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
-            candidates = build_task13_candidate_batch(state_value, secrets.randbelow(2**63))
+            candidates = await asyncio.to_thread(
+                build_task13_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
+            )
             if not candidates:
                 await send_text(
                     message,
@@ -1170,7 +1184,8 @@ async def _send_task13_problem(
             if expected_screen is None:
                 await repository.save_user_state(user_id, "task13")
     problem_id = str(problem["problem_id"])
-    if not validate_task13_snapshot(problem):
+    graph_choice = _task13_is_graph_choice(problem)
+    if not graph_choice and not validate_task13_snapshot(problem):
         await repository.save_user_state(user_id, "main_menu")
         await send_text(
             message,
@@ -1180,7 +1195,19 @@ async def _send_task13_problem(
             reply_markup=main_menu(),
         )
         return False
-    graph_choice = _task13_is_graph_choice(problem)
+    image = None
+    if graph_choice:
+        try:
+            image = await asyncio.to_thread(render_option_sheet_snapshot_png, problem)
+        except (ValueError, TypeError, ZeroDivisionError):
+            await repository.save_user_state(user_id, "main_menu")
+            await send_text(
+                message,
+                repository,
+                "Не удалось отобразить сохранённые варианты №13; задание не пересоздавалось.",
+                reply_markup=main_menu(),
+            )
+            return False
     caption = (
         "Задание №13 · неравенства\n"
         f"{problem['condition']}\n\n"
@@ -1194,18 +1221,7 @@ async def _send_task13_problem(
         if str(problem.get("family_id", "")).startswith("OGE13-S")
         else None
     )
-    if graph_choice:
-        try:
-            image = render_option_sheet_snapshot_png(problem)
-        except ValueError:
-            await repository.save_user_state(user_id, "main_menu")
-            await send_text(
-                message,
-                repository,
-                "Не удалось отобразить сохранённые варианты №13; задание не пересоздавалось.",
-                reply_markup=main_menu(),
-            )
-            return False
+    if image is not None:
         sent = await send_photo(
             message,
             repository,

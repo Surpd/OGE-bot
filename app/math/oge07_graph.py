@@ -503,6 +503,10 @@ def _fmt_decimal(value: Fraction) -> str:
 
 def generate_graph_problem(family_id: str, seed: int) -> GraphProblem:
     """Create a deterministic point/number task, exact model and original PNG."""
+    return _build_graph_problem(family_id, seed)
+
+
+def _build_graph_problem(family_id: str, seed: int, png: bytes | None = None) -> GraphProblem:
     if family_id not in GRAPH_SOURCES:
         raise ValueError("Unsupported OGE07 graph family")
     rng = random.Random(f"oge07-graph:{family_id}:{seed}:1")
@@ -602,7 +606,8 @@ def generate_graph_problem(family_id: str, seed: int) -> GraphProblem:
         correct_index,
         list(GRAPH_SOURCES[family_id]),
     )
-    png, _ = render_png(model)
+    if png is None:
+        png, _ = render_png(model)
     return GraphProblem(
         str(uuid5(NAMESPACE_URL, f"oge07:{family_id}:1:{seed}")),
         family_id,

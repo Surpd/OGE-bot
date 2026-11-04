@@ -30,6 +30,8 @@
 
 | LL-21 | Callback acknowledgement | Отклонённый по revision callback мог иметь уже истёкший Telegram query. Ошибка необязательного AnswerCallbackQuery давала HTTP 500 и повторную доставку; ранний ACK мог прервать корректный переход после claim. | Разделять действие и уведомление. Узко обрабатывать только известный expired/invalid query для AnswerCallbackQuery, сохранять транзакционные guard и HTTP-ошибки остальных операций. | Все inline callbacks | `tests/test_inline_dispatcher_postgres.py::test_expired_stale_callback_webhook_postgres`; `tests/test_inline_dispatcher_postgres.py::test_unrelated_callback_api_error_is_not_hidden` | covered |
 
+| LL-22 | Выдача графики | Планировщик готовил десятки PNG до выдачи одного задания. Проверка сохранённого задания №7 повторно строила тот же рисунок. | Останавливать подбор после первого пригодного кандидата, проверять изображение из снимка и сохранять атомарную дедупликацию. | №7, №11, №13 | `tests/test_task11_flow.py::test_task11_issuance_audits_only_the_selected_graph`; `tests/test_oge07_math.py::test_graph_snapshot_restores_identical_png_and_answer` | covered |
+
 ## Добавление урока
 
 Добавляй запись только после подтверждённого дефекта. Укажи минимальный тест, который

@@ -966,7 +966,7 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
     if len(options) != 4 or any(not _is_canonical_interval_set(option) for option in options):
         raise ValueError("PNG renderer needs four canonical interval sets")
     width, height = 1280, 1120
-    pixels = bytearray([255, 255, 255] * width * height)
+    pixels = bytearray(b"\xff" * (3 * width * height))
     ink, blue, gray = (34, 34, 34), (23, 105, 170), (110, 110, 110)
 
     def dot(x: int, y: int, color: tuple[int, int, int]) -> None:
@@ -977,6 +977,16 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
     def line(
         x1: int, y1: int, x2: int, y2: int, color: tuple[int, int, int], thick: int = 2
     ) -> None:
+        if y1 == y2:
+            # A horizontal stroke is the union of the same square brush stamps.
+            left = max(0, min(x1, x2) - thick)
+            right = min(width, max(x1, x2) + thick + 1)
+            if left < right:
+                row = bytes(color) * (right - left)
+                for y in range(max(0, y1 - thick), min(height, y1 + thick + 1)):
+                    start = (y * width + left) * 3
+                    pixels[start : start + len(row)] = row
+            return
         steps = max(abs(x2 - x1), abs(y2 - y1), 1)
         for n in range(steps + 1):
             x = round(x1 + (x2 - x1) * n / steps)

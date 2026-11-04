@@ -73,7 +73,7 @@ class TelegramSession(BaseSession):
 
 
 async def exercise_navigation(
-    repository, *, expired_stale_ack=False, expire_all_acks=False, webhook=False
+    repository, *, expired_stale_ack=False, expire_all_acks=False, webhook=False, graphics=False
 ):
     session = TelegramSession()
     session.expired_acks = expire_all_acks
@@ -183,6 +183,28 @@ async def exercise_navigation(
         assert await repository.user_state(42) == "progress"
         await click("nav:main")
         assert (await repository.task6_state(42))["problem"]["problem_id"] == problem_id
+        if graphics:
+            for number, family_prefix in ((7, "OGE07-N"), (11, "OGE11-F"), (13, "OGE13-S")):
+                await click("nav:numbers")
+                photo_count = sum(c.__api_method__ == "sendPhoto" for c in session.calls)
+                await click(f"nav:task:{number}")
+                assert (
+                    sum(c.__api_method__ == "sendPhoto" for c in session.calls) == photo_count + 1
+                )
+                state_reader = getattr(repository, f"task{number}_state")
+                issued = await state_reader(42)
+                assert issued["problem"]["family_id"].startswith(family_prefix)
+                image = next(
+                    call.photo
+                    for call in reversed(session.calls)
+                    if call.__api_method__ == "sendPhoto"
+                )
+                assert image.data.startswith(b"\x89PNG\r\n\x1a\n")
+                task_id = issued["problem"]["problem_id"]
+                await click(f"t{number}:menu:{task_id}")
+                await click("nav:resume")
+                assert (await state_reader(42))["problem"]["problem_id"] == task_id
+                await click(f"t{number}:menu:{task_id}")
     finally:
         await stack.aclose()
         await bot.session.close()
@@ -194,8 +216,11 @@ async def test_dispatcher_inline_navigation_memory():
 
 
 @pytest.mark.asyncio
-async def test_dispatcher_inline_navigation_postgres(navigation_pool):
-    await exercise_navigation(PostgresRepository(navigation_pool))
+async def test_dispatcher_inline_navigation_and_graphic_issuance_postgres(
+    navigation_pool, monkeypatch
+):
+    monkeypatch.setattr("app.bot.router.secrets.randbelow", lambda _: 3)
+    await exercise_navigation(PostgresRepository(navigation_pool), graphics=True)
 
 
 @pytest.mark.asyncio
