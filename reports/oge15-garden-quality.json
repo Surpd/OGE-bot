@@ -1,0 +1,31 @@
+{
+  "story": "GARDEN",
+  "samples": 250,
+  "failures": [],
+  "unique_full_conditions": 235,
+  "target_unique": 200,
+  "source_fixture_seed_0_answers": [
+    "7425",
+    "7",
+    "36",
+    "29",
+    "500"
+  ],
+  "passed": true,
+  "enabled_families": [
+    "GARDEN-01-IDENTIFY",
+    "GARDEN-02-TILES-PACKS",
+    "GARDEN-04-PERIMETER-POLYGON",
+    "GARDEN-07-PERCENT-BUILDINGS",
+    "GARDEN-09-HEAT-BREAKEVEN"
+  ],
+  "disabled_families": [
+    "GARDEN-03-AREA-BUILDING",
+    "GARDEN-05-DISTANCE-ORTHOGONAL",
+    "GARDEN-06-DISTANCE-DIAGONAL",
+    "GARDEN-08-PERCENT-GREENHOUSE",
+    "GARDEN-10-PAINT-CHEAPEST",
+    "GARDEN-11-OPEN-SOIL",
+    "GARDEN-12-PERCENT-AREA-DIFF"
+  ]
+}

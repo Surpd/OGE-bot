@@ -1,0 +1,157 @@
+{
+  "story_code": "STOVE",
+  "generator_version": "stove-v1.0",
+  "renderer_version": "stove-svg-png-v1",
+  "sample_count_per_family": 250,
+  "family_count": 12,
+  "families": {
+    "STOVE-F01-CAPACITY-LIMITS": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 6,
+      "source_ids": [
+        "383591",
+        "406325"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F02-ATTRIBUTE-MATCH": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 6,
+      "source_ids": [
+        "408218",
+        "408219",
+        "448919"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F03-VOLUME": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 182,
+      "source_ids": [
+        "383592",
+        "392833"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F04-FLOOR-AREA": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 101,
+      "source_ids": [
+        "408225"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F05-WALL-AREA-NET": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 249,
+      "source_ids": [
+        "406273"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F06-PURCHASE-EXTRA-COSTS": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 102,
+      "source_ids": [
+        "383593"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F07-FIT-WOOD-DELIVERY": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 69,
+      "source_ids": [
+        "448921"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F08-COST-COMPARISON": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 138,
+      "source_ids": [
+        "406274",
+        "392860"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F09-DIRECT-DISCOUNT": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 207,
+      "source_ids": [
+        "383594"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F10-REVERSE-DISCOUNT": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 149,
+      "source_ids": [
+        "408246"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 235,
+      "source_ids": [
+        "392836"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    },
+    "STOVE-F12-ARCH-RADIUS": {
+      "samples": 250,
+      "independent_oracle_passes": 250,
+      "unique_visible_fingerprints": 250,
+      "answer_value_count": 32,
+      "source_ids": [
+        "383595",
+        "408256"
+      ],
+      "enabled_for_students": false,
+      "status": "enabled_candidate"
+    }
+  },
+  "full_compatible_bundles": 250,
+  "unique_full_bundle_fingerprints": 250,
+  "all_family_gates_passed": true,
+  "student_enablement": "disabled_pending_separate_release_review",
+  "known_exclusions": [
+    "STOVE-F13-YEARLY-OPERATING-COSTS: source wording/target operation not confirmed",
+    "STOVE-F14-UNVERIFIED-ARC-DESIGNS: source 408261 has a conflicted answer key/figure",
+    "STOVE-F15-BROKEN-PRICE-KEY: source 408240 has a conflicted answer key",
+    "Research V1 covers a partial set of catalog observations, not the full official bank."
+  ]
+}
