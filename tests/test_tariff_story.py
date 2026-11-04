@@ -29,7 +29,7 @@ from app.math.scenarios.stories.TARIFF import (
 
 @pytest.fixture
 def adapter():
-    return build_adapter()
+    return build_adapter(enabled_families=frozenset(IMPLEMENTED_FAMILIES))
 
 
 def _registry(adapter):
@@ -167,6 +167,11 @@ def test_source_incompatible_families_stay_disabled(adapter) -> None:
         "TARIFF-F15-SMS-MONTHLY-OVERAGE",
     ):
         assert not registrations[family].available
+
+
+def test_adapter_fails_closed_by_default() -> None:
+    adapter = build_adapter()
+    assert not any(family.available for family in adapter.family_registry)
 
 
 def test_oracle_rejects_question_answer_mutation(adapter) -> None:

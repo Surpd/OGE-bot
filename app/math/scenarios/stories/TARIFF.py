@@ -991,7 +991,10 @@ class _Adapter:
         self.family_registry = family_registry
 
 
-def build_adapter() -> StoryAdapter:
+def build_adapter(*, enabled_families: frozenset[str] = frozenset()) -> StoryAdapter:
+    unknown = enabled_families - frozenset(IMPLEMENTED_FAMILIES)
+    if unknown:
+        raise ValueError(f"Cannot enable unsupported TARIFF families: {sorted(unknown)}")
     generator = TariffGenerator()
     question_builder = TariffQuestionBuilder()
     renderer = TariffRenderer()
@@ -1014,7 +1017,7 @@ def build_adapter() -> StoryAdapter:
                 FamilyStatus.ENABLED_CANDIDATE,
                 f"tariff.{family_id.lower()}",
                 "1",
-                True,
+                family_id in enabled_families,
                 SET_A_SOURCES[family_id],
             )
             for position, family_id in (
