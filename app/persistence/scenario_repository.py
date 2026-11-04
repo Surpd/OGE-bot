@@ -9,7 +9,12 @@ from uuid import UUID
 
 import asyncpg
 
-from app.math.scenario_engine import PracticeMode, ScenarioSnapshot, snapshot_digest
+from app.math.scenario_engine import (
+    PracticeMode,
+    ScenarioIntegrityError,
+    ScenarioSnapshot,
+    snapshot_digest,
+)
 
 
 class AttemptResult(StrEnum):
@@ -144,7 +149,8 @@ class ScenarioPostgresRepository:
                           session.status, session.current_position, session.navigation_revision,
                           session.control_message_id, progress.status AS question_status,
                           progress.attempt_count, progress.hints_used,
-                          progress.prompt_message_id, scenario.snapshot
+                          progress.prompt_message_id, scenario.snapshot,
+                          scenario.snapshot_sha256
                    FROM oge15_sessions AS session
                    JOIN users AS app_user ON app_user.id = session.user_id
                    JOIN oge15_scenarios AS scenario ON scenario.id = session.scenario_id
@@ -160,6 +166,9 @@ class ScenarioPostgresRepository:
         raw_snapshot = row["snapshot"]
         if isinstance(raw_snapshot, str):
             raw_snapshot = json.loads(raw_snapshot)
+        snapshot = ScenarioSnapshot.from_snapshot(raw_snapshot)
+        if snapshot_digest(snapshot) != row["snapshot_sha256"].strip():
+            raise ScenarioIntegrityError("Stored scenario snapshot failed its SHA-256 check")
         return ScenarioSession(
             session_id=row["session_id"],
             scenario_id=row["scenario_id"],
@@ -172,7 +181,7 @@ class ScenarioPostgresRepository:
             hints_used=row["hints_used"],
             prompt_message_id=row["prompt_message_id"],
             control_message_id=row["control_message_id"],
-            snapshot=ScenarioSnapshot.from_snapshot(raw_snapshot),
+            snapshot=snapshot,
         )
 
     async def set_condition_message(

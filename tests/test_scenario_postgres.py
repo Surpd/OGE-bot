@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
@@ -13,6 +14,7 @@ from app.math.scenario_engine import (
     QuestionDraft,
     QuestionSnapshot,
     ScenarioAssetRef,
+    ScenarioIntegrityError,
     ScenarioSnapshot,
 )
 from app.persistence.repository import read_migration
@@ -45,7 +47,7 @@ def _snapshot() -> ScenarioSnapshot:
         compatibility_matrix_version="paper-compat-v1",
         context={"table": [[1, 2], [3, 4]]},
         shared_context="Shared paper table",
-        assets=(ScenarioAssetRef("a" * 64, "image/png", "oge15/a.png"),),
+        assets=(ScenarioAssetRef("a" * 64, "image/png", f"sha256/{'a' * 64}.png"),),
         questions=questions,
         provenance=("catalog:fixture",),
     )
@@ -169,6 +171,18 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
             "second_attempts": 1,
         }
         assert stats[0]["issued"] == 2
+
+        await pool.execute(
+            "UPDATE oge15_scenarios SET snapshot=jsonb_set(snapshot, '{shared_context}', '\"tampered\"'::jsonb) WHERE id=$1",
+            created.scenario_id,
+        )
+        with pytest.raises(ScenarioIntegrityError, match="SHA-256"):
+            await restarted_store.resume_session(user_id)
+        await pool.execute(
+            "UPDATE oge15_scenarios SET snapshot=$2::jsonb WHERE id=$1",
+            created.scenario_id,
+            json.dumps(snapshot.to_snapshot()),
+        )
 
         await pool.execute(
             "UPDATE oge15_sessions SET status='completed', finished_at=now() WHERE id=$1",

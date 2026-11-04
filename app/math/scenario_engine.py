@@ -35,6 +35,10 @@ class ScenarioUnavailable(RuntimeError):
     """No registered, student-enabled family can satisfy the requested mode."""
 
 
+class ScenarioIntegrityError(RuntimeError):
+    """Stored scenario bytes differ from the snapshot digest recorded at creation."""
+
+
 def _freeze_json(value: object) -> JsonValue:
     if isinstance(value, float) and not isfinite(value):
         raise ValueError("Scenario snapshot data cannot contain non-finite numbers")
@@ -86,8 +90,10 @@ class ScenarioAssetRef:
     def __post_init__(self) -> None:
         if len(self.sha256) != 64 or any(ch not in "0123456789abcdef" for ch in self.sha256):
             raise ValueError("Scenario assets require a lowercase SHA-256 digest")
-        if not self.content_type or not self.storage_key:
-            raise ValueError("Scenario assets require a content type and storage key")
+        extensions = {"image/png": "png", "image/svg+xml": "svg"}
+        extension = extensions.get(self.content_type)
+        if extension is None or self.storage_key != f"sha256/{self.sha256}.{extension}":
+            raise ValueError("Scenario asset key must be derived from its supported content digest")
 
 
 @dataclass(frozen=True, slots=True)
@@ -354,6 +360,8 @@ class IndependentOracle(Protocol):
 class Renderer(Protocol):
     def render_scenario(self, scenario: ScenarioDraft) -> RenderedScenario: ...
 
+    def restore_asset(self, snapshot: ScenarioSnapshot, asset: ScenarioAssetRef) -> bytes: ...
+
 
 class AnswerPolicy(Protocol):
     @property
@@ -538,6 +546,20 @@ def snapshot_digest(snapshot: ScenarioSnapshot) -> str:
         snapshot.to_snapshot(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
     return sha256(encoded).hexdigest()
+
+
+def restore_asset_bytes(
+    renderer: Renderer, snapshot: ScenarioSnapshot, asset: ScenarioAssetRef
+) -> bytes:
+    """Rebuild a content-addressed image in memory and reject non-deterministic bytes."""
+    if asset not in snapshot.assets:
+        raise ValueError("Asset reference does not belong to this scenario snapshot")
+    if asset.content_type not in {"image/png", "image/svg+xml"}:
+        raise ValueError("Only deterministic PNG and SVG scenario assets are supported")
+    content = renderer.restore_asset(snapshot, asset)
+    if not isinstance(content, bytes) or sha256(content).hexdigest() != asset.sha256:
+        raise ValueError("Restored scenario asset digest does not match its reference")
+    return content
 
 
 def discover_story_registry() -> FamilyRegistry:

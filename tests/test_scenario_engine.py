@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from hashlib import sha256
 
 import pytest
 
@@ -12,10 +13,13 @@ from app.math.scenario_engine import (
     PracticeRequest,
     QuestionDraft,
     RenderedScenario,
+    ScenarioAssetRef,
     ScenarioDraft,
+    ScenarioSnapshot,
     ScenarioUnavailable,
     build_practice_plan,
     discover_story_registry,
+    restore_asset_bytes,
 )
 
 
@@ -72,6 +76,9 @@ class _Adapter:
     def render_scenario(self, scenario: ScenarioDraft) -> RenderedScenario:
         self.render_calls += 1
         return RenderedScenario("Shared context")
+
+    def restore_asset(self, snapshot: ScenarioSnapshot, asset: ScenarioAssetRef) -> bytes:
+        raise NotImplementedError
 
     def validate_scenario(self, scenario: ScenarioDraft) -> None:
         assert scenario.seed >= 0
@@ -166,6 +173,37 @@ def test_snapshot_roundtrip_and_seed_mixing_guard() -> None:
                 *plan.snapshot.questions[2:],
             ),
         )
+
+
+def test_asset_bytes_restore_deterministically_and_are_digest_checked() -> None:
+    adapter = _Adapter()
+    plan = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, seed=26, story_code="PAPER"),
+        FamilyRegistry((adapter,)),
+    )
+    content = b"<svg xmlns='http://www.w3.org/2000/svg'></svg>"
+    digest = sha256(content).hexdigest()
+    asset = ScenarioAssetRef(digest, "image/svg+xml", f"sha256/{digest}.svg")
+    snapshot = replace(plan.snapshot, assets=(asset,))
+
+    class _Renderer:
+        def restore_asset(
+            self, stored_snapshot: ScenarioSnapshot, reference: ScenarioAssetRef
+        ) -> bytes:
+            assert stored_snapshot is snapshot
+            assert reference == asset
+            return content
+
+    assert restore_asset_bytes(_Renderer(), snapshot, asset) == content
+
+    class _CorruptRenderer(_Renderer):
+        def restore_asset(
+            self, stored_snapshot: ScenarioSnapshot, reference: ScenarioAssetRef
+        ) -> bytes:
+            return b"different bytes"
+
+    with pytest.raises(ValueError, match="digest does not match"):
+        restore_asset_bytes(_CorruptRenderer(), snapshot, asset)
 
 
 def test_generated_question_seed_mismatch_is_rejected() -> None:

@@ -27,7 +27,7 @@
 | `generator` | `ScenarioGenerator.generate_scenario(seed) -> ScenarioDraft` | Создаёт общий мир один раз. Детерминированный собственный RNG; без Telegram, БД и LLM. |
 | `question_builder` | `QuestionBuilder.build_question(scenario, position) -> QuestionDraft` | Строит позицию 1–5 из уже созданного мира. |
 | `independent_oracle` | `validate_scenario(...)`, `validate_question(scenario, question, rendered)`, `validate_bundle(scenario, questions, rendered)` | Независимо проверяет модель, фактически отрендеренное условие и совместимость выбранного набора вопросов. Выбрасывает ошибку при расхождении. |
-| `renderer` | `Renderer.render_scenario(scenario) -> RenderedScenario` | Один раз создаёт общий текст/таблицу/рисунок. Возвращает ссылки на assets по SHA-256, не копии PNG в вопросах. |
+| `renderer` | `Renderer.render_scenario(scenario) -> RenderedScenario`; `restore_asset(snapshot, asset) -> bytes` | Один раз создаёт общий текст/таблицу/рисунок и возвращает ссылки на assets по SHA-256. Восстановление обязано детерминированно вернуть те же байты из immutable snapshot. |
 | `answer_policies` | `Mapping[(policy_id, version), AnswerPolicy]` | Версионированная политика с `accepts(raw, canonical)`. |
 | `family_registry` | `tuple[FamilyRegistration, ...]` | Семейство, позиция, статус источника, политика, source IDs и отдельный флаг `enabled=False` по умолчанию. |
 
@@ -71,10 +71,34 @@ next разрешён только после терминального исх�
 `oge15_position_stats` предоставляет строки по позициям 1–5 и общую строку
 `position=0`, с теми же метриками issued/attempts/correct/skipped/hints/solutions.
 
-Assets хранятся отдельно по digest. `oge15_scenario_assets` добавляет одну ссылку
-на картинку на сценарий; `oge15_protected_assets` перечисляет изображения,
-используемые незавершёнными сессиями, для будущей компактизации PNG. Компактор
-должен исключать все эти digest; PNG bytes нельзя помещать в вопросные строки.
+### Общий контракт графики: детерминированное восстановление без blob-хранилища
+
+Все семь адаптеров используют один путь; отдельный bucket/диск/S3 и платные
+сервисы не подключаются. Источник изображения — сохранённый `ScenarioSnapshot`
+(`context`, версии генератора и compatibility matrix) плюс версия кода адаптера.
+`render_scenario()` строит PNG или SVG в памяти; bytes сразу передаются Telegram
+как `sendPhoto` для PNG или `sendDocument` для SVG. После перезапуска Render
+`restore_asset(snapshot, asset)` повторно строит bytes из snapshot, не обращаясь к
+seed/рандому и не генерируя заново ответ. Для идентичного окружения/версии должны
+получиться байты с тем же SHA-256; иначе выдача прекращается с ошибкой целостности.
+
+`ScenarioAssetRef.sha256` — SHA-256 точных отправляемых байтов, MIME ограничен
+`image/png`/`image/svg+xml`, `storage_key` — только стабильный `sha256/<digest>.<ext>`
+идентификатор, а не путь к диску или облаку. Перед отправкой общий helper
+`restore_asset_bytes(renderer, snapshot, asset)` сверяет принадлежность asset
+snapshot и digest. Ключ по digest дедуплицирует `oge15_assets`; сценарии ссылаются
+на один ключ через `oge15_scenario_assets`. Сами PNG/SVG байты не сохраняются ни в
+PostgreSQL, ни в локальной файловой системе; Telegram `file_id` можно кэшировать
+позже как оптимизацию, но восстановление от него не зависит.
+
+Это согласуется с PR #19: `oge15_protected_assets` включает digest, связанные с
+активными/поставленными на паузу сессиями, а будущая компактизация не должна
+удалять эти ссылки. После завершения сценария неиспользуемые refs/metadata можно
+удалять по digest; файлы-сироты не накапливаются, потому что движок их не создаёт.
+Никакой отдельной migration для blob storage не нужна. Адаптер обязан сохранить
+совместимость генерации байтов в пределах snapshot schema и версии renderer; если
+старую версию рендеринга нельзя восстановить, модуль оставляет семейство выключенным
+до реализации совместимого пути.
 
 ## Независимая работа семи сюжетных модулей
 
