@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-04 — GARDEN adapter №1–5
+- Добавлен автономный адаптер проверенной полной пятёрки Сосновки с собственным SVG, общей версией мира, версиями answer policy и независимой проверкой текста, ответов, меток и восстановления изображения.
+- GARDEN-10/12 оставлены research-only, GARDEN-11 blocked; Avdeevo не используется до проверки оригинального плана.
+- Добавлены source fixture, мутационные и 250-seed QA проверки и отдельный отчёт качества. CI/PR gate ещё не пройден.
+
 ## 2026-11-04 — общий движок сценариев №1–5
 - Добавлены immutable snapshots общего мира с пятью связанными позициями, versioned answer policy, интерфейсы generator/question builder/oracle/renderer и пустой fail-closed registry для семи автономных story modules.
 - Добавлена PostgreSQL схема с одним JSONB snapshot на сценарий, прогрессом/попытками по позиции, idempotent callback claims, метриками по позиции и защитой используемых изображений от PNG compaction.

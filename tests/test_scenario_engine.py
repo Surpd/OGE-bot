@@ -100,9 +100,16 @@ class _Adapter:
         assert rendered.shared_context == "Shared context"
 
 
-def test_story_registry_starts_empty_and_discovery_has_no_demo_families() -> None:
+def test_story_registry_discovers_installed_adapters_without_demo_families() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
-    assert discover_story_registry().story_codes == ()
+    registry = discover_story_registry()
+    assert "GARDEN" in registry.story_codes
+    assert all(
+        family.available
+        for story_code in registry.story_codes
+        for family in registry.adapter(story_code).family_registry
+        if family.enabled
+    )
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
