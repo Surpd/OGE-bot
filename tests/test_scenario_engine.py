@@ -103,7 +103,7 @@ class _Adapter:
 def test_story_discovery_finds_merged_stories_without_exposing_task_numbers() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
     discovered = discover_story_registry()
-    assert {"TYRES", "PAPER", "TARIFF"}.issubset(discovered.story_codes)
+    assert {"TYRES", "PAPER", "TARIFF", "GARDEN"}.issubset(discovered.story_codes)
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
