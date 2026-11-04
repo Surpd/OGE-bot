@@ -391,10 +391,10 @@ def build_adapter() -> StoryAdapter:
             source_ids=((source,) if source else ()),
         )
         for fid, pos, source, status in (
-            ("GARDEN-03-AREA-BUILDING", 3, "366579", FamilyStatus.RESEARCH_ONLY),
-            ("GARDEN-05-DISTANCE-ORTHOGONAL", 4, "408425", FamilyStatus.RESEARCH_ONLY),
-            ("GARDEN-06-DISTANCE-DIAGONAL", 4, "366581", FamilyStatus.RESEARCH_ONLY),
-            ("GARDEN-08-PERCENT-GREENHOUSE", 4, "408433", FamilyStatus.RESEARCH_ONLY),
+            ("GARDEN-03-AREA-BUILDING", 3, "366579", FamilyStatus.ENABLED_CANDIDATE),
+            ("GARDEN-05-DISTANCE-ORTHOGONAL", 4, "408425", FamilyStatus.ENABLED_CANDIDATE),
+            ("GARDEN-06-DISTANCE-DIAGONAL", 4, "366581", FamilyStatus.ENABLED_CANDIDATE),
+            ("GARDEN-08-PERCENT-GREENHOUSE", 4, "408433", FamilyStatus.ENABLED_CANDIDATE),
             ("GARDEN-10-PAINT-CHEAPEST", 5, "408450", FamilyStatus.RESEARCH_ONLY),
             ("GARDEN-11-OPEN-SOIL", 3, "408430", FamilyStatus.BLOCKED),
             ("GARDEN-12-PERCENT-AREA-DIFF", 4, "", FamilyStatus.RESEARCH_ONLY),
