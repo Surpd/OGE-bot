@@ -29,7 +29,7 @@ def number_menu(
         if release_flags.get(training.number, training.available)
     ]
     rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
-    rows.insert(0, [_button("№1–5 · Практические задания", "oge15:home")])
+    rows.insert(0, [_button("№1–5 · Практические задания", "nav:oge15")])
     rows.append([_button("↩ В меню", "nav:main")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
