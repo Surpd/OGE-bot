@@ -1,0 +1,70 @@
+{
+  "story": "FLAT",
+  "generator_version": "flat-grid-1.0.0",
+  "seed_qa": {
+    "seeds_checked": 300,
+    "valid_bundles": 300,
+    "unique_observable_bundle_fingerprints": 300,
+    "family_occurrences": {
+      "FLAT-01-ROOM-MATCH": 300,
+      "FLAT-02-PARQUET-PACK": 161,
+      "FLAT-02-TILE-PACK": 139,
+      "FLAT-03-RECT-AREA": 300,
+      "FLAT-04-RECT-PERCENT": 300,
+      "FLAT-05-INTERNET-MIN": 155,
+      "FLAT-05-WASHER-MIN": 145
+    },
+    "acceptance_target": "at least 200 distinct bundles within 1200 seeds",
+    "passed": true
+  },
+  "source_control": {
+    "task_ids": [
+      "424898",
+      "424899",
+      "424900",
+      "424901",
+      "424902"
+    ],
+    "provenance": "catalog attributed; not independently verified as official FIPI originals",
+    "expected_answers": [
+      "1346",
+      "12",
+      "4.8",
+      "50",
+      "950"
+    ],
+    "generated_answers": [
+      "1346",
+      "12",
+      "4.8",
+      "50",
+      "950"
+    ],
+    "passed": true
+  },
+  "assets": {
+    "image/png": {
+      "sha256": "f91dcd2e7d958255ce8df24f62733c9ac5b2127207c380b0931880310dec1f6b",
+      "restored_matches_snapshot": true
+    },
+    "image/svg+xml": {
+      "sha256": "fda004a67c41121045866fb7dfa83d8ac757ec6d76dd8f84f72832a9d07e3287",
+      "restored_matches_snapshot": true
+    }
+  },
+  "mutation_tests": [
+    "room-label swap",
+    "door removal",
+    "parquet dimension change",
+    "scale change",
+    "percent denominator change",
+    "tariff fee change",
+    "answer order change"
+  ],
+  "excluded": {
+    "FLAT-04-COMPOSITE-PERCENT": "candidate remains disabled; source 409306 has unresolved rounding and is not used as a positive vector",
+    "FLAT-ALT-TOPOLOGY": "research_only",
+    "FLAT-02-CUTTING-WASTE": "blocked"
+  },
+  "all_families_student_enabled": false
+}
