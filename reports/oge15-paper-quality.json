@@ -1,0 +1,422 @@
+{
+  "story": "PAPER",
+  "generator_version": "paper-v1",
+  "seed_range": "0..1199",
+  "per_family_samples": {
+    "PAPER-F01": {
+      "status": "enabled_candidate",
+      "enabled": true,
+      "sources": [
+        "408268",
+        "SPB-2025-2502"
+      ],
+      "samples_validated": 300,
+      "unique_structural_fingerprints": 298,
+      "unique_canonical_answers": 24,
+      "fingerprint_examples": [
+        [
+          [
+            "A0",
+            "A1",
+            "A2",
+            "A3"
+          ],
+          [
+            [
+              "A2",
+              594,
+              420
+            ],
+            [
+              "A0",
+              1189,
+              841
+            ],
+            [
+              "A1",
+              841,
+              594
+            ],
+            [
+              "A3",
+              420,
+              297
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A1",
+            "A4",
+            "A6"
+          ],
+          [
+            [
+              "A0",
+              1189,
+              841
+            ],
+            [
+              "A1",
+              841,
+              594
+            ],
+            [
+              "A4",
+              297,
+              210
+            ],
+            [
+              "A6",
+              148,
+              105
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A1",
+            "A5",
+            "A6"
+          ],
+          [
+            [
+              "A6",
+              148,
+              105
+            ],
+            [
+              "A5",
+              210,
+              148
+            ],
+            [
+              "A0",
+              1189,
+              841
+            ],
+            [
+              "A1",
+              841,
+              594
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A1",
+            "A6",
+            "A2"
+          ],
+          [
+            [
+              "A6",
+              148,
+              105
+            ],
+            [
+              "A1",
+              841,
+              594
+            ],
+            [
+              "A0",
+              1189,
+              841
+            ],
+            [
+              "A2",
+              594,
+              420
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A1",
+            "A6",
+            "A3"
+          ],
+          [
+            [
+              "A6",
+              148,
+              105
+            ],
+            [
+              "A3",
+              420,
+              297
+            ],
+            [
+              "A0",
+              1189,
+              841
+            ],
+            [
+              "A1",
+              841,
+              594
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A1",
+            "A6",
+            "A4"
+          ],
+          [
+            [
+              "A4",
+              297,
+              210
+            ],
+            [
+              "A6",
+              148,
+              105
+            ],
+            [
+              "A0",
+              1189,
+              841
+            ],
+            [
+              "A1",
+              841,
+              594
+            ]
+          ]
+        ]
+      ]
+    },
+    "PAPER-F02": {
+      "status": "enabled_candidate",
+      "enabled": true,
+      "sources": [
+        "408281",
+        "408284"
+      ],
+      "samples_validated": 300,
+      "unique_structural_fingerprints": 21,
+      "unique_canonical_answers": 6,
+      "fingerprint_examples": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          0,
+          6
+        ]
+      ]
+    },
+    "PAPER-F03": {
+      "status": "enabled_candidate",
+      "enabled": true,
+      "sources": [
+        "408300",
+        "408313"
+      ],
+      "samples_validated": 300,
+      "unique_structural_fingerprints": 2,
+      "unique_canonical_answers": 2,
+      "fingerprint_examples": [
+        [
+          0,
+          "short",
+          10
+        ],
+        [
+          7,
+          "long",
+          5
+        ]
+      ]
+    },
+    "PAPER-F04": {
+      "status": "enabled_candidate",
+      "enabled": true,
+      "sources": [
+        "408314"
+      ],
+      "samples_validated": 300,
+      "unique_structural_fingerprints": 7,
+      "unique_canonical_answers": 1,
+      "fingerprint_examples": [
+        [
+          0,
+          "short_over_long"
+        ],
+        [
+          1,
+          "short_over_long"
+        ],
+        [
+          2,
+          "short_over_long"
+        ],
+        [
+          3,
+          "short_over_long"
+        ],
+        [
+          4,
+          "short_over_long"
+        ],
+        [
+          5,
+          "short_over_long"
+        ]
+      ]
+    },
+    "PAPER-F06": {
+      "status": "enabled_candidate",
+      "enabled": true,
+      "sources": [
+        "408320"
+      ],
+      "samples_validated": 300,
+      "unique_structural_fingerprints": 1,
+      "unique_canonical_answers": 1,
+      "fingerprint_examples": [
+        [
+          "A2",
+          "diagonal_over_short"
+        ]
+      ]
+    },
+    "PAPER-F07": {
+      "status": "enabled_candidate",
+      "enabled": true,
+      "sources": [
+        "408333",
+        "408343",
+        "460960"
+      ],
+      "samples_validated": 300,
+      "unique_structural_fingerprints": 197,
+      "unique_canonical_answers": 36,
+      "fingerprint_examples": [
+        [
+          0,
+          1,
+          11
+        ],
+        [
+          0,
+          1,
+          12
+        ],
+        [
+          0,
+          1,
+          13
+        ],
+        [
+          0,
+          1,
+          15
+        ],
+        [
+          0,
+          1,
+          16
+        ],
+        [
+          0,
+          1,
+          20
+        ]
+      ]
+    }
+  },
+  "structural_uniqueness": {
+    "PAPER-F01": {
+      "attempts": 1200,
+      "unique_structural_fingerprints": 1162,
+      "target": 200,
+      "passed": true
+    },
+    "PAPER-F07": {
+      "attempts": 1200,
+      "unique_structural_fingerprints": 344,
+      "target": 200,
+      "passed": true
+    }
+  },
+  "natural_capacity_exceptions": {
+    "PAPER-F02": {
+      "observed_unique_conditions": 21,
+      "unique_answers": 6,
+      "exception": "finite A0..A6 index pairs"
+    },
+    "PAPER-F03": {
+      "observed_unique_conditions": 2,
+      "unique_answers": 2,
+      "exception": "only two individually checked side/multiple combinations"
+    },
+    "PAPER-F04": {
+      "observed_unique_conditions": 7,
+      "unique_answers": 1,
+      "exception": "same 0.7 answer for rounded A0..A6 dimensions"
+    },
+    "PAPER-F06": {
+      "observed_unique_conditions": 1,
+      "unique_answers": 1,
+      "exception": "only the source-verified A2 diagonal ratio is implemented"
+    }
+  },
+  "full_bundle": {
+    "seeds_validated": 300,
+    "selected_positions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "family_combinations_observed": 2,
+    "all_questions_share_one_seed": true,
+    "single_and_full_snapshot_gate": "covered by tests/test_oge15_paper.py"
+  },
+  "blocked_families": {
+    "PAPER-F05": "research_only: secondary collection, no individually verified catalog task ID",
+    "PAPER-F08": "blocked: ideal area and rounded-dimension area disagree",
+    "PAPER-F09": "blocked: ideal-area and rounded-dimension mass disagree"
+  },
+  "independent_oracle": "scenario, rendered text/table, each question and bundle validated",
+  "renderer": "deterministic PNG diagram + table; snapshot restore SHA-256 checked in tests",
+  "visual_audit": {
+    "screen_widths_px": [
+      360,
+      390,
+      430
+    ],
+    "table_png": "1024x520; all headers, row labels and values remain within the canvas",
+    "diagram_png": "960x640; A0-A5 labels and successive arrows remain within the canvas",
+    "result": "visually inspected at all three scaled widths"
+  }
+}

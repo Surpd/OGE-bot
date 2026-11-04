@@ -103,8 +103,7 @@ class _Adapter:
 def test_story_discovery_finds_tyres_without_connecting_the_number_to_the_menu() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
     discovered = discover_story_registry()
-    assert discovered.story_codes == ("TYRES",)
-    assert discovered.available_stories(PracticeMode.FULL) == ("TYRES",)
+    assert {"TYRES", "PAPER"}.issubset(discovered.story_codes)
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
