@@ -7,6 +7,7 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
+from app.bot.callbacks import answer_callback
 from app.bot.menu import (
     MAIN_MENU,
     main_menu,
@@ -197,7 +198,9 @@ async def start(message: Message, repository: Repository) -> None:
         reply_markup=ReplyKeyboardRemove(),
     )
     await send_text(
-        message, repository, "Выберите раздел в меню.",
+        message,
+        repository,
+        "Выберите раздел в меню.",
         reply_markup=main_menu(has_session=has_session),
     )
 
@@ -488,21 +491,21 @@ async def choose_task11(message: Message, repository: Repository) -> None:
 async def task11_callback(callback: CallbackQuery, repository: Repository) -> None:
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != "t11" or callback.message is None:
-        await callback.answer()
+        await answer_callback(callback)
         return
     _, action, expected_id = parts
     user_id = callback.from_user.id
     message = cast(Message, callback.message)
     condition_id = getattr(message, "message_id", None)
     if type(condition_id) is not int:
-        await callback.answer("Кнопка больше не связана с заданием.")
+        await answer_callback(callback, "Кнопка больше не связана с заданием.")
         return
     if action == "menu":
         changed = await repository.transition_task_screen(
             user_id, "task11", expected_id, "main_menu", condition_id
         )
         if not changed:
-            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            await answer_callback(callback, "Тренировка приостановлена или задание уже сменилось.")
             return
         await send_text(
             message,
@@ -511,15 +514,15 @@ async def task11_callback(callback: CallbackQuery, repository: Repository) -> No
             user_id_override=user_id,
             reply_markup=main_menu(has_session=await _has_resumable_session(repository, user_id)),
         )
-        await callback.answer()
+        await answer_callback(callback)
         return
     if await repository.user_state(user_id) != "task11":
-        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        await answer_callback(callback, "Тренировка приостановлена. Нажмите «Продолжить».")
         return
     state = await repository.task11_state(user_id)
     problem = state.get("problem") if state else None
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
-        await callback.answer("Это задание уже сменилось.")
+        await answer_callback(callback, "Это задание уже сменилось.")
         return
     if action in {"next", "skip"}:
         advanced = await _send_task11_problem(
@@ -532,7 +535,7 @@ async def task11_callback(callback: CallbackQuery, repository: Repository) -> No
             user_id_override=user_id,
             skip_active=action == "skip",
         )
-        await callback.answer(None if advanced else "Это задание уже сменилось.")
+        await answer_callback(callback, None if advanced else "Это задание уже сменилось.")
         return
     if action == "hint":
         hint = await repository.task11_hint(user_id, expected_id, condition_id)
@@ -543,12 +546,12 @@ async def task11_callback(callback: CallbackQuery, repository: Repository) -> No
         revealed = await repository.task11_reveal_solution(user_id, expected_id, condition_id)
         snapshot = revealed.get("problem") if revealed else None
         if not isinstance(snapshot, dict):
-            await callback.answer("Это задание уже сменилось.")
+            await answer_callback(callback, "Это задание уже сменилось.")
             return
         try:
             restored = task11_from_snapshot(snapshot)
         except ValueError:
-            await callback.answer("Сохранённое условие повреждено.", show_alert=True)
+            await answer_callback(callback, "Сохранённое условие повреждено.", show_alert=True)
             return
         sent = await send_text(
             message,
@@ -565,9 +568,9 @@ async def task11_callback(callback: CallbackQuery, repository: Repository) -> No
             )
             await _disable_stale_keyboard(sent, saved)
     else:
-        await callback.answer()
+        await answer_callback(callback)
         return
-    await callback.answer()
+    await answer_callback(callback)
 
 
 async def task11_answer(message: Message, repository: Repository) -> None:
@@ -904,21 +907,21 @@ async def choose_task7(message: Message, repository: Repository) -> None:
 async def task7_callback(callback: CallbackQuery, repository: Repository) -> None:
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != "t7" or callback.message is None:
-        await callback.answer()
+        await answer_callback(callback)
         return
     _, action, expected_id = parts
     user_id = callback.from_user.id
     message = cast(Message, callback.message)
     prompt_id = getattr(message, "message_id", None)
     if type(prompt_id) is not int:
-        await callback.answer("Кнопка больше не связана с заданием.")
+        await answer_callback(callback, "Кнопка больше не связана с заданием.")
         return
     if action == "menu":
         changed = await repository.transition_task_screen(
             user_id, "task7", expected_id, "main_menu", prompt_id
         )
         if not changed:
-            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            await answer_callback(callback, "Тренировка приостановлена или задание уже сменилось.")
             return
         await send_text(
             message,
@@ -927,24 +930,24 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id_override=user_id,
             reply_markup=main_menu(has_session=await _has_resumable_session(repository, user_id)),
         )
-        await callback.answer()
+        await answer_callback(callback)
         return
     if await repository.user_state(user_id) != "task7":
-        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        await answer_callback(callback, "Тренировка приостановлена. Нажмите «Продолжить».")
         return
     state = await repository.task7_state(user_id)
     problem = state.get("problem") if state else None
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
-        await callback.answer("Это задание уже сменилось.")
+        await answer_callback(callback, "Это задание уже сменилось.")
         return
     if problem.get("family_id") not in TASK7_ENABLED_FAMILIES:
         await repository.save_user_state(user_id, "main_menu")
-        await callback.answer("Это семейство задания №7 выключено.", show_alert=True)
+        await answer_callback(callback, "Это семейство задания №7 выключено.", show_alert=True)
         return
     if not validate_task7_snapshot(problem):
         await repository.save_user_state(user_id, "main_menu")
-        await callback.answer(
-            "Сохранённое задание повреждено; оно не было обработано.", show_alert=True
+        await answer_callback(
+            callback, "Сохранённое задание повреждено; оно не было обработано.", show_alert=True
         )
         return
     if action in {"next", "skip"}:
@@ -958,7 +961,7 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id_override=user_id,
             skip_active=action == "skip",
         )
-        await callback.answer(None if advanced else "Это задание уже сменилось.")
+        await answer_callback(callback, None if advanced else "Это задание уже сменилось.")
         return
     if action == "hint":
         hint = await repository.task7_hint(user_id, expected_id, prompt_id)
@@ -969,7 +972,7 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
         revealed = await repository.task7_reveal_solution(user_id, expected_id, prompt_id)
         snapshot = revealed.get("problem") if revealed else None
         if not isinstance(snapshot, dict):
-            await callback.answer("Это задание уже сменилось.")
+            await answer_callback(callback, "Это задание уже сменилось.")
             return
         steps = snapshot.get("solution", [])
         sent = await send_text(
@@ -990,9 +993,9 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
             )
             await _disable_stale_keyboard(sent, saved)
     else:
-        await callback.answer()
+        await answer_callback(callback)
         return
-    await callback.answer()
+    await answer_callback(callback)
 
 
 async def task7_answer(message: Message, repository: Repository) -> None:
@@ -1230,21 +1233,21 @@ async def choose_task13(message: Message, repository: Repository) -> None:
 async def task13_callback(callback: CallbackQuery, repository: Repository) -> None:
     parts = (callback.data or "").split(":")
     if len(parts) not in {3, 4} or parts[0] != "t13" or callback.message is None:
-        await callback.answer()
+        await answer_callback(callback)
         return
     _, action, expected_id = parts[:3]
     user_id = callback.from_user.id
     message = cast(Message, callback.message)
     prompt_id = getattr(message, "message_id", None)
     if type(prompt_id) is not int:
-        await callback.answer("Кнопка больше не связана с заданием.")
+        await answer_callback(callback, "Кнопка больше не связана с заданием.")
         return
     if action == "menu":
         changed = await repository.transition_task_screen(
             user_id, "task13", expected_id, "main_menu", prompt_id
         )
         if not changed:
-            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            await answer_callback(callback, "Тренировка приостановлена или задание уже сменилось.")
             return
         await send_text(
             message,
@@ -1253,19 +1256,19 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
             user_id_override=user_id,
             reply_markup=main_menu(has_session=await _has_resumable_session(repository, user_id)),
         )
-        await callback.answer()
+        await answer_callback(callback)
         return
     if await repository.user_state(user_id) != "task13":
-        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        await answer_callback(callback, "Тренировка приостановлена. Нажмите «Продолжить».")
         return
     state = await repository.task13_state(user_id)
     problem = state.get("problem") if state else None
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
-        await callback.answer("Это задание уже сменилось.")
+        await answer_callback(callback, "Это задание уже сменилось.")
         return
     if action == "choose":
         if len(parts) != 4 or parts[3] not in {"1", "2", "3", "4"}:
-            await callback.answer("Выберите вариант от 1 до 4.")
+            await answer_callback(callback, "Выберите вариант от 1 до 4.")
             return
         state_value = state.get("state", {}) if state else {}
         condition_id = (
@@ -1275,7 +1278,7 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
             state_value.get("input_prompt_message_id") if isinstance(state_value, dict) else None
         )
         if current_prompt != prompt_id or type(condition_id) is not int:
-            await callback.answer("Эта кнопка уже устарела.")
+            await answer_callback(callback, "Эта кнопка уже устарела.")
             return
         await _task13_record_answer(
             message,
@@ -1287,7 +1290,7 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
             prompt_id,
             telegram_event_id=str(callback.id),
         )
-        await callback.answer()
+        await answer_callback(callback)
         return
     if action in {"next", "skip"}:
         advanced = await _send_task13_problem(
@@ -1300,7 +1303,7 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
             user_id_override=user_id,
             skip_active=action == "skip",
         )
-        await callback.answer(None if advanced else "Это задание уже сменилось.")
+        await answer_callback(callback, None if advanced else "Это задание уже сменилось.")
         return
     if action == "hint":
         hint = await repository.task13_hint(user_id, expected_id, prompt_id)
@@ -1311,7 +1314,7 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
         revealed = await repository.task13_reveal_solution(user_id, expected_id, prompt_id)
         snapshot = revealed.get("problem") if revealed else None
         if not isinstance(snapshot, dict):
-            await callback.answer("Это задание уже сменилось.")
+            await answer_callback(callback, "Это задание уже сменилось.")
             return
         steps = snapshot.get("solution", [])
         sent = await send_text(
@@ -1332,9 +1335,9 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
             )
             await _disable_stale_keyboard(sent, saved)
     else:
-        await callback.answer()
+        await answer_callback(callback)
         return
-    await callback.answer()
+    await answer_callback(callback)
 
 
 async def _task13_record_answer(
@@ -1469,14 +1472,14 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
     data = callback.data or ""
     parts = data.split(":", 2)
     if len(parts) != 3 or parts[0] != "t6" or callback.message is None:
-        await callback.answer()
+        await answer_callback(callback)
         return
     _, action, expected_problem_id = parts
     user_id = callback.from_user.id
     message = cast(Message, callback.message)
     control_message_id = getattr(message, "message_id", None)
     if type(control_message_id) is not int:
-        await callback.answer("Кнопка больше не связана с активным заданием.")
+        await answer_callback(callback, "Кнопка больше не связана с активным заданием.")
         return
     if action == "menu":
         transitioned = await repository.transition_task_screen(
@@ -1487,7 +1490,7 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             expected_prompt_message_id=control_message_id,
         )
         if not transitioned:
-            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            await answer_callback(callback, "Тренировка приостановлена или задание уже сменилось.")
             return
         has_session = await _has_resumable_session(repository, user_id)
         await send_text(
@@ -1497,18 +1500,18 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id_override=user_id,
             reply_markup=main_menu(has_session=has_session),
         )
-        await callback.answer()
+        await answer_callback(callback)
         return
 
     if await repository.user_state(user_id) != "task6":
-        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        await answer_callback(callback, "Тренировка приостановлена. Нажмите «Продолжить».")
         return
 
     state = await repository.task6_state(user_id)
     problem = state.get("problem") if state else None
     current_id = str(problem.get("problem_id", "")) if isinstance(problem, dict) else ""
     if current_id != expected_problem_id:
-        await callback.answer("Это задание уже сменилось.")
+        await answer_callback(callback, "Это задание уже сменилось.")
         return
 
     if action in {"next", "skip"}:
@@ -1522,7 +1525,7 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id_override=user_id,
             skip_active=action == "skip",
         )
-        await callback.answer("Задание уже сменилось." if not advanced else None)
+        await answer_callback(callback, "Задание уже сменилось." if not advanced else None)
         return
 
     if action == "hint":
@@ -1538,7 +1541,7 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
         )
         saved_problem = revealed.get("problem") if revealed else None
         if not isinstance(saved_problem, dict):
-            await callback.answer("Это задание уже сменилось.")
+            await answer_callback(callback, "Это задание уже сменилось.")
             return
         solution = saved_problem.get("solution", [])
         steps = "\n".join(str(step) for step in solution) if isinstance(solution, list) else ""
@@ -1559,9 +1562,9 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             )
             await _disable_stale_keyboard(sent, saved)
     else:
-        await callback.answer()
+        await answer_callback(callback)
         return
-    await callback.answer()
+    await answer_callback(callback)
 
 
 async def task6_hint(message: Message, repository: Repository) -> None:
@@ -1729,14 +1732,14 @@ async def task6_answer(message: Message, repository: Repository) -> None:
 async def task9_callback(callback: CallbackQuery, repository: Repository) -> None:
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != "t9" or callback.message is None:
-        await callback.answer()
+        await answer_callback(callback)
         return
     _, action, expected_problem_id = parts
     user_id = callback.from_user.id
     message = cast(Message, callback.message)
     control_message_id = getattr(message, "message_id", None)
     if type(control_message_id) is not int:
-        await callback.answer("Кнопка больше не связана с активным заданием.")
+        await answer_callback(callback, "Кнопка больше не связана с активным заданием.")
         return
     if action == "menu":
         transitioned = await repository.transition_task_screen(
@@ -1747,7 +1750,7 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             expected_prompt_message_id=control_message_id,
         )
         if not transitioned:
-            await callback.answer("Тренировка приостановлена или задание уже сменилось.")
+            await answer_callback(callback, "Тренировка приостановлена или задание уже сменилось.")
             return
         await send_text(
             message,
@@ -1756,16 +1759,16 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id_override=user_id,
             reply_markup=main_menu(has_session=await _has_resumable_session(repository, user_id)),
         )
-        await callback.answer()
+        await answer_callback(callback)
         return
     if await repository.user_state(user_id) != "task9":
-        await callback.answer("Тренировка приостановлена. Нажмите «Продолжить».")
+        await answer_callback(callback, "Тренировка приостановлена. Нажмите «Продолжить».")
         return
     state = await repository.task9_state(user_id)
     problem = state.get("problem") if state else None
     current_id = str(problem.get("problem_id", "")) if isinstance(problem, dict) else ""
     if current_id != expected_problem_id:
-        await callback.answer("Это задание уже сменилось.")
+        await answer_callback(callback, "Это задание уже сменилось.")
         return
     if action in {"next", "skip"}:
         advanced = await _send_task9_problem(
@@ -1778,7 +1781,7 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id_override=user_id,
             skip_active=action == "skip",
         )
-        await callback.answer(None if advanced else "Это задание уже сменилось.")
+        await answer_callback(callback, None if advanced else "Это задание уже сменилось.")
         return
     if action == "hint":
         hint = await repository.task9_hint(
@@ -1793,7 +1796,7 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
         )
         snapshot = revealed.get("problem") if revealed else None
         if not isinstance(snapshot, dict):
-            await callback.answer("Это задание уже сменилось.")
+            await answer_callback(callback, "Это задание уже сменилось.")
             return
         steps = snapshot.get("solution", [])
         rendered_steps = "\n".join(str(step) for step in steps) if isinstance(steps, list) else ""
@@ -1814,9 +1817,9 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             )
             await _disable_stale_keyboard(sent, saved)
     else:
-        await callback.answer()
+        await answer_callback(callback)
         return
-    await callback.answer()
+    await answer_callback(callback)
 
 
 async def task9_answer(message: Message, repository: Repository) -> None:
