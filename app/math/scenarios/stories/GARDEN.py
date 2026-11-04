@@ -365,7 +365,11 @@ class _Oracle:
             raise ValueError("Greenhouse must be contained in the garden")
 
 
-def build_adapter() -> StoryAdapter:
+def build_adapter(*, enabled_families: frozenset[str] = frozenset()) -> StoryAdapter:
+    supported_families = frozenset(FAMILIES)
+    unknown = enabled_families - supported_families
+    if unknown:
+        raise ValueError(f"Cannot enable unsupported GARDEN families: {sorted(unknown)}")
     policy: AnswerPolicy = _Policy()
     families = tuple(
         FamilyRegistration(
@@ -374,7 +378,7 @@ def build_adapter() -> StoryAdapter:
             FamilyStatus.ENABLED_CANDIDATE,
             policy.policy_id,
             policy.version,
-            enabled=True,
+            enabled=fid in enabled_families,
             source_ids=(SOURCE_IDS[i - 1],),
         )
         for i, fid in enumerate(FAMILIES, 1)

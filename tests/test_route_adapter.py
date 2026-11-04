@@ -25,6 +25,7 @@ from app.math.scenarios.stories.ROUTE import (
     _validate_svg_manifest,
     build_adapter,
 )
+from scripts.oge15_route_quality_report import _question_fingerprint
 
 FAMILIES = (F01, F03, F05, F06, F09)
 EXPECTED_SOURCE_ANSWERS = ("213", "56", "40", "168", "1134")
@@ -55,6 +56,16 @@ def test_reference_vectors_form_one_grid4_five_question_bundle() -> None:
         for source in sources
     }
     adapter.independent_oracle.validate_bundle(scenario, questions, rendered)
+
+
+def test_route_diversity_ignores_scene_data_irrelevant_to_the_question() -> None:
+    adapter, scenario, _, _ = _fixture(31)
+    original = adapter.question_builder.build_question(scenario, 1)
+    changed_context = dict(scenario.context)
+    changed_context["shopping"] = {"irrelevant": "different market data"}
+    unrelated_scene = replace(scenario, context=changed_context)
+    changed = adapter.question_builder.build_question(unrelated_scene, 1)
+    assert _question_fingerprint(original) == _question_fingerprint(changed)
 
 
 @pytest.mark.parametrize("position", range(1, 6))

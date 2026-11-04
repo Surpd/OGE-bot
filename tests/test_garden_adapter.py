@@ -23,15 +23,16 @@ from app.math.scenarios.stories.GARDEN import (
 
 
 def _plan(seed: int = 0):
+    adapter = build_adapter(enabled_families=frozenset(FAMILIES))
     return build_practice_plan(
-        PracticeRequest(PracticeMode.FULL, seed, "GARDEN"), FamilyRegistry((build_adapter(),))
+        PracticeRequest(PracticeMode.FULL, seed, "GARDEN"), FamilyRegistry((adapter,))
     )
 
 
 def test_sosnovka_source_fixture_answers_and_single_full_identity() -> None:
     full = _plan(0)
     assert [q.canonical_answer for q in full.snapshot.questions] == ["7425", "7", "36", "29", "500"]
-    adapter = build_adapter()
+    adapter = build_adapter(enabled_families=frozenset(FAMILIES))
     single = build_practice_plan(
         PracticeRequest(PracticeMode.SINGLE, 0, "GARDEN", 3), FamilyRegistry((adapter,))
     )
@@ -40,7 +41,7 @@ def test_sosnovka_source_fixture_answers_and_single_full_identity() -> None:
 
 
 def test_quarantined_and_research_only_types_stay_disabled() -> None:
-    adapter = build_adapter()
+    adapter = build_adapter(enabled_families=frozenset(FAMILIES))
     by_id = {f.family_id: f for f in adapter.family_registry}
     assert all(
         not by_id[name].enabled
@@ -102,7 +103,7 @@ def test_svg_mutations_for_building_scale_path_width_and_labels_are_rejected() -
 
 
 def test_quality_250_seeds_answers_unique_and_restorable() -> None:
-    adapter = build_adapter()
+    adapter = build_adapter(enabled_families=frozenset(FAMILIES))
     fingerprints: set[tuple[str, ...]] = set()
     for seed in range(250):
         plan = build_practice_plan(

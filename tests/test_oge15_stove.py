@@ -48,7 +48,15 @@ def test_adapter_is_complete_and_remains_fail_closed() -> None:
     assert all(item.enabled is False for item in adapter.family_registry)
     assert all(item.source_ids == SOURCE_IDS[item.family_id] for item in adapter.family_registry)
     registry = discover_story_registry()
-    assert registry.story_codes == ("STOVE",)
+    assert registry.story_codes == (
+        "FLAT",
+        "GARDEN",
+        "PAPER",
+        "ROUTE",
+        "STOVE",
+        "TARIFF",
+        "TYRES",
+    )
     with pytest.raises(ScenarioUnavailable, match="no enabled family"):
         build_practice_plan(PracticeRequest(PracticeMode.FULL, 1, "STOVE"), registry)
     decimal_policy = adapter.answer_policies[("decimal_exact", "1")]

@@ -1,0 +1,1056 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-11-04",
+  "source": "OGE_1_5_ALL_STORIES_RESEARCH_V1.zip and adapter coverage reports",
+  "family_count": 77,
+  "families": [
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-01-ROOM-MATCH",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "400935",
+        "424898",
+        "409274"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-02-CUTTING-WASTE",
+      "original_status": "blocked",
+      "implementation_status": "blocked_source",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Правила раскроя/отходов и исходная геометрия не подтверждены.",
+      "source_ids": [
+        "409278"
+      ],
+      "next_action": "Подтвердить допущения по оригиналу и построить oracle либо оставить blocked."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-02-PARQUET-PACK",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "409286",
+        "409281",
+        "424899"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-02-TILE-PACK",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "409278"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-03-RECT-AREA",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "409292",
+        "409295",
+        "424900"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-04-COMPOSITE-PERCENT",
+      "original_status": "enabled_candidate",
+      "implementation_status": "blocked_math",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Округление источника 409306 не разрешено; генерация не реализована.",
+      "source_ids": [
+        "409306"
+      ],
+      "next_action": "Сверить оригинальное округление, единицы и ключ 409306, затем добавить модель и oracle."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-04-RECT-PERCENT",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "424901",
+        "425015",
+        "409306"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-05-INTERNET-MIN",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "424902"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-05-WASHER-MIN",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "409311",
+        "403919",
+        "409308",
+        "442720"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "FLAT",
+      "family_id": "FLAT-ALT-TOPOLOGY",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Нет независимо подтверждённой совместимой альтернативной топологии.",
+      "source_ids": [
+        "400935"
+      ],
+      "next_action": "Проверить полный первичный блок и визуальную геометрию."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-01-IDENTIFY",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408405",
+        "366577"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-02-TILES-PACKS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408413",
+        "366578"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-03-AREA-BUILDING",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "366579",
+        "408428",
+        "408429"
+      ],
+      "next_action": "Проверить источник 366579 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-04-PERIMETER-POLYGON",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408424"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-05-DISTANCE-ORTHOGONAL",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "408425"
+      ],
+      "next_action": "Проверить источник 408425 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-06-DISTANCE-DIAGONAL",
+      "original_status": "enabled_candidate",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Avdeevo plan не прошёл визуальную сверку оригинала.",
+      "source_ids": [
+        "366581"
+      ],
+      "next_action": "Получить исходный план и проверить геометрию/диагонали."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-07-PERCENT-BUILDINGS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408432"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-08-PERCENT-GREENHOUSE",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "408433"
+      ],
+      "next_action": "Проверить источник 408433 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-09-HEAT-BREAKEVEN",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408438",
+        "366582"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-10-PAINT-CHEAPEST",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Помечено research_only в реестре; кода генератора нет.",
+      "source_ids": [
+        "408449",
+        "408450"
+      ],
+      "next_action": "Подтвердить источник 408450, формулировку и совместимость с полной пятёркой."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-11-OPEN-SOIL",
+      "original_status": "blocked",
+      "implementation_status": "blocked_math",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Публикуемый ключ 408430 конфликтует с вычислением площади открытого грунта.",
+      "source_ids": [
+        "408430"
+      ],
+      "next_action": "Разрешить расхождение условия и ключа по первоисточнику до реализации."
+    },
+    {
+      "story": "GARDEN",
+      "family_id": "GARDEN-12-PERCENT-AREA-DIFF",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Нет отдельно проверенного source ID.",
+      "source_ids": [
+        "math4skill-2025-1.3-q4"
+      ],
+      "next_action": "Найти оригинал, сверить постановку и совместимую позицию."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F01",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408268"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F02",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408281",
+        "408284"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F03",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408300",
+        "408313"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F04",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408314"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F05",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Нет отдельно подтверждённого каталожного задания для обратного отношения.",
+      "source_ids": [
+        "no_catalog_task_id"
+      ],
+      "next_action": "Найти первичный источник и проверить позицию и совместимость."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F06",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408320"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F07",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408333",
+        "408343",
+        "460960"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F08",
+      "original_status": "blocked",
+      "implementation_status": "blocked_math",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Не разрешена модель площади источника 408294.",
+      "source_ids": [
+        "408294"
+      ],
+      "next_action": "Сверить оригинальное условие и ключ, определить однозначную модель до реализации."
+    },
+    {
+      "story": "PAPER",
+      "family_id": "PAPER-F09",
+      "original_status": "blocked",
+      "implementation_status": "blocked_math",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Не разрешена модель массы/ключа источников 408323 и 408331.",
+      "source_ids": [
+        "408323",
+        "408331"
+      ],
+      "next_action": "Сверить единицы и ключ по оригиналу, устранить расхождение до реализации."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F01-GRID-MATCH",
+      "original_status": "enabled_candidate",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Исходный растр карты недоступен; авторская GRID-4 схема не подтверждена как эквивалент оригинала.",
+      "source_ids": [
+        "408182",
+        "408345",
+        "408470"
+      ],
+      "next_action": "Получить оригинал и проверить узлы, перекрёстки, масштаб и подписи."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F02-VILLAGE-MATCH",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Village-map matching remains research-only pending an audit of the unavailable seven-node original diagram.",
+      "source_ids": [
+        "408362"
+      ],
+      "next_action": "Recover the exact source IDs from the source atlas, obtain the original raster, and verify node labels/topology before implementation."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F03-ROAD-SUM",
+      "original_status": "enabled_candidate",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Текстовые архивные свидетельства не заменяют визуальный аудит карты.",
+      "source_ids": [
+        "408186",
+        "392889"
+      ],
+      "next_action": "Получить оригинальный растр и подтвердить граф и длины дорог."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F04-ROAD-DIFF",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Alternate source set; not part of the one documented complete GRID-4 bundle.",
+      "source_ids": [
+        "408366"
+      ],
+      "next_action": "Recover and individually verify the source ID and source variant, then establish a separate compatible bundle."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F05-PYTHAGORAS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Авторская схема является аналогом, доказанного совпадения с источником нет.",
+      "source_ids": [
+        "408188",
+        "408189",
+        "408370"
+      ],
+      "next_action": "Проверить оригинальный план, масштаб и геометрию."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F06-HIGHWAY-TIME",
+      "original_status": "enabled_candidate",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Маршрут и скорость не прошли визуальную сверку оригинала.",
+      "source_ids": [
+        "408190"
+      ],
+      "next_action": "Проверить оригинальную карту и формулировку скорости."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F07-DIRECT-TIME",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Alternate source set; mixing it into GRID-4 would combine incompatible variants.",
+      "source_ids": [
+        "408191"
+      ],
+      "next_action": "Recover and verify the source ID and original wording, then build a compatible full set before implementation."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F08-MIXED-TIME",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Alternate source set; no compatible five-question block was established.",
+      "source_ids": [
+        "408192",
+        "392917",
+        "408374"
+      ],
+      "next_action": "Recover and verify source ID, route semantics, and a compatible full block."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F09-SHOPPING-MIN",
+      "original_status": "enabled_candidate",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Тестовая таблица синтетическая; оригинальная таблица источника недоступна.",
+      "source_ids": [
+        "408193",
+        "408194"
+      ],
+      "next_action": "Получить оригинальную таблицу, сверить цены/количества/ключ и обновить oracle."
+    },
+    {
+      "story": "ROUTE",
+      "family_id": "ROUTE-F10-FUEL-BALANCE",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Research-only pending original source-image audit and source-ID mapping.",
+      "source_ids": [
+        "408382",
+        "408385"
+      ],
+      "next_action": "Recover exact source ID, obtain the original image, and independently verify the fuel-balance model."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F01-CAPACITY-LIMITS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "383591",
+        "406325"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F02-ATTRIBUTE-MATCH",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408218",
+        "408219",
+        "448919"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F03-VOLUME",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "383592",
+        "392833"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F04-FLOOR-AREA",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408225"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F05-WALL-AREA-NET",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "406273"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F06-PURCHASE-EXTRA-COSTS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "383593"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F07-FIT-WOOD-DELIVERY",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "448921"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F08-COST-COMPARISON",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "406274",
+        "392860"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F09-DIRECT-DISCOUNT",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "383594"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F10-REVERSE-DISCOUNT",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408246"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "392836"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F12-ARCH-RADIUS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "383595",
+        "408256"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F13-YEARLY-OPERATING-COSTS",
+      "original_status": "research_only",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Источники 392860 и 392836 не подтверждают отдельную цель годовых расходов.",
+      "source_ids": [
+        "392860",
+        "392836"
+      ],
+      "next_action": "Найти первоисточник с прямой формулировкой и проверить ответ."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F14-UNVERIFIED-ARC-DESIGNS",
+      "original_status": "blocked",
+      "implementation_status": "blocked_source",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Источник 408261 помечен conflicted; геометрия рисунка не подтверждена.",
+      "source_ids": [
+        "408261"
+      ],
+      "next_action": "Получить исправный оригинал/ключ и сверить модель дуги."
+    },
+    {
+      "story": "STOVE",
+      "family_id": "STOVE-F15-BROKEN-PRICE-KEY",
+      "original_status": "blocked",
+      "implementation_status": "blocked_math",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Ключ 2 у 408240 расходится с 15000+6500+1000=22500.",
+      "source_ids": [
+        "408240"
+      ],
+      "next_action": "Устранить конфликт ключа по первоисточнику до реализации."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F01-MONTHS-MINUTES",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "442722",
+        "461831",
+        "441664"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F02-MONTHS-GB",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "406563"
+      ],
+      "next_action": "Проверить источник 406563 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F03-TRENDS",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "406675",
+        "406676"
+      ],
+      "next_action": "Проверить источник 406675, 406676 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F04-MONTHLY-BILL",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "461832"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F05-EXTREMUM",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "461833",
+        "406565"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F06-COUNT-ONE-LIMIT",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "408888"
+      ],
+      "next_action": "Проверить источник 408888 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F07-COUNT-BOTH-LIMITS",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Помечено research_only в реестре; кода генератора нет.",
+      "source_ids": [
+        "408888"
+      ],
+      "next_action": "Подтвердить источник 408888, формулировку и совместимость с полной пятёркой."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F08-COUNT-BASE-PRICE",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "441667"
+      ],
+      "next_action": "Проверить источник 441667 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F09-PERCENT-FEE",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "461834",
+        "441668"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F10-PERCENT-TRAFFIC",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Помечено research_only в реестре; кода генератора нет.",
+      "source_ids": [
+        "461834"
+      ],
+      "next_action": "Подтвердить источник 461834, формулировку и совместимость с полной пятёркой."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F11-ANNUAL-SWITCH",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "442828"
+      ],
+      "next_action": "Проверить источник 442828 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F12-HOME-ISP",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "461835"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F13-SMARTPHONE-CREDIT",
+      "original_status": "enabled_candidate",
+      "implementation_status": "not_implemented",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Кандидат не вошёл в ограниченный набор реализованных конструкций.",
+      "source_ids": [
+        "449788"
+      ],
+      "next_action": "Проверить источник 449788 и совместимость, затем добавить генератор, oracle и render проверки."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F14-LEGACY-STANDALONE",
+      "original_status": "blocked",
+      "implementation_status": "blocked_source",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Источник или постановка помечены blocked; кода генератора нет.",
+      "source_ids": [
+        "367106",
+        "367110"
+      ],
+      "next_action": "Устранить blocker источника 367106, 367110 и получить независимую проверку."
+    },
+    {
+      "story": "TARIFF",
+      "family_id": "TARIFF-F15-SMS-MONTHLY-OVERAGE",
+      "original_status": "research_only",
+      "implementation_status": "research_only",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "Помечено research_only в реестре; кода генератора нет.",
+      "source_ids": [
+        "461832"
+      ],
+      "next_action": "Подтвердить источник 461832, формулировку и совместимость с полной пятёркой."
+    },
+    {
+      "story": "TYRES",
+      "family_id": "TYRES-DIAMETER",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408172"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TYRES",
+      "family_id": "TYRES-DIAMETER-DELTA",
+      "original_status": "enabled_candidate",
+      "implementation_status": "source_not_confirmed",
+      "implemented_in_code": false,
+      "available_to_students": false,
+      "reason": "408171 в исследовательских материалах отнесено к иной позиции; совместимый комплект не подтверждён.",
+      "source_ids": [
+        "408171"
+      ],
+      "next_action": "Сверить 408171 с оригиналом и совместимой полной пятёркой перед реализацией."
+    },
+    {
+      "story": "TYRES",
+      "family_id": "TYRES-PERCENT-ROTATION",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "408173",
+        "480721"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TYRES",
+      "family_id": "TYRES-RADIUS-DELTA",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "FIPI-2026-TYRES-4"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TYRES",
+      "family_id": "TYRES-SIDEWALL",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "462108",
+        "462128"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    },
+    {
+      "story": "TYRES",
+      "family_id": "TYRES-TABLE-EXTREME",
+      "original_status": "enabled_candidate",
+      "implementation_status": "implemented_but_disabled",
+      "implemented_in_code": true,
+      "available_to_students": false,
+      "reason": "Реализация и регистрация есть, но единая политика отключает её для учеников до отдельного release review.",
+      "source_ids": [
+        "407953",
+        "400984"
+      ],
+      "next_action": "Провести source/quality review и отдельное решение о публикации; только после этого менять enabled."
+    }
+  ]
+}

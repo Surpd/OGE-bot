@@ -34,7 +34,7 @@ from app.math.scenarios.stories.PAPER import (
 
 @pytest.fixture
 def adapter():
-    return build_adapter()
+    return build_adapter(enabled_families=frozenset(_SOURCE_IDS))
 
 
 def _bundle(adapter, seed: int):
@@ -52,7 +52,7 @@ def test_registry_exposes_only_the_six_source_checked_candidate_families(adapter
     registry = FamilyRegistry((adapter,))
     discovered = discover_story_registry()
     assert "PAPER" in discovered.story_codes
-    assert discovered.available_positions("PAPER") == (1, 2, 3, 4, 5)
+    assert discovered.available_positions("PAPER") == ()
     available = {family.family_id for family in adapter.family_registry if family.available}
     assert available == set(_SOURCE_IDS)
     assert registry.available_stories(PracticeMode.FULL) == ("PAPER",)

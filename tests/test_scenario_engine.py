@@ -103,13 +103,34 @@ class _Adapter:
 def test_story_discovery_finds_installed_adapters_and_fails_closed() -> None:
     assert FamilyRegistry().available_stories(PracticeMode.FULL) == ()
     discovered = discover_story_registry()
-    assert {"TYRES", "PAPER", "TARIFF", "GARDEN", "ROUTE", "STOVE", "FLAT"}.issubset(discovered.story_codes)
-    assert discovered.available_stories(PracticeMode.FULL) == ()
-    assert all(
-        not registration.available
-        for story_code in discovered.story_codes
-        for registration in discovered.adapter(story_code).family_registry
+    assert discovered.story_codes == (
+        "FLAT",
+        "GARDEN",
+        "PAPER",
+        "ROUTE",
+        "STOVE",
+        "TARIFF",
+        "TYRES",
     )
+    assert discovered.available_stories(PracticeMode.FULL) == ()
+    family_ids: list[str] = []
+    policy_keys: list[tuple[str, str]] = []
+    for story_code in discovered.story_codes:
+        adapter = discovered.adapter(story_code)
+        family_ids.extend(family.family_id for family in adapter.family_registry)
+        policy_keys.extend(adapter.answer_policies)
+        assert all(not family.enabled for family in adapter.family_registry)
+        for family in adapter.family_registry:
+            with pytest.raises(ScenarioUnavailable):
+                build_practice_plan(
+                    PracticeRequest(
+                        PracticeMode.SINGLE, seed=10, story_code=story_code,
+                        position=family.position,
+                    ),
+                    discovered,
+                )
+    assert len(family_ids) == len(set(family_ids))
+    assert len(policy_keys) == len(set(policy_keys))
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))

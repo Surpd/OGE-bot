@@ -962,17 +962,19 @@ def _make_policies() -> Mapping[tuple[str, str], AnswerPolicy]:
     return MappingProxyType(policies)
 
 
-def _registrations() -> tuple[FamilyRegistration, ...]:
+def _registrations(
+    enabled_families: frozenset[str] = frozenset(),
+) -> tuple[FamilyRegistration, ...]:
     definitions = (
-        ("PAPER-F01", 1, FamilyStatus.ENABLED_CANDIDATE, "paper.mapping_four", True),
-        ("PAPER-F02", 2, FamilyStatus.ENABLED_CANDIDATE, "paper.sheet_count", True),
-        ("PAPER-F03", 3, FamilyStatus.ENABLED_CANDIDATE, "paper.rounded_mm", True),
-        ("PAPER-F04", 4, FamilyStatus.ENABLED_CANDIDATE, "paper.ratio_tenths", True),
-        ("PAPER-F05", 4, FamilyStatus.RESEARCH_ONLY, "paper.ratio_tenths_inverse", False),
-        ("PAPER-F06", 4, FamilyStatus.ENABLED_CANDIDATE, "paper.diagonal_ratio_tenths", True),
-        ("PAPER-F07", 5, FamilyStatus.ENABLED_CANDIDATE, "paper.font_scale", True),
-        ("PAPER-F08", 3, FamilyStatus.BLOCKED, "paper.area_dual_unresolved", False),
-        ("PAPER-F09", 5, FamilyStatus.BLOCKED, "paper.mass_model_unresolved", False),
+        ("PAPER-F01", 1, FamilyStatus.ENABLED_CANDIDATE, "paper.mapping_four"),
+        ("PAPER-F02", 2, FamilyStatus.ENABLED_CANDIDATE, "paper.sheet_count"),
+        ("PAPER-F03", 3, FamilyStatus.ENABLED_CANDIDATE, "paper.rounded_mm"),
+        ("PAPER-F04", 4, FamilyStatus.ENABLED_CANDIDATE, "paper.ratio_tenths"),
+        ("PAPER-F05", 4, FamilyStatus.RESEARCH_ONLY, "paper.ratio_tenths_inverse"),
+        ("PAPER-F06", 4, FamilyStatus.ENABLED_CANDIDATE, "paper.diagonal_ratio_tenths"),
+        ("PAPER-F07", 5, FamilyStatus.ENABLED_CANDIDATE, "paper.font_scale"),
+        ("PAPER-F08", 3, FamilyStatus.BLOCKED, "paper.area_dual_unresolved"),
+        ("PAPER-F09", 5, FamilyStatus.BLOCKED, "paper.mass_model_unresolved"),
     )
     return tuple(
         FamilyRegistration(
@@ -981,10 +983,10 @@ def _registrations() -> tuple[FamilyRegistration, ...]:
             status=status,
             answer_policy_id=policy_id,
             answer_policy_version=ANSWER_POLICY_VERSION,
-            enabled=enabled,
+            enabled=family_id in enabled_families,
             source_ids=_ALL_SOURCE_IDS[family_id],
         )
-        for family_id, position, status, policy_id, enabled in definitions
+        for family_id, position, status, policy_id in definitions
     )
 
 
@@ -999,9 +1001,13 @@ class PaperAdapter:
     family_registry: tuple[FamilyRegistration, ...] = _registrations()
 
 
-def build_adapter() -> PaperAdapter:
-    """Return the immutable adapter registered by the shared OGE 1–5 engine."""
-    return PaperAdapter()
+def build_adapter(*, enabled_families: frozenset[str] = frozenset()) -> PaperAdapter:
+    """Return PAPER; explicit family activation is reserved for isolated tests."""
+    supported = frozenset(_SOURCE_IDS)
+    unknown = enabled_families - supported
+    if unknown:
+        raise ValueError(f"Cannot enable unsupported PAPER families: {sorted(unknown)}")
+    return PaperAdapter(family_registry=_registrations(enabled_families))
 
 
 __all__ = ["build_adapter"]

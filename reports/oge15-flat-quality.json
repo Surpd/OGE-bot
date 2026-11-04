@@ -5,6 +5,7 @@
     "seeds_checked": 300,
     "valid_bundles": 300,
     "unique_observable_bundle_fingerprints": 300,
+    "unique_full_kit_count": 300,
     "family_occurrences": {
       "FLAT-01-ROOM-MATCH": 300,
       "FLAT-02-PARQUET-PACK": 161,
@@ -13,6 +14,36 @@
       "FLAT-04-RECT-PERCENT": 300,
       "FLAT-05-INTERNET-MIN": 155,
       "FLAT-05-WASHER-MIN": 145
+    },
+    "family_question_uniqueness": {
+      "FLAT-01-ROOM-MATCH": {
+        "unique_visible_questions": 269,
+        "samples": 300
+      },
+      "FLAT-02-PARQUET-PACK": {
+        "unique_visible_questions": 4,
+        "samples": 161
+      },
+      "FLAT-02-TILE-PACK": {
+        "unique_visible_questions": 5,
+        "samples": 139
+      },
+      "FLAT-03-RECT-AREA": {
+        "unique_visible_questions": 1,
+        "samples": 300
+      },
+      "FLAT-04-RECT-PERCENT": {
+        "unique_visible_questions": 1,
+        "samples": 300
+      },
+      "FLAT-05-INTERNET-MIN": {
+        "unique_visible_questions": 6,
+        "samples": 155
+      },
+      "FLAT-05-WASHER-MIN": {
+        "unique_visible_questions": 1,
+        "samples": 145
+      }
     },
     "acceptance_target": "at least 200 distinct bundles within 1200 seeds",
     "passed": true

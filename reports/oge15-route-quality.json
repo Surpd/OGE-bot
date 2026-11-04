@@ -19,7 +19,7 @@
       "status": "enabled_candidate",
       "enabled": false,
       "attempts": 1200,
-      "unique_fingerprints": 1200,
+      "unique_fingerprints": 503,
       "acceptance_minimum": 200,
       "acceptance_budget": 1200
     },
@@ -29,7 +29,7 @@
       "status": "enabled_candidate",
       "enabled": false,
       "attempts": 1200,
-      "unique_fingerprints": 1200,
+      "unique_fingerprints": 349,
       "acceptance_minimum": 200,
       "acceptance_budget": 1200
     },
@@ -39,7 +39,7 @@
       "status": "enabled_candidate",
       "enabled": false,
       "attempts": 1200,
-      "unique_fingerprints": 1200,
+      "unique_fingerprints": 179,
       "acceptance_minimum": 200,
       "acceptance_budget": 1200
     },
@@ -49,7 +49,7 @@
       "status": "enabled_candidate",
       "enabled": false,
       "attempts": 1200,
-      "unique_fingerprints": 1200,
+      "unique_fingerprints": 349,
       "acceptance_minimum": 200,
       "acceptance_budget": 1200
     },
@@ -64,7 +64,15 @@
       "acceptance_budget": 1200
     }
   ],
-  "all_acceptance_thresholds_met": true,
+  "all_acceptance_thresholds_met": false,
+  "fingerprint_scope": "family, visible condition, question-specific math model, and answer; excludes unrelated scene state",
+  "natural_limits": {
+    "ROUTE-F01-GRID-MATCH": "bounded by the three visible node labels/names and their order",
+    "ROUTE-F03-ROAD-SUM": "bounded by the two highway segment lengths and endpoint names",
+    "ROUTE-F05-PYTHAGORAS": "bounded by the two leg lengths and endpoint names",
+    "ROUTE-F06-HIGHWAY-TIME": "bounded by route length, source-backed speed, and endpoint names",
+    "ROUTE-F09-SHOPPING-MIN": "bounded by visible basket quantities, store totals, and the minimum"
+  },
   "student_enabled": false,
   "visual_source_audit": "pending; original source images were unavailable in the research archive"
 }

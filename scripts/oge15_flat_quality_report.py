@@ -23,6 +23,7 @@ def main() -> None:
     adapter = build_adapter()
     fingerprints: set[str] = set()
     family_counts: Counter[str] = Counter()
+    family_question_fingerprints: dict[str, set[str]] = {}
     validated = 0
     for seed in range(300):
         scenario = adapter.generator.generate_scenario(seed)
@@ -34,6 +35,15 @@ def main() -> None:
         for question in questions:
             adapter.independent_oracle.validate_question(scenario, question, rendered)
             family_counts[question.family_id] += 1
+            family_question_fingerprints.setdefault(question.family_id, set()).add(
+                hashlib.sha256(
+                    json.dumps(
+                        [question.family_id, question.condition, question.canonical_answer],
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ).encode("utf-8")
+                ).hexdigest()
+            )
         adapter.independent_oracle.validate_bundle(scenario, questions, rendered)
         signature = json.dumps(
             {
@@ -79,7 +89,15 @@ def main() -> None:
             "seeds_checked": validated,
             "valid_bundles": validated,
             "unique_observable_bundle_fingerprints": len(fingerprints),
+            "unique_full_kit_count": len(fingerprints),
             "family_occurrences": dict(sorted(family_counts.items())),
+            "family_question_uniqueness": {
+                family_id: {
+                    "unique_visible_questions": len(signatures),
+                    "samples": family_counts[family_id],
+                }
+                for family_id, signatures in sorted(family_question_fingerprints.items())
+            },
             "acceptance_target": "at least 200 distinct bundles within 1200 seeds",
             "passed": validated == 300 and len(fingerprints) >= 200,
         },

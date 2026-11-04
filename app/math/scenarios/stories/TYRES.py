@@ -727,7 +727,7 @@ _FAMILIES = (
         FamilyStatus.ENABLED_CANDIDATE,
         NUMBER_POLICY_ID,
         NUMBER_POLICY_VERSION,
-        True,
+        False,
         ("FIPI-2026-TYRES-1", "407953", "400984"),
     ),
     FamilyRegistration(
@@ -736,7 +736,7 @@ _FAMILIES = (
         FamilyStatus.ENABLED_CANDIDATE,
         NUMBER_POLICY_ID,
         NUMBER_POLICY_VERSION,
-        True,
+        False,
         ("FIPI-2026-TYRES-2", "462108", "462128"),
     ),
     FamilyRegistration(
@@ -745,7 +745,7 @@ _FAMILIES = (
         FamilyStatus.ENABLED_CANDIDATE,
         NUMBER_POLICY_ID,
         NUMBER_POLICY_VERSION,
-        True,
+        False,
         ("FIPI-2026-TYRES-3", "408172"),
     ),
     FamilyRegistration(
@@ -754,7 +754,7 @@ _FAMILIES = (
         FamilyStatus.ENABLED_CANDIDATE,
         NUMBER_POLICY_ID,
         NUMBER_POLICY_VERSION,
-        True,
+        False,
         ("FIPI-2026-TYRES-4",),
     ),
     FamilyRegistration(
@@ -763,7 +763,7 @@ _FAMILIES = (
         FamilyStatus.ENABLED_CANDIDATE,
         NUMBER_POLICY_ID,
         NUMBER_POLICY_VERSION,
-        True,
+        False,
         ("FIPI-2026-TYRES-5", "408173", "480721"),
     ),
     # V1 assigns task 408171 to position 3, but the live catalog card is type 4.
@@ -780,8 +780,24 @@ _FAMILIES = (
 )
 
 
-def build_adapter() -> StoryAdapter:
-    """Return the standalone TYRES adapter required by scenario_engine."""
+def build_adapter(*, enabled_families: frozenset[str] = frozenset()) -> StoryAdapter:
+    """Return TYRES; explicit family activation is reserved for isolated tests."""
+    supported = frozenset(family.family_id for family in _FAMILIES if family.position <= 5)
+    unknown = enabled_families - supported
+    if unknown:
+        raise ValueError(f"Cannot enable unsupported TYRES families: {sorted(unknown)}")
+    families = tuple(
+        FamilyRegistration(
+            family.family_id,
+            family.position,
+            family.status,
+            family.answer_policy_id,
+            family.answer_policy_version,
+            family.family_id in enabled_families,
+            family.source_ids,
+        )
+        for family in _FAMILIES
+    )
 
     class Adapter:
         story_code = STORY_CODE
@@ -792,6 +808,6 @@ def build_adapter() -> StoryAdapter:
         answer_policies: Mapping[tuple[str, str], AnswerPolicy] = {
             (NUMBER_POLICY_ID, NUMBER_POLICY_VERSION): NumericAnswerPolicy()
         }
-        family_registry = _FAMILIES
+        family_registry = families
 
     return cast(StoryAdapter, Adapter())

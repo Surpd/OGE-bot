@@ -40,5 +40,12 @@ tiling orientation, costs and answers are checked independently. SVG and PNG
 are produced from the model and restored from the immutable snapshot; their
 SHA-256 digests are recorded in `oge15-flat-quality.json`.
 
-See [the QA report](oge15-flat-quality.json) for the 300-seed run, observed
-fingerprint count, control vector comparison and asset digests.
+The 300-seed run produced 300 distinct observable full kits. Per-family visible
+question uniqueness is separate: F01 269; F02 parquet 4 (161 samples); F02 tile
+5 (139); F03 rectangle area 1; F04 rectangle percent 1; F05 internet 6 (155);
+F05 washer 1 (145). These observed counts use the visible condition and answer;
+they do not turn fixed geometry into extra variants. F03, F04, and washer F05 are
+content-fixed under the current model. The different full kits derive from
+variable room labels and data elsewhere in the shared plan and do not increase
+those individual question counts. See [the QA report](oge15-flat-quality.json)
+for the control vector comparison and exact asset digests.

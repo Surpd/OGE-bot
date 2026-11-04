@@ -24,7 +24,10 @@ from app.math.scenarios.stories.TYRES import (
 
 
 def _plan(seed: int = 2026, mode: PracticeMode = PracticeMode.FULL, position: int | None = None):
-    adapter = build_adapter()
+    supported = frozenset(
+        family.family_id for family in build_adapter().family_registry if family.position <= 5
+    )
+    adapter = build_adapter(enabled_families=supported)
     return adapter, build_practice_plan(
         PracticeRequest(mode, seed, story_code="TYRES", position=position),
         FamilyRegistry((adapter,)),
@@ -69,7 +72,10 @@ def test_seed_is_deterministic_snapshot_roundtrip_and_asset_restores_after_rebui
 
 
 def test_all_enabled_families_pass_250_seed_quality_and_uniqueness_gate() -> None:
-    adapter = build_adapter()
+    adapter = build_adapter(enabled_families=frozenset({
+        "TYRES-TABLE-EXTREME", "TYRES-SIDEWALL", "TYRES-DIAMETER",
+        "TYRES-RADIUS-DELTA", "TYRES-PERCENT-ROTATION",
+    }))
     registry = FamilyRegistry((adapter,))
     assert registry.available_stories(PracticeMode.FULL) == ("TYRES",)
     assert registry.available_positions("TYRES") == (1, 2, 3, 4, 5)
@@ -121,7 +127,10 @@ def test_all_enabled_families_pass_250_seed_quality_and_uniqueness_gate() -> Non
 
 
 def test_disabled_diameter_delta_family_is_not_selected_by_any_mode() -> None:
-    adapter = build_adapter()
+    adapter = build_adapter(enabled_families=frozenset({
+        "TYRES-TABLE-EXTREME", "TYRES-SIDEWALL", "TYRES-DIAMETER",
+        "TYRES-RADIUS-DELTA", "TYRES-PERCENT-ROTATION",
+    }))
     delta = next(
         item for item in adapter.family_registry if item.family_id == "TYRES-DIAMETER-DELTA"
     )
@@ -261,7 +270,15 @@ def test_png_schematic_has_no_clipping_and_is_invariant_across_parameter_changes
 
 def test_story_module_is_discovered_without_registering_number_in_training_menu() -> None:
     registry = discover_story_registry()
-    assert registry.story_codes == ("TYRES",)
+    assert registry.story_codes == (
+        "FLAT",
+        "GARDEN",
+        "PAPER",
+        "ROUTE",
+        "STOVE",
+        "TARIFF",
+        "TYRES",
+    )
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
