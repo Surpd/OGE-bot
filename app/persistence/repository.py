@@ -3649,7 +3649,7 @@ class PostgresRepository(
         await self._pool.execute(
             """UPDATE users SET current_state = CASE
                  WHEN $2 IN ('task6', 'task9', 'task10', 'task12', 'task14', 'task11', 'task8',
-                             'task13', 'task7')
+                             'task13', 'task7', 'oge15')
                    THEN jsonb_build_object(
                    'screen', $2::text, 'resume_mode', $2::text)
                  ELSE jsonb_set(COALESCE(current_state, '{}'::jsonb)
@@ -4753,6 +4753,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         self.navigation_messages.pop(telegram_user_id, None)
         self.states[telegram_user_id] = screen
         if screen in {
+            "oge15",
             "task6",
             "task9",
             "task10",

@@ -21,6 +21,21 @@ from app.bot.menu import (
 )
 from app.bot.navigation import navigation_callback
 from app.bot.presentation import hint_message, send_photo, send_text
+from app.bot.scenario_training import (
+    PILOT_LABEL,
+)
+from app.bot.scenario_training import (
+    answer_message as oge15_answer,
+)
+from app.bot.scenario_training import (
+    handle_callback as oge15_callback,
+)
+from app.bot.scenario_training import (
+    render_session as render_oge15_session,
+)
+from app.bot.scenario_training import (
+    show_pilot as show_oge15_pilot,
+)
 from app.bot.training_engine import (
     NUMERIC_TRAININGS,
     send_problem,
@@ -29,6 +44,7 @@ from app.bot.training_engine import (
 )
 from app.bot.training_ux import matches_current_condition
 from app.bot.trainings import TRAININGS
+from app.config import get_settings
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
 from app.math.inequalities import POLICY as TASK13_ANSWER_POLICY
@@ -49,6 +65,7 @@ from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.registry import ANSWER_POLICY_BY_SNAPSHOT
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import Repository
+from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 logger = logging.getLogger(__name__)
 TASK6_LABEL = "№6 · Вычисления"
@@ -90,12 +107,20 @@ def _has_resumable_task9(state: dict[str, object] | None) -> bool:
     return isinstance(session_state, dict) and session_state.get("status") == "active"
 
 
-async def _has_resumable_session(repository: Repository, user_id: int) -> bool:
+async def _has_resumable_session(
+    repository: Repository,
+    user_id: int,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> bool:
     for training in TRAININGS:
         state = await getattr(repository, f"task{training.number}_state")(user_id)
         if _has_resumable_task6(state):
             return True
-    return False
+    return bool(
+        oge15_repository is not None
+        and get_settings().can_use_oge15_pilot(user_id)
+        and await oge15_repository.resume_session(user_id) is not None
+    )
 
 
 async def _send_problem(
@@ -183,7 +208,11 @@ async def _send_problem(
     return True
 
 
-async def start(message: Message, repository: Repository) -> None:
+async def start(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     from aiogram.types import ReplyKeyboardRemove
 
     if message.from_user is None:
@@ -191,6 +220,12 @@ async def start(message: Message, repository: Repository) -> None:
     await repository.register_user(message.from_user.id)
     await repository.save_user_state(message.from_user.id, "main_menu")
     has_session = await _has_resumable_session(repository, message.from_user.id)
+    if (
+        oge15_repository is not None
+        and get_settings().can_use_oge15_pilot(message.from_user.id)
+        and await oge15_repository.resume_session(message.from_user.id) is not None
+    ):
+        has_session = True
     logger.info("user_started")
     await send_text(
         message,
@@ -206,12 +241,16 @@ async def start(message: Message, repository: Repository) -> None:
     )
 
 
-async def cancel(message: Message, repository: Repository) -> None:
+async def cancel(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     user_id = _user_id(message)
     has_session = False
     if user_id is not None:
         await repository.save_user_state(user_id, "main_menu")
-        has_session = await _has_resumable_session(repository, user_id)
+        has_session = await _has_resumable_session(repository, user_id, oge15_repository)
     await send_text(
         message,
         repository,
@@ -220,11 +259,37 @@ async def cancel(message: Message, repository: Repository) -> None:
     )
 
 
-async def continue_session(message: Message, repository: Repository) -> None:
-    user_id = _user_id(message)
-    if user_id is None:
+async def continue_session(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+    user_id_override: int | None = None,
+) -> None:
+    actor_id = user_id_override if user_id_override is not None else _user_id(message)
+    if actor_id is None:
         return
+    user_id: int = actor_id
+
+    async def resume_pilot() -> bool:
+        if oge15_repository is None or not get_settings().can_use_oge15_pilot(user_id):
+            return False
+        scenario_session = await oge15_repository.resume_session(user_id)
+        if scenario_session is not None and scenario_session.status == "paused":
+            scenario_session = await oge15_repository.resume_paused(
+                user_id, scenario_session.session_id
+            )
+        if scenario_session is None:
+            return False
+        await repository.save_user_state(user_id, "oge15")
+        await render_oge15_session(
+            message, oge15_repository, scenario_session, show_assets=False,
+            user_id_override=user_id,
+        )
+        return True
+
     last = await repository.last_training_mode(user_id)
+    if last == "oge15" and await resume_pilot():
+        return
     ordered = sorted(TRAININGS, key=lambda item: item.mode != last)
     for training in ordered:
         state = await getattr(repository, f"task{training.number}_state")(user_id)
@@ -236,6 +301,8 @@ async def continue_session(message: Message, repository: Repository) -> None:
             )
             await sender(message, repository, action="resume")
             return
+    if last != "oge15" and await resume_pilot():
+        return
     await repository.save_user_state(user_id, "main_menu")
     await send_text(
         message, repository, "Нет незавершённых заданий. Выберите номер.", reply_markup=main_menu()
@@ -254,6 +321,7 @@ async def choose_number(message: Message, repository: Repository) -> None:
             include_task7=bool(TASK7_ENABLED_FAMILIES),
             include_task13=bool(TASK13_ENABLED_FAMILIES),
             include_task11=bool(TASK11_ENABLED_FAMILIES),
+            include_oge15=get_settings().can_use_oge15_pilot(user_id),
         ),
     )
 
@@ -1952,14 +2020,23 @@ async def menu_section(message: Message, repository: Repository) -> None:
     )
 
 
-async def return_to_menu(message: Message, repository: Repository) -> None:
-    user_id = _user_id(message)
+async def return_to_menu(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+    user_id_override: int | None = None,
+) -> None:
+    user_id = user_id_override if user_id_override is not None else _user_id(message)
     has_session = False
     if user_id is not None:
         await repository.save_user_state(user_id, "main_menu")
-        has_session = await _has_resumable_session(repository, user_id)
+        has_session = await _has_resumable_session(repository, user_id, oge15_repository)
     await send_text(
-        message, repository, "Главное меню.", reply_markup=main_menu(has_session=has_session)
+        message,
+        repository,
+        "Главное меню.",
+        user_id_override=user_id,
+        reply_markup=main_menu(has_session=has_session),
     )
 
 
@@ -2043,6 +2120,8 @@ def build_router() -> Router:
     router.message.register(choose_task8, F.text == TASK8_LABEL)
     router.message.register(choose_task13, F.text == TASK13_LABEL)
     router.message.register(choose_task11, F.text == TASK11_LABEL)
+    router.message.register(show_oge15_pilot, Command("oge15"))
+    router.message.register(show_oge15_pilot, F.text == PILOT_LABEL)
     # Transitions are inline callbacks bound to a specific problem ID. Text commands
     # have no reliable association with the task shown when the user tapped them.
     router.message.register(task6_hint, F.text == "💡 Подсказка")
@@ -2050,6 +2129,7 @@ def build_router() -> Router:
     router.message.register(return_to_menu, F.text == "↩ В меню")
     router.message.register(show_progress, F.text == "📊 Прогресс")
     router.message.register(show_progress_details, F.text == "📊 Подробнее")
+    router.message.register(oge15_answer)
     router.message.register(menu_section, F.text.in_(MAIN_MENU))
     router.message.register(unknown_message)
     router.callback_query.register(task6_callback, F.data.startswith("t6:"))
@@ -2061,4 +2141,5 @@ def build_router() -> Router:
     router.callback_query.register(task8_callback, F.data.startswith("t8:"))
     router.callback_query.register(task13_callback, F.data.startswith("t13:"))
     router.callback_query.register(task11_callback, F.data.startswith("t11:"))
+    router.callback_query.register(oge15_callback, F.data.startswith("oge15:"))
     return router
