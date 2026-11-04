@@ -149,7 +149,8 @@ class ScenarioPostgresRepository:
                    JOIN users AS user ON user.id = session.user_id
                    JOIN oge15_scenarios AS scenario ON scenario.id = session.scenario_id
                    JOIN oge15_question_progress AS progress
-                     ON progress.session_id=session.id AND progress.position=session.current_position
+                     ON progress.session_id=session.id
+                    AND progress.position=session.current_position
                    WHERE user.telegram_user_id=$1 AND session.status <> 'completed'
                    ORDER BY session.started_at DESC LIMIT 1""",
                 telegram_user_id,

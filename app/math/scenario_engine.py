@@ -13,11 +13,11 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Protocol, TypeAlias
+from typing import Protocol
 
 
-JsonScalar: TypeAlias = str | int | float | bool | None
-JsonValue: TypeAlias = JsonScalar | tuple["JsonValue", ...] | Mapping[str, "JsonValue"]
+type JsonScalar = str | int | float | bool | None
+type JsonValue = JsonScalar | tuple[JsonValue, ...] | Mapping[str, JsonValue]
 STORY_CODES = ("TYRES", "PAPER", "STOVE", "TARIFF", "ROUTE", "GARDEN", "FLAT")
 POSITIONS = (1, 2, 3, 4, 5)
 
@@ -40,11 +40,11 @@ class ScenarioUnavailable(RuntimeError):
 def _freeze_json(value: object) -> JsonValue:
     if isinstance(value, float) and not math.isfinite(value):
         raise ValueError("Scenario snapshot data cannot contain non-finite numbers")
-    if value is None or isinstance(value, (str, bool, int, float)):
+    if value is None or isinstance(value, str | bool | int | float):
         return value
     if isinstance(value, Mapping) and all(isinstance(key, str) for key in value):
         return MappingProxyType({key: _freeze_json(item) for key, item in value.items()})
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+    if isinstance(value, Sequence) and not isinstance(value, str | bytes | bytearray):
         return tuple(_freeze_json(item) for item in value)
     raise TypeError("Scenario snapshot data must contain only JSON values")
 
