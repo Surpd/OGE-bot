@@ -224,7 +224,12 @@ async def navigation_callback(
                 user_id_override=callback.from_user.id,
             )
         elif data == "nav:main":
-            await handlers.return_to_menu(message, repository, oge15_repository)
+            await handlers.return_to_menu(
+                message,
+                repository,
+                oge15_repository,
+                user_id_override=callback.from_user.id,
+            )
         else:
             handler = cast(Callable[[Message, Repository], Awaitable[None]], target)
             await handler(message, repository)

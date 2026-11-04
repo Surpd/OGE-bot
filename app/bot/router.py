@@ -2018,14 +2018,19 @@ async def return_to_menu(
     message: Message,
     repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
+    user_id_override: int | None = None,
 ) -> None:
-    user_id = _user_id(message)
+    user_id = user_id_override if user_id_override is not None else _user_id(message)
     has_session = False
     if user_id is not None:
         await repository.save_user_state(user_id, "main_menu")
         has_session = await _has_resumable_session(repository, user_id, oge15_repository)
     await send_text(
-        message, repository, "Главное меню.", reply_markup=main_menu(has_session=has_session)
+        message,
+        repository,
+        "Главное меню.",
+        user_id_override=user_id,
+        reply_markup=main_menu(has_session=has_session),
     )
 
 
