@@ -22,7 +22,8 @@ from app.bot.menu import (
 from app.bot.navigation import navigation_callback
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_training import (
-    PILOT_LABEL,
+    PUBLIC_LABEL,
+    show_public_oge15,
 )
 from app.bot.scenario_training import (
     answer_message as oge15_answer,
@@ -32,9 +33,6 @@ from app.bot.scenario_training import (
 )
 from app.bot.scenario_training import (
     render_session as render_oge15_session,
-)
-from app.bot.scenario_training import (
-    show_pilot as show_oge15_pilot,
 )
 from app.bot.training_engine import (
     NUMERIC_TRAININGS,
@@ -2116,8 +2114,8 @@ def build_router() -> Router:
     router.message.register(choose_task8, F.text == TASK8_LABEL)
     router.message.register(choose_task13, F.text == TASK13_LABEL)
     router.message.register(choose_task11, F.text == TASK11_LABEL)
-    router.message.register(show_oge15_pilot, Command("oge15"))
-    router.message.register(show_oge15_pilot, F.text == PILOT_LABEL)
+    router.message.register(show_public_oge15, Command("oge15"))
+    router.message.register(show_public_oge15, F.text == PUBLIC_LABEL)
     # Transitions are inline callbacks bound to a specific problem ID. Text commands
     # have no reliable association with the task shown when the user tapped them.
     router.message.register(task6_hint, F.text == "💡 Подсказка")

@@ -1,4 +1,4 @@
-"""Telegram UX for fail-closed OGE 1–5 scenario sessions."""
+"""Telegram UX for public OGE 1–5 scenario sessions."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ from app.persistence.scenario_repository import (
     ScenarioSession,
 )
 
-PILOT_LABEL = "Практические задания №1–5"
+PUBLIC_LABEL = "Практические задания №1–5"
 STORY_NAMES = {
     "TYRES": "Шины",
     "PAPER": "Бумага",
@@ -46,7 +46,7 @@ STORY_NAMES = {
     "GARDEN": "Участки",
     "FLAT": "Квартиры",
 }
-PILOT_FAMILIES = {
+PUBLIC_FAMILIES = {
     "TYRES": frozenset(
         {
             "TYRES-DIAMETER",
@@ -108,13 +108,13 @@ PILOT_FAMILIES = {
 
 
 @lru_cache(maxsize=1)
-def pilot_registry() -> FamilyRegistry:
-    """Create a separate explicit pilot allowlist without changing adapter defaults."""
+def public_registry() -> FamilyRegistry:
+    """Create a separate explicit public allowlist without changing adapter defaults."""
     adapters = []
     discovered = discover_story_registry()
     for story_code in discovered.story_codes:
         adapter = discovered.adapter(story_code)
-        allowed = PILOT_FAMILIES.get(adapter.story_code, frozenset())
+        allowed = PUBLIC_FAMILIES.get(adapter.story_code, frozenset())
         families = tuple(
             replace(
                 family,
@@ -161,7 +161,7 @@ def _story_keyboard() -> InlineKeyboardMarkup:
     return _keyboard(rows)
 
 
-async def show_pilot(
+async def show_public_oge15(
     message: Message,
     oge15_repository: ScenarioPostgresRepository | None = None,
     repository: Repository | None = None,
@@ -238,7 +238,7 @@ async def render_session(
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
     if show_assets:
         await message.answer(snapshot.shared_context)
-        adapter = pilot_registry().adapter(snapshot.story_code)
+        adapter = public_registry().adapter(snapshot.story_code)
         for asset in snapshot.assets:
             data = restore_asset_bytes(adapter.renderer, snapshot, asset)
             extension = "png" if asset.content_type == "image/png" else "svg"
@@ -313,7 +313,7 @@ async def _start_session(
         mode, secrets.randbelow(2**63), None if code == "RANDOM" else code, position
     )
     try:
-        plan = build_practice_plan(request, pilot_registry())
+        plan = build_practice_plan(request, public_registry())
     except (ScenarioUnavailable, ValueError):
         await answer_callback(callback, "Для этого сюжета сейчас нет доступного набора.")
         return
@@ -386,7 +386,7 @@ async def answer_message(
     question = next(
         item for item in session.snapshot.questions if item.position == session.current_position
     )
-    adapter = pilot_registry().adapter(session.snapshot.story_code)
+    adapter = public_registry().adapter(session.snapshot.story_code)
     policy = adapter.answer_policies[(question.answer_policy_id, question.answer_policy_version)]
     if not _valid_answer_format(
         session.snapshot.story_code, question.answer_policy_id, message.text

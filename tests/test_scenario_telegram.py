@@ -28,7 +28,7 @@ async def oge15_navigation_pool(postgres_db_fixture):  # noqa: F811
 
 
 
-def test_pilot_configuration_is_def test_oge15_public_number_menu_and_story_exclusions() -> None:
+def test_oge15_public_number_menu_and_story_exclusions() -> None:
     from app.bot.menu import number_menu
 
     buttons = [b for row in number_menu().inline_keyboard for b in row]
@@ -42,8 +42,8 @@ def test_pilot_configuration_is_def test_oge15_public_number_menu_and_story_excl
     assert "ROUTE" not in scenario_training.STORY_NAMES
 
 
-cit_and_excludes_unconfirmed_or_blocked_families() -> None:
-    registry = scenario_training.pilot_registry()
+def test_public_registry_is_explicit_and_excludes_unconfirmed_or_blocked_families() -> None:
+    registry = scenario_training.public_registry()
     family_owners: dict[str, str] = {}
     policy_types: dict[tuple[str, str], type[object]] = {}
     assert registry.story_codes == ("FLAT", "GARDEN", "PAPER", "ROUTE", "STOVE", "TARIFF", "TYRES")
@@ -69,9 +69,9 @@ cit_and_excludes_unconfirmed_or_blocked_families() -> None:
             previous_type = policy_types.setdefault(policy_key, type(policy))
             assert previous_type is type(policy)
             if family.available:
-                assert family.family_id in scenario_training.PILOT_FAMILIES[code]
+                assert family.family_id in scenario_training.PUBLIC_FAMILIES[code]
                 assert family.status.value == "enabled_candidate"
-    # Constructing the pilot registry never mutates ordinary adapter defaults.
+    # Constructing the public registry never mutates ordinary adapter defaults.
     from app.math.scenario_engine import discover_story_registry
 
     defaults = discover_story_registry()
@@ -84,10 +84,10 @@ cit_and_excludes_unconfirmed_or_blocked_families() -> None:
 
 
 @pytest.mark.parametrize("story_code", ("TYRES", "PAPER", "STOVE", "TARIFF", "GARDEN", "FLAT"))
-def test_each_pilot_story_builds_single_and_full_from_one_validated_snapshot(
+def test_each_public_story_builds_single_and_full_from_one_validated_snapshot(
     story_code: str,
 ) -> None:
-    registry = scenario_training.pilot_registry()
+    registry = scenario_training.public_registry()
     single = build_practice_plan(
         PracticeRequest(PracticeMode.SINGLE, 90125, story_code=story_code, position=3), registry
     )
