@@ -3,7 +3,7 @@
 Story modules implement these protocols; this module contains no story math.
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, Sequence  # noqa: I001
 from dataclasses import dataclass
 from enum import StrEnum
 from hashlib import sha256
