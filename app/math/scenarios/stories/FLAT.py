@@ -288,6 +288,7 @@ class _QuestionBuilder:
         }.get(position)
         if family is None:
             raise ValueError("Question position must be 1 through 5")
+        solution: tuple[str, ...]
         if position == 1:
             rooms = ("bathroom", "pantry", "bedroom", "living")
             answer = "".join(str(labels[name]) for name in rooms)
@@ -416,7 +417,7 @@ class _QuestionBuilder:
             condition = (
                 "Нужна фронтальная машина загрузкой не менее 7 кг и высотой не более 85 см. "
                 f"Сравните модели с учётом цены, установки и доставки: {rows}. "
-                "Найдите минимальную полную стоимость."
+                "Доставка указана в процентах от цены машины. Найдите минимальную полную стоимость."
             )
             model = {
                 "models": models,
@@ -427,8 +428,11 @@ class _QuestionBuilder:
             solution = (
                 "После ограничений подходят модели "
                 f"{', '.join(cast(list[str], model['eligible']))}.",
-                f"Минимальная полная стоимость — {answer} руб.",
-            )
+            ) + tuple(
+                f"{m['model']}: {m['price']} + {m['install']} + "
+                f"{m['price']} · {m['delivery_pct']} / 100 = {cost} руб."
+                for m, cost in zip(eligible, costs, strict=True)
+            ) + (f"Минимальная полная стоимость — {answer} руб.",)
         else:
             internet = cast(Mapping[str, object], c["internet"])
             traffic = _to_int(internet["traffic_mb"])
@@ -879,7 +883,7 @@ class _Oracle:
             expected_condition = (
                 "Нужна фронтальная машина загрузкой не менее 7 кг и высотой не более 85 см. "
                 f"Сравните модели с учётом цены, установки и доставки: {expected_rows}. "
-                "Найдите минимальную полную стоимость."
+                "Доставка указана в процентах от цены машины. Найдите минимальную полную стоимость."
             )
             if question.condition != expected_condition:
                 raise ValueError("Visible equipment table differs from its model")

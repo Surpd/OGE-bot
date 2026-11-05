@@ -546,7 +546,14 @@ class TariffQuestionBuilder:
             for item, cost in zip(plans, costs, strict=True):
                 if not isinstance(item, Mapping):
                     raise ValueError("Invalid ISP plan")
-                plan_steps.append(f"{item['name']}: {_rubles(cost)} руб.")
+                included = _as_int(item["included_mb"])
+                excess = max(0, usage - included)
+                fee = _rubles(_as_int(item["monthly_fee_cents"]))
+                rate = _rubles(_as_int(item["per_mb_cents"]))
+                plan_steps.append(
+                    f"{item['name']}: сверх пакета {excess} МБ; "
+                    f"{fee} + {excess} · {rate} = {_rubles(cost)} руб."
+                )
             steps = tuple(plan_steps) + (f"Наименьшая плата — {_rubles(min(costs))} руб.",)
             model = {"usage_mb": usage}
         else:

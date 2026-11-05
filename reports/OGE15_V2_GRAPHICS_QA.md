@@ -31,4 +31,5 @@ python scripts/oge15_graphics_preview.py path/to/output
 
 Локальные превью используют доступный кириллический Arial. Для Linux в образ
 добавлен DejaVu Sans. Проверка при 390 px имитирует ширину изображения в чате.
-Живой Telegram и сборка контейнера в этом проходе не проверялись.
+Linux-образ собран в GitHub Actions на SHA 13964c9. Все шесть сюжетов
+отрендерились на трёх seed с DejaVu Sans. Живой Telegram не проверялся.
