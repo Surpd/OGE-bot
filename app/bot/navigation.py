@@ -157,6 +157,11 @@ async def navigation_callback(
         "nav:display": show_display_options,
     }
     target = targets.get(data)
+    if oge15_repository is not None and (
+        data in {"nav:main", "nav:numbers", "nav:progress", "nav:details", "nav:display"}
+        or data.startswith("nav:task:")
+    ):
+        await oge15_repository.pause_foreground(callback.from_user.id)
     if data == "nav:oge15":
         target = show_public_oge15
     if data.startswith("nav:task:"):

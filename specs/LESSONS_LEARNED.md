@@ -34,6 +34,8 @@
 
 | LL-23 | Соответствие прототипу | Корректная операция могла получать уже найденные размеры или часовые затраты, обходя общий план/таблицу; геометрия могла отличаться от условия источника. | Проверять весь маршрут получения исходных данных, топологию и промежуточные величины, отдельно от конечного ответа. Сохранять старые рендеры по версии. | Сюжеты №1–5 | `test_source_plan_has_distinct_loggias_and_lookup_only_questions`, `test_pre_v2_flat_snapshot_restores_identical_assets`, `test_407953_minimum_is_read_from_requested_table_column`; адресные PAPER/GARDEN/STOVE регрессии | covered |
 
+| LL-24 | Переключение сессий | Неявное возобновление самой свежей незавершённой сессии и ограничение одной записи на пользователя блокировали смену сюжета и делали выбор неоднозначным. | Хранить незавершённые записи по владельцу, сюжету и режиму; foreground handoff выполнять атомарно, а возобновление для callback адресовать точным ID сессии. | Тренировки №1–5 | `tests/test_scenario_postgres.py::test_switchable_sessions_are_owned_by_story_mode_and_foreground_is_atomic`; `tests/test_scenario_telegram.py::test_dispatcher_switches_full_sessions_without_losing_progress` | covered |
+
 ## Добавление урока
 
 Добавляй запись только после подтверждённого дефекта. Укажи минимальный тест, который

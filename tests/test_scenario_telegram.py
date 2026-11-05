@@ -23,7 +23,11 @@ from app.math.scenario_engine import (
     restore_asset_bytes,
 )
 from app.persistence.repository import PostgresRepository
-from app.persistence.scenario_repository import AttemptResult, ScenarioPostgresRepository
+from app.persistence.scenario_repository import (
+    AttemptResult,
+    ScenarioPostgresRepository,
+    ScenarioSession,
+)
 
 
 @pytest.fixture
@@ -357,15 +361,26 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         await send(router.TASK6_LABEL, current_prompt + 30)
         classic = await repository.task6_state(user_id)
         assert classic is not None and classic["problem"] is not None
+        paused_for_classic = await scenario_repository.resume_session(user_id, resumed.session_id)
+        assert paused_for_classic is not None and paused_for_classic.status == "paused"
         await send("▶ Продолжить", current_prompt + 31)
         assert await repository.user_state(user_id) == "task6"
         assert (await repository.task6_state(user_id))["problem"] == classic["problem"]
-        assert await scenario_repository.resume_session(user_id) == resumed
+        assert (
+            await scenario_repository.resume_session(user_id, resumed.session_id)
+            == paused_for_classic
+        )
 
+        # Old scenario controls are inert while №6 is the user's selected training.
         await callback(controls, "⏸ Пауза")
-        pause_message = max(transport.messages.values(), key=lambda item: item.message_id)
-        await callback(pause_message, "▶ Продолжить")
-        await send("▶ Продолжить", current_prompt + 32)
+        assert (
+            await scenario_repository.resume_session(user_id, resumed.session_id)
+            == paused_for_classic
+        )
+        await send("/oge15", current_prompt + 32)
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await callback(menu, "Шины")
+        await callback(menu, "▶ Продолжить · пятёрка · №2")
         assert await repository.user_state(user_id) == "oge15"
         assert (await repository.task6_state(user_id))["problem"] == classic["problem"]
         current_prompt = (await scenario_repository.resume_session(user_id)).prompt_message_id
@@ -638,6 +653,284 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
         )
         assert mode.message_id > 0
     finally:
+        await bot.session.close()
+
+
+@pytest.mark.asyncio
+async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_navigation_pool):
+    transport = TelegramSession()
+    bot = Bot("123456:TEST", session=transport)
+    dispatcher = Dispatcher()
+    dispatcher.include_router(build_router())
+    repository = PostgresRepository(oge15_navigation_pool)
+    store = ScenarioPostgresRepository(oge15_navigation_pool)
+    user_id = int(uuid4().int % (2**62)) + 1
+    user = User(id=user_id, is_bot=False, first_name="Switch sessions")
+    await repository.register_user(user_id)
+    await repository.save_user_state(user_id, "main_menu")
+    update_id = 1
+    user_message_id = 50000
+
+    async def tap(message: Message, label: str) -> Message:
+        nonlocal update_id
+        data = next(
+            button.callback_data
+            for row in message.reply_markup.inline_keyboard
+            for button in row
+            if button.text == label
+        )
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, callback_query=CallbackQuery(
+                id=f"switch-{update_id}", from_user=user, chat_instance="switch",
+                message=message, data=data,
+            )),
+        )
+        return max(transport.messages.values(), key=lambda item: item.message_id)
+
+    async def send_answer(answer: str, *, reply: Message | None = None) -> None:
+        nonlocal update_id, user_message_id
+        update_id += 1
+        user_message_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=user_message_id, date=datetime.now(UTC),
+                chat=Chat(id=user_id, type="private"), from_user=user, text=answer,
+                reply_to_message=reply,
+            )),
+        )
+
+    def latest_control(session: ScenarioSession) -> Message:
+        session_id = session.control_message_id
+        assert session_id is not None
+        return transport.messages[session_id]
+
+    try:
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=1, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "Шины")
+        menu = await tap(menu, "Вся пятёрка")
+        tyres = await store.resume_session(user_id)
+        assert tyres is not None and tyres.snapshot.story_code == "TYRES"
+        old_prompt = transport.messages[tyres.prompt_message_id]
+
+        # Solve the first two TYRES questions and leave the saved session on #3.
+        for expected_position in (1, 2):
+            active = await store.resume_session(user_id)
+            assert active is not None and active.current_position == expected_position
+            question = active.snapshot.questions[expected_position - 1]
+            await send_answer(question.canonical_answer)
+            solved = await store.resume_session(user_id)
+            assert solved is not None and solved.question_status == "solved"
+            await tap(latest_control(solved), "➡ Следующий вопрос")
+        tyres = await store.find_open_session(user_id, "TYRES", PracticeMode.FULL)
+        assert tyres is not None and tyres.current_position == 3
+        old_controls = latest_control(tyres)
+
+        # Starting PAPER atomically pauses TYRES. Delayed controls/replies remain stale.
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=2, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "Бумага")
+        menu = await tap(menu, "Вся пятёрка")
+        paper = await store.resume_session(user_id)
+        assert paper is not None and paper.snapshot.story_code == "PAPER"
+        assert (await store.resume_session(user_id, tyres.session_id)).status == "paused"
+        paper_before_stale = paper
+        await tap(old_controls, "💡 Подсказка")
+        assert await store.resume_session(user_id) == paper_before_stale
+        await send_answer("1", reply=old_prompt)
+        assert await store.resume_session(user_id) == paper_before_stale
+        assert await oge15_navigation_pool.fetchval(
+            "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", paper.session_id
+        ) == 0
+
+        for expected_position in (1, 2, 3):
+            active = await store.resume_session(user_id)
+            assert active is not None and active.current_position == expected_position
+            question = active.snapshot.questions[expected_position - 1]
+            await send_answer(question.canonical_answer)
+            solved = await store.resume_session(user_id)
+            assert solved is not None and solved.question_status == "solved"
+            await tap(latest_control(solved), "➡ Следующий вопрос")
+        paper = await store.find_open_session(user_id, "PAPER", PracticeMode.FULL)
+        assert paper is not None and paper.current_position == 4
+
+        # Choosing TYRES offers the exact saved session; it resumes at question #3.
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=3, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "Шины")
+        menu = await tap(menu, "▶ Продолжить · пятёрка · №3")
+        resumed_tyres = await store.resume_session(user_id)
+        assert resumed_tyres is not None and resumed_tyres.session_id == tyres.session_id
+        assert resumed_tyres.current_position == 3
+        assert resumed_tyres.snapshot.seed == tyres.snapshot.seed
+        assert (await store.resume_session(user_id, paper.session_id)).status == "paused"
+        superseded_controls = latest_control(resumed_tyres)
+
+        # /start exposes Continue, which returns to the most recently used saved workout.
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=4, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/start",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        assert any(
+            button.text == "▶ Продолжить"
+            for row in menu.reply_markup.inline_keyboard for button in row
+        )
+        menu = await tap(menu, "▶ Продолжить")
+        after_continue = await store.resume_session(user_id)
+        assert after_continue is not None and after_continue.session_id == tyres.session_id
+        await tap(superseded_controls, "💡 Подсказка")
+        assert await store.resume_session(user_id) == after_continue
+
+        # Continue the saved PAPER run and finish early; pending positions are not skipped.
+        paper = await store.resume_paused(user_id, paper.session_id)
+        assert paper is not None and paper.current_position == 4
+        controls = latest_control(paper)
+        assert any(
+            button.text == "⏹ Завершить тренировку"
+            for row in controls.reply_markup.inline_keyboard for button in row
+        )
+        await tap(controls, "⏹ Завершить тренировку")
+        terminal_card = transport.messages[controls.message_id]
+        assert "Напишите ответ" not in (terminal_card.text or "")
+        assert terminal_card.reply_markup is None
+        assert await store.resume_session(user_id, paper.session_id) is None
+        paper_stats = await store.position_stats(user_id)
+        # TYRES contributes two answers and PAPER three; active #4 and pending #5
+        # remain unscored instead of becoming incorrect or skipped.
+        assert paper_stats[0]["correct"] == 5
+        assert paper_stats[0]["skipped"] == 0
+        assert paper_stats[0]["issued"] == 6
+        untouched = await oge15_navigation_pool.fetch(
+            """SELECT position, status FROM oge15_question_progress
+               WHERE session_id=$1 AND position IN (4,5) ORDER BY position""",
+            paper.session_id,
+        )
+        assert [(row["position"], row["status"]) for row in untouched] == [
+            (4, "active"), (5, "pending")
+        ]
+        assert await oge15_navigation_pool.fetchval(
+            "SELECT count(*) FROM oge15_attempts WHERE session_id=$1 AND position IN (4,5)",
+            paper.session_id,
+        ) == 0
+
+        # A SINGLE session can be started while the saved TYRES full session remains intact.
+        await store.resume_paused(user_id, tyres.session_id)
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=5, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "Шины")
+        menu = await tap(menu, "Выбрать одно задание")
+        menu = await tap(menu, "№4")
+        single = await store.resume_session(user_id)
+        assert single is not None and single.mode is PracticeMode.SINGLE
+        assert (await store.resume_session(user_id, tyres.session_id)).status == "paused"
+        assert (await store.find_open_session(
+            user_id, "TYRES", PracticeMode.FULL
+        )).session_id == tyres.session_id
+
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=6, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "📂 Незавершённые тренировки")
+        menu = await tap(menu, "▶ Шины · пятёрка · №3")
+        assert (await store.resume_session(user_id)).session_id == tyres.session_id
+        assert (await store.resume_session(user_id, single.session_id)).status == "paused"
+
+        # Distinct users can atomically foreground sessions without affecting each other.
+        other_id = user_id + 1
+        registry = scenario_training.public_registry()
+        other = await store.start_session(
+            other_id,
+            build_practice_plan(
+                PracticeRequest(PracticeMode.FULL, 514, "PAPER"), registry
+            ).snapshot,
+            PracticeMode.FULL, (1, 2, 3, 4, 5),
+        )
+        assert other is not None
+        other_tyres = await store.start_session(
+            other_id,
+            build_practice_plan(
+                PracticeRequest(PracticeMode.FULL, 515, "TYRES"), registry
+            ).snapshot,
+            PracticeMode.FULL, (1, 2, 3, 4, 5),
+        )
+        assert other_tyres is not None
+        user_resume, other_resume = await asyncio.gather(
+            store.resume_paused(user_id, tyres.session_id),
+            store.resume_paused(other_id, other.session_id),
+        )
+        assert user_resume is not None and user_resume.session_id == tyres.session_id
+        assert other_resume is not None and other_resume.session_id == other.session_id
+        assert (await store.resume_session(other_id, other_tyres.session_id)).status == "paused"
+        assert (await store.resume_session(other_id)).session_id == other.session_id
+        assert (await store.resume_session(user_id)).session_id == tyres.session_id
+
+        # Restart is explicit: it closes only the selected full session and retains its history.
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=7, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "Шины")
+        await tap(menu, "🆕 Начать заново · пятёрка")
+        restarted_tyres = await store.resume_session(user_id)
+        assert restarted_tyres is not None
+        assert restarted_tyres.session_id != tyres.session_id
+        assert restarted_tyres.current_position == 1
+        assert await store.resume_session(user_id, tyres.session_id) is None
+        assert await oge15_navigation_pool.fetchval(
+            "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", tyres.session_id
+        ) == 2
+        assert (await store.resume_session(other_id, other.session_id)).status == "paused"
+    finally:
+        await oge15_navigation_pool.execute(
+            "DELETE FROM users WHERE telegram_user_id=ANY($1::bigint[])", [user_id, user_id + 1]
+        )
         await bot.session.close()
 
 
