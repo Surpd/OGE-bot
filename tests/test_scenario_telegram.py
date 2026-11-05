@@ -503,7 +503,7 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("story_code", tuple(scenario_training.STORY_NAMES))
+@pytest.mark.parametrize("story_code", (*scenario_training.STORY_NAMES, "RANDOM"))
 async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
     oge15_navigation_pool, story_code,
 
@@ -569,10 +569,17 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
             "Выберите сюжет" in (message.text or "")
             for message in transport.messages.values()
         )
-        story = await tap(selection, scenario_training.STORY_NAMES[story_code])
+        label = "🎲 Случайный сюжет" if story_code == "RANDOM" else (
+            scenario_training.STORY_NAMES[story_code]
+        )
+        story = await tap(selection, label)
         mode = await tap(story, "Вся пятёрка")
         session = await scenario_repository.resume_session(user_id)
-        assert session is not None and session.snapshot.story_code == story_code
+        assert session is not None
+        if story_code == "RANDOM":
+            assert session.snapshot.story_code in scenario_training.STORY_NAMES
+        else:
+            assert session.snapshot.story_code == story_code
         assert session.mode is PracticeMode.FULL
         assert any(
             "Задание №1 из 5" in (message.text or "")
