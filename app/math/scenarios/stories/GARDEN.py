@@ -30,7 +30,7 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-VERSION = "garden-sosnovka-1.0"
+VERSION = "garden-sosnovka-1.1"
 POLICY_VERSION = "1"
 SOURCE_IDS = ("408405", "408413", "408424", "408432", "408438")
 FAMILIES = tuple(
@@ -53,7 +53,7 @@ def _world(seed: int) -> dict[str, JsonValue]:
     gas_hourly = 784
     electric_hourly = 2058
     premium = (electric_hourly - gas_hourly) * hours // 100
-    base = 29_000 if seed == 0 else 2_900_000 + rng.randrange(0, 100) * 100
+    base = 29_000 if seed == 0 else 29_000 + rng.randrange(0, 100) * 100
     return {
         "template_id": "SOSNOVKA-2025-1.1",
         "world_version": VERSION,
@@ -194,6 +194,29 @@ class _Builder:
             condition = f"Сравните отопление газом и электричеством по плану и данным: начальные затраты газ — {heat['gas_upfront']} руб., электричество — {heat['electric_upfront']} руб.; расходы за час — {heat['gas_hourly_cents'] / 100:.2f} и {heat['electric_hourly_cents'] / 100:.2f} руб. Через сколько часов суммарные затраты сравняются?"
         else:
             raise ValueError("Garden position must be 1..5")
+        hints = {
+            1: "Сопоставьте объекты с описанием их расположения на плане.",
+            2: "Сложите число плиток и округлите число пачек вверх.",
+            3: "Считайте только стороны клеток на внешней границе дома.",
+            4: "Разделите суммарную площадь построек на площадь участка.",
+            5: "Найдите разницу начальных затрат и экономию за один час.",
+        }
+        solutions = {
+            1: (f"В указанном порядке на плане получаем номера {', '.join(answer)}.",),
+            2: ("Всего нужно 25 + 40 = 65 плиток.", "Шести пачек мало, семи достаточно."),
+            3: ("Внешний контур состоит из 18 сторон клеток.", "Периметр: 18 × 2 = 36 м."),
+            4: ("Постройки занимают 68 + 48 + 24 + 36 = 176 м².",
+                "176 / 600 × 100 ≈ 29,33 %. После округления получаем 29 %."),
+        }
+        if position == 5:
+            heat = cast(Mapping[str, int], c["heat"])
+            difference = heat["gas_upfront"] - heat["electric_upfront"]
+            savings = (heat["electric_hourly_cents"] - heat["gas_hourly_cents"]) / 100
+            solutions[5] = (
+                f"Газовое отопление дороже при установке на {difference} руб.",
+                f"За час оно экономит 20,58 − 7,84 = {savings:.2f} руб.",
+                f"Затраты сравняются через {difference} / {savings:.2f} = {answer} ч.",
+            )
         return QuestionDraft(
             position,
             scenario.seed,
@@ -203,8 +226,8 @@ class _Builder:
             "integer_or_code",
             POLICY_VERSION,
             answer,
-            ("Считайте данные с общего плана и примените нужную операцию.",),
-            (f"По модели позиции {position} получаем {answer}.",),
+            (hints[position],),
+            solutions[position],
             {"position": position, "expected": answer},
         )
 

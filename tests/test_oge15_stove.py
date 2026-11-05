@@ -230,3 +230,12 @@ def test_archive_positive_examples_are_independently_supported() -> None:
     _validate_arc_svg(_svg_arc(60, 40), 60, 40, 50)
     adapter.independent_oracle.validate_scenario(scenario)
     assert "Печь | Тип" in rendered.shared_context
+
+
+
+def test_current_arc_keeps_dimensions_without_revealing_the_radius() -> None:
+    arc = _svg_arc(60, 40)
+    assert b"R=" not in arc
+    assert b"data-radius-cm" not in arc
+    _validate_arc_svg(arc, 60, 40, 50)
+    assert b"R=50" in _svg_arc(60, 40, legacy=True)

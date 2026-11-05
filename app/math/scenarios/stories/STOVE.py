@@ -34,9 +34,10 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "stove-v1.0"
+GENERATOR_VERSION = "stove-v1.1"
 COMPATIBILITY_MATRIX_VERSION = "stove-bundle-v1"
-RENDERER_VERSION = "stove-svg-png-v1"
+LEGACY_RENDERER_VERSION = "stove-svg-png-v1"
+RENDERER_VERSION = "stove-svg-png-v2"
 SOURCE_DATE = "2026-11-02"
 
 FAMILY_IDS = (
@@ -549,7 +550,7 @@ def _svg_table(context: Mapping[str, object]) -> bytes:
     columns = ["№", "Тип печи", "Объём парной, м³", "Масса, кг", "Цена, руб."]
     x = [45, 145, 390, 700, 900, 1155]
     parts = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" data-renderer="{RENDERER_VERSION}">',  # noqa: E501
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" data-renderer="{context["renderer_version"]}">',  # noqa: E501
         '<rect width="1200" height="430" fill="#fff"/>',
     ]
     parts.append(
@@ -588,7 +589,8 @@ def _svg_table(context: Mapping[str, object]) -> bytes:
     return "".join(parts).encode("utf-8")
 
 
-def _svg_arc(width_cm: int, height_cm: int) -> bytes:
+def _svg_arc(width_cm: int, height_cm: int, *, legacy: bool = False) -> bytes:
+    version = LEGACY_RENDERER_VERSION if legacy else RENDERER_VERSION
     half = Fraction(width_cm, 2)
     radius = isqrt(width_cm * width_cm // 4 + height_cm * height_cm)
     scale = 4
@@ -605,8 +607,10 @@ def _svg_arc(width_cm: int, height_cm: int) -> bytes:
     top_y = oy - height_cm * scale
     width_y = oy + 80
     height_x = left_x - 40
+    radius_attribute = f' data-radius-cm="{radius}"' if legacy else ""
+    title = f"Арка кожуха печи · R={radius} см" if legacy else "Арка кожуха печи"
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" data-renderer="{RENDERER_VERSION}" data-width-cm="{width_cm}" data-height-cm="{height_cm}" data-radius-cm="{radius}">'  # noqa: E501
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" data-renderer="{version}" data-width-cm="{width_cm}" data-height-cm="{height_cm}"{radius_attribute}>'  # noqa: E501
         '<rect width="800" height="600" fill="#fff"/>'
         '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">'
         '<path d="M 8 0 L 0 4 L 8 8" fill="none" stroke="#71818b"/></marker></defs>'
@@ -627,7 +631,7 @@ def _svg_arc(width_cm: int, height_cm: int) -> bytes:
         f'<text x="{height_x - 10}" y="{(oy + top_y) // 2}" text-anchor="end" font-size="18">{height_cm} см</text>'  # noqa: E501
         f'<text x="{ox + 30}" y="{oy - 18}" font-size="18">{width_cm // 2} см</text>'
         f'<text x="{ox}" y="{width_y + 28}" text-anchor="middle" font-size="18">{width_cm} см</text>'  # noqa: E501
-        f'<text x="400" y="30" text-anchor="middle" font-size="24">Арка кожуха печи · R={radius} см</text></svg>'  # noqa: E501
+        f'<text x="400" y="30" text-anchor="middle" font-size="24">{title}</text></svg>'  # noqa: E501
     ).encode()
 
 
@@ -677,7 +681,7 @@ def _png_table(context: Mapping[str, object]) -> bytes:
     return output.getvalue()
 
 
-def _png_arc(width_cm: int, height_cm: int) -> bytes:
+def _png_arc(width_cm: int, height_cm: int, *, legacy: bool = False) -> bytes:
     half = width_cm // 2
     radius = isqrt(half * half + height_cm * height_cm)
     image = Image.new("RGB", (800, 600), "white")
@@ -716,7 +720,8 @@ def _png_arc(width_cm: int, height_cm: int) -> bytes:
     )
     draw.ellipse((394, 494, 406, 506), fill="#d17a22")
     draw.text((410, 500), "O", fill="#18313f", font=_font(18))
-    draw.text((412, 26), f"Арка кожуха печи · R={radius} см", fill="#18313f", font=_font(22))
+    title = f"Арка кожуха печи · R={radius} см" if legacy else "Арка кожуха печи"
+    draw.text((412, 26), title, fill="#18313f", font=_font(22))
     draw.text(
         (height_x - 36, (500 + top_y) // 2), f"{height_cm} см", fill="#18313f", font=_font(18)
     )
@@ -730,11 +735,12 @@ def _png_arc(width_cm: int, height_cm: int) -> bytes:
 def _render_assets(context: Mapping[str, object]) -> dict[str, tuple[str, bytes]]:
     width = cast(int, context["arc_width_cm"])
     height = cast(int, context["arc_height_cm"])
+    legacy = context["renderer_version"] == LEGACY_RENDERER_VERSION
     return {
         "table.svg": ("image/svg+xml", _svg_table(context)),
         "table.png": ("image/png", _png_table(context)),
-        "arc.svg": ("image/svg+xml", _svg_arc(width, height)),
-        "arc.png": ("image/png", _png_arc(width, height)),
+        "arc.svg": ("image/svg+xml", _svg_arc(width, height, legacy=legacy)),
+        "arc.png": ("image/png", _png_arc(width, height, legacy=legacy)),
     }
 
 
@@ -1029,10 +1035,10 @@ def _validate_arc_svg(svg: bytes, width_cm: int, height_cm: int, radius: int) ->
         raise ValueError("Arc SVG width label differs from the visible condition")
     if int(root.attrib.get("data-height-cm", "-1")) != height_cm:
         raise ValueError("Arc SVG height label differs from the visible condition")
-    if int(root.attrib.get("data-radius-cm", "-1")) != radius:
-        raise ValueError("Arc SVG radius differs from the independently solved radius")
     texts = " ".join((node.text or "") for node in root.iter() if node.tag.endswith("text"))
-    for label in (f"{width_cm} см", f"{height_cm} см", f"R={radius} см", "O"):
+    if "data-radius-cm" in root.attrib or "R=" in texts:
+        raise ValueError("Arc SVG reveals the requested radius")
+    for label in (f"{width_cm} см", f"{height_cm} см", "O"):
         if label not in texts:
             raise ValueError("Arc SVG is missing a required visible label")
     center = next((node for node in root.iter() if node.tag.endswith("circle")), None)
