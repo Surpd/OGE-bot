@@ -389,7 +389,12 @@ def _build_mapping_question(
         answer,
         "paper.mapping_four",
         {"target_order": list(order), "rows": [list(row) for row in rows]},
-        tuple(f"В строке {row_by_format[label]} указаны размеры {label}." for label in order)
+        ("Площадь A0 близка к 1 000 000 мм². У каждого следующего формата "
+         "площадь примерно вдвое меньше.",)
+        + tuple(
+            f"Строка {index}: {length} × {width} = {length * width} мм², это формат {label}."
+            for index, (label, length, width) in enumerate(rows, 1)
+        )
         + (f"В заданном порядке номера строк образуют код {answer}.",),
     )
 

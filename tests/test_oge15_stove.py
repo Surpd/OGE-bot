@@ -239,3 +239,15 @@ def test_current_arc_keeps_dimensions_without_revealing_the_radius() -> None:
     assert b"data-radius-cm" not in arc
     _validate_arc_svg(arc, 60, 40, 50)
     assert b"R=50" in _svg_arc(60, 40, legacy=True)
+
+
+def test_reverse_discount_answer_is_not_in_catalogue():
+    from app.math.scenarios.stories.STOVE import _money, _rows
+
+    for seed in (0, 42, 90126):
+        adapter, scenario, rendered, _ = _fixture(seed)
+        question = adapter.question_builder.build_question_for_family(scenario, 4, FAMILY_IDS[9])
+        price = int(question.canonical_answer)
+        assert price not in {row["price_rub"] for row in _rows(scenario.context)}
+        assert _money(price) not in question.condition
+        adapter.independent_oracle.validate_question(scenario, question, rendered)

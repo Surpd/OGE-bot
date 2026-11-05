@@ -219,16 +219,16 @@ class ScenarioPostgresRepository:
     ) -> bool:
         """Invalidate only sessions containing an unfinished question with a known leak."""
         snapshot = session.snapshot
-        family = None
+        families = set()
         if snapshot.context.get("renderer_version") == "stove-svg-png-v1":
-            family = "STOVE-F12-ARCH-RADIUS"
-        elif snapshot.generator_version in {"garden-sosnovka-1.0", "garden-sosnovka-1.1"}:
-            family = "GARDEN-01-IDENTIFY"
-        elif snapshot.generator_version == "paper-v1":
-            family = "PAPER-F01"
-        if family is None:
-            return False
-        positions = [q.position for q in snapshot.questions if q.family_id == family]
+            families.add("STOVE-F12-ARCH-RADIUS")
+        if snapshot.generator_version in {"stove-v1.0", "stove-v1.1"}:
+            families.add("STOVE-F10-REVERSE-DISCOUNT")
+        if snapshot.generator_version in {"garden-sosnovka-1.0", "garden-sosnovka-1.1"}:
+            families.add("GARDEN-01-IDENTIFY")
+        if snapshot.generator_version == "paper-v1":
+            families.add("PAPER-F01")
+        positions = [q.position for q in snapshot.questions if q.family_id in families]
         if not positions:
             return False
         async with self._pool.acquire() as connection, connection.transaction():

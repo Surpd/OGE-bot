@@ -34,7 +34,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "stove-v1.1"
+GENERATOR_VERSION = "stove-v1.2"
 COMPATIBILITY_MATRIX_VERSION = "stove-bundle-v1"
 LEGACY_RENDERER_VERSION = "stove-svg-png-v1"
 RENDERER_VERSION = "stove-svg-png-v2"
@@ -434,10 +434,13 @@ class StoveQuestionBuilder:
                     f"{_money(base)} · ({100} − {discount}) / 100 = {_money(int(answer_value))} руб.",  # noqa: E501
                 )
             else:
-                old = cast(int, stove["price_rub"])
+                listed_prices = {cast(int, row["price_rub"]) for row in rows}
+                start_price = 19_900 + 100 * (scenario.seed % 11)
+                old = next(price for price in range(start_price, start_price + 400, 100)
+                           if price not in listed_prices)
                 current = old * (100 - discount) // 100
                 answer_value = Fraction(current * 100, 100 - discount)
-                condition = f"После скидки {discount}% печь №{stove['id']} стоит {_money(current)} руб. Сколько рублей она стоила до скидки? {_table_text(context)}"  # noqa: E501
+                condition = f"После скидки {discount}% печь, которой нет в каталоге, стоит {_money(current)} руб. Сколько рублей она стоила до скидки?"  # noqa: E501
                 operation = "reverse_discount"
                 hints = (
                     f"После скидки осталось {100 - discount}% исходной стоимости.",
@@ -905,11 +908,12 @@ class StoveOracle:
                 base, discount = _parse_rub_or_int(match.group(2)), int(match.group(3))
                 return _integer_fraction(Fraction(base * (100 - discount), 100))
             reverse = re.search(
-                r"после скидки (\d+)% печь №([1-3]) стоит ([\d  ]+) руб", condition, re.IGNORECASE
+                r"после скидки (\d+)% печь, которой нет в каталоге, стоит ([\d  ]+) руб",
+                condition, re.IGNORECASE
             )
             if not reverse or "до скидки" not in condition:
                 raise ValueError("Reverse discount wording is invalid")
-            discount, current = int(reverse.group(1)), _parse_rub_or_int(reverse.group(3))
+            discount, current = int(reverse.group(1)), _parse_rub_or_int(reverse.group(2))
             return _integer_fraction(Fraction(current * 100, 100 - discount))
         if family == FAMILY_IDS[10]:
             match = re.search(
