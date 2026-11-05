@@ -417,6 +417,7 @@ async def answer_message(
         await message.answer(f"Попытки закончились. Ответ: {question.canonical_answer}.")
     else:
         await message.answer("Неверно. Попробуйте ещё раз.")
+        return
     await render_session(message, store, updated, show_assets=False)
 
 
