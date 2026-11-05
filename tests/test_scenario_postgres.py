@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from urllib.parse import urlsplit, urlunsplit
@@ -21,7 +22,7 @@ from app.persistence.repository import read_migration
 from app.persistence.scenario_repository import AttemptResult, ScenarioPostgresRepository
 
 
-def _snapshot() -> ScenarioSnapshot:
+def _snapshot(story_code: str = "PAPER") -> ScenarioSnapshot:
     questions = tuple(
         QuestionSnapshot.from_draft(
             QuestionDraft(
@@ -41,7 +42,7 @@ def _snapshot() -> ScenarioSnapshot:
         for position in POSITIONS
     )
     return ScenarioSnapshot(
-        story_code="PAPER",
+        story_code=story_code,
         seed=12345,
         generator_version="paper-v1",
         compatibility_matrix_version="paper-compat-v1",
@@ -73,6 +74,7 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
     try:
         await pool.execute(await read_migration("migrations/0001_foundation.sql"))
         await pool.execute(await read_migration("migrations/0012_oge15_scenarios.sql"))
+        await pool.execute(await read_migration("migrations/0013_oge15_switchable_sessions.sql"))
         store = ScenarioPostgresRepository(pool)
         snapshot = _snapshot()
         created = await store.start_session(user_id, snapshot, PracticeMode.FULL, POSITIONS)
@@ -209,6 +211,116 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
         assert await pool.fetchval("SELECT count(*) FROM oge15_assets") == 1
     finally:
         await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
+        await pool.close()
+        await admin.execute(f'DROP DATABASE IF EXISTS "{database_name}" WITH (FORCE)')
+        await admin.close()
+
+
+@pytest.mark.asyncio
+async def test_switchable_sessions_are_owned_by_story_mode_and_foreground_is_atomic() -> None:
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        pytest.skip("DATABASE_URL not configured")
+    admin, database_name, test_url = await _test_database(database_url)
+    pool = await asyncpg.create_pool(test_url)
+    user_id = int(uuid4().int % (2**62)) + 1
+    other_user = user_id + 1
+    try:
+        await pool.execute(await read_migration("migrations/0001_foundation.sql"))
+        await pool.execute(await read_migration("migrations/0012_oge15_scenarios.sql"))
+        await pool.execute(await read_migration("migrations/0013_oge15_switchable_sessions.sql"))
+        store = ScenarioPostgresRepository(pool)
+        tyres = await store.start_session(user_id, _snapshot("TYRES"), PracticeMode.FULL, POSITIONS)
+        assert tyres is not None
+        assert await store.set_condition_message(user_id, tyres.session_id, 1, 101)
+        assert await store.set_control_message(user_id, tyres.session_id, 0, 111)
+        assert await store.record_attempt(
+            telegram_user_id=user_id, session_id=tyres.session_id, position=1,
+            telegram_message_id=102, reply_to_message_id=101, raw_answer="1",
+            normalized_answer="1", is_correct=True,
+        ) is AttemptResult.ACCEPTED
+        assert await store.apply_callback(
+            telegram_user_id=user_id,
+            callback_query_id="switch-next-tyres-1",
+            session_id=tyres.session_id,
+            control_message_id=111,
+            expected_revision=0,
+            expected_position=1,
+            action="next",
+        )
+
+        paper = await store.start_session(user_id, _snapshot("PAPER"), PracticeMode.FULL, POSITIONS)
+        assert paper is not None
+        assert (await store.resume_session(user_id, tyres.session_id)).status == "paused"
+        assert (await store.resume_session(user_id)).session_id == paper.session_id
+        assert await store.record_attempt(
+            telegram_user_id=user_id, session_id=tyres.session_id, position=1,
+            telegram_message_id=103, reply_to_message_id=101, raw_answer="2",
+            normalized_answer="2", is_correct=True,
+        ) is AttemptResult.STALE
+
+        single = await store.start_session(user_id, _snapshot("PAPER"), PracticeMode.SINGLE, (3,))
+        assert single is not None
+        assert (await store.resume_session(user_id, paper.session_id)).status == "paused"
+        assert (await store.resume_session(user_id)).session_id == single.session_id
+        assert await store.start_session(
+            user_id, _snapshot("PAPER"), PracticeMode.SINGLE, (4,)
+        ) is None
+        assert await store.find_open_session(
+            other_user, "PAPER", PracticeMode.SINGLE
+        ) is None
+
+        concurrent = await asyncio.gather(
+            store.start_session(user_id, _snapshot("GARDEN"), PracticeMode.FULL, POSITIONS),
+            store.start_session(user_id, _snapshot("FLAT"), PracticeMode.FULL, POSITIONS),
+        )
+        assert all(item is not None for item in concurrent)
+        assert await pool.fetchval(
+            """SELECT count(*) FROM oge15_sessions WHERE user_id=(
+                   SELECT id FROM users WHERE telegram_user_id=$1) AND status='active'""",
+            user_id,
+        ) == 1
+
+        restored_tyres = await store.resume_paused(user_id, tyres.session_id)
+        assert restored_tyres is not None
+        assert restored_tyres.current_position == 2
+        assert restored_tyres.question_status == "active"
+        assert (await store.resume_session(user_id, paper.session_id)).status == "paused"
+        assert (await store.resume_session(user_id, single.session_id)).status == "paused"
+        sessions = await store.list_open_sessions(user_id)
+        assert {item.session_id for item in sessions} == {
+            tyres.session_id,
+            paper.session_id,
+            single.session_id,
+            *(item.session_id for item in concurrent if item is not None),
+        }
+        assert (await store.last_used_session(user_id)).session_id == tyres.session_id
+        assert await pool.fetchval(
+            """SELECT count(*) FROM oge15_sessions
+               WHERE user_id=(SELECT id FROM users WHERE telegram_user_id=$1)
+                 AND status='active'""",
+            user_id,
+        ) == 1
+
+        restarted = await store.start_session(
+            user_id,
+            _snapshot("TYRES"),
+            PracticeMode.FULL,
+            POSITIONS,
+            replace_session_id=tyres.session_id,
+        )
+        assert restarted is not None and restarted.session_id != tyres.session_id
+        assert await store.resume_session(user_id, tyres.session_id) is None
+        assert await pool.fetchval(
+            "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", tyres.session_id
+        ) == 1
+        stats = await store.position_stats(user_id)
+        assert stats[1]["correct"] == 1
+    finally:
+        await pool.execute(
+            "DELETE FROM users WHERE telegram_user_id = ANY($1::bigint[])",
+            [user_id, other_user],
+        )
         await pool.close()
         await admin.execute(f'DROP DATABASE IF EXISTS "{database_name}" WITH (FORCE)')
         await admin.close()

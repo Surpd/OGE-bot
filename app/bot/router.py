@@ -80,6 +80,13 @@ def _user_id(message: Message) -> int | None:
     return message.from_user.id if message.from_user is not None else None
 
 
+async def _pause_oge15_foreground(
+    user_id: int | None, oge15_repository: ScenarioPostgresRepository | None
+) -> None:
+    if user_id is not None and oge15_repository is not None:
+        await oge15_repository.pause_foreground(user_id)
+
+
 async def _disable_stale_keyboard(message: Message, saved: bool) -> None:
     if not saved:
         await message.edit_reply_markup(reply_markup=None)
@@ -115,7 +122,7 @@ async def _has_resumable_session(
             return True
     return bool(
         oge15_repository is not None
-        and await oge15_repository.resume_session(user_id) is not None
+        and await oge15_repository.list_open_sessions(user_id)
     )
 
 
@@ -214,11 +221,12 @@ async def start(
     if message.from_user is None:
         return
     await repository.register_user(message.from_user.id)
+    await _pause_oge15_foreground(message.from_user.id, oge15_repository)
     await repository.save_user_state(message.from_user.id, "main_menu")
     has_session = await _has_resumable_session(repository, message.from_user.id)
     if (
         oge15_repository is not None
-        and await oge15_repository.resume_session(message.from_user.id) is not None
+        and await oge15_repository.list_open_sessions(message.from_user.id)
     ):
         has_session = True
     logger.info("user_started")
@@ -244,6 +252,7 @@ async def cancel(
     user_id = _user_id(message)
     has_session = False
     if user_id is not None:
+        await _pause_oge15_foreground(user_id, oge15_repository)
         await repository.save_user_state(user_id, "main_menu")
         has_session = await _has_resumable_session(repository, user_id, oge15_repository)
     await send_text(
@@ -268,8 +277,8 @@ async def continue_session(
     async def resume_pilot() -> bool:
         if oge15_repository is None:
             return False
-        scenario_session = await oge15_repository.resume_session(user_id)
-        if scenario_session is not None and scenario_session.status == "paused":
+        scenario_session = await oge15_repository.last_used_session(user_id)
+        if scenario_session is not None:
             scenario_session = await oge15_repository.resume_paused(
                 user_id, scenario_session.session_id
             )
@@ -294,6 +303,7 @@ async def continue_session(
                 if training.number == 6
                 else globals()[f"_send_task{training.number}_problem"]
             )
+            await _pause_oge15_foreground(user_id, oge15_repository)
             await sender(message, repository, action="resume")
             return
     if last != "oge15" and await resume_pilot():
@@ -304,9 +314,14 @@ async def continue_session(
     )
 
 
-async def choose_number(message: Message, repository: Repository) -> None:
+async def choose_number(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     user_id = _user_id(message)
     if user_id is not None:
+        await _pause_oge15_foreground(user_id, oge15_repository)
         await repository.save_user_state(user_id, "number_selection")
     await send_text(
         message,
@@ -320,9 +335,14 @@ async def choose_number(message: Message, repository: Repository) -> None:
     )
 
 
-async def choose_task6(message: Message, repository: Repository) -> None:
+async def choose_task6(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     user_id = _user_id(message)
     if user_id is not None:
+        await _pause_oge15_foreground(user_id, oge15_repository)
         await repository.save_user_state(user_id, "task6")
     await _send_problem(message, repository, action="start")
 
@@ -413,7 +433,11 @@ async def _send_task9_problem(
     return True
 
 
-async def choose_task9(message: Message, repository: Repository) -> None:
+async def choose_task9(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task9_problem(message, repository, action="start")
 
 
@@ -441,7 +465,11 @@ async def _send_task10_problem(
     )
 
 
-async def choose_task10(message: Message, repository: Repository) -> None:
+async def choose_task10(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task10_problem(message, repository, action="start")
 
 
@@ -556,7 +584,11 @@ async def _send_task11_problem(
     return True
 
 
-async def choose_task11(message: Message, repository: Repository) -> None:
+async def choose_task11(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task11_problem(message, repository, action="start")
 
 
@@ -745,7 +777,11 @@ async def _send_task12_problem(
     )
 
 
-async def choose_task12(message: Message, repository: Repository) -> None:
+async def choose_task12(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task12_problem(message, repository, action="start")
 
 
@@ -781,7 +817,11 @@ async def _send_task14_problem(
     )
 
 
-async def choose_task14(message: Message, repository: Repository) -> None:
+async def choose_task14(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task14_problem(message, repository, action="start")
 
 
@@ -817,7 +857,11 @@ async def _send_task8_problem(
     )
 
 
-async def choose_task8(message: Message, repository: Repository) -> None:
+async def choose_task8(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task8_problem(message, repository, action="start")
 
 
@@ -969,12 +1013,16 @@ async def _send_task7_problem(
     return True
 
 
-async def choose_task7(message: Message, repository: Repository) -> None:
+async def choose_task7(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     if not TASK7_ENABLED_FAMILIES:
         await send_text(
             message, repository, "Семейства задания №7 проходят приёмку и пока выключены."
         )
         return
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task7_problem(message, repository, action="start")
 
 
@@ -1304,7 +1352,11 @@ async def _send_task13_problem(
     return True
 
 
-async def choose_task13(message: Message, repository: Repository) -> None:
+async def choose_task13(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
     await _send_task13_problem(message, repository, action="start")
 
 
@@ -2000,10 +2052,15 @@ async def task9_answer(message: Message, repository: Repository) -> None:
         await send_text(message, repository, "Ответ уже обработан. Нажмите «➡ Следующее».")
 
 
-async def menu_section(message: Message, repository: Repository) -> None:
+async def menu_section(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     user_id = _user_id(message)
     has_session = False
     if user_id is not None:
+        await _pause_oge15_foreground(user_id, oge15_repository)
         await repository.save_user_state(user_id, "main_menu")
         has_session = await _has_resumable_session(repository, user_id)
     await send_text(
@@ -2023,6 +2080,7 @@ async def return_to_menu(
     user_id = user_id_override if user_id_override is not None else _user_id(message)
     has_session = False
     if user_id is not None:
+        await _pause_oge15_foreground(user_id, oge15_repository)
         await repository.save_user_state(user_id, "main_menu")
         has_session = await _has_resumable_session(repository, user_id, oge15_repository)
     await send_text(
@@ -2034,13 +2092,18 @@ async def return_to_menu(
     )
 
 
-async def show_progress(message: Message, repository: Repository) -> None:
+async def show_progress(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     from app.bot.progress import progress_keyboard, render_progress
     from app.persistence.training_insights import training_insights
 
     user_id = _user_id(message)
     if user_id is None:
         return
+    await _pause_oge15_foreground(user_id, oge15_repository)
     await repository.save_user_state(user_id, "progress")
     insights = await training_insights(repository, user_id)
     await send_text(
@@ -2048,13 +2111,18 @@ async def show_progress(message: Message, repository: Repository) -> None:
     )
 
 
-async def show_progress_details(message: Message, repository: Repository) -> None:
+async def show_progress_details(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
     from app.bot.progress import progress_keyboard, render_progress
     from app.persistence.training_insights import training_insights
 
     user_id = _user_id(message)
     if user_id is None:
         return
+    await _pause_oge15_foreground(user_id, oge15_repository)
     await repository.save_user_state(user_id, "progress")
     insights = await training_insights(repository, user_id, "numbers")
     await send_text(
