@@ -1,6 +1,7 @@
 """Bounded avoidance of recently issued questions."""
 
 import json
+import re
 from collections.abc import Callable, Mapping
 from typing import cast
 
@@ -25,8 +26,10 @@ def _visible_inputs(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -> o
         index = rims.index(cast(int, model["rim"]))
         rows = cast(tuple[Mapping[str, object], ...], context["table"])
         return [
-            (row["width_mm"], bool(cast(tuple[tuple[int, ...], ...],
-                                       row["aspect_ratios_by_rim"])[index]))
+            (
+                row["width_mm"],
+                bool(cast(tuple[tuple[int, ...], ...], row["aspect_ratios_by_rim"])[index]),
+            )
             for row in rows
         ]
     if family in {"TYRES-DIAMETER", "TYRES-PERCENT-ROTATION"}:
@@ -38,6 +41,51 @@ def _visible_inputs(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -> o
 
         key = str(model.get("boundary", model.get("attribute")))
         return [(row["id"], row[key]) for row in _rows(context)]
+    if family.startswith("STOVE-F") and family[7:9] in {"08", "09", "10", "11", "12"}:
+        from app.math.scenarios.stories.STOVE import _rows
+
+        catalogue = _rows(context)
+        if family.startswith("STOVE-F08"):
+            return (
+                context["room"],
+                [
+                    tuple(row[key] for key in ("id", "kind", "min_m3", "max_m3"))
+                    for row in catalogue
+                ],
+                [
+                    (row["id"], row["price_rub"])
+                    for row in catalogue
+                    if row["id"] in (model.get("wood_stove_id"), model.get("electric_stove_id"))
+                ],
+                context["installation_rub"] if model.get("installation_included") else None,
+            )
+        if family.startswith("STOVE-F09"):
+            mass = re.search(r"массой (\d+) кг", question.condition)
+            return [
+                (row["mass_kg"], row["price_rub"])
+                for row in catalogue
+                if mass and row["mass_kg"] == int(mass[1])
+            ]
+        if family.startswith("STOVE-F10"):
+            selected = re.search(r"№(\d+)", question.condition)
+            return [
+                (row["id"], row["price_rub"])
+                for row in catalogue
+                if selected and row["id"] == int(selected[1])
+            ]
+        if family.startswith("STOVE-F11"):
+            return [(row["id"], row["price_rub"]) for row in catalogue if row["id"] == 2]
+        return context["arc_width_cm"], context["arc_height_cm"]
+    if family == "GARDEN-09-HEAT-BREAKEVEN":
+        heat = cast(Mapping[str, object], context["heat"])
+        return {key: value for key, value in heat.items() if key != "break_even_hours"}
+    if family in {"PAPER-F03", "PAPER-F04", "PAPER-F06", "PAPER-F07"}:
+        relevant = "A0" if family == "PAPER-F03" else "A3"
+        return [
+            row[1:]
+            for row in cast(tuple[tuple[object, ...], ...], context["rows"])
+            if row[0] == relevant
+        ]
     if family in {"TARIFF-F01-MONTHS-MINUTES", "TARIFF-F05-EXTREMUM"}:
         return context["minutes"]
     if family == "TARIFF-F04-MONTHLY-BILL":
@@ -46,8 +94,12 @@ def _visible_inputs(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -> o
         data = cast(tuple[int, ...], context["gb_quarters"])
         tariff = cast(Mapping[str, object], context["tariff"])
         keys = (
-            "monthly_fee_cents", "included_minutes", "included_gb_quarters",
-            "extra_minute_cents", "data_pack_quarters", "data_pack_price_cents",
+            "monthly_fee_cents",
+            "included_minutes",
+            "included_gb_quarters",
+            "extra_minute_cents",
+            "data_pack_quarters",
+            "data_pack_price_cents",
         )
         return minutes[month], data[month], tuple(tariff[key] for key in keys)
     if family == "TARIFF-F12-HOME-ISP":
@@ -55,8 +107,10 @@ def _visible_inputs(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -> o
     if family in {"GARDEN-01-IDENTIFY", "FLAT-01-ROOM-MATCH"}:
         key = "labels" if snapshot.story_code == "GARDEN" else "room_labels"
         labels = cast(Mapping[str, int], context[key])
-        roles = ("house", "bath", "garage", "greenhouse") if key == "labels" else cast(
-            tuple[str, ...], model["rooms_in_order"]
+        roles = (
+            ("house", "bath", "garage", "greenhouse")
+            if key == "labels"
+            else cast(tuple[str, ...], model["rooms_in_order"])
         )
         return tuple(labels[role] for role in roles)
     # The other questions state the variable operands in their condition, or use
@@ -72,15 +126,21 @@ def question_signature(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -
     return question.family_id, " ".join(question.condition.split()), inputs
 
 
-_FIXED_SINGLE_FAMILIES = frozenset({
-    "GARDEN-04-PERIMETER-POLYGON", "GARDEN-07-PERCENT-BUILDINGS",
-    "FLAT-03-RECT-AREA", "FLAT-04-RECT-PERCENT", "FLAT-05-WASHER-MIN", "PAPER-F06",
-})
+_FIXED_SINGLE_FAMILIES = frozenset(
+    {
+        "GARDEN-04-PERIMETER-POLYGON",
+        "GARDEN-07-PERCENT-BUILDINGS",
+        "FLAT-03-RECT-AREA",
+        "FLAT-04-RECT-PERCENT",
+        "FLAT-05-WASHER-MIN",
+        "PAPER-F03",
+        "PAPER-F04",
+        "PAPER-F06",
+    }
+)
 
 
-def is_recent_fixed_single(
-    plan: PracticePlan, recent: frozenset[QuestionSignature]
-) -> bool:
+def is_recent_fixed_single(plan: PracticePlan, recent: frozenset[QuestionSignature]) -> bool:
     if plan.mode is not PracticeMode.SINGLE:
         return False
     question = plan.snapshot.questions[plan.selected_positions[0] - 1]

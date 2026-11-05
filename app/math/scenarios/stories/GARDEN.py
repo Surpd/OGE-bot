@@ -10,10 +10,11 @@ All coordinates are source-independent vector geometry in half-metre units.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from fractions import Fraction
 from hashlib import sha256
 from math import ceil
 from random import Random
-from re import findall
+from re import findall, search
 from types import MappingProxyType
 from typing import cast
 from xml.etree import ElementTree
@@ -31,7 +32,9 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-VERSION = "garden-sosnovka-1.3"
+VERSION = "garden-sosnovka-1.5"
+_PRE_HEAT_VERSION = "garden-sosnovka-1.3"
+_PRE_GEOMETRY_VERSION = "garden-sosnovka-1.4"
 POLICY_VERSION = "1"
 SOURCE_IDS = ("408405", "408413", "408424", "408432", "408438")
 FAMILIES = tuple(
@@ -55,18 +58,18 @@ def _world(seed: int) -> dict[str, JsonValue]:
     electric_hourly = 2058
     premium = (electric_hourly - gas_hourly) * hours // 100
     base = 29_000 if seed == 0 else 29_000 + rng.randrange(0, 100) * 100
-    roles = ("house", "bath", "garage", "greenhouse", "shed", "orchard", "garden")
-    numbers = [7, 4, 2, 5, 1, 3, 6]
+    roles = ("house", "bath", "garage", "greenhouse", "shed", "orchard")
+    numbers = [7, 4, 2, 5, 1, 3]
     if seed:
         Random(seed ^ 0xC137).shuffle(numbers)
-    labels: dict[str, JsonValue] = dict(zip(roles, numbers, strict=True))
+    labels: dict[str, JsonValue] = {**dict(zip(roles, numbers, strict=True)), "garden": 6}
     return {
         "template_id": "SOSNOVKA-2025-1.1",
         "world_version": VERSION,
         "grid_side_m": 2,
         "plot_area_m2": 600,
         "labels": labels,
-        "building_areas_m2": (68, 48, 24, 36),
+        "building_areas_m2": (68, 36, 48, 24),
         "exposed_perimeter_edges": 18,
         "path_tiles": 25,
         "pad_tiles": 40,
@@ -76,17 +79,21 @@ def _world(seed: int) -> dict[str, JsonValue]:
         "garden_area_m2": 120,
         "greenhouse_area_m2": 12,
         "heat": {
-            "gas_upfront": base + premium,
-            "electric_upfront": base,
-            "gas_hourly_cents": gas_hourly,
-            "electric_hourly_cents": electric_hourly,
+            "gas_heater_cost": 20_000,
+            "gas_installation_cost": 9_000 + premium + (base - 29_000),
+            "electric_heater_cost": 15_000,
+            "electric_installation_cost": 14_000 + (base - 29_000),
+            "gas_m3_per_hour_tenths": 16,
+            "gas_price_per_m3_tenths": 49,
+            "electric_kw_tenths": 49,
+            "electric_price_per_kwh_tenths": 42,
             "break_even_hours": hours,
         },
         "scenario_seed": seed,
     }
 
 
-def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
+def _svg_legacy(ctx: Mapping[str, JsonValue]) -> bytes:
     # Fixed 30 m x 20 m plot. One metre is 10 SVG units, matching the
     # 20-unit grid and 10-unit (1 m) paved paths.
     labels = cast(Mapping[str, int], ctx["labels"])
@@ -143,7 +150,9 @@ def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
         ]
     )
     image = "".join(parts)
-    if ctx["world_version"] not in {"garden-sosnovka-1.2", VERSION}:
+    if ctx["world_version"] not in {
+        "garden-sosnovka-1.2", _PRE_HEAT_VERSION, _PRE_GEOMETRY_VERSION
+    }:
         return image.encode("utf-8")
     start = image.index('<path data-role="paving"')
     end = image.index('<rect data-role="pad"', start)
@@ -161,6 +170,70 @@ def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
     end = image.index('<text x="24" y="240"', start)
     image = image[:start] + image[end:]
     return image.encode("utf-8")
+
+
+def _svg_current(ctx: Mapping[str, JsonValue]) -> bytes:
+    labels = cast(Mapping[str, int], ctx["labels"])
+    parts = [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 400 300">',
+        '<rect width="400" height="300" fill="#fff"/>',
+        '<g stroke="#d9e3d2" stroke-width=".7">',
+    ]
+    for x in range(20, 321, 20):
+        parts.append(f'<path d="M{x} 20V220"/>')
+    for y in range(20, 221, 20):
+        parts.append(f'<path d="M20 {y}H320"/>')
+    parts.extend(
+        [
+            "</g>",
+            '<path d="M20 20H320V120 M320 140V220H20Z" fill="none" stroke="#283b2d" stroke-width="3"/>',
+            '<text x="322" y="134" font-size="8">Ворота</text>',
+            '<rect data-role="paving" x="60" y="140" width="220" height="10" fill="#b99d6b"/>',
+            '<rect data-role="paving" x="150" y="120" width="10" height="20" fill="#b99d6b"/>',
+            '<rect data-role="paving" x="60" y="150" width="10" height="10" fill="#b99d6b"/>',
+            '<rect data-role="pad" x="280" y="60" width="40" height="100" fill="#d9c99e" stroke="#725f3e"/>',
+            '<polygon data-role="house" points="140,40 240,40 240,100 180,100 180,120 140,120" fill="#e7b88e" stroke="#503d30" stroke-width="2"/>',
+            '<rect data-role="bath" x="20" y="160" width="60" height="60" fill="#e7b88e" stroke="#503d30" stroke-width="2"/>',
+            '<rect data-role="garage" x="240" y="160" width="80" height="60" fill="#e7b88e" stroke="#503d30" stroke-width="2"/>',
+            '<rect data-role="shed" x="260" y="20" width="60" height="40" fill="#e7b88e" stroke="#503d30" stroke-width="2"/>',
+            '<rect data-role="garden" x="20" y="20" width="100" height="120" fill="#a8d88a" stroke="#39783d"/>',
+            '<rect data-role="greenhouse" x="40" y="40" width="60" height="20" fill="#a9dce6" stroke="#267085"/>',
+            '<g data-role="orchard" data-grid-bounds="3,7,11,10" fill="#478e42">',
+        ]
+    )
+    for x in (100, 220):
+        for y in (170, 210):
+            parts.append(f'<circle cx="{x}" cy="{y}" r="6"/>')
+    parts.append("</g>")
+    label_points = {
+        "house": (160, 75),
+        "bath": (50, 190),
+        "garage": (280, 190),
+        "shed": (290, 40),
+        "greenhouse": (70, 50),
+        "garden": (85, 115),
+        "orchard": (160, 190),
+    }
+    for role, (x, y) in label_points.items():
+        parts.append(
+            f'<text data-label="{role}" x="{x}" y="{y}" text-anchor="middle" font-size="9">{labels[role]}</text>'
+        )
+    parts.extend(
+        [
+            '<path d="M340 180H390" stroke="#333" stroke-width="2"/><path d="M340 176V184M390 176V184" stroke="#333"/>',
+            '<text x="340" y="194" font-size="7">Масштаб: 2 м на клетку</text>',
+            '<text x="24" y="258" font-size="8">Дорожки — 1 м, плитка — 1×1 м; площадка у ворот.</text>',
+            '<text x="24" y="276" font-size="8">Аналог ОГЭ: план участка, клетка — 2 м.</text>',
+            "</svg>",
+        ]
+    )
+    return "".join(parts).encode("utf-8")
+
+
+def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
+    if ctx.get("world_version") == VERSION:
+        return _svg_current(ctx)
+    return _svg_legacy(ctx)
 
 
 class _Policy:
@@ -192,7 +265,13 @@ class _Builder:
         pack = cast(int, c["tiles_per_pack"])
         if position == 1:
             answer = "".join(str(labels[k]) for k in ("house", "bath", "garage", "greenhouse"))
-            condition = "Дом с выступом стоит у верхней границы участка. Баня — у левой границы ниже яблонь, гараж — справа ниже ворот, теплица — внутри огорода. Найдите на плане номера дома, бани, гаража и теплицы и запишите цифры в указанном порядке."
+            condition = (
+                "При входе на участок слева от единственных ворот находится гараж, "
+                "справа — сарай, а чуть дальше расположен жилой дом. Напротив дома "
+                "находятся яблоневые посадки; огород отмечен на плане цифрой 6, а "
+                "теплица расположена внутри огорода. Найдите номера жилого дома, бани, "
+                "гаража и теплицы и запишите четыре цифры в указанном порядке."
+            )
         elif position == 2:
             answer = str(
                 ceil(
@@ -209,8 +288,26 @@ class _Builder:
             condition = "Найдите по плану, сколько процентов площади участка занимают дом, баня, гараж и сарай. Это четыре бежевых строения. Сторона клетки 2 м. Ответ округлите до целого."
         elif position == 5:
             heat = cast(Mapping[str, int], c["heat"])
-            answer = str(heat["break_even_hours"])
-            condition = f"Сравните отопление газом и электричеством по плану и данным: начальные затраты газ — {heat['gas_upfront']} руб., электричество — {heat['electric_upfront']} руб.; расходы за час — {heat['gas_hourly_cents'] / 100:.2f} и {heat['electric_hourly_cents'] / 100:.2f} руб. Через сколько часов суммарные затраты сравняются?"
+            if scenario.generator_version == VERSION:
+                gas_initial = heat["gas_heater_cost"] + heat["gas_installation_cost"]
+                electric_initial = heat["electric_heater_cost"] + heat["electric_installation_cost"]
+                gas_rate = heat["gas_m3_per_hour_tenths"] * heat["gas_price_per_m3_tenths"]
+                electric_rate = heat["electric_kw_tenths"] * heat["electric_price_per_kwh_tenths"]
+                answer = str((gas_initial - electric_initial) * 100 // (electric_rate - gas_rate))
+                condition = (
+                    "Для одного и того же дома выбирают отопление газом или электричеством. "
+                    f"Стоимость оборудования и установки: газовый котёл {heat['gas_heater_cost']} руб. "
+                    f"и монтаж {heat['gas_installation_cost']} руб.; электрический котёл "
+                    f"{heat['electric_heater_cost']} руб. и монтаж {heat['electric_installation_cost']} руб. "
+                    f"Расход газа — {heat['gas_m3_per_hour_tenths'] / 10:.1f} м³ в час, цена газа — "
+                    f"{heat['gas_price_per_m3_tenths'] / 10:.1f} руб. за м³; мощность электрического "
+                    f"котла — {heat['electric_kw_tenths'] / 10:.1f} кВт, цена электроэнергии — "
+                    f"{heat['electric_price_per_kwh_tenths'] / 10:.1f} руб. за кВт·ч. "
+                    "Через сколько часов суммарные затраты на оборудование, установку и топливо сравняются?"
+                )
+            else:
+                answer = str(heat["break_even_hours"])
+                condition = f"Сравните отопление газом и электричеством по плану и данным: начальные затраты газ — {heat['gas_upfront']} руб., электричество — {heat['electric_upfront']} руб.; расходы за час — {heat['gas_hourly_cents'] / 100:.2f} и {heat['electric_hourly_cents'] / 100:.2f} руб. Через сколько часов суммарные затраты сравняются?"
         else:
             raise ValueError("Garden position must be 1..5")
         hints = {
@@ -227,20 +324,38 @@ class _Builder:
                 f"Округляем 65 / {pack} вверх: нужно {answer} пачек."),
             3: ("Внешний контур состоит из 18 сторон клеток.", "Периметр: 18 × 2 = 36 м."),
             4: ("Клетка занимает 4 м². На плане дом занимает 17 клеток, "
-                "баня — 12, гараж — 6, сарай — 9.",
-                "Постройки занимают (17 + 12 + 6 + 9) × 4 = 176 м².",
+                "баня — 9, гараж — 12, сарай — 6.",
+                "Постройки занимают (17 + 9 + 12 + 6) × 4 = 176 м².",
                 "Весь участок занимает 15 × 10 × 4 = 600 м².",
                 "176 / 600 × 100 ≈ 29,33 %. После округления получаем 29 %."),
         }
         if position == 5:
             heat = cast(Mapping[str, int], c["heat"])
-            difference = heat["gas_upfront"] - heat["electric_upfront"]
-            savings = (heat["electric_hourly_cents"] - heat["gas_hourly_cents"]) / 100
-            solutions[5] = (
-                f"Газовое отопление дороже при установке на {difference} руб.",
-                f"За час оно экономит 20,58 − 7,84 = {savings:.2f} руб.",
-                f"Затраты сравняются через {difference} / {savings:.2f} = {answer} ч.",
-            )
+            if scenario.generator_version == VERSION:
+                difference = (heat["gas_heater_cost"] + heat["gas_installation_cost"]
+                              - heat["electric_heater_cost"] - heat["electric_installation_cost"])
+                gas_rate = heat["gas_m3_per_hour_tenths"] * heat["gas_price_per_m3_tenths"]
+                electric_rate = heat["electric_kw_tenths"] * heat["electric_price_per_kwh_tenths"]
+                solutions[5] = (
+                    f"Начальные затраты: газ {heat['gas_heater_cost']} + {heat['gas_installation_cost']} = "
+                    f"{heat['gas_heater_cost'] + heat['gas_installation_cost']} руб.; электричество "
+                    f"{heat['electric_heater_cost']} + {heat['electric_installation_cost']} = "
+                    f"{heat['electric_heater_cost'] + heat['electric_installation_cost']} руб.",
+                    f"За час: газ {heat['gas_m3_per_hour_tenths'] / 10:.1f} × "
+                    f"{heat['gas_price_per_m3_tenths'] / 10:.1f} = {gas_rate / 100:.2f} руб.; "
+                    f"электричество {heat['electric_kw_tenths'] / 10:.1f} × "
+                    f"{heat['electric_price_per_kwh_tenths'] / 10:.1f} = {electric_rate / 100:.2f} руб.",
+                    f"Разница начальных затрат — {difference} руб., экономия газа — "
+                    f"{(electric_rate - gas_rate) / 100:.2f} руб./ч. Ответ: {answer} ч.",
+                )
+            else:
+                difference = heat["gas_upfront"] - heat["electric_upfront"]
+                savings = (heat["electric_hourly_cents"] - heat["gas_hourly_cents"]) / 100
+                solutions[5] = (
+                    f"Газовое отопление дороже при установке на {difference} руб.",
+                    f"За час оно экономит 20,58 − 7,84 = {savings:.2f} руб.",
+                    f"Затраты сравняются через {difference} / {savings:.2f} = {answer} ч.",
+                )
         return QuestionDraft(
             position,
             scenario.seed,
@@ -259,6 +374,18 @@ class _Builder:
 class _Renderer:
     @staticmethod
     def _shared_context(scenario: ScenarioDraft) -> str:
+        if scenario.generator_version == VERSION:
+            h = cast(Mapping[str, int], scenario.context["heat"])
+            return (
+                "План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.\n"
+                "Отопление одного дома (общие данные):\n"
+                f"Газ: котёл {h['gas_heater_cost']} руб., монтаж {h['gas_installation_cost']} руб.; "
+                f"{h['gas_m3_per_hour_tenths'] / 10:.1f} м³/ч, {h['gas_price_per_m3_tenths'] / 10:.1f} руб./м³.\n"
+                f"Электричество: котёл {h['electric_heater_cost']} руб., монтаж "
+                f"{h['electric_installation_cost']} руб.; {h['electric_kw_tenths'] / 10:.1f} кВт, "
+                f"{h['electric_price_per_kwh_tenths'] / 10:.1f} руб./(кВт·ч).\n"
+                "Все пять вопросов относятся к одному плану. Аналог ОГЭ."
+            )
         return (
             "План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.\n"
             "Все пять вопросов относятся к одному плану. Аналог ОГЭ."
@@ -291,11 +418,19 @@ class _Oracle:
         if len(set(labels.values())) != len(labels) or set(labels.values()) != set(range(1, 8)):
             raise ValueError("Garden labels must be a unique source-verified mapping")
         heat = cast(Mapping[str, int], c["heat"])
-        if int(heat["gas_hourly_cents"]) >= int(heat["electric_hourly_cents"]):
+        if scenario.generator_version == VERSION:
+            gas_hourly = int(heat["gas_m3_per_hour_tenths"]) * int(heat["gas_price_per_m3_tenths"])
+            electric_hourly = int(heat["electric_kw_tenths"]) * int(heat["electric_price_per_kwh_tenths"])
+            gas_upfront = int(heat["gas_heater_cost"]) + int(heat["gas_installation_cost"])
+            electric_upfront = int(heat["electric_heater_cost"]) + int(heat["electric_installation_cost"])
+        else:
+            gas_hourly = int(heat["gas_hourly_cents"])
+            electric_hourly = int(heat["electric_hourly_cents"])
+            gas_upfront = int(heat["gas_upfront"])
+            electric_upfront = int(heat["electric_upfront"])
+        if gas_hourly >= electric_hourly:
             raise ValueError("Invalid heating rates")
-        if (int(heat["gas_upfront"]) - int(heat["electric_upfront"])) * 100 != (
-            int(heat["electric_hourly_cents"]) - int(heat["gas_hourly_cents"])
-        ) * int(heat["break_even_hours"]):
+        if (gas_upfront - electric_upfront) * 100 != (electric_hourly - gas_hourly) * int(heat["break_even_hours"]):
             raise ValueError("Heating figures do not break even")
 
     def validate_question(
@@ -314,8 +449,12 @@ class _Oracle:
             expected = "".join(str(labels[k]) for k in ("house", "bath", "garage", "greenhouse"))
             if question.canonical_answer != expected:
                 raise ValueError("Rendered object order differs from plan")
-            for term in ("дом", "бан", "гараж", "теплиц", "указанном порядке"):
-                if term not in question.condition:
+            condition = question.condition.lower()
+            for term in (
+                "дом", "бан", "гараж", "теплиц", "слева от единственных ворот",
+                "справа — сарай", "напротив дома", "цифрой 6", "указанном порядке",
+            ):
+                if term not in condition:
                     raise ValueError("Identify wording does not match its answer order")
         elif question.position == 2:
             pack = cast(int, scenario.context["tiles_per_pack"])
@@ -337,16 +476,68 @@ class _Oracle:
                 raise ValueError("Building areas or denominator differ from plan")
         elif question.position == 5:
             heat = cast(Mapping[str, int], scenario.context["heat"])
-            if question.canonical_answer != str(heat["break_even_hours"]):
-                raise ValueError("Heating answer mismatch")
-            visible = (
-                str(heat["gas_upfront"]),
-                str(heat["electric_upfront"]),
-                f"{heat['gas_hourly_cents'] / 100:.2f}",
-                f"{heat['electric_hourly_cents'] / 100:.2f}",
-            )
-            if not all(value in question.condition for value in visible):
-                raise ValueError("Heating table differs from condition")
+            if scenario.generator_version == VERSION:
+                gas_row = search(
+                    r"Газ: котёл (\d+) руб\., монтаж (\d+) руб\.; ([\d.]+) м³/ч, ([\d.]+) руб\./м³",
+                    rendered.shared_context,
+                )
+                electric_row = search(
+                    r"Электричество: котёл (\d+) руб\., монтаж (\d+) руб\.; ([\d.]+) кВт, ([\d.]+) руб\./\(кВт·ч\)",
+                    rendered.shared_context,
+                )
+                if gas_row is None or electric_row is None:
+                    raise ValueError("Heating table rows are missing or malformed")
+                gas_initial = int(gas_row[1]) + int(gas_row[2])
+                electric_initial = int(electric_row[1]) + int(electric_row[2])
+                gas_rate = Fraction(gas_row[3]) * Fraction(gas_row[4]) * 100
+                electric_rate = Fraction(electric_row[3]) * Fraction(electric_row[4]) * 100
+                if gas_rate.denominator != 1 or electric_rate.denominator != 1:
+                    raise ValueError("Displayed hourly costs must resolve to whole cents")
+                gas_hourly = gas_rate.numerator
+                electric_hourly = electric_rate.numerator
+                if gas_hourly >= electric_hourly or gas_initial <= electric_initial:
+                    raise ValueError("Displayed heating data cannot produce a positive break-even time")
+                numerator = (gas_initial - electric_initial) * 100
+                denominator = electric_hourly - gas_hourly
+                if numerator % denominator:
+                    raise ValueError("Displayed heating data has no whole-hour break-even point")
+                answer = numerator // denominator
+                if question.canonical_answer != str(answer):
+                    raise ValueError("Heating answer mismatch")
+                expected_operands = (
+                    str(heat["gas_heater_cost"]), str(heat["gas_installation_cost"]),
+                    str(heat["electric_heater_cost"]), str(heat["electric_installation_cost"]),
+                    f"{heat['gas_m3_per_hour_tenths'] / 10:.1f}",
+                    f"{heat['gas_price_per_m3_tenths'] / 10:.1f}",
+                    f"{heat['electric_kw_tenths'] / 10:.1f}",
+                    f"{heat['electric_price_per_kwh_tenths'] / 10:.1f}",
+                )
+                displayed_operands = (*gas_row.groups(), *electric_row.groups())
+                if not all(value in rendered.shared_context for value in expected_operands) or not displayed_operands:
+                    raise ValueError("Heating table differs from source operands")
+                if any(value in rendered.shared_context or value in question.condition for value in ("7.84", "20.58")):
+                    raise ValueError("Derived hourly costs must not be supplied as ready values")
+                def rubles(cents: int) -> str:
+                    return f"{cents // 100}.{cents % 100:02d}"
+
+                expected_steps = (
+                    f"Начальные затраты: газ {gas_row[1]} + {gas_row[2]} = {gas_initial} руб.; "
+                    f"электричество {electric_row[1]} + {electric_row[2]} = {electric_initial} руб.",
+                    f"За час: газ {gas_row[3]} × {gas_row[4]} = {rubles(gas_hourly)} руб.; "
+                    f"электричество {electric_row[3]} × {electric_row[4]} = "
+                    f"{rubles(electric_hourly)} руб.",
+                    f"Разница начальных затрат — {gas_initial - electric_initial} руб., "
+                    f"экономия газа — {rubles(electric_hourly - gas_hourly)} руб./ч. Ответ: {answer} ч.",
+                )
+                if question.solution_steps != expected_steps:
+                    raise ValueError("Heating solution steps disagree with the displayed table")
+            else:
+                if question.canonical_answer != str(heat["break_even_hours"]):
+                    raise ValueError("Heating answer mismatch")
+                visible = (str(heat["gas_upfront"]), str(heat["electric_upfront"]),
+                           f"{heat['gas_hourly_cents'] / 100:.2f}", f"{heat['electric_hourly_cents'] / 100:.2f}")
+                if not all(value in question.condition for value in visible):
+                    raise ValueError("Heating table differs from condition")
 
     def validate_bundle(
         self,
@@ -361,6 +552,9 @@ class _Oracle:
         image = _svg(scenario.context)
         self.validate_svg_bytes(scenario, image)
         root = ElementTree.fromstring(image)
+        if scenario.generator_version == VERSION:
+            self._validate_current_geometry(scenario, questions, root)
+            return
         if (
             len(root.findall(".//*[@data-role='house']")) != 1
             or len(root.findall(".//*[@data-role='greenhouse']")) != 1
@@ -453,6 +647,107 @@ class _Oracle:
             and greenhouse_rect[3] <= garden_rect[3]
         ):
             raise ValueError("Greenhouse must be contained in the garden")
+
+    @staticmethod
+    def _validate_current_geometry(
+        scenario: ScenarioDraft,
+        questions: tuple[QuestionDraft, ...],
+        root: ElementTree.Element,
+    ) -> None:
+        if root.attrib.get("viewBox") != "0 0 400 300":
+            raise ValueError("Source plan grid scale has changed")
+        if scenario.context["plot_area_m2"] != 600:
+            raise ValueError("Source plot area must be 600 m²")
+
+        def rect(role: str) -> tuple[int, int, int, int]:
+            node = root.find(f".//*[@data-role='{role}']")
+            if node is None or not node.tag.endswith("rect"):
+                raise ValueError(f"Missing source-plan rectangle: {role}")
+            x, y, width, height = (int(node.attrib[key]) for key in ("x", "y", "width", "height"))
+            return x, y, x + width, y + height
+
+        expected_rects = {
+            "shed": (260, 20, 320, 60),
+            "garage": (240, 160, 320, 220),
+            "bath": (20, 160, 80, 220),
+            "garden": (20, 20, 120, 140),
+            "greenhouse": (40, 40, 100, 60),
+            "pad": (280, 60, 320, 160),
+        }
+        if any(rect(role) != bounds for role, bounds in expected_rects.items()):
+            raise ValueError("Building or paved-area position differs from the source grid")
+        house = root.find(".//*[@data-role='house']")
+        if house is None or not house.tag.endswith("polygon"):
+            raise ValueError("Missing source house polygon")
+        points: list[tuple[int, int]] = []
+        for point in house.attrib["points"].split():
+            coordinates = point.split(",")
+            if len(coordinates) != 2:
+                raise ValueError("Source house polygon has a malformed point")
+            points.append((int(coordinates[0]), int(coordinates[1])))
+        if points != [(140, 40), (240, 40), (240, 100), (180, 100), (180, 120), (140, 120)]:
+            raise ValueError("House vertices differ from the source grid")
+
+        def polygon_measure(vertices: list[tuple[int, int]]) -> tuple[int, int]:
+            area2 = sum(
+                x1 * y2 - x2 * y1
+                for (x1, y1), (x2, y2) in zip(vertices, (*vertices[1:], vertices[0]), strict=True)
+            )
+            perimeter = sum(
+                abs(x2 - x1) + abs(y2 - y1)
+                for (x1, y1), (x2, y2) in zip(vertices, (*vertices[1:], vertices[0]), strict=True)
+            )
+            return abs(area2) // 2 // 100, perimeter // 10
+
+        house_area, house_perimeter = polygon_measure(points)
+        building_areas = {
+            role: ((x2 - x1) * (y2 - y1)) // 100
+            for role, (x1, y1, x2, y2) in (
+                (role, rect(role)) for role in ("bath", "garage", "shed")
+            )
+        }
+        areas = {"house": house_area, **building_areas}
+        if areas != {"house": 68, "bath": 36, "garage": 48, "shed": 24}:
+            raise ValueError("Source-plan building areas do not match the task model")
+        if house_perimeter != 36:
+            raise ValueError("Source-plan house perimeter must be 36 m")
+        if tuple(areas[key] for key in ("house", "bath", "garage", "shed")) != cast(
+            tuple[int, ...], scenario.context["building_areas_m2"]
+        ):
+            raise ValueError("Building area snapshot differs from visible source plan")
+        plot_area_m2 = cast(int, scenario.context["plot_area_m2"])
+        if str(round(sum(areas.values()) / plot_area_m2 * 100)) != questions[3].canonical_answer:
+            raise ValueError("Displayed source plan gives a different building percentage")
+
+        paving = [
+            (
+                int(node.attrib["x"]), int(node.attrib["y"]),
+                int(node.attrib["x"]) + int(node.attrib["width"]),
+                int(node.attrib["y"]) + int(node.attrib["height"]),
+            )
+            for node in root.findall(".//*[@data-role='paving']")
+        ]
+        if paving != [(60, 140, 280, 150), (150, 120, 160, 140), (60, 150, 70, 160)]:
+            raise ValueError("Path strips differ from source plan")
+        path_area_m2 = sum((x2 - x1) * (y2 - y1) for x1, y1, x2, y2 in paving) // 100
+        pad_bounds = rect("pad")
+        pad_area_m2 = (pad_bounds[2] - pad_bounds[0]) * (pad_bounds[3] - pad_bounds[1]) // 100
+        if (path_area_m2, pad_area_m2, path_area_m2 + pad_area_m2) != (25, 40, 65):
+            raise ValueError("Rendered paths and pad do not match the source tile count")
+        orchard = root.find(".//*[@data-role='orchard']")
+        if orchard is None or orchard.attrib.get("data-grid-bounds") != "3,7,11,10":
+            raise ValueError("Orchard position differs from the source grid")
+        for circle in orchard.findall(".//{*}circle"):
+            x, y, radius = (int(circle.attrib[key]) for key in ("cx", "cy", "r"))
+            if not (80 <= x - radius and x + radius <= 240 and 160 <= y - radius and y + radius <= 220):
+                raise ValueError("Orchard symbol lies outside the source orchard region")
+        garden = rect("garden")
+        greenhouse = rect("greenhouse")
+        if not (
+            garden[0] <= greenhouse[0] and garden[1] <= greenhouse[1]
+            and greenhouse[2] <= garden[2] and greenhouse[3] <= garden[3]
+        ):
+            raise ValueError("Greenhouse must be contained in the source garden")
 
 
 def build_adapter(*, enabled_families: frozenset[str] = frozenset()) -> StoryAdapter:

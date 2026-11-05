@@ -1,3 +1,4 @@
+from dataclasses import replace
 from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -20,7 +21,7 @@ from app.persistence.scenario_repository import ScenarioPostgresRepository, Scen
 
 @pytest.mark.parametrize(
     ("story", "count"),
-    [("TYRES", 2), ("PAPER", 2), ("STOVE", 2), ("TARIFF", 2), ("GARDEN", 1), ("FLAT", 1)],
+    [("TYRES", 2), ("PAPER", 2), ("STOVE", 2), ("TARIFF", 2), ("GARDEN", 2), ("FLAT", 1)],
 )
 @pytest.mark.parametrize("seed", [0, 42, 90126])
 def test_mobile_photos_are_deterministic_and_preserve_snapshot(story, count, seed):
@@ -54,9 +55,33 @@ def test_arc_photo_labels_only_known_dimensions(monkeypatch):
     stove_arc({"arc_width_cm": 60, "arc_height_cm": 40})
     assert labels == ["Арка кожуха печи", "O", "60 см", "40 см"]
 
+
+def test_legacy_garden_snapshot_without_raw_heating_operands_keeps_plan_only():
+    registry = public_registry()
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 0, "GARDEN"), registry
+    ).snapshot
+    legacy_context = {
+        **snapshot.context,
+        "world_version": "garden-sosnovka-1.3",
+        "heat": {
+            "gas_upfront": 35_370,
+            "electric_upfront": 29_000,
+            "gas_hourly_cents": 784,
+            "electric_hourly_cents": 2058,
+            "break_even_hours": 500,
+        },
+    }
+    legacy_snapshot = replace(
+        snapshot,
+        generator_version="garden-sosnovka-1.3",
+        context=legacy_context,
+    )
+    assert len(scenario_photos(legacy_snapshot)) == 1
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("story", "count"), [
-    ("TYRES", 2), ("PAPER", 2), ("STOVE", 1), ("TARIFF", 1), ("GARDEN", 1), ("FLAT", 1),
+    ("TYRES", 2), ("PAPER", 2), ("STOVE", 1), ("TARIFF", 1), ("GARDEN", 2), ("FLAT", 1),
 ])
 async def test_public_card_sends_only_photos_for_graphics(story, count):
     registry = public_registry()
@@ -78,6 +103,8 @@ async def test_public_card_sends_only_photos_for_graphics(story, count):
     card = message.answer.await_args.args[0]
     assert "попыток" not in card
     assert "подсказок" not in card
+    if story == "STOVE":
+        assert all("Печь | Тип |" not in call.args[0] for call in message.answer.await_args_list)
     message.answer_document.assert_not_awaited()
     for call in message.answer_photo.await_args_list:
         upload = call.args[0]

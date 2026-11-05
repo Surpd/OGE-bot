@@ -34,7 +34,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "stove-v1.3"
+GENERATOR_VERSION = "stove-v1.4"
 COMPATIBILITY_MATRIX_VERSION = "stove-bundle-v1"
 LEGACY_RENDERER_VERSION = "stove-svg-png-v1"
 RENDERER_VERSION = "stove-svg-png-v2"
@@ -365,7 +365,7 @@ class StoveQuestionBuilder:
             installation = cast(int, context["installation_rub"])
             delivery = cast(int, context["delivery_rub"])
             answer = str(cast(int, electric["price_rub"]) + installation + delivery)
-            condition = f"Сколько рублей будет стоить электрическая печь №3 с установкой и доставкой? Установка стоит {_money(installation)} руб., доставка — {_money(delivery)} руб. {_table_text(context)}"  # noqa: E501
+            condition = f"Сколько рублей будет стоить электрическая печь №3 с установкой и доставкой? Установка стоит {_money(installation)} руб., доставка — {_money(delivery)} руб."  # noqa: E501
             model.update({"operation": "purchase_extra_costs"})
             hints = (
                 "Возьмите цену электрической печи №3 из таблицы.",
@@ -378,7 +378,7 @@ class StoveQuestionBuilder:
             wood = rows[1]
             delivery = cast(int, context["delivery_rub"])
             answer = str(cast(int, wood["price_rub"]) + delivery)
-            condition = f"Для парной из условия выберите подходящую дровяную печь по объёму и найдите её стоимость с доставкой. Доставка стоит {_money(delivery)} руб. {_room_text(context)} {_table_text(context)}"  # noqa: E501
+            condition = f"Для парной из условия выберите подходящую дровяную печь по объёму и найдите её стоимость с доставкой. Доставка стоит {_money(delivery)} руб. {_room_text(context)}"  # noqa: E501
             model.update({"operation": "wood_fit_delivery"})
             hints = (
                 "Сначала вычислите объём парной.",
@@ -390,47 +390,65 @@ class StoveQuestionBuilder:
                 f"{_money(cast(int, wood['price_rub']))} + {_money(delivery)} = {_money(int(answer))} руб.",  # noqa: E501
             )
         elif family_id == FAMILY_IDS[7]:
-            wood, electric = rows[1], rows[2]
+            wood_options = [
+                row
+                for row in rows[:2]
+                if cast(int, row["min_m3"]) <= room_volume <= cast(int, row["max_m3"])
+            ]
+            if len(wood_options) != 1:
+                raise ValueError("Cost comparison requires one suitable wood stove")
+            wood, electric = wood_options[0], rows[2]
             with_installation = scenario.seed % 2 == 0
             electric_total = cast(int, electric["price_rub"]) + (
                 cast(int, context["installation_rub"]) if with_installation else 0
             )
             wood_total = cast(int, wood["price_rub"])
-            cheaper = "дровяная" if wood_total < electric_total else "электрическая"
+            wood_is_cheaper = wood_total < electric_total
+            comparison = "дешевле" if wood_is_cheaper else "дороже"
             difference = abs(wood_total - electric_total)
             inclusion = "с учётом установки" if with_installation else "без учёта установки"
-            condition = f"Для парной выбраны подходящие дровяная печь №2 и электрическая печь №3. На сколько рублей {cheaper} печь дешевле другой {inclusion}? {_room_text(context)} {_table_text(context)} Установка электрической печи стоит {_money(cast(int, context['installation_rub']))} руб."  # noqa: E501
+            condition = f"Определите по объёму парной подходящую дровяную печь. На сколько рублей её покупка обойдётся {comparison} электрической {inclusion}? Установка электрической печи стоит {_money(cast(int, context['installation_rub']))} руб."  # noqa: E501
             answer = str(difference)
             model.update(
                 {
                     "operation": "cost_comparison",
                     "installation_included": with_installation,
-                    "cheaper": cheaper,
+                    "comparison": comparison,
+                    "wood_stove_id": cast(int, wood["id"]),
+                    "electric_stove_id": cast(int, electric["id"]),
                 }
             )
             hints = (
-                "Сравнивайте только подходящие модели.",
+                "Сначала вычислите объём парной и проверьте диапазоны дровяных печей.",
                 "Для электрической печи добавьте установку только если это сказано.",
                 "Из большей стоимости вычтите меньшую.",
             )
             steps = (
-                f"Стоимость дровяной печи: {_money(wood_total)} руб.",
+                f"Объём парной: {_decimal_text(room_volume)} м³; подходит дровяная печь "
+                f"№{wood['id']}.",
+                f"Стоимость подходящей дровяной печи: {_money(wood_total)} руб.",
                 f"Стоимость электрической печи {inclusion}: {_money(electric_total)} руб.",
                 f"Разность равна {_money(difference)} руб.",
             )
         elif family_id in (FAMILY_IDS[8], FAMILY_IDS[9]):
-            stove = rows[scenario.seed % 3]
-            discount = (10, 15, 20, 25, 30)[scenario.seed % 5]
             if family_id == FAMILY_IDS[8]:
+                stove = rows[scenario.seed % 2]
+                discount = 10
                 base = cast(int, stove["price_rub"])
                 answer_value = Fraction(base * (100 - discount), 100)
-                condition = f"На печь №{stove['id']} стоимостью {_money(base)} руб. предоставляется скидка {discount}%. Найдите стоимость печи после скидки. {_table_text(context)}"  # noqa: E501
+                condition = (
+                    f"На дровяную печь массой {stove['mass_kg']} кг предоставлена "
+                    f"скидка {discount}%. Сколько будет стоить печь после скидки?"
+                )
                 operation = "direct_discount"
                 hints = (
                     f"После скидки остаётся {100 - discount}% цены.",
-                    "Умножьте исходную цену на долю, оставшуюся после скидки.",
+                    "По массе найдите строку этой печи в таблице, затем "
+                    "умножьте её цену на оставшуюся долю.",
                 )
                 steps = (
+                    f"По массе {stove['mass_kg']} кг находим дровяную печь "
+                    f"№{stove['id']}: {_money(base)} руб.",
                     f"{_money(base)} · ({100} − {discount}) / 100 = {_money(int(answer_value))} руб.",  # noqa: E501
                 )
             else:
@@ -438,7 +456,7 @@ class StoveQuestionBuilder:
                 choices = []
                 for row in rows:
                     current_price = cast(int, row["price_rub"])
-                    for rate in (10, 15, 20, 25, 30):
+                    for rate in (10, 15, 20, 25, 30, 35, 40, 50):
                         previous = Fraction(current_price * 100, 100 - rate)
                         if previous.denominator == 1 and previous not in listed_prices:
                             choices.append((row, rate, current_price, previous))
@@ -446,14 +464,14 @@ class StoveQuestionBuilder:
                 # prices are multiples of 100, and the old price exceeds the catalogue maximum.
                 stove, discount, current, answer_value = choices[scenario.seed % len(choices)]
                 condition = (
-                    f"В таблице указана нынешняя цена печи №{stove['id']} — {_money(current)} руб. "
-                    f"Она на {discount}% ниже прошлогодней. "
+                    f"В таблице указана нынешняя цена печи №{stove['id']}. "
+                    f"По сравнению с прошлым годом она снижена на {discount}%. "
                     "Сколько рублей стоила эта печь в прошлом году?"
                 )
                 operation = "reverse_discount"
                 hints = (
                     f"После скидки осталось {100 - discount}% исходной стоимости.",
-                    "Текущую цену разделите на долю исходной цены, оставшуюся после скидки.",
+                    "Найдите текущую цену этой модели в таблице и разделите на оставшуюся долю.",
                 )
                 steps = (
                     f"C до скидки = {_money(current)} · 100 / ({100} − {discount}) = {_money(int(answer_value))} руб.",  # noqa: E501
@@ -462,8 +480,20 @@ class StoveQuestionBuilder:
                 raise ValueError("Discount generator produced a non-integer ruble answer")
             answer = str(answer_value.numerator)
             model.update({"operation": operation})
+            if family_id == FAMILY_IDS[8]:
+                model.update(
+                    {
+                        "stove_id": cast(int, stove["id"]),
+                        "mass_kg": cast(int, stove["mass_kg"]),
+                        "discount_percent": discount,
+                    }
+                )
+            else:
+                model.update(
+                    {"stove_id": cast(int, stove["id"]), "discount_percent": discount}
+                )
         elif family_id == FAMILY_IDS[10]:
-            price = cast(int, rows[2]["price_rub"])
+            price = cast(int, rows[1]["price_rub"])
             threshold = price - 1000
             item_discount = 5
             delivery_discount = 20
@@ -473,9 +503,18 @@ class StoveQuestionBuilder:
             )
             if price <= threshold or answer_value.denominator != 1:
                 raise ValueError("Conditional discount parameters are invalid")
-            condition = f"Если цена покупки дороже {_money(threshold)} руб., на печь действует скидка {item_discount}%, а на доставку — скидка {delivery_discount}%. Цена печи №3 — {_money(price)} руб., доставка стоит {_money(delivery)} руб. Сколько нужно заплатить всего?"  # noqa: E501
+            condition = f"Если цена покупки дороже {_money(threshold)} руб., на печь действует скидка {item_discount}%, а на доставку — скидка {delivery_discount}%. Сколько нужно заплатить за печь №2 с доставкой, если доставка стоит {_money(delivery)} руб.?"  # noqa: E501
             answer = str(answer_value.numerator)
-            model.update({"operation": "conditional_two_discounts"})
+            model.update(
+                {
+                    "operation": "conditional_two_discounts",
+                    "stove_id": 2,
+                    "threshold_rub": threshold,
+                    "item_discount_percent": item_discount,
+                    "delivery_discount_percent": delivery_discount,
+                    "delivery_rub": delivery,
+                }
+            )
             hints = (
                 "Сравните цену покупки с порогом: условие говорит строго «дороже».",
                 "Уменьшите цену печи на её скидку.",
@@ -492,7 +531,7 @@ class StoveQuestionBuilder:
             height_cm = cast(int, context["arc_height_cm"])
             half_width = width_cm // 2
             radius = isqrt(half_width * half_width + height_cm * height_cm)
-            condition = f"Найдите радиус дуги арки кожуха печи. Ширина основания {width_cm} см, высота боковой части {height_cm} см. Центр окружности находится в середине нижнего основания."  # noqa: E501
+            condition = "Найдите радиус дуги арки кожуха печи. Размеры кожуха указаны на рисунке. Центр окружности находится в середине нижнего основания."  # noqa: E501
             answer = str(radius)
             model.update({"operation": "arc_radius", "width_cm": width_cm, "height_cm": height_cm})
             hints = (
@@ -798,7 +837,7 @@ class StoveOracle:
             question.family_id
         ):
             raise ValueError("Question seed/position does not match its family")
-        answer = self._solve_visible(question, rendered)
+        answer = self._solve_visible(question, rendered, scenario)
         if answer != question.canonical_answer:
             raise ValueError(f"STOVE oracle mismatch: visible condition yields {answer}")
         self._validate_solution_steps(question, rendered.shared_context)
@@ -826,7 +865,9 @@ class StoveOracle:
         ):
             raise ValueError("STOVE bundle must carry one common room and one common table")
 
-    def _solve_visible(self, question: QuestionDraft, rendered: RenderedScenario) -> str:
+    def _solve_visible(
+        self, question: QuestionDraft, rendered: RenderedScenario, scenario: ScenarioDraft
+    ) -> str:
         shared = rendered.shared_context
         family = question.family_id
         context = _parse_visible_context(shared)
@@ -898,71 +939,116 @@ class StoveOracle:
             delivery = _extract_money(condition, "Доставка стоит")
             return str(cast(int, fitting[0]["price_rub"]) + delivery)
         if family == FAMILY_IDS[7]:
-            if "подходящие дровяная печь №2 и электрическая печь №3" not in condition:
-                raise ValueError("Comparison must name its suitable stove models")
-            installation = _extract_money(condition, "Установка электрической печи стоит")
-            electric = cast(int, rows[2]["price_rub"]) + (
-                installation if "с учётом установки" in condition else 0
+            if "Определите по объёму парной подходящую дровяную печь." not in condition:
+                raise ValueError("Comparison must require finding a fitting wood stove")
+            length_m, width_m, height_m = cast(
+                tuple[Fraction, Fraction, Fraction], context["room_dimensions_m"]
             )
-            wood = cast(int, rows[1]["price_rub"])
-            cheaper = "дровяная" if wood < electric else "электрическая" if electric < wood else ""
-            if not cheaper or f"{cheaper} печь дешевле" not in condition:
-                raise ValueError("Comparison direction or cheaper model is invalid")
+            volume = length_m * width_m * height_m
+            wood_fit = [
+                row
+                for row in rows[:2]
+                if cast(int, row["min_m3"]) <= volume <= cast(int, row["max_m3"])
+            ]
+            if len(wood_fit) != 1:
+                raise ValueError("Comparison room must identify one suitable wood stove")
+            installation = _extract_money(condition, "Установка электрической печи стоит")
+            includes_installation = "с учётом установки" in condition
+            if not includes_installation and "без учёта установки" not in condition:
+                raise ValueError("Comparison must state whether installation is counted")
+            electric = cast(int, rows[2]["price_rub"]) + (
+                installation if includes_installation else 0
+            )
+            wood = cast(int, wood_fit[0]["price_rub"])
+            comparison = "дешевле" if wood < electric else "дороже" if wood > electric else "равна"
+            if comparison == "равна" or f"обойдётся {comparison} электрической" not in condition:
+                raise ValueError("Comparison direction does not match visible prices")
             return str(abs(wood - electric))
         if family in FAMILY_IDS[8:10]:
-            match = re.search(r"печь №([1-3]) стоимостью ([\d  ]+) руб\..*скидка (\d+)%", condition)
             if family == FAMILY_IDS[8]:
-                if not match or "после скидки" not in condition:
+                match = re.fullmatch(
+                    r"На дровяную печь массой (\d+) кг предоставлена скидка (\d+)%. "
+                    r"Сколько будет стоить печь после скидки\?",
+                    condition,
+                )
+                if not match:
                     raise ValueError("Direct discount wording is invalid")
-                base, discount = _parse_rub_or_int(match.group(2)), int(match.group(3))
+                mass, discount = map(int, match.groups())
+                matching_rows = [
+                    row
+                    for row in rows
+                    if str(row["kind"]).casefold() == "дровяная" and row["mass_kg"] == mass
+                ]
+                if len(matching_rows) != 1:
+                    raise ValueError("Discount mass must identify one wood stove in the table")
+                base = cast(int, matching_rows[0]["price_rub"])
                 return _integer_fraction(Fraction(base * (100 - discount), 100))
             reverse = re.fullmatch(
-                r"В таблице указана нынешняя цена печи №([1-3]) — ([\d  ]+) руб\. "
-                r"Она на (\d+)% ниже прошлогодней\. "
+                r"В таблице указана нынешняя цена печи №([1-3])\. "
+                r"По сравнению с прошлым годом она снижена на (\d+)%. "
                 r"Сколько рублей стоила эта печь в прошлом году\?",
-                condition,
+                condition.split("Печь | Тип", maxsplit=1)[0].rstrip(),
             )
             if not reverse:
                 raise ValueError("Reverse discount wording is invalid")
-            row_id, current, discount = map(_parse_rub_or_int, reverse.groups())
+            row_id, discount = map(int, reverse.groups())
             catalogue = {r["id"]: r["price_rub"] for r in rows}
-            if catalogue.get(row_id) != current or not 0 < discount < 100:
-                raise ValueError("Reverse discount disagrees with the catalogue or rate")
+            current = cast(int, catalogue.get(row_id, 0))
+            if current <= 0 or not 0 < discount < 100:
+                raise ValueError("Reverse discount row or rate is invalid")
             previous = Fraction(current * 100, 100 - discount)
             if previous in catalogue.values():
                 raise ValueError("The previous price is disclosed in the catalogue")
             return _integer_fraction(previous)
         if family == FAMILY_IDS[10]:
             match = re.search(
-                r"Если цена покупки дороже ([\d  ]+) руб\., на печь действует скидка (\d+)%, а на доставку — скидка (\d+)%\. Цена печи №3 — ([\d  ]+) руб\., доставка стоит ([\d  ]+) руб",  # noqa: E501
+                r"Если цена покупки дороже ([\d  ]+) руб\., на печь действует скидка (\d+)%, "
+                r"а на доставку — скидка (\d+)%\. Сколько нужно заплатить за печь №(\d+) "
+                r"с доставкой, если доставка стоит ([\d  ]+) руб\.\?",
                 condition,
             )
             if not match:
                 raise ValueError("Conditional discount wording is invalid")
-            threshold, item_d, delivery_d, price, delivery = map(_parse_rub_or_int, match.groups())
+            threshold, item_d, delivery_d, row_id, delivery = map(
+                _parse_rub_or_int, match.groups()
+            )
+            if row_id != 2:
+                raise ValueError("Conditional purchase task must use the referenced stove row")
+            price = cast(int, rows[row_id - 1]["price_rub"])
             if price <= threshold:
                 raise ValueError("Strict 'дороже' condition is not met")
             result = Fraction(price * (100 - item_d) + delivery * (100 - delivery_d), 100)
             return _integer_fraction(result)
         if family == FAMILY_IDS[11]:
-            match = re.search(
-                r"Ширина основания (\d+) см, высота боковой части (\d+) см", condition
-            )
-            if (
-                not match
-                or "Центр окружности находится в середине нижнего основания" not in condition
+            if "Размеры кожуха указаны на рисунке" not in condition or (
+                "Центр окружности находится в середине нижнего основания" not in condition
             ):
                 raise ValueError("Arc condition lacks the confirmed circle-center construction")
-            width_cm, height_cm = map(int, match.groups())
-            root = isqrt((width_cm // 2) ** 2 + height_cm**2)
-            arc_svg = _svg_arc(width_cm, height_cm)
-            _validate_arc_svg(arc_svg, width_cm, height_cm, root)
+            scenario_context = _context_dict(scenario)
+            arc_svg = _svg_arc(
+                cast(int, scenario_context["arc_width_cm"]),
+                cast(int, scenario_context["arc_height_cm"]),
+            )
             arc_digest = sha256(arc_svg).hexdigest()
             if not any(
                 asset.content_type == "image/svg+xml" and asset.sha256 == arc_digest
                 for asset in rendered.assets
             ):
-                raise ValueError("Visible arc SVG is absent or differs from the condition")
+                raise ValueError("Visible arc SVG is absent or differs from the scenario")
+            root_element = ET.fromstring(arc_svg)
+            visible_text = " ".join(
+                (node.text or "").strip()
+                for node in root_element.iter()
+                if node.tag.endswith("text") and (node.text or "").strip()
+            )
+            width_cm = int(root_element.attrib.get("data-width-cm", "0"))
+            height_cm = int(root_element.attrib.get("data-height-cm", "0"))
+            if not width_cm or not height_cm or f"{width_cm} см" not in visible_text or (
+                f"{height_cm} см" not in visible_text
+            ):
+                raise ValueError("Visible arc dimensions are missing from the figure")
+            root = isqrt((width_cm // 2) ** 2 + height_cm**2)
+            _validate_arc_svg(arc_svg, width_cm, height_cm, root)
             return str(root)
         raise ValueError("STOVE family has no independent solver")
 
@@ -979,7 +1065,19 @@ class StoveOracle:
             asset.sha256 for asset in rendered.assets if asset.content_type == "image/svg+xml"
         }
         png_assets = [asset for asset in rendered.assets if asset.content_type == "image/png"]
-        if expected_svg_hashes != actual_svg_hashes or len(png_assets) != 2:
+        expected_png_hashes = {
+            sha256(_png_table(context)).hexdigest(),
+            sha256(
+                _png_arc(
+                    cast(int, context["arc_width_cm"]), cast(int, context["arc_height_cm"])
+                )
+            ).hexdigest(),
+        }
+        if (
+            expected_svg_hashes != actual_svg_hashes
+            or {asset.sha256 for asset in png_assets} != expected_png_hashes
+            or len(png_assets) != 2
+        ):
             raise ValueError("Rendered STOVE SVG/PNG asset references do not match scenario data")
         table_svg = ET.fromstring(table_payload)
         visible_svg_text = " ".join(text.strip() for text in table_svg.itertext() if text.strip())
@@ -1041,7 +1139,15 @@ def _parse_visible_context(shared: str) -> dict[str, object]:
     ]
     if len(rows) != 3:
         raise ValueError("Visible shared table must contain exactly three stove rows")
-    return {"rows": rows}
+    room_match = re.search(
+        r"Размеры парной: ([\d,]+) × ([\d,]+) × ([\d,]+) м", shared
+    )
+    if not room_match:
+        raise ValueError("Visible shared context must include room dimensions")
+    room_dimensions_m = tuple(
+        Fraction(value.replace(",", ".")) for value in room_match.groups()
+    )
+    return {"rows": rows, "room_dimensions_m": room_dimensions_m}
 
 
 def _integer_fraction(value: Fraction) -> str:

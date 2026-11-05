@@ -69,3 +69,32 @@ def test_recent_fixed_question_is_restricted_only_in_single_mode():
     assert is_recent_fixed_single(single, recent)
     assert not is_recent_fixed_single(single, frozenset())
     assert not is_recent_fixed_single(full, recent)
+
+
+def test_shared_heating_operands_affect_signature_but_derived_answer_does_not():
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 0, "GARDEN"), public_registry()
+    ).snapshot
+    question = snapshot.questions[4]
+    original = question_signature(snapshot, question)
+    heat = dict(snapshot.context["heat"])
+    heat["break_even_hours"] = 999999
+    assert (
+        question_signature(replace(snapshot, context={**snapshot.context, "heat": heat}), question)
+        == original
+    )
+    heat["gas_installation_cost"] += 100
+    assert (
+        question_signature(replace(snapshot, context={**snapshot.context, "heat": heat}), question)
+        != original
+    )
+
+
+def test_source_fixed_paper_rounding_is_not_reissued_as_a_new_single():
+    request = PracticeRequest(PracticeMode.SINGLE, 0, "PAPER", 3)
+    single = build_practice_plan(request, public_registry())
+    question = single.snapshot.questions[2]
+    recent = frozenset({question_signature(single.snapshot, question)})
+    assert question.family_id == "PAPER-F03"
+    assert is_recent_fixed_single(single, recent)
+    assert not is_recent_fixed_single(replace(single, mode=PracticeMode.FULL), recent)

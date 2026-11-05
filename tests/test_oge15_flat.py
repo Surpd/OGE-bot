@@ -84,6 +84,22 @@ def test_source_vectors_are_checked_with_independent_exact_arithmetic() -> None:
     assert (5 * 6 + 12 - 1) // 12 == 3  # p16
 
 
+def test_washer_min_uses_source_eligibility_and_full_cost() -> None:
+    washer = next(
+        questions[4]
+        for seed in range(40)
+        if (questions := bundle(seed)[3])[4].family_id == "FLAT-05-WASHER-MIN"
+    )
+    assert "вертикальной загрузкой" in washer.condition
+    assert "не менее 6 кг" in washer.condition
+    assert "высотой не более" not in washer.condition
+    models = washer.math_model["models"]
+    eligible = [m for m in models if m["type"] == "вертикальная" and m["capacity"] >= 6]
+    costs = [m["price"] + m["install"] + m["price"] * m["delivery_pct"] // 100 for m in eligible]
+    assert costs.count(min(costs)) == 1
+    assert washer.canonical_answer == str(min(costs))
+
+
 def test_randomized_seeds_are_deterministic_and_share_one_plan() -> None:
     for seed in range(40):
         first = bundle(seed)
@@ -225,3 +241,54 @@ def test_answer_policy_keeps_order_and_accepts_exact_decimal_not_rounding() -> N
     assert not policy.accepts("1436", "1346")
     assert policy.accepts("4.8", "4,8")
     assert not policy.accepts("4.80.1", "4,8")
+
+
+def test_source_plan_has_distinct_loggias_and_lookup_only_questions() -> None:
+    from app.math.scenarios.stories.FLAT import DOORS, ROOM_PARTS
+
+    _, scenario, _, questions = bundle(SOURCE_VECTOR_SEED)
+
+    def area(room):
+        return sum((x2 - x1) * (y2 - y1) for x1, y1, x2, y2 in ROOM_PARTS[room])
+
+    assert (area("loggia_1"), area("loggia_2")) == (30, 44)
+    assert (area("bathroom"), area("pantry"), area("living")) == (30, 20, 156)
+    assert ("hall", "bathroom") in DOORS
+    assert ("hall", "pantry") in DOORS
+    assert ("pantry", "bathroom") not in DOORS
+    assert ("living", "kitchen") in DOORS
+    assert "меньшей лоджии" in questions[2].condition
+    assert not any(char.isdigit() for char in questions[3].condition)
+    assert "4,8×5,2" not in questions[1].condition
+
+
+def test_pre_v2_flat_snapshot_restores_identical_assets(monkeypatch) -> None:
+    import json
+    from pathlib import Path
+
+    from PIL import ImageFont
+
+    # Fixture was produced by the pre-V2 renderer with its production Linux font fallback.
+    truetype = ImageFont.truetype
+
+    def linux_font(font, *args, **kwargs):
+        if font == "arial.ttf":
+            raise OSError("Production Linux has no Arial")
+        return truetype(font, *args, **kwargs)
+
+    monkeypatch.setattr(ImageFont, "truetype", linux_font)
+    snapshot = ScenarioSnapshot.from_snapshot(
+        json.loads(
+            (Path(__file__).parent / "fixtures" / "flat_v1_snapshot.json").read_text(
+                encoding="utf-8"
+            )
+        )
+    )
+    assert snapshot.generator_version == "flat-grid-1.0.0"
+    for asset in snapshot.assets:
+        assert (
+            hashlib.sha256(
+                restore_asset_bytes(build_adapter().renderer, snapshot, asset)
+            ).hexdigest()
+            == asset.sha256
+        )

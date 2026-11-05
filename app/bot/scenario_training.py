@@ -239,6 +239,8 @@ async def _show_data(
         context = context.replace("**", "")
     elif snapshot.story_code == "PAPER":
         context = context.partition("Таблица размеров")[0].rstrip()
+    elif snapshot.story_code == "STOVE":
+        context = context.partition("Печь | Тип |")[0].rstrip()
     elif snapshot.story_code == "TARIFF":
         context = "\n".join(
             line for line in context.splitlines()

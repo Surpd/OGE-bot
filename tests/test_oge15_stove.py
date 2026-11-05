@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import replace
 from fractions import Fraction
 from hashlib import sha256
@@ -23,6 +24,7 @@ from app.math.scenarios.stories.STOVE import (
     FAMILY_IDS,
     SOURCE_IDS,
     StoveAdapter,
+    _rows,
     _svg_arc,
     _validate_arc_svg,
     build_adapter,
@@ -147,13 +149,50 @@ def test_oracle_rejects_visible_text_mutations() -> None:
     with pytest.raises(ValueError):
         adapter.independent_oracle.validate_question(scenario, changed_discount, rendered)
 
+    mass_match = re.search(r"массой (\d+) кг", direct_discount.condition)
+    assert mass_match is not None
+    changed_mass = replace(
+        direct_discount,
+        condition=direct_discount.condition.replace(
+            mass_match.group(0), "массой 999 кг", 1
+        ),
+    )
+    with pytest.raises(ValueError, match="identify one wood stove"):
+        adapter.independent_oracle.validate_question(scenario, changed_mass, rendered)
+
+    comparison = adapter.question_builder.build_question_for_family(
+        scenario, 3, "STOVE-F08-COST-COMPARISON"
+    )
+    assert "подходящую дровяную печь" in comparison.condition
+    assert "выбраны подходящие" not in comparison.condition
+    assert "Печь | Тип" not in comparison.condition
+
+    reverse = adapter.question_builder.build_question_for_family(
+        scenario, 4, "STOVE-F10-REVERSE-DISCOUNT"
+    )
+    assert "снижена на" in reverse.condition
+    assert not re.search(r"№[1-3] — [\d ]+ руб", reverse.condition)
+    assert "Печь | Тип" not in reverse.condition
+    reverse_row_match = re.search(r"нынешняя цена печи №([1-3])", reverse.condition)
+    assert reverse_row_match is not None
+    wrong_row = int(reverse_row_match.group(1)) % 3 + 1
+    changed_reverse_row = replace(
+        reverse,
+        condition=reverse.condition.replace(
+            f"нынешняя цена печи №{reverse_row_match.group(1)}",
+            f"нынешняя цена печи №{wrong_row}",
+            1,
+        ),
+    )
+    with pytest.raises(ValueError):
+        adapter.independent_oracle.validate_question(scenario, changed_reverse_row, rendered)
+
     conditional = adapter.question_builder.build_question_for_family(
         scenario, 4, "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS"
     )
+    assert "Печь | Тип" not in conditional.condition
     threshold = conditional.condition.split("дороже ", maxsplit=1)[1].split(" руб.", maxsplit=1)[0]
-    price = conditional.condition.split("Цена печи №3 — ", maxsplit=1)[1].split(
-        " руб.", maxsplit=1
-    )[0]
+    price = str(next(row["price_rub"] for row in _rows(scenario.context) if row["id"] == 2))
     boundary_condition = conditional.condition.replace(threshold, price, 1)
     with pytest.raises(ValueError):
         adapter.independent_oracle.validate_question(
@@ -241,6 +280,14 @@ def test_current_arc_keeps_dimensions_without_revealing_the_radius() -> None:
     assert b"R=50" in _svg_arc(60, 40, legacy=True)
 
 
+def test_arc_prompt_requires_the_diagram_for_dimensions() -> None:
+    adapter, scenario, rendered, _ = _fixture(77)
+    arc = adapter.question_builder.build_question_for_family(scenario, 5, FAMILY_IDS[11])
+    assert "Размеры кожуха указаны на рисунке" in arc.condition
+    assert not re.search(r"\d+ см", arc.condition)
+    adapter.independent_oracle.validate_question(scenario, arc, rendered)
+
+
 def test_reverse_discount_answer_is_not_in_catalogue():
     from app.math.scenarios.stories.STOVE import _money, _rows
 
@@ -251,13 +298,14 @@ def test_reverse_discount_answer_is_not_in_catalogue():
         assert price not in {row["price_rub"] for row in _rows(scenario.context)}
         assert _money(price) not in question.condition
         adapter.independent_oracle.validate_question(scenario, question, rendered)
-        row = next(row for row in _rows(scenario.context)
-                   if f"печи №{row['id']} —" in question.condition)
-        assert _money(int(row["price_rub"])) in question.condition
+        row_match = re.search(r"нынешняя цена печи №([1-3])", question.condition)
+        assert row_match is not None
+        row = next(row for row in _rows(scenario.context) if row["id"] == int(row_match.group(1)))
+        assert _money(int(row["price_rub"])) not in question.condition
         wrong_row = int(row["id"]) % 3 + 1
         altered = replace(
             question,
             condition=question.condition.replace(f"печи №{row['id']}", f"печи №{wrong_row}"),
         )
-        with pytest.raises(ValueError, match="disagrees with the catalogue"):
+        with pytest.raises(ValueError):
             adapter.independent_oracle.validate_question(scenario, altered, rendered)
