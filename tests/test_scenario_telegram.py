@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import os
 from collections import Counter
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -505,9 +507,11 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
 @pytest.mark.asyncio
 @pytest.mark.parametrize("story_code", (*scenario_training.STORY_NAMES, "RANDOM"))
 async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
-    oge15_navigation_pool, story_code,
+    oge15_navigation_pool, story_code, monkeypatch,
 
 ) -> None:
+    baseline = os.getenv("OGE15_BASELINE_MEASUREMENT") == "1"
+    monkeypatch.setattr(scenario_training.secrets, "randbelow", lambda _: 42)
     transport = TelegramSession()
     bot = Bot("123456:TEST", session=transport)
     dispatcher = Dispatcher()
@@ -589,8 +593,11 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
         for position, question in enumerate(session.snapshot.questions, 1):
             active = await scenario_repository.resume_session(user_id)
             assert active is not None and active.current_position == position
-            assert active.prompt_message_id == mode.message_id
-            assert "попыток" not in (mode.text or "")
+            if baseline:
+                assert active.control_message_id == mode.message_id
+            else:
+                assert active.prompt_message_id == mode.message_id
+                assert "попыток" not in (mode.text or "")
             update_id += 1
             await _feed(
                 dispatcher, bot, repository, scenario_repository,
@@ -603,14 +610,18 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
             outcome = await scenario_repository.resume_session(user_id)
             assert outcome is not None and outcome.question_status == "solved"
             result = transport.messages[outcome.control_message_id]
-            assert "Ответ засчитан" in (result.text or "")
+            if baseline:
+                assert any(message.text == "Верно!" for message in transport.messages.values())
+            else:
+                assert "Ответ засчитан" in (result.text or "")
             mode = await tap(result, "➡ Следующий вопрос" if position < 5 else "Завершить")
         assert await scenario_repository.resume_session(user_id) is None
         assert (await scenario_repository.position_stats(user_id))[0]["correct"] == 5
         assert not any(call.__api_method__ == "sendDocument" for call in transport.calls)
 
         counts = Counter(call.__api_method__ for call in transport.calls)
-        print(f"OGE15 full pass {story_code}: {dict(sorted(counts.items()))}")
+        variant = "main-before-V2" if baseline else "V2"
+        print(f"OGE15 full pass {variant} {story_code}: {dict(sorted(counts.items()))}")
 
         # The command remains a public entry point and can be used after returning.
         update_id += 1
@@ -650,3 +661,82 @@ async def test_legacy_paper_retires_only_session_with_unfinished_exposed_questio
     assert await store.resume_session(other_user) is None
     assert await store.resume_session(user_id) == safe
     assert await store.position_stats(other_user) == before
+
+
+@pytest.mark.asyncio
+async def test_concurrent_scenario_callbacks_and_replies_are_user_scoped(oge15_navigation_pool):
+    transport = TelegramSession()
+    bot = Bot("123456:TEST", session=transport)
+    dispatcher = Dispatcher()
+    dispatcher.include_router(build_router())
+    repository = PostgresRepository(oge15_navigation_pool)
+    store = ScenarioPostgresRepository(oge15_navigation_pool)
+    base = int(uuid4().int % (2**62)) + 1
+    users = [User(id=base + i, is_bot=False, first_name=f"Student {i}") for i in range(2)]
+    cards = []
+    answers = []
+
+    def incoming(user: User, message_id: int, **fields) -> Message:
+        return Message(
+            message_id=message_id, date=datetime.now(UTC),
+            chat=Chat(id=user.id, type="private"), from_user=user, **fields,
+        ).as_(bot)
+
+    async def dispatch(update: Update) -> None:
+        await _feed(dispatcher, bot, repository, store, update)
+
+    def hint(user: User, card: Message, update_id: int) -> Update:
+        button = next(button for row in card.reply_markup.inline_keyboard for button in row
+                      if button.text == "💡 Подсказка")
+        return Update(update_id=update_id, callback_query=CallbackQuery(
+            id=f"concurrent-{update_id}", from_user=user, chat_instance=str(user.id),
+            message=card, data=button.callback_data,
+        ))
+
+    try:
+        for i, (user, story) in enumerate(zip(users, ("TYRES", "GARDEN"), strict=True)):
+            plan = build_practice_plan(
+                PracticeRequest(PracticeMode.SINGLE, 42, story, 1),
+                scenario_training.public_registry(),
+            )
+            session = await store.start_session(user.id, plan.snapshot, plan.mode, (1,))
+            await repository.save_user_state(user.id, "oge15")
+            await scenario_training.render_session(
+                incoming(user, i + 1), store, session, show_assets=True,
+            )
+            current = await store.resume_session(user.id)
+            assert current is not None
+            cards.append(transport.messages[current.control_message_id])
+            answers.append(plan.snapshot.questions[0].canonical_answer)
+
+        # Crossed callbacks and Replies interleave with a legitimate hint for each user.
+        await asyncio.gather(
+            dispatch(hint(users[0], cards[1], 101)),
+            dispatch(hint(users[1], cards[0], 102)),
+            dispatch(hint(users[0], cards[0], 103)),
+            dispatch(hint(users[1], cards[1], 104)),
+            *(
+                dispatch(Update(update_id=110 + i, message=incoming(
+                    user, 10000 + i, text=answers[i], reply_to_message=cards[1 - i],
+                )))
+                for i, user in enumerate(users)
+            ),
+        )
+        current_cards = []
+        for user in users:
+            current = await store.resume_session(user.id)
+            assert current is not None and current.attempt_count == 0 and current.hints_used == 1
+            current_cards.append(transport.messages[current.prompt_message_id])
+
+        await asyncio.gather(*(
+            dispatch(Update(update_id=120 + i, message=incoming(
+                user, 11000 + i, text=answers[i], reply_to_message=current_cards[i],
+            )))
+            for i, user in enumerate(users)
+        ))
+        for user in users:
+            current = await store.resume_session(user.id)
+            assert current is not None and current.question_status == "solved"
+            assert current.attempt_count == 1 and current.hints_used == 1
+    finally:
+        await bot.session.close()

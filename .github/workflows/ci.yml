@@ -40,6 +40,24 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oge_trainer
 
+      - name: Fetch the pre-V2 baseline for transport measurement
+        if: github.head_ref == 'feat/oge15-quality-ux-v2'
+        uses: actions/checkout@v4
+        with:
+          ref: d2ef063ea870299f16fbb07aadaefefdf0862346
+          path: baseline-oge15
+          persist-credentials: false
+      - name: Measure identical TYRES flow on pre-V2 main
+        if: github.head_ref == 'feat/oge15-quality-ux-v2'
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oge_trainer
+          OGE15_BASELINE_MEASUREMENT: "1"
+        run: |
+          cp tests/test_scenario_telegram.py baseline-oge15/tests/test_v2_transport_comparison.py
+          cd baseline-oge15
+          ../.venv/bin/python -m pytest -q -s \
+            'tests/test_v2_transport_comparison.py::test_dispatcher_public_menu_navigation_opens_real_oge15_task[TYRES]'
+
   oge15-linux-render:
     runs-on: ubuntu-latest
     steps:

@@ -34,7 +34,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "stove-v1.2"
+GENERATOR_VERSION = "stove-v1.3"
 COMPATIBILITY_MATRIX_VERSION = "stove-bundle-v1"
 LEGACY_RENDERER_VERSION = "stove-svg-png-v1"
 RENDERER_VERSION = "stove-svg-png-v2"
@@ -435,12 +435,21 @@ class StoveQuestionBuilder:
                 )
             else:
                 listed_prices = {cast(int, row["price_rub"]) for row in rows}
-                start_price = 19_900 + 100 * (scenario.seed % 11)
-                old = next(price for price in range(start_price, start_price + 400, 100)
-                           if price not in listed_prices)
-                current = old * (100 - discount) // 100
-                answer_value = Fraction(current * 100, 100 - discount)
-                condition = f"После скидки {discount}% печь, которой нет в каталоге, стоит {_money(current)} руб. Сколько рублей она стоила до скидки?"  # noqa: E501
+                choices = []
+                for row in rows:
+                    current_price = cast(int, row["price_rub"])
+                    for rate in (10, 15, 20, 25, 30):
+                        previous = Fraction(current_price * 100, 100 - rate)
+                        if previous.denominator == 1 and previous not in listed_prices:
+                            choices.append((row, rate, current_price, previous))
+                # At least the most expensive row with a 20% discount works:
+                # prices are multiples of 100, and the old price exceeds the catalogue maximum.
+                stove, discount, current, answer_value = choices[scenario.seed % len(choices)]
+                condition = (
+                    f"В таблице указана нынешняя цена печи №{stove['id']} — {_money(current)} руб. "
+                    f"Она на {discount}% ниже прошлогодней. "
+                    "Сколько рублей стоила эта печь в прошлом году?"
+                )
                 operation = "reverse_discount"
                 hints = (
                     f"После скидки осталось {100 - discount}% исходной стоимости.",
@@ -907,14 +916,22 @@ class StoveOracle:
                     raise ValueError("Direct discount wording is invalid")
                 base, discount = _parse_rub_or_int(match.group(2)), int(match.group(3))
                 return _integer_fraction(Fraction(base * (100 - discount), 100))
-            reverse = re.search(
-                r"после скидки (\d+)% печь, которой нет в каталоге, стоит ([\d  ]+) руб",
-                condition, re.IGNORECASE
+            reverse = re.fullmatch(
+                r"В таблице указана нынешняя цена печи №([1-3]) — ([\d  ]+) руб\. "
+                r"Она на (\d+)% ниже прошлогодней\. "
+                r"Сколько рублей стоила эта печь в прошлом году\?",
+                condition,
             )
-            if not reverse or "до скидки" not in condition:
+            if not reverse:
                 raise ValueError("Reverse discount wording is invalid")
-            discount, current = int(reverse.group(1)), _parse_rub_or_int(reverse.group(2))
-            return _integer_fraction(Fraction(current * 100, 100 - discount))
+            row_id, current, discount = map(_parse_rub_or_int, reverse.groups())
+            catalogue = {r["id"]: r["price_rub"] for r in rows}
+            if catalogue.get(row_id) != current or not 0 < discount < 100:
+                raise ValueError("Reverse discount disagrees with the catalogue or rate")
+            previous = Fraction(current * 100, 100 - discount)
+            if previous in catalogue.values():
+                raise ValueError("The previous price is disclosed in the catalogue")
+            return _integer_fraction(previous)
         if family == FAMILY_IDS[10]:
             match = re.search(
                 r"Если цена покупки дороже ([\d  ]+) руб\., на печь действует скидка (\d+)%, а на доставку — скидка (\d+)%\. Цена печи №3 — ([\d  ]+) руб\., доставка стоит ([\d  ]+) руб",  # noqa: E501

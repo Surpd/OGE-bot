@@ -4,7 +4,7 @@ import json
 from collections.abc import Callable, Mapping
 from typing import cast
 
-from app.math.scenario_engine import PracticePlan, QuestionSnapshot, ScenarioSnapshot
+from app.math.scenario_engine import PracticeMode, PracticePlan, QuestionSnapshot, ScenarioSnapshot
 
 QuestionSignature = tuple[str, str, str]
 
@@ -70,6 +70,24 @@ def question_signature(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -
         _plain(_visible_inputs(snapshot, question)), ensure_ascii=False, sort_keys=True
     )
     return question.family_id, " ".join(question.condition.split()), inputs
+
+
+_FIXED_SINGLE_FAMILIES = frozenset({
+    "GARDEN-04-PERIMETER-POLYGON", "GARDEN-07-PERCENT-BUILDINGS",
+    "FLAT-03-RECT-AREA", "FLAT-04-RECT-PERCENT", "FLAT-05-WASHER-MIN", "PAPER-F06",
+})
+
+
+def is_recent_fixed_single(
+    plan: PracticePlan, recent: frozenset[QuestionSignature]
+) -> bool:
+    if plan.mode is not PracticeMode.SINGLE:
+        return False
+    question = plan.snapshot.questions[plan.selected_positions[0] - 1]
+    return (
+        question.family_id in _FIXED_SINGLE_FAMILIES
+        and question_signature(plan.snapshot, question) in recent
+    )
 
 
 def prefer_unseen(

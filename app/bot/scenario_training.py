@@ -31,7 +31,7 @@ from app.math.scenario_engine import (
     discover_story_registry,
 )
 from app.math.scenarios.mobile_photos import scenario_photos
-from app.math.scenarios.recent_questions import prefer_unseen
+from app.math.scenarios.recent_questions import is_recent_fixed_single, prefer_unseen
 from app.persistence.repository import Repository
 from app.persistence.scenario_repository import (
     AttemptResult,
@@ -395,6 +395,12 @@ async def _start_session(
         )
     except (ScenarioUnavailable, ValueError):
         await answer_callback(callback, "Для этого сюжета сейчас нет доступного набора.")
+        return
+    if is_recent_fixed_single(plan, recent):
+        await answer_callback(
+            callback, "Этот вариант уже был недавно. Выберите другой номер или сюжет.",
+            show_alert=True,
+        )
         return
     try:
         session = await store.start_session(

@@ -251,3 +251,13 @@ def test_reverse_discount_answer_is_not_in_catalogue():
         assert price not in {row["price_rub"] for row in _rows(scenario.context)}
         assert _money(price) not in question.condition
         adapter.independent_oracle.validate_question(scenario, question, rendered)
+        row = next(row for row in _rows(scenario.context)
+                   if f"печи №{row['id']} —" in question.condition)
+        assert _money(int(row["price_rub"])) in question.condition
+        wrong_row = int(row["id"]) % 3 + 1
+        altered = replace(
+            question,
+            condition=question.condition.replace(f"печи №{row['id']}", f"печи №{wrong_row}"),
+        )
+        with pytest.raises(ValueError, match="disagrees with the catalogue"):
+            adapter.independent_oracle.validate_question(scenario, altered, rendered)

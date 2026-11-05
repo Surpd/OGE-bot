@@ -2,7 +2,11 @@ from dataclasses import replace
 
 from app.bot.scenario_training import public_registry
 from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
-from app.math.scenarios.recent_questions import prefer_unseen, question_signature
+from app.math.scenarios.recent_questions import (
+    is_recent_fixed_single,
+    prefer_unseen,
+    question_signature,
+)
 
 
 def test_retry_is_bounded_and_prefers_a_different_selected_question():
@@ -55,3 +59,13 @@ def test_tariff_signature_tracks_month_usage_without_hashing_the_whole_snapshot(
     minutes[(month + 1) % 12] += 25
     unrelated = replace(snapshot, context={**snapshot.context, "minutes": minutes})
     assert question_signature(unrelated, question) == original
+
+
+def test_recent_fixed_question_is_restricted_only_in_single_mode():
+    registry = public_registry()
+    single = build_practice_plan(PracticeRequest(PracticeMode.SINGLE, 0, "GARDEN", 3), registry)
+    full = build_practice_plan(PracticeRequest(PracticeMode.FULL, 0, "GARDEN"), registry)
+    recent = frozenset({question_signature(single.snapshot, single.snapshot.questions[2])})
+    assert is_recent_fixed_single(single, recent)
+    assert not is_recent_fixed_single(single, frozenset())
+    assert not is_recent_fixed_single(full, recent)
