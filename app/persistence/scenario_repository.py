@@ -344,7 +344,7 @@ class ScenarioPostgresRepository:
         if (
             not callback_query_id
             or control_message_id <= 0
-            or action not in {"hint", "solution", "skip", "next", "pause", "resume"}
+            or action not in {"hint", "solution", "skip", "next", "pause", "resume", "data"}
         ):
             return False
         async with self._pool.acquire() as connection, connection.transaction():
@@ -375,6 +375,8 @@ class ScenarioPostgresRepository:
                 or session["control_message_id"] != control_message_id
             ):
                 return False
+            if action == "data":
+                return bool(session["status"] == "active")
             progress = await connection.fetchrow(
                 """SELECT status, hints_used FROM oge15_question_progress
                    WHERE session_id=$1 AND position=$2 FOR UPDATE""",

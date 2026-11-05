@@ -221,6 +221,10 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         before = await scenario_repository.resume_session(user_id)
         assert before is not None
         # Hint callback is idempotent and leaves the independent attempt counter alone.
+        assert "попыток" not in (controls.text or "")
+        await callback(controls, "📷 Схема / данные")
+        assert sum(call.__api_method__ == "sendPhoto" for call in transport.calls) == 4
+        assert await scenario_repository.resume_session(user_id) == session
         hint_data = next(
             button.callback_data
             for row in controls.reply_markup.inline_keyboard

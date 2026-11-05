@@ -56,7 +56,7 @@ def test_arc_photo_labels_only_known_dimensions(monkeypatch):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("story", "count"), [
-    ("TYRES", 2), ("PAPER", 2), ("STOVE", 2), ("TARIFF", 2), ("GARDEN", 1), ("FLAT", 1),
+    ("TYRES", 2), ("PAPER", 2), ("STOVE", 1), ("TARIFF", 1), ("GARDEN", 1), ("FLAT", 1),
 ])
 async def test_public_card_sends_only_photos_for_graphics(story, count):
     registry = public_registry()
@@ -72,7 +72,11 @@ async def test_public_card_sends_only_photos_for_graphics(story, count):
     message.answer_document = AsyncMock()
     store = AsyncMock(spec=ScenarioPostgresRepository)
     await render_session(message, store, session, show_assets=True, user_id_override=1)
-    assert message.answer_photo.await_count == count
+    expected = count + int(snapshot.questions[0].family_id == "STOVE-F12-ARCH-RADIUS")
+    assert message.answer_photo.await_count == expected
+    card = message.answer.await_args.args[0]
+    assert "попыток" not in card
+    assert "подсказок" not in card
     message.answer_document.assert_not_awaited()
     for call in message.answer_photo.await_args_list:
         upload = call.args[0]
