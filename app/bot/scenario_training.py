@@ -31,6 +31,7 @@ from app.math.scenario_engine import (
     discover_story_registry,
 )
 from app.math.scenarios.mobile_photos import scenario_photos
+from app.math.scenarios.recent_questions import prefer_unseen
 from app.persistence.repository import Repository
 from app.persistence.scenario_repository import (
     AttemptResult,
@@ -363,11 +364,16 @@ async def _start_session(
         await answer_callback(callback, "Сначала продолжите или завершите текущую практику.")
         return
     position = None if position_text is None or position_text == "random" else int(position_text)
-    request = PracticeRequest(
-        mode, secrets.randbelow(2**63), None if code == "RANDOM" else code, position
-    )
+    story_code = None if code == "RANDOM" else code
+    recent = await store.recent_questions(user_id)
     try:
-        plan = build_practice_plan(request, public_registry())
+        plan = prefer_unseen(
+            lambda: build_practice_plan(
+                PracticeRequest(mode, secrets.randbelow(2**63), story_code, position),
+                public_registry(),
+            ),
+            recent,
+        )
     except (ScenarioUnavailable, ValueError):
         await answer_callback(callback, "Для этого сюжета сейчас нет доступного набора.")
         return

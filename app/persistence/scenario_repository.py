@@ -142,6 +142,33 @@ class ScenarioPostgresRepository:
                 snapshot=snapshot,
             )
 
+    async def recent_questions(self, telegram_user_id: int) -> frozenset[tuple[str, str, str]]:
+        """Read up to four recent sessions via the user/start-time index."""
+        rows = await self._pool.fetch(
+            """WITH recent AS (
+                   SELECT session.id, session.scenario_id
+                   FROM users AS app_user
+                   JOIN oge15_sessions AS session ON session.user_id=app_user.id
+                   WHERE app_user.telegram_user_id=$1
+                   ORDER BY session.started_at DESC, session.id DESC LIMIT 4
+               )
+               SELECT question->>'family_id' AS family_id,
+                      question->>'condition' AS condition,
+                      question->>'canonical_answer' AS answer
+               FROM recent
+               JOIN oge15_scenarios AS scenario ON scenario.id=recent.scenario_id
+               JOIN oge15_question_progress AS progress ON progress.session_id=recent.id
+               CROSS JOIN LATERAL (
+                   SELECT scenario.snapshot->'questions'->(progress.position - 1) AS question
+               ) AS stored
+               WHERE progress.status <> 'pending'""",
+            telegram_user_id,
+        )
+        return frozenset(
+            (row["family_id"], " ".join(row["condition"].split()), row["answer"])
+            for row in rows
+        )
+
     async def resume_session(self, telegram_user_id: int) -> ScenarioSession | None:
         async with self._pool.acquire() as connection:
             row = await connection.fetchrow(

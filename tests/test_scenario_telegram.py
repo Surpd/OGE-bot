@@ -413,6 +413,11 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
             assert active is not None and active.current_position == expected_position
             controls = await callback(controls, "⏭ Пропустить")
         assert await scenario_repository.resume_session(user_id) is None
+        recent = await scenario_repository.recent_questions(user_id)
+        assert len(recent) == 5
+        assert {family for family, _, _ in recent} == {
+            question.family_id for question in session.snapshot.questions
+        }
         stats = await scenario_repository.position_stats(user_id)
         assert stats[0]["issued"] == 5
         assert stats[0]["correct"] == 1
