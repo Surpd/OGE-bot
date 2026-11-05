@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "story_code": "FLAT",
+  "seed": 20220523,
+  "generator_version": "flat-grid-1.0.0",
+  "compatibility_matrix_version": "flat-compat-1",
+  "context": {
+    "grid_cell_m": "0.4",
+    "topology_id": "flat_2room_8label_v1",
+    "room_parts": {
+      "bedroom": [
+        [
+          0,
+          0,
+          6,
+          13
+        ]
+      ],
+      "bedroom_2": [
+        [
+          18,
+          0,
+          24,
+          13
+        ]
+      ],
+      "living": [
+        [
+          6,
+          0,
+          18,
+          13
+        ]
+      ],
+      "hall": [
+        [
+          9,
+          13,
+          24,
+          19
+        ],
+        [
+          5,
+          18,
+          9,
+          19
+        ]
+      ],
+      "pantry": [
+        [
+          5,
+          13,
+          9,
+          18
+        ]
+      ],
+      "bathroom": [
+        [
+          0,
+          13,
+          5,
+          19
+        ]
+      ],
+      "loggia_1": [
+        [
+          -3,
+          1,
+          0,
+          11
+        ]
+      ],
+      "loggia_2": [
+        [
+          18,
+          -5,
+          24,
+          0
+        ]
+      ]
+    },
+    "room_labels": {
+      "bathroom": 1,
+      "pantry": 3,
+      "bedroom": 4,
+      "living": 6,
+      "bedroom_2": 2,
+      "hall": 5,
+      "loggia_1": 7,
+      "loggia_2": 8
+    },
+    "door_graph": [
+      [
+        "living",
+        "bedroom"
+      ],
+      [
+        "living",
+        "bedroom_2"
+      ],
+      [
+        "hall",
+        "bedroom_2"
+      ],
+      [
+        "hall",
+        "living"
+      ],
+      [
+        "hall",
+        "pantry"
+      ],
+      [
+        "pantry",
+        "bathroom"
+      ],
+      [
+        "bedroom",
+        "loggia_1"
+      ],
+      [
+        "bedroom_2",
+        "loggia_2"
+      ]
+    ],
+    "tile": {
+      "room": "bathroom",
+      "tile_cells": 1,
+      "pack": 20,
+      "count": 30
+    },
+    "parquet": {
+      "room": "living",
+      "width_cells": 12,
+      "height_cells": 13,
+      "board_m": [
+        "0.2",
+        "0.8"
+      ],
+      "pack": 14,
+      "count": 156
+    },
+    "area_room": "loggia_1",
+    "percent": {
+      "base": 20,
+      "delta": 10
+    },
+    "washers": [
+      {
+        "model": "А",
+        "type": "фронтальная",
+        "capacity": 6,
+        "height": 85,
+        "price": 28000,
+        "install": 1000,
+        "delivery_pct": 10
+      },
+      {
+        "model": "Б",
+        "type": "фронтальная",
+        "capacity": 7,
+        "height": 84,
+        "price": 31000,
+        "install": 0,
+        "delivery_pct": 0
+      },
+      {
+        "model": "В",
+        "type": "вертикальная",
+        "capacity": 8,
+        "height": 86,
+        "price": 30000,
+        "install": 1500,
+        "delivery_pct": 0
+      },
+      {
+        "model": "Г",
+        "type": "фронтальная",
+        "capacity": 7,
+        "height": 82,
+        "price": 33000,
+        "install": 0,
+        "delivery_pct": 0
+      },
+      {
+        "model": "Д",
+        "type": "фронтальная",
+        "capacity": 8,
+        "height": 84,
+        "price": 31900,
+        "install": 500,
+        "delivery_pct": 15
+      },
+      {
+        "model": "Е",
+        "type": "вертикальная",
+        "capacity": 7,
+        "height": 82,
+        "price": 29500,
+        "install": 500,
+        "delivery_pct": 0
+      }
+    ],
+    "internet": {
+      "traffic_mb": 1000,
+      "plans": [
+        {
+          "name": "Базовый",
+          "included_mb": 600,
+          "fee": 650,
+          "overage": "2"
+        },
+        {
+          "name": "Оптимальный",
+          "included_mb": 900,
+          "fee": 820,
+          "overage": "1.5"
+        },
+        {
+          "name": "Безлимитный",
+          "included_mb": null,
+          "fee": 950,
+          "overage": "0"
+        }
+      ]
+    }
+  },
+  "shared_context": "План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; кладовая имеет двери в коридор и санузел; в санузле одна дверь. Спальня выходит на левую лоджию; гостиная — самое большое помещение. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход. Это собственная SVG/PNG схема фиксированной топологии.",
+  "assets": [
+    {
+      "sha256": "a24faa9c73598efda3eb3965be8ee14be315820f1a59c9d6a006c0b58078b11f",
+      "content_type": "image/png",
+      "storage_key": "sha256/a24faa9c73598efda3eb3965be8ee14be315820f1a59c9d6a006c0b58078b11f.png"
+    },
+    {
+      "sha256": "fda004a67c41121045866fb7dfa83d8ac757ec6d76dd8f84f72832a9d07e3287",
+      "content_type": "image/svg+xml",
+      "storage_key": "sha256/fda004a67c41121045866fb7dfa83d8ac757ec6d76dd8f84f72832a9d07e3287.svg"
+    }
+  ],
+  "questions": [
+    {
+      "position": 1,
+      "scenario_seed": 20220523,
+      "family_id": "FLAT-01-ROOM-MATCH",
+      "generator_version": "flat-grid-1.0.0",
+      "condition": "На плане коридор расположен у входа. Кладовая имеет двери в коридор и санузел, а в санузле только одна дверь. Спальня выходит на левую лоджию; гостиная — самое большое помещение. Запишите номера в порядке: санузел, кладовая, спальня, гостиная.",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "1346",
+      "hints": [
+        "Начните с коридора у входа и проверьте связи помещений по дверным проёмам.",
+        "Отделите санузел с одной дверью от кладовой, которая соединяет его с коридором."
+      ],
+      "solution_steps": [
+        "Определите номера помещений по подписям на плане.",
+        "В заданном порядке получаем 1346."
+      ],
+      "math_model": {
+        "rooms_in_order": [
+          "bathroom",
+          "pantry",
+          "bedroom",
+          "living"
+        ],
+        "labels": {
+          "bathroom": 1,
+          "pantry": 3,
+          "bedroom": 4,
+          "living": 6,
+          "bedroom_2": 2,
+          "hall": 5,
+          "loggia_1": 7,
+          "loggia_2": 8
+        }
+      }
+    },
+    {
+      "position": 2,
+      "scenario_seed": 20220523,
+      "family_id": "FLAT-02-PARQUET-PACK",
+      "generator_version": "flat-grid-1.0.0",
+      "condition": "Размер гостиной на плане 4,8×5,2 м. Её покрывают паркетными досками 0,2×0,8 м без распила. В упаковке 14 досок. Сколько упаковок потребуется?",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "12",
+      "hints": [
+        "Сопоставьте длины гостиной и доски, чтобы определить число рядов.",
+        "Проверьте, сколько досок войдёт в каждый ряд без распила, затем разделите на размер упаковки."
+      ],
+      "solution_steps": [
+        "При укладке без распила помещается 6×26 = 156 досок.",
+        "156 : 14 с округлением вверх = 12 упаковок."
+      ],
+      "math_model": {
+        "room": "living",
+        "width_cells": 12,
+        "height_cells": 13,
+        "board_m": [
+          "0.2",
+          "0.8"
+        ],
+        "pack": 14,
+        "count": 156
+      }
+    },
+    {
+      "position": 3,
+      "scenario_seed": 20220523,
+      "family_id": "FLAT-03-RECT-AREA",
+      "generator_version": "flat-grid-1.0.0",
+      "condition": "Найдите площадь помещения «левая лоджия», если сторона клетки плана равна 0,4 м. Ответ дайте в квадратных метрах.",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "4,8",
+      "hints": [
+        "Найдите ширину и длину лоджии в клетках плана.",
+        "Сначала умножьте число клеток на площадь одной клетки в квадратных метрах."
+      ],
+      "solution_steps": [
+        "Площадь составляет 30 клеток.",
+        "30 · 0,16 = 4,8 м²."
+      ],
+      "math_model": {
+        "room": "loggia_1",
+        "area_cells": 30,
+        "cell_area": "0.16"
+      }
+    },
+    {
+      "position": 4,
+      "scenario_seed": 20220523,
+      "family_id": "FLAT-04-RECT-PERCENT",
+      "generator_version": "flat-grid-1.0.0",
+      "condition": "Площадь кладовой равна 20 клеткам, а площадь санузла на 10 клеток больше. На сколько процентов площадь санузла больше площади кладовой?",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "50",
+      "hints": [
+        "Найдите разность площадей санузла и кладовой.",
+        "Для процента увеличения разделите разность на площадь кладовой."
+      ],
+      "solution_steps": [
+        "Разность площадей равна 10 клеткам.",
+        "10/20 · 100% = 50%."
+      ],
+      "math_model": {
+        "base_cells": 20,
+        "delta_cells": 10,
+        "denominator": "кладовая"
+      }
+    },
+    {
+      "position": 5,
+      "scenario_seed": 20220523,
+      "family_id": "FLAT-05-INTERNET-MIN",
+      "generator_version": "flat-grid-1.0.0",
+      "condition": "За месяц использовано 1000 МБ. Выберите тариф с наименьшей стоимостью: Базовый: абонплата 650 руб., включено 600 МБ, сверх лимита 2 руб./МБ; Оптимальный: абонплата 820 руб., включено 900 МБ, сверх лимита 1.5 руб./МБ; Безлимитный: абонплата 950 руб., включено безлимит МБ, сверх лимита 0 руб./МБ. Сколько рублей нужно заплатить?",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "950",
+      "hints": [
+        "Для каждого ограниченного плана найдите объём сверх включённого лимита.",
+        "Прибавьте плату за превышение к абонентской плате и сравните все три итоговые суммы."
+      ],
+      "solution_steps": [
+        "Стоимость тарифов по порядку: 1450, 970, 950 руб.",
+        "Минимальная стоимость — 950 руб."
+      ],
+      "math_model": {
+        "traffic_mb": 1000,
+        "plans": [
+          {
+            "name": "Базовый",
+            "included_mb": 600,
+            "fee": 650,
+            "overage": "2"
+          },
+          {
+            "name": "Оптимальный",
+            "included_mb": 900,
+            "fee": 820,
+            "overage": "1.5"
+          },
+          {
+            "name": "Безлимитный",
+            "included_mb": null,
+            "fee": 950,
+            "overage": "0"
+          }
+        ],
+        "costs": [
+          1450,
+          970,
+          950
+        ],
+        "winner": "Безлимитный"
+      }
+    }
+  ],
+  "provenance": [
+    "sdamgia:424898",
+    "sdamgia:424899",
+    "sdamgia:424900",
+    "sdamgia:424901",
+    "sdamgia:424902",
+    "catalog-attributed; not independently verified as FIPI originals"
+  ]
+}

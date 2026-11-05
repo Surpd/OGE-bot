@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "story_code": "GARDEN",
+  "seed": 0,
+  "generator_version": "garden-sosnovka-1.3",
+  "compatibility_matrix_version": "garden-compat-1",
+  "context": {
+    "template_id": "SOSNOVKA-2025-1.1",
+    "world_version": "garden-sosnovka-1.3",
+    "grid_side_m": 2,
+    "plot_area_m2": 600,
+    "labels": {
+      "house": 7,
+      "bath": 4,
+      "garage": 2,
+      "greenhouse": 5,
+      "shed": 1,
+      "orchard": 3,
+      "garden": 6
+    },
+    "building_areas_m2": [
+      68,
+      48,
+      24,
+      36
+    ],
+    "exposed_perimeter_edges": 18,
+    "path_tiles": 25,
+    "pad_tiles": 40,
+    "tiles_per_pack": 10,
+    "garden_area_m2": 120,
+    "greenhouse_area_m2": 12,
+    "heat": {
+      "gas_upfront": 35370,
+      "electric_upfront": 29000,
+      "gas_hourly_cents": 784,
+      "electric_hourly_cents": 2058,
+      "break_even_hours": 500
+    },
+    "scenario_seed": 0
+  },
+  "shared_context": "План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.\nВсе пять вопросов относятся к одному плану. Аналог ОГЭ.",
+  "assets": [
+    {
+      "sha256": "a32fd13d36a8814e4b31e597e6e267eab612e12bfba34ac54b65481795a93fc1",
+      "content_type": "image/svg+xml",
+      "storage_key": "sha256/a32fd13d36a8814e4b31e597e6e267eab612e12bfba34ac54b65481795a93fc1.svg"
+    }
+  ],
+  "questions": [
+    {
+      "position": 1,
+      "scenario_seed": 0,
+      "family_id": "GARDEN-01-IDENTIFY",
+      "generator_version": "garden-sosnovka-1.3",
+      "condition": "Дом с выступом стоит у верхней границы участка. Баня — у левой границы ниже яблонь, гараж — справа ниже ворот, теплица — внутри огорода. Найдите на плане номера дома, бани, гаража и теплицы и запишите цифры в указанном порядке.",
+      "answer_policy_id": "integer_or_code",
+      "answer_policy_version": "1",
+      "canonical_answer": "7425",
+      "hints": [
+        "Сопоставьте объекты с описанием их расположения на плане."
+      ],
+      "solution_steps": [
+        "В указанном порядке на плане получаем номера 7, 4, 2, 5."
+      ],
+      "math_model": {
+        "position": 1,
+        "expected": "7425"
+      }
+    },
+    {
+      "position": 2,
+      "scenario_seed": 0,
+      "family_id": "GARDEN-02-TILES-PACKS",
+      "generator_version": "garden-sosnovka-1.3",
+      "condition": "Сколько пачек плитки нужно для дорожек и прямоугольной площадки у ворот? Сторона клетки плана 2 м, ширина дорожки 1 м, размер плитки 1 × 1 м. В пачке 10 плиток. Покрытие укладывают без зазоров.",
+      "answer_policy_id": "integer_or_code",
+      "answer_policy_version": "1",
+      "canonical_answer": "7",
+      "hints": [
+        "Сложите число плиток и округлите число пачек вверх."
+      ],
+      "solution_steps": [
+        "Длины четырёх полос шириной 1 м: 3, 1, 9 и 12 м. Их площадь 25 м².",
+        "Площадка 8 × 5 м занимает 40 м². Всего нужно 65 плиток по 1 м².",
+        "Округляем 65 / 10 вверх: нужно 7 пачек."
+      ],
+      "math_model": {
+        "position": 2,
+        "expected": "7"
+      }
+    },
+    {
+      "position": 3,
+      "scenario_seed": 0,
+      "family_id": "GARDEN-04-PERIMETER-POLYGON",
+      "generator_version": "garden-sosnovka-1.3",
+      "condition": "Дом имеет ломаную форму по сторонам клеток плана. Найдите периметр его внешнего контура в метрах, если сторона клетки 2 м.",
+      "answer_policy_id": "integer_or_code",
+      "answer_policy_version": "1",
+      "canonical_answer": "36",
+      "hints": [
+        "Считайте только стороны клеток на внешней границе дома."
+      ],
+      "solution_steps": [
+        "Внешний контур состоит из 18 сторон клеток.",
+        "Периметр: 18 × 2 = 36 м."
+      ],
+      "math_model": {
+        "position": 3,
+        "expected": "36"
+      }
+    },
+    {
+      "position": 4,
+      "scenario_seed": 0,
+      "family_id": "GARDEN-07-PERCENT-BUILDINGS",
+      "generator_version": "garden-sosnovka-1.3",
+      "condition": "Найдите по плану, сколько процентов площади участка занимают дом, баня, гараж и сарай. Это четыре бежевых строения. Сторона клетки 2 м. Ответ округлите до целого.",
+      "answer_policy_id": "integer_or_code",
+      "answer_policy_version": "1",
+      "canonical_answer": "29",
+      "hints": [
+        "Разделите суммарную площадь построек на площадь участка."
+      ],
+      "solution_steps": [
+        "Клетка занимает 4 м². На плане дом занимает 17 клеток, баня — 12, гараж — 6, сарай — 9.",
+        "Постройки занимают (17 + 12 + 6 + 9) × 4 = 176 м².",
+        "Весь участок занимает 15 × 10 × 4 = 600 м².",
+        "176 / 600 × 100 ≈ 29,33 %. После округления получаем 29 %."
+      ],
+      "math_model": {
+        "position": 4,
+        "expected": "29"
+      }
+    },
+    {
+      "position": 5,
+      "scenario_seed": 0,
+      "family_id": "GARDEN-09-HEAT-BREAKEVEN",
+      "generator_version": "garden-sosnovka-1.3",
+      "condition": "Сравните отопление газом и электричеством по плану и данным: начальные затраты газ — 35370 руб., электричество — 29000 руб.; расходы за час — 7.84 и 20.58 руб. Через сколько часов суммарные затраты сравняются?",
+      "answer_policy_id": "integer_or_code",
+      "answer_policy_version": "1",
+      "canonical_answer": "500",
+      "hints": [
+        "Найдите разницу начальных затрат и экономию за один час."
+      ],
+      "solution_steps": [
+        "Газовое отопление дороже при установке на 6370 руб.",
+        "За час оно экономит 20,58 − 7,84 = 12.74 руб.",
+        "Затраты сравняются через 6370 / 12.74 = 500 ч."
+      ],
+      "math_model": {
+        "position": 5,
+        "expected": "500"
+      }
+    }
+  ],
+  "provenance": [
+    "408405",
+    "408413",
+    "408424",
+    "408432",
+    "408438"
+  ]
+}

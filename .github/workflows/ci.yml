@@ -39,3 +39,53 @@ jobs:
       - run: uv run pytest -q --durations=10 --capture=tee-sys
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oge_trainer
+
+      - name: Fetch the pre-V2 baseline for transport measurement
+        if: github.head_ref == 'feat/oge15-quality-ux-v2'
+        uses: actions/checkout@v4
+        with:
+          ref: d2ef063ea870299f16fbb07aadaefefdf0862346
+          path: baseline-oge15
+          persist-credentials: false
+      - name: Measure identical TYRES flow on pre-V2 main
+        if: github.head_ref == 'feat/oge15-quality-ux-v2'
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oge_trainer
+          OGE15_BASELINE_MEASUREMENT: "1"
+        run: |
+          cp tests/test_scenario_telegram.py baseline-oge15/tests/test_v2_transport_comparison.py
+          cd baseline-oge15
+          ../.venv/bin/python -m pytest -q -s \
+            'tests/test_v2_transport_comparison.py::test_dispatcher_public_menu_navigation_opens_real_oge15_task[TYRES]'
+
+  oge15-linux-render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t oge15-render-test .
+      - name: Render all public stories inside the deployment image
+        run: |
+          docker run --rm -i oge15-render-test .venv/bin/python - <<'PY'
+          from io import BytesIO
+          from pathlib import Path
+          from PIL import Image
+          from app.bot.scenario_training import public_registry
+          from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
+          from app.math.scenarios.mobile_photos import font, scenario_photos
+
+          path = Path(font(32).path)
+          assert path.name == "DejaVuSans.ttf", path
+          registry = public_registry()
+          stories = registry.available_stories(PracticeMode.FULL)
+          assert len(stories) == 6
+          for story in stories:
+              for seed in (0, 42, 90126):
+                  snapshot = build_practice_plan(
+                      PracticeRequest(PracticeMode.FULL, seed, story), registry
+                  ).snapshot
+                  for photo in scenario_photos(snapshot):
+                      with Image.open(BytesIO(photo)) as image:
+                          assert image.format == "PNG"
+                          image.verify()
+              print(f"{story}: three seeds rendered using {path.name}")
+          PY

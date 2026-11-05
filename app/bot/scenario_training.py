@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from uuid import UUID
 
 from aiogram.dispatcher.event.bases import SkipHandler
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
     BufferedInputFile,
     CallbackQuery,
@@ -28,8 +29,9 @@ from app.math.scenario_engine import (
     ScenarioUnavailable,
     build_practice_plan,
     discover_story_registry,
-    restore_asset_bytes,
 )
+from app.math.scenarios.mobile_photos import scenario_photos
+from app.math.scenarios.recent_questions import is_recent_fixed_single, prefer_unseen
 from app.persistence.repository import Repository
 from app.persistence.scenario_repository import (
     AttemptResult,
@@ -223,45 +225,95 @@ async def _position_step(callback: CallbackQuery, code: str) -> None:
     )
 
 
+QUESTION_PHOTO_FAMILIES = {"STOVE-F12-ARCH-RADIUS", "TARIFF-F12-HOME-ISP"}
+
+
+async def _show_data(
+    message: Message, session: ScenarioSession, *, shared: bool, current: bool
+) -> None:
+    snapshot = session.snapshot
+    story = STORY_NAMES[snapshot.story_code]
+    context = snapshot.shared_context
+    if snapshot.story_code == "TYRES":
+        context = "\n".join(line for line in context.splitlines() if not line.startswith("|"))
+        context = context.replace("**", "")
+    elif snapshot.story_code == "PAPER":
+        context = context.partition("Таблица размеров")[0].rstrip()
+    elif snapshot.story_code == "STOVE":
+        context = context.partition("Печь | Тип |")[0].rstrip()
+    elif snapshot.story_code == "TARIFF":
+        context = "\n".join(
+            line for line in context.splitlines()
+            if not line.startswith((
+                "На графике сплошная", "Минуты по месяцам:", "Мобильный интернет по месяцам:",
+            ))
+        )
+        context += "\nМинуты и гигабайты показаны на отдельных графиках."
+    elif snapshot.story_code == "GARDEN" and snapshot.generator_version in {
+        "garden-sosnovka-1.0", "garden-sosnovka-1.1",
+    }:
+        context += (
+            "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
+            "гараж ниже ворот справа, теплица внутри огорода."
+        )
+    elif snapshot.story_code == "FLAT":
+        context = context.replace("Это собственная SVG/PNG схема фиксированной топологии.", "")
+        if "первая лоджия" in snapshot.questions[2].condition:
+            context += " На плане первая лоджия расположена слева."
+    if shared:
+        await message.answer(context)
+    family = snapshot.questions[session.current_position - 1].family_id
+    for index, data in enumerate(scenario_photos(snapshot), 1):
+        specific = index == 2 and snapshot.story_code in {"STOVE", "TARIFF"}
+        if specific:
+            if not current or family not in QUESTION_PHOTO_FAMILIES:
+                continue
+        elif not shared:
+            continue
+        upload = BufferedInputFile(data, filename=f"scenario-{index}.png")
+        await message.answer_photo(upload, caption=f"Данные задачи · {story}")
+
+
+async def _retire_unsafe(
+    message: Message, store: ScenarioPostgresRepository, user_id: int, session: ScenarioSession
+) -> bool:
+    if not await store.close_legacy_with_exposed_answer(user_id, session):
+        return False
+    await message.answer(
+        "Эта практика завершена: в старой версии задания часть ответа была видна заранее. "
+        "История сохранена. Начните новую практику через /oge15."
+    )
+    return True
+
+
 async def render_session(
     message: Message,
     store: ScenarioPostgresRepository,
     session: ScenarioSession,
     *,
     show_assets: bool,
+    show_current_asset: bool = False,
+    edit_current: bool = False,
+    result_text: str | None = None,
     user_id_override: int | None = None,
 ) -> None:
+    telegram_user_id = user_id_override or (message.from_user.id if message.from_user else 0)
+    if await _retire_unsafe(message, store, telegram_user_id, session):
+        return
     snapshot = session.snapshot
     question = next(
         item for item in snapshot.questions if item.position == session.current_position
     )
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
-    if show_assets:
-        await message.answer(snapshot.shared_context)
-        adapter = public_registry().adapter(snapshot.story_code)
-        for asset in snapshot.assets:
-            data = restore_asset_bytes(adapter.renderer, snapshot, asset)
-            extension = "png" if asset.content_type == "image/png" else "svg"
-            upload = BufferedInputFile(data, filename=f"scenario.{extension}")
-            if asset.content_type == "image/png":
-                await message.answer_photo(upload, caption=f"Общая схема · {story}")
-            else:
-                await message.answer_document(upload, caption=f"Общая схема · {story}")
+    if show_assets or (
+        show_current_asset and question.family_id in QUESTION_PHOTO_FAMILIES
+    ):
+        await _show_data(message, session, shared=show_assets, current=True)
     progress = (
         f"Задание №{session.current_position} из 5"
         if session.mode is PracticeMode.FULL
         else f"Задание №{session.current_position}"
     )
-    telegram_user_id = user_id_override or (
-        message.from_user.id if message.from_user else 0
-    )
-    if session.question_status == "active":
-        prompt = await message.answer(
-            f"{story} · {progress}\n\n{question.condition}\n\nНапишите ответ сообщением в чат."
-        )
-        await store.set_condition_message(
-            telegram_user_id, session.session_id, session.current_position, prompt.message_id
-        )
     rows: list[list[InlineKeyboardButton]] = []
     callback_prefix = (
         f"oge15:act:{session.session_id}:{session.current_position}:{session.navigation_revision}"
@@ -279,12 +331,33 @@ async def render_session(
             rows.append([_button("➡ Следующий вопрос", f"{callback_prefix}:next")])
         else:
             rows.append([_button("Завершить", f"{callback_prefix}:next")])
+    rows.append([_button("📷 Схема / данные", f"{callback_prefix}:data")])
     rows.append([_button("⏸ Пауза", f"{callback_prefix}:pause")])
-    controls = await message.answer(
-        f"{story} · {progress} · попыток: {session.attempt_count}/2 "
-        f"· подсказок: {session.hints_used}",
-        reply_markup=_keyboard(rows),
-    )
+    title = f"{story} · {progress}"
+    if session.question_status == "active":
+        body = (
+            f"{title}\n\n{question.condition}\n\n"
+            "Напишите ответ в чат."
+        )
+    else:
+        body = f"{title} · вопрос завершён"
+    if result_text:
+        body += f"\n\n{result_text}"
+    markup = _keyboard(rows)
+    controls = None
+    if edit_current and message.message_id == session.control_message_id:
+        try:
+            edited = await message.edit_text(body, reply_markup=markup)
+            if isinstance(edited, Message):
+                controls = edited
+        except TelegramBadRequest:
+            pass
+    if controls is None:
+        controls = await message.answer(body, reply_markup=markup)
+    if session.question_status == "active":
+        await store.set_condition_message(
+            telegram_user_id, session.session_id, session.current_position, controls.message_id
+        )
     await store.set_control_message(
         telegram_user_id,
         session.session_id,
@@ -305,17 +378,31 @@ async def _start_session(
     if not _has_user(user_id) or not isinstance(callback.message, Message):
         await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
-    if await store.resume_session(user_id) is not None:
+    existing = await store.resume_session(user_id)
+    if existing is not None and not await _retire_unsafe(
+        callback.message, store, user_id, existing
+    ):
         await answer_callback(callback, "Сначала продолжите или завершите текущую практику.")
         return
     position = None if position_text is None or position_text == "random" else int(position_text)
-    request = PracticeRequest(
-        mode, secrets.randbelow(2**63), None if code == "RANDOM" else code, position
-    )
+    story_code = None if code == "RANDOM" else code
+    recent = await store.recent_questions(user_id)
     try:
-        plan = build_practice_plan(request, public_registry())
+        plan = prefer_unseen(
+            lambda: build_practice_plan(
+                PracticeRequest(mode, secrets.randbelow(2**63), story_code, position),
+                public_registry(),
+            ),
+            recent,
+        )
     except (ScenarioUnavailable, ValueError):
         await answer_callback(callback, "Для этого сюжета сейчас нет доступного набора.")
+        return
+    if is_recent_fixed_single(plan, recent):
+        await answer_callback(
+            callback, "Этот вариант уже был недавно. Выберите другой номер или сюжет.",
+            show_alert=True,
+        )
         return
     try:
         session = await store.start_session(
@@ -326,7 +413,6 @@ async def _start_session(
         return
     if repository is not None:
         await repository.save_user_state(user_id, "oge15")
-    await callback.message.answer(f"Вы выбрали: {STORY_NAMES[plan.snapshot.story_code]}.")
     await render_session(
         callback.message, store, session, show_assets=True, user_id_override=user_id
     )
@@ -376,6 +462,8 @@ async def answer_message(
     session = await store.resume_session(user_id)
     if session is None or session.status != "active":
         raise SkipHandler
+    if await _retire_unsafe(message, store, user_id, session):
+        return
     if session.question_status != "active":
         await message.answer("Задание завершено. Используйте кнопки под результатом.")
         return
@@ -412,12 +500,16 @@ async def answer_message(
     if updated is None:
         return
     if is_correct:
-        await message.answer("Верно!")
+        result_text = "✅ Верно! Ответ засчитан."
     elif updated.question_status == "failed":
-        await message.answer(f"Попытки закончились. Ответ: {question.canonical_answer}.")
+        result_text = (
+            f"Правильный ответ: {question.canonical_answer}.\n\n"
+            + "\n".join(question.solution_steps)
+        )
     else:
-        await message.answer("Неверно. Попробуйте ещё раз.")
-    await render_session(message, store, updated, show_assets=False)
+        await message.answer("Пока неверно. Попробуйте ещё раз.")
+        return
+    await render_session(message, store, updated, show_assets=False, result_text=result_text)
 
 
 async def handle_callback(
@@ -494,6 +586,7 @@ async def handle_callback(
             "next",
             "pause",
             "resume",
+            "data",
         }:
             await answer_callback(callback, "Это меню устарело. Откройте /start.")
             return
@@ -502,6 +595,16 @@ async def handle_callback(
         )
         if question is None:
             await answer_callback(callback, "Эта кнопка устарела.")
+            return
+        if (
+            session.current_position == position
+            and session.navigation_revision == revision
+            and session.control_message_id == callback.message.message_id
+            and await _retire_unsafe(
+                callback.message, oge15_repository, callback.from_user.id, session
+            )
+        ):
+            await answer_callback(callback)
             return
         accepted = await oge15_repository.apply_callback(
             telegram_user_id=callback.from_user.id,
@@ -516,22 +619,30 @@ async def handle_callback(
         if not accepted:
             await answer_callback(callback, "Это действие уже обработано или задание сменилось.")
             return
-        updated = await oge15_repository.resume_session(callback.from_user.id)
         await answer_callback(callback)
+        if action == "data":
+            await _show_data(callback.message, session, shared=True, current=True)
+            return
+        updated = await oge15_repository.resume_session(callback.from_user.id)
         if updated is None:
             if action in {"next", "skip"} and isinstance(callback.message, Message):
                 await callback.message.answer(
                     "Практика завершена. Статистика доступна по команде /oge15."
                 )
             return
+        result_text = None
         if action == "hint":
             q = next(q for q in updated.snapshot.questions if q.position == position)
-            await callback.message.answer(q.hints[min(updated.hints_used - 1, len(q.hints) - 1)])
+            hint = q.hints[min(updated.hints_used - 1, len(q.hints) - 1)]
+            if updated.snapshot.story_code == "TARIFF":
+                hint = hint.replace("На графике выберите сплошную линию и левую шкалу минут.",
+                                    "Откройте верхний график «Звонки, мин».")
+                hint = hint.replace("Используйте сплошную линию и левую шкалу.",
+                                    "Используйте верхний график «Звонки, мин».")
+            await callback.message.answer(hint)
         elif action == "solution":
             q = next(q for q in updated.snapshot.questions if q.position == position)
-            await callback.message.answer(
-                "Разбор (самостоятельное решение не засчитывается):\n" + "\n".join(q.solution_steps)
-            )
+            result_text = "Разбор:\n" + "\n".join(q.solution_steps)
         elif action == "pause":
             if repository is not None:
                 await repository.save_user_state(callback.from_user.id, "main_menu")
@@ -550,6 +661,9 @@ async def handle_callback(
             oge15_repository,
             updated,
             show_assets=False,
+            show_current_asset=action in {"next", "skip"},
+            edit_current=action in {"hint", "solution"},
+            result_text=result_text,
             user_id_override=callback.from_user.id,
         )
         return

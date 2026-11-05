@@ -105,6 +105,52 @@ def test_single_and_full_practice_plans_share_the_same_snapshot_and_restore_asse
         )
 
 
+def test_f03_and_f06_derive_dimensions_from_visible_shared_table(adapter) -> None:
+    seed = next(
+        candidate
+        for candidate in range(100)
+        if _make_world(candidate)["questions"]["4"]["family_id"] == "PAPER-F06"
+    )
+    scenario, rendered, questions = _bundle(adapter, seed)
+    q3, q4 = questions[2], questions[3]
+    assert "841" not in q3.condition
+    assert q3.canonical_answer == "840"
+    assert "1189 × 841 мм" in rendered.shared_context
+    assert "420" not in q4.condition and "594" not in q4.condition
+    assert q4.canonical_answer == "1,7"
+    assert "A3: 420 × 297 мм" in rendered.shared_context
+
+    changed = replace(
+        rendered,
+        shared_context=rendered.shared_context.replace("1189 × 841", "1189 × 840", 1),
+    )
+    with pytest.raises(ValueError, match="PAPER"):
+        adapter.independent_oracle.validate_question(scenario, q3, changed)
+
+
+def test_f04_and_f07_derive_dimensions_from_visible_shared_table(adapter) -> None:
+    seed = next(
+        candidate
+        for candidate in range(100)
+        if _make_world(candidate)["questions"]["4"]["family_id"] == "PAPER-F04"
+    )
+    scenario, rendered, questions = _bundle(adapter, seed)
+    q4, q5 = questions[3], questions[4]
+    assert "A3" in q4.condition and "420" not in q4.condition and "297" not in q4.condition
+    assert "A4" in q5.condition and "A3" in q5.condition
+    assert "420" not in q5.condition and "297" not in q5.condition
+    assert q5.math_model["old_pt"] in (10, 15)
+    assert "A3: 420 × 297 мм" in rendered.shared_context
+    assert "A4: 297 × 210 мм" in rendered.shared_context
+
+    changed = replace(
+        rendered,
+        shared_context=rendered.shared_context.replace("297 × 210", "297 × 211", 1),
+    )
+    with pytest.raises(ValueError, match="PAPER"):
+        adapter.independent_oracle.validate_question(scenario, q5, changed)
+
+
 def test_research_positive_vectors_recompute_exact_answers(adapter) -> None:
     # Cases are the ten positive examples in STORIES/PAPER/ORACLE_TEST_VECTORS.json.
     rows_408268 = (("A4", 297, 210), ("A3", 420, 297), ("A0", 1189, 841), ("A1", 841, 594))
@@ -154,7 +200,7 @@ def test_oracle_rejects_mutated_answer_condition_hint_or_solution(adapter, field
     question = questions[2]
     mutation = {
         "canonical_answer": "999",
-        "condition": question.condition.replace("мм", "см", 1),
+        "condition": question.condition.replace("A0", "A1", 1),
         "hints": ("Готовый ответ: 999",),
         "solution_steps": ("Подменённое решение: ответ 999",),
     }[field]
@@ -281,10 +327,10 @@ def test_seed_space_has_expected_structural_capacity() -> None:
         fingerprints["PAPER-F07"].add(repr((q5["source_index"], q5["target_index"], q5["old_pt"])))
 
     assert len(fingerprints["PAPER-F01"]) >= 200
-    assert len(fingerprints["PAPER-F07"]) >= 200
+    assert len(fingerprints["PAPER-F07"]) == 2
     assert len(fingerprints["PAPER-F02"]) <= 21
     assert len(fingerprints["PAPER-F03"]) <= 2
-    assert len(fingerprints["PAPER-F04"]) <= 7
+    assert len(fingerprints["PAPER-F04"]) == 1
     assert len(fingerprints["PAPER-F06"]) == 1
 
 

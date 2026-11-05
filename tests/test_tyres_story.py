@@ -72,10 +72,17 @@ def test_seed_is_deterministic_snapshot_roundtrip_and_asset_restores_after_rebui
 
 
 def test_all_enabled_families_pass_250_seed_quality_and_uniqueness_gate() -> None:
-    adapter = build_adapter(enabled_families=frozenset({
-        "TYRES-TABLE-EXTREME", "TYRES-SIDEWALL", "TYRES-DIAMETER",
-        "TYRES-RADIUS-DELTA", "TYRES-PERCENT-ROTATION",
-    }))
+    adapter = build_adapter(
+        enabled_families=frozenset(
+            {
+                "TYRES-TABLE-EXTREME",
+                "TYRES-SIDEWALL",
+                "TYRES-DIAMETER",
+                "TYRES-RADIUS-DELTA",
+                "TYRES-PERCENT-ROTATION",
+            }
+        )
+    )
     registry = FamilyRegistry((adapter,))
     assert registry.available_stories(PracticeMode.FULL) == ("TYRES",)
     assert registry.available_positions("TYRES") == (1, 2, 3, 4, 5)
@@ -127,10 +134,17 @@ def test_all_enabled_families_pass_250_seed_quality_and_uniqueness_gate() -> Non
 
 
 def test_disabled_diameter_delta_family_is_not_selected_by_any_mode() -> None:
-    adapter = build_adapter(enabled_families=frozenset({
-        "TYRES-TABLE-EXTREME", "TYRES-SIDEWALL", "TYRES-DIAMETER",
-        "TYRES-RADIUS-DELTA", "TYRES-PERCENT-ROTATION",
-    }))
+    adapter = build_adapter(
+        enabled_families=frozenset(
+            {
+                "TYRES-TABLE-EXTREME",
+                "TYRES-SIDEWALL",
+                "TYRES-DIAMETER",
+                "TYRES-RADIUS-DELTA",
+                "TYRES-PERCENT-ROTATION",
+            }
+        )
+    )
     delta = next(
         item for item in adapter.family_registry if item.family_id == "TYRES-DIAMETER-DELTA"
     )
@@ -177,7 +191,8 @@ def test_researched_fipi_2026_full_kit_and_reshu_source_answer_vectors() -> None
     scenario = replace(scenario, context=context)
     rendered = adapter.renderer.render_scenario(scenario)
     adapter.independent_oracle.validate_scenario(scenario)
-    expected_answers = ("195", "107.25", "549.8", "2.75", "1.4")
+    # 407953 confirms minimum-width query; read minimum directly from this table.
+    expected_answers = ("175", "107.25", "549.8", "2.75", "1.4")
     questions = tuple(
         adapter.question_builder.build_question(scenario, position) for position in range(1, 6)
     )
@@ -282,3 +297,30 @@ def test_story_module_is_discovered_without_registering_number_in_training_menu(
     from app.bot.trainings import BY_NUMBER
 
     assert not any(number in BY_NUMBER for number in range(1, 6))
+
+
+def test_407953_minimum_is_read_from_requested_table_column() -> None:
+    adapter = build_adapter()
+    scenario = adapter.generator.generate_scenario(2026)
+    context = dict(scenario.context)
+    # Original 407953 table: the requested rim is the third, not the middle column.
+    context.update(
+        table_rims=[13, 14, 15],
+        table_target_rim=15,
+        table=[
+            {"width_mm": 165, "aspect_ratios_by_rim": [[70], [65], []]},
+            {"width_mm": 175, "aspect_ratios_by_rim": [[65], [65, 60], []]},
+            {"width_mm": 185, "aspect_ratios_by_rim": [[65, 60], [60], [55]]},
+            {"width_mm": 195, "aspect_ratios_by_rim": [[60], [55], [55, 50]]},
+        ],
+    )
+    scenario = replace(scenario, context=context)
+    rendered = adapter.renderer.render_scenario(scenario)
+    question = adapter.question_builder.build_question(scenario, 1)
+    assert "наименьшей ширины" in question.condition
+    assert question.canonical_answer == "185"
+    adapter.independent_oracle.validate_question(scenario, question, rendered)
+    with pytest.raises(ValueError):
+        adapter.independent_oracle.validate_question(
+            scenario, replace(question, canonical_answer="195"), rendered
+        )

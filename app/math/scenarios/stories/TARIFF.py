@@ -35,7 +35,7 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-GENERATOR_VERSION = "tariff-v1"
+GENERATOR_VERSION = "tariff-v2"
 MATRIX_VERSION = "tariff-compatible-71946582-v1"
 WORLD_VERSION = "tariff-world-v1"
 MONTHS = (
@@ -381,8 +381,6 @@ class TariffRenderer:
             f"{_rubles(_as_int(tariff['data_pack_price_cents']))} руб. за {_as_int(tariff['data_pack_quarters']) / 4:g} ГБ. "  # noqa: E501
             f"За год отправлено {tariff['annual_sms']} SMS.\n"
             "Таблица вариантов домашнего интернета приведена в задании №5.\n"
-            f"Минуты по месяцам: {', '.join(str(v) for v in minutes)}.\n"
-            f"Мобильный интернет по месяцам: {', '.join(f'{_as_int(v) / 4:g}' for v in gb)} ГБ.\n"
             "Месяцы указаны в календарном порядке с января по декабрь."
         )
         assets: list[ScenarioAssetRef] = []
@@ -546,7 +544,14 @@ class TariffQuestionBuilder:
             for item, cost in zip(plans, costs, strict=True):
                 if not isinstance(item, Mapping):
                     raise ValueError("Invalid ISP plan")
-                plan_steps.append(f"{item['name']}: {_rubles(cost)} руб.")
+                included = _as_int(item["included_mb"])
+                excess = max(0, usage - included)
+                fee = _rubles(_as_int(item["monthly_fee_cents"]))
+                rate = _rubles(_as_int(item["per_mb_cents"]))
+                plan_steps.append(
+                    f"{item['name']}: сверх пакета {excess} МБ; "
+                    f"{fee} + {excess} · {rate} = {_rubles(cost)} руб."
+                )
             steps = tuple(plan_steps) + (f"Наименьшая плата — {_rubles(min(costs))} руб.",)
             model = {"usage_mb": usage}
         else:
@@ -759,17 +764,11 @@ class TariffOracle:
                 for a, e in zip(point, exp, strict=True)
             ):
                 raise ValueError("Graph lines do not connect their displayed monthly points")
-        visible_min = re.search(r"Минуты по месяцам: ([\d, ]+)\.", rendered.shared_context)
-        visible_gb = re.search(
-            r"Мобильный интернет по месяцам: ([\d., ]+) ГБ\.", rendered.shared_context
-        )
-        if visible_min is None or [_as_int(x) for x in visible_min.group(1).split(", ")] != minutes:
-            raise ValueError("Visible minute context table differs from the chart")
         if (
-            visible_gb is None
-            or [_gb_quarters(x) for x in visible_gb.group(1).split(", ")] != gb_quarters
+            "Минуты по месяцам:" in rendered.shared_context
+            or "Мобильный интернет по месяцам:" in rendered.shared_context
         ):
-            raise ValueError("Visible internet context table differs from the chart")
+            raise ValueError("Monthly values must be read from the graph, not a text answer table")
         return minutes, gb_quarters
 
     @staticmethod

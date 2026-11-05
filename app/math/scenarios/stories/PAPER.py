@@ -32,7 +32,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "paper-v1"
+GENERATOR_VERSION = "paper-v3"
 WORLD_VERSION = "paper-world-v1"
 ANSWER_POLICY_VERSION = "1"
 
@@ -247,7 +247,8 @@ def _font_answer(old_pt: int, source_long: int, target_long: int) -> str:
 
 def _make_world(seed: int) -> dict[str, object]:
     rng = Random(seed ^ 0x5041504552)
-    selected_formats = rng.sample(range(7), 4)
+    # The common table supplies the dimensions needed by positions 3 and 4.
+    selected_formats = [0, 3, 4, *rng.sample((1, 2, 5, 6), 1)]
     row_formats = selected_formats.copy()
     rng.shuffle(row_formats)
     rows = [
@@ -259,15 +260,11 @@ def _make_world(seed: int) -> dict[str, object]:
 
     source_index = rng.randrange(6)
     target_index = rng.randrange(source_index + 1, 7)
-    round_format, round_side, round_multiple = rng.choice(((0, "short", 10), (7, "long", 5)))
+    round_format, round_side, round_multiple = (0, "short", 10)
     ratio_kind = rng.choice(("PAPER-F04", "PAPER-F06"))
-    ratio_index = rng.randrange(7) if ratio_kind == "PAPER-F04" else 2
-    pair_start = rng.randrange(7)
-    if rng.randrange(2):
-        font_source, font_target = pair_start, pair_start + 1
-    else:
-        font_source, font_target = pair_start + 1, pair_start
-    font_old_pt = rng.randrange(8, 33)
+    ratio_index = 3 if ratio_kind == "PAPER-F04" else 2
+    font_source, font_target = 4, 3
+    font_old_pt = rng.choice((10, 15))
 
     return {
         "seed": seed,
@@ -389,7 +386,12 @@ def _build_mapping_question(
         answer,
         "paper.mapping_four",
         {"target_order": list(order), "rows": [list(row) for row in rows]},
-        tuple(f"В строке {row_by_format[label]} указаны размеры {label}." for label in order)
+        ("Площадь A0 близка к 1 000 000 мм². У каждого следующего формата "
+         "площадь примерно вдвое меньше.",)
+        + tuple(
+            f"Строка {index}: {length} × {width} = {length * width} мм², это формат {label}."
+            for index, (label, length, width) in enumerate(rows, 1)
+        )
         + (f"В заданном порядке номера строк образуют код {answer}.",),
     )
 
@@ -455,18 +457,15 @@ def _build_count_question(scenario: ScenarioDraft, model: Mapping[str, object]) 
 def _build_rounding_question(scenario: ScenarioDraft, model: Mapping[str, object]) -> QuestionDraft:
     index, multiple = _get_int(model, "format_index"), _get_int(model, "multiple")
     side = model.get("side")
-    if side not in ("short", "long") or (index, side, multiple) not in (
-        (0, "short", 10),
-        (7, "long", 5),
-    ):
+    rows = _get_rows(scenario.context)
+    a0 = next((row for row in rows if row[0] == "A0"), None)
+    if (index, side, multiple) != (0, "short", 10) or a0 is None:
         raise ValueError("PAPER rounding parameters are outside the individually checked examples")
-    long_mm, short_mm = DIMENSIONS_MM[index]
-    exact_value = short_mm if side == "short" else long_mm
+    exact_value = a0[2]
     answer = str(_round_multiple_half_up(exact_value, multiple))
-    side_label = "короткой" if side == "short" else "длинной"
     condition = (
-        f"Длина {side_label} стороны листа формата A{index} равна {exact_value} мм. "
-        f"Округлите эту длину до ближайшего числа, кратного {multiple}."
+        f"Найдите ширину листа бумаги формата A0. Ответ дайте в миллиметрах и округлите "
+        f"до ближайшего целого числа, кратного {multiple}."
     )
     return _new_question(
         scenario,
@@ -477,8 +476,8 @@ def _build_rounding_question(scenario: ScenarioDraft, model: Mapping[str, object
         "paper.rounded_mm",
         {"format_index": index, "side": side, "value_mm": exact_value, "multiple": multiple},
         (
-            f"Для A{index} указанная сторона равна {exact_value} мм.",
-            f"Округляем только в конце до кратного {multiple}: {exact_value} мм → {answer} мм.",
+            f"В общей таблице ширина листа A0 равна {exact_value} мм.",
+            f"Округляем эту ширину до кратного {multiple}: {exact_value} мм → {answer} мм.",
         ),
     )
 
@@ -486,15 +485,18 @@ def _build_rounding_question(scenario: ScenarioDraft, model: Mapping[str, object
 def _build_ratio_question(scenario: ScenarioDraft, model: Mapping[str, object]) -> QuestionDraft:
     family_id = model.get("family_id")
     index = _get_int(model, "format_index")
-    long_mm, short_mm = DIMENSIONS_MM[index]
     if family_id == "PAPER-F04":
+        a3 = next((row for row in _get_rows(scenario.context) if row[0] == "A3"), None)
+        if index != 3 or a3 is None or a3[1:] != DIMENSIONS_MM[3]:
+            raise ValueError("PAPER F04 requires verified A3 dimensions in the shared table")
+        long_mm, short_mm = a3[1], a3[2]
         answer = _round_ratio_tenths(short_mm, long_mm)
         condition = (
-            f"У листа A{index} короткая сторона равна {short_mm} мм, "
-            f"длинная — {long_mm} мм. Найдите отношение короткой стороны к длинной "
-            "и округлите результат до десятых."
+            "Найдите отношение длины меньшей стороны листа формата A3 к большей. "
+            "Ответ округлите до десятых."
         )
         solution = (
+            f"В общей таблице A3 имеет размеры {long_mm} × {short_mm} мм.",
             f"Делим короткую сторону на длинную: {short_mm} : {long_mm} ≈ "
             f"{_decimal_round_ratio_tenths(short_mm, long_mm)}.",
             f"Ответ после округления до десятых: {answer}.",
@@ -517,18 +519,24 @@ def _build_ratio_question(scenario: ScenarioDraft, model: Mapping[str, object]) 
     if family_id == "PAPER-F06":
         index = 2
         long_mm, short_mm = DIMENSIONS_MM[index]
+        a3 = next((row for row in _get_rows(scenario.context) if row[0] == "A3"), None)
+        if a3 is None or a3[1:] != DIMENSIONS_MM[3]:
+            raise ValueError("PAPER F06 requires verified A3 dimensions in the shared table")
+        short_mm, long_mm = a3[1], 2 * a3[2]
         square_sum = long_mm**2 + short_mm**2
         answer = _decimal_round_sqrt_ratio_tenths(square_sum, short_mm)
         condition = (
-            f"У листа A2 стороны равны {long_mm} мм и {short_mm} мм. "
-            "Найдите отношение диагонали к короткой стороне, округлив до десятых."
+            "Найдите отношение длины диагонали листа формата A2 к его меньшей стороне. "
+            "Ответ округлите до десятых."
         )
         diagonal = Decimal(square_sum).sqrt()
         diagonal_value = diagonal.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
-        solution = (
+        solution_steps: tuple[str, ...] = (
+            f"В общей таблице A3 равен {a3[1]} × {a3[2]} мм. Поэтому меньшая сторона A2 равна "
+            f"{short_mm} мм, а большая — 2 × {a3[2]} = {long_mm} мм.",
             f"По теореме Пифагора диагональ равна √({long_mm}² + {short_mm}²) ≈ "
             f"{str(diagonal_value).replace('.', ',')} мм.",
-            f"Делим диагональ на короткую сторону: ответ {answer}.",
+            f"Делим диагональ на меньшую сторону A2 ({short_mm} мм): ответ {answer}.",
         )
         return _new_question(
             scenario,
@@ -543,7 +551,7 @@ def _build_ratio_question(scenario: ScenarioDraft, model: Mapping[str, object]) 
                 "short_mm": short_mm,
                 "long_mm": long_mm,
             },
-            solution,
+            solution_steps,
         )
     raise ValueError("Unsupported PAPER position 4 family")
 
@@ -552,21 +560,29 @@ def _build_font_question(scenario: ScenarioDraft, model: Mapping[str, object]) -
     source_index = _get_int(model, "source_index")
     target_index = _get_int(model, "target_index")
     old_pt = _get_int(model, "old_pt")
-    if not (0 <= source_index <= 7 and 0 <= target_index <= 7):
-        raise ValueError("PAPER font formats are outside A0..A7")
-    if abs(source_index - target_index) != 1 or not 8 <= old_pt <= 32:
-        raise ValueError("PAPER font scaling requires adjacent formats and an 8..32 pt analogue")
-    source_long = DIMENSIONS_MM[source_index][0]
-    target_long = DIMENSIONS_MM[target_index][0]
+    rows = _get_rows(scenario.context)
+    a4 = next((row for row in rows if row[0] == "A4"), None)
+    a3 = next((row for row in rows if row[0] == "A3"), None)
+    if (
+        (source_index, target_index) != (4, 3)
+        or old_pt not in (10, 15)
+        or a4 is None
+        or a3 is None
+        or a4[1:] != DIMENSIONS_MM[4]
+        or a3[1:] != DIMENSIONS_MM[3]
+    ):
+        raise ValueError("PAPER font scaling requires verified A4→A3 dimensions and point size")
+    source_long, target_long = a4[1], a3[1]
     answer = _font_answer(old_pt, source_long, target_long)
     condition = (
         f"Размер шрифта на листе A{source_index} равен {old_pt} пт. "
         f"После изменения формата листа на A{target_index} размер шрифта меняют "
-        f"пропорционально длинной стороне ({source_long} мм → {target_long} мм). "
+        "пропорционально соответствующей стороне формата. "
         "Округлите новый размер до целого числа пунктов."
     )
     exact = Decimal(old_pt * target_long) / Decimal(source_long)
     solution = (
+        f"В общей таблице длинные стороны A4 и A3 равны {source_long} и {target_long} мм. "
         f"При переходе A{source_index} → A{target_index} масштаб равен "
         f"{target_long}/{source_long}.",
         f"Новый размер: {old_pt} · {target_long}/{source_long} ≈ "
@@ -674,6 +690,8 @@ class PaperOracle:
         labels = [label for label, _, _ in rows]
         if len(rows) != 4 or len(set(labels)) != 4:
             raise ValueError("PAPER table must contain four distinct format rows")
+        if not {"A0", "A3", "A4"}.issubset(labels):
+            raise ValueError("PAPER common table must include the A0, A3, and A4 source inputs")
         for label, long_mm, short_mm in rows:
             match = re.fullmatch(r"A([0-7])", label)
             if match is None or DIMENSIONS_MM[int(match.group(1))] != (long_mm, short_mm):
@@ -764,18 +782,18 @@ def _validate_question_parameters(questions: Mapping[str, object]) -> None:
     if (r_index, q3.get("side"), multiple) not in ((0, "short", 10), (7, "long", 5)):
         raise ValueError("PAPER question 3 uses an unverified rounded-dimension combination")
     family_id, ratio_index = q4.get("family_id"), _get_int(q4, "format_index")
-    if family_id == "PAPER-F04" and not 0 <= ratio_index <= 6:
-        raise ValueError("PAPER side-ratio question uses an unsupported format")
+    if family_id == "PAPER-F04" and ratio_index != 3:
+        raise ValueError("PAPER side-ratio question must use the verified A3 case")
     if family_id == "PAPER-F06" and ratio_index != 2:
         raise ValueError("PAPER diagonal-ratio question must use the verified A2 case")
     if family_id not in ("PAPER-F04", "PAPER-F06"):
         raise ValueError("PAPER question 4 uses a non-candidate family")
     f_source, f_target = _get_int(q5, "source_index"), _get_int(q5, "target_index")
     font = _get_int(q5, "old_pt")
-    if not 0 <= f_source <= 7 or not 0 <= f_target <= 7 or abs(f_source - f_target) != 1:
-        raise ValueError("PAPER font formats must be adjacent and within A0..A7")
-    if not 8 <= font <= 32:
-        raise ValueError("PAPER font point size is outside the documented analogue range")
+    if (f_source, f_target) != (4, 3):
+        raise ValueError("PAPER font formats must match the verified A4-to-A3 direction")
+    if font not in (10, 15):
+        raise ValueError("PAPER font point size is outside the individually verified examples")
 
 
 def _validate_rendered_context(scenario: ScenarioDraft, rendered: RenderedScenario) -> None:
@@ -851,19 +869,16 @@ def _independent_visible_answer(
         return str(sheets), {"source_index": i, "target_index": j}
     if position == 3:
         match = re.search(
-            r"Длина (короткой|длинной) стороны листа формата A([07]) равна (\d+) мм\. "
-            r"Округлите эту длину до ближайшего числа, кратного (5|10)\.",
+            r"Найдите ширину листа бумаги формата A0\. Ответ дайте в миллиметрах и округлите "
+            r"до ближайшего целого числа, кратного (10)\.",
             expected.condition,
         )
         if match is None:
             raise ValueError("PAPER question 3 does not match a verified dimension-rounding form")
-        side_label, raw_index, raw_value, raw_multiple = match.groups()
-        index, value, multiple = int(raw_index), int(raw_value), int(raw_multiple)
-        side = "short" if side_label == "короткой" else "long"
-        long_mm, short_mm = DIMENSIONS_MM[index]
-        actual = short_mm if side == "short" else long_mm
-        if actual != value or (index, side, multiple) not in ((0, "short", 10), (7, "long", 5)):
-            raise ValueError("PAPER question 3 has mutated dimension, side, or rounding multiple")
+        a0 = next((row for row in _parse_visible_rows(rendered) if row[0] == "A0"), None)
+        if a0 is None:
+            raise ValueError("PAPER question 3 has no visible A0 width in the common table")
+        index, value, multiple, side = 0, a0[2], int(match.group(1)), "short"
         # Independent nearest-multiple check by exact integer distance.
         lower = (value // multiple) * multiple
         upper = lower + multiple
@@ -875,16 +890,15 @@ def _independent_visible_answer(
             "multiple": multiple,
         }
     if position == 4:
-        side_match = re.search(
-            r"У листа A([0-6]) короткая сторона равна (\d+) мм, длинная — (\d+) мм\. "
-            r"Найдите отношение короткой стороны к длинной и округлите результат до десятых\.",
-            expected.condition,
+        f04_condition = (
+            "Найдите отношение длины меньшей стороны листа формата A3 к большей. "
+            "Ответ округлите до десятых."
         )
-        if side_match is not None:
-            raw_index, raw_short, raw_long = side_match.groups()
-            index, short_mm, long_mm = int(raw_index), int(raw_short), int(raw_long)
-            if DIMENSIONS_MM[index] != (long_mm, short_mm):
-                raise ValueError("PAPER side-ratio condition has mutated labels or dimensions")
+        if expected.condition == f04_condition:
+            a3 = next((row for row in _parse_visible_rows(rendered) if row[0] == "A3"), None)
+            if a3 is None or a3[1:] != DIMENSIONS_MM[3]:
+                raise ValueError("PAPER side-ratio question has no valid visible A3 dimensions")
+            index, long_mm, short_mm = 3, a3[1], a3[2]
             answer = _decimal_round_ratio_tenths(short_mm, long_mm)
             return answer, {
                 "family_id": "PAPER-F04",
@@ -892,17 +906,15 @@ def _independent_visible_answer(
                 "short_mm": short_mm,
                 "long_mm": long_mm,
             }
-        diagonal_match = re.search(
-            r"У листа A2 стороны равны (\d+) мм и (\d+) мм\. "
-            r"Найдите отношение диагонали к короткой стороне, округлив до десятых\.",
-            expected.condition,
-        )
-        if diagonal_match is None:
+        if expected.condition != (
+            "Найдите отношение длины диагонали листа формата A2 к его меньшей стороне. "
+            "Ответ округлите до десятых."
+        ):
             raise ValueError("PAPER diagonal-ratio condition has mutated format or direction")
-        raw_long, raw_short = diagonal_match.groups()
-        long_mm, short_mm = int(raw_long), int(raw_short)
-        if DIMENSIONS_MM[2] != (long_mm, short_mm):
-            raise ValueError("PAPER diagonal-ratio condition has mutated dimensions")
+        a3 = next((row for row in _parse_visible_rows(rendered) if row[0] == "A3"), None)
+        if a3 is None or a3[1:] != DIMENSIONS_MM[3]:
+            raise ValueError("PAPER diagonal-ratio question has no valid visible A3 dimensions")
+        long_mm, short_mm = 2 * a3[2], a3[1]
         square_sum = long_mm**2 + short_mm**2
         answer = _round_sqrt_ratio_tenths(square_sum, short_mm)
         return answer, {
@@ -913,24 +925,22 @@ def _independent_visible_answer(
         }
     if position == 5:
         match = re.search(
-            r"Размер шрифта на листе A([0-7]) равен (\d+) пт\. "
-            r"После изменения формата листа на A([0-7]) размер шрифта меняют "
-            r"пропорционально длинной стороне \((\d+) мм → (\d+) мм\)\. "
+            r"Размер шрифта на листе A4 равен (10|15) пт\. "
+            r"После изменения формата листа на A3 размер шрифта меняют "
+            r"пропорционально соответствующей стороне формата\. "
             r"Округлите новый размер до целого числа пунктов\.",
             expected.condition,
         )
         if match is None:
             raise ValueError("PAPER font condition is missing its formats, units, or rounding rule")
-        raw_source, raw_pt, raw_target, raw_source_mm, raw_target_mm = match.groups()
-        source_index, old_pt, target_index = int(raw_source), int(raw_pt), int(raw_target)
-        source_long, target_long = DIMENSIONS_MM[source_index][0], DIMENSIONS_MM[target_index][0]
-        if (
-            source_long != int(raw_source_mm)
-            or target_long != int(raw_target_mm)
-            or abs(source_index - target_index) != 1
-            or not 8 <= old_pt <= 32
-        ):
-            raise ValueError("PAPER font condition has mutated dimensions, direction, or size")
+        old_pt = int(match.group(1))
+        rows = _parse_visible_rows(rendered)
+        a4 = next((row for row in rows if row[0] == "A4"), None)
+        a3 = next((row for row in rows if row[0] == "A3"), None)
+        if a4 is None or a3 is None or a4[1:] != DIMENSIONS_MM[4] or a3[1:] != DIMENSIONS_MM[3]:
+            raise ValueError("PAPER font condition has no valid visible A4/A3 dimensions")
+        source_index, target_index = 4, 3
+        source_long, target_long = a4[1], a3[1]
         # Independent exact half-up rounding using quotient/remainder.
         numerator = old_pt * target_long
         quotient, remainder = divmod(numerator, source_long)

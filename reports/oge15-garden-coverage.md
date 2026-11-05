@@ -1,5 +1,11 @@
 # GARDEN adapter coverage and QA
 
+Исторический отчёт первоначальной реализации (garden-sosnovka-1.1); прежние числовые
+пробы и версии изображений ниже не описывают текущую V2. Актуальная
+структура и ограничения — в [матрице](OGE15_V2_FAMILY_REVIEW.md),
+[приёмке](OGE15_V2_SOURCE_ACCEPTANCE.md) и [пробе 64 seed](OGE15_V2_DIVERSITY.md).
+
+
 Research source: `OGE_1_5_ALL_STORIES_RESEARCH_V1.zip`, `STORIES/GARDEN/`.
 This adapter implements the visually checked complete Sosnovka block only.
 It does not claim comprehensive coverage of OGE plot tasks.

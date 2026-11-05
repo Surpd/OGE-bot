@@ -26,7 +26,7 @@ from app.math.scenario_engine import (
 )
 
 STORY_CODE = "TYRES"
-GENERATOR_VERSION = "tyres-v1"
+GENERATOR_VERSION = "tyres-v2"
 COMPATIBILITY_MATRIX_VERSION = "fipi-2026-tyres-v1"
 NUMBER_POLICY_ID = "oge.numeric-decimal"
 NUMBER_POLICY_VERSION = "1"
@@ -38,6 +38,7 @@ _TASK_URLS = {
     "408171": "https://math-oge.sdamgia.ru/problem?id=408171",
     "408172": "https://math-oge.sdamgia.ru/problem?id=408172",
     "408173": "https://math-oge.sdamgia.ru/problem?id=408173",
+    "409262": "https://math-oge.sdamgia.ru/problem?id=409262",
     "480721": "https://math-oge.sdamgia.ru/problem?id=480721",
 }
 _TIRE_PATTERN = re.compile(r"(?<!\d)(\d{3})/(\d{2})\s+R(\d{2})(?!\d)")
@@ -308,6 +309,7 @@ def _generate_context(seed: int) -> dict[str, object]:
             "407953",
             "462128",
             "408172",
+            "409262",
             "408173",
         ],
     }
@@ -322,7 +324,9 @@ class TyresGenerator:
             generator_version=GENERATOR_VERSION,
             context=cast(Mapping[str, object], context),  # type: ignore[arg-type]
             compatibility_matrix_version=COMPATIBILITY_MATRIX_VERSION,
-            provenance=tuple(_TASK_URLS[item] for item in ("407953", "462128", "408172", "408173"))
+            provenance=tuple(
+                _TASK_URLS[item] for item in ("407953", "462128", "408172", "409262", "408173")
+            )
             + (_FIPI_2026_URL,),
         )
 
@@ -350,21 +354,24 @@ class TyresQuestionBuilder:
 
         if position == 1:
             condition = (
-                "Шины какой наибольшей ширины можно устанавливать на автомобиль, "
+                "Шины какой наименьшей ширины можно устанавливать на автомобиль, "
                 f"если диаметр диска равен {data['table_target_rim']} дюймам? "
                 "Ответ дайте в миллиметрах."
             )
-            maximum = max(width for width, cells in rows if cells[1])
-            answer = str(maximum)
+            column = _int_tuple(data["table_rims"], "Table rim columns", 3).index(
+                _integer(data["table_target_rim"], "Requested rim diameter")
+            )
+            minimum = min(width for width, cells in rows if cells[column])
+            answer = str(minimum)
             hints = (
                 "Найдите в таблице столбец с указанным диаметром диска.",
-                "Среди непустых ячеек этого столбца выберите строку с наибольшей шириной.",
+                "Среди непустых ячеек этого столбца выберите строку с наименьшей шириной.",
             )
             steps = (
                 f"В столбце {data['table_target_rim']} дюйма сравниваем ширины из непустых ячеек.",
-                f"Наибольшая ширина равна {answer} мм.",
+                f"Наименьшая ширина равна {answer} мм.",
             )
-            model: dict[str, object] = {"rim": data["table_target_rim"], "extreme": "max"}
+            model: dict[str, object] = {"rim": data["table_target_rim"], "extreme": "min"}
             family_id = "TYRES-TABLE-EXTREME"
         elif position == 2:
             condition = (
@@ -600,10 +607,10 @@ class TyresOracle:
             rim_match = re.search(r"диаметр диска равен (\d+) дюймам", question.condition)
             if (
                 rim_match is None
-                or "наибольшей ширины" not in question.condition
+                or "наименьшей ширины" not in question.condition
                 or "миллиметрах" not in question.condition
             ):
-                raise ValueError("Question 1 must ask for the largest width at a stated rim")
+                raise ValueError("Question 1 must ask for the smallest width at a stated rim")
             rim = int(rim_match.group(1))
             header_line = next(
                 line
@@ -625,8 +632,8 @@ class TyresOracle:
                     candidates.append(width)
             if len(candidates) < 2:
                 raise ValueError("Question 1 needs at least two permitted widths")
-            answer = str(max(candidates))
-            if question.math_model.get("rim") != rim or question.math_model.get("extreme") != "max":
+            answer = str(min(candidates))
+            if question.math_model.get("rim") != rim or question.math_model.get("extreme") != "min":
                 raise ValueError("Question 1 math model disagrees with its visible table query")
         elif question.position == 2:
             marking = _parse_marking(question.condition)
@@ -755,7 +762,7 @@ _FAMILIES = (
         NUMBER_POLICY_ID,
         NUMBER_POLICY_VERSION,
         False,
-        ("FIPI-2026-TYRES-4",),
+        ("FIPI-2026-TYRES-4", "409262"),
     ),
     FamilyRegistration(
         "TYRES-PERCENT-ROTATION",
