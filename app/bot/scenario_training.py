@@ -240,6 +240,9 @@ async def render_session(
         await message.answer(snapshot.shared_context)
         adapter = public_registry().adapter(snapshot.story_code)
         for asset in snapshot.assets:
+            if snapshot.story_code in {"STOVE", "FLAT"} and asset.content_type == "image/svg+xml":
+                # These adapters store an SVG companion for each PNG.
+                continue
             data = restore_asset_bytes(adapter.renderer, snapshot, asset)
             extension = "png" if asset.content_type == "image/png" else "svg"
             upload = BufferedInputFile(data, filename=f"scenario.{extension}")
@@ -255,13 +258,6 @@ async def render_session(
     telegram_user_id = user_id_override or (
         message.from_user.id if message.from_user else 0
     )
-    if session.question_status == "active":
-        prompt = await message.answer(
-            f"{story} · {progress}\n\n{question.condition}\n\nНапишите ответ сообщением в чат."
-        )
-        await store.set_condition_message(
-            telegram_user_id, session.session_id, session.current_position, prompt.message_id
-        )
     rows: list[list[InlineKeyboardButton]] = []
     callback_prefix = (
         f"oge15:act:{session.session_id}:{session.current_position}:{session.navigation_revision}"
@@ -280,11 +276,19 @@ async def render_session(
         else:
             rows.append([_button("Завершить", f"{callback_prefix}:next")])
     rows.append([_button("⏸ Пауза", f"{callback_prefix}:pause")])
-    controls = await message.answer(
-        f"{story} · {progress} · попыток: {session.attempt_count}/2 "
-        f"· подсказок: {session.hints_used}",
-        reply_markup=_keyboard(rows),
-    )
+    title = f"{story} · {progress}"
+    if session.question_status == "active":
+        body = (
+            f"{title}\n\n{question.condition}\n\n"
+            f"Осталось попыток: {2 - session.attempt_count}. Напишите ответ в чат."
+        )
+    else:
+        body = f"{title} · вопрос завершён"
+    controls = await message.answer(body, reply_markup=_keyboard(rows))
+    if session.question_status == "active":
+        await store.set_condition_message(
+            telegram_user_id, session.session_id, session.current_position, controls.message_id
+        )
     await store.set_control_message(
         telegram_user_id,
         session.session_id,
@@ -416,7 +420,7 @@ async def answer_message(
     elif updated.question_status == "failed":
         await message.answer(f"Попытки закончились. Ответ: {question.canonical_answer}.")
     else:
-        await message.answer("Неверно. Попробуйте ещё раз.")
+        await message.answer("Неверно. Осталась одна попытка.")
         return
     await render_session(message, store, updated, show_assets=False)
 

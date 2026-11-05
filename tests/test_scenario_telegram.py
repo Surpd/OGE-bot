@@ -210,7 +210,7 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         assert session.snapshot.story_code == "TYRES"
         assert session.snapshot.seed == session.snapshot.questions[0].scenario_seed
         assert session.prompt_message_id is not None
-        assert session.control_message_id is not None
+        assert session.control_message_id == session.prompt_message_id
 
         controls = max(
             (item for item in transport.messages.values() if item.reply_markup is not None),
