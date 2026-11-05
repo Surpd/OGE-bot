@@ -811,7 +811,18 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         assert await store.resume_session(user_id) == after_continue
 
         # Continue the saved PAPER run and finish early; pending positions are not skipped.
-        paper = await store.resume_paused(user_id, paper.session_id)
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=8, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "Бумага")
+        await tap(menu, "▶ Продолжить · пятёрка · №4")
+        paper = await store.resume_session(user_id)
         assert paper is not None and paper.current_position == 4
         controls = latest_control(paper)
         assert any(

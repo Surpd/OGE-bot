@@ -233,11 +233,21 @@ async def test_switchable_sessions_are_owned_by_story_mode_and_foreground_is_ato
         tyres = await store.start_session(user_id, _snapshot("TYRES"), PracticeMode.FULL, POSITIONS)
         assert tyres is not None
         assert await store.set_condition_message(user_id, tyres.session_id, 1, 101)
+        assert await store.set_control_message(user_id, tyres.session_id, 0, 111)
         assert await store.record_attempt(
             telegram_user_id=user_id, session_id=tyres.session_id, position=1,
             telegram_message_id=102, reply_to_message_id=101, raw_answer="1",
             normalized_answer="1", is_correct=True,
         ) is AttemptResult.ACCEPTED
+        assert await store.apply_callback(
+            telegram_user_id=user_id,
+            callback_query_id="switch-next-tyres-1",
+            session_id=tyres.session_id,
+            control_message_id=111,
+            expected_revision=0,
+            expected_position=1,
+            action="next",
+        )
 
         paper = await store.start_session(user_id, _snapshot("PAPER"), PracticeMode.FULL, POSITIONS)
         assert paper is not None
