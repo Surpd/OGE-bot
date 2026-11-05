@@ -289,7 +289,10 @@ async def test_switchable_sessions_are_owned_by_story_mode_and_foreground_is_ato
         assert (await store.resume_session(user_id, single.session_id)).status == "paused"
         sessions = await store.list_open_sessions(user_id)
         assert {item.session_id for item in sessions} == {
-            tyres.session_id, paper.session_id, single.session_id
+            tyres.session_id,
+            paper.session_id,
+            single.session_id,
+            *(item.session_id for item in concurrent if item is not None),
         }
         assert (await store.last_used_session(user_id)).session_id == tyres.session_id
         assert await pool.fetchval(

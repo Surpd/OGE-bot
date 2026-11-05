@@ -835,11 +835,12 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         assert terminal_card.reply_markup is None
         assert await store.resume_session(user_id, paper.session_id) is None
         paper_stats = await store.position_stats(user_id)
-        # TYRES contributes two answers and PAPER three; active #4 and pending #5
+        # TYRES contributes two issued positions and PAPER three. The concurrent
+        # GARDEN/FLAT starts each issue only #1. Active PAPER #4 and pending #5
         # remain unscored instead of becoming incorrect or skipped.
         assert paper_stats[0]["correct"] == 5
         assert paper_stats[0]["skipped"] == 0
-        assert paper_stats[0]["issued"] == 6
+        assert paper_stats[0]["issued"] == 7
         untouched = await oge15_navigation_pool.fetch(
             """SELECT position, status FROM oge15_question_progress
                WHERE session_id=$1 AND position IN (4,5) ORDER BY position""",
