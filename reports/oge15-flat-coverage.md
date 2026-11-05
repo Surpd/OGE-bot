@@ -67,5 +67,6 @@ selecting the smaller. Bathroom/pantry areas (30/20 cells) are read from the
 plan for [424901](https://math-oge.sdamgia.ru/problem?id=424901), not given in
 the question. Parquet likewise requires measuring the living room (12×13 cells).
 Labels vary; geometry does not. New full-kit counts must not be presented as
-new geometries. A production-font legacy snapshot fixture checks exact old
-PNG/SVG SHA-256 restoration separately from new-source model tests.
+new geometries. A legacy snapshot fixture checks the static SVG digest; the frozen c2570e9
+PNG renderer separately verifies byte-identical restoration in the same Pillow
+runtime, avoiding an invalid Windows-wheel/Linux-wheel digest comparison.

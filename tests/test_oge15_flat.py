@@ -268,7 +268,7 @@ def test_pre_v2_flat_snapshot_restores_identical_assets(monkeypatch) -> None:
 
     from PIL import ImageFont
 
-    # Fixture was produced by the pre-V2 renderer with its production Linux font fallback.
+    # Use the old fallback font; platform-specific PNG codec bytes are checked below.
     truetype = ImageFont.truetype
 
     def linux_font(font, *args, **kwargs):
@@ -285,10 +285,34 @@ def test_pre_v2_flat_snapshot_restores_identical_assets(monkeypatch) -> None:
         )
     )
     assert snapshot.generator_version == "flat-grid-1.0.0"
+    import runpy
+    from dataclasses import replace
+
+    from app.math.scenario_engine import ScenarioAssetRef
+
+    # The static SVG reference is portable. PNG deflate/font wheels are not:
+    # freeze the old implementation, then demand exact old bytes in this runtime.
+    frozen = runpy.run_path(str(Path(__file__).parent / "fixtures" / "flat_v1_png.py"))
+    scenario = ScenarioDraft(
+        snapshot.story_code,
+        snapshot.seed,
+        snapshot.generator_version,
+        snapshot.context,
+        snapshot.compatibility_matrix_version,
+        snapshot.provenance,
+    )
+    old_png = frozen["Renderer"]()._png(scenario)
+    old_digest = hashlib.sha256(old_png).hexdigest()
+    print(f"FLAT c2570e9 fallback PNG SHA-256: {old_digest}")
+    assets = tuple(
+        ScenarioAssetRef(old_digest, asset.content_type, f"sha256/{old_digest}.png")
+        if asset.content_type == "image/png"
+        else asset
+        for asset in snapshot.assets
+    )
+    snapshot = replace(snapshot, assets=assets)
     for asset in snapshot.assets:
-        assert (
-            hashlib.sha256(
-                restore_asset_bytes(build_adapter().renderer, snapshot, asset)
-            ).hexdigest()
-            == asset.sha256
-        )
+        restored = restore_asset_bytes(build_adapter().renderer, snapshot, asset)
+        assert hashlib.sha256(restored).hexdigest() == asset.sha256
+        if asset.content_type == "image/png":
+            assert restored == old_png
