@@ -938,7 +938,8 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         assert await oge15_navigation_pool.fetchval(
             "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", tyres.session_id
         ) == 2
-        assert (await store.resume_session(other_id, other.session_id)).status == "paused"
+        # Switching the first user's session must not pause the second user's foreground run.
+        assert (await store.resume_session(other_id, other.session_id)).status == "active"
     finally:
         await oge15_navigation_pool.execute(
             "DELETE FROM users WHERE telegram_user_id=ANY($1::bigint[])", [user_id, user_id + 1]
