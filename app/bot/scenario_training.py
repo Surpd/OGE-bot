@@ -254,6 +254,10 @@ async def _show_data(
             "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
             "гараж ниже ворот справа, теплица внутри огорода."
         )
+    elif snapshot.story_code == "FLAT":
+        context = context.replace("Это собственная SVG/PNG схема фиксированной топологии.", "")
+        if "первая лоджия" in snapshot.questions[2].condition:
+            context += " На плане первая лоджия расположена слева."
     if shared:
         await message.answer(context)
     family = snapshot.questions[session.current_position - 1].family_id

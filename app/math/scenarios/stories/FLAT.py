@@ -51,7 +51,7 @@ ROOM_NAMES = {
     "hall": "коридор",
     "pantry": "кладовая",
     "bathroom": "санузел",
-    "loggia_1": "первая лоджия",
+    "loggia_1": "левая лоджия",
     "loggia_2": "вторая лоджия",
 }
 # Gaps are doors in shared walls; this graph never changes with seed.
