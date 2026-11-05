@@ -31,7 +31,7 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-VERSION = "garden-sosnovka-1.2"
+VERSION = "garden-sosnovka-1.3"
 POLICY_VERSION = "1"
 SOURCE_IDS = ("408405", "408413", "408424", "408432", "408438")
 FAMILIES = tuple(
@@ -143,7 +143,7 @@ def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
         ]
     )
     image = "".join(parts)
-    if ctx["world_version"] != VERSION:
+    if ctx["world_version"] not in {"garden-sosnovka-1.2", VERSION}:
         return image.encode("utf-8")
     start = image.index('<path data-role="paving"')
     end = image.index('<rect data-role="pad"', start)
@@ -206,7 +206,7 @@ class _Builder:
             condition = "Дом имеет ломаную форму по сторонам клеток плана. Найдите периметр его внешнего контура в метрах, если сторона клетки 2 м."
         elif position == 4:
             answer = str(round(sum(areas) / cast(int, c["plot_area_m2"]) * 100))
-            condition = "Площадь дома 68 м², бани 48 м², гаража 24 м² и сарая 36 м². Площадь участка 600 м². Найдите, сколько процентов площади участка занимают эти постройки. Ответ округлите до целого."
+            condition = "Найдите по плану, сколько процентов площади участка занимают дом, баня, гараж и сарай. Это четыре бежевых строения. Сторона клетки 2 м. Ответ округлите до целого."
         elif position == 5:
             heat = cast(Mapping[str, int], c["heat"])
             answer = str(heat["break_even_hours"])
@@ -226,7 +226,10 @@ class _Builder:
                 "Площадка 8 × 5 м занимает 40 м². Всего нужно 65 плиток по 1 м².",
                 f"Округляем 65 / {pack} вверх: нужно {answer} пачек."),
             3: ("Внешний контур состоит из 18 сторон клеток.", "Периметр: 18 × 2 = 36 м."),
-            4: ("Постройки занимают 68 + 48 + 24 + 36 = 176 м².",
+            4: ("Клетка занимает 4 м². На плане дом занимает 17 клеток, "
+                "баня — 12, гараж — 6, сарай — 9.",
+                "Постройки занимают (17 + 12 + 6 + 9) × 4 = 176 м².",
+                "Весь участок занимает 15 × 10 × 4 = 600 м².",
                 "176 / 600 × 100 ≈ 29,33 %. После округления получаем 29 %."),
         }
         if position == 5:
@@ -329,7 +332,7 @@ class _Oracle:
             if question.canonical_answer != "29":
                 raise ValueError("Building percentage mismatch")
             if not all(
-                value in question.condition for value in ("68", "48", "24", "36", "600", "целого")
+                value in question.condition for value in ("четыре бежевых", "2 м", "целого")
             ):
                 raise ValueError("Building areas or denominator differ from plan")
         elif question.position == 5:
@@ -430,6 +433,17 @@ class _Oracle:
             raise ValueError("Plot dimensions and displayed area are inconsistent")
         if house_area != 68 or perimeter != 36:
             raise ValueError("House polygon area/perimeter differ from the task model")
+        building_areas = [house_area]
+        for role in ("bath", "garage", "shed"):
+            building = root.find(f".//*[@data-role='{role}']")
+            if building is None:
+                raise ValueError("Missing building required for the percentage question")
+            x1, y1, x2, y2 = rectangle(building)
+            building_areas.append((x2 - x1) * (y2 - y1) / 100)
+        if tuple(building_areas) != scenario.context["building_areas_m2"]:
+            raise ValueError("Building areas do not match their visible dimensions")
+        if str(round(sum(building_areas) / plot_area * 100)) != questions[3].canonical_answer:
+            raise ValueError("Visible plan gives a different percentage")
         garden_rect = (80, 100, 200, 200)
         greenhouse_rect = (120, 130, 150, 170)
         if not (
