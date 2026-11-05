@@ -28,8 +28,8 @@ from app.math.scenario_engine import (
     ScenarioUnavailable,
     build_practice_plan,
     discover_story_registry,
-    restore_asset_bytes,
 )
+from app.math.scenarios.mobile_photos import scenario_photos
 from app.persistence.repository import Repository
 from app.persistence.scenario_repository import (
     AttemptResult,
@@ -237,19 +237,31 @@ async def render_session(
     )
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
     if show_assets:
-        await message.answer(snapshot.shared_context)
-        adapter = public_registry().adapter(snapshot.story_code)
-        for asset in snapshot.assets:
-            if snapshot.story_code in {"STOVE", "FLAT"} and asset.content_type == "image/svg+xml":
-                # These adapters store an SVG companion for each PNG.
-                continue
-            data = restore_asset_bytes(adapter.renderer, snapshot, asset)
-            extension = "png" if asset.content_type == "image/png" else "svg"
-            upload = BufferedInputFile(data, filename=f"scenario.{extension}")
-            if asset.content_type == "image/png":
-                await message.answer_photo(upload, caption=f"Общая схема · {story}")
-            else:
-                await message.answer_document(upload, caption=f"Общая схема · {story}")
+        context = snapshot.shared_context
+        if snapshot.story_code == "TYRES":
+            context = "\n".join(line for line in context.splitlines() if not line.startswith("|"))
+            context = context.replace("**", "")
+        elif snapshot.story_code == "PAPER":
+            context = context.partition("Таблица размеров")[0].rstrip()
+        elif snapshot.story_code == "TARIFF":
+            context = "\n".join(
+                line for line in context.splitlines()
+                if not line.startswith((
+                    "На графике сплошная", "Минуты по месяцам:", "Мобильный интернет по месяцам:",
+                ))
+            )
+            context += "\nМинуты и гигабайты показаны на отдельных графиках."
+        elif snapshot.story_code == "GARDEN" and snapshot.generator_version in {
+            "garden-sosnovka-1.0", "garden-sosnovka-1.1",
+        }:
+            context += (
+                "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
+                "гараж ниже ворот справа, теплица внутри огорода."
+            )
+        await message.answer(context)
+        for index, data in enumerate(scenario_photos(snapshot), 1):
+            upload = BufferedInputFile(data, filename=f"scenario-{index}.png")
+            await message.answer_photo(upload, caption=f"Данные задачи · {story}")
     progress = (
         f"Задание №{session.current_position} из 5"
         if session.mode is PracticeMode.FULL
@@ -531,7 +543,13 @@ async def handle_callback(
             return
         if action == "hint":
             q = next(q for q in updated.snapshot.questions if q.position == position)
-            await callback.message.answer(q.hints[min(updated.hints_used - 1, len(q.hints) - 1)])
+            hint = q.hints[min(updated.hints_used - 1, len(q.hints) - 1)]
+            if updated.snapshot.story_code == "TARIFF":
+                hint = hint.replace("На графике выберите сплошную линию и левую шкалу минут.",
+                                    "Откройте верхний график «Звонки, мин».")
+                hint = hint.replace("Используйте сплошную линию и левую шкалу.",
+                                    "Используйте верхний график «Звонки, мин».")
+            await callback.message.answer(hint)
         elif action == "solution":
             q = next(q for q in updated.snapshot.questions if q.position == position)
             await callback.message.answer(

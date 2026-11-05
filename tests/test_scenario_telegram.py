@@ -211,6 +211,8 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         assert session.snapshot.seed == session.snapshot.questions[0].scenario_seed
         assert session.prompt_message_id is not None
         assert session.control_message_id == session.prompt_message_id
+        assert sum(call.__api_method__ == "sendPhoto" for call in transport.calls) == 2
+        assert not any(call.__api_method__ == "sendDocument" for call in transport.calls)
 
         controls = max(
             (item for item in transport.messages.values() if item.reply_markup is not None),
