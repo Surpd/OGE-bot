@@ -60,7 +60,9 @@ def test_svg_labels_scale_and_asset_restore_are_snapshot_stable() -> None:
     asset = plan.snapshot.assets[0]
     image = restore_asset_bytes(adapter.renderer, plan.snapshot, asset)
     root = ElementTree.fromstring(image)
-    assert root.find(".//*[@data-label='greenhouse']").text == "5"
+    assert root.find(".//*[@data-label='greenhouse']").text == str(
+        plan.snapshot.context["labels"]["greenhouse"]
+    )
     assert "2 м".encode() in image and "1 м".encode() in image
     assert image == restore_asset_bytes(adapter.renderer, plan.snapshot, asset)
 
@@ -78,7 +80,7 @@ def test_independent_oracle_rejects_question_answer_mutations() -> None:
         oracle.validate_question(
             scenario,
             _Builder().build_question(scenario, 5),
-            replace(rendered, shared_context=rendered.shared_context.replace("7.84", "8.84")),
+            replace(rendered, shared_context=rendered.shared_context + "8.84"),
         )
 
 
@@ -91,7 +93,7 @@ def test_svg_mutations_for_building_scale_path_width_and_labels_are_rejected() -
     oracle = _Oracle()
     mutations = (
         (b"M120 20H200", b"M121 20H200"),
-        (b'stroke-width="10"', b'stroke-width="20"'),
+        (b'data-role="paving" x="290"', b'data-role="paving" x="289"'),
         (b'viewBox="0 0 400 300"', b'viewBox="0 0 800 600"'),
         (b'data-label="house"', b'data-label="shed"'),
     )

@@ -30,7 +30,7 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-VERSION = "garden-sosnovka-1.1"
+VERSION = "garden-sosnovka-1.2"
 POLICY_VERSION = "1"
 SOURCE_IDS = ("408405", "408413", "408424", "408432", "408438")
 FAMILIES = tuple(
@@ -54,25 +54,24 @@ def _world(seed: int) -> dict[str, JsonValue]:
     electric_hourly = 2058
     premium = (electric_hourly - gas_hourly) * hours // 100
     base = 29_000 if seed == 0 else 29_000 + rng.randrange(0, 100) * 100
+    roles = ("house", "bath", "garage", "greenhouse", "shed", "orchard", "garden")
+    numbers = [7, 4, 2, 5, 1, 3, 6]
+    if seed:
+        Random(seed ^ 0xC137).shuffle(numbers)
+    labels: dict[str, JsonValue] = dict(zip(roles, numbers, strict=True))
     return {
         "template_id": "SOSNOVKA-2025-1.1",
         "world_version": VERSION,
         "grid_side_m": 2,
         "plot_area_m2": 600,
-        "labels": {
-            "house": 7,
-            "bath": 4,
-            "garage": 2,
-            "greenhouse": 5,
-            "shed": 1,
-            "orchard": 3,
-            "garden": 6,
-        },
+        "labels": labels,
         "building_areas_m2": (68, 48, 24, 36),
         "exposed_perimeter_edges": 18,
         "path_tiles": 25,
         "pad_tiles": 40,
-        "tiles_per_pack": 10,
+        "tiles_per_pack": 10 if seed == 0 else Random(seed ^ 0x91AB).choice(
+            (5, 6, 8, 9, 10, 12, 13, 15)
+        ),
         "garden_area_m2": 120,
         "greenhouse_area_m2": 12,
         "heat": {
@@ -142,7 +141,25 @@ def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
             "</svg>",
         ]
     )
-    return "".join(parts).encode("utf-8")
+    image = "".join(parts)
+    if ctx["world_version"] != VERSION:
+        return image.encode("utf-8")
+    start = image.index('<path data-role="paving"')
+    end = image.index('<rect data-role="pad"', start)
+    # Coordinates in tenths of a metre. The four strips meet at their edges.
+    strips = ((290, 115, 30, 10), (200, 115, 10, 10),
+              (200, 125, 10, 90), (80, 210, 120, 10))
+    paving = "".join(
+        f'<rect data-role="paving" x="{x}" y="{y}" width="{w}" height="{h}" fill="#b99d6b"/>'
+        for x, y, w, h in strips
+    )
+    image = image[:start] + paving + image[end:]
+    image = image.replace('data-role="bath" x="40"', 'data-role="bath" x="20"')
+    image = image.replace('data-label="bath" x="70"', 'data-label="bath" x="50"')
+    start = image.index('<text x="338"')
+    end = image.index('<text x="24" y="240"', start)
+    image = image[:start] + image[end:]
+    return image.encode("utf-8")
 
 
 class _Policy:
@@ -171,9 +188,10 @@ class _Builder:
         c = scenario.context
         labels = cast(Mapping[str, int], c["labels"])
         areas = cast(tuple[int, ...], c["building_areas_m2"])
+        pack = cast(int, c["tiles_per_pack"])
         if position == 1:
             answer = "".join(str(labels[k]) for k in ("house", "bath", "garage", "greenhouse"))
-            condition = "На плане дачного участка найдите номера дома, бани, гаража и теплицы. Запишите цифры в указанном порядке."
+            condition = "Дом с выступом стоит у верхней границы участка. Баня — у левой границы ниже яблонь, гараж — справа ниже ворот, теплица — внутри огорода. Найдите на плане номера дома, бани, гаража и теплицы и запишите цифры в указанном порядке."
         elif position == 2:
             answer = str(
                 ceil(
@@ -181,7 +199,7 @@ class _Builder:
                     / cast(int, c["tiles_per_pack"])
                 )
             )
-            condition = "Для дорожек и площадки использовали плитки одного размера. Всего 25 плиток дорожек и 40 плиток площадки; в пачке 10 плиток. Сколько пачек купили?"
+            condition = f"Сколько пачек плитки нужно для дорожек и прямоугольной площадки у ворот? Сторона клетки плана 2 м, ширина дорожки 1 м, размер плитки 1 × 1 м. В пачке {pack} плиток. Покрытие укладывают без зазоров."
         elif position == 3:
             answer = str(cast(int, c["exposed_perimeter_edges"]) * cast(int, c["grid_side_m"]))
             condition = "Дом имеет ломаную форму по сторонам клеток плана. Найдите периметр его внешнего контура в метрах, если сторона клетки 2 м."
@@ -203,7 +221,9 @@ class _Builder:
         }
         solutions = {
             1: (f"В указанном порядке на плане получаем номера {', '.join(answer)}.",),
-            2: ("Всего нужно 25 + 40 = 65 плиток.", "Шести пачек мало, семи достаточно."),
+            2: ("Длины четырёх полос шириной 1 м: 3, 1, 9 и 12 м. Их площадь 25 м².",
+                "Площадка 8 × 5 м занимает 40 м². Всего нужно 65 плиток по 1 м².",
+                f"Округляем 65 / {pack} вверх: нужно {answer} пачек."),
             3: ("Внешний контур состоит из 18 сторон клеток.", "Периметр: 18 × 2 = 36 м."),
             4: ("Постройки занимают 68 + 48 + 24 + 36 = 176 м².",
                 "176 / 600 × 100 ≈ 29,33 %. После округления получаем 29 %."),
@@ -235,16 +255,8 @@ class _Builder:
 class _Renderer:
     @staticmethod
     def _shared_context(scenario: ScenarioDraft) -> str:
-        context = scenario.context
-        heat = cast(Mapping[str, int], context["heat"])
         return (
             "План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.\n"
-            f"Плитка: дорожки — {context['path_tiles']} шт.; площадка — {context['pad_tiles']} шт.; "
-            f"в пачке {context['tiles_per_pack']} шт.\n"
-            "Отопление | начальные затраты | расходы за час\n"
-            f"Газ | {heat['gas_upfront']} руб. | {heat['gas_hourly_cents'] / 100:.2f} руб./ч\n"
-            f"Электричество | {heat['electric_upfront']} руб. | "
-            f"{heat['electric_hourly_cents'] / 100:.2f} руб./ч\n"
             "Все пять вопросов относятся к одному плану. Аналог ОГЭ."
         )
 
@@ -302,9 +314,10 @@ class _Oracle:
                 if term not in question.condition:
                     raise ValueError("Identify wording does not match its answer order")
         elif question.position == 2:
-            if question.canonical_answer != str(ceil(65 / 10)):
+            pack = cast(int, scenario.context["tiles_per_pack"])
+            if question.canonical_answer != str(ceil(65 / pack)):
                 raise ValueError("Tile pack answer mismatch")
-            if not all(value in question.condition for value in ("25", "40", "10")):
+            if not all(value in question.condition for value in ("2 м", "1 м", f"В пачке {pack} плиток")):
                 raise ValueError("Tile values in text differ from plan")
         elif question.position == 3:
             if question.canonical_answer != "36":
@@ -353,6 +366,14 @@ class _Oracle:
         expected = cast(Mapping[str, int], scenario.context["labels"])
         if any(labels.get(role) != str(value) for role, value in expected.items()):
             raise ValueError("SVG labels differ from world model")
+        paving = root.findall(".//*[@data-role='paving']")
+        pad = root.find(".//*[@data-role='pad']")
+        if pad is None or not paving:
+            raise ValueError("Missing paved surfaces")
+        area = sum(int(rect.attrib["width"]) * int(rect.attrib["height"])
+                   for rect in (*paving, pad))
+        if area != 6500:
+            raise ValueError("Visible paving must cover 65 square metres")
         image_text = image.decode("utf-8")
         if "2 м" not in image_text or "1 м" not in image_text:
             raise ValueError("SVG scale/path width labels missing")
