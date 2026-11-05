@@ -71,6 +71,7 @@ async def test_public_card_sends_only_photos_for_graphics(story, count):
     message.answer_photo = AsyncMock()
     message.answer_document = AsyncMock()
     store = AsyncMock(spec=ScenarioPostgresRepository)
+    store.close_legacy_with_exposed_answer.return_value = False
     await render_session(message, store, session, show_assets=True, user_id_override=1)
     expected = count + int(snapshot.questions[0].family_id == "STOVE-F12-ARCH-RADIUS")
     assert message.answer_photo.await_count == expected

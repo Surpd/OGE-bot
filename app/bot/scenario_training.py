@@ -268,6 +268,18 @@ async def _show_data(
         await message.answer_photo(upload, caption=f"Данные задачи · {story}")
 
 
+async def _retire_unsafe(
+    message: Message, store: ScenarioPostgresRepository, user_id: int, session: ScenarioSession
+) -> bool:
+    if not await store.close_legacy_with_exposed_answer(user_id, session):
+        return False
+    await message.answer(
+        "Эта практика завершена: в старой версии задания часть ответа была видна заранее. "
+        "История сохранена. Начните новую практику через /oge15."
+    )
+    return True
+
+
 async def render_session(
     message: Message,
     store: ScenarioPostgresRepository,
@@ -279,6 +291,9 @@ async def render_session(
     result_text: str | None = None,
     user_id_override: int | None = None,
 ) -> None:
+    telegram_user_id = user_id_override or (message.from_user.id if message.from_user else 0)
+    if await _retire_unsafe(message, store, telegram_user_id, session):
+        return
     snapshot = session.snapshot
     question = next(
         item for item in snapshot.questions if item.position == session.current_position
@@ -292,9 +307,6 @@ async def render_session(
         f"Задание №{session.current_position} из 5"
         if session.mode is PracticeMode.FULL
         else f"Задание №{session.current_position}"
-    )
-    telegram_user_id = user_id_override or (
-        message.from_user.id if message.from_user else 0
     )
     rows: list[list[InlineKeyboardButton]] = []
     callback_prefix = (
@@ -360,7 +372,10 @@ async def _start_session(
     if not _has_user(user_id) or not isinstance(callback.message, Message):
         await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
-    if await store.resume_session(user_id) is not None:
+    existing = await store.resume_session(user_id)
+    if existing is not None and not await _retire_unsafe(
+        callback.message, store, user_id, existing
+    ):
         await answer_callback(callback, "Сначала продолжите или завершите текущую практику.")
         return
     position = None if position_text is None or position_text == "random" else int(position_text)
@@ -435,6 +450,8 @@ async def answer_message(
     session = await store.resume_session(user_id)
     if session is None or session.status != "active":
         raise SkipHandler
+    if await _retire_unsafe(message, store, user_id, session):
+        return
     if session.question_status != "active":
         await message.answer("Задание завершено. Используйте кнопки под результатом.")
         return
@@ -566,6 +583,16 @@ async def handle_callback(
         )
         if question is None:
             await answer_callback(callback, "Эта кнопка устарела.")
+            return
+        if (
+            session.current_position == position
+            and session.navigation_revision == revision
+            and session.control_message_id == callback.message.message_id
+            and await _retire_unsafe(
+                callback.message, oge15_repository, callback.from_user.id, session
+            )
+        ):
+            await answer_callback(callback)
             return
         accepted = await oge15_repository.apply_callback(
             telegram_user_id=callback.from_user.id,

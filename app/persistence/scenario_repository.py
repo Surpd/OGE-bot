@@ -15,6 +15,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
     snapshot_digest,
 )
+from app.math.scenarios.recent_questions import question_signature
 
 
 class AttemptResult(StrEnum):
@@ -152,22 +153,24 @@ class ScenarioPostgresRepository:
                    WHERE app_user.telegram_user_id=$1
                    ORDER BY session.started_at DESC, session.id DESC LIMIT 4
                )
-               SELECT question->>'family_id' AS family_id,
-                      question->>'condition' AS condition,
-                      question->>'canonical_answer' AS answer
+               SELECT scenario.snapshot,
+                      ARRAY(SELECT progress.position FROM oge15_question_progress AS progress
+                            WHERE progress.session_id=recent.id AND progress.status <> 'pending')
+                      AS positions
                FROM recent
-               JOIN oge15_scenarios AS scenario ON scenario.id=recent.scenario_id
-               JOIN oge15_question_progress AS progress ON progress.session_id=recent.id
-               CROSS JOIN LATERAL (
-                   SELECT scenario.snapshot->'questions'->(progress.position - 1) AS question
-               ) AS stored
-               WHERE progress.status <> 'pending'""",
+               JOIN oge15_scenarios AS scenario ON scenario.id=recent.scenario_id""",
             telegram_user_id,
         )
-        return frozenset(
-            (row["family_id"], " ".join(row["condition"].split()), row["answer"])
-            for row in rows
-        )
+        signatures: set[tuple[str, str, str]] = set()
+        for row in rows:
+            raw = row["snapshot"]
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            snapshot = ScenarioSnapshot.from_snapshot(data)
+            signatures.update(
+                question_signature(snapshot, snapshot.questions[position - 1])
+                for position in row["positions"]
+            )
+        return frozenset(signatures)
 
     async def resume_session(self, telegram_user_id: int) -> ScenarioSession | None:
         async with self._pool.acquire() as connection:
@@ -210,6 +213,46 @@ class ScenarioPostgresRepository:
             control_message_id=row["control_message_id"],
             snapshot=snapshot,
         )
+
+    async def close_legacy_with_exposed_answer(
+        self, telegram_user_id: int, session: ScenarioSession
+    ) -> bool:
+        """Invalidate only sessions containing an unfinished question with a known leak."""
+        snapshot = session.snapshot
+        family = None
+        if snapshot.context.get("renderer_version") == "stove-svg-png-v1":
+            family = "STOVE-F12-ARCH-RADIUS"
+        elif snapshot.generator_version in {"garden-sosnovka-1.0", "garden-sosnovka-1.1"}:
+            family = "GARDEN-01-IDENTIFY"
+        elif snapshot.generator_version == "paper-v1":
+            family = "PAPER-F01"
+        if family is None:
+            return False
+        positions = [q.position for q in snapshot.questions if q.family_id == family]
+        if not positions:
+            return False
+        async with self._pool.acquire() as connection, connection.transaction():
+            owned = await connection.fetchval(
+                """SELECT session.id FROM oge15_sessions AS session
+                   JOIN users AS app_user ON app_user.id=session.user_id
+                   WHERE app_user.telegram_user_id=$1 AND session.id=$2
+                     AND session.status <> 'completed'
+                   FOR UPDATE OF session""",
+                telegram_user_id, session.session_id,
+            )
+            if owned is None:
+                return False
+            closed = await connection.fetchval(
+                """UPDATE oge15_sessions SET status='completed', finished_at=now(),
+                          navigation_revision=navigation_revision+1, control_message_id=NULL
+                   WHERE id=$1 AND EXISTS (
+                       SELECT 1 FROM oge15_question_progress
+                       WHERE session_id=$1 AND position=ANY($2::smallint[])
+                         AND status IN ('pending', 'active')
+                   ) RETURNING id""",
+                session.session_id, positions,
+            )
+        return closed is not None
 
     async def resume_paused(
         self, telegram_user_id: int, session_id: UUID

@@ -32,7 +32,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "paper-v1"
+GENERATOR_VERSION = "paper-v2"
 WORLD_VERSION = "paper-world-v1"
 ANSWER_POLICY_VERSION = "1"
 

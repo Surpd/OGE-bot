@@ -13,6 +13,7 @@ from collections.abc import Mapping
 from hashlib import sha256
 from math import ceil
 from random import Random
+from re import findall
 from types import MappingProxyType
 from typing import cast
 from xml.etree import ElementTree
@@ -370,8 +371,24 @@ class _Oracle:
         pad = root.find(".//*[@data-role='pad']")
         if pad is None or not paving:
             raise ValueError("Missing paved surfaces")
-        area = sum(int(rect.attrib["width"]) * int(rect.attrib["height"])
-                   for rect in (*paving, pad))
+        def rectangle(node: ElementTree.Element) -> tuple[int, int, int, int]:
+            x, y, w, h = (int(node.attrib[key]) for key in ("x", "y", "width", "height"))
+            return x, y, x + w, y + h
+
+        surfaces = [rectangle(node) for node in (*paving, pad)]
+        occupied = [
+            rectangle(node)
+            for role in ("bath", "garage", "shed", "garden")
+            for node in root.findall(f".//*[@data-role='{role}']")
+        ]
+        area = 0
+        for i, (x1, y1, x2, y2) in enumerate(surfaces):
+            if not (20 <= x1 < x2 <= 320 and 20 <= y1 < y2 <= 220):
+                raise ValueError("Paving extends beyond the plot")
+            for a, b, c, d in (*surfaces[:i], *occupied):
+                if max(x1, a) < min(x2, c) and max(y1, b) < min(y2, d):
+                    raise ValueError("Paving overlaps another visible surface")
+            area += (x2 - x1) * (y2 - y1)
         if area != 6500:
             raise ValueError("Visible paving must cover 65 square metres")
         image_text = image.decode("utf-8")
@@ -381,7 +398,22 @@ class _Oracle:
             raise ValueError("SVG scale has changed")
         # Independent measurements in SVG units (10 units = 1 metre).
         plot_area = (320 - 20) * (220 - 20) / 100
-        house = ((120, 20), (200, 20), (200, 80), (220, 80), (220, 100), (120, 100))
+        house_shape = root.find(".//*[@data-role='house']")
+        if house_shape is None:
+            raise ValueError("Missing house polygon")
+        tokens = findall(r"[MHVZ]|\d+", house_shape.attrib["d"])
+        if len(tokens) < 6 or tokens[0] != "M" or tokens[-1] != "Z":
+            raise ValueError("House must be a closed rectilinear polygon")
+        x, y = int(tokens[1]), int(tokens[2])
+        house = [(x, y)]
+        for command, coordinate in zip(tokens[3:-1:2], tokens[4:-1:2], strict=True):
+            if command == "H":
+                x = int(coordinate)
+            elif command == "V":
+                y = int(coordinate)
+            else:
+                raise ValueError("Unexpected house segment")
+            house.append((x, y))
         area2 = sum(
             x1 * y2 - x2 * y1
             for (x1, y1), (x2, y2) in zip(house, (*house[1:], house[0]), strict=True)

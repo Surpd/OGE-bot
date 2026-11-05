@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections import Counter
+from dataclasses import replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from uuid import uuid4
@@ -501,8 +503,10 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("story_code", tuple(scenario_training.STORY_NAMES))
 async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
-    oge15_navigation_pool,
+    oge15_navigation_pool, story_code,
+
 ) -> None:
     transport = TelegramSession()
     bot = Bot("123456:TEST", session=transport)
@@ -565,15 +569,41 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
             "Выберите сюжет" in (message.text or "")
             for message in transport.messages.values()
         )
-        story = await tap(selection, "Шины")
+        story = await tap(selection, scenario_training.STORY_NAMES[story_code])
         mode = await tap(story, "Вся пятёрка")
         session = await scenario_repository.resume_session(user_id)
-        assert session is not None and session.snapshot.story_code == "TYRES"
+        assert session is not None and session.snapshot.story_code == story_code
         assert session.mode is PracticeMode.FULL
         assert any(
             "Задание №1 из 5" in (message.text or "")
             for message in transport.messages.values()
         )
+
+        for position, question in enumerate(session.snapshot.questions, 1):
+            active = await scenario_repository.resume_session(user_id)
+            assert active is not None and active.current_position == position
+            assert active.prompt_message_id == mode.message_id
+            assert "попыток" not in (mode.text or "")
+            update_id += 1
+            await _feed(
+                dispatcher, bot, repository, scenario_repository,
+                Update(update_id=update_id, message=Message(
+                    message_id=10000 + update_id, date=datetime.now(UTC),
+                    chat=Chat(id=user_id, type="private"), from_user=user,
+                    text=question.canonical_answer,
+                )),
+            )
+            outcome = await scenario_repository.resume_session(user_id)
+            assert outcome is not None and outcome.question_status == "solved"
+            result = transport.messages[outcome.control_message_id]
+            assert "Ответ засчитан" in (result.text or "")
+            mode = await tap(result, "➡ Следующий вопрос" if position < 5 else "Завершить")
+        assert await scenario_repository.resume_session(user_id) is None
+        assert (await scenario_repository.position_stats(user_id))[0]["correct"] == 5
+        assert not any(call.__api_method__ == "sendDocument" for call in transport.calls)
+
+        counts = Counter(call.__api_method__ for call in transport.calls)
+        print(f"OGE15 full pass {story_code}: {dict(sorted(counts.items()))}")
 
         # The command remains a public entry point and can be used after returning.
         update_id += 1
@@ -591,3 +621,25 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
         assert mode.message_id > 0
     finally:
         await bot.session.close()
+
+
+@pytest.mark.asyncio
+async def test_legacy_paper_retires_only_session_with_unfinished_exposed_question(
+    oge15_navigation_pool,
+):
+    store = ScenarioPostgresRepository(oge15_navigation_pool)
+    user_id = int(uuid4().int % (2**62)) + 1
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 42, "PAPER"), scenario_training.public_registry()
+    ).snapshot
+    legacy = replace(snapshot, generator_version="paper-v1")
+    safe = await store.start_session(user_id, legacy, PracticeMode.SINGLE, (2,))
+    assert not await store.close_legacy_with_exposed_answer(user_id, safe)
+    other_user = user_id + 1
+    exposed = await store.start_session(other_user, legacy, PracticeMode.SINGLE, (1,))
+    assert not await store.close_legacy_with_exposed_answer(user_id, exposed)
+    before = await store.position_stats(other_user)
+    assert await store.close_legacy_with_exposed_answer(other_user, exposed)
+    assert await store.resume_session(other_user) is None
+    assert await store.resume_session(user_id) == safe
+    assert await store.position_stats(other_user) == before
