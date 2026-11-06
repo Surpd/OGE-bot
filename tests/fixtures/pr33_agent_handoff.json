@@ -1,0 +1,25 @@
+{
+  "pr": {
+    "number": 33,
+    "state": "open",
+    "draft": false,
+    "user": {"login": "Surpd"},
+    "head": {"sha": "e2595d4721b0960e5c5357bf8919a7de039afe21"},
+    "labels": []
+  },
+  "ci_run": {
+    "id": 42018737288,
+    "name": "CI",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "e2595d4721b0960e5c5357bf8919a7de039afe21",
+    "pull_requests": [{"number": 33}]
+  },
+  "jobs": [
+    {"name": "quality", "status": "completed", "conclusion": "success"},
+    {"name": "oge15-linux-render", "status": "completed", "conclusion": "success"}
+  ],
+  "reviews": [],
+  "previous": null
+}
