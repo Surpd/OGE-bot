@@ -25,6 +25,10 @@ class AttemptResult(StrEnum):
     CLOSED = "closed"
 
 
+class OpenScenarioExists(RuntimeError):
+    """The user already has an unfinished session for this story and mode."""
+
+
 @dataclass(frozen=True, slots=True)
 class ScenarioSession:
     session_id: UUID
@@ -53,7 +57,9 @@ class ScenarioPostgresRepository:
         snapshot: ScenarioSnapshot,
         mode: PracticeMode,
         positions: tuple[int, ...],
-    ) -> ScenarioSession:
+        *,
+        replace_session_id: UUID | None = None,
+    ) -> ScenarioSession | None:
         if telegram_user_id <= 0:
             raise ValueError("Telegram user id must be positive")
         if mode is PracticeMode.FULL and positions != (1, 2, 3, 4, 5):
@@ -74,6 +80,39 @@ class ScenarioPostgresRepository:
                    ON CONFLICT (telegram_user_id) DO UPDATE
                    SET telegram_user_id=EXCLUDED.telegram_user_id RETURNING id""",
                 telegram_user_id,
+            )
+            await connection.fetchrow(
+                "SELECT id FROM users WHERE id=$1 FOR UPDATE", user_id
+            )
+            existing = await connection.fetchrow(
+                """SELECT id FROM oge15_sessions WHERE user_id=$1 AND story_code=$2
+                   AND mode=$3 AND status <> 'completed' FOR UPDATE""",
+                user_id,
+                snapshot.story_code,
+                mode.value,
+            )
+            if existing is not None and existing["id"] != replace_session_id:
+                return None
+            if replace_session_id is not None:
+                if existing is None or existing["id"] != replace_session_id:
+                    return None
+                await connection.execute(
+                    """UPDATE oge15_sessions SET status='completed', finished_at=now(),
+                              navigation_revision=navigation_revision+1, control_message_id=NULL,
+                              last_used_at=now()
+                       WHERE id=$1""",
+                    replace_session_id,
+                )
+            await connection.execute(
+                """UPDATE users SET current_state=jsonb_build_object(
+                          'screen','oge15','resume_mode','oge15') WHERE id=$1""",
+                user_id,
+            )
+            await connection.execute(
+                """UPDATE oge15_sessions SET status='paused',
+                          navigation_revision=navigation_revision+1, control_message_id=NULL
+                   WHERE user_id=$1 AND status='active'""",
+                user_id,
             )
             scenario_id = await connection.fetchval(
                 """INSERT INTO oge15_scenarios
@@ -113,10 +152,11 @@ class ScenarioPostgresRepository:
                 )
             session_id = await connection.fetchval(
                 """INSERT INTO oge15_sessions
-                   (user_id, scenario_id, mode, current_position)
-                   VALUES ($1, $2, $3, $4) RETURNING id""",
+                   (user_id, scenario_id, story_code, mode, current_position, last_used_at)
+                   VALUES ($1, $2, $3, $4, $5, now()) RETURNING id""",
                 user_id,
                 scenario_id,
+                snapshot.story_code,
                 mode.value,
                 positions[0],
             )
@@ -172,7 +212,14 @@ class ScenarioPostgresRepository:
             )
         return frozenset(signatures)
 
-    async def resume_session(self, telegram_user_id: int) -> ScenarioSession | None:
+    async def resume_session(
+        self, telegram_user_id: int, session_id: UUID | None = None
+    ) -> ScenarioSession | None:
+        """Load one explicit owned session, or the deterministic last-used open session.
+
+        Session handlers should pass an id; the implicit form exists for status checks and
+        legacy callers and is ordered by foreground status and last_used_at.
+        """
         async with self._pool.acquire() as connection:
             row = await connection.fetchrow(
                 """SELECT session.id AS session_id, session.scenario_id, session.mode,
@@ -188,11 +235,17 @@ class ScenarioPostgresRepository:
                      ON progress.session_id=session.id
                     AND progress.position=session.current_position
                    WHERE app_user.telegram_user_id=$1 AND session.status <> 'completed'
-                   ORDER BY session.started_at DESC LIMIT 1""",
+                     AND ($2::uuid IS NULL OR session.id=$2)
+                   ORDER BY CASE WHEN $2::uuid IS NULL
+                                 THEN (session.status='active')::integer ELSE 0 END DESC,
+                            session.last_used_at DESC, session.id DESC
+                   LIMIT 1""",
                 telegram_user_id,
+                session_id,
             )
-        if row is None:
-            return None
+        return self._session_from_row(row) if row is not None else None
+
+    def _session_from_row(self, row: asyncpg.Record) -> ScenarioSession:
         raw_snapshot = row["snapshot"]
         if isinstance(raw_snapshot, str):
             raw_snapshot = json.loads(raw_snapshot)
@@ -213,6 +266,69 @@ class ScenarioPostgresRepository:
             control_message_id=row["control_message_id"],
             snapshot=snapshot,
         )
+
+    async def find_open_session(
+        self, telegram_user_id: int, story_code: str, mode: PracticeMode
+    ) -> ScenarioSession | None:
+        """Find the unique unfinished session for an owned story/mode pair."""
+        async with self._pool.acquire() as connection:
+            row = await connection.fetchrow(
+                self._session_select()
+                + """ WHERE app_user.telegram_user_id=$1 AND session.story_code=$2
+                       AND session.mode=$3 AND session.status <> 'completed'""",
+                telegram_user_id,
+                story_code,
+                mode.value,
+            )
+        return self._session_from_row(row) if row is not None else None
+
+    async def list_open_sessions(self, telegram_user_id: int) -> tuple[ScenarioSession, ...]:
+        """Return every owned unfinished session, most recently used first."""
+        async with self._pool.acquire() as connection:
+            rows = await connection.fetch(
+                self._session_select()
+                + """ WHERE app_user.telegram_user_id=$1 AND session.status <> 'completed'
+                       ORDER BY session.last_used_at DESC, session.id DESC""",
+                telegram_user_id,
+            )
+        return tuple(self._session_from_row(row) for row in rows)
+
+    async def last_used_session(self, telegram_user_id: int) -> ScenarioSession | None:
+        """Return the last explicitly used unfinished session for global Continue."""
+        sessions = await self.list_open_sessions(telegram_user_id)
+        return sessions[0] if sessions else None
+
+    async def pause_foreground(self, telegram_user_id: int) -> bool:
+        """Pause the current OGE15 screen before the user leaves it for another screen."""
+        async with self._pool.acquire() as connection, connection.transaction():
+            user_id = await connection.fetchval(
+                "SELECT id FROM users WHERE telegram_user_id=$1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user_id is None:
+                return False
+            paused = await connection.fetchval(
+                """UPDATE oge15_sessions SET status='paused',
+                          navigation_revision=navigation_revision+1, control_message_id=NULL
+                   WHERE user_id=$1 AND status='active' RETURNING id""",
+                user_id,
+            )
+        return paused is not None
+
+    @staticmethod
+    def _session_select() -> str:
+        return """SELECT session.id AS session_id, session.scenario_id, session.mode,
+                         session.status, session.current_position, session.navigation_revision,
+                         session.control_message_id, progress.status AS question_status,
+                         progress.attempt_count, progress.hints_used,
+                         progress.prompt_message_id, scenario.snapshot,
+                         scenario.snapshot_sha256
+                  FROM oge15_sessions AS session
+                  JOIN users AS app_user ON app_user.id=session.user_id
+                  JOIN oge15_scenarios AS scenario ON scenario.id=session.scenario_id
+                  JOIN oge15_question_progress AS progress
+                    ON progress.session_id=session.id
+                   AND progress.position=session.current_position"""
 
     async def close_legacy_with_exposed_answer(
         self, telegram_user_id: int, session: ScenarioSession
@@ -257,21 +373,42 @@ class ScenarioPostgresRepository:
     async def resume_paused(
         self, telegram_user_id: int, session_id: UUID
     ) -> ScenarioSession | None:
-        """Atomically reopen one owned paused session and return its same snapshot."""
+        """Atomically foreground one owned session and pause any other foreground session."""
         async with self._pool.acquire() as connection, connection.transaction():
-            resumed = await connection.fetchval(
-                """UPDATE oge15_sessions AS session SET status='active',
-                          navigation_revision=navigation_revision+1
-                   FROM users AS app_user
-                   WHERE session.user_id=app_user.id AND app_user.telegram_user_id=$1
-                     AND session.id=$2 AND session.status='paused'
-                   RETURNING session.id""",
+            user_id = await connection.fetchval(
+                "SELECT id FROM users WHERE telegram_user_id=$1 FOR UPDATE",
                 telegram_user_id,
+            )
+            if user_id is None:
+                return None
+            owned = await connection.fetchval(
+                """SELECT id FROM oge15_sessions WHERE user_id=$1 AND id=$2
+                   AND status <> 'completed' FOR UPDATE""",
+                user_id,
                 session_id,
             )
-            if resumed is None:
+            if owned is None:
                 return None
-        return await self.resume_session(telegram_user_id)
+            await connection.execute(
+                """UPDATE oge15_sessions SET status='paused',
+                          navigation_revision=navigation_revision+1, control_message_id=NULL
+                   WHERE user_id=$1 AND status='active' AND id<>$2""",
+                user_id,
+                session_id,
+            )
+            await connection.execute(
+                """UPDATE oge15_sessions SET status='active',
+                          navigation_revision=navigation_revision+1,
+                          control_message_id=NULL, last_used_at=now()
+                   WHERE id=$1 AND status <> 'completed'""",
+                session_id,
+            )
+            await connection.execute(
+                """UPDATE users SET current_state=jsonb_build_object(
+                          'screen','oge15','resume_mode','oge15') WHERE id=$1""",
+                user_id,
+            )
+        return await self.resume_session(telegram_user_id, session_id)
 
     async def set_condition_message(
         self, telegram_user_id: int, session_id: UUID, position: int, message_id: int
@@ -333,7 +470,9 @@ class ScenarioPostgresRepository:
             session = await connection.fetchrow(
                 """SELECT session.current_position, session.status FROM oge15_sessions AS session
                    JOIN users AS app_user ON app_user.id=session.user_id
-                   WHERE session.id=$1 AND app_user.telegram_user_id=$2 FOR UPDATE OF session""",
+                   WHERE session.id=$1 AND app_user.telegram_user_id=$2
+                     AND app_user.current_state->>'screen'='oge15'
+                   FOR UPDATE OF session""",
                 session_id,
                 telegram_user_id,
             )
@@ -396,6 +535,9 @@ class ScenarioPostgresRepository:
                 attempt_no,
                 status,
             )
+            await connection.execute(
+                "UPDATE oge15_sessions SET last_used_at=now() WHERE id=$1", session_id
+            )
             return AttemptResult.ACCEPTED
 
     async def apply_callback(
@@ -414,13 +556,16 @@ class ScenarioPostgresRepository:
         if (
             not callback_query_id
             or control_message_id <= 0
-            or action not in {"hint", "solution", "skip", "next", "pause", "resume", "data"}
+            or action not in {
+                "hint", "solution", "skip", "next", "pause", "data", "finish"
+            }
         ):
             return False
         async with self._pool.acquire() as connection, connection.transaction():
             session = await connection.fetchrow(
                 """SELECT session.mode, session.status, session.current_position,
-                          session.navigation_revision, session.control_message_id
+                          session.navigation_revision, session.control_message_id,
+                          app_user.current_state->>'screen' AS screen
                    FROM oge15_sessions AS session
                    JOIN users AS app_user ON app_user.id=session.user_id
                    WHERE session.id=$1 AND app_user.telegram_user_id=$2 FOR UPDATE OF session""",
@@ -428,6 +573,8 @@ class ScenarioPostgresRepository:
                 telegram_user_id,
             )
             if session is None:
+                return False
+            if session["screen"] != "oge15":
                 return False
             claim = await connection.fetchval(
                 """INSERT INTO oge15_callback_claims
@@ -446,7 +593,16 @@ class ScenarioPostgresRepository:
             ):
                 return False
             if action == "data":
-                return bool(session["status"] == "active")
+                if session["status"] != "active":
+                    return False
+                await connection.execute(
+                    "UPDATE oge15_sessions SET last_used_at=now() WHERE id=$1", session_id
+                )
+                return True
+            if action == "finish" and (
+                session["status"] != "active" or session["mode"] != PracticeMode.FULL.value
+            ):
+                return False
             progress = await connection.fetchrow(
                 """SELECT status, hints_used FROM oge15_question_progress
                    WHERE session_id=$1 AND position=$2 FOR UPDATE""",
@@ -502,10 +658,8 @@ class ScenarioPostgresRepository:
                 await connection.execute(
                     "UPDATE oge15_sessions SET status='paused' WHERE id=$1", session_id
                 )
-            elif action == "resume" and session["status"] == "paused":
-                await connection.execute(
-                    "UPDATE oge15_sessions SET status='active' WHERE id=$1", session_id
-                )
+            elif action == "finish" and session["status"] == "active":
+                finish = True
             else:
                 return False
 
@@ -527,7 +681,8 @@ class ScenarioPostgresRepository:
                     session_id,
                 )
             await connection.execute(
-                """UPDATE oge15_sessions SET navigation_revision=navigation_revision+1
+                """UPDATE oge15_sessions SET navigation_revision=navigation_revision+1,
+                          last_used_at=now()
                    WHERE id=$1""",
                 session_id,
             )

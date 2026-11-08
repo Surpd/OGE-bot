@@ -88,6 +88,15 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
             assert await repository._pool.fetchval(
                 "SELECT to_regclass('sessions_one_active_task11_per_user') IS NOT NULL"
             )
+            assert await repository._pool.fetchval(
+                "SELECT to_regclass('oge15_one_open_session_per_story_mode') IS NOT NULL"
+            )
+            assert await repository._pool.fetchval(
+                "SELECT to_regclass('oge15_one_foreground_session_per_user') IS NOT NULL"
+            )
+            assert await repository._pool.fetchval(
+                "SELECT to_regclass('oge15_one_open_session_per_user') IS NULL"
+            )
             assert await repository._pool.fetch(
                 Path("scripts/preflight_active_sessions.sql").read_text(encoding="utf-8")
             ) == []
