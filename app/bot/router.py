@@ -19,7 +19,7 @@ from app.bot.menu import (
     task11_menu,
     task13_menu,
 )
-from app.bot.navigation import navigation_callback
+from app.bot.navigation import navigation_callback, show_display_options
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_training import (
     PUBLIC_LABEL,
@@ -101,14 +101,18 @@ def _has_resumable_task6(state: dict[str, object] | None) -> bool:
     if state is None or not isinstance(state.get("problem"), dict):
         return False
     session_state = state.get("state")
-    return isinstance(session_state, dict) and session_state.get("status") == "active"
+    return isinstance(session_state, dict) and session_state.get("status") in {
+        "active", "solved", "failed", "solution_viewed"
+    }
 
 
 def _has_resumable_task9(state: dict[str, object] | None) -> bool:
     if state is None or not isinstance(state.get("problem"), dict):
         return False
     session_state = state.get("state")
-    return isinstance(session_state, dict) and session_state.get("status") == "active"
+    return isinstance(session_state, dict) and session_state.get("status") in {
+        "active", "solved", "failed", "solution_viewed"
+    }
 
 
 async def _has_resumable_session(
@@ -298,14 +302,26 @@ async def continue_session(
     for training in ordered:
         state = await getattr(repository, f"task{training.number}_state")(user_id)
         if training.available and _has_resumable_task6(state):
+            problem = state.get("problem") if state else None
+            saved_state = state.get("state") if state else None
+            status = saved_state.get("status") if isinstance(saved_state, dict) else None
             sender = (
                 _send_problem
                 if training.number == 6
                 else globals()[f"_send_task{training.number}_problem"]
             )
             await _pause_oge15_foreground(user_id, oge15_repository)
-            await sender(message, repository, action="resume")
-            return
+            if status == "active":
+                await sender(message, repository, action="resume")
+                return
+            if status in {"solved", "failed", "solution_viewed"} and isinstance(problem, dict):
+                await sender(
+                    message,
+                    repository,
+                    action="advance",
+                    expected_problem_id=str(problem.get("problem_id", "")),
+                )
+                return
     if last != "oge15" and await resume_pilot():
         return
     await repository.save_user_state(user_id, "main_menu")
@@ -2190,7 +2206,9 @@ def build_router() -> Router:
     router.message.register(task6_solution, F.text == "📘 Разбор")
     router.message.register(return_to_menu, F.text == "↩ В меню")
     router.message.register(show_progress, F.text == "📊 Прогресс")
+    router.message.register(show_progress, F.text == "📊 Мой прогресс")
     router.message.register(show_progress_details, F.text == "📊 Подробнее")
+    router.message.register(show_display_options, F.text == "⚙️ Настройки")
     router.message.register(oge15_answer)
     router.message.register(menu_section, F.text.in_(MAIN_MENU))
     router.message.register(unknown_message)

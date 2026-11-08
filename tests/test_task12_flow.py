@@ -245,3 +245,23 @@ async def test_task12_sessions_are_independent_and_continue_uses_latest_mode() -
     await return_to_menu(_message(1004, "↩ В меню"), repository)
     await continue_session(_message(1004, "▶ Продолжить"), repository)
     assert await repository.user_state(1004) == "task12"
+
+
+@pytest.mark.asyncio
+async def test_continue_after_terminal_task_explicitly_issues_one_next_problem() -> None:
+    repository = MemoryRepository()
+    await choose_task12(_message(1005, "№12 · Формулы"), repository)
+    old_problem_id = str(repository.training12[1005]["problem"]["problem_id"])
+    await repository.task12_reveal_solution(1005, old_problem_id)
+    issued_before = len(repository.issued12[1005])
+
+    await return_to_menu(_message(1005, "↩ В меню"), repository)
+    assert await repository.last_training_mode(1005) == "task12"
+    assert len(repository.issued12[1005]) == issued_before
+    await continue_session(_message(1005, "▶ Продолжить"), repository)
+
+    state = await repository.task12_state(1005)
+    assert state is not None and state["state"]["status"] == "active"
+    assert state["problem"]["problem_id"] != old_problem_id
+    assert len(repository.issued12[1005]) == issued_before + 1
+    assert (await repository.task12_progress(1005))["solutions_viewed"] == 1

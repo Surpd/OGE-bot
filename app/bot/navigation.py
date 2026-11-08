@@ -155,10 +155,15 @@ async def navigation_callback(
         "nav:progress": handlers.show_progress,
         "nav:details": handlers.show_progress_details,
         "nav:display": show_display_options,
+        "nav:settings": show_display_options,
     }
     target = targets.get(data)
     if oge15_repository is not None and (
-        data in {"nav:main", "nav:numbers", "nav:progress", "nav:details", "nav:display"}
+        data
+        in {
+            "nav:main", "nav:numbers", "nav:progress", "nav:details", "nav:display",
+            "nav:settings",
+        }
         or data.startswith("nav:task:")
     ):
         await oge15_repository.pause_foreground(callback.from_user.id)

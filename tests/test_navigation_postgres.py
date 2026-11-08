@@ -94,6 +94,22 @@ async def test_postgres_navigation_survives_repository_restart_and_is_user_scope
     assert await restarted.claim_navigation_message(other_user_id, 301)
 
 
+@pytest.mark.asyncio
+async def test_postgres_last_used_training_survives_navigation_and_repository_restart(
+    navigation_pool,
+):
+    repository, user_id = await register(navigation_pool)
+    await repository.save_user_state(user_id, "task9")
+    await repository.save_user_state(user_id, "number_selection")
+    await repository.save_user_state(user_id, "display_settings")
+    restarted = PostgresRepository(navigation_pool)
+    assert await restarted.last_training_mode(user_id) == "task9"
+    await restarted.save_user_state(user_id, "task12")
+    await restarted.save_user_state(user_id, "main_menu")
+    final_repository = PostgresRepository(navigation_pool)
+    assert await final_repository.last_training_mode(user_id) == "task12"
+
+
 @pytest.mark.parametrize("number", range(6, 15))
 @pytest.mark.asyncio
 async def test_postgres_entering_training_invalidates_old_navigation(navigation_pool, number):
