@@ -17,6 +17,7 @@ from test_inline_dispatcher_postgres import TelegramSession
 from test_navigation_postgres import navigation_pool as postgres_db_fixture  # noqa: F401, F811
 
 from app.bot import router, scenario_training
+from app.bot.navigation import navigation_callback
 from app.bot.router import build_router, choose_task12, continue_session, return_to_menu
 from app.math.scenario_engine import (
     PracticeMode,
@@ -35,6 +36,99 @@ from app.persistence.scenario_repository import (
 @pytest.fixture
 async def oge15_navigation_pool(postgres_db_fixture):  # noqa: F811
     return postgres_db_fixture
+
+
+@pytest.mark.asyncio
+async def test_stale_and_repeated_main_callback_preserve_scenario_state(
+    oge15_navigation_pool, monkeypatch
+):
+    repository = PostgresRepository(oge15_navigation_pool)
+    store = ScenarioPostgresRepository(oge15_navigation_pool)
+    user_id = int(uuid4().int % (2**62)) + 1
+    user = User(id=user_id, is_bot=False, first_name="Stale menu callback")
+    await repository.register_user(user_id)
+    await repository.save_user_state(user_id, "main_menu")
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 61203, "TYRES"),
+        scenario_training.public_registry(),
+    ).snapshot
+    session = await store.start_session(user_id, snapshot, PracticeMode.FULL, (1, 2, 3, 4, 5))
+    assert session is not None and session.status == "active"
+    await repository.save_user_state(user_id, "main_menu")
+    menu_message_id = 771003
+    assert await repository.set_navigation_message(
+        user_id, "main_menu", menu_message_id, "current-revision"
+    )
+
+    before = await store.resume_session(user_id, session.session_id)
+    assert before is not None
+    before_stats = await store.position_stats(user_id)
+    before_progress = await oge15_navigation_pool.fetch(
+        """SELECT position, status, attempt_count, hints_used, prompt_message_id
+           FROM oge15_question_progress WHERE session_id=$1 ORDER BY position""",
+        session.session_id,
+    )
+    before_attempts = await oge15_navigation_pool.fetchval(
+        "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", session.session_id
+    )
+
+    callback = AsyncMock()
+    callback.data = "nav:main~old-revision"
+    callback.from_user = user
+    callback.message = Message(
+        message_id=menu_message_id,
+        date=datetime.now(UTC),
+        chat=Chat(id=user_id, type="private"),
+    )
+    await navigation_callback(callback, repository, store)
+    after_stale = await store.resume_session(user_id, session.session_id)
+    assert after_stale == before
+    assert after_stale.status == "active"
+    assert await store.position_stats(user_id) == before_stats
+    stale_progress = await oge15_navigation_pool.fetch(
+        """SELECT position, status, attempt_count, hints_used, prompt_message_id
+           FROM oge15_question_progress WHERE session_id=$1 ORDER BY position""",
+        session.session_id,
+    )
+    assert stale_progress == before_progress
+    assert await oge15_navigation_pool.fetchval(
+        "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", session.session_id
+    ) == before_attempts
+
+    # The first current menu callback may pause the foreground session. Its
+    # repeated delivery must fail the one-time menu claim before any side effect.
+    monkeypatch.setattr(router, "return_to_menu", AsyncMock())
+    callback.data = "nav:main~current-revision"
+    await navigation_callback(callback, repository, store)
+    after_first = await store.resume_session(user_id, session.session_id)
+    assert after_first is not None and after_first.status == "paused"
+    after_first_stats = await store.position_stats(user_id)
+    after_first_progress = await oge15_navigation_pool.fetch(
+        """SELECT position, status, attempt_count, hints_used, prompt_message_id
+           FROM oge15_question_progress WHERE session_id=$1 ORDER BY position""",
+        session.session_id,
+    )
+    after_first_attempts = await oge15_navigation_pool.fetchval(
+        "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", session.session_id
+    )
+    callback.data = "nav:main~current-revision"
+    await navigation_callback(callback, repository, store)
+
+    after = await store.resume_session(user_id, session.session_id)
+    assert after == after_first
+    assert after.session_id == before.session_id
+    assert after.current_position == before.current_position
+    assert after.snapshot.seed == before.snapshot.seed
+    assert await store.position_stats(user_id) == after_first_stats
+    after_progress = await oge15_navigation_pool.fetch(
+        """SELECT position, status, attempt_count, hints_used, prompt_message_id
+           FROM oge15_question_progress WHERE session_id=$1 ORDER BY position""",
+        session.session_id,
+    )
+    assert after_progress == after_first_progress
+    assert await oge15_navigation_pool.fetchval(
+        "SELECT count(*) FROM oge15_attempts WHERE session_id=$1", session.session_id
+    ) == after_first_attempts
 
 
 

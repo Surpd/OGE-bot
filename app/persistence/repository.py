@@ -3704,13 +3704,26 @@ class PostgresRepository(
                 )
             ):
                 return False
-            await connection.execute(
-                """UPDATE users SET current_state = jsonb_set(
-                       COALESCE(current_state, '{}'::jsonb), '{screen}', to_jsonb($2::text), true)
-                   WHERE id = $1""",
-                user["id"],
-                target_screen,
-            )
+            if target_screen == mode:
+                await connection.execute(
+                    """UPDATE users SET current_state = jsonb_set(
+                           jsonb_set(COALESCE(current_state, '{}'::jsonb)
+                                     - 'navigation_message_id' - 'navigation_revision',
+                                     '{screen}', to_jsonb($2::text), true),
+                           '{resume_mode}', to_jsonb($2::text), true)
+                       WHERE id = $1""",
+                    user["id"],
+                    target_screen,
+                )
+            else:
+                await connection.execute(
+                    """UPDATE users SET current_state = jsonb_set(
+                           COALESCE(current_state, '{}'::jsonb),
+                           '{screen}', to_jsonb($2::text), true)
+                       WHERE id = $1""",
+                    user["id"],
+                    target_screen,
+                )
             return True
 
     async def user_state(self, telegram_user_id: int) -> str | None:
@@ -4808,6 +4821,8 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return False
         self.states[telegram_user_id] = target_screen
+        if target_screen == mode:
+            self.resume_modes[telegram_user_id] = mode
         return True
 
     async def user_state(self, telegram_user_id: int) -> str | None:

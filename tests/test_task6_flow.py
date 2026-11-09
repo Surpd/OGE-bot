@@ -1,3 +1,4 @@
+import asyncio
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -8,6 +9,7 @@ from app.bot import router
 from app.bot.router import (
     choose_task6,
     choose_task9,
+    choose_task12,
     continue_session,
     return_to_menu,
     show_progress,
@@ -88,6 +90,75 @@ async def test_failed_task6_generation_does_not_replace_last_used_training(monke
     assert await repository.last_training_mode(775) == "task9"
     assert repository.training[775]["problem"] is None
     assert repository.training9[775]["problem"]["problem_id"] == task9_problem_id
+
+
+@pytest.mark.asyncio
+async def test_late_next_send_cannot_restore_task_over_start_menu(monkeypatch) -> None:
+    repository = MemoryRepository()
+    await choose_task6(_message(774, "№6 · Вычисления"), repository)
+    current = await repository.task6_state(774)
+    assert current is not None and isinstance(current["problem"], dict)
+    assert await repository.task6_reveal_solution(
+        774, str(current["problem"]["problem_id"])
+    )
+    entered_send = asyncio.Event()
+    finish_send = asyncio.Event()
+    original_send_text = router.send_text
+
+    async def delayed_send(message, repo, text, **kwargs):
+        if text.startswith("Задание №6 ·"):
+            entered_send.set()
+            await finish_send.wait()
+        return await original_send_text(message, repo, text, **kwargs)
+
+    monkeypatch.setattr(router, "send_text", delayed_send)
+    late_next = asyncio.create_task(task6_next(_message(774, "➡ Следующее"), repository))
+    await asyncio.wait_for(entered_send.wait(), timeout=5)
+
+    await start(_message(774, "/start"), repository)
+    assert await repository.user_state(774) == "main_menu"
+    finish_send.set()
+    await late_next
+
+    assert await repository.user_state(774) == "main_menu"
+
+
+@pytest.mark.asyncio
+async def test_late_next_send_cannot_replace_new_number_as_last_used(monkeypatch) -> None:
+    repository = MemoryRepository()
+    await choose_task6(_message(772, "№6 · Вычисления"), repository)
+    current = await repository.task6_state(772)
+    assert current is not None and isinstance(current["problem"], dict)
+    assert await repository.task6_reveal_solution(
+        772, str(current["problem"]["problem_id"])
+    )
+    entered_send = asyncio.Event()
+    finish_send = asyncio.Event()
+    original_send_text = router.send_text
+
+    async def delayed_send(message, repo, text, **kwargs):
+        if text.startswith("Задание №6 ·"):
+            entered_send.set()
+            await finish_send.wait()
+        return await original_send_text(message, repo, text, **kwargs)
+
+    monkeypatch.setattr(router, "send_text", delayed_send)
+    late_next = asyncio.create_task(task6_next(_message(772, "➡ Следующее"), repository))
+    await asyncio.wait_for(entered_send.wait(), timeout=5)
+
+    await choose_task12(_message(772, "№12 · Формулы"), repository)
+    task12 = await repository.task12_state(772)
+    assert task12 is not None and isinstance(task12["problem"], dict)
+    task12_problem_id = str(task12["problem"]["problem_id"])
+    assert await repository.last_training_mode(772) == "task12"
+    finish_send.set()
+    await late_next
+
+    assert await repository.user_state(772) == "task12"
+    assert await repository.last_training_mode(772) == "task12"
+    task12_after = await repository.task12_state(772)
+    assert task12_after is not None
+    assert task12_after["problem"]["problem_id"] == task12_problem_id
 
 
 @pytest.mark.asyncio

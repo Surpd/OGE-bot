@@ -11,13 +11,16 @@ import pytest
 import pytest_asyncio
 from aiogram.types import User
 
+from app.bot import router
 from app.bot.router import (
     _has_resumable_session,
+    choose_task6,
     choose_task9,
     choose_task12,
     continue_session,
     return_to_menu,
     start,
+    task6_next,
     task12_callback,
 )
 from app.math.oge07_scheduler import build_task7_candidate_batch
@@ -285,3 +288,53 @@ async def test_postgres_disabled_last_used_training_hides_continue_without_fallb
     assert task9_after is not None
     assert task9_after["problem"]["problem_id"] == task9_problem_id
     assert task9_after["state"]["status"] == "active"
+
+
+@pytest.mark.asyncio
+async def test_postgres_late_next_send_cannot_replace_new_number_as_last_used(
+    navigation_pool, monkeypatch
+):
+    repository, user_id = await register(navigation_pool)
+    await choose_task6(telegram_message(user_id, "№6 · Вычисления"), repository)
+    task6_before = await repository.task6_state(user_id)
+    assert task6_before is not None and isinstance(task6_before["problem"], dict)
+    assert await repository.task6_reveal_solution(
+        user_id, str(task6_before["problem"]["problem_id"])
+    )
+    entered_send = asyncio.Event()
+    finish_send = asyncio.Event()
+    original_send_text = router.send_text
+
+    async def delayed_send(message, repo, text, **kwargs):
+        if text.startswith("Задание №6 ·"):
+            entered_send.set()
+            await finish_send.wait()
+        return await original_send_text(message, repo, text, **kwargs)
+
+    monkeypatch.setattr(router, "send_text", delayed_send)
+    late_next = asyncio.create_task(
+        task6_next(telegram_message(user_id, "➡ Следующее"), repository)
+    )
+    await asyncio.wait_for(entered_send.wait(), timeout=5)
+    task6_issued = await repository.task6_progress(user_id)
+    assert task6_issued["issued"] == 2
+
+    await choose_task12(telegram_message(user_id, "№12 · Формулы"), repository)
+    task12_before = await repository.task12_state(user_id)
+    assert task12_before is not None and isinstance(task12_before["problem"], dict)
+    task12_problem_id = str(task12_before["problem"]["problem_id"])
+    assert await repository.user_state(user_id) == "task12"
+    assert await repository.last_training_mode(user_id) == "task12"
+    finish_send.set()
+    await late_next
+
+    assert await repository.user_state(user_id) == "task12"
+    assert await repository.last_training_mode(user_id) == "task12"
+    task12_after = await PostgresRepository(navigation_pool).task12_state(user_id)
+    assert task12_after is not None
+    assert task12_after["problem"]["problem_id"] == task12_problem_id
+    task6_after = await repository.task6_state(user_id)
+    assert task6_after is not None and task6_after["problem"]["problem_id"] != (
+        task6_before["problem"]["problem_id"]
+    )
+    assert (await repository.task6_progress(user_id))["issued"] == 2

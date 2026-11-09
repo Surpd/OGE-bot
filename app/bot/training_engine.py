@@ -73,6 +73,27 @@ NUMERIC_TRAININGS = {
 }
 
 
+async def persist_open_training(
+    repository: Repository,
+    user_id: int,
+    mode: str,
+    problem_id: str,
+    prompt_message_id: int | None,
+    expected_screen: str | None,
+) -> bool:
+    """Persist the opened context without overwriting a newer callback screen."""
+    if expected_screen is None:
+        await repository.save_user_state(user_id, mode)
+        return True
+    return await repository.transition_task_screen(
+        user_id,
+        mode,
+        problem_id,
+        mode,
+        expected_prompt_message_id=prompt_message_id,
+    )
+
+
 async def send_problem(
     adapter: NumericTraining,
     message: Message,
@@ -169,8 +190,14 @@ async def send_problem(
         await getattr(repository, f"set_{adapter.mode}_condition_message")(
             user_id, str(problem["problem_id"]), prompt_id
         )
-    await repository.save_user_state(user_id, adapter.mode)
-    return True
+    return await persist_open_training(
+        repository,
+        user_id,
+        adapter.mode,
+        str(problem["problem_id"]),
+        prompt_id if type(prompt_id) is int else None,
+        expected_screen,
+    )
 
 
 async def training_callback(

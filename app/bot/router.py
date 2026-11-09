@@ -36,6 +36,7 @@ from app.bot.scenario_training import (
 )
 from app.bot.training_engine import (
     NUMERIC_TRAININGS,
+    persist_open_training,
     send_problem,
     training_answer,
     training_callback,
@@ -214,8 +215,14 @@ async def _send_problem(
         await repository.set_task6_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_message_id
         )
-    await repository.save_user_state(user_id, "task6")
-    return True
+    return await persist_open_training(
+        repository,
+        user_id,
+        "task6",
+        str(saved_problem["problem_id"]),
+        prompt_message_id if type(prompt_message_id) is int else None,
+        expected_screen,
+    )
 
 
 async def start(
@@ -401,8 +408,14 @@ async def _send_task9_problem(
                     await repository.set_task9_condition_message(
                         user_id, str(saved_problem["problem_id"]), prompt_id
                     )
-                await repository.save_user_state(user_id, "task9")
-                return True
+                return await persist_open_training(
+                    repository,
+                    user_id,
+                    "task9",
+                    str(saved_problem["problem_id"]),
+                    prompt_id if type(prompt_id) is int else None,
+                    expected_screen,
+                )
             expected_problem_id = str(current_problem.get("problem_id", ""))
             action = "advance"
         if (
@@ -440,8 +453,14 @@ async def _send_task9_problem(
         await repository.set_task9_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_id
         )
-    await repository.save_user_state(user_id, "task9")
-    return True
+    return await persist_open_training(
+        repository,
+        user_id,
+        "task9",
+        str(saved_problem["problem_id"]),
+        prompt_id if type(prompt_id) is int else None,
+        expected_screen,
+    )
 
 
 async def choose_task9(
@@ -588,8 +607,14 @@ async def _send_task11_problem(
     condition_id = getattr(sent, "message_id", None)
     if type(condition_id) is int:
         await repository.set_task11_condition_message(user_id, restored.problem_id, condition_id)
-    await repository.save_user_state(user_id, "task11")
-    return True
+    return await persist_open_training(
+        repository,
+        user_id,
+        "task11",
+        restored.problem_id,
+        condition_id if type(condition_id) is int else None,
+        expected_screen,
+    )
 
 
 async def choose_task11(
@@ -1014,8 +1039,14 @@ async def _send_task7_problem(
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
         await repository.set_task7_condition_message(user_id, str(problem["problem_id"]), prompt_id)
-    await repository.save_user_state(user_id, "task7")
-    return True
+    return await persist_open_training(
+        repository,
+        user_id,
+        "task7",
+        str(problem["problem_id"]),
+        prompt_id if type(prompt_id) is int else None,
+        expected_screen,
+    )
 
 
 async def choose_task7(
@@ -1350,8 +1381,14 @@ async def _send_task13_problem(
         await repository.set_task13_condition_message(
             user_id, str(problem["problem_id"]), prompt_id
         )
-    await repository.save_user_state(user_id, "task13")
-    return True
+    return await persist_open_training(
+        repository,
+        user_id,
+        "task13",
+        str(problem["problem_id"]),
+        prompt_id if type(prompt_id) is int else None,
+        expected_screen,
+    )
 
 
 async def choose_task13(
