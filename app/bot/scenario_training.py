@@ -465,11 +465,11 @@ async def _start_session(
         else:
             await answer_callback(callback, "Это занятие уже изменилось. Выберите сюжет ещё раз.")
         return
-    if repository is not None:
-        await repository.save_user_state(user_id, "oge15")
     await render_session(
         callback.message, store, session, show_assets=True, user_id_override=user_id
     )
+    if repository is not None:
+        await repository.save_user_state(user_id, "oge15")
     await answer_callback(callback)
 
 
@@ -777,8 +777,6 @@ async def handle_callback(
             return
         await answer_callback(callback)
         if isinstance(callback.message, Message):
-            if repository is not None:
-                await repository.save_user_state(callback.from_user.id, "oge15")
             await render_session(
                 callback.message,
                 oge15_repository,
@@ -786,6 +784,8 @@ async def handle_callback(
                 show_assets=False,
                 user_id_override=callback.from_user.id,
             )
+            if repository is not None:
+                await repository.save_user_state(callback.from_user.id, "oge15")
         return
     if len(parts) == 3 and parts[:2] == ["oge15", "restart"]:
         try:
