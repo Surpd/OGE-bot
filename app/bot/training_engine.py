@@ -104,7 +104,6 @@ async def send_problem(
             )
             return False
         problem = current
-        await repository.save_user_state(user_id, adapter.mode)
     else:
         if (
             action == "start"
@@ -112,7 +111,6 @@ async def send_problem(
             and state_value.get("status") == "active"
         ):
             problem = current
-            await repository.save_user_state(user_id, adapter.mode)
         else:
             if action == "start" and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
@@ -159,8 +157,6 @@ async def send_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
-            if expected_screen is None:
-                await repository.save_user_state(user_id, adapter.mode)
     sent = await send_text(
         message,
         repository,
@@ -173,6 +169,7 @@ async def send_problem(
         await getattr(repository, f"set_{adapter.mode}_condition_message")(
             user_id, str(problem["problem_id"]), prompt_id
         )
+    await repository.save_user_state(user_id, adapter.mode)
     return True
 
 

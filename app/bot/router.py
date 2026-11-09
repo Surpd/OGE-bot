@@ -120,14 +120,17 @@ async def _has_resumable_session(
     user_id: int,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> bool:
-    for training in TRAININGS:
-        state = await getattr(repository, f"task{training.number}_state")(user_id)
-        if _has_resumable_task6(state):
-            return True
-    return bool(
-        oge15_repository is not None
-        and await oge15_repository.list_open_sessions(user_id)
-    )
+    mode = await repository.last_training_mode(user_id)
+    if mode == "oge15":
+        return bool(
+            oge15_repository is not None
+            and await oge15_repository.last_used_session(user_id) is not None
+        )
+    training = next((item for item in TRAININGS if item.mode == mode), None)
+    if training is None or not training.available:
+        return False
+    state = await getattr(repository, f"task{training.number}_state")(user_id)
+    return _has_resumable_task6(state)
 
 
 async def _send_problem(
@@ -151,7 +154,6 @@ async def _send_problem(
     if action == "resume":
         if isinstance(current_problem, dict) and state_value.get("status") == "active":
             saved_problem = current_problem
-            await repository.save_user_state(user_id, "task6")
         elif isinstance(current_problem, dict):
             await send_text(
                 message,
@@ -212,6 +214,7 @@ async def _send_problem(
         await repository.set_task6_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_message_id
         )
+    await repository.save_user_state(user_id, "task6")
     return True
 
 
@@ -227,12 +230,9 @@ async def start(
     await repository.register_user(message.from_user.id)
     await _pause_oge15_foreground(message.from_user.id, oge15_repository)
     await repository.save_user_state(message.from_user.id, "main_menu")
-    has_session = await _has_resumable_session(repository, message.from_user.id)
-    if (
-        oge15_repository is not None
-        and await oge15_repository.list_open_sessions(message.from_user.id)
-    ):
-        has_session = True
+    has_session = await _has_resumable_session(
+        repository, message.from_user.id, oge15_repository
+    )
     logger.info("user_started")
     await send_text(
         message,
@@ -288,20 +288,20 @@ async def continue_session(
             )
         if scenario_session is None:
             return False
-        await repository.save_user_state(user_id, "oge15")
         await render_oge15_session(
             message, oge15_repository, scenario_session, show_assets=False,
             user_id_override=user_id,
         )
+        await repository.save_user_state(user_id, "oge15")
         return True
 
     last = await repository.last_training_mode(user_id)
     if last == "oge15" and await resume_pilot():
         return
-    ordered = sorted(TRAININGS, key=lambda item: item.mode != last)
-    for training in ordered:
+    training = next((item for item in TRAININGS if item.mode == last), None)
+    if training is not None and training.available:
         state = await getattr(repository, f"task{training.number}_state")(user_id)
-        if training.available and _has_resumable_task6(state):
+        if _has_resumable_task6(state):
             problem = state.get("problem") if state else None
             saved_state = state.get("state") if state else None
             status = saved_state.get("status") if isinstance(saved_state, dict) else None
@@ -312,18 +312,16 @@ async def continue_session(
             )
             await _pause_oge15_foreground(user_id, oge15_repository)
             if status == "active":
-                await sender(message, repository, action="resume")
-                return
-            if status in {"solved", "failed", "solution_viewed"} and isinstance(problem, dict):
-                await sender(
+                if await sender(message, repository, action="resume"):
+                    return
+            elif status in {"solved", "failed", "solution_viewed"} and isinstance(problem, dict):
+                if await sender(
                     message,
                     repository,
                     action="advance",
                     expected_problem_id=str(problem.get("problem_id", "")),
-                )
-                return
-    if last != "oge15" and await resume_pilot():
-        return
+                ):
+                    return
     await repository.save_user_state(user_id, "main_menu")
     await send_text(
         message, repository, "Нет незавершённых заданий. Выберите номер.", reply_markup=main_menu()
@@ -359,7 +357,6 @@ async def choose_task6(
     user_id = _user_id(message)
     if user_id is not None:
         await _pause_oge15_foreground(user_id, oge15_repository)
-        await repository.save_user_state(user_id, "task6")
     await _send_problem(message, repository, action="start")
 
 
@@ -388,12 +385,10 @@ async def _send_task9_problem(
             )
             return False
         saved_problem = current_problem
-        await repository.save_user_state(user_id, "task9")
     else:
         if action == "start" and isinstance(current_problem, dict):
             if state_value.get("status") == "active":
                 saved_problem = current_problem
-                await repository.save_user_state(user_id, "task9")
                 sent = await send_text(
                     message,
                     repository,
@@ -406,6 +401,7 @@ async def _send_task9_problem(
                     await repository.set_task9_condition_message(
                         user_id, str(saved_problem["problem_id"]), prompt_id
                     )
+                await repository.save_user_state(user_id, "task9")
                 return True
             expected_problem_id = str(current_problem.get("problem_id", ""))
             action = "advance"
@@ -432,8 +428,6 @@ async def _send_task9_problem(
             return False
         if action == "advance" and saved_problem.get("_transitioned") is False:
             return False
-        if expected_screen is None:
-            await repository.save_user_state(user_id, "task9")
     sent = await send_text(
         message,
         repository,
@@ -446,6 +440,7 @@ async def _send_task9_problem(
         await repository.set_task9_condition_message(
             user_id, str(saved_problem["problem_id"]), prompt_id
         )
+    await repository.save_user_state(user_id, "task9")
     return True
 
 
@@ -528,10 +523,8 @@ async def _send_task11_problem(
             )
             return False
         problem = current
-        await repository.save_user_state(user_id, "task11")
     elif action == "start" and isinstance(current, dict) and state_value.get("status") == "active":
         problem = current
-        await repository.save_user_state(user_id, "task11")
     else:
         if action == "start" and isinstance(current, dict):
             expected_problem_id = str(current.get("problem_id", ""))
@@ -570,8 +563,6 @@ async def _send_task11_problem(
         freshly_generated = problem.get("_transitioned") is True
         if action == "advance" and problem.get("_transitioned") is False:
             return False
-        if expected_screen is None:
-            await repository.save_user_state(user_id, "task11")
     try:
         # Fresh candidates have already passed the independent raster oracle in generate().
         restored = await asyncio.to_thread(
@@ -597,6 +588,7 @@ async def _send_task11_problem(
     condition_id = getattr(sent, "message_id", None)
     if type(condition_id) is int:
         await repository.set_task11_condition_message(user_id, restored.problem_id, condition_id)
+    await repository.save_user_state(user_id, "task11")
     return True
 
 
@@ -945,7 +937,6 @@ async def _send_task7_problem(
             )
             return False
         problem = current
-        await repository.save_user_state(user_id, "task7")
     else:
         if (
             action == "start"
@@ -953,7 +944,6 @@ async def _send_task7_problem(
             and state_value.get("status") == "active"
         ):
             problem = current
-            await repository.save_user_state(user_id, "task7")
         else:
             if action == "start" and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
@@ -979,8 +969,6 @@ async def _send_task7_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
-            if expected_screen is None:
-                await repository.save_user_state(user_id, "task7")
     if problem.get("family_id") not in TASK7_ENABLED_FAMILIES or (
         problem is not current and not await asyncio.to_thread(validate_task7_snapshot, problem)
     ):
@@ -1026,6 +1014,7 @@ async def _send_task7_problem(
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
         await repository.set_task7_condition_message(user_id, str(problem["problem_id"]), prompt_id)
+    await repository.save_user_state(user_id, "task7")
     return True
 
 
@@ -1265,7 +1254,6 @@ async def _send_task13_problem(
             )
             return False
         problem = current
-        await repository.save_user_state(user_id, "task13")
     else:
         if (
             action == "start"
@@ -1273,7 +1261,6 @@ async def _send_task13_problem(
             and state_value.get("status") == "active"
         ):
             problem = current
-            await repository.save_user_state(user_id, "task13")
         else:
             if action == "start" and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
@@ -1307,8 +1294,6 @@ async def _send_task13_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
-            if expected_screen is None:
-                await repository.save_user_state(user_id, "task13")
     problem_id = str(problem["problem_id"])
     graph_choice = _task13_is_graph_choice(problem)
     if not graph_choice and not validate_task13_snapshot(problem):
@@ -1365,6 +1350,7 @@ async def _send_task13_problem(
         await repository.set_task13_condition_message(
             user_id, str(problem["problem_id"]), prompt_id
         )
+    await repository.save_user_state(user_id, "task13")
     return True
 
 

@@ -4,8 +4,10 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram.types import User
 
+from app.bot import router
 from app.bot.router import (
     choose_task6,
+    choose_task9,
     continue_session,
     return_to_menu,
     show_progress,
@@ -70,6 +72,22 @@ async def test_task6_wrong_first_attempt_does_not_reveal_answer_then_second_does
     assert "Вторая попытка неверна" in second_feedback
     assert correct_answer in second_feedback
     assert repository.training[777]["state"]["attempts"] == 2
+
+
+@pytest.mark.asyncio
+async def test_failed_task6_generation_does_not_replace_last_used_training(monkeypatch) -> None:
+    repository = MemoryRepository()
+    await choose_task9(_message(775, "№9 · Уравнения"), repository)
+    task9 = await repository.task9_state(775)
+    assert task9 is not None and isinstance(task9["problem"], dict)
+    task9_problem_id = str(task9["problem"]["problem_id"])
+
+    monkeypatch.setattr(router, "build_candidate_batch", lambda *args, **kwargs: [])
+    await choose_task6(_message(775, "№6 · Вычисления"), repository)
+
+    assert await repository.last_training_mode(775) == "task9"
+    assert repository.training[775]["problem"] is None
+    assert repository.training9[775]["problem"]["problem_id"] == task9_problem_id
 
 
 @pytest.mark.asyncio

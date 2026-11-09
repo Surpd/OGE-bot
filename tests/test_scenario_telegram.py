@@ -6,6 +6,8 @@ from collections import Counter
 from dataclasses import replace
 from datetime import UTC, datetime
 from hashlib import sha256
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -15,7 +17,7 @@ from test_inline_dispatcher_postgres import TelegramSession
 from test_navigation_postgres import navigation_pool as postgres_db_fixture  # noqa: F401, F811
 
 from app.bot import router, scenario_training
-from app.bot.router import build_router
+from app.bot.router import build_router, choose_task12, continue_session, return_to_menu
 from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
@@ -809,6 +811,56 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         assert after_continue is not None and after_continue.session_id == tyres.session_id
         await tap(superseded_controls, "💡 Подсказка")
         assert await store.resume_session(user_id) == after_continue
+
+        # Switch from the saved full set to an ordinary number, then return to
+        # the exact TYRES snapshot/position through global Continue.
+        async def direct_message(text: str) -> AsyncMock:
+            nonlocal user_message_id
+            user_message_id += 2
+            message = AsyncMock()
+            message.from_user = user
+            message.text = text
+            message.message_id = user_message_id
+            message.answer.return_value = SimpleNamespace(message_id=user_message_id + 1)
+            return message
+
+        await choose_task12(await direct_message("№12 · Формулы"), repository, store)
+        task12_before = await repository.task12_state(user_id)
+        assert task12_before is not None and isinstance(task12_before["problem"], dict)
+        task12_problem_id = str(task12_before["problem"]["problem_id"])
+        await return_to_menu(await direct_message("↩ В меню"), repository, store)
+        restarted = PostgresRepository(oge15_navigation_pool)
+        await continue_session(await direct_message("▶ Продолжить"), restarted, store)
+        task12_after = await restarted.task12_state(user_id)
+        assert task12_after is not None
+        assert task12_after["problem"]["problem_id"] == task12_problem_id
+        assert task12_after["state"]["status"] == "active"
+
+        # Choosing the saved OGE15 context makes it last-used again. Global
+        # Continue restores the same persisted session without resetting it.
+        update_id += 1
+        await _feed(
+            dispatcher, bot, repository, store,
+            Update(update_id=update_id, message=Message(
+                message_id=7, date=datetime.now(UTC), chat=Chat(id=user_id, type="private"),
+                from_user=user, text="/oge15",
+            )),
+        )
+        menu = max(transport.messages.values(), key=lambda item: item.message_id)
+        menu = await tap(menu, "Шины")
+        await tap(menu, "▶ Продолжить · пятёрка · №3")
+        selected_tyres = await store.resume_session(user_id)
+        assert selected_tyres is not None
+        assert selected_tyres.session_id == tyres.session_id
+        assert selected_tyres.snapshot.seed == tyres.snapshot.seed
+        await return_to_menu(await direct_message("↩ В меню"), restarted, store)
+        await continue_session(await direct_message("▶ Продолжить"), restarted, store)
+        continued_tyres = await store.resume_session(user_id)
+        assert continued_tyres is not None
+        assert continued_tyres.session_id == tyres.session_id
+        assert continued_tyres.current_position == 3
+        assert continued_tyres.snapshot.seed == tyres.snapshot.seed
+        assert (await restarted.task12_state(user_id))["problem"]["problem_id"] == task12_problem_id
 
         # Continue the saved PAPER run and finish early; pending positions are not skipped.
         update_id += 1

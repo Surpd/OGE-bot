@@ -12,7 +12,7 @@ def _button(text: str, data: str) -> InlineKeyboardButton:
 def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
     rows = [[_button("🧮 По номеру", "nav:numbers")]]
     rows.append([_button("📊 Мой прогресс", "nav:progress")])
-    rows.append([_button("⚙️ Настройки", "nav:settings")])
+    rows.append([_button("⚙️ Настройки", "nav:display")])
     if has_session:
         rows.insert(0, [_button("▶ Продолжить", "nav:resume")])
     return InlineKeyboardMarkup(inline_keyboard=rows)

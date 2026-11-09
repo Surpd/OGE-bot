@@ -155,7 +155,6 @@ async def navigation_callback(
         "nav:progress": handlers.show_progress,
         "nav:details": handlers.show_progress_details,
         "nav:display": show_display_options,
-        "nav:settings": show_display_options,
     }
     target = targets.get(data)
     if oge15_repository is not None and (

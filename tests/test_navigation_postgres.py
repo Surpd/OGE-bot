@@ -3,13 +3,39 @@ import asyncio
 import os
 from collections.abc import AsyncIterator
 from pathlib import Path
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import asyncpg
 import pytest
 import pytest_asyncio
+from aiogram.types import User
 
+from app.bot.router import (
+    _has_resumable_session,
+    choose_task9,
+    choose_task12,
+    continue_session,
+    return_to_menu,
+    start,
+    task12_callback,
+)
+from app.math.oge07_scheduler import build_task7_candidate_batch
 from app.persistence.repository import PostgresRepository, read_migration
+
+_telegram_message_id = 88000
+
+
+def telegram_message(user_id: int, text: str) -> AsyncMock:
+    global _telegram_message_id
+    message_id = _telegram_message_id
+    _telegram_message_id += 2
+    message = AsyncMock()
+    message.from_user = User(id=user_id, is_bot=False, first_name="Integration")
+    message.text = text
+    message.message_id = message_id
+    message.answer.return_value.message_id = message_id + 1
+    return message
 
 
 @pytest_asyncio.fixture
@@ -140,3 +166,122 @@ async def test_postgres_existing_migration_chain_is_idempotent_and_preserves_dat
     )
     assert after == before
     assert await PostgresRepository(navigation_pool).claim_navigation_message(user_id, 500)
+
+
+@pytest.mark.parametrize("terminal", [False, True], ids=["active", "terminal"])
+@pytest.mark.asyncio
+async def test_postgres_global_continue_selects_latest_task_and_advances_once(
+    navigation_pool, terminal: bool
+):
+    repository, user_id = await register(navigation_pool)
+    await choose_task9(telegram_message(user_id, "№9 · Уравнения"), repository)
+    task9_before = await repository.task9_state(user_id)
+    assert task9_before is not None and isinstance(task9_before["problem"], dict)
+    task9_problem_id = str(task9_before["problem"]["problem_id"])
+
+    await choose_task12(telegram_message(user_id, "№12 · Формулы"), repository)
+    task12_before = await repository.task12_state(user_id)
+    assert task12_before is not None and isinstance(task12_before["problem"], dict)
+    task12_problem_id = str(task12_before["problem"]["problem_id"])
+    if terminal:
+        assert await repository.task12_reveal_solution(user_id, task12_problem_id)
+        old_prompt_id = int(task12_before["state"]["input_prompt_message_id"])
+
+    # Leaving for a menu and constructing a fresh repository must preserve the
+    # selected training and the exact problem/snapshot in PostgreSQL.
+    await return_to_menu(telegram_message(user_id, "↩ В меню"), repository)
+    restarted = PostgresRepository(navigation_pool)
+    assert await restarted.last_training_mode(user_id) == "task12"
+    before_progress = await restarted.task12_progress(user_id)
+    if terminal:
+        await asyncio.gather(
+            continue_session(telegram_message(user_id, "▶ Продолжить"), restarted),
+            continue_session(telegram_message(user_id, "▶ Продолжить"), restarted),
+        )
+    else:
+        await continue_session(telegram_message(user_id, "▶ Продолжить"), restarted)
+
+    after_continue = await restarted.task12_state(user_id)
+    assert after_continue is not None and isinstance(after_continue["problem"], dict)
+    if terminal:
+        next_problem_id = str(after_continue["problem"]["problem_id"])
+        assert next_problem_id != task12_problem_id
+        assert after_continue["state"]["status"] == "active"
+        after_progress = await restarted.task12_progress(user_id)
+        assert after_progress["issued"] == before_progress["issued"] + 1
+        assert after_progress["solutions_viewed"] == before_progress["solutions_viewed"]
+        stale_callback = AsyncMock()
+        stale_callback.data = f"t12:next:{task12_problem_id}"
+        stale_callback.from_user = User(id=user_id, is_bot=False, first_name="Integration")
+        stale_callback.message = AsyncMock()
+        stale_callback.message.message_id = old_prompt_id
+        stale_callback.message.answer.return_value.message_id = old_prompt_id + 2
+        await task12_callback(stale_callback, restarted)
+        await task12_callback(stale_callback, restarted)
+        after_stale_callbacks = await restarted.task12_state(user_id)
+        assert after_stale_callbacks is not None
+        assert after_stale_callbacks["problem"]["problem_id"] == next_problem_id
+        assert (await restarted.task12_progress(user_id))["issued"] == after_progress["issued"]
+        # A second Continue while the new problem is active restores it rather
+        # than issuing another one.
+        await return_to_menu(telegram_message(user_id, "↩ В меню"), restarted)
+        await continue_session(telegram_message(user_id, "▶ Продолжить"), restarted)
+        repeated = await restarted.task12_state(user_id)
+        assert repeated is not None and repeated["problem"]["problem_id"] == next_problem_id
+        assert (await restarted.task12_progress(user_id))["issued"] == after_progress["issued"]
+    else:
+        assert after_continue["problem"]["problem_id"] == task12_problem_id
+        assert after_continue["state"]["status"] == "active"
+        assert after_continue["state"]["attempts"] == task12_before["state"]["attempts"]
+        assert (await restarted.task12_progress(user_id))["issued"] == before_progress["issued"]
+
+    # Switching to #12 never overwrites the saved #9 problem or its outcome.
+    task9_after = await restarted.task9_state(user_id)
+    assert task9_after is not None and task9_after["problem"]["problem_id"] == task9_problem_id
+    assert task9_after["state"]["status"] == "active"
+
+
+@pytest.mark.asyncio
+async def test_postgres_disabled_last_used_training_hides_continue_without_fallback(
+    navigation_pool, monkeypatch
+):
+    repository, user_id = await register(navigation_pool)
+    await choose_task9(telegram_message(user_id, "№9 · Уравнения"), repository)
+    task9_before = await repository.task9_state(user_id)
+    assert task9_before is not None and isinstance(task9_before["problem"], dict)
+    task9_problem_id = str(task9_before["problem"]["problem_id"])
+
+    await repository.ensure_task7_session(user_id)
+    candidates = build_task7_candidate_batch({}, 74821, family_ids=("OGE07-C01",))
+    assert candidates
+    task7_problem = await repository.advance_task7_problem(user_id, None, candidates)
+    await repository.set_task7_condition_message(
+        user_id, str(task7_problem["problem_id"]), 74822
+    )
+    await repository.save_user_state(user_id, "task7")
+    assert await repository.task7_state(user_id) is not None
+
+    import app.math.oge07_scheduler as scheduler
+
+    monkeypatch.setattr(scheduler, "ENABLED_FAMILIES", ())
+    assert not await _has_resumable_session(repository, user_id)
+    restarted = PostgresRepository(navigation_pool)
+    menu_message = telegram_message(user_id, "/start")
+    await start(menu_message, restarted)
+    menu = menu_message.answer.await_args_list[-1].kwargs["reply_markup"]
+    assert all(
+        button.callback_data.partition("~")[0] != "nav:resume"
+        for row in menu.inline_keyboard
+        for button in row
+    )
+
+    await continue_session(telegram_message(user_id, "▶ Продолжить"), restarted)
+    assert await restarted.user_state(user_id) == "main_menu"
+    assert await restarted.last_training_mode(user_id) == "task7"
+    assert (await restarted.task7_state(user_id))["problem"]["problem_id"] == task7_problem[
+        "problem_id"
+    ]
+    task9_after = await restarted.task9_state(user_id)
+    assert task9_after is not None
+    assert task9_after["problem"]["problem_id"] == task9_problem_id
+    assert task9_after["state"]["status"] == "active"
