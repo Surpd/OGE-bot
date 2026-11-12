@@ -174,6 +174,28 @@ async def exercise_navigation(
         assert resumed["state"]["attempts"] == 0
         await click(f"t6:menu:{problem_id}")
         await click("nav:numbers")
+        await click("nav:task:6")
+        choice = list(session.messages.values())[-1]
+        assert "Сохранена практика: №6" in (choice.text or "")
+        assert (await repository.task6_state(42))["problem"]["problem_id"] == problem_id
+        await click(f"nav:tr:r:6:{problem_id}", choice)
+        confirmation = list(session.messages.values())[-1]
+        assert "Активное задание останется без результата" in (confirmation.text or "")
+        assert (await repository.task6_state(42))["problem"]["problem_id"] == problem_id
+        await click(f"nav:tr:n:6:{problem_id}", confirmation)
+        choice = list(session.messages.values())[-1]
+        assert "Сохранена практика: №6" in (choice.text or "")
+        await click(f"nav:tr:r:6:{problem_id}", choice)
+        confirmation = list(session.messages.values())[-1]
+        await click(f"nav:tr:y:6:{problem_id}", confirmation)
+        restarted = await repository.task6_state(42)
+        assert restarted is not None and restarted["problem"]["problem_id"] != problem_id
+        assert restarted["state"]["status"] == "active"
+        assert (await repository.task6_progress(42))["issued"] == 2
+        assert await repository.user_state(42) == "task6"
+        restarted_problem_id = restarted["problem"]["problem_id"]
+        await click(f"t6:menu:{restarted_problem_id}")
+        await click("nav:numbers")
         await click("nav:task:8")
         assert await repository.user_state(42) == "family_selection:8"
         await click("nav:numbers")
@@ -182,7 +204,7 @@ async def exercise_navigation(
         await click("progress:families")
         assert await repository.user_state(42) == "progress"
         await click("nav:main")
-        assert (await repository.task6_state(42))["problem"]["problem_id"] == problem_id
+        assert (await repository.task6_state(42))["problem"]["problem_id"] == restarted_problem_id
         if graphics:
             for number, family_prefix in ((7, "OGE07-N"), (11, "OGE11-F"), (13, "OGE13-S")):
                 await click("nav:numbers")
@@ -205,6 +227,32 @@ async def exercise_navigation(
                 await click("nav:resume")
                 assert (await state_reader(42))["problem"]["problem_id"] == task_id
                 await click(f"t{number}:menu:{task_id}")
+
+        # Switching №9 → №12 and selecting saved №9 restores its exact problem.
+        await click("nav:numbers")
+        await click("nav:task:9")
+        task9 = await repository.task9_state(42)
+        assert task9 is not None and isinstance(task9["problem"], dict)
+        task9_id = str(task9["problem"]["problem_id"])
+        await click(f"t9:menu:{task9_id}")
+        await click("nav:numbers")
+        await click("nav:task:12")
+        await click("nav:family:12:random")
+        await click("nav:begin:12")
+        task12 = await repository.task12_state(42)
+        assert task12 is not None and isinstance(task12["problem"], dict)
+        task12_id = str(task12["problem"]["problem_id"])
+        await click(f"t12:menu:{task12_id}")
+        await click("nav:numbers")
+        await click("nav:task:9")
+        choice = list(session.messages.values())[-1]
+        assert "Сохранена практика: №9" in (choice.text or "")
+        assert (await repository.task9_state(42))["problem"]["problem_id"] == task9_id
+        await click(f"nav:tr:c:9:{task9_id}", choice)
+        restored_task9 = await repository.task9_state(42)
+        assert restored_task9 is not None
+        assert restored_task9["problem"]["problem_id"] == task9_id
+        assert await repository.user_state(42) == "task9"
     finally:
         await stack.aclose()
         await bot.session.close()

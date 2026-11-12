@@ -401,10 +401,11 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         assert second is not None and second.current_position == 2
         old_prompt_id = second.prompt_message_id
 
-        controls = await callback(controls, "⏸ Пауза")
+        controls = await callback(controls, "↩ В меню")
         paused = await scenario_repository.resume_session(user_id)
         assert paused is not None and paused.status == "paused"
-        controls = await callback(controls, "▶ Продолжить")
+        main = max(transport.messages.values(), key=lambda item: item.message_id)
+        controls = await callback(main, "▶ Продолжить")
         resumed = await scenario_repository.resume_session(user_id)
         assert resumed is not None and resumed.status == "active"
         assert resumed.current_position == 2 and resumed.snapshot.seed == session.snapshot.seed
@@ -468,7 +469,7 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         )
 
         # Old scenario controls are inert while №6 is the user's selected training.
-        await callback(controls, "⏸ Пауза")
+        await callback(controls, "↩ В меню")
         assert (
             await scenario_repository.resume_session(user_id, resumed.session_id)
             == paused_for_classic
@@ -726,6 +727,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
             else:
                 assert "Ответ засчитан" in (result.text or "")
             mode = await tap(result, "➡ Следующий вопрос" if position < 5 else "Завершить")
+        assert "Пятёрка завершена!" in (mode.text or "")
         assert await scenario_repository.resume_session(user_id) is None
         assert (await scenario_repository.position_stats(user_id))[0]["correct"] == 5
         assert not any(call.__api_method__ == "sendDocument" for call in transport.calls)
@@ -978,7 +980,12 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         await tap(controls, "⏹ Завершить тренировку")
         terminal_card = transport.messages[controls.message_id]
         assert "Напишите ответ" not in (terminal_card.text or "")
-        assert terminal_card.reply_markup is None
+        assert "Тренировка завершена досрочно." in (terminal_card.text or "")
+        assert "Задано вопросов: 4." in (terminal_card.text or "")
+        assert "Невыданные вопросы не считаются ошибками или пропусками." in (
+            terminal_card.text or ""
+        )
+        assert terminal_card.reply_markup is not None
         assert await store.resume_session(user_id, paper.session_id) is None
         paper_stats = await store.position_stats(user_id)
         # TYRES contributes two issued positions and PAPER three. The concurrent
@@ -1064,7 +1071,7 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         assert (await store.resume_session(other_id)).session_id == other.session_id
         assert (await store.resume_session(user_id)).session_id == tyres.session_id
 
-        # Restart is explicit: it closes only the selected full session and retains its history.
+        # Restart requires confirmation; cancel keeps the original snapshot and progress.
         update_id += 1
         await _feed(
             dispatcher, bot, repository, store,
@@ -1076,6 +1083,14 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         menu = max(transport.messages.values(), key=lambda item: item.message_id)
         menu = await tap(menu, "Шины")
         await tap(menu, "🆕 Начать заново · пятёрка")
+        confirmation = max(transport.messages.values(), key=lambda item: item.message_id)
+        assert "Сохранённые результаты останутся в истории" in (confirmation.text or "")
+        await tap(confirmation, "↩ Отмена")
+        assert (await store.resume_session(user_id, tyres.session_id)).current_position == 3
+        choice = max(transport.messages.values(), key=lambda item: item.message_id)
+        await tap(choice, "🆕 Начать заново")
+        confirmation = max(transport.messages.values(), key=lambda item: item.message_id)
+        await tap(confirmation, "🆕 Подтвердить")
         restarted_tyres = await store.resume_session(user_id)
         assert restarted_tyres is not None
         assert restarted_tyres.session_id != tyres.session_id

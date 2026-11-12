@@ -7,6 +7,7 @@ import secrets
 from dataclasses import replace
 from functools import lru_cache
 from types import SimpleNamespace
+from typing import cast
 from uuid import UUID
 
 from aiogram.dispatcher.event.bases import SkipHandler
@@ -20,6 +21,8 @@ from aiogram.types import (
 )
 
 from app.bot.callbacks import answer_callback
+from app.bot.menu import main_menu
+from app.bot.presentation import send_text
 from app.bot.training_ux import matches_current_condition
 from app.math.scenario_engine import (
     FamilyRegistry,
@@ -381,7 +384,7 @@ async def render_session(
         else:
             rows.append([_button("Завершить", f"{callback_prefix}:next")])
     rows.append([_button("📷 Схема / данные", f"{callback_prefix}:data")])
-    rows.append([_button("⏸ Пауза", f"{callback_prefix}:pause")])
+    rows.append([_button("↩ В меню", f"{callback_prefix}:pause")])
     title = f"{story} · {progress}"
     if session.question_status == "active":
         body = (
@@ -711,22 +714,52 @@ async def handle_callback(
         if updated is not None and updated.status != "active" and action != "pause":
             return
         if updated is None:
-            if action == "finish" and isinstance(callback.message, Message):
+            if action in {"finish", "next", "skip"} and isinstance(callback.message, Message):
+                summary = await oge15_repository.session_summary(session_id)
+                if action == "finish":
+                    heading = "Тренировка завершена досрочно."
+                    note = "Невыданные вопросы не считаются ошибками или пропусками."
+                elif session.mode is PracticeMode.FULL:
+                    heading = "Пятёрка завершена!"
+                    note = "Все пять вопросов были выданы."
+                else:
+                    heading = "Одно задание завершено!"
+                    note = ""
                 terminal_text = (
-                    "Тренировка завершена. Ответы и результаты сохранены; "
-                    "оставшиеся вопросы не учитывались. Статистика доступна по /oge15."
-                )
-                try:
-                    await callback.message.edit_text(terminal_text, reply_markup=None)
-                except TelegramBadRequest:
-                    await callback.message.edit_reply_markup(reply_markup=None)
-                    await callback.message.answer(terminal_text)
+                    f"{heading}\n\n"
+                    f"Верно: {summary['correct']} · ошибок после двух попыток: "
+                    f"{summary['failed']}\n"
+                    f"Разборов: {summary['reviewed']} · пропусков: {summary['skipped']}\n"
+                    f"Задано вопросов: {summary['issued']}.\n{note}"
+                ).rstrip()
                 if repository is not None:
+                    from app.bot.navigation import (
+                        bind_navigation,
+                        navigation_revision,
+                        prepare_navigation_markup,
+                    )
+
                     await repository.save_user_state(callback.from_user.id, "main_menu")
-            elif action in {"next", "skip"} and isinstance(callback.message, Message):
-                await callback.message.answer(
-                    "Практика завершена. Статистика доступна по команде /oge15."
-                )
+                    markup = prepare_navigation_markup(main_menu())
+                    try:
+                        edited = await callback.message.edit_text(
+                            terminal_text, reply_markup=cast(InlineKeyboardMarkup, markup)
+                        )
+                        target = edited if isinstance(edited, Message) else callback.message
+                        await bind_navigation(
+                            target, repository, callback.from_user.id, "main_menu",
+                            navigation_revision(markup),
+                        )
+                    except TelegramBadRequest:
+                        await send_text(
+                            callback.message,
+                            repository,
+                            terminal_text,
+                            user_id_override=callback.from_user.id,
+                            reply_markup=main_menu(),
+                        )
+                else:
+                    await callback.message.answer(terminal_text)
             return
         result_text = None
         if action == "hint":
@@ -744,15 +777,15 @@ async def handle_callback(
         elif action == "pause":
             if repository is not None:
                 await repository.save_user_state(callback.from_user.id, "main_menu")
-            await callback.message.answer(
-                "Практика поставлена на паузу.",
-                reply_markup=_keyboard(
-                    [
-                        [_button("▶ Продолжить", f"oge15:resume:{session_id}")],
-                        [_button("↩ К сюжетам", "oge15:home")],
-                    ]
-                ),
-            )
+                await send_text(
+                    callback.message,
+                    repository,
+                    "Главное меню.",
+                    user_id_override=callback.from_user.id,
+                    reply_markup=main_menu(has_session=True),
+                )
+            else:
+                await callback.message.answer("Практика сохранена. Нажмите «Продолжить» из меню.")
             return
         await render_session(
             callback.message,
@@ -796,6 +829,35 @@ async def handle_callback(
         existing = await oge15_repository.resume_session(callback.from_user.id, old_id)
         if existing is None:
             await answer_callback(callback, "Это занятие уже изменилось.")
+            return
+        story = STORY_NAMES.get(existing.snapshot.story_code, existing.snapshot.story_code)
+        lesson = "одно задание" if existing.mode is PracticeMode.SINGLE else "всю пятёрку"
+        await _send_selection(
+            callback,
+            f"Начать заново сюжет «{story}» — {lesson}? "
+            "Сохранённые результаты останутся в истории.",
+            _keyboard(
+                [
+                    [_button("🆕 Подтвердить", f"oge15:restart-confirm:{old_id}")],
+                    [_button("↩ Отмена", f"oge15:restart-cancel:{old_id}")],
+                ]
+            ),
+        )
+        return
+    if len(parts) == 3 and parts[:2] in (
+        ["oge15", "restart-confirm"], ["oge15", "restart-cancel"]
+    ):
+        try:
+            old_id = UUID(parts[2])
+        except ValueError:
+            await answer_callback(callback, "Эта кнопка устарела.")
+            return
+        existing = await oge15_repository.resume_session(callback.from_user.id, old_id)
+        if existing is None:
+            await answer_callback(callback, "Это занятие уже изменилось.")
+            return
+        if parts[1] == "restart-cancel":
+            await _session_choice(callback, existing)
             return
         position_text = (
             str(existing.current_position)

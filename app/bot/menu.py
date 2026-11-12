@@ -61,6 +61,23 @@ def training_menu(
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+def saved_training_menu(
+    number: int, problem_id: str, *, confirm_restart: bool = False
+) -> InlineKeyboardMarkup:
+    if confirm_restart:
+        rows = [
+            [_button("🆕 Подтвердить", f"nav:tr:y:{number}:{problem_id}")],
+            [_button("↩ Отмена", f"nav:tr:n:{number}:{problem_id}")],
+        ]
+    else:
+        rows = [
+            [_button("▶ Продолжить", f"nav:tr:c:{number}:{problem_id}")],
+            [_button("🆕 Начать заново", f"nav:tr:r:{number}:{problem_id}")],
+            [_button("↩ Назад к номерам", "nav:numbers")],
+        ]
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 def task6_menu(problem_id: str, *, completed: bool = False) -> InlineKeyboardMarkup:
     return training_menu(6, problem_id, completed=completed)
 

@@ -85,6 +85,10 @@ async def persist_open_training(
     if expected_screen is None:
         await repository.save_user_state(user_id, mode)
         return True
+    if expected_screen != mode:
+        return await repository.open_training_screen(
+            user_id, expected_screen, mode, problem_id
+        )
     return await repository.transition_task_screen(
         user_id,
         mode,

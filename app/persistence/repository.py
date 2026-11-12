@@ -31,6 +31,18 @@ class Repository(Protocol):
 
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None: ...
 
+    async def prepare_training_restart(
+        self, telegram_user_id: int, mode: str, problem_id: str, expected_screen: str
+    ) -> str | None: ...
+
+    async def restore_training_restart(
+        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str
+    ) -> None: ...
+
+    async def open_training_screen(
+        self, telegram_user_id: int, source_screen: str, mode: str, problem_id: str
+    ) -> bool: ...
+
     async def transition_task_screen(
         self,
         telegram_user_id: int,
@@ -3660,6 +3672,88 @@ class PostgresRepository(
             screen,
         )
 
+    async def prepare_training_restart(
+        self, telegram_user_id: int, mode: str, problem_id: str, expected_screen: str
+    ) -> str | None:
+        if mode not in {
+            "task6", "task7", "task8", "task9", "task10", "task11", "task12",
+            "task13", "task14",
+        }:
+            return None
+        async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id=$1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != expected_screen:
+                return None
+            session = await connection.fetchrow(
+                """SELECT id, active_problem_id, state FROM sessions
+                   WHERE user_id=$1 AND mode=$2 AND finished_at IS NULL
+                   ORDER BY started_at DESC LIMIT 1 FOR UPDATE""",
+                user["id"], mode,
+            )
+            if session is None or str(session["active_problem_id"]) != problem_id:
+                return None
+            state = _json_object(session["state"])
+            previous = state.get("status")
+            if previous not in {"active", "solved", "failed", "solution_viewed"}:
+                return None
+            state["status"] = "restart_ready"
+            await connection.execute(
+                "UPDATE sessions SET state=$2::jsonb WHERE id=$1",
+                session["id"], json.dumps(state, ensure_ascii=False),
+            )
+            return str(previous)
+
+    async def restore_training_restart(
+        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str
+    ) -> None:
+        async with self._pool.acquire() as connection, connection.transaction():
+            row = await connection.fetchrow(
+                """SELECT s.id, s.active_problem_id, s.state FROM sessions s
+                   JOIN users u ON u.id=s.user_id
+                   WHERE u.telegram_user_id=$1 AND s.mode=$2 AND s.finished_at IS NULL
+                   ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
+                telegram_user_id, mode,
+            )
+            if row is None or str(row["active_problem_id"]) != problem_id:
+                return
+            state = _json_object(row["state"])
+            if state.get("status") != "restart_ready":
+                return
+            state["status"] = previous_status
+            await connection.execute(
+                "UPDATE sessions SET state=$2::jsonb WHERE id=$1",
+                row["id"], json.dumps(state, ensure_ascii=False),
+            )
+
+    async def open_training_screen(
+        self, telegram_user_id: int, source_screen: str, mode: str, problem_id: str
+    ) -> bool:
+        async with self._pool.acquire() as connection, connection.transaction():
+            user = await connection.fetchrow(
+                "SELECT id, current_state FROM users WHERE telegram_user_id=$1 FOR UPDATE",
+                telegram_user_id,
+            )
+            if user is None or _json_object(user["current_state"]).get("screen") != source_screen:
+                return False
+            active = await connection.fetchval(
+                """SELECT 1 FROM sessions WHERE user_id=$1 AND mode=$2
+                   AND finished_at IS NULL AND active_problem_id=$3::uuid
+                   FOR UPDATE""",
+                user["id"], mode, problem_id,
+            )
+            if active is None:
+                return False
+            await connection.execute(
+                """UPDATE users
+                   SET current_state=jsonb_build_object('screen',$2::text,'resume_mode',$2::text)
+                   WHERE id=$1""",
+                user["id"], mode,
+            )
+            return True
+
     async def transition_task_screen(
         self,
         telegram_user_id: int,
@@ -4778,6 +4872,64 @@ class MemoryRepository(MemoryTrainingPreferences):
             "task7",
         }:
             self.resume_modes[telegram_user_id] = screen
+
+    async def prepare_training_restart(
+        self, telegram_user_id: int, mode: str, problem_id: str, expected_screen: str
+    ) -> str | None:
+        if self.states.get(telegram_user_id) != expected_screen:
+            return None
+        stores = {
+            "task6": self.training, "task7": self.training7, "task8": self.training8,
+            "task9": self.training9, "task10": self.training10, "task11": self.training11,
+            "task12": self.training12, "task13": self.training13, "task14": self.training14,
+        }
+        saved = stores.get(mode, {}).get(telegram_user_id)
+        if saved is None or not isinstance(saved.get("problem"), dict):
+            return None
+        if str(cast(dict[str, object], saved["problem"]).get("problem_id")) != problem_id:
+            return None
+        state = cast(dict[str, object], saved["state"])
+        previous = state.get("status")
+        if previous not in {"active", "solved", "failed", "solution_viewed"}:
+            return None
+        state["status"] = "restart_ready"
+        return str(previous)
+
+    async def restore_training_restart(
+        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str
+    ) -> None:
+        stores = {
+            "task6": self.training, "task7": self.training7, "task8": self.training8,
+            "task9": self.training9, "task10": self.training10, "task11": self.training11,
+            "task12": self.training12, "task13": self.training13, "task14": self.training14,
+        }
+        saved = stores.get(mode, {}).get(telegram_user_id)
+        if saved is None or not isinstance(saved.get("problem"), dict):
+            return
+        if str(cast(dict[str, object], saved["problem"]).get("problem_id")) != problem_id:
+            return
+        state = cast(dict[str, object], saved["state"])
+        if state.get("status") == "restart_ready":
+            state["status"] = previous_status
+
+    async def open_training_screen(
+        self, telegram_user_id: int, source_screen: str, mode: str, problem_id: str
+    ) -> bool:
+        if self.states.get(telegram_user_id) != source_screen:
+            return False
+        stores = {
+            "task6": self.training, "task7": self.training7, "task8": self.training8,
+            "task9": self.training9, "task10": self.training10, "task11": self.training11,
+            "task12": self.training12, "task13": self.training13, "task14": self.training14,
+        }
+        saved = stores.get(mode, {}).get(telegram_user_id)
+        if (
+            saved is None or not isinstance(saved.get("problem"), dict)
+            or str(cast(dict[str, object], saved["problem"]).get("problem_id")) != problem_id
+        ):
+            return False
+        await self.save_user_state(telegram_user_id, mode)
+        return True
 
     async def transition_task_screen(
         self,
