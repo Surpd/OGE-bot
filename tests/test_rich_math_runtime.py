@@ -10,8 +10,8 @@ from aiogram.types import BufferedInputFile, Chat, Message
 from PIL import Image
 
 from app.bot.math_fragments import Comparison, Fraction, MathToken, System
-from app.bot.math_image import render_math_image
-from app.bot.math_notation import math_spans, parse_formula
+from app.bot.math_image import _formula, render_math_image
+from app.bot.math_notation import math_spans, parse_formula, rich_needs_png_fallback
 from app.bot.presentation import format_rich_message, send_photo, send_text
 
 
@@ -20,13 +20,13 @@ from app.bot.presentation import format_rich_message, send_photo, send_text
     [
         ("−3/4", r"\frac{-3}{4}"),
         ("m·v²/2", r"\frac{m \cdot {v}^{2}}{2}"),
-        ("aₙ = a₁ + (n − 1)d", r"a_{n} = a_{1} + \left(n - 1\right) \cdot d"),
+        ("aₙ = a₁ + (n − 1)d", r"a_{n} = a_{1} + \left(n - 1\right)d"),
         ("√(49)", r"\sqrt{\left(49\right)}"),
         ("(−2; 3]", r"\left(-2; 3\right]"),
         ("2^(-3)", r"{2}^{\left(-3\right)}"),
-        ("y=1/(2x)", r"y = \frac{1}{\left(2 \cdot x\right)}"),
-        ("y=−3/(4x)", r"y = \frac{-3}{\left(4 \cdot x\right)}"),
-        ("y=(1/2)x", r"y = \left(\frac{1}{2}\right) \cdot x"),
+        ("y=1/(2x)", r"y = \frac{1}{\left(2x\right)}"),
+        ("y=−3/(4x)", r"y = \frac{-3}{\left(4x\right)}"),
+        ("y=(1/2)x", r"y = \left(\frac{1}{2}\right)x"),
     ],
 )
 def test_lossless_grammar_has_explicit_fraction_power_and_interval_scope(source, expected):
@@ -57,10 +57,10 @@ def test_rich_html_is_escaped_and_reaches_real_typesetting_image(tmp_path):
 @pytest.mark.parametrize(
     "source, expected_latex",
     [
-        ("y=1/(2x)", r"y = \frac{1}{\left(2 \cdot x\right)}"),
-        ("y=−3/(4x)", r"y = \frac{-3}{\left(4 \cdot x\right)}"),
-        ("y=(1/2)x", r"y = \left(\frac{1}{2}\right) \cdot x"),
-        ("y=3/(2(x+1))", r"y = \frac{3}{\left(2 \cdot \left(x + 1\right)\right)}"),
+        ("y=1/(2x)", r"y = \frac{1}{\left(2x\right)}"),
+        ("y=−3/(4x)", r"y = \frac{-3}{\left(4x\right)}"),
+        ("y=(1/2)x", r"y = \left(\frac{1}{2}\right)x"),
+        ("y=3/(2(x+1))", r"y = \frac{3}{\left(2\left(x + 1\right)\right)}"),
     ],
 )
 def test_oge11_rational_formula_has_unambiguous_rich_and_png_rendering(
@@ -81,8 +81,55 @@ def test_oge11_rational_formula_has_unambiguous_rich_and_png_rendering(
     assert parse_formula(source) == expected_latex
     rich = format_rich_message("Задание №11\n" + source)
     assert expected_latex.replace("&", "&amp;") in rich
-    image = Image.open(io.BytesIO(render_math_image("Задание №11\n" + source)))
-    assert image.format == "PNG" and image.width == 1200 and image.height > 100
+    image = Image.open(io.BytesIO(render_math_image(source)))
+    assert image.format == "PNG" and image.width == 1200 and image.height > 60
+
+
+def test_oge11_inverse_formula_keeps_the_generator_model_equivalent():
+    from fractions import Fraction as Rational
+
+    from app.math.oge11 import Graph, _parse_formula
+
+    for coefficient in (Rational(1, 2), Rational(-3, 4), Rational(3, 2)):
+        model = Graph("inverse", (coefficient,))
+        visible_formula = model.formula()
+        parsed_formula = _parse_formula(visible_formula)
+        for x in (Rational(-3), Rational(-1, 2), Rational(1, 3), Rational(4)):
+            assert parsed_formula.value(x) == model.value(x)
+
+
+@pytest.mark.parametrize(
+    "source, expected_latex",
+    [
+        ("2x", "2x"),
+        ("3ab", "3ab"),
+        ("5x²", r"5{x}^{2}"),
+        ("xy", "xy"),
+        ("2(x+3)", r"2\left(x + 3\right)"),
+        ("1/(2x)", r"\frac{1}{\left(2x\right)}"),
+        ("1/(3xy)", r"\frac{1}{\left(3xy\right)}"),
+        ("aₙ = a₁ + (n − 1)d", r"a_{n} = a_{1} + \left(n - 1\right)d"),
+        ("E=mv²/2", r"E = \frac{m{v}^{2}}{2}"),
+        ("F=ma", "F = ma"),
+        ("2×3", r"2 \times 3"),
+    ],
+)
+def test_school_juxtaposition_matches_final_png_pixels(source, expected_latex):
+    assert parse_formula(source) == expected_latex
+    actual = Image.open(io.BytesIO(render_math_image(source))).convert("RGB")
+    tile = _formula(expected_latex)
+    expected = Image.new("RGB", tile.size, "white")
+    expected.paste(tile, (0, 0), tile)
+    assert actual.crop((48, 48, 48 + tile.width, 48 + tile.height)).tobytes() == expected.tobytes()
+
+
+def test_rich_fallback_is_scoped_to_implicit_products_in_fraction_denominators():
+    assert rich_needs_png_fallback("Задание №11\ny=1/(2x)")
+    assert rich_needs_png_fallback("1/(3xy)")
+    assert rich_needs_png_fallback("1/(2(x+3))")
+    assert not rich_needs_png_fallback("2x + 3ab + 5x²")
+    assert not rich_needs_png_fallback("1/(2·x)")
+    assert not rich_needs_png_fallback("2×3")
 
 
 @pytest.mark.parametrize(
@@ -140,13 +187,11 @@ async def test_reported_math_cases_use_final_rich_or_png_transport(source, displ
     result = await send_text(incoming(bot), repository, source)
 
     assert result.message_id == 96
-    if display == "auto":
+    unsafe_rational = "y=1/(2x)" in source
+    if display == "auto" and not unsafe_rational:
         html = bot.send_rich_message.await_args.kwargs["rich_message"].html
-        if "y=1/(2x)" in source:
-            assert r"2 \cdot x" in html
-        else:
-            assert html.count("∞") == 2
-            assert r"\infty" not in html
+        assert html.count("∞") == 2
+        assert r"\infty" not in html
         bot.send_photo.assert_not_awaited()
     else:
         image = bot.send_photo.await_args.kwargs["photo"].data
@@ -154,6 +199,69 @@ async def test_reported_math_cases_use_final_rich_or_png_transport(source, displ
         decoded = Image.open(io.BytesIO(image))
         assert decoded.format == "PNG" and decoded.width == 1200
         bot.send_rich_message.assert_not_awaited()
+    await bot.session.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "source",
+    ["2x", "3ab", "5x²", "xy", "2(x+3)", "aₙ = a₁ + (n − 1)d", "E=mv²/2", "F=ma"],
+)
+async def test_school_juxtaposition_stays_in_rich_transport_without_dot(source):
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=97, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock(return_value=sent)
+    bot.send_photo = AsyncMock()
+    repository = AsyncMock()
+    repository.math_display.return_value = "auto"
+
+    result = await send_text(incoming(bot), repository, source)
+
+    html = bot.send_rich_message.await_args.kwargs["rich_message"].html
+    assert result.message_id == 97
+    assert r"\cdot" not in html
+    bot.send_photo.assert_not_awaited()
+    await bot.session.close()
+
+
+@pytest.mark.asyncio
+async def test_oge11_inverse_graph_caption_uses_targeted_png_fallback():
+    from fractions import Fraction as Rational
+
+    from app.math.oge11 import Graph
+    from app.math.oge11_render import render_graphs
+
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=98, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock()
+    bot.send_photo = AsyncMock(return_value=sent)
+    repository = AsyncMock()
+    repository.math_display.return_value = "auto"
+    graph_png, _ = render_graphs(
+        (
+            Graph("inverse", (Rational(1, 2),)),
+            Graph("linear", (Rational(1), Rational(0))),
+            Graph("quadratic", (Rational(1), Rational(0), Rational(0))),
+        ),
+        (0, 1, 2),
+        "OGE11-F08",
+        "test",
+        (Rational(-10), Rational(10), Rational(-10), Rational(10)),
+    )
+    caption = "Задание №11\nФункция задана формулой y=1/(2x)."
+
+    result = await send_photo(
+        incoming(bot),
+        repository,
+        BufferedInputFile(graph_png, filename="oge11.png"),
+        caption=caption,
+    )
+
+    assert result.message_id == 98
+    bot.send_rich_message.assert_not_awaited()
+    upload = bot.send_photo.await_args.kwargs["photo"]
+    image = Image.open(io.BytesIO(upload.data))
+    assert image.format == "PNG" and image.width == 1200 and image.height > 300
     await bot.session.close()
 
 

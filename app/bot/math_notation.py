@@ -4,6 +4,7 @@ No substitution over mathematical strings: every candidate must parse completely
 Unknown/ambiguous notation remains literal. Original spans reconstruct the input.
 """
 
+import re
 from dataclasses import dataclass
 from html import escape
 
@@ -27,6 +28,9 @@ _SIGNS = {
 _GREEK = {"α": r"\alpha", "β": r"\beta", "ρ": r"\rho", "ω": r"\omega", "π": r"\pi", "φ": r"\varphi"}
 _LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" + "".join(_GREEK)
 _CHARS = set(_LETTERS + "0123456789., +-−*/·×:^_=<>!≤≥≠()[];√∞∈∪" + "".join(_SUPER) + "".join(_SUB))
+_RICH_UNSAFE_DENOMINATOR_PRODUCT = re.compile(
+    r"/\(\s*[+\-−]?\d+(?:[.,]\d+)?\s*(?:[A-Za-zαβρπωφ]|\()"
+)
 
 
 @dataclass(frozen=True)
@@ -128,12 +132,10 @@ class _Parser:
                     )
                 ):
                     raise ValueError("Mixed number or ambiguous identifier")
-                # Make implicit products explicit in the display form. This is
-                # especially important for denominators such as ``2x``: some
-                # Telegram rich math clients render adjacent glyphs as a run
-                # that looks like ``2xx``. The source and mathematical value
-                # remain untouched; only the presentation is unambiguous.
-                left += r" \cdot " + self.unary(depth)
+                # School notation uses juxtaposition for algebraic products:
+                # 2x, xy, and 2(x+3). Keep only explicitly written products
+                # (handled above) as a multiplication sign.
+                left += self.unary(depth)
             else:
                 return left
 
@@ -206,6 +208,21 @@ def parse_formula(source: str) -> str | None:
         return latex
     except (ValueError, RecursionError):
         return None
+
+
+def rich_needs_png_fallback(source: str | object) -> bool:
+    """Avoid Telegram Rich Math for rational denominators with implicit products.
+
+    Telegram's Rich renderer has displayed the variable twice for forms such
+    as ``1/(2x)``. Route only those expressions through our deterministic
+    local raster renderer; ordinary juxtaposition remains native Rich math.
+    """
+    if not isinstance(source, str):
+        return False
+    return any(
+        span.latex is not None and _RICH_UNSAFE_DENOMINATOR_PRODUCT.search(span.source)
+        for span in math_spans(source)
+    )
 
 
 def math_spans(source: str) -> list[Span]:
