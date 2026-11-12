@@ -15,7 +15,11 @@ from app.math.scenario_engine import (
     build_practice_plan,
     restore_asset_bytes,
 )
-from app.math.scenarios.mobile_photos import scenario_photos, stove_arc
+from app.math.scenarios.mobile_photos import (
+    scenario_photos,
+    scenario_photos_for_question,
+    stove_arc,
+)
 from app.persistence.scenario_repository import ScenarioPostgresRepository, ScenarioSession
 
 
@@ -80,10 +84,8 @@ def test_legacy_garden_snapshot_without_raw_heating_operands_keeps_plan_only():
     assert len(scenario_photos(legacy_snapshot)) == 1
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("story", "count"), [
-    ("TYRES", 2), ("PAPER", 2), ("STOVE", 1), ("TARIFF", 1), ("GARDEN", 2), ("FLAT", 1),
-])
-async def test_public_card_sends_only_photos_for_graphics(story, count):
+@pytest.mark.parametrize("story", ("TYRES", "PAPER", "STOVE", "TARIFF", "GARDEN", "FLAT"))
+async def test_public_card_sends_only_materials_needed_for_current_question(story):
     registry = public_registry()
     snapshot = build_practice_plan(
         PracticeRequest(PracticeMode.FULL, 42, story), registry
@@ -98,13 +100,22 @@ async def test_public_card_sends_only_photos_for_graphics(story, count):
     store = AsyncMock(spec=ScenarioPostgresRepository)
     store.close_legacy_with_exposed_answer.return_value = False
     await render_session(message, store, session, show_assets=True, user_id_override=1)
-    expected = count + int(snapshot.questions[0].family_id == "STOVE-F12-ARCH-RADIUS")
-    assert message.answer_photo.await_count == expected
+    expected = scenario_photos_for_question(snapshot, session.current_position)
+    assert message.answer_photo.await_count == len(expected)
+    assert [call.args[0].data for call in message.answer_photo.await_args_list] == list(expected)
     card = message.answer.await_args.args[0]
     assert "попыток" not in card
     assert "подсказок" not in card
     if story == "STOVE":
         assert all("Печь | Тип |" not in call.args[0] for call in message.answer.await_args_list)
+    if (
+        story == "GARDEN"
+        and session.snapshot.questions[0].family_id != "GARDEN-09-HEAT-BREAKEVEN"
+    ):
+        assert all(
+            "Отопление одного дома" not in call.args[0]
+            for call in message.answer.await_args_list
+        )
     message.answer_document.assert_not_awaited()
     for call in message.answer_photo.await_args_list:
         upload = call.args[0]

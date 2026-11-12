@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from aiogram import Bot, Dispatcher
@@ -25,6 +25,7 @@ from app.math.scenario_engine import (
     build_practice_plan,
     restore_asset_bytes,
 )
+from app.math.scenarios.mobile_photos import scenario_photos, scenario_photos_for_question
 from app.persistence.repository import PostgresRepository
 from app.persistence.scenario_repository import (
     AttemptResult,
@@ -187,6 +188,20 @@ def test_public_registry_is_explicit_and_excludes_unconfirmed_or_blocked_familie
     )
 
 
+@pytest.mark.parametrize(
+    "action",
+    (
+        "hint", "solution", "skip", "next", "pause", "data", "finish",
+        "finish_request", "finish_cancel",
+    ),
+)
+def test_scenario_action_callbacks_fit_telegram_utf8_limit(action: str) -> None:
+    callback = scenario_training._action_callback(
+        UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"), 5, 2**63 - 1, action
+    )
+    assert len(callback.encode("utf-8")) <= 64
+
+
 @pytest.mark.parametrize("story_code", ("TYRES", "PAPER", "STOVE", "TARIFF", "GARDEN", "FLAT"))
 def test_each_public_story_builds_single_and_full_from_one_validated_snapshot(
     story_code: str,
@@ -206,6 +221,117 @@ def test_each_public_story_builds_single_and_full_from_one_validated_snapshot(
     for asset in full.snapshot.assets:
         restored = restore_asset_bytes(adapter.renderer, full.snapshot, asset)
         assert sha256(restored).hexdigest() == asset.sha256
+
+
+@pytest.mark.parametrize(
+    "story_code, expected_indexes",
+    [
+        ("TYRES", ((1, 0), (1,), (1,), (1,), (1,))),
+        ("PAPER", ((1, 0), (1,), (1, 0), (1,), (1,))),
+        ("STOVE", ((0,), (), (), (0,), (1,))),
+        ("TARIFF", ((0,), (0,), (0,), (), (1,))),
+        ("GARDEN", ((0,), (0,), (0,), (0,), (1,))),
+        ("FLAT", ((0,), (0,), (0,), (0,), ())),
+    ],
+)
+def test_public_story_photos_are_selected_only_for_current_question(
+    story_code: str, expected_indexes: tuple[tuple[int, ...], ...]
+) -> None:
+    full = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 90125, story_code), scenario_training.public_registry()
+    ).snapshot
+    assets = scenario_photos(full)
+    assert all(asset.startswith(b"\x89PNG\r\n\x1a\n") for asset in assets)
+    for position, indexes in enumerate(expected_indexes, 1):
+        selected = scenario_photos_for_question(full, position)
+        assert selected == tuple(assets[index] for index in indexes)
+        single = build_practice_plan(
+            PracticeRequest(PracticeMode.SINGLE, 90125, story_code, position),
+            scenario_training.public_registry(),
+        ).snapshot
+        assert scenario_photos_for_question(single, position) == selected
+
+
+@pytest.mark.asyncio
+async def test_garden_heating_data_is_withheld_until_the_heating_question() -> None:
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 90125, "GARDEN"), scenario_training.public_registry()
+    ).snapshot
+
+    async def show(position: int) -> tuple[str, int]:
+        message = SimpleNamespace(answer=AsyncMock(), answer_photo=AsyncMock())
+        await scenario_training._show_data(
+            message,
+            SimpleNamespace(snapshot=snapshot, current_position=position),
+            shared=True,
+            current=True,
+        )
+        return message.answer.await_args.args[0], message.answer_photo.await_count
+
+    plan_context, plan_photos = await show(1)
+    heating_context, heating_photos = await show(5)
+    assert "Отопление одного дома" not in plan_context
+    assert "Отопление одного дома" in heating_context
+    assert (plan_photos, heating_photos) == (1, 1)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("story_code", ("TYRES", "PAPER", "STOVE", "TARIFF", "GARDEN", "FLAT"))
+@pytest.mark.parametrize("mode", (PracticeMode.FULL, PracticeMode.SINGLE))
+async def test_snapshot_materials_render_on_start_and_postgres_resume(
+    oge15_navigation_pool, story_code: str, mode: PracticeMode
+) -> None:
+    from itertools import count
+
+    user_id = int(uuid4().int % (2**62)) + 1
+    store = ScenarioPostgresRepository(oge15_navigation_pool)
+    position = 3 if mode is PracticeMode.SINGLE else None
+    plan = build_practice_plan(
+        PracticeRequest(mode, 99101, story_code=story_code, position=position),
+        scenario_training.public_registry(),
+    )
+    session = await store.start_session(
+        user_id, plan.snapshot, mode, plan.selected_positions
+    )
+    assert session is not None
+    photo_ids = count(20_000)
+
+    def message_for_render() -> SimpleNamespace:
+        async def answer(*args, **kwargs):
+            return SimpleNamespace(message_id=next(photo_ids))
+
+        async def answer_photo(*args, **kwargs):
+            return SimpleNamespace(message_id=next(photo_ids))
+
+        return SimpleNamespace(
+            from_user=SimpleNamespace(id=user_id),
+            message_id=0,
+            answer=AsyncMock(side_effect=answer),
+            answer_photo=AsyncMock(side_effect=answer_photo),
+        )
+
+    expected = scenario_photos_for_question(session.snapshot, session.current_position)
+    initial = message_for_render()
+    await scenario_training.render_session(initial, store, session, show_assets=True)
+    assert initial.answer_photo.await_count == len(expected)
+    assert all(
+        call.args[0].data.startswith(b"\x89PNG\r\n\x1a\n")
+        for call in initial.answer_photo.await_args_list
+    )
+
+    await store.pause_foreground(user_id)
+    resumed = await store.resume_paused(user_id, session.session_id)
+    assert resumed is not None
+    assert resumed.session_id == session.session_id
+    assert resumed.current_position == session.current_position
+    assert resumed.snapshot == session.snapshot
+    restored = message_for_render()
+    await scenario_training.render_session(restored, store, resumed, show_assets=True)
+    assert restored.answer_photo.await_count == len(expected)
+    assert all(
+        call.args[0].data.startswith(b"\x89PNG\r\n\x1a\n")
+        for call in restored.answer_photo.await_args_list
+    )
 
 
 async def _feed(
@@ -324,16 +450,30 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         )
         before = await scenario_repository.resume_session(user_id)
         assert before is not None
+        assert [len(row) for row in controls.reply_markup.inline_keyboard] == [2, 2, 2]
+        assert [
+            [button.text for button in row]
+            for row in controls.reply_markup.inline_keyboard
+        ] == [
+            ["💡 Подсказка", "📘 Разбор"],
+            ["⏭ Пропустить", "📷 Схема / данные"],
+            ["↩ В меню", "⏹ Завершить"],
+        ]
+        assert all(
+            len(button.callback_data.encode("utf-8")) <= 64
+            for row in controls.reply_markup.inline_keyboard
+            for button in row
+        )
         # Hint callback is idempotent and leaves the independent attempt counter alone.
         assert "попыток" not in (controls.text or "")
         await callback(controls, "📷 Схема / данные")
         assert sum(call.__api_method__ == "sendPhoto" for call in transport.calls) == 4
         assert await scenario_repository.resume_session(user_id) == session
-        hint_data = next(
-            button.callback_data
-            for row in controls.reply_markup.inline_keyboard
-            for button in row
-            if button.text == "💡 Подсказка"
+        # Active legacy Telegram keyboards keep working after deploying the
+        # compact callback format.
+        hint_data = (
+            f"oge15:act:{session.session_id}:{session.current_position}:"
+            f"{session.navigation_revision}:hint"
         )
         update_id += 1
         hint_update = Update(
@@ -726,7 +866,9 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 assert any(message.text == "Верно!" for message in transport.messages.values())
             else:
                 assert "Ответ засчитан" in (result.text or "")
-            mode = await tap(result, "➡ Следующий вопрос" if position < 5 else "Завершить")
+            mode = await tap(
+                result, "➡ Следующий вопрос" if position < 5 else "Завершить пятёрку"
+            )
         assert "Пятёрка завершена!" in (mode.text or "")
         assert await scenario_repository.resume_session(user_id) is None
         assert (await scenario_repository.position_stats(user_id))[0]["correct"] == 5
@@ -973,11 +1115,29 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         paper = await store.resume_session(user_id)
         assert paper is not None and paper.current_position == 4
         controls = latest_control(paper)
-        assert any(
-            button.text == "⏹ Завершить тренировку"
-            for row in controls.reply_markup.inline_keyboard for button in row
+        assert [len(row) for row in controls.reply_markup.inline_keyboard] == [2, 2, 2]
+        controls = await tap(controls, "⏹ Завершить")
+        assert "Завершить тренировку" in (controls.text or "")
+        assert [len(row) for row in controls.reply_markup.inline_keyboard] == [2]
+        assert {button.text for button in controls.reply_markup.inline_keyboard[0]} == {
+            "⏹ Завершить", "↩ Продолжить"
+        }
+        assert all(
+            len(button.callback_data.encode("utf-8")) <= 64
+            for button in controls.reply_markup.inline_keyboard[0]
         )
-        await tap(controls, "⏹ Завершить тренировку")
+        before_cancel = await store.resume_session(user_id, paper.session_id)
+        assert before_cancel is not None
+        confirmation_revision = before_cancel.navigation_revision
+        controls = await tap(controls, "↩ Продолжить")
+        after_cancel = await store.resume_session(user_id, paper.session_id)
+        assert after_cancel is not None and after_cancel.status == "active"
+        assert after_cancel.session_id == paper.session_id
+        assert after_cancel.current_position == 4
+        assert after_cancel.navigation_revision > confirmation_revision
+        controls = latest_control(after_cancel)
+        controls = await tap(controls, "⏹ Завершить")
+        controls = await tap(controls, "⏹ Завершить")
         terminal_card = transport.messages[controls.message_id]
         assert "Напишите ответ" not in (terminal_card.text or "")
         assert "Тренировка завершена досрочно." in (terminal_card.text or "")
@@ -1023,6 +1183,12 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         menu = await tap(menu, "№4")
         single = await store.resume_session(user_id)
         assert single is not None and single.mode is PracticeMode.SINGLE
+        single_controls = latest_control(single)
+        assert [len(row) for row in single_controls.reply_markup.inline_keyboard] == [2, 2, 1]
+        assert all(
+            button.text != "⏹ Завершить"
+            for row in single_controls.reply_markup.inline_keyboard for button in row
+        )
         assert (await store.resume_session(user_id, tyres.session_id)).status == "paused"
         assert (await store.find_open_session(
             user_id, "TYRES", PracticeMode.FULL

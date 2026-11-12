@@ -435,3 +435,54 @@ def scenario_photos(snapshot: ScenarioSnapshot) -> tuple[bytes, ...]:
     if story == "FLAT":
         return (flat_plan(snapshot),)
     raise ValueError(f"No public mobile renderer for {story}")
+
+
+_SHARED_PHOTO_INDEXES: dict[str, tuple[int, ...]] = {
+    "TYRES": (1,),  # tire diagram
+    "PAPER": (1,),  # paper-format diagram
+}
+_QUESTION_PHOTO_INDEXES: dict[str, tuple[int, ...]] = {
+    "TYRES-TABLE-EXTREME": (0,),
+    "PAPER-F01": (0,),
+    "PAPER-F03": (0,),
+    "STOVE-F02-ATTRIBUTE-MATCH": (0,),
+    "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS": (0,),
+    "STOVE-F12-ARCH-RADIUS": (1,),
+    "TARIFF-F01-MONTHS-MINUTES": (0,),
+    "TARIFF-F04-MONTHLY-BILL": (0,),
+    "TARIFF-F05-EXTREMUM": (0,),
+    "TARIFF-F12-HOME-ISP": (1,),
+    "GARDEN-01-IDENTIFY": (0,),
+    "GARDEN-02-TILES-PACKS": (0,),
+    "GARDEN-04-PERIMETER-POLYGON": (0,),
+    "GARDEN-07-PERCENT-BUILDINGS": (0,),
+    "GARDEN-09-HEAT-BREAKEVEN": (1,),
+    "FLAT-01-ROOM-MATCH": (0,),
+    "FLAT-02-TILE-PACK": (0,),
+    "FLAT-02-PARQUET-PACK": (0,),
+    "FLAT-03-RECT-AREA": (0,),
+    "FLAT-04-RECT-PERCENT": (0,),
+}
+
+
+def scenario_photos_for_question(
+    snapshot: ScenarioSnapshot, position: int
+) -> tuple[bytes, ...]:
+    """Return only PNG materials needed to solve this position from its snapshot."""
+    if position not in range(1, 6):
+        raise ValueError("Scenario question position must be between 1 and 5")
+    question = next((item for item in snapshot.questions if item.position == position), None)
+    if question is None:
+        raise ValueError("Question is not present in the scenario snapshot")
+    indexes = (
+        *_SHARED_PHOTO_INDEXES.get(snapshot.story_code, ()),
+        *_QUESTION_PHOTO_INDEXES.get(question.family_id, ()),
+    )
+    photos = scenario_photos(snapshot)
+    if any(index < 0 for index in indexes):
+        raise ValueError("Question material index cannot be negative")
+    # Some pre-table GARDEN snapshots legitimately have no heating PNG. Keep
+    # those immutable legacy sessions resumable instead of failing to render.
+    return tuple(
+        photos[index] for index in dict.fromkeys(indexes) if index < len(photos)
+    )

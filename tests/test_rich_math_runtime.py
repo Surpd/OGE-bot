@@ -20,10 +20,13 @@ from app.bot.presentation import format_rich_message, send_photo, send_text
     [
         ("−3/4", r"\frac{-3}{4}"),
         ("m·v²/2", r"\frac{m \cdot {v}^{2}}{2}"),
-        ("aₙ = a₁ + (n − 1)d", r"a_{n} = a_{1} + \left(n - 1\right) d"),
+        ("aₙ = a₁ + (n − 1)d", r"a_{n} = a_{1} + \left(n - 1\right) \cdot d"),
         ("√(49)", r"\sqrt{\left(49\right)}"),
         ("(−2; 3]", r"\left(-2; 3\right]"),
         ("2^(-3)", r"{2}^{\left(-3\right)}"),
+        ("y=1/(2x)", r"y = \frac{1}{\left(2 \cdot x\right)}"),
+        ("y=−3/(4x)", r"y = \frac{-3}{\left(4 \cdot x\right)}"),
+        ("y=(1/2)x", r"y = \left(\frac{1}{2}\right) \cdot x"),
     ],
 )
 def test_lossless_grammar_has_explicit_fraction_power_and_interval_scope(source, expected):
@@ -49,6 +52,109 @@ def test_rich_html_is_escaped_and_reaches_real_typesetting_image(tmp_path):
     assert 150 < image.height < 6000
     assert image.getextrema()[0][0] < 100
     (tmp_path / "math.png").write_bytes(output)
+
+
+@pytest.mark.parametrize(
+    "source, expected_latex",
+    [
+        ("y=1/(2x)", r"y = \frac{1}{\left(2 \cdot x\right)}"),
+        ("y=−3/(4x)", r"y = \frac{-3}{\left(4 \cdot x\right)}"),
+        ("y=(1/2)x", r"y = \left(\frac{1}{2}\right) \cdot x"),
+        ("y=3/(2(x+1))", r"y = \frac{3}{\left(2 \cdot \left(x + 1\right)\right)}"),
+    ],
+)
+def test_oge11_rational_formula_has_unambiguous_rich_and_png_rendering(
+    source, expected_latex
+):
+    from fractions import Fraction as Rational
+
+    from app.math.oge11 import Graph
+
+    if source == "y=1/(2x)":
+        for coefficient, generated in (
+            (Rational(1, 2), "y=1/(2x)"),
+            (Rational(-1, 2), "y=-1/(2x)"),
+            (Rational(3, 2), "y=3/(2x)"),
+        ):
+            assert Graph("inverse", (coefficient,)).formula() == generated
+            assert parse_formula(generated) is not None
+    assert parse_formula(source) == expected_latex
+    rich = format_rich_message("Задание №11\n" + source)
+    assert expected_latex.replace("&", "&amp;") in rich
+    image = Image.open(io.BytesIO(render_math_image("Задание №11\n" + source)))
+    assert image.format == "PNG" and image.width == 1200 and image.height > 100
+
+
+@pytest.mark.parametrize(
+    "interval",
+    [
+        "(−∞; −33,54] ∪ [0; +∞)",
+        "(−∞; 0)",
+        "[−2; +∞)",
+        "(−∞; 3] ∪ (5; +∞)",
+    ],
+)
+def test_oge13_interval_rich_and_png_outputs_show_each_infinity_once(interval):
+    source = "Ответ: " + interval
+    rich = format_rich_message(source)
+    assert rich.count("∞") == interval.count("∞")
+    assert r"\infty" not in rich
+    assert "−∞" in rich or "+∞" in rich
+    image = Image.open(io.BytesIO(render_math_image(source)))
+    assert image.format == "PNG" and image.width == 1200 and image.height > 60
+
+
+def test_oge13_option_list_keeps_interval_edges_and_decimal_comma_visible():
+    from fractions import Fraction as Rational
+
+    from app.math.inequalities import Interval, format_set
+
+    answer = format_set(
+        (Interval(None, Rational(-1677, 50), False, True),
+         Interval(Rational(0), None, True, False))
+    )
+    assert answer == "(−∞;-33,54] ∪ [0;+∞)"
+    rich = format_rich_message("Варианты ответа:\n1) " + answer)
+    assert rich.count("∞") == 2
+    assert r"\infty" not in rich
+    assert "-33,54" in rich
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "source",
+    [
+        "Задание №11\ny=1/(2x)",
+        "Ответ: (−∞; −33,54] ∪ [0; +∞)",
+    ],
+)
+@pytest.mark.parametrize("display", ("auto", "png"))
+async def test_reported_math_cases_use_final_rich_or_png_transport(source, display):
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=96, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock(return_value=sent)
+    bot.send_photo = AsyncMock(return_value=sent)
+    repository = AsyncMock()
+    repository.math_display.return_value = display
+
+    result = await send_text(incoming(bot), repository, source)
+
+    assert result.message_id == 96
+    if display == "auto":
+        html = bot.send_rich_message.await_args.kwargs["rich_message"].html
+        if "y=1/(2x)" in source:
+            assert r"2 \cdot x" in html
+        else:
+            assert html.count("∞") == 2
+            assert r"\infty" not in html
+        bot.send_photo.assert_not_awaited()
+    else:
+        image = bot.send_photo.await_args.kwargs["photo"].data
+        assert image.startswith(b"\x89PNG\r\n\x1a\n")
+        decoded = Image.open(io.BytesIO(image))
+        assert decoded.format == "PNG" and decoded.width == 1200
+        bot.send_rich_message.assert_not_awaited()
+    await bot.session.close()
 
 
 def test_typed_system_is_native_latex_and_image_rows_are_not_reparsed():

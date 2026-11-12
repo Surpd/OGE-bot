@@ -32,7 +32,7 @@ from app.math.scenario_engine import (
     build_practice_plan,
     discover_story_registry,
 )
-from app.math.scenarios.mobile_photos import scenario_photos
+from app.math.scenarios.mobile_photos import scenario_photos_for_question
 from app.math.scenarios.recent_questions import is_recent_fixed_single, prefer_unseen
 from app.persistence.repository import Repository
 from app.persistence.scenario_repository import (
@@ -109,6 +109,18 @@ PUBLIC_FAMILIES = {
         }
     ),
 }
+_ACTION_CODES = {
+    "hint": "h",
+    "solution": "s",
+    "skip": "k",
+    "next": "n",
+    "pause": "p",
+    "data": "d",
+    "finish": "f",
+    "finish_request": "r",
+    "finish_cancel": "c",
+}
+_CODE_ACTIONS = {code: action for action, code in _ACTION_CODES.items()}
 
 
 @lru_cache(maxsize=1)
@@ -148,6 +160,12 @@ def _button(label: str, callback: str) -> InlineKeyboardButton:
 
 def _keyboard(rows: list[list[InlineKeyboardButton]]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _action_callback(session_id: UUID, position: int, revision: int, action: str) -> str:
+    """Keep scenario callbacks below Telegram's 64-byte limit."""
+    code = _ACTION_CODES[action]
+    return f"o:a:{session_id}:{position}:{revision}:{code}"
 
 
 def _has_user(user_id: int | None) -> bool:
@@ -275,15 +293,15 @@ async def _position_step(callback: CallbackQuery, code: str) -> None:
     )
 
 
-QUESTION_PHOTO_FAMILIES = {"STOVE-F12-ARCH-RADIUS", "TARIFF-F12-HOME-ISP"}
-
-
 async def _show_data(
     message: Message, session: ScenarioSession, *, shared: bool, current: bool
 ) -> None:
     snapshot = session.snapshot
     story = STORY_NAMES[snapshot.story_code]
     context = snapshot.shared_context
+    question = next(
+        item for item in snapshot.questions if item.position == session.current_position
+    )
     if snapshot.story_code == "TYRES":
         context = "\n".join(line for line in context.splitlines() if not line.startswith("|"))
         context = context.replace("**", "")
@@ -306,20 +324,22 @@ async def _show_data(
             "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
             "гараж ниже ворот справа, теплица внутри огорода."
         )
+    elif snapshot.story_code == "GARDEN" and question.family_id != "GARDEN-09-HEAT-BREAKEVEN":
+        prefix, separator, remainder = context.partition("Отопление одного дома")
+        if separator:
+            _, shared_questions, closing = remainder.partition("Все пять вопросов")
+            context = prefix + ("\nВсе пять вопросов" + closing if shared_questions else "")
     elif snapshot.story_code == "FLAT":
         context = context.replace("Это собственная SVG/PNG схема фиксированной топологии.", "")
         if "первая лоджия" in snapshot.questions[2].condition:
             context += " На плане первая лоджия расположена слева."
     if shared:
         await message.answer(context)
-    family = snapshot.questions[session.current_position - 1].family_id
-    for index, data in enumerate(scenario_photos(snapshot), 1):
-        specific = index == 2 and snapshot.story_code in {"STOVE", "TARIFF"}
-        if specific:
-            if not current or family not in QUESTION_PHOTO_FAMILIES:
-                continue
-        elif not shared:
-            continue
+    if shared or current:
+        photos = scenario_photos_for_question(snapshot, session.current_position)
+    else:
+        photos = ()
+    for index, data in enumerate(photos, 1):
         upload = BufferedInputFile(data, filename=f"scenario-{index}.png")
         await message.answer_photo(upload, caption=f"Данные задачи · {story}")
 
@@ -355,9 +375,7 @@ async def render_session(
         item for item in snapshot.questions if item.position == session.current_position
     )
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
-    if show_assets or (
-        show_current_asset and question.family_id in QUESTION_PHOTO_FAMILIES
-    ):
+    if show_assets or show_current_asset:
         await _show_data(message, session, shared=show_assets, current=True)
     progress = (
         f"Задание №{session.current_position} из 5"
@@ -365,26 +383,53 @@ async def render_session(
         else f"Задание №{session.current_position}"
     )
     rows: list[list[InlineKeyboardButton]] = []
-    callback_prefix = (
-        f"oge15:act:{session.session_id}:{session.current_position}:{session.navigation_revision}"
-    )
+
+    def callback(action: str) -> str:
+        return _action_callback(
+            session.session_id,
+            session.current_position,
+            session.navigation_revision,
+            action,
+        )
+
     if session.question_status == "active":
         rows.extend(
             [
-                [_button("💡 Подсказка", f"{callback_prefix}:hint")],
-                [_button("📘 Разбор", f"{callback_prefix}:solution")],
-                [_button("⏭ Пропустить", f"{callback_prefix}:skip")],
+                [
+                    _button("💡 Подсказка", callback("hint")),
+                    _button("📘 Разбор", callback("solution")),
+                ],
+                [
+                    _button("⏭ Пропустить", callback("skip")),
+                    _button("📷 Схема / данные", callback("data")),
+                ],
             ]
         )
-        if session.mode is PracticeMode.FULL:
-            rows.append([_button("⏹ Завершить тренировку", f"{callback_prefix}:finish")])
+        finish_button = (
+            _button("⏹ Завершить", callback("finish_request"))
+            if session.mode is PracticeMode.FULL
+            else None
+        )
+        rows.append(
+            [
+                _button("↩ В меню", callback("pause")),
+                *([finish_button] if finish_button is not None else []),
+            ]
+        )
     else:
         if session.mode is PracticeMode.FULL and session.current_position < 5:
-            rows.append([_button("➡ Следующий вопрос", f"{callback_prefix}:next")])
+            next_label = "➡ Следующий вопрос"
+        elif session.mode is PracticeMode.FULL:
+            next_label = "Завершить пятёрку"
         else:
-            rows.append([_button("Завершить", f"{callback_prefix}:next")])
-    rows.append([_button("📷 Схема / данные", f"{callback_prefix}:data")])
-    rows.append([_button("↩ В меню", f"{callback_prefix}:pause")])
+            next_label = "Завершить"
+        rows.append(
+            [
+                _button(next_label, callback("next")),
+                _button("📷 Схема / данные", callback("data")),
+            ]
+        )
+        rows.append([_button("↩ В меню", callback("pause"))])
     title = f"{story} · {progress}"
     if session.question_status == "active":
         body = (
@@ -415,6 +460,50 @@ async def render_session(
         session.session_id,
         session.navigation_revision,
         controls.message_id,
+    )
+
+
+async def _render_finish_confirmation(
+    message: Message,
+    store: ScenarioPostgresRepository,
+    session: ScenarioSession,
+    user_id: int,
+) -> None:
+    story = STORY_NAMES.get(session.snapshot.story_code, session.snapshot.story_code)
+    body = (
+        f"Завершить тренировку «{story}» сейчас?\n\n"
+        "Результаты уже выданных заданий сохранятся. "
+        "Невыданные задания не считаются ошибками или пропусками."
+    )
+    markup = _keyboard(
+        [[
+            _button(
+                "⏹ Завершить",
+                _action_callback(
+                    session.session_id,
+                    session.current_position,
+                    session.navigation_revision,
+                    "finish",
+                ),
+            ),
+            _button(
+                "↩ Продолжить",
+                _action_callback(
+                    session.session_id,
+                    session.current_position,
+                    session.navigation_revision,
+                    "finish_cancel",
+                ),
+            ),
+        ]]
+    )
+    try:
+        edited = await message.edit_text(body, reply_markup=markup)
+        controls = edited if isinstance(edited, Message) else message
+    except TelegramBadRequest:
+        controls = await message.answer(body, reply_markup=markup)
+    await store.set_control_message(
+        user_id, session.session_id, session.navigation_revision, controls.message_id
     )
 
 
@@ -652,7 +741,7 @@ async def handle_callback(
                 callback, oge15_repository, repository, parts[2], PracticeMode.SINGLE, parts[4]
             )
         return
-    if len(parts) == 6 and parts[:2] == ["oge15", "act"]:
+    if len(parts) == 6 and parts[:2] in (["oge15", "act"], ["o", "a"]):
         try:
             session_id, position, revision = UUID(parts[2]), int(parts[3]), int(parts[4])
         except ValueError:
@@ -661,7 +750,7 @@ async def handle_callback(
         if not isinstance(callback.message, Message):
             await answer_callback(callback)
             return
-        action = parts[5]
+        action = _CODE_ACTIONS.get(parts[5], "") if parts[:2] == ["o", "a"] else parts[5]
         session = await oge15_repository.resume_session(callback.from_user.id, session_id)
         if session is None:
             await answer_callback(callback, "Это занятие уже завершено.")
@@ -674,6 +763,8 @@ async def handle_callback(
             "pause",
             "data",
             "finish",
+            "finish_request",
+            "finish_cancel",
         }:
             await answer_callback(callback, "Это меню устарело. Откройте /start.")
             return
@@ -711,6 +802,21 @@ async def handle_callback(
             await _show_data(callback.message, session, shared=True, current=True)
             return
         updated = await oge15_repository.resume_session(callback.from_user.id, session_id)
+        if action == "finish_request" and updated is not None:
+            await _render_finish_confirmation(
+                callback.message, oge15_repository, updated, callback.from_user.id
+            )
+            return
+        if action == "finish_cancel" and updated is not None:
+            await render_session(
+                callback.message,
+                oge15_repository,
+                updated,
+                show_assets=False,
+                edit_current=True,
+                user_id_override=callback.from_user.id,
+            )
+            return
         if updated is not None and updated.status != "active" and action != "pause":
             return
         if updated is None:
@@ -814,7 +920,7 @@ async def handle_callback(
                 callback.message,
                 oge15_repository,
                 session,
-                show_assets=False,
+                show_assets=True,
                 user_id_override=callback.from_user.id,
             )
             if repository is not None:

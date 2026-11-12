@@ -112,7 +112,11 @@ def format_rich_message(
             lines.append(f"<p>{body}</p>")
         else:
             spans = math_spans(line.strip())
-            if len(spans) == 1 and spans[0].latex is not None:
+            if (
+                len(spans) == 1
+                and spans[0].latex is not None
+                and "∞" not in spans[0].source
+            ):
                 lines.append("<tg-math-block>" + escape(spans[0].latex) + "</tg-math-block>")
             else:
                 lines.append("<p>" + rich_inline(line) + "</p>")

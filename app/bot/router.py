@@ -2370,5 +2370,5 @@ def build_router() -> Router:
     router.callback_query.register(task8_callback, F.data.startswith("t8:"))
     router.callback_query.register(task13_callback, F.data.startswith("t13:"))
     router.callback_query.register(task11_callback, F.data.startswith("t11:"))
-    router.callback_query.register(oge15_callback, F.data.startswith("oge15:"))
+    router.callback_query.register(oge15_callback, F.data.startswith(("oge15:", "o:a:")))
     return router
