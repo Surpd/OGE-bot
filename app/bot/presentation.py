@@ -21,7 +21,12 @@ from aiogram.types import (
 
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
-from app.bot.math_notation import math_spans, parse_formula, rich_inline
+from app.bot.math_notation import (
+    math_spans,
+    parse_formula,
+    rich_inline,
+    rich_needs_png_fallback,
+)
 from app.persistence.repository import Repository
 
 _HEADING = re.compile(
@@ -238,7 +243,8 @@ async def send_text(
             text,
             None,
             kwargs,
-            force_png=await _prefer_png(message, repository, user_id_override),
+            force_png=(await _prefer_png(message, repository, user_id_override))
+            or rich_needs_png_fallback(text),
             system_rows=math_system_rows,
         )
     else:
@@ -267,7 +273,8 @@ async def send_photo(
             caption,
             photo,
             kwargs,
-            force_png=await _prefer_png(message, repository, user_id_override),
+            force_png=(await _prefer_png(message, repository, user_id_override))
+            or rich_needs_png_fallback(caption),
             system_rows=math_system_rows,
         )
     else:
