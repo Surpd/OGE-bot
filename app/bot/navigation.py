@@ -53,7 +53,7 @@ def navigation_screen(markup: object) -> str | None:
     for value in callbacks:
         if value and value.startswith("nav:math:"):
             return "display_settings"
-        if value and value.startswith("nav:training:"):
+        if value and value.startswith("nav:tr:"):
             return "number_selection"
         if value and value.startswith(("nav:family:", "nav:families:", "nav:begin:")):
             return f"family_selection:{value.split(':')[2]}"
@@ -170,13 +170,17 @@ async def navigation_callback(
             target = getattr(handlers, f"choose_task{training.number}", None)
     training_parts = data.split(":")
     training_action: tuple[str, int, str] | None = None
+    training_codes = {"c": "continue", "r": "restart", "y": "confirm", "n": "cancel"}
     if (
         len(training_parts) == 5
-        and training_parts[:2] == ["nav", "training"]
+        and training_parts[:2] == ["nav", "tr"]
+        and training_parts[2] in training_codes
         and training_parts[3].isascii()
         and training_parts[3].isdigit()
     ):
-        training_action = (training_parts[2], int(training_parts[3]), training_parts[4])
+        training_action = (
+            training_codes[training_parts[2]], int(training_parts[3]), training_parts[4]
+        )
     family_parts = data.split(":")
     family_action: tuple[int, str | None] | None = None
     if len(family_parts) in {3, 4} and family_parts[:1] == ["nav"]:
@@ -213,7 +217,7 @@ async def navigation_callback(
             "nav:settings",
         }
         or data.startswith("nav:task:")
-        or data.startswith("nav:training:")
+        or data.startswith("nav:tr:")
     ):
         await oge15_repository.pause_foreground(callback.from_user.id)
     message = cast(Message, NavigationMessage(callback.message, callback, repository))

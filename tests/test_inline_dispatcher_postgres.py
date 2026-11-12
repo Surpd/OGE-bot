@@ -178,16 +178,16 @@ async def exercise_navigation(
         choice = list(session.messages.values())[-1]
         assert "Сохранена практика: №6" in (choice.text or "")
         assert (await repository.task6_state(42))["problem"]["problem_id"] == problem_id
-        await click(f"nav:training:restart:6:{problem_id}", choice)
+        await click(f"nav:tr:r:6:{problem_id}", choice)
         confirmation = list(session.messages.values())[-1]
         assert "Активное задание останется без результата" in (confirmation.text or "")
         assert (await repository.task6_state(42))["problem"]["problem_id"] == problem_id
-        await click(f"nav:training:cancel:6:{problem_id}", confirmation)
+        await click(f"nav:tr:n:6:{problem_id}", confirmation)
         choice = list(session.messages.values())[-1]
         assert "Сохранена практика: №6" in (choice.text or "")
-        await click(f"nav:training:restart:6:{problem_id}", choice)
+        await click(f"nav:tr:r:6:{problem_id}", choice)
         confirmation = list(session.messages.values())[-1]
-        await click(f"nav:training:confirm:6:{problem_id}", confirmation)
+        await click(f"nav:tr:y:6:{problem_id}", confirmation)
         restarted = await repository.task6_state(42)
         assert restarted is not None and restarted["problem"]["problem_id"] != problem_id
         assert restarted["state"]["status"] == "active"
@@ -248,7 +248,7 @@ async def exercise_navigation(
         choice = list(session.messages.values())[-1]
         assert "Сохранена практика: №9" in (choice.text or "")
         assert (await repository.task9_state(42))["problem"]["problem_id"] == task9_id
-        await click(f"nav:training:continue:9:{task9_id}", choice)
+        await click(f"nav:tr:c:9:{task9_id}", choice)
         restored_task9 = await repository.task9_state(42)
         assert restored_task9 is not None
         assert restored_task9["problem"]["problem_id"] == task9_id

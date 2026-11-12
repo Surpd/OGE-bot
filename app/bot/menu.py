@@ -66,13 +66,13 @@ def saved_training_menu(
 ) -> InlineKeyboardMarkup:
     if confirm_restart:
         rows = [
-            [_button("🆕 Подтвердить", f"nav:training:confirm:{number}:{problem_id}")],
-            [_button("↩ Отмена", f"nav:training:cancel:{number}:{problem_id}")],
+            [_button("🆕 Подтвердить", f"nav:tr:y:{number}:{problem_id}")],
+            [_button("↩ Отмена", f"nav:tr:n:{number}:{problem_id}")],
         ]
     else:
         rows = [
-            [_button("▶ Продолжить", f"nav:training:continue:{number}:{problem_id}")],
-            [_button("🆕 Начать заново", f"nav:training:restart:{number}:{problem_id}")],
+            [_button("▶ Продолжить", f"nav:tr:c:{number}:{problem_id}")],
+            [_button("🆕 Начать заново", f"nav:tr:r:{number}:{problem_id}")],
             [_button("↩ Назад к номерам", "nav:numbers")],
         ]
     return InlineKeyboardMarkup(inline_keyboard=rows)

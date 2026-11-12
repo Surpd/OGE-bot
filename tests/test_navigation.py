@@ -81,6 +81,26 @@ def test_navigation_screen_identification():
     assert navigation_screen(menu.progress_menu()) == "progress"
     assert navigation_screen(menu.task6_menu("p")) is None
 
+
+def test_saved_training_callbacks_fit_telegram_limit_with_revision():
+    from app.bot.navigation import prepare_navigation_markup
+
+    problem_id = "12345678-1234-5678-1234-567812345678"
+    markups = (
+        menu.saved_training_menu(14, problem_id),
+        menu.saved_training_menu(14, problem_id, confirm_restart=True),
+    )
+    prepared = [prepare_navigation_markup(markup) for markup in markups]
+    values = [
+        value
+        for markup in prepared
+        for value in callbacks(markup)
+        if value.startswith("nav:tr:")
+    ]
+    assert {value.split(":")[2] for value in values} == {"c", "r", "y", "n"}
+    assert all("~" in value for value in values)
+    assert all(len(value.encode("utf-8")) <= 64 for value in values)
+
 @pytest.mark.asyncio
 async def test_stale_navigation_never_changes_training(monkeypatch):
     from datetime import datetime
