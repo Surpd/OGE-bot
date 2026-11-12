@@ -557,7 +557,8 @@ class ScenarioPostgresRepository:
             not callback_query_id
             or control_message_id <= 0
             or action not in {
-                "hint", "solution", "skip", "next", "pause", "data", "finish"
+                "hint", "solution", "skip", "next", "pause", "data", "finish",
+                "finish_request", "finish_cancel",
             }
         ):
             return False
@@ -597,6 +598,28 @@ class ScenarioPostgresRepository:
                     return False
                 await connection.execute(
                     "UPDATE oge15_sessions SET last_used_at=now() WHERE id=$1", session_id
+                )
+                return True
+            if action in {"finish_request", "finish_cancel"}:
+                if (
+                    session["status"] != "active"
+                    or session["mode"] != PracticeMode.FULL.value
+                ):
+                    return False
+                progress = await connection.fetchrow(
+                    """SELECT status FROM oge15_question_progress
+                       WHERE session_id=$1 AND position=$2 FOR UPDATE""",
+                    session_id,
+                    expected_position,
+                )
+                if progress is None or (
+                    action == "finish_request" and progress["status"] != "active"
+                ):
+                    return False
+                await connection.execute(
+                    """UPDATE oge15_sessions SET navigation_revision=navigation_revision+1,
+                              last_used_at=now() WHERE id=$1""",
+                    session_id,
                 )
                 return True
             if action == "finish" and (

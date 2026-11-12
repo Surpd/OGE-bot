@@ -36,6 +36,8 @@
 
 | LL-24 | Переключение сессий | Неявное возобновление самой свежей незавершённой сессии и ограничение одной записи на пользователя блокировали смену сюжета и делали выбор неоднозначным. | Хранить незавершённые записи по владельцу, сюжету и режиму; foreground handoff выполнять атомарно, а возобновление для callback адресовать точным ID сессии. | Тренировки №1–5 | `tests/test_scenario_postgres.py::test_switchable_sessions_are_owned_by_story_mode_and_foreground_is_atomic`; `tests/test_scenario_telegram.py::test_dispatcher_switches_full_sessions_without_losing_progress` | covered |
 
+| LL-25 | Telegram math and scenario assets | Rich Math could visually merge implicit factors or duplicate `\infty`; scenario startup could send unrelated tables and resume without the material for the active question. | Test the final Rich/PNG transports, make multiplication explicit, keep infinity literal in Rich text, and choose PNG/context by the current snapshot question on both start and resume. | Math presentation, №1–5 | `tests/test_rich_math_runtime.py::test_reported_math_cases_use_final_rich_or_png_transport`; `tests/test_scenario_telegram.py::test_snapshot_materials_render_on_start_and_postgres_resume`; `tests/test_scenario_telegram.py::test_public_story_photos_are_selected_only_for_current_question` | covered |
+
 ## Добавление урока
 
 Добавляй запись только после подтверждённого дефекта. Укажи минимальный тест, который

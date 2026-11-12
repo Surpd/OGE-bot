@@ -128,7 +128,12 @@ class _Parser:
                     )
                 ):
                     raise ValueError("Mixed number or ambiguous identifier")
-                left += " " + self.unary(depth)
+                # Make implicit products explicit in the display form. This is
+                # especially important for denominators such as ``2x``: some
+                # Telegram rich math clients render adjacent glyphs as a run
+                # that looks like ``2xx``. The source and mathematical value
+                # remain untouched; only the presentation is unambiguous.
+                left += r" \cdot " + self.unary(depth)
             else:
                 return left
 
@@ -243,7 +248,12 @@ def math_spans(source: str) -> list[Span]:
 
 def rich_inline(source: str) -> str:
     return "".join(
-        "<tg-math>" + escape(span.latex) + "</tg-math>"
+        # Telegram's rich renderer currently duplicates infinity glyphs when
+        # it receives the LaTeX command. Keep interval text literal so each
+        # visible Unicode ∞ is sent exactly once.
+        escape(span.source)
+        if "∞" in span.source
+        else "<tg-math>" + escape(span.latex) + "</tg-math>"
         if span.latex is not None
         else escape(span.source)
         for span in math_spans(source)
