@@ -326,6 +326,34 @@ async def test_menu_and_restart_restore_the_same_active_problem_and_counts() -> 
 
 
 @pytest.mark.asyncio
+async def test_memory_saved_training_restart_is_confirmed_and_screen_handoff_is_guarded() -> None:
+    repository = MemoryRepository()
+    await choose_task6(_message(789, "№6 · Вычисления"), repository)
+    saved = await repository.task6_state(789)
+    assert saved is not None and isinstance(saved["problem"], dict)
+    problem_id = str(saved["problem"]["problem_id"])
+
+    await repository.save_user_state(789, "number_selection")
+    previous = await repository.prepare_training_restart(
+        789, "task6", problem_id, "number_selection"
+    )
+    assert previous == "active"
+    assert (await repository.task6_state(789))["state"]["status"] == "restart_ready"
+    await repository.restore_training_restart(789, "task6", problem_id, previous)
+    assert (await repository.task6_state(789))["state"]["status"] == "active"
+
+    await repository.save_user_state(789, "main_menu")
+    assert not await repository.open_training_screen(
+        789, "number_selection", "task6", problem_id
+    )
+    await repository.save_user_state(789, "number_selection")
+    assert await repository.open_training_screen(
+        789, "number_selection", "task6", problem_id
+    )
+    assert await repository.user_state(789) == "task6"
+
+
+@pytest.mark.asyncio
 async def test_paused_text_and_reply_to_old_task_cannot_consume_active_attempt() -> None:
     repository = MemoryRepository()
     await choose_task6(_message(786, "№6 · Вычисления"), repository)

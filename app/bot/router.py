@@ -13,6 +13,7 @@ from app.bot.menu import (
     MAIN_MENU,
     main_menu,
     number_menu,
+    saved_training_menu,
     task6_menu,
     task7_menu,
     task9_menu,
@@ -356,6 +357,113 @@ async def choose_number(
     )
 
 
+async def _show_saved_training_choice(
+    message: Message, repository: Repository, number: int, user_id: int | None
+) -> bool:
+    if user_id is None or not any(
+        item.number == number and item.available for item in TRAININGS
+    ):
+        return False
+    state = await getattr(repository, f"task{number}_state")(user_id)
+    problem = state.get("problem") if state else None
+    saved = state.get("state") if state else None
+    status = saved.get("status") if isinstance(saved, dict) else None
+    if not isinstance(problem, dict) or status not in {
+        "active", "solved", "failed", "solution_viewed"
+    }:
+        return False
+    title = next((item.title for item in TRAININGS if item.number == number), f"№{number}")
+    problem_id = str(problem.get("problem_id", ""))
+    await repository.save_user_state(user_id, "number_selection")
+    await send_text(
+        message,
+        repository,
+        f"Сохранена практика: №{number} · {title}.\n"
+        "Можно продолжить её или начать заново.",
+        reply_markup=saved_training_menu(number, problem_id),
+    )
+    return True
+
+
+async def saved_training_navigation(
+    message: Message,
+    repository: Repository,
+    user_id: int,
+    action: str,
+    number: int,
+    problem_id: str,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    training = next(
+        (item for item in TRAININGS if item.number == number and item.available), None
+    )
+    if training is None or action not in {"continue", "restart", "confirm", "cancel"}:
+        await send_text(message, repository, "Этот вариант тренировки недоступен.")
+        return
+    state = await getattr(repository, f"task{number}_state")(user_id)
+    problem = state.get("problem") if state else None
+    saved = state.get("state") if state else None
+    status = saved.get("status") if isinstance(saved, dict) else None
+    if not isinstance(problem, dict) or str(problem.get("problem_id")) != problem_id:
+        await send_text(message, repository, "Это сохранённое задание уже изменилось.")
+        return
+    sender = _send_problem if number == 6 else globals()[f"_send_task{number}_problem"]
+    if action == "restart":
+        await send_text(
+            message,
+            repository,
+            f"Начать новую практику №{number} · {training.title}? "
+            "Завершённые результаты сохранятся. Активное задание останется без результата.",
+            reply_markup=saved_training_menu(number, problem_id, confirm_restart=True),
+        )
+        return
+    if action == "cancel":
+        await _show_saved_training_choice(message, repository, number, user_id)
+        return
+    await _pause_oge15_foreground(user_id, oge15_repository)
+    if action == "confirm":
+        previous_status = await repository.prepare_training_restart(
+            user_id, training.mode, problem_id, "number_selection"
+        )
+        if previous_status is None:
+            await send_text(
+                message, repository, "Тренировка уже изменилась. Выберите номер ещё раз."
+            )
+            return
+        opened = await sender(
+            message,
+            repository,
+            action="advance",
+            expected_problem_id=problem_id,
+            expected_screen="number_selection",
+            user_id_override=user_id,
+        )
+        if not opened:
+            await repository.restore_training_restart(
+                user_id, training.mode, problem_id, previous_status
+            )
+        return
+    if status == "active":
+        await sender(
+            message,
+            repository,
+            action="resume",
+            expected_screen="number_selection",
+            user_id_override=user_id,
+        )
+    elif status in {"solved", "failed", "solution_viewed"}:
+        await sender(
+            message,
+            repository,
+            action="advance",
+            expected_problem_id=problem_id,
+            expected_screen="number_selection",
+            user_id_override=user_id,
+        )
+    else:
+        await send_text(message, repository, "Эту тренировку нельзя продолжить.")
+
+
 async def choose_task6(
     message: Message,
     repository: Repository,
@@ -364,6 +472,8 @@ async def choose_task6(
     user_id = _user_id(message)
     if user_id is not None:
         await _pause_oge15_foreground(user_id, oge15_repository)
+    if await _show_saved_training_choice(message, repository, 6, user_id):
+        return
     await _send_problem(message, repository, action="start")
 
 
@@ -468,6 +578,8 @@ async def choose_task9(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 9, _user_id(message)):
+        return
     await _send_task9_problem(message, repository, action="start")
 
 
@@ -500,6 +612,8 @@ async def choose_task10(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 10, _user_id(message)):
+        return
     await _send_task10_problem(message, repository, action="start")
 
 
@@ -622,6 +736,8 @@ async def choose_task11(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 11, _user_id(message)):
+        return
     await _send_task11_problem(message, repository, action="start")
 
 
@@ -815,6 +931,8 @@ async def choose_task12(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 12, _user_id(message)):
+        return
     await _send_task12_problem(message, repository, action="start")
 
 
@@ -855,6 +973,8 @@ async def choose_task14(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 14, _user_id(message)):
+        return
     await _send_task14_problem(message, repository, action="start")
 
 
@@ -895,6 +1015,8 @@ async def choose_task8(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 8, _user_id(message)):
+        return
     await _send_task8_problem(message, repository, action="start")
 
 
@@ -1059,6 +1181,8 @@ async def choose_task7(
         )
         return
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 7, _user_id(message)):
+        return
     await _send_task7_problem(message, repository, action="start")
 
 
@@ -1396,6 +1520,8 @@ async def choose_task13(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 13, _user_id(message)):
+        return
     await _send_task13_problem(message, repository, action="start")
 
 

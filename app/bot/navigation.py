@@ -53,6 +53,8 @@ def navigation_screen(markup: object) -> str | None:
     for value in callbacks:
         if value and value.startswith("nav:math:"):
             return "display_settings"
+        if value and value.startswith("nav:training:"):
+            return "number_selection"
         if value and value.startswith(("nav:family:", "nav:families:", "nav:begin:")):
             return f"family_selection:{value.split(':')[2]}"
     if "nav:task:6" in callbacks:
@@ -166,6 +168,15 @@ async def navigation_callback(
         training = next((item for item in TRAININGS if str(item.number) == value), None)
         if training is not None and training.available:
             target = getattr(handlers, f"choose_task{training.number}", None)
+    training_parts = data.split(":")
+    training_action: tuple[str, int, str] | None = None
+    if (
+        len(training_parts) == 5
+        and training_parts[:2] == ["nav", "training"]
+        and training_parts[3].isascii()
+        and training_parts[3].isdigit()
+    ):
+        training_action = (training_parts[2], int(training_parts[3]), training_parts[4])
     family_parts = data.split(":")
     family_action: tuple[int, str | None] | None = None
     if len(family_parts) in {3, 4} and family_parts[:1] == ["nav"]:
@@ -184,7 +195,10 @@ async def navigation_callback(
     if display_mode not in {None, "auto", "png"}:
         await answer_callback(callback, "Этот вид формул недоступен.")
         return
-    if target is None and progress_page is None and family_action is None and display_mode is None:
+    if (
+        target is None and progress_page is None and family_action is None
+        and display_mode is None and training_action is None
+    ):
         await answer_callback(callback, "Этот раздел недоступен.")
         return
     if not await repository.claim_navigation_message(
@@ -199,6 +213,7 @@ async def navigation_callback(
             "nav:settings",
         }
         or data.startswith("nav:task:")
+        or data.startswith("nav:training:")
     ):
         await oge15_repository.pause_foreground(callback.from_user.id)
     message = cast(Message, NavigationMessage(callback.message, callback, repository))
@@ -229,6 +244,12 @@ async def navigation_callback(
         )
     elif data == "nav:oge15":
         await show_public_oge15(message, oge15_repository, repository)
+    elif training_action is not None:
+        action, number, problem_id = training_action
+        await handlers.saved_training_navigation(
+            message, repository, callback.from_user.id, action, number, problem_id,
+            oge15_repository,
+        )
     elif target is not None:
         if data == "nav:resume":
             await handlers.continue_session(
