@@ -962,75 +962,12 @@ def _diagnose_family(family_id: str, row: dict[str, Any]) -> dict[str, Any]:
         )  # noqa: E501
         review_items.append("check whether the prototype supports only this number type")
 
-    # Visible-data leakage trigger for story tasks: compare requested value and
-    # question context. The runtime's image/text presentation must be reviewed.
-    if scenario:
-        for sample in samples:
-            context = str(sample.get("displayed_shared_context", sample.get("condition", "")))
-            question = str(sample.get("question_text", ""))
-            requested = re.search(r"(?:найдите|определите)\s+([^,.!?]+)", question, re.I)
-            if (
-                requested
-                and re.search(r"\bA0\b", requested.group(1), re.I)
-                and re.search(r"A0\s*[:—-]?\s*\d{3,4}\s*[×x]\s*\d{3,4}", context, re.I)
-            ):
-                signal(
-                    "requested_value_appears_in_serialized_context",
-                    "Question requests A0 width and raw serialized context includes labeled A0 dimensions",  # noqa: E501
-                    [int(sample["seed"])],
-                )
-                review_items.append(
-                    "verify actual Telegram display assets; serialized context may not be shown verbatim"  # noqa: E501
-                )
-                break
-        disclosed_seeds: list[int] = []
-        disclosed_examples: dict[int, dict[str, Any]] = {}
-        for sample in samples:
-            question = str(sample.get("question_text", ""))
-            context_model = sample.get("scenario_context", {})
-            target = re.search(r"формата\s+(A\d)", question, re.I)
-            asks_dimension = bool(
-                re.search(
-                    r"(?:найдите|определите)\s+(?:ширину|длину)\s+(?:листа|бумаги)", question, re.I
-                )
-            )
-            asks_rounding = bool(re.search(r"округл", question, re.I))
-            if not asks_dimension or not asks_rounding:
-                continue
-            side = "long" if re.search(r"длинн", question, re.I) else "short"
-            rows = context_model.get("rows", []) if isinstance(context_model, dict) else []
-            if target is None:
-                continue
-            for visible_row in rows:
-                if not isinstance(visible_row, list | tuple) or len(visible_row) < 3:
-                    continue
-                label = str(visible_row[0]).upper()
-                value = visible_row[1] if side == "long" else visible_row[2]
-                if label == target.group(1).upper():
-                    disclosed_seeds.append(int(sample["seed"]))
-                    disclosed_examples[int(sample["seed"])] = {
-                        **sample,
-                        "visible_requested_input": {
-                            "format": label,
-                            "side": side,
-                            "value_mm": value,
-                        },
-                    }
-                    break
-        if disclosed_seeds:
-            signal(
-                "requested_measurement_disclosed_in_labeled_shared_table",
-                "The visible shared table contains the requested format and measurement; the task then only applies its rounding instruction",  # noqa: E501
-                disclosed_seeds,
-            )
-            for signal_row in signals:
-                if signal_row["code"] == "requested_measurement_disclosed_in_labeled_shared_table":
-                    signal_row["examples"] = [
-                        disclosed_examples[seed] for seed in disclosed_seeds[:5]
-                    ]
-            review_items.append(
-                "verify whether the visible table supplies the target quantity directly"
-            )
+    # Snapshot context is persistence data, not proof of what Telegram showed.
+    # Disclosure checks require evidence captured from the actual renderer/dispatcher.
+    if scenario and any("scenario_context" in sample for sample in samples):
+        review_items.append(
+            "snapshot context is not learner-visible evidence; inspect dispatched text and images"
+        )
 
     source_meta = row.get("source_evidence", {})
     source_text = _stable(source_meta) if isinstance(source_meta, dict) else str(source_meta)
@@ -1409,12 +1346,7 @@ def _confirmed_findings(families: dict[str, dict[str, Any]]) -> list[dict[str, A
     }
     for family_id, row in families.items():
         signals = row.get("quality_diagnostics", {}).get("detected_signals", [])
-        corroborated = [
-            item
-            for item in signals
-            if item["code"] == "requested_measurement_disclosed_in_labeled_shared_table"
-            or item["code"] in endpoint_codes
-        ]
+        corroborated = [item for item in signals if item["code"] in endpoint_codes]
         # The two interval heuristics can describe the same defect. Keep one
         # representative from each mathematical family, preferring the radical
         # signal where the task is a radical comparison.
@@ -1426,49 +1358,23 @@ def _confirmed_findings(families: dict[str, dict[str, Any]]) -> list[dict[str, A
             ),
             None,
         ) or next((item for item in corroborated if item["code"] in endpoint_codes), None)
-        direct = next(
-            (
-                item
-                for item in corroborated
-                if item["code"] == "requested_measurement_disclosed_in_labeled_shared_table"
-            ),
-            None,
-        )
-        for detected in [item for item in (endpoint, direct) if item is not None]:
+        for detected in [item for item in (endpoint,) if item is not None]:
             if not detected.get("examples"):
                 continue
             sample = detected["examples"][0]
-            direct_disclosure = (
-                detected["code"] == "requested_measurement_disclosed_in_labeled_shared_table"
-            )
             explanation = (
-                "Подписанная PNG-таблица общего сюжета уже показывает запрошенную величину "
-                f"{sample.get('visible_requested_input')}; ученик затем округляет её до "
-                f"`{sample.get('answer')}`. "
-                "Предыдущая матрица источника ожидала таблицу без подписей форматов, "
-                "чтобы нужную строку требовалось вывести."
-                if direct_disclosure
-                else (
-                    "Правильный вариант упрощается до целого конца интервала, а отвлекающие "
-                    "варианты по величине отсекаются без сравнения радикалов/чисел. Это "
-                    "существенно проще проверенных источниковых примеров."
-                )
+                "Правильный вариант упрощается до целого конца интервала, а отвлекающие "
+                "варианты по величине отсекаются без сравнения радикалов/чисел. Это "
+                "существенно проще проверенных источниковых примеров."
             )
             recommendation = (
-                "Для этого вопроса отрисовывать таблицу без названий форматов, как в "
-                "проверенной структуре источника; оставить oracle, проверяющий вывод нужной строки."
-                if direct_disclosure
-                else (
-                    "Исключить точные целые/граничные корни; строить варианты, требующие "
-                    "сравнения с обеими границами, и проверять отвлекающие варианты "
-                    "независимым oracle."
-                )
+                "Исключить точные целые/граничные корни; строить варианты, требующие "
+                "сравнения с обеими границами, и проверять отвлекающие варианты "
+                "независимым oracle."
             )
             findings.append(
                 {
-                    "id": f"{family_id}-VISIBLE-TARGET-DATA"
-                    if direct_disclosure
-                    else f"{family_id}-TRIVIAL-ENDPOINT",
+                    "id": f"{family_id}-TRIVIAL-ENDPOINT",
                     "priority": "P1",
                     "family_id": family_id,
                     "status": "confirmed_finding",

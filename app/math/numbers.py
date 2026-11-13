@@ -13,7 +13,8 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
-GENERATOR_VERSION = "0.3.0"
+GENERATOR_VERSION = "0.4.0"
+LEGACY_GENERATOR_VERSIONS = frozenset({"0.3.0"})
 # Keep numeric parameters stable for this explanation-only revision.
 _PARAMETER_STREAM_VERSION = "0.2.0"
 FAMILIES = tuple(f"OGE07-C{i:02}" for i in range(1, 7))
@@ -33,10 +34,7 @@ SOURCES: dict[str, tuple[str, ...]] = {
     "OGE07-C05": ("311420",),
     "OGE07-C06": ("461837",),
 }
-FAMILY_STATUS = {
-    family: "enabled" if family in ENABLED_FAMILIES else "hold"
-    for family in FAMILIES
-}
+FAMILY_STATUS = {family: "enabled" if family in ENABLED_FAMILIES else "hold" for family in FAMILIES}
 FAMILY_STATUS["OGE07-C05"] = "hold_historical_source_structure_mismatch"
 _NUM = r"(?:−|-)?\d+(?:,\d+)?(?:/\d+)?"
 
@@ -113,6 +111,7 @@ def _build(
     correct: int,
     hints: tuple[str, ...],
     solution: tuple[str, ...],
+    generator_version: str = GENERATOR_VERSION,
 ) -> Problem:
     options = options[:]
     correct_text = options[correct]
@@ -123,12 +122,12 @@ def _build(
     fingerprint = hashlib.sha256(
         (family + "|" + condition + "|" + "|".join(sorted(options))).encode()
     ).hexdigest()
-    pid = str(uuid5(NAMESPACE_URL, f"oge07:{GENERATOR_VERSION}:{family}:{seed}"))
+    pid = str(uuid5(NAMESPACE_URL, f"oge07:{generator_version}:{family}:{seed}"))
     return Problem(
         pid,
         family,
         seed,
-        GENERATOR_VERSION,
+        generator_version,
         SOURCES[family],
         condition,
         options_tuple,
@@ -140,9 +139,59 @@ def _build(
 
 
 def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSION) -> Problem:
-    if generator_version != GENERATOR_VERSION or family_id not in FAMILIES:
+    if (
+        generator_version not in {GENERATOR_VERSION, *LEGACY_GENERATOR_VERSIONS}
+        or family_id not in FAMILIES
+    ):
         raise ValueError("Unsupported OGE07 family or generator version")
     rng = random.Random(f"oge07:{family_id}:{seed}:{_PARAMETER_STREAM_VERSION}")
+    if generator_version == "0.3.0" and family_id == "OGE07-C03":
+        a = rng.randrange(1, 8)
+        b = a + rng.randrange(2, 6)
+        target = rng.randrange(a * a, b * b + 1)
+        other = [n for n in range(1, 100) if n != target and not (a * a <= n <= b * b)]
+        vals = [target, *rng.sample(other, 3)]
+        rng.shuffle(vals)
+        idx = vals.index(target)
+        opts = [f"√{n}" for n in vals]
+        return _build(
+            family_id,
+            seed,
+            f"Какое из чисел принадлежит отрезку [{a}; {b}]?",
+            opts,
+            idx,
+            ("Для неотрицательного √n сравните n с квадратами концов.", f"{a * a} ≤ n ≤ {b * b}."),
+            (
+                f"Только подкоренное выражение {target} удовлетворяет {a * a} ≤ n ≤ {b * b}.",
+                f"Ответ: √{target}.",
+            ),
+            generator_version,
+        )
+    if generator_version == "0.3.0" and family_id == "OGE07-C04":
+        a = rng.randrange(-4, 4)
+        b = a + rng.randrange(2, 6)
+        den = rng.choice((2, 3, 4, 5, 10))
+        p = rng.randrange(a * den, b * den + 1)
+        x = Fraction(p, den)
+        others = [
+            Fraction(n, den)
+            for n in range(a * den - 3, b * den + 4)
+            if Fraction(n, den) != x and not (a <= Fraction(n, den) <= b)
+        ]
+        vals_c04 = [x, *rng.sample(others, 3)]
+        rng.shuffle(vals_c04)
+        idx = vals_c04.index(x)
+        opts = [_decimal(v) for v in vals_c04]
+        return _build(
+            family_id,
+            seed,
+            f"Какое из чисел принадлежит отрезку [{a}; {b}]?",
+            opts,
+            idx,
+            ("Сравните каждое число с концами отрезка.", f"{a} ≤ число ≤ {b}."),
+            (f"Только {_decimal(x)} принадлежит [{a}; {b}].", f"Ответ: {_decimal(x)}."),
+            generator_version,
+        )
     if family_id == "OGE07-C01":
         q = rng.randrange(2, 101)
         p = rng.randrange(1, q)
@@ -178,6 +227,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
                 relation,
                 "Ответ — единственный содержащий число отрезок.",
             ),
+            generator_version,
         )
     if family_id == "OGE07-C02":
         n = rng.choice([v for v in range(5, 10_000) if math.isqrt(v) ** 2 != v])
@@ -202,13 +252,24 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
                 f"{k * k} < {n} < {(k + 1) ** 2}, поэтому {k} < √{n} < {k + 1}.",
                 "Ответ: вариант {answer_index}.",
             ),
+            generator_version,
         )
     if family_id == "OGE07-C03":
-        a = rng.randrange(1, 8)
-        b = a + rng.randrange(2, 6)
-        target = rng.randrange(a * a, b * b + 1)
-        other = [n for n in range(1, 100) if n != target and not (a * a <= n <= b * b)]
-        vals = [target, *rng.sample(other, 3)]
+        a = rng.randrange(2, 10)
+        b = a + 1
+        targets = [n for n in range(a * a + 1, b * b) if math.isqrt(n) ** 2 != n]
+        target = rng.choice(targets)
+        lower_distractors = (a * a - 3, a * a - 2, a * a - 1)
+        upper_distractors = (b * b + 1, b * b + 2, b * b + 3)
+        lower_distractor = rng.choice(lower_distractors)
+        upper_distractor = rng.choice(upper_distractors)
+        remaining_distractors = tuple(
+            value
+            for value in (*lower_distractors, *upper_distractors)
+            if value not in {lower_distractor, upper_distractor}
+        )
+        distractors = [lower_distractor, upper_distractor, rng.choice(remaining_distractors)]
+        vals = [target, *distractors]
         rng.shuffle(vals)
         idx = vals.index(target)
         opts = [f"√{n}" for n in vals]
@@ -218,35 +279,40 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
             f"Какое из чисел принадлежит отрезку [{a}; {b}]?",
             opts,
             idx,
-            ("Для неотрицательного √n сравните n с квадратами концов.", f"{a * a} ≤ n ≤ {b * b}."),
             (
-                f"Только подкоренное выражение {target} удовлетворяет {a * a} ≤ n ≤ {b * b}.",
+                "Для неотрицательного √n сравните подкоренное выражение с квадратами концов.",
+                f"{a * a} < n < {b * b}.",
+            ),
+            (
+                f"Только подкоренное выражение {target} удовлетворяет {a * a} < n < {b * b}.",
                 f"Ответ: √{target}.",
             ),
+            generator_version,
         )
     if family_id == "OGE07-C04":
-        a = rng.randrange(-4, 4)
-        b = a + rng.randrange(2, 6)
-        den = rng.choice((2, 3, 4, 5, 10))
-        p = rng.randrange(a * den, b * den + 1)
-        x = Fraction(p, den)
-        others = [
-            Fraction(n, den)
-            for n in range(a * den - 3, b * den + 4)
-            if Fraction(n, den) != x and not (a <= Fraction(n, den) <= b)
-        ]
-        vals_c04 = [x, *rng.sample(others, 3)]
-        rng.shuffle(vals_c04)
-        idx = vals_c04.index(x)
-        opts = [_decimal(v) for v in vals_c04]
+        den = rng.randrange(7, 21)
+        numerators = [p for p in range(3 * den + 1, 4 * den) if math.gcd(p, den) == 1]
+        numerator = rng.choice(numerators)
+        close_distractors = (3 * den - 1, 3 * den - 2, 4 * den + 1, 4 * den + 2)
+        values_c04 = [numerator, *rng.sample(close_distractors, 3)]
+        rng.shuffle(values_c04)
+        idx = values_c04.index(numerator)
+        opts = [f"{value}/{den}" for value in values_c04]
         return _build(
             family_id,
             seed,
-            f"Какое из чисел принадлежит отрезку [{a}; {b}]?",
+            "Какая обыкновенная дробь принадлежит отрезку [3; 4]?",
             opts,
             idx,
-            ("Сравните каждое число с концами отрезка.", f"{a} ≤ число ≤ {b}."),
-            (f"Только {_decimal(x)} принадлежит [{a}; {b}].", f"Ответ: {_decimal(x)}."),
+            (
+                f"У всех дробей общий знаменатель {den}.",
+                f"Сравните числители с {3 * den} и {4 * den}.",
+            ),
+            (
+                f"{3 * den} < {numerator} < {4 * den}, поэтому 3 < {numerator}/{den} < 4.",
+                f"Ответ: {numerator}/{den}.",
+            ),
+            generator_version,
         )
     if family_id == "OGE07-C05":
         left = rng.randrange(-10, 8)
@@ -281,6 +347,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
                 f"Только {_decimal(target_c05)} удовлетворяет {left} < x < {right}.",
                 f"Ответ: {_decimal(target_c05)}.",
             ),
+            generator_version,
         )
     # C06: signed rational and its unique pair of consecutive integer bounds.
     den = rng.randrange(2, 12)
@@ -301,14 +368,24 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         0,
         ("Используйте целую часть с учётом знака дроби.", f"{floor} < {p}/{den} < {floor + 1}."),
         (f"{floor} < {p}/{den} < {floor + 1}.", "Ответ: вариант {answer_index}."),
+        generator_version,
     )
 
 
 def audit_condition(
-    family: str, condition: str, options: tuple[str, ...] | list[str], answer: int
+    family: str,
+    condition: str,
+    options: tuple[str, ...] | list[str],
+    answer: int,
+    generator_version: str = GENERATOR_VERSION,
 ) -> bool:
     """Parse only displayed text/options and independently establish one answer."""
-    if family not in FAMILIES or len(options) != 4 or answer not in range(1, 5):
+    if (
+        family not in FAMILIES
+        or generator_version not in {GENERATOR_VERSION, *LEGACY_GENERATOR_VERSIONS}
+        or len(options) != 4
+        or answer not in range(1, 5)
+    ):
         return False
     if len(set(options)) != 4 or any(not option.strip() for option in options):
         return False
@@ -352,18 +429,45 @@ def audit_condition(
             if any(v is None for v in values):
                 return False
             radicands = [int(v[1]) for v in values if v is not None]
-            truths = [lo_c03 * lo_c03 <= n <= hi_c03 * hi_c03 for n in radicands]
+            if generator_version in LEGACY_GENERATOR_VERSIONS:
+                truths = [lo_c03 * lo_c03 <= n <= hi_c03 * hi_c03 for n in radicands]
+            else:
+                correct_radicand = radicands[answer - 1]
+                if (
+                    not lo_c03 * lo_c03 < correct_radicand < hi_c03 * hi_c03
+                    or math.isqrt(correct_radicand) ** 2 == correct_radicand
+                ):
+                    return False
+                truths = [lo_c03 * lo_c03 <= n <= hi_c03 * hi_c03 for n in radicands]
         elif family == "OGE07-C04":
-            match = re.fullmatch(
-                r"Какое из чисел принадлежит отрезку \[(-?\d+); (-?\d+)\]\?", condition
-            )
-            if not match:
-                return False
-            lo_c04, hi_c04 = map(int, match.groups())
-            if lo_c04 >= hi_c04:
-                return False
-            values_c04 = [_parse_number(o) for o in options]
-            truths = [lo_c04 <= x <= hi_c04 for x in values_c04]
+            if generator_version in LEGACY_GENERATOR_VERSIONS:
+                match = re.fullmatch(
+                    r"Какое из чисел принадлежит отрезку \[(-?\d+); (-?\d+)\]\?", condition
+                )
+                if not match:
+                    return False
+                lo_c04, hi_c04 = map(int, match.groups())
+                if lo_c04 >= hi_c04:
+                    return False
+                values_c04 = [_parse_number(o) for o in options]
+                truths = [lo_c04 <= x <= hi_c04 for x in values_c04]
+            else:
+                if condition != "Какая обыкновенная дробь принадлежит отрезку [3; 4]?":
+                    return False
+                parsed: list[tuple[int, int]] = []
+                for option in options:
+                    match_fraction = re.fullmatch(r"(\d+)/(\d+)", option)
+                    if match_fraction is None:
+                        return False
+                    parsed.append((int(match_fraction[1]), int(match_fraction[2])))
+                denominators = {denominator for _, denominator in parsed}
+                if len(denominators) != 1 or not denominators or 0 in denominators:
+                    return False
+                denominator = next(iter(denominators))
+                if denominator not in range(7, 21):
+                    return False
+                values_c04 = [Fraction(numerator, den) for numerator, den in parsed]
+                truths = [3 < value < 4 for value in values_c04]
         elif family == "OGE07-C05":
             match = re.fullmatch(r"Какое число лежит между (-?\d+) и (-?\d+)\?", condition)
             if not match:
@@ -415,7 +519,11 @@ def _read_chain(statement: str) -> tuple[Fraction, str, Fraction, str, Fraction]
 def audit_explanation(problem: Problem) -> bool:
     """Independently check the mathematical claims in a visible text explanation."""
     if not audit_condition(
-        problem.family_id, problem.condition, problem.options, problem.correct_option_index
+        problem.family_id,
+        problem.condition,
+        problem.options,
+        problem.correct_option_index,
+        problem.generator_version,
     ):
         return False
     try:
@@ -482,9 +590,12 @@ def audit_explanation(problem: Problem) -> bool:
             if not match:
                 return False
             lower, upper = map(int, match.groups())
-            hint = re.fullmatch(r"(\d+) ≤ n ≤ (\d+)\.", problem.hints[1])
+            legacy = problem.generator_version in LEGACY_GENERATOR_VERSIONS
+            relation = "≤" if legacy else "<"
+            hint = re.fullmatch(rf"(\d+) {relation} n {relation} (\d+)\.", problem.hints[1])
             solution = re.fullmatch(
-                r"Только подкоренное выражение (\d+) удовлетворяет (\d+) ≤ n ≤ (\d+)\.",
+                rf"Только подкоренное выражение (\d+) удовлетворяет "
+                rf"(\d+) {relation} n {relation} (\d+)\.",
                 problem.solution[0],
             )
             answer = re.fullmatch(r"Ответ: √(\d+)\.", problem.solution[1])
@@ -495,32 +606,64 @@ def audit_explanation(problem: Problem) -> bool:
                 and tuple(map(int, hint.groups())) == (lower * lower, upper * upper)
                 and tuple(map(int, solution.groups()))
                 == (int(solution[1]), lower * lower, upper * upper)
-                and lower * lower <= int(solution[1]) <= upper * upper
+                and (
+                    lower * lower <= int(solution[1]) <= upper * upper
+                    if legacy
+                    else lower * lower < int(solution[1]) < upper * upper
+                )
+                and (legacy or math.isqrt(int(answer[1])) ** 2 != int(answer[1]))
                 and answer[1] == solution[1]
                 and problem.options[problem.correct_option_index - 1] == f"√{answer[1]}"
             )
         if family == "OGE07-C04":
-            match = re.fullmatch(
-                r"Какое из чисел принадлежит отрезку \[(-?\d+); (-?\d+)\]\?",
-                problem.condition,
-            )
-            if not match:
+            if problem.generator_version in LEGACY_GENERATOR_VERSIONS:
+                match = re.fullmatch(
+                    r"Какое из чисел принадлежит отрезку \[(-?\d+); (-?\d+)\]\?",
+                    problem.condition,
+                )
+                if not match:
+                    return False
+                lower, upper = map(int, match.groups())
+                hint = re.fullmatch(r"(-?\d+) ≤ число ≤ (-?\d+)\.", problem.hints[1])
+                proof = re.fullmatch(
+                    r"Только (.+) принадлежит \[(-?\d+); (-?\d+)\]\.",
+                    problem.solution[0],
+                )
+                answer = re.fullmatch(r"Ответ: (.+)\.", problem.solution[1])
+                if not hint or not proof or not answer:
+                    return False
+                value = _parse_number(proof[1])
+                return bool(
+                    tuple(map(int, hint.groups())) == (lower, upper)
+                    and tuple(map(int, proof.groups()[1:])) == (lower, upper)
+                    and lower <= value <= upper
+                    and problem.options[problem.correct_option_index - 1] == proof[1] == answer[1]
+                )
+            if problem.condition != "Какая обыкновенная дробь принадлежит отрезку [3; 4]?":
                 return False
-            lower, upper = map(int, match.groups())
-            hint = re.fullmatch(r"(-?\d+) ≤ число ≤ (-?\d+)\.", problem.hints[1])
+            common_denominator = re.fullmatch(
+                r"У всех дробей общий знаменатель (\d+)\.", problem.hints[0]
+            )
+            hint = re.fullmatch(r"Сравните числители с (\d+) и (\d+)\.", problem.hints[1])
             proof = re.fullmatch(
-                r"Только (.+) принадлежит \[(-?\d+); (-?\d+)\]\.",
+                r"(\d+) < (\d+) < (\d+), поэтому 3 < (\d+)/(\d+) < 4\.",
                 problem.solution[0],
             )
-            answer = re.fullmatch(r"Ответ: (.+)\.", problem.solution[1])
-            if not hint or not proof or not answer:
+            answer = re.fullmatch(r"Ответ: (\d+)/(\d+)\.", problem.solution[1])
+            correct_option = problem.options[problem.correct_option_index - 1]
+            if not common_denominator or not hint or not proof or not answer:
                 return False
-            value = _parse_number(proof[1])
+            den = int(common_denominator[1])
+            target, upper = map(int, hint.groups())
+            lower, numerator, proof_upper, proof_numerator, proof_den = map(int, proof.groups())
+            answer_numerator, answer_den = map(int, answer.groups())
             return bool(
-                tuple(map(int, hint.groups())) == (lower, upper)
-                and tuple(map(int, proof.groups()[1:])) == (lower, upper)
-                and lower <= value <= upper
-                and problem.options[problem.correct_option_index - 1] == proof[1] == answer[1]
+                lower == target == 3 * den
+                and upper == proof_upper == 4 * den
+                and numerator == proof_numerator == answer_numerator
+                and proof_den == answer_den == den
+                and 3 * den < numerator < 4 * den
+                and correct_option == answer[1] + "/" + answer[2]
             )
         if family == "OGE07-C05":
             match = re.fullmatch(r"Какое число лежит между (-?\d+) и (-?\d+)\?", problem.condition)

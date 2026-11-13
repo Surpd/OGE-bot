@@ -114,7 +114,7 @@ def test_serialized_story_context_is_not_used_as_visible_leak_without_display_ev
     assert "requested_value_appears_in_serialized_context" not in codes
 
 
-def test_labeled_visible_table_target_measurement_is_detected() -> None:
+def test_snapshot_labeled_table_is_not_assumed_to_be_learner_visible() -> None:
     sample = {
         "seed": 21771112,
         "condition": "Таблица A0: 1189 × 841 мм. Найдите ширину A0 и округлите.",
@@ -129,7 +129,19 @@ def test_labeled_visible_table_target_measurement_is_detected() -> None:
     }
     diagnostics = _diagnose_family("PAPER-F03", {"exam_number": "1-5", "samples": [sample]})
     codes = {item["code"] for item in diagnostics["detected_signals"]}
-    assert "requested_measurement_disclosed_in_labeled_shared_table" in codes
+    assert "requested_measurement_disclosed_in_labeled_shared_table" not in codes
+    assert any(
+        "snapshot context is not learner-visible evidence" in item
+        for item in diagnostics["requires_manual_review"]
+    )
+    assert _confirmed_findings(
+        {
+            "PAPER-F03": {
+                "quality_diagnostics": diagnostics,
+                "representative_examples": [sample],
+            }
+        }
+    ) == []
 
 
 def test_labeled_table_does_not_trigger_disclosure_for_count_or_ratio_questions() -> None:

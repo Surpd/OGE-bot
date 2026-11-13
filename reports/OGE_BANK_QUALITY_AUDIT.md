@@ -12,30 +12,25 @@ Runtime registry: **110 активных семейств** (40 сюжетных
 
 ## Подтверждённые находки
 
-Автоматические сигналы не включены в приоритетный список, пока содержательная проверка не подтверждает проблему. PNG-таблица PAPER-F03 подписывает строку A0 и показывает ширину 841 мм, поэтому передача запрошенной величины подтверждена как P1. Старый отчёт не проверил именно графическую таблицу и смешал её с сырым snapshot.
+Автоматические сигналы не включены в приоритетный список без подтверждения. Первоначальная P1 находка PAPER-F03 была ложной: аудит принял внутренние строки snapshot за экран ученика. Проверка через Telegram Dispatcher прошла путь FULL, вопрос №3, просмотр данных, пауза/возобновление и SINGLE №3. Отправленный текст не содержит подписанную таблицу; мобильная PNG показывает номера строк и размеры без соответствия A0, A1 и другим форматам. Генератор, assets и старые snapshots не менялись.
 
-Итого: P0 — 0, P1 — 3, P2 — 8, P3 — 0.
+Итого по подтверждённым дефектам исходного аудита: P0 — 0, P1 — 2, P2 — 8, P3 — 0. Оба P1 для OGE07 исправлены в этом PR; PAPER-F03 исключён из подтверждённых находок.
 
-### P1 · PAPER-F03 · PAPER-F03-VISIBLE-TARGET-DATA
-
-**Seed:** `21771112`. **Условие:** Найдите ширину листа бумаги формата A0. Ответ дайте в миллиметрах и округлите до ближайшего целого числа, кратного 10.
-**Ответ:** `840`. **Почему:** Подписанная PNG-таблица общего сюжета уже показывает запрошенную величину {'format': 'A0', 'side': 'short', 'value_mm': 841}; ученик затем округляет её до `840`. Предыдущая матрица источника ожидала таблицу без подписей форматов, чтобы нужную строку требовалось вывести.
-**Исправление:** Для этого вопроса отрисовывать таблицу без названий форматов, как в проверенной структуре источника; оставить oracle, проверяющий вывод нужной строки.
-**Source IDs:** 408300, 408313.
-
-### P1 · OGE07-C03 · OGE07-C03-TRIVIAL-ENDPOINT
+### P1 · OGE07-C03 · OGE07-C03-TRIVIAL-ENDPOINT — исправлено в этом PR
 
 **Seed:** `1246166628730915550`. **Условие:** Какое из чисел принадлежит отрезку [7; 9]?
 **Ответ:** `√81`. **Почему:** Правильный вариант упрощается до целого конца интервала, а отвлекающие варианты по величине отсекаются без сравнения радикалов/чисел. Это существенно проще проверенных источниковых примеров.
 **Исправление:** Исключить точные целые/граничные корни; строить варианты, требующие сравнения с обеими границами, и проверять отвлекающие варианты независимым oracle.
 **Source IDs:** 337389, 406570.
+**Статус:** исправлено в PR: ключ строго внутри интервала, неправильные радикалы расположены рядом снаружи, а корни границ исключены из дистракторов, потому что отрезок замкнутый. 300 фиксированных seed прошли независимый oracle; release-выборка содержит 273 уникальных fingerprints и 0 ошибок.
 
-### P1 · OGE07-C04 · OGE07-C04-TRIVIAL-ENDPOINT
+### P1 · OGE07-C04 · OGE07-C04-TRIVIAL-ENDPOINT — исправлено в этом PR
 
 **Seed:** `6`. **Условие:** Какое из чисел принадлежит отрезку [0; 2]?
 **Ответ:** `0`. **Почему:** Правильный вариант упрощается до целого конца интервала, а отвлекающие варианты по величине отсекаются без сравнения радикалов/чисел. Это существенно проще проверенных источниковых примеров.
 **Исправление:** Исключить точные целые/граничные корни; строить варианты, требующие сравнения с обеими границами, и проверять отвлекающие варианты независимым oracle.
 **Source IDs:** 369728.
+**Статус:** исправлено в PR: четыре обыкновенные дроби с общим знаменателем на [3;4], один нецелый внутренний ключ и близкие дистракторы по обе стороны. 300 фиксированных seed прошли независимый oracle; release-выборка содержит 216 уникальных fingerprints и 0 ошибок.
 
 ### P2 · FLAT-03-RECT-AREA · FLAT-03-RECT-AREA-QUESTION-LEVEL-LOW-DIVERSITY
 
@@ -105,7 +100,6 @@ Runtime registry: **110 активных семейств** (40 сюжетных
 | `question_condition_repeats` | 16 | `FLAT-02-PARQUET-PACK`, `FLAT-02-TILE-PACK`, `FLAT-03-RECT-AREA`, `FLAT-04-RECT-PERCENT`, `FLAT-05-INTERNET-MIN`, `FLAT-05-WASHER-MIN`, `GARDEN-02-TILES-PACKS`, `GARDEN-04-PERIMETER-POLYGON`, `GARDEN-07-PERCENT-BUILDINGS`, `PAPER-F03`, `PAPER-F04`, `PAPER-F06`, `PAPER-F07`, `TARIFF-F05-EXTREMUM`, `TARIFF-F09-PERCENT-FEE`, `TYRES-TABLE-EXTREME` |
 | `question_construction_collapsed_to_one_observed_case` | 8 | `FLAT-03-RECT-AREA`, `FLAT-04-RECT-PERCENT`, `FLAT-05-WASHER-MIN`, `GARDEN-04-PERIMETER-POLYGON`, `GARDEN-07-PERCENT-BUILDINGS`, `PAPER-F03`, `PAPER-F04`, `PAPER-F06` |
 | `question_parameter_support_extremely_narrow` | 15 | `FLAT-03-RECT-AREA`, `FLAT-04-RECT-PERCENT`, `FLAT-05-WASHER-MIN`, `GARDEN-04-PERIMETER-POLYGON`, `GARDEN-07-PERCENT-BUILDINGS`, `PAPER-F03`, `PAPER-F04`, `PAPER-F06`, `STOVE-F03-VOLUME`, `STOVE-F04-FLOOR-AREA`, `STOVE-F05-WALL-AREA-NET`, `STOVE-F06-PURCHASE-EXTRA-COSTS`, `STOVE-F07-FIT-WOOD-DELIVERY`, `TARIFF-F05-EXTREMUM`, `TARIFF-F09-PERCENT-FEE` |
-| `requested_measurement_disclosed_in_labeled_shared_table` | 1 | `PAPER-F03` |
 | `shared_story_variation_exceeds_question_variation` | 31 | `FLAT-01-ROOM-MATCH`, `FLAT-02-PARQUET-PACK`, `FLAT-02-TILE-PACK`, `FLAT-03-RECT-AREA`, `FLAT-04-RECT-PERCENT`, `FLAT-05-INTERNET-MIN`, `FLAT-05-WASHER-MIN`, `GARDEN-01-IDENTIFY`, `GARDEN-02-TILES-PACKS`, `GARDEN-04-PERIMETER-POLYGON`, `GARDEN-07-PERCENT-BUILDINGS`, `PAPER-F01`, `PAPER-F02`, `PAPER-F03`, `PAPER-F04`, `PAPER-F06`, `PAPER-F07`, `STOVE-F01-CAPACITY-LIMITS`, `STOVE-F08-COST-COMPARISON`, `STOVE-F09-DIRECT-DISCOUNT`, `STOVE-F10-REVERSE-DISCOUNT`, `STOVE-F11-CONDITIONAL-TWO-DISCOUNTS`, `STOVE-F12-ARCH-RADIUS`, `TARIFF-F04-MONTHLY-BILL`, `TARIFF-F05-EXTREMUM`, `TARIFF-F09-PERCENT-FEE`, `TARIFF-F12-HOME-ISP`, `TYRES-DIAMETER`, `TYRES-PERCENT-ROTATION`, `TYRES-SIDEWALL`, `TYRES-TABLE-EXTREME` |
 | `visible_number_type_is_uniform` | 71 | `FLAT-03-RECT-AREA`, `FLAT-05-WASHER-MIN`, `GARDEN-01-IDENTIFY`, `GARDEN-02-TILES-PACKS`, `GARDEN-04-PERIMETER-POLYGON`, `GARDEN-07-PERCENT-BUILDINGS`, `OGE06-F001-ADD`, `OGE06-F001-SUB`, `OGE06-F002-DIV`, `OGE06-F002-MUL`, `OGE06-F004-DEC-ADD`, `OGE06-F004-DEC-MUL`, `OGE06-F004-DEC-SUB`, `OGE06-F008-REDUCED-NUMERATOR`, `OGE07-C01`, `OGE07-C02`, `OGE07-C03`, `OGE07-C04`, `OGE07-C06`, `OGE07-N01`, `OGE08-R04`, `OGE08-R08`, `OGE09-K2`, `OGE09-K3`, `OGE09-L1`, `OGE09-L2`, `OGE09-L3`, `OGE09-L4A`, `OGE09-L4B`, `OGE10-F001-DRAW-CATEGORY`, `OGE10-F002-COMPLEMENT`, `OGE10-F006-EMPIRICAL-FREQUENCY`, `OGE10-F007-DISJOINT-UNION-RESIDUAL`, `OGE10-F008-REMAINDER-CATEGORY`, `OGE10-F009-OVERLAPPING-GROUPS`, `OGE11-F03`, `OGE11-F04`, `OGE11-F06`, `OGE11-F07`, `OGE11-F08`, `OGE12-R002`, `OGE12-R010`, `OGE13-L01`, `OGE13-L02`, `OGE14-A01`, `OGE14-A02`, `OGE14-A03`, `OGE14-A05`, `OGE14-A07`, `OGE14-A09`, `OGE14-A10`, `OGE14-G01`, `OGE14-G02`, `OGE14-G03`, `OGE14-G04`, `PAPER-F03`, `PAPER-F07`, `STOVE-F01-CAPACITY-LIMITS`, `STOVE-F02-ATTRIBUTE-MATCH`, `STOVE-F06-PURCHASE-EXTRA-COSTS`, `STOVE-F08-COST-COMPARISON`, `STOVE-F09-DIRECT-DISCOUNT`, `STOVE-F10-REVERSE-DISCOUNT`, `STOVE-F11-CONDITIONAL-TWO-DISCOUNTS`, `TARIFF-F01-MONTHS-MINUTES`, `TARIFF-F09-PERCENT-FEE`, `TARIFF-F12-HOME-ISP`, `TYRES-PERCENT-ROTATION`, `TYRES-RADIUS-DELTA`, `TYRES-SIDEWALL`, `TYRES-TABLE-EXTREME` |
 

@@ -11,6 +11,7 @@ from app.math.numbers import (
 from app.math.numbers import (
     GENERATOR_VERSION as TEXT_GENERATOR_VERSION,
 )
+from app.math.numbers import LEGACY_GENERATOR_VERSIONS as TEXT_LEGACY_GENERATOR_VERSIONS
 from app.math.numbers import (
     POLICY,
     audit_condition,
@@ -73,12 +74,22 @@ def validate_task7_snapshot(value: object) -> bool:
         return False
     try:
         if family in TEXT_FAMILIES:
-            if snapshot.get("generator_version") != TEXT_GENERATOR_VERSION:
+            generator_version = snapshot.get("generator_version")
+            if generator_version not in {
+                TEXT_GENERATOR_VERSION,
+                *TEXT_LEGACY_GENERATOR_VERSIONS,
+            }:
                 return False
-            expected_problem = generate(family, seed, TEXT_GENERATOR_VERSION)
+            expected_problem = generate(family, seed, str(generator_version))
             expected = expected_problem.to_snapshot()
             return (
-                audit_condition(family, str(snapshot.get("condition", "")), options, answer_index)
+                audit_condition(
+                    family,
+                    str(snapshot.get("condition", "")),
+                    options,
+                    answer_index,
+                    str(generator_version),
+                )
                 and audit_explanation(expected_problem)
                 and _matches_expected(snapshot, expected)
             )
