@@ -15,6 +15,7 @@ from app.math.scenario_engine import (
     build_practice_plan,
     restore_asset_bytes,
 )
+from app.math.scenarios import mobile_photos
 from app.math.scenarios.mobile_photos import (
     scenario_photos,
     scenario_photos_for_question,
@@ -45,6 +46,30 @@ def test_mobile_photos_are_deterministic_and_preserve_snapshot(story, count, see
             assert image.format == "PNG"
             assert image.width >= 780
             image.verify()
+
+
+def test_paper_telegram_table_uses_unlabeled_rows(monkeypatch):
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 42, "PAPER"), public_registry()
+    ).snapshot
+    captured: dict[str, object] = {}
+
+    def capture_table(title, rows, widths):
+        captured.update(title=title, rows=rows, widths=widths)
+        return b"png-fixture"
+
+    monkeypatch.setattr(mobile_photos, "table", capture_table)
+    assert mobile_photos.table_photos(snapshot) == (b"png-fixture",)
+    rows = captured["rows"]
+    assert isinstance(rows, list)
+    assert rows[0] == ["Строка", "Длина, мм", "Ширина, мм"]
+    assert rows[1:] == [
+        [str(index), str(length), str(width)]
+        for index, (_, length, width) in enumerate(
+            mobile_photos.PAPER._get_rows(snapshot.context), 1
+        )
+    ]
+    assert all(row[0] not in {"A0", "A1", "A2", "A3", "A4", "A5"} for row in rows[1:])
 
 
 def test_arc_photo_labels_only_known_dimensions(monkeypatch):

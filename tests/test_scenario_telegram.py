@@ -845,6 +845,158 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
         for position, question in enumerate(session.snapshot.questions, 1):
             active = await scenario_repository.resume_session(user_id)
             assert active is not None and active.current_position == position
+            if story_code == "PAPER" and position == 3:
+                assert question.family_id == "PAPER-F03"
+                full_control = transport.messages[active.control_message_id]
+                calls_before_data = len(transport.calls)
+                await tap(full_control, "📷 Схема / данные")
+                data_calls = transport.calls[calls_before_data:]
+                text_payloads = [
+                    call.text for call in data_calls if call.__api_method__ == "sendMessage"
+                ]
+                assert text_payloads
+                assert all("Таблица размеров" not in text for text in text_payloads)
+                assert all("A0:" not in text and "1189" not in text and "841" not in text
+                           for text in text_payloads)
+                expected_photos = scenario_photos_for_question(active.snapshot, 3)
+                sent_photos = [
+                    call.photo.data for call in data_calls if call.__api_method__ == "sendPhoto"
+                ]
+                assert sent_photos == list(expected_photos)
+                assert all(photo.startswith(b"\x89PNG\r\n\x1a\n") for photo in sent_photos)
+
+                # Exit from question 3, then resume the same full snapshot and position.
+                menu = await tap(full_control, "↩ В меню")
+                paused = await scenario_repository.resume_session(user_id)
+                assert paused is not None and paused.status == "paused"
+                assert paused.current_position == 3 and paused.snapshot == active.snapshot
+                resumed_card = await tap(menu, "▶ Продолжить")
+                resumed = await scenario_repository.resume_session(user_id)
+                assert resumed is not None and resumed.session_id == active.session_id
+                assert resumed.current_position == 3 and resumed.snapshot == active.snapshot
+                assert resumed_card.message_id == resumed.control_message_id
+
+                # A recent fixed PAPER-F03 is intentionally not reissued as Single.
+                update_id += 1
+                await _feed(
+                    dispatcher,
+                    bot,
+                    repository,
+                    scenario_repository,
+                    Update(
+                        update_id=update_id,
+                        message=Message(
+                            message_id=21,
+                            date=datetime.now(UTC),
+                            chat=Chat(id=user_id, type="private"),
+                            from_user=user,
+                            text="/oge15",
+                        ),
+                    ),
+                )
+                menu = max(transport.messages.values(), key=lambda item: item.message_id)
+                story = await tap(menu, "Бумага")
+                mode = await tap(story, "Выбрать одно задание")
+                calls_before_recent_single = len(transport.calls)
+                await tap(mode, "№3")
+                recent_callback_answers = [
+                    call
+                    for call in transport.calls[calls_before_recent_single:]
+                    if call.__api_method__ == "answerCallbackQuery"
+                ]
+                assert any(
+                    "уже был недавно" in (call.text or "")
+                    for call in recent_callback_answers
+                )
+                still_full = await scenario_repository.resume_session(user_id)
+                assert still_full is not None and still_full.session_id == active.session_id
+                assert still_full.current_position == 3 and still_full.snapshot == active.snapshot
+
+                # A new learner can open Single №3; assert the actual Dispatcher
+                # sends only the row-number table and the stored mobile PNGs.
+                single_user = User(id=user_id + 1, is_bot=False, first_name="Fresh PAPER learner")
+                await repository.register_user(single_user.id)
+                await repository.save_user_state(single_user.id, "main_menu")
+                async def single_tap(
+                    message: Message, label: str, actor: User = single_user
+                ) -> Message:
+                    nonlocal update_id
+                    data = next(
+                        button.callback_data
+                        for row in message.reply_markup.inline_keyboard
+                        for button in row
+                        if button.text == label
+                    )
+                    update_id += 1
+                    await _feed(
+                        dispatcher,
+                        bot,
+                        repository,
+                        scenario_repository,
+                        Update(
+                            update_id=update_id,
+                            callback_query=CallbackQuery(
+                                id=f"paper-single-{update_id}",
+                                from_user=actor,
+                                chat_instance="paper-single",
+                                message=message,
+                                data=data,
+                            ),
+                        ),
+                    )
+                    return max(transport.messages.values(), key=lambda item: item.message_id)
+
+                update_id += 1
+                await _feed(
+                    dispatcher,
+                    bot,
+                    repository,
+                    scenario_repository,
+                    Update(
+                        update_id=update_id,
+                        message=Message(
+                            message_id=31,
+                            date=datetime.now(UTC),
+                            chat=Chat(id=single_user.id, type="private"),
+                            from_user=single_user,
+                            text="/oge15",
+                        ),
+                    ),
+                )
+                menu = max(transport.messages.values(), key=lambda item: item.message_id)
+                story = await single_tap(menu, "Бумага")
+                mode = await single_tap(story, "Одно задание")
+                await single_tap(mode, "№3")
+                single = await scenario_repository.resume_session(single_user.id)
+                assert single is not None and single.mode is PracticeMode.SINGLE
+                assert single.current_position == 3
+                assert single.snapshot.questions[2].family_id == "PAPER-F03"
+                single_control = transport.messages[single.control_message_id]
+                calls_before_single_data = len(transport.calls)
+                await single_tap(single_control, "📷 Схема / данные")
+                single_calls = transport.calls[calls_before_single_data:]
+                single_texts = [
+                    call.text for call in single_calls if call.__api_method__ == "sendMessage"
+                ]
+                assert single_texts and all(
+                    "Таблица размеров" not in text
+                    and "A0:" not in text
+                    and "1189" not in text
+                    and "841" not in text
+                    for text in single_texts
+                )
+                assert [
+                    call.photo.data for call in single_calls if call.__api_method__ == "sendPhoto"
+                ] == list(scenario_photos_for_question(single.snapshot, 3))
+                saved_full = await scenario_repository.resume_session(user_id, active.session_id)
+                assert saved_full is not None and saved_full.status == "paused"
+                assert saved_full.current_position == 3
+                assert saved_full.snapshot == active.snapshot
+                await oge15_navigation_pool.execute(
+                    "DELETE FROM users WHERE telegram_user_id=ANY($1::bigint[])",
+                    [user_id, single_user.id],
+                )
+                return
             if baseline:
                 assert active.control_message_id == mode.message_id
             else:

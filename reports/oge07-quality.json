@@ -28,14 +28,14 @@
     "OGE07-C03": {
       "enabled": true,
       "seeds_checked": 300,
-      "unique_fingerprints": 300,
+      "unique_fingerprints": 273,
       "oracle_failures": [],
       "passed": true
     },
     "OGE07-C04": {
       "enabled": true,
       "seeds_checked": 300,
-      "unique_fingerprints": 300,
+      "unique_fingerprints": 216,
       "oracle_failures": [],
       "passed": true
     },

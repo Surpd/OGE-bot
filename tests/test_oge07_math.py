@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import math
 import re
 import struct
 import zlib
@@ -15,6 +16,8 @@ from app.math.numbers import (
 )
 from app.math.numbers import (
     FAMILIES,
+    GENERATOR_VERSION,
+    LEGACY_GENERATOR_VERSIONS,
     POLICY,
     _decimal,
     audit_condition,
@@ -165,18 +168,10 @@ def test_text_explanation_oracle_rejects_sign_boundary_and_answer_mutations(fami
             solution=(*problem.solution[:-2], changed_step, *problem.solution[-1:]),
         )
     elif family == "OGE07-C03":
-        changed_step = problem.solution[0].replace(" ≤ ", " < ")
+        changed_step = problem.solution[0].replace(" < ", " ≤ ")
         changed = replace(problem, solution=(changed_step, *problem.solution[1:]))
     elif family == "OGE07-C04":
-        condition = re.fullmatch(
-            r"Какое из чисел принадлежит отрезку \[(-?\d+); (-?\d+)\]\?",
-            problem.condition,
-        )
-        assert condition is not None
-        upper = int(condition[2])
-        changed_step = problem.solution[0].replace(
-            f"; {upper}]", f"; {upper + 1}]"
-        )
+        changed_step = problem.solution[0].replace(" < ", " ≤ ", 1)
         changed = replace(problem, solution=(changed_step, *problem.solution[1:]))
     else:
         changed = replace(
@@ -186,6 +181,93 @@ def test_text_explanation_oracle_rejects_sign_boundary_and_answer_mutations(fami
     assert not audit_explanation(changed)
 
 
+def test_c03_c04_seed_samples_are_strict_plausible_and_unambiguous() -> None:
+    c03_positions: set[int] = set()
+    c04_positions: set[int] = set()
+    for seed in (*range(300), 6, 1246166628730915550):
+        c03 = generate("OGE07-C03", seed)
+        match = re.fullmatch(
+            r"Какое из чисел принадлежит отрезку \[(\d+); (\d+)\]\?", c03.condition
+        )
+        assert match is not None
+        lower, upper = map(int, match.groups())
+        assert upper == lower + 1
+        radicands = [int(re.fullmatch(r"√(\d+)", option)[1]) for option in c03.options]
+        correct = radicands[c03.correct_option_index - 1]
+        assert lower * lower < correct < upper * upper
+        assert math.isqrt(correct) ** 2 != correct
+        assert all(
+            min(abs(value - lower * lower), abs(value - upper * upper)) <= 3
+            for index, value in enumerate(radicands)
+            if index != c03.correct_option_index - 1
+        )
+        wrong_radicands = [
+            value
+            for index, value in enumerate(radicands)
+            if index != c03.correct_option_index - 1
+        ]
+        assert any(value < lower * lower for value in wrong_radicands)
+        assert any(value > upper * upper for value in wrong_radicands)
+        assert all(
+            value not in {lower * lower, upper * upper}
+            for index, value in enumerate(radicands)
+            if index != c03.correct_option_index - 1
+        )
+        assert sum(lower * lower <= value <= upper * upper for value in radicands) == 1
+        assert audit_condition("OGE07-C03", c03.condition, c03.options, c03.correct_option_index)
+        assert audit_explanation(c03)
+        c03_positions.add(c03.correct_option_index)
+
+        c04 = generate("OGE07-C04", seed)
+        assert c04.condition == "Какая обыкновенная дробь принадлежит отрезку [3; 4]?"
+        parsed = [re.fullmatch(r"(\d+)/(\d+)", option) for option in c04.options]
+        assert all(parsed)
+        denominators = {int(match[2]) for match in parsed if match is not None}
+        assert len(denominators) == 1
+        denominator = denominators.pop()
+        assert 7 <= denominator <= 20
+        numerators = [int(match[1]) for match in parsed if match is not None]
+        target = numerators[c04.correct_option_index - 1]
+        assert 3 * denominator < target < 4 * denominator
+        assert all(
+            min(abs(value - 3 * denominator), abs(value - 4 * denominator)) <= 3
+            for index, value in enumerate(numerators)
+            if index != c04.correct_option_index - 1
+        )
+        assert sum(3 * denominator < value < 4 * denominator for value in numerators) == 1
+        assert audit_condition("OGE07-C04", c04.condition, c04.options, c04.correct_option_index)
+        assert audit_explanation(c04)
+        c04_positions.add(c04.correct_option_index)
+    assert c03_positions == c04_positions == {1, 2, 3, 4}
+
+
+def test_c03_oracle_counts_closed_interval_endpoints_as_correct() -> None:
+    problem = generate("OGE07-C03", 6)
+    wrong_position = next(
+        index for index in range(1, 5) if index != problem.correct_option_index
+    )
+    options = list(problem.options)
+    lower = int(re.search(r"\[(\d+);", problem.condition)[1])
+    options[wrong_position - 1] = f"√{lower * lower}"
+    assert not audit_condition(
+        "OGE07-C03", problem.condition, options, problem.correct_option_index
+    )
+    assert not audit_explanation(replace(problem, options=tuple(options)))
+
+
+def test_legacy_c03_c04_snapshots_remain_valid_after_generator_revision() -> None:
+    assert LEGACY_GENERATOR_VERSIONS == {"0.3.0"}
+    old_c03 = generate("OGE07-C03", 1246166628730915550, generator_version="0.3.0")
+    old_c04 = generate("OGE07-C04", 6, generator_version="0.3.0")
+    assert old_c03.condition == "Какое из чисел принадлежит отрезку [7; 9]?"
+    assert old_c03.options[old_c03.correct_option_index - 1] == "√81"
+    assert old_c04.condition == "Какое из чисел принадлежит отрезку [0; 2]?"
+    assert old_c04.options[old_c04.correct_option_index - 1] == "0"
+    assert validate_task7_snapshot(old_c03.to_snapshot())
+    assert validate_task7_snapshot(old_c04.to_snapshot())
+    assert generate("OGE07-C03", 1246166628730915550).generator_version == GENERATOR_VERSION
+
+
 def test_historical_families_are_not_generator_targets() -> None:
     with pytest.raises(ValueError):
         generate("OGE07-H03", 1)
@@ -193,8 +275,13 @@ def test_historical_families_are_not_generator_targets() -> None:
 
 def test_only_audited_families_are_enabled_and_scheduler_fails_closed() -> None:
     expected = {
-        "OGE07-C01", "OGE07-C02", "OGE07-C03", "OGE07-C04", "OGE07-C06",
-        "OGE07-N01", "OGE07-N04",
+        "OGE07-C01",
+        "OGE07-C02",
+        "OGE07-C03",
+        "OGE07-C04",
+        "OGE07-C06",
+        "OGE07-N01",
+        "OGE07-N04",
     }
     assert set(ENABLED_FAMILIES) == expected
     assert set(TEXT_ENABLED_FAMILIES) == expected.intersection(FAMILIES)
@@ -203,6 +290,17 @@ def test_only_audited_families_are_enabled_and_scheduler_fails_closed() -> None:
     selected = build_task7_candidate_batch({}, 1, family_ids=("OGE07-C02", "OGE07-N04"))
     assert selected
     assert {item["family_id"] for item in selected} == {"OGE07-C02", "OGE07-N04"}
+
+
+@pytest.mark.parametrize("family", ("OGE07-C03", "OGE07-C04"))
+def test_scheduler_batches_issue_only_valid_new_interval_questions(family: str) -> None:
+    for seed in range(50):
+        batch = build_task7_candidate_batch({}, seed, family_ids=(family,), limit=6)
+        assert batch
+        for snapshot in batch:
+            assert snapshot["family_id"] == family
+            assert snapshot["generator_version"] == GENERATOR_VERSION
+            assert validate_task7_snapshot(snapshot)
 
 
 def test_graph_snapshot_restores_identical_png_and_answer(monkeypatch) -> None:
@@ -218,7 +316,6 @@ def test_graph_snapshot_restores_identical_png_and_answer(monkeypatch) -> None:
 
     monkeypatch.setattr(oge07_graph, "render_png", unexpected_render)
     assert validate_task7_snapshot(snapshot)
-
 
 
 @pytest.mark.parametrize("family", (*FAMILIES, *GRAPH_SOURCES))
