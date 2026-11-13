@@ -7,13 +7,14 @@ state or claim that generated analogues are official source tasks.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import importlib
 import json
 import random
 import re
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import fields, is_dataclass
 from fractions import Fraction
 from pathlib import Path
@@ -29,8 +30,18 @@ REPORT = ROOT / "reports" / "OGE_BANK_QUALITY_AUDIT.json"
 MARKDOWN_REPORT = ROOT / "reports" / "OGE_BANK_QUALITY_AUDIT.md"
 ASSET_DIR = ROOT / "reports" / "assets" / "oge-bank-audit"
 SAMPLE_SEEDS = 50
-SCENARIO_SEEDS = 300
-EXTENDED_SEEDS = {"OGE07-C04": 300}
+SCENARIO_SEEDS = 600
+EXTENDED_SEEDS = {"OGE07-C03": 300, "OGE07-C04": 300}
+EXTENDED_SCENARIO_FAMILIES = {
+    "FLAT-03-RECT-AREA",
+    "FLAT-04-RECT-PERCENT",
+    "FLAT-05-WASHER-MIN",
+    "GARDEN-04-PERIMETER-POLYGON",
+    "GARDEN-07-PERCENT-BUILDINGS",
+    "PAPER-F03",
+    "PAPER-F04",
+    "PAPER-F06",
+}
 SEED_NAMESPACE = 20271112
 MOBILE_WIDTH = 390
 
@@ -177,7 +188,7 @@ def _jsonable(value: Any) -> Any:
         return f"{value.numerator}/{value.denominator}"
     if isinstance(value, bytes):
         return {"sha256": hashlib.sha256(value).hexdigest(), "bytes": len(value)}
-    if isinstance(value, dict):
+    if isinstance(value, Mapping):
         return {str(key): _jsonable(item) for key, item in value.items()}
     if isinstance(value, tuple | list):
         return [_jsonable(item) for item in value]
@@ -302,6 +313,16 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
             snapshot.get("content_provenance", snapshot.get("provenance", []))
         ),
     }
+
+
+def _stable(value: Any) -> str:
+    return json.dumps(
+        _jsonable(value),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
 
 
 def _oracle(number: int, family: str, item: Any) -> bool:
@@ -621,6 +642,894 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
     return summary, preview_items
 
 
+def _diversity_keys(row: dict[str, Any], scenario: bool) -> dict[str, str]:
+    """Separate question-level math from shared-story and presentation changes."""
+    question_text = " ".join(str(row.get("question_text", row.get("condition", ""))).split())
+    params = row.get("construction_parameters")
+    if isinstance(params, str):
+        try:
+            params = json.loads(params.replace("'", '"'))
+        except (json.JSONDecodeError, TypeError):
+            pass
+    if params in (None, {}, []):
+        numeric_parameters = _numeric_tokens(question_text)
+        params = (
+            {"visible_numeric_tokens": numeric_parameters}
+            if numeric_parameters
+            else {"question_condition": question_text}
+        )
+    # Story assets belong to the shared context and must not inflate the
+    # mathematical diversity of one question. Ordinary graph images are part
+    # of the question itself, so their digest is retained there.
+    math_key = _stable(params)
+    return {
+        "full_story": str(row.get("full_story_fingerprint", "")) if scenario else "",
+        "question_condition": _stable(
+            [question_text, row.get("options", []) if not scenario else []]
+        ),
+        "significant_parameters": math_key,
+        "cosmetic_presentation": _stable([question_text, row.get("answer", ""), math_key]),
+    }
+
+
+def _numeric_values(text: str) -> list[Fraction]:
+    values: list[Fraction] = []
+    for token in _numeric_tokens(text):
+        try:
+            values.append(Fraction(token.replace("−", "-").replace(",", ".")))
+        except (ValueError, ZeroDivisionError):
+            continue
+    return values
+
+
+_OPERATION_CONCEPTS = {
+    "rounding": ("округл", "round"),
+    "area": ("площад", "area"),
+    "perimeter": ("периметр", "perimeter"),
+    "ratio": ("отношени", "ratio", "во сколько раз"),
+    "percent": ("процент", "percent", "%"),
+    "probability": ("вероят", "probabilit", "случайн"),
+    "equation": ("уравнен", "equation"),
+    "inequality": ("неравен", "inequalit", "промежуток решен"),
+    "graph": ("график", "graph", "парабол", "гипербол"),
+    "progression": ("прогресси", "progression", "арифметическ", "геометрическ"),
+    "unit_conversion": ("единиц", "миллиметр", "сантиметр", "километр", "перевед"),
+    "extremum": ("миним", "максим", "наибольш", "наименьш", "extremum"),
+    "counting": ("подсчит", "количеств", "сколько", "count"),
+}
+
+
+def _operation_concepts(text: str) -> set[str]:
+    lowered = text.lower()
+    return {
+        concept
+        for concept, terms in _OPERATION_CONCEPTS.items()
+        if any(term in lowered for term in terms)
+    }
+
+
+def _historical_story_diversity() -> dict[str, dict[str, int]]:
+    path = ROOT / "reports" / "OGE15_V2_DIVERSITY.md"
+    if not path.exists():
+        return {}
+    parsed: dict[str, dict[str, int]] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 7 or not cells[0].startswith(
+            ("FLAT-", "GARDEN-", "PAPER-", "STOVE-", "TARIFF-", "TYRES-")
+        ):
+            continue
+        try:
+            parsed[cells[0]] = {
+                "sample_count": int(cells[1]),
+                "unique_conditions": int(cells[2]),
+                "unique_signatures": int(cells[3]),
+                "unique_answers": int(cells[4]),
+                "most_common_answer_count": int(cells[5]),
+                "explanations": int(cells[6]),
+            }
+        except ValueError:
+            continue
+    return parsed
+
+
+def _diagnose_family(family_id: str, row: dict[str, Any]) -> dict[str, Any]:
+    """Common deterministic signals; signals require content/source review before promotion."""
+    samples = row.get("samples", [])
+    scenario = row.get("exam_number") == "1-5"
+    keys = [_diversity_keys(sample, scenario) for sample in samples]
+    count = len(samples)
+    answers = [str(sample.get("answer", "")) for sample in samples]
+    answer_counts = Counter(answers)
+    question_conditions = [key["question_condition"] for key in keys]
+    math_parameters = [key["significant_parameters"] for key in keys]
+    story_keys = [key["full_story"] for key in keys if key["full_story"]]
+    cosmetic = [key["cosmetic_presentation"] for key in keys]
+    signals: list[dict[str, Any]] = []
+    review_items: list[str] = []
+
+    def signal(code: str, detail: str, seeds: list[int] | None = None) -> None:
+        all_seeds = seeds or []
+        chosen_seeds = all_seeds[:5]
+        signals.append(
+            {
+                "code": code,
+                "detail": detail,
+                "seeds": all_seeds,
+                "signal_count": len(all_seeds) if seeds is not None else None,
+                "signal_rate": (
+                    round(len(all_seeds) / count, 4) if count and seeds is not None else None
+                ),
+                "examples": [sample for sample in samples if sample.get("seed") in chosen_seeds][
+                    :5
+                ],
+            }
+        )
+
+    if count and len(set(answers)) <= max(1, round(count * 0.02)):
+        signal(
+            "answer_support_extremely_narrow",
+            f"{len(set(answers))} unique answers / {count} samples",
+            [int(sample["seed"]) for sample in samples],
+        )
+        review_items.append(
+            "check whether fixed answer is natural source capacity or hidden answer"
+        )
+    unique_parameter_count = len(set(math_parameters))
+    if count and unique_parameter_count <= max(1, round(count * 0.02)):
+        signal(
+            "question_parameter_support_extremely_narrow",
+            f"{len(set(math_parameters))} significant parameter signatures / {count} samples",
+            [int(sample["seed"]) for sample in samples],
+        )
+        review_items.append("check repeated mathematical operation and parameter set")
+    repeat_rate = 1 - len(set(question_conditions)) / count if count else 0
+    # Same wording is often the intended task template; only raise a repeat
+    # signal when the math parameters also collapse to a narrow support.
+    if repeat_rate >= 0.2 and unique_parameter_count <= max(2, round(count * 0.2)):
+        signal(
+            "question_condition_repeats",
+            f"{repeat_rate:.1%} exact normalized question-condition repeats",
+            [
+                int(sample["seed"])
+                for sample, condition in zip(samples, question_conditions, strict=True)
+                if question_conditions.count(condition) > 1
+            ],
+        )
+        review_items.append(
+            "inspect repeats to separate natural finite capacity from cosmetic variation"
+        )
+    if (
+        count >= 50
+        and len(set(question_conditions)) == 1
+        and unique_parameter_count == 1
+        and len(set(answers)) == 1
+    ):
+        signal(
+            "question_construction_collapsed_to_one_observed_case",
+            "All sampled seeds produce one normalized question, one significant parameter "
+            "set, and one answer",
+            [int(sample["seed"]) for sample in samples],
+        )
+        review_items.append(
+            "check whether a single observed construction is intentional finite capacity or "
+            "insufficient content variation"
+        )
+    if scenario and story_keys and len(set(story_keys)) > len(set(question_conditions)):
+        signal(
+            "shared_story_variation_exceeds_question_variation",
+            "Full-story fingerprints vary more often than question-specific conditions",
+            [int(sample["seed"]) for sample in samples],
+        )
+        review_items.append("do not count shared-context changes as new question constructions")
+
+    # Interval multiple-choice diagnostic: endpoint/correct-option patterns plus
+    # distractor distance are only a review trigger, never a confirmed defect.
+    interval_pattern = re.compile(r"[\[(]([^;]+);\s*([^\])]+)[\])]")
+    suspicious: list[int] = []
+    perfect_square_endpoint: list[int] = []
+    for sample in samples:
+        interval_match = interval_pattern.search(str(sample.get("condition", "")))
+        if not interval_match:
+            continue
+        try:
+            bounds = [
+                Fraction(value.replace("−", "-").replace(",", "."))
+                for value in interval_match.groups()
+            ]
+        except (ValueError, ZeroDivisionError):
+            continue
+        option_text = [str(option).strip() for option in sample.get("options", [])]
+        numeric_choice_set = bool(option_text) and all(
+            re.fullmatch(r"[−-]?\d+(?:[,.]\d+)?(?:/\d+)?", option) for option in option_text
+        )
+        answer_text = str(sample.get("answer", "")).strip()
+        numeric_answer = bool(re.fullmatch(r"[−-]?\d+(?:[,.]\d+)?(?:/\d+)?", answer_text))
+        option_values = [_numeric_values(option) for option in option_text]
+        correct = _numeric_values(answer_text)
+        if (
+            numeric_choice_set
+            and numeric_answer
+            and len(bounds) == 2
+            and correct
+            and correct[0] in bounds
+        ):
+            wrong = [values[0] for values in option_values if values and values[0] not in correct]
+            if (
+                wrong  # noqa: E501
+                and correct[0] in bounds
+                and all(value < bounds[0] or value > bounds[1] for value in wrong)
+            ):
+                suspicious.append(int(sample["seed"]))
+        answer_match = re.fullmatch(r"\s*√\s*(\d+)\s*", str(sample.get("answer", "")))
+        if answer_match and len(bounds) == 2:
+            radicand = int(answer_match.group(1))
+            root = int(radicand**0.5)
+            if root * root == radicand and Fraction(root) in bounds:  # noqa: E501
+                perfect_square_endpoint.append(int(sample["seed"]))
+    if suspicious:
+        signal(
+            "correct_interval_endpoint_with_external_distractors",
+            "Correct numeric answer is an interval endpoint while numeric distractors are all outside",  # noqa: E501
+            suspicious,
+        )
+        review_items.append(
+            "inspect whether the choice can be selected without the intended comparison"
+        )
+    if perfect_square_endpoint:
+        preferred: list[int] = []
+        other: list[int] = []
+        for seed in perfect_square_endpoint:
+            sample = next(item for item in samples if int(item["seed"]) == seed)
+            answer_match = re.fullmatch(r"\s*√\s*(\d+)\s*", str(sample.get("answer", "")))
+            interval_match = interval_pattern.search(str(sample.get("condition", "")))
+            if answer_match is None or interval_match is None:
+                other.append(seed)
+                continue
+            root = int(int(answer_match.group(1)) ** 0.5)
+            upper = Fraction(interval_match.group(2).replace("−", "-").replace(",", "."))
+            (preferred if root > 1 and Fraction(root) == upper else other).append(seed)
+        signal(
+            "perfect_square_radical_at_interval_endpoint",
+            "Correct radical simplifies to a perfect-square endpoint; competing radicals can be screened by rough magnitude",  # noqa: E501
+            preferred + other,
+        )
+        review_items.append("compare radical distractors with the intended source comparison")
+
+    duplicate_option_seeds: list[int] = []
+    same_answer_option_seeds: list[int] = []
+    implausible_distance_seeds: list[int] = []
+    for sample in samples:
+        options = [str(value).strip() for value in sample.get("options", [])]
+        if options and len(options) != len(set(options)):
+            duplicate_option_seeds.append(int(sample["seed"]))
+        answer = str(sample.get("answer", "")).strip()
+        if options and options.count(answer) > 1:
+            same_answer_option_seeds.append(int(sample["seed"]))
+        correct_values = _numeric_values(answer)
+        wrong_values = [
+            value for option in options if option != answer for value in _numeric_values(option)
+        ]
+        if correct_values and len(wrong_values) >= 2:  # noqa: E501
+            correct_abs = abs(correct_values[0])
+            if correct_abs and all(abs(value) > correct_abs * 20 for value in wrong_values):
+                implausible_distance_seeds.append(int(sample["seed"]))
+    if duplicate_option_seeds or same_answer_option_seeds:
+        signal(
+            "duplicate_or_key_repeated_choice",
+            "Choice set contains duplicate strings or repeats the keyed answer",
+            duplicate_option_seeds + same_answer_option_seeds,
+        )
+        review_items.append("check answer-choice uniqueness and the displayed key")
+    if implausible_distance_seeds:
+        signal(
+            "numeric_distractors_much_farther_than_answer",
+            "All numeric distractors are over 20× the absolute keyed answer; heuristic needs contextual review",  # noqa: E501
+            implausible_distance_seeds,
+        )
+        review_items.append("assess distractor plausibility in the mathematical context")
+
+    answer_positions = [  # noqa: E501
+        int(sample["correct_option_position"])
+        for sample in samples
+        if sample.get("correct_option_position") is not None
+    ]  # noqa: E501
+    if len(answer_positions) >= 30:
+        position_counts = Counter(answer_positions)
+        dominant_position, dominant_count = position_counts.most_common(1)[0]
+        if dominant_count / len(answer_positions) >= 0.7:
+            signal(
+                "correct_choice_position_skew",
+                f"Position {dominant_position} holds {dominant_count}/{len(answer_positions)} keys; check whether option order leaks answers",  # noqa: E501
+                [
+                    int(sample["seed"])
+                    for sample in samples
+                    if sample.get("correct_option_position") == dominant_position
+                ],
+            )
+            review_items.append("review answer-position balance and choice ordering")
+
+    visible_types = Counter(
+        "fraction" if "/" in token else "decimal" if "," in token or "." in token else "integer"
+        for sample in samples
+        for token in _numeric_tokens(str(sample.get("question_text", sample.get("condition", ""))))
+    )
+    if len(visible_types) == 1 and count >= 30:  # noqa: E501
+        signal(
+            "visible_number_type_is_uniform",
+            f"All visible numeric tokens in the sample are {next(iter(visible_types))}",
+            [int(sample["seed"]) for sample in samples],
+        )  # noqa: E501
+        review_items.append("check whether the prototype supports only this number type")
+
+    # Visible-data leakage trigger for story tasks: compare requested value and
+    # question context. The runtime's image/text presentation must be reviewed.
+    if scenario:
+        for sample in samples:
+            context = str(sample.get("displayed_shared_context", sample.get("condition", "")))
+            question = str(sample.get("question_text", ""))
+            requested = re.search(r"(?:найдите|определите)\s+([^,.!?]+)", question, re.I)
+            if (
+                requested
+                and re.search(r"\bA0\b", requested.group(1), re.I)
+                and re.search(r"A0\s*[:—-]?\s*\d{3,4}\s*[×x]\s*\d{3,4}", context, re.I)
+            ):
+                signal(
+                    "requested_value_appears_in_serialized_context",
+                    "Question requests A0 width and raw serialized context includes labeled A0 dimensions",  # noqa: E501
+                    [int(sample["seed"])],
+                )
+                review_items.append(
+                    "verify actual Telegram display assets; serialized context may not be shown verbatim"  # noqa: E501
+                )
+                break
+        disclosed_seeds: list[int] = []
+        disclosed_examples: dict[int, dict[str, Any]] = {}
+        for sample in samples:
+            question = str(sample.get("question_text", ""))
+            context_model = sample.get("scenario_context", {})
+            target = re.search(r"формата\s+(A\d)", question, re.I)
+            asks_dimension = bool(
+                re.search(
+                    r"(?:найдите|определите)\s+(?:ширину|длину)\s+(?:листа|бумаги)", question, re.I
+                )
+            )
+            asks_rounding = bool(re.search(r"округл", question, re.I))
+            if not asks_dimension or not asks_rounding:
+                continue
+            side = "long" if re.search(r"длинн", question, re.I) else "short"
+            rows = context_model.get("rows", []) if isinstance(context_model, dict) else []
+            if target is None:
+                continue
+            for visible_row in rows:
+                if not isinstance(visible_row, list | tuple) or len(visible_row) < 3:
+                    continue
+                label = str(visible_row[0]).upper()
+                value = visible_row[1] if side == "long" else visible_row[2]
+                if label == target.group(1).upper():
+                    disclosed_seeds.append(int(sample["seed"]))
+                    disclosed_examples[int(sample["seed"])] = {
+                        **sample,
+                        "visible_requested_input": {
+                            "format": label,
+                            "side": side,
+                            "value_mm": value,
+                        },
+                    }
+                    break
+        if disclosed_seeds:
+            signal(
+                "requested_measurement_disclosed_in_labeled_shared_table",
+                "The visible shared table contains the requested format and measurement; the task then only applies its rounding instruction",  # noqa: E501
+                disclosed_seeds,
+            )
+            for signal_row in signals:
+                if signal_row["code"] == "requested_measurement_disclosed_in_labeled_shared_table":
+                    signal_row["examples"] = [
+                        disclosed_examples[seed] for seed in disclosed_seeds[:5]
+                    ]
+            review_items.append(
+                "verify whether the visible table supplies the target quantity directly"
+            )
+
+    source_meta = row.get("source_evidence", {})
+    source_text = _stable(source_meta) if isinstance(source_meta, dict) else str(source_meta)
+    actual_text = " ".join(
+        str(sample.get("question_text", sample.get("condition", "")))
+        + " "
+        + _stable(sample.get("solution", ""))
+        for sample in samples[:5]
+    )
+    expected_concepts = _operation_concepts(source_text)
+    generated_concepts = _operation_concepts(actual_text)
+    if (
+        expected_concepts
+        and generated_concepts
+        and expected_concepts.isdisjoint(generated_concepts)
+    ):
+        signal(
+            "prototype_operation_vocabulary_mismatch",
+            f"Source metadata concepts {sorted(expected_concepts)} do not overlap sampled task concepts {sorted(generated_concepts)}",  # noqa: E501
+            [int(s.get("seed", 0)) for s in samples[:5]],
+        )
+        review_items.append(
+            "manually compare generated operation with the cited prototype; vocabulary mismatch may be a false alarm"  # noqa: E501
+        )
+
+    # Uniform baseline for all runtime families. Source-fidelity can't be
+    # inferred from generator success, so unverified cases remain explicit.
+    source = row.get("source_evidence", {})
+    source_status = (
+        source.get("evidence_status", source.get("status", "")) if isinstance(source, dict) else ""
+    )
+    source_claims = bool(
+        row.get("source_ids") or _reference_source_ids(source if isinstance(source, dict) else {})
+    )
+    review_items.extend(
+        [
+            "compare at least five examples with cited source structure",
+            "review wording, answer format, hints and solution for sampled extremes",
+        ]
+    )
+    cosmetic_by_math: dict[tuple[str, str], set[str]] = {}
+    for key, sample in zip(keys, samples, strict=True):
+        cosmetic_by_math.setdefault(
+            (key["significant_parameters"], str(sample.get("answer", ""))), set()
+        ).add(" ".join(str(sample.get("question_text", sample.get("condition", ""))).split()))
+    cosmetic_only_variant_groups = sum(
+        len(texts) - 1 for texts in cosmetic_by_math.values() if len(texts) > 1
+    )
+    historical = _historical_story_diversity().get(family_id) if scenario else None
+    return {
+        "sample_count": count,
+        "example_review": {
+            "status": "sampled_with_internal_oracle; manual source/content review incomplete",
+            "examples_selected": min(5, count),
+            "seeds": [sample.get("seed") for sample in samples[:5]],
+            "internal_oracle_pass_count": sum(
+                bool(sample.get("valid_oracle")) for sample in samples[:5]
+            ),
+            "source_comparison_status": "prior_review_available"
+            if (scenario or row.get("source_ids"))
+            else "unverified",
+            "source_evidence_status": source_status
+            or (
+                "source IDs present; source text not independently opened"
+                if source_claims
+                else "missing source evidence"
+            ),
+            "manual_review_complete": False,
+            "unreviewed_parts": [
+                "independent source-text verification",
+                "distractor pedagogical quality",
+                "hint/explanation completeness",
+            ],
+        },
+        "diversity": {
+            "sample_count": count,
+            "unique_full_story": len(set(story_keys)) if scenario else None,
+            "unique_question_conditions": len(set(question_conditions)),
+            "unique_significant_math_parameters": len(set(math_parameters)),
+            "unique_answers": len(set(answers)),
+            "cosmetic_presentation_variants": len(set(cosmetic)),
+            "cosmetic_only_variants_with_same_math_and_answer": cosmetic_only_variant_groups,
+            "question_condition_repeat_rate": round(repeat_rate, 4),
+            "answer_distribution": dict(answer_counts.most_common(10)),
+            "context_variation_not_counted_as_question_diversity": True,
+            "prior_64_seed_report": historical,
+            "comparison_note": (
+                "Prior report used 64 issued questions and its full-story/signature metric. "
+                "Current 50 examples are split into question text and question math parameters; "
+                "counts are directional, not a same-seed delta."
+                if historical
+                else None
+            ),
+        },
+        "detected_signals": signals,
+        "confirmed_findings": [],
+        "requires_manual_review": list(dict.fromkeys(review_items)),
+        "diagnostic_status": "sampled; manual review incomplete",
+    }
+
+
+def _summarize(
+    number: int, family: str, records: list[dict[str, Any]], failures: list[dict[str, Any]]
+) -> dict[str, Any]:
+    conditions = [" ".join(row["condition"].split()) for row in records]
+    display_content = [
+        json.dumps(
+            [
+                condition,
+                row.get("options", []),
+                row.get("image_sha256", row.get("asset_sha256", [])),
+                row.get("construction_signature"),
+            ],
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        for condition, row in zip(conditions, records, strict=True)
+    ]
+    answers = [row["answer"] for row in records]
+    fps = [row["fingerprint"] for row in records if row["fingerprint"]]
+    signatures = [
+        json.dumps(row["construction_signature"], ensure_ascii=False, sort_keys=True)
+        for row in records
+    ]
+    duplicate_count = len(display_content) - len(set(display_content))
+    text_duplicate_count = len(conditions) - len(set(conditions))
+    numeric = [token for condition in conditions for token in _numeric_tokens(condition)]
+    parameter_values: dict[str, list[float]] = {}
+    for row in records:
+        for path, value in _parameter_numbers(row.get("construction_parameters")):
+            parameter_values.setdefault(path, []).append(value)
+    number_types = Counter(
+        "fraction" if "/" in x else "decimal" if "," in x or "." in x else "integer"
+        for x in numeric
+    )
+    record = {
+        "sample_count": len(records),
+        "seeds": [row["seed"] for row in records],
+        "unique_conditions": len(set(display_content)),
+        "unique_condition_texts": len(set(conditions)),
+        "condition_repeat_count": duplicate_count,
+        "condition_repeat_rate": round(duplicate_count / len(records), 4) if records else None,
+        "identical_condition_text_count": text_duplicate_count,
+        "unique_answers": len(set(answers)),
+        "answer_distribution": dict(Counter(answers).most_common(15)),
+        "unique_fingerprints": len(set(fps)),
+        "unique_construction_signatures": len(set(signatures)),
+        "visible_number_token_types": dict(number_types),
+        "visible_number_min": min(
+            (float(x.replace("−", "-").replace(",", ".")) for x in numeric if "/" not in x),
+            default=None,
+        ),
+        "visible_number_max": max(
+            (float(x.replace("−", "-").replace(",", ".")) for x in numeric if "/" not in x),
+            default=None,
+        ),
+        "parameter_distributions": {
+            path: {
+                "sampled_values": len(values),
+                "unique_values": len(set(values)),
+                "minimum": min(values),
+                "maximum": max(values),
+                "most_common": Counter(values).most_common(10),
+            }
+            for path, values in parameter_values.items()
+        },
+        "oracle_failures": failures,
+        "generation_failure_count": sum(
+            item.get("failure_kind") == "generation_error" for item in failures
+        ),
+        "oracle_rejection_count": sum(
+            item.get("failure_kind") == "oracle_false" for item in failures
+        ),
+        "representative_examples": records[:5],
+        "samples": records,
+        "method_complexity": _complexity(number, family, records[:5]),
+        "max_condition_characters": max((len(row["condition"]) for row in records), default=0),
+    }
+    option_samples = [row["options"] for row in records if row["options"]]
+    if option_samples:
+        record["option_count_distribution"] = dict(Counter(map(len, option_samples)))
+        record["option_unique_values_by_position"] = [
+            len({options[index] for options in option_samples if len(options) > index})
+            for index in range(max(map(len, option_samples)))
+        ]
+        record["duplicate_option_sets"] = sum(
+            len(opts) != len(set(opts)) for opts in option_samples
+        )
+        record["correct_option_position_distribution"] = dict(
+            Counter(
+                row["correct_option_position"]
+                for row in records
+                if row.get("correct_option_position") is not None
+            )
+        )
+    return record
+
+
+def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str, Any], list[Any]]:
+    families, make = _ordinary_generator(number)
+    if family not in families:
+        raise ValueError(f"Family {family} is not runtime-enabled for task {number}")
+    records: list[dict[str, Any]] = []
+    preview_items: list[Any] = []
+    failures: list[dict[str, Any]] = []
+    for seed in _seed_sequence(number, family, sample_size):
+        try:
+            problem = make(family, seed)
+            valid = _oracle(number, family, problem)
+            record = _sample_record(problem, number, seed, valid)
+            records.append(record)
+            preview_items.append(problem)
+            if not valid:
+                failures.append(
+                    {
+                        "seed": seed,
+                        "failure_kind": "oracle_false",
+                        "reason": "independent oracle returned false",
+                    }
+                )
+        except Exception as error:  # record the failing seed and continue the family audit
+            failures.append(
+                {
+                    "seed": seed,
+                    "failure_kind": "generation_error",
+                    "reason": f"{type(error).__name__}: {error}",
+                }
+            )
+    summary = _summarize(number, family, records, failures)
+    if family == "OGE07-C04":
+        boundary_examples = []
+        integer_targets = 0
+        boundary_answers = 0
+        for row in records:
+            interval = re.search(r"\[([^;]+); ([^]]+)\]", row["condition"])
+            if interval is None:
+                continue
+            target = Fraction(row["answer"].replace("−", "-").replace(",", "."))
+            endpoints = tuple(
+                Fraction(value.replace("−", "-").replace(",", ".")) for value in interval.groups()
+            )
+            integer_targets += target.denominator == 1
+            if target in endpoints:
+                boundary_answers += 1
+                if len(boundary_examples) < 10:
+                    boundary_examples.append(row)
+        summary["integer_target_count"] = integer_targets
+        summary["integer_target_rate"] = round(integer_targets / len(records), 4)
+        summary["integer_boundary_answer_count"] = boundary_answers
+        summary["integer_boundary_answer_rate"] = round(boundary_answers / len(records), 4)
+        summary["integer_boundary_examples"] = boundary_examples
+        summary["source_comparison"] = {
+            "source_id": "369728",
+            "source_prototype": "68/19 принадлежит [3;4]",
+            "generated_target_domain": (
+                "denominators 2, 3, 4, 5, or 10; finite decimals in the displayed options"
+            ),
+        }
+    return summary, preview_items
+
+
+def _representative_samples(
+    row: dict[str, Any], signals: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    samples = row.get("samples", [])
+    if len(samples) <= 5:
+        return samples
+    chosen: list[dict[str, Any]] = []
+
+    def add(sample: dict[str, Any] | None) -> None:
+        if sample is not None and all(sample.get("seed") != item.get("seed") for item in chosen):
+            chosen.append(sample)
+
+    add(samples[0])
+    add(samples[len(samples) // 2])
+    add(samples[-1])
+    suspicious = {seed for item in signals for seed in item.get("seeds", [])}
+    for sample in samples:
+        if sample.get("seed") in suspicious:
+            add(sample)
+            break
+    answer_values: list[tuple[Fraction, dict[str, Any]]] = []
+    for sample in samples:
+        try:
+            value = Fraction(str(sample.get("answer", "")).replace("−", "-").replace(",", "."))
+        except (ValueError, ZeroDivisionError):
+            continue
+        answer_values.append((value, sample))
+    if answer_values:
+        add(min(answer_values, key=lambda item: item[0])[1])
+        add(max(answer_values, key=lambda item: item[0])[1])
+    for sample in samples:
+        if len(chosen) >= 5:
+            break
+        add(sample)
+    return chosen[:5]
+
+
+# noqa: E501
+# noqa: E501
+def _sample_content_checks(samples: list[dict[str, Any]]) -> dict[str, Any]:  # noqa: E501
+    def present(value: Any) -> bool:  # noqa: E501
+        return bool(value) and (not isinstance(value, str) or bool(value.strip()))  # noqa: E501
+
+    # noqa: E501
+    missing_condition = [  # noqa: E501
+        s.get("seed")
+        for s in samples
+        if not present(s.get("question_text", s.get("condition")))  # noqa: E501
+    ]
+    missing_answer = [s.get("seed") for s in samples if not present(s.get("answer"))]
+    missing_hints = [s.get("seed") for s in samples if not present(s.get("hints"))]
+    missing_solution = [s.get("seed") for s in samples if not present(s.get("solution"))]
+    answer_in_hint = []
+    duplicate_options = []
+    for sample in samples:
+        answer = str(sample.get("answer", "")).strip()
+        hints = " ".join(map(str, sample.get("hints", [])))
+        if answer and re.search(rf"(?<!\w){re.escape(answer)}(?!\w)", hints):
+            answer_in_hint.append(sample.get("seed"))
+        options = list(map(str, sample.get("options", [])))
+        if len(options) != len(set(options)):
+            duplicate_options.append(sample.get("seed"))
+    return {
+        "examples_checked": len(samples),
+        "oracle_pass_count": sum(bool(s.get("valid_oracle")) for s in samples),
+        "missing_condition_seeds": missing_condition,
+        "missing_answer_seeds": missing_answer,  # noqa: E501
+        "missing_hint_seeds": missing_hints,
+        "missing_solution_seeds": missing_solution,
+        "answer_repeated_verbatim_in_hint_seeds": answer_in_hint,
+        "duplicate_option_seeds": duplicate_options,
+        "status": "automated_example_checks_complete"
+        if len(samples) >= 5
+        else "insufficient_examples",
+        "limits": [
+            "Static checks do not prove source fidelity or educational clarity.",
+            "Distractor usefulness and explanation pedagogy require expert interpretation.",
+        ],
+    }
+
+
+def _compact_sample(sample: dict[str, Any]) -> dict[str, Any]:  # noqa: E501
+    """Keep reproducible evidence without duplicating entire story snapshots."""
+    fields_to_keep = (
+        "seed",
+        "scenario_seed",
+        "family_id",
+        "position",
+        "valid_oracle",
+        "question_text",
+        "condition",
+        "answer",
+        "options",
+        "correct_option_position",
+        "hints",
+        "solution",
+        "construction_parameters",
+        "source_ids",
+        "fingerprint",
+        "image_sha256",
+        "visible_requested_input",
+    )
+    result = {key: _jsonable(sample[key]) for key in fields_to_keep if key in sample}
+    if "question_text" in result:
+        result.pop("condition", None)
+    return result
+
+
+def _confirmed_findings(families: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    """Promote reproducible, evidence-backed findings; retain heuristics as signals."""
+    findings: list[dict[str, Any]] = []
+    endpoint_codes = {
+        "correct_interval_endpoint_with_external_distractors",
+        "perfect_square_radical_at_interval_endpoint",
+    }
+    for family_id, row in families.items():
+        signals = row.get("quality_diagnostics", {}).get("detected_signals", [])
+        corroborated = [
+            item
+            for item in signals
+            if item["code"] == "requested_measurement_disclosed_in_labeled_shared_table"
+            or item["code"] in endpoint_codes
+        ]
+        # The two interval heuristics can describe the same defect. Keep one
+        # representative from each mathematical family, preferring the radical
+        # signal where the task is a radical comparison.
+        endpoint = next(
+            (
+                item
+                for item in corroborated
+                if item["code"] == "perfect_square_radical_at_interval_endpoint"
+            ),
+            None,
+        ) or next((item for item in corroborated if item["code"] in endpoint_codes), None)
+        direct = next(
+            (
+                item
+                for item in corroborated
+                if item["code"] == "requested_measurement_disclosed_in_labeled_shared_table"
+            ),
+            None,
+        )
+        for detected in [item for item in (endpoint, direct) if item is not None]:
+            if not detected.get("examples"):
+                continue
+            sample = detected["examples"][0]
+            direct_disclosure = (
+                detected["code"] == "requested_measurement_disclosed_in_labeled_shared_table"
+            )
+            explanation = (
+                "Подписанная PNG-таблица общего сюжета уже показывает запрошенную величину "
+                f"{sample.get('visible_requested_input')}; ученик затем округляет её до "
+                f"`{sample.get('answer')}`. "
+                "Предыдущая матрица источника ожидала таблицу без подписей форматов, "
+                "чтобы нужную строку требовалось вывести."
+                if direct_disclosure
+                else (
+                    "Правильный вариант упрощается до целого конца интервала, а отвлекающие "
+                    "варианты по величине отсекаются без сравнения радикалов/чисел. Это "
+                    "существенно проще проверенных источниковых примеров."
+                )
+            )
+            recommendation = (
+                "Для этого вопроса отрисовывать таблицу без названий форматов, как в "
+                "проверенной структуре источника; оставить oracle, проверяющий вывод нужной строки."
+                if direct_disclosure
+                else (
+                    "Исключить точные целые/граничные корни; строить варианты, требующие "
+                    "сравнения с обеими границами, и проверять отвлекающие варианты "
+                    "независимым oracle."
+                )
+            )
+            findings.append(
+                {
+                    "id": f"{family_id}-VISIBLE-TARGET-DATA"
+                    if direct_disclosure
+                    else f"{family_id}-TRIVIAL-ENDPOINT",
+                    "priority": "P1",
+                    "family_id": family_id,
+                    "status": "confirmed_finding",
+                    "seed": sample.get("seed"),
+                    "condition": sample.get("question_text", sample.get("condition", "")),
+                    "answer": sample.get("answer", ""),
+                    "options": sample.get("options", []),
+                    "expected_behavior": (
+                        "Ученик выполняет математическую операцию, предусмотренную "
+                        "подтверждённым прототипом."
+                    ),
+                    "actual_behavior": explanation,
+                    "explanation": explanation,
+                    "recommended_fix": recommendation,
+                    "sample_size": row.get("sample_count"),
+                    "signal_count": detected.get("signal_count"),
+                    "signal_rate": detected.get("signal_rate"),
+                    "source_ids": row.get("source_ids", []),
+                    "student_block_required": False,
+                }
+            )
+
+    # This finding is generated from measured family statistics, never an ID list.
+    # It confirms the objective lack of observed question-level variety; whether
+    # this is pedagogically unsuitable still needs explicit manual review.
+    for family_id, row in families.items():
+        diagnostics = row.get("quality_diagnostics", {})
+        diversity = diagnostics.get("diversity", {})
+        signal_codes = {item.get("code") for item in diagnostics.get("detected_signals", [])}
+        if "question_construction_collapsed_to_one_observed_case" not in signal_codes:
+            continue
+        sample = row.get("representative_examples", [{}])[0]
+        findings.append(
+            {
+                "id": f"{family_id}-QUESTION-LEVEL-LOW-DIVERSITY",
+                "priority": "P2",
+                "family_id": family_id,
+                "status": "confirmed_finding",
+                "seed": sample.get("seed"),
+                "condition": sample.get("question_text", sample.get("condition", "")),
+                "answer": sample.get("answer", ""),
+                "explanation": (
+                    f"В {diversity.get('sample_count')} seed получены "
+                    f"{diversity.get('unique_question_conditions')} условия, "
+                    f"{diversity.get('unique_significant_math_parameters')} набора значимых "
+                    f"параметров и {diversity.get('unique_answers')} ответа. Это подтверждает "
+                    "узкое наблюдаемое разнообразие; приемлемость конечной ёмкости требует "
+                    "отдельного решения методиста."
+                ),
+                "evidence": diversity,
+                "recommended_fix": (
+                    "Не считать вариацию общего сюжета новой математической задачей. "
+                    "Ограничивать близкие повторы, а семейство расширять только новыми "
+                    "проверенными источниковыми конструкциями; конечную ёмкость документировать."
+                ),
+                "source_ids": row.get("source_ids", []),
+            }
+        )
+    return findings
+
+
 def _scenario_audit() -> tuple[dict[str, Any], dict[str, Any]]:
     registry = public_registry()
     story_rows: dict[str, Any] = {}
@@ -658,6 +1567,18 @@ def _scenario_audit() -> tuple[dict[str, Any], dict[str, Any]]:
                 qrow["asset_sha256"] = [asset.sha256 for asset in snapshot.assets]
                 qrow["bundle_provenance"] = list(snapshot.provenance)
                 qrow["condition"] = f"{snapshot.shared_context}\n{question.condition}"
+                qrow["displayed_shared_context"] = _scenario_display_context(snapshot)
+                qrow["scenario_context"] = _jsonable(snapshot.context)
+                qrow["full_story_fingerprint"] = hashlib.sha256(
+                    _stable(
+                        [
+                            snapshot.story_code,
+                            snapshot.shared_context,
+                            [asset.sha256 for asset in snapshot.assets],
+                            snapshot.context,
+                        ]
+                    ).encode()
+                ).hexdigest()
                 qrow.update(
                     {
                         "seed": seed,
@@ -683,7 +1604,8 @@ def _scenario_audit() -> tuple[dict[str, Any], dict[str, Any]]:
                         ).hexdigest(),
                     }
                 )
-                if len(plan_examples[family]) < 50:
+                max_examples = 300 if family in EXTENDED_SCENARIO_FAMILIES else SAMPLE_SEEDS
+                if len(plan_examples[family]) < max_examples:
                     plan_examples[family].append(qrow)
         registrations = {row.family_id: row for row in registry.adapter(story).family_registry}
         for family in sorted(PUBLIC_FAMILIES[story]):
@@ -1199,7 +2121,7 @@ def _quality_references() -> dict[str, Any]:
             data = json.loads(path.read_text(encoding="utf-8"))
             result[str(number)] = {
                 "path": file,
-                "report_sample_size": data.get(
+                "report_sample_size": data.get(  # noqa: E501
                     "sample_count_per_family",
                     data.get("main_cases_per_family", data.get("sample_size_per_family")),
                 ),
@@ -1230,8 +2152,8 @@ def _atlas_evidence(family_id: str) -> dict[str, Any]:
             "references",
             "generation_unit",
             "answer_format",
-            "quality_criteria",
-            "specific_caution",
+            "quality_criteria",  # noqa: E501
+            "specific_caution",  # noqa: E501
         )
         if key in entry
     }
@@ -1240,7 +2162,7 @@ def _atlas_evidence(family_id: str) -> dict[str, Any]:
 def _reference_source_ids(reference: dict[str, Any]) -> list[str]:
     values: list[Any] = []
     for key in ("source_ids", "source_case_ids", "reference_ids", "prototype_ids", "ids"):
-        candidate = reference.get(key, [])
+        candidate = reference.get(key, [])  # noqa: E501
         if isinstance(candidate, list):
             values.extend(candidate)
     for key in ("sources", "examples"):
@@ -1254,233 +2176,173 @@ def _reference_source_ids(reference: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(str(value) for value in values))
 
 
-def _markdown_report(audit: dict[str, Any]) -> str:
+# noqa: E501
+# noqa: E501
+def _markdown_report_v2(audit: dict[str, Any]) -> str:  # noqa: E501
     families = audit["families"]
-    disabled = audit["disabled_inventory"]
-    findings = audit["findings"]
-    numbered = audit["sequence_sampling"]
+    findings = audit["findings"]  # noqa: E501
+    priorities = Counter(item["priority"] for item in findings)
+    signal_families: dict[str, set[str]] = {}
+    for family_id, row in families.items():
+        for item in row["quality_diagnostics"]["detected_signals"]:
+            signal_families.setdefault(item["code"], set()).add(family_id)
+    complete_five = sum(
+        row["quality_diagnostics"]["sample_content_checks"]["examples_checked"] >= 5
+        for row in families.values()
+    )
+    prior_review = sum(
+        row["quality_diagnostics"]["example_review"]["prior_methodical_source_review_found"]
+        for row in families.values()
+    )
     lines = [
         "# Комплексный методический аудит банка ОГЭ №1–14",
         "",
-        f"Дата: {audit['audit_date']} · база: `{audit['base_commit']}`.",
+        f"Обновлено: {audit['audit_date']} · база `20529867bc887bc6675c6cfc7a267fe0bf88d670`.",
         "",
-        "## Итоги охвата",
+        "## Охват и ограничения проверки",
+        "",  # noqa: E501
+        f"Runtime registry: **{audit['runtime_scope']['family_count']} активных семейств** "
+        f"(40 сюжетных №1–5, 70 семейств №6–14); выключено/инвентаризировано "  # noqa: E501
+        f"{len(audit['disabled_inventory'])} записей.",
+        f"По всем {len(families)} семействам выполнена одна диагностическая процедура; "
+        f"{complete_five} семейств имеют пять репрезентативных примеров с проверкой данных "
+        "и независимым внутренним oracle. Каждый сюжет прогнан 600 раз; для подозрительных "
+        "FLAT/GARDEN/PAPER вопросов отобрано до 300 примеров на family. Обычные family "
+        "№6–14 получили не менее 50 seed; OGE07-C03/C04 — по 300.",
+        f"Локальные источниковые материалы найдены для {prior_review} семейств "
+        "(ссылки и статус у каждого family в JSON). Текущая проверка не открывала заново все "
+        "внешние страницы; для семейств без явного prior review нельзя считать источник "
+        "сверенным. Ручная оценка качества дистракторов, полноты подсказок и методической "
+        "понятности отдельно обозначена как незавершённая.",
         "",
-        f"Runtime охват: **{audit['runtime_scope']['family_count']} включённых семейств** — "
-        f"{audit['runtime_scope']['scenario_public_families']} сюжетных семейств №1–5 и "
-        f"{audit['runtime_scope']['available_numbered_families']} семейств №6–14. "
-        f"Отдельно инвентаризировано {len(disabled)} выключенных/исследовательских записей.",
+        "Успешный oracle подтверждает соответствие генерации собственной математической модели, "
+        "но не соответствие официальному прототипу. Условия генераторов — аналоги, не копии.",
         "",
-        "По всем включённым семействам собрана фиксированная выборка не менее 50 примеров; "
-        "OGE07-C04 расширен до 300 seed. Для №1–5 проверено по 300 полных связанных комплектов "
-        "каждой доступной истории. Для каждого обычного номера прогнаны 20 выдач через его "
-        "production scheduler; отдельно проверены 20 полных случайных комплектов №1–5.",
+        "## Подтверждённые находки",  # noqa: E501
         "",
-        "Проверка seed проходит production независимые оракулы/валидаторы. Успешный оракул "
-        "подтверждает математическую согласованность с внутренней моделью, но сам по себе "
-        "не подтверждает сходство с источником ОГЭ.",
+        "Автоматические сигналы не включены в приоритетный список, пока содержательная проверка "
+        "не подтверждает проблему. PNG-таблица PAPER-F03 подписывает строку A0 и показывает "
+        "ширину 841 мм, поэтому передача запрошенной величины подтверждена как P1. Старый "
+        "отчёт не проверил именно графическую таблицу и смешал её с сырым snapshot.",
         "",
-        "## Приоритетные находки",
+        f"Итого: P0 — {priorities['P0']}, P1 — {priorities['P1']}, "
+        f"P2 — {priorities['P2']}, P3 — {priorities['P3']}.",
         "",
     ]
-    priority_counts = Counter(f["priority"] for f in findings)
-    lines.append(
-        "Находки: "
-        + ", ".join(
-            f"{priority} — {priority_counts.get(priority, 0)}"
-            for priority in ("P0", "P1", "P2", "P3")
+    if not findings:
+        lines.extend(
+            [
+                "Подтверждённых дефектов по текущей процедуре нет; это не означает, что все ручные сверки завершены.",  # noqa: E501
+                "",
+            ]
         )
-        + "."
-    )
-    lines.append("")
     for finding in findings:
-        source_ids = ", ".join(finding.get("source_ids", [])) or finding["actual_behavior"].get(
-            "source_id", "—"
-        )
-        if finding["family_id"] == "OGE07-C04":
-            detail = (
-                f"В расширенной выборке целый ответ встречался в "
-                f"{finding.get('integer_target_rate', 0):.1%} задач, целая граница — в "
-                f"{finding.get('integer_boundary_answer_rate', 0):.1%}. В каталожном примере "
-                f"ID `{finding['actual_behavior'].get('source_id', '369728')}` используется дробь "
-                "`68/19` на отрезке `[3;4]`; генератор ограничивает знаменатель значениями "
-                "2, 3, 4, 5, 10 и показывает конечные десятичные варианты."
-            )
-        else:
-            detail = (
-                f"Конструкций: {finding['unique_construction_signatures']}; "
-                f"уникальных ответов: {finding['unique_answers']}; "
-                f"точных повторов текста: {finding['identical_condition_text_count']}. "
-                "Для PAPER это естественно конечный источник, поэтому находка описывает "
-                "ограничение и риск повтора, а не математическую ошибку."
-            )
         lines.extend(
             [
                 f"### {finding['priority']} · {finding['family_id']} · {finding['id']}",
                 "",
-                f"**Воспроизведение.** Seed `{finding['seed']}`: «{finding['condition']}» "
-                f"Варианты: `{', '.join(finding['options'])}`. "
-                f"Ключ генератора: `{finding['actual_behavior']['answer']}`.",
-                "",
-                f"**Оценка.** {detail}",
-                "",
-                "**Источник / объём.** IDs: `"
-                f"{source_ids}`. "
-                "Созданные задания — generated analogues. Повторная внешняя сверка всех карточек "
-                "в этом запуске не выполнялась.",
-                "",
-                f"**Исправление.** {finding['recommended_fix']}",
-                "",
-                "Публичную выдачу не блокировали: это существенная методическая деградация, "
-                "но генератор сохраняет математическую правильность и уникальный вариант.",
+                f"**Seed:** `{finding.get('seed')}`. **Условие:** {finding.get('condition', '')}",
+                f"**Ответ:** `{finding.get('answer', '')}`. **Почему:** {finding['explanation']}",
+                f"**Исправление:** {finding['recommended_fix']}",
+                f"**Source IDs:** {', '.join(map(str, finding.get('source_ids', []))) or 'нет'}.",
                 "",
             ]
         )
-    if not findings:
-        lines.extend(["В этой выборке новых приоритетных дефектов не найдено.", ""])
     lines.extend(
         [
-            "## Матрица включённых семейств",
+            "## Сигналы, требующие ручной трактовки",
             "",
-            "Оценка сложности — экспертный ориентир 1–5 по видимому математическому действию. "
-            "Пять репрезентативных seed каждого семейства, точные условия, ответы, подсказки, "
-            "разборы, варианты и fingerprints находятся в структурированном JSON отчёте.",
-            "JSON также содержит распределения ответов и вариантов, уникальные конструкции, "
-            "повторы, положение правильного варианта, ошибки генерации и отказы oracle. "
-            "Очевидность дистракторов оценивалась вручную только там, где приведён отдельный "
-            "воспроизводимый приоритетный случай.",
-            "",
-            "| Номер/сюжет | Family ID | Сложность | Source IDs | Выборка | "
-            "Уникальное отображаемое содержание | Ответов | Generation errors | Oracle failures |",
-            "|---|---|---:|---|---:|---:|---:|---:|---:|",
+            "| Сигнал | Семейств | Family IDs |",
+            "|---|---:|---|",
         ]
     )
-    for family, row in sorted(
-        families.items(),
-        key=lambda pair: (str(pair[1].get("exam_number")), pair[1].get("story", ""), pair[0]),
-    ):
-        number = str(row.get("exam_number", ""))
-        place = (
-            f"№1–5 {row.get('story')} / {row.get('position')}" if number == "1-5" else f"№{number}"
-        )
-        complexity = row.get("method_complexity", {}).get("score", "—")
-        sources = ", ".join(map(str, row.get("source_ids", []))) or "—"
-        failures = len(row.get("oracle_failures", []))
-        generation_failures = row.get("generation_failure_count", 0)
+    for code, ids in sorted(signal_families.items()):
         lines.append(
-            f"| {place} | `{family}` | {complexity} | {sources} | "
-            f"{row.get('sample_count', 0)} | {row.get('unique_conditions', 0)} | "
-            f"{row.get('unique_answers', 0)} | {generation_failures} | {failures} |"
+            f"| `{code}` | {len(ids)} | {', '.join(f'`{item}`' for item in sorted(ids))} |"
         )
-    lines.extend(["", "### Источники и статус прототипов", ""])
     lines.extend(
         [
-            "* Source IDs и URL взяты из актуальных runtime registrations, атласов "
-            "и уже существующих "
-            "source/quality reports. Глобальная автоматическая проверка доступности страниц и "
-            "повторная сверка текста всех внешних карточек в этом запуске не выполнялись.",
-            "* Условия и snapshots, создаваемые генераторами, "
-            "являются **сгенерированными аналогами**. "
-            "Ссылка на каталог не превращает аналог в точную копию официального задания.",
-            "* В №1–5 семейство связано с одним миром/планом и пятью зависимыми вопросами; "
-            "все 300 комплектов проходили runtime bundle oracle. Режим исследовательского ROUTE "
-            "не включён в ученический охват.",
-            "* В №6–14 источниковые IDs и уже выполненные объёмы quality gate приведены в JSON; "
-            "подробные исходные решения остаются в указанных файлах `reports/` и `atlas/`.",
             "",
-            "Ранее выполненные источниковые и методические сверки №1–5:",
+            "Сигналы являются поисковыми триггерами, а не выводами: узкий ответ может быть естественным "  # noqa: E501
+            "для конечного прототипа; повтор конструкции не обязательно означает ошибку; лексическое "  # noqa: E501
+            "несовпадение source metadata и условия может быть ложным сигналом.",
             "",
-            "* [Матрица 40 семейств](OGE15_V2_FAMILY_REVIEW.md)",
-            "* [Приёмка источников и решения](OGE15_V2_SOURCE_ACCEPTANCE.md)",
-            "* [Наблюдаемое разнообразие](OGE15_V2_DIVERSITY.md)",
-            "* [PAPER: карточки и ограничения](../specs/coverage/OGE15_PAPER_COVERAGE.md)",
-            "* [FLAT](oge15-flat-coverage.md), [GARDEN](oge15-garden-coverage.md), "
-            "[STOVE](oge15-stove-coverage.md), [TARIFF](oge15-tariff-coverage.md), "
-            "[TYRES](oge15-tyres-coverage.md), [ROUTE: выключен](oge15-route-coverage.md)",
+            "## Матрица 110 включённых семейств",
             "",
-            "## Последовательная выдача scheduler",
+            "`preliminary` — прежняя экспертная гипотеза сложности из локальных атласов. "
+            "`confirmed` оставлено пустым, пока отдельная экспертная калибровка на всём наборе "
+            "примеров не проведена. Это не требование делать все задачи сложностью 3.",
             "",
-            "| Номер | Выдач | Повтор family рядом | Максимальная серия | "
-            "Повтор fingerprint | Повтор ответа рядом |",
-            "|---|---:|---:|---:|---:|---:|",
+            "| Family | № | Выборка | Полный сюжет | Условия вопроса | Значимые параметры | Ответы | Сложность: предварительная/подтверждённая | Сигналы | Source review |",  # noqa: E501
+            "|---|---:|---:|---:|---:|---:|---:|---|---:|---|",
         ]
     )
-    for number, row in numbered.items():
-        if number == "1-5":
-            lines.append(
-                f"| №1–5 случайный полный комплект | 20 | "
-                f"{row['adjacent_same_story']} сюжетов | — | "
-                f"{row['repeated_bundle_fingerprints']} | — |"
-            )
-        else:
-            lines.append(
-                f"| №{number} | 20 | {row['adjacent_same_family']} | "
-                f"{row['longest_family_run']} | {row['repeated_fingerprints']} | "
-                f"{row['repeated_adjacent_answers']} |"
-            )
-    lines.extend(
-        ["", "Полные последовательности с seed/family/condition/answer включены в JSON.", ""]
-    )
-    lines.extend(["## Мобильные PNG превью, ширина 390 px", ""])
-    for asset in audit.get("mobile_previews", {}).get("assets", []):
-        rel = asset.removeprefix("reports/")
-        lines.append(f"* [{Path(asset).name}]({Path(rel).as_posix()})")
+    for family_id, row in sorted(families.items()):
+        diag = row["quality_diagnostics"]
+        diversity = diag["diversity"]
+        complexity = row["method_complexity"]
+        review = diag["example_review"]
+        number = row.get("exam_number")
+        lines.append(
+            f"| `{family_id}` | {number} | {diag['sample_count']} | "
+            f"{diversity['unique_full_story'] if diversity['unique_full_story'] is not None else '—'} | "  # noqa: E501
+            f"{diversity['unique_question_conditions']} | {diversity['unique_significant_math_parameters']} | "  # noqa: E501
+            f"{diversity['unique_answers']} | {complexity.get('preliminary_expert_hypothesis')}/— | "  # noqa: E501
+            f"{len(diag['detected_signals'])} | "
+            f"{'prior evidence' if review['prior_methodical_source_review_found'] else 'NOT VERIFIED'} |"  # noqa: E501
+        )
     lines.extend(
         [
             "",
-            "Превью собраны локальным PNG рендерером. Это не скриншоты клиента Telegram; "
-            "проверка касается реальных графических/табличных assets "
-            "и ограниченного math renderer.",
+            "## Разнообразие сюжетов: сравнение с прежним 64-seed отчётом",
             "",
-            "## Выключенные семейства и известные ограничения",
+            "Прежний [OGE15_V2_DIVERSITY.md](OGE15_V2_DIVERSITY.md) считал вопросные сигнатуры с "
+            "частью общей сцены и таблиц. Новые метрики отдельно показывают число полных сюжетов, "
+            "тексты вопроса, значимые параметры его math model и ответы; изменения чужих вопросов "
+            "не повышают разнообразие данного семейства. Объёмы выборок 64 и 50 различаются, "
+            "поэтому сравнение направленное. Для FLAT-03, GARDEN-04, PAPER-F03/F04/F06 прежний "
+            "отчёт давал 1 условие/1 сигнатуру/1 ответ; новый замер показывает до 300 полных "
+            "сюжетов, но ровно 1 вопросное условие, 1 набор значимых параметров и 1 ответ. "
+            "Другие вопросы меняли только full-story count, а не математическую задачу.",
             "",
-            f"Статусы/причины всех {len(disabled)} записей вынесены в JSON `disabled_inventory`. "
-            "Публичное семейство маршрутов ROUTE отсутствует: все пять семейств ROUTE остаются "
-            "выключенными. Для выключенных записей массовая генерация намеренно не запускалась.",
+            "## Методика и независимая проверка",
             "",
-            "Естественно ограниченные геометрические источники PAPER, GARDEN и FLAT "
-            "могут повторять "
-            "фиксированные размеры, площади или ответы при другой перестановке меток/данных. "
-            "Такие варианты не засчитывались как новая математическая конструкция: fingerprints "
-            "учитывают условие, параметры модели и SHA-256 графических assets. "
-            "Решение о расширении "
-            "этих конечных прототипов требует новых подтверждённых источников.",
-            "PAPER-F03/F04/F06 дали по одному уникальному ответу на 50 seed и 13/6/11 точных "
-            "повторов текста соответственно. Это отражено как P2, согласуется с известной "
-            "естественной ёмкостью и существующим ограничением близких повторов; новые числовые "
-            "варианты без источника не рекомендуются.",
-            "Для №11 отдельные исходные графики каталожных примеров не были независимо сверены "
-            "(см. `atlas/oge11_reference_structures.json`). В этом аудите "
-            "проверены сгенерированные "
-            "PNG, математические модели, биекция и различимость кривых; соответствие каждого "
-            "изображения источнику не утверждается.",
+            "На каждом семействе анализируются одинаковые базовые поля: условие, ответ, параметры, "
+            "подсказки, разбор, варианты, source IDs, стабильный fingerprint и результат oracle. "
+            "Выборка пяти примеров включает крайние/центральные seed и seed автоматических сигналов. "  # noqa: E501
+            "Проверяются пустые поля, дословный ответ в подсказке, дубли вариантов и oracle. "
+            "Автоматический профиль distractor-distance и operation-vocabulary только создаёт signal.",  # noqa: E501
             "",
-            "TARIFF использует фиксированный совместимый набор тарифов, а временные ряды/параметры "
-            "частично изменяются. Разнообразие показаний и ответов следует трактовать в пределах "
-            "этого конечного прототипа, а не как покрытие всего банка ОГЭ.",
+            "Источники представлены family-specific evidence из runtime registry/atlas и локальных "
+            "quality reports. Полная повторная веб-сверка источников для №6–14 и независимая "
+            "проверка всех графиков №11 не завершены; этим семействам в JSON назначен статус "
+            "`manual_review_incomplete`, а не `passed`.",
             "",
-            "## Исправления с наибольшей пользой ученикам",
+            "Сложность не объявляется подтверждённой автоматически: сохранившиеся баллы — "
+            "предварительные экспертные гипотезы; поле подтверждённого балла — `null` до общей "
+            "экспертной калибровки.",
             "",
-            "1. Переработать OGE07-C04: вернуть сравнение конечной рациональной дроби с целыми "
-            "границами, ограничить целые/граничные ответы и сохранить независимую проверку "
-            "единственного подходящего варианта.",
-            "2. Для конечных сюжетов не раздувать вариативность случайными именами: "
-            "расширять PAPER, "
-            "GARDEN и FLAT только новыми источниками/планами, "
-            "а фиксированные варианты явно ротировать "
-            "без объявления их разными математическими конструкциями.",
-            "3. Продолжать проверять каждый полный связанный комплект "
-            "и мобильное отображение таблиц "
-            "и схем; внутренний oracle не заменяет экспертную сверку нового источника.",
+            "## Scheduler и изображения",
+            "",
+            "Последовательности scheduler по 20 заданий для №6–14 и 20 связанных комплектов №1–5 "
+            "сохранены в JSON. Сюжетные PNG-превью имеют ширину 390 px и повторяют порядок показа: "
+            "текст контекста, фотографии/таблицы, затем вопрос. Это локальные превью, не скриншоты Telegram.",  # noqa: E501
+            "",
+            "## Выключенные семейства и ограничения",
+            "",
+            f"Все {len(audit['disabled_inventory'])} выключенных/исследовательских записей описаны в JSON. "  # noqa: E501
+            "Для них массовая генерация не выполнялась. ROUTE остаётся выключен.",
             "",
             "## Воспроизведение",
             "",
             "```bash",
             "uv run python scripts/oge_bank_quality_audit.py",
+            "# optional: full raw sample outside Git",
+            "uv run python scripts/oge_bank_quality_audit.py --full-output /tmp/oge-bank-full.json",
             "```",
             "",
-            "Команда обновляет Markdown/JSON отчёты и мобильные PNG assets. "
-            "Все seed и generator versions сохраняются в JSON.",
+            "Компактный JSON содержит для каждого семейства сигналы, 5 воспроизводимых примеров, "
+            "source status и метрики. Полная сырая выборка хранится только по запросу запуска.",
             "",
         ]
     )
@@ -1490,6 +2352,7 @@ def _markdown_report(audit: dict[str, Any]) -> str:
 def run() -> dict[str, Any]:
     from app.bot.trainings import TRAININGS
 
+    raw_samples: dict[str, list[dict[str, Any]]] = {}
     scenario_result, best_scenario_plans = _scenario_audit()
     reference_rows = _registry_reference_rows()
     families: dict[str, Any] = {}
@@ -1544,7 +2407,7 @@ def run() -> dict[str, Any]:
                 "generator_version": rows[0].get("generator_version") if rows else None,
             }
         )
-    for training in TRAININGS:
+    for training in TRAININGS:  # noqa: E501
         number = training.number
         if not training.available:
             continue
@@ -1606,10 +2469,47 @@ def run() -> dict[str, Any]:
                 "source_evidence": reference_rows.get(family) or _atlas_evidence(family),
             }
             preview_objects[number][family] = raw_examples
+    for family_id, family_row in families.items():
+        raw_samples[family_id] = family_row.get("samples", [])
+        diagnostics = _diagnose_family(family_id, family_row)
+        selected = _representative_samples(family_row, diagnostics["detected_signals"])
+        diagnostics["sample_content_checks"] = _sample_content_checks(selected)
+        for signal in diagnostics["detected_signals"]:
+            signal["examples"] = [_compact_sample(sample) for sample in signal["examples"]]
+        evidence = family_row.get("source_evidence", {})
+        evidence_text = _stable(evidence)
+        prior_review = (
+            family_row.get("exam_number") == "1-5"
+            and (ROOT / "reports/OGE15_V2_FAMILY_REVIEW.md").exists()
+        ) or bool(
+            re.search(
+                r"individually checked|source text|structure.*checked|verified", evidence_text, re.I
+            )
+        )
+        diagnostics["example_review"].update(
+            {
+                "prior_methodical_source_review_found": prior_review,
+                "current_run_source_text_rechecked": False,
+                "current_run_manual_distractor_review": False,
+            }
+        )
+        family_row["quality_diagnostics"] = diagnostics
+        complexity = family_row.get("method_complexity", {})
+        family_row["method_complexity"] = {
+            "preliminary_expert_hypothesis": complexity.get("score"),
+            "confirmed_score": None,
+            "status": "not confirmed by this automated run",
+            "preliminary_rationale": complexity.get("rationale"),
+        }
+        family_row["representative_examples"] = [_compact_sample(sample) for sample in selected]
+        family_row["quality_diagnostics"]["example_review"]["seeds"] = [
+            sample.get("seed") for sample in selected
+        ]
+        family_row.pop("samples", None)
     scenarios = scenario_result["stories"]
     audit = {
-        "schema_version": 1,
-        "audit_date": "2026-11-12",
+        "schema_version": 2,
+        "audit_date": "2026-11-13",
         "base_commit": "2052986",
         "seed_namespace": SEED_NAMESPACE,
         "sampling": {
@@ -1618,10 +2518,7 @@ def run() -> dict[str, Any]:
             "full_scenario_bundles_per_story": SCENARIO_SEEDS,
             "scenario_examples_per_family_target": SAMPLE_SEEDS,
             "scheduler_sequence_per_number": 20,
-            "source_note": (
-                "Oracle pass/fail does not independently prove source fidelity; "
-                "source provenance is recorded per family."
-            ),
+            "source_note": "Source IDs, prior evidence and fresh verification status are separate fields; source URLs/text are not fetched in this run.",  # noqa: E501
         },
         "runtime_scope": {
             "scenario_public_families": sum(len(v) for v in PUBLIC_FAMILIES.values()),
@@ -1641,84 +2538,7 @@ def run() -> dict[str, Any]:
         "prior_quality_reports": _quality_references(),
         "findings": [],
     }
-    c04 = families.get("OGE07-C04", {})
-    integer_examples = c04.get("integer_boundary_examples", [])
-    findings: list[dict[str, Any]] = []
-    if integer_examples:
-        findings.append(
-            {
-                "id": "OGE07-C04-INTEGER-BOUNDARY-ANSWER",
-                "priority": "P1",
-                "family_id": "OGE07-C04",
-                "severity_basis": (
-                    "Правильный вариант может оказаться целым концом отрезка, а все "
-                    "дистракторы наглядно расположены снаружи; сравнивать рациональные "
-                    "числа тогда не требуется."
-                ),
-                "sample_size": c04.get("sample_count", 0),
-                "integer_target_rate": c04.get("integer_target_rate"),
-                "integer_boundary_answer_rate": c04.get("integer_boundary_answer_rate"),
-                "seed": integer_examples[0]["seed"] if integer_examples else None,
-                "condition": integer_examples[0]["condition"] if integer_examples else "",
-                "options": integer_examples[0]["options"] if integer_examples else [],
-                "expected_behavior": (
-                    "Использовать рациональный вариант вроде 68/19 на [3;4], требующий "
-                    "сравнения с обеими границами; не допускать очевидного целого "
-                    "ответа на границе."
-                ),
-                "actual_behavior": integer_examples[0] if integer_examples else None,
-                "recommended_fix": (
-                    "Ограничить правильный вариант внутренней нецелой рациональной дробью "
-                    "с источниковым знаменателем; подобрать дистракторы с таким же типом "
-                    "сравнения и оставить независимую проверку ровно одного правильного варианта."
-                ),
-                "student_block_required": False,
-            }
-        )
-    for family_id, recommendation in {
-        "PAPER-F03": (
-            "Do not include the requested A0 width verbatim in the table; ask for a value "
-            "that must be derived from a different listed format, and add reviewed source "
-            "variants before claiming broader structural diversity."
-        ),
-        "PAPER-F04": (
-            "Keep the fixed 0.7 result documented as natural finite capacity, rotate against "
-            "recent repeats, and add new verified paper formats only when the source supports them."
-        ),
-        "PAPER-F06": (
-            "Treat this as one source-bounded construction; prevent immediate reissue and expand "
-            "only after adding a verified diagonal-ratio prototype with a distinct derivation."
-        ),
-    }.items():
-        row = families[family_id]
-        sample = row["representative_examples"][0]
-        findings.append(
-            {
-                "id": f"{family_id}-FINITE-LOW-DIVERSITY",
-                "priority": "P2",
-                "family_id": family_id,
-                "seed": sample["seed"],
-                "condition": sample["condition"],
-                "options": sample.get("options", []),
-                "severity_basis": (
-                    f"В выборке 50 seed найдено {row['unique_construction_signatures']} "
-                    f"математических конструкций, {row['unique_answers']} уникальных ответов и "
-                    f"{row['identical_condition_text_count']} повторов полного текста. "
-                    "Для PAPER это естественно конечный источник, поэтому находка описывает "
-                    "ограничение и риск повторной выдачи, а не математическую ошибку."
-                ),
-                "sample_size": row["sample_count"],
-                "unique_construction_signatures": row["unique_construction_signatures"],
-                "unique_answers": row["unique_answers"],
-                "identical_condition_text_count": row["identical_condition_text_count"],
-                "source_ids": row.get("source_ids", []),
-                "actual_behavior": sample,
-                "recommended_fix": recommendation,
-                "student_block_required": False,
-                "known_finite_capacity": True,
-            }
-        )
-    audit["findings"] = findings
+    audit["findings"] = _confirmed_findings(families)
     preview_paths = _scenario_previews(best_scenario_plans)
     for number in range(6, 15):
         preview_paths.extend(_number_previews(number, preview_objects))
@@ -1726,12 +2546,35 @@ def run() -> dict[str, Any]:
         "width_px": MOBILE_WIDTH,
         "assets": preview_paths,
         "note": (
-            "Local PNG renders resized to 390 px wide and visually inspected; "
-            "these are not Telegram-client screenshots."
+            "Local PNG renders resized to 390 px wide; visual inspection is incomplete, "
+            "and these are not Telegram-client screenshots."
         ),
     }
     REPORT.write_text(json.dumps(audit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    MARKDOWN_REPORT.write_text(_markdown_report(audit), encoding="utf-8")
+    MARKDOWN_REPORT.write_text(_markdown_report_v2(audit), encoding="utf-8")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--full-output",
+        type=Path,
+        help="optional path for the unabridged fixed-seed sample (not committed by default)",
+    )
+    args = parser.parse_args()
+    if args.full_output:
+        args.full_output.parent.mkdir(parents=True, exist_ok=True)
+        args.full_output.write_text(
+            json.dumps(
+                {
+                    "base_commit": audit["base_commit"],
+                    "seed_namespace": SEED_NAMESPACE,
+                    "families": raw_samples,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        print(f"Wrote full sample {args.full_output}", flush=True)
     print(f"Wrote {REPORT}", flush=True)
     print(f"Wrote {MARKDOWN_REPORT}", flush=True)
     return audit
