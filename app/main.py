@@ -179,6 +179,10 @@ def create_app(
                 url=f"{settings.webhook_base_url.rstrip('/')}/telegram/webhook",
                 secret_token=settings.telegram_webhook_secret,
                 drop_pending_updates=False,
+                allowed_updates=[
+                    *(field for field in Update.model_fields if field != "update_id"),
+                    "widget_query",
+                ],
             )
         dispatcher = Dispatcher()
         dispatcher.include_router(build_router())
@@ -223,6 +227,14 @@ def create_app(
         if not await repo.claim_update(update_id):
             return Response(status_code=200)
         try:
+            widget_query = payload.get("widget_query")
+            if isinstance(widget_query, dict):
+                from app.bot.progress_widget import handle_widget_query
+
+                widget_bot = request.app.state.bot
+                await handle_widget_query(widget_bot, repo, widget_query)
+                await repo.finish_update(update_id)
+                return Response(status_code=200)
             update = Update.model_validate(payload)
             dispatcher: Dispatcher = request.app.state.dispatcher
             telegram_bot: Bot = request.app.state.bot

@@ -430,7 +430,7 @@ async def test_reply_to_previous_problem_is_rejected_after_next_callback() -> No
 
 
 @pytest.mark.asyncio
-async def test_progress_counts_issued_answered_solved_and_attempts() -> None:
+async def test_progress_uses_clear_completed_and_error_labels() -> None:
     repository = MemoryRepository()
     await choose_task6(_message(780, "№6 · Вычисления"), repository)
     state = await repository.task6_state(780)
@@ -443,15 +443,15 @@ async def test_progress_counts_issued_answered_solved_and_attempts() -> None:
     progress_message = _message(780, "📊 Прогресс")
     await show_progress(progress_message, repository)
     text = progress_message.answer.await_args.args[0]
-    assert "Выдано: 1 · Решено: 1" in text
-    assert "С 1-й: 0 · Со 2-й: 1" in text
-    assert "Ответов: 2" in text
+    assert "Завершено заданий: 1" in text
+    assert "Заданий с ошибками: 1" in text
+    assert "Решено без подсказки: 0" in text
     assert "%" not in text
     details = _message(780, "📊 Подробнее")
     await show_progress_details(details, repository)
     details_text = details.answer.await_args.args[0]
-    assert "№6: решено 1 из 1" in details_text
-    assert "1-я/2-я: 0/1" in details_text
+    assert "№6 · завершено 1 · верно 1" in details_text
+    assert "пока мало данных" in details_text
 
 
 @pytest.mark.asyncio
@@ -460,7 +460,7 @@ async def test_empty_progress_uses_zero_accuracy_without_division_error() -> Non
     message = _message(772, "📊 Прогресс")
     await show_progress(message, repository)
     text = message.answer.await_args.args[0]
-    assert "Выдано: 0 · Решено: 0" in text
+    assert "Завершено заданий: 0" in text
     assert "%" not in text
     assert "оценка освоения" not in text
 

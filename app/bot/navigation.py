@@ -59,7 +59,7 @@ def navigation_screen(markup: object) -> str | None:
             return f"family_selection:{value.split(':')[2]}"
     if "nav:task:6" in callbacks:
         return "number_selection"
-    if "nav:details" in callbacks or any(
+    if "nav:details" in callbacks or "nav:progress_text" in callbacks or any(
         value and value.startswith("progress:") for value in callbacks
     ):
         return "progress"
@@ -155,6 +155,7 @@ async def navigation_callback(
         "nav:numbers": handlers.choose_number,
         "nav:resume": handlers.continue_session,
         "nav:progress": handlers.show_progress,
+        "nav:progress_text": getattr(handlers, "show_progress_text", handlers.show_progress),
         "nav:details": handlers.show_progress_details,
         "nav:display": show_display_options,
     }
@@ -213,7 +214,8 @@ async def navigation_callback(
     if oge15_repository is not None and (
         data
         in {
-            "nav:main", "nav:numbers", "nav:progress", "nav:details", "nav:display",
+            "nav:main", "nav:numbers", "nav:progress", "nav:progress_text",
+            "nav:details", "nav:display",
             "nav:settings",
         }
         or data.startswith("nav:task:")
