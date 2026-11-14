@@ -286,7 +286,7 @@ def draw_progress_bar(
 def _recommendation(insights: dict[str, Any]) -> str:
     total = insights["total"]
     if int(total["completed"]) < 5:
-        return "Когда накопится больше завершённых заданий, здесь появится рекомендация."
+        return "Порешай ещё задачи."
     values = insights["numbers"]
     count, number = max(
         (
