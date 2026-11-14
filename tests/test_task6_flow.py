@@ -12,8 +12,8 @@ from app.bot.router import (
     choose_task12,
     continue_session,
     return_to_menu,
-    show_progress,
     show_progress_details,
+    show_progress_text,
     start,
     task6_answer,
     task6_callback,
@@ -441,7 +441,7 @@ async def test_progress_uses_clear_completed_and_error_labels() -> None:
     await task6_answer(_answer(repository, 780, str(problem["correct_answer"])), repository)
 
     progress_message = _message(780, "📊 Прогресс")
-    await show_progress(progress_message, repository)
+    await show_progress_text(progress_message, repository)
     text = progress_message.answer.await_args.args[0]
     assert "Завершено заданий: 1" in text
     assert "Заданий с ошибками: 1" in text
@@ -458,7 +458,7 @@ async def test_progress_uses_clear_completed_and_error_labels() -> None:
 async def test_empty_progress_uses_zero_accuracy_without_division_error() -> None:
     repository = MemoryRepository()
     message = _message(772, "📊 Прогресс")
-    await show_progress(message, repository)
+    await show_progress_text(message, repository)
     text = message.answer.await_args.args[0]
     assert "Завершено заданий: 0" in text
     assert "%" not in text
@@ -518,4 +518,3 @@ async def test_task6_skip_records_skipped_outcome() -> None:
     callback.message.answer.return_value.message_id = callback.message.message_id + 1
     await task6_callback(callback, repository)
     assert repository.outcomes[774][problem_id] == "skipped"
-

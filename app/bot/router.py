@@ -2263,7 +2263,7 @@ async def show_progress(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     from app.bot.progress import progress_keyboard, render_progress
-    from app.bot.progress_widget import send_progress_widget
+    from app.bot.progress_image import send_progress_image
     from app.persistence.training_insights import training_insights
 
     user_id = _user_id(message)
@@ -2271,7 +2271,11 @@ async def show_progress(
         return
     await _pause_oge15_foreground(user_id, oge15_repository)
     await repository.save_user_state(user_id, "progress")
-    if await send_progress_widget(message, repository, user_id):
+    wrapped_message = getattr(message, "_message", None)
+    edit_existing = isinstance(wrapped_message, Message) and bool(wrapped_message.photo)
+    if await send_progress_image(
+        message, repository, user_id, edit_existing=edit_existing
+    ):
         return
     insights = await training_insights(repository, user_id)
     await send_text(

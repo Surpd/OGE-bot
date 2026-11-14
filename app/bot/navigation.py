@@ -237,9 +237,19 @@ async def navigation_callback(
     elif progress_page is not None:
         from app.bot.presentation import send_text
         from app.bot.progress import progress_keyboard, render_progress
+        from app.bot.progress_image import send_progress_image
         from app.persistence.training_insights import training_insights
 
         await repository.save_user_state(callback.from_user.id, "progress")
+        if await send_progress_image(
+            message,
+            repository,
+            callback.from_user.id,
+            progress_page,
+            edit_existing=bool(callback.message.photo),
+        ):
+            await answer_callback(callback)
+            return
         insights = await training_insights(repository, callback.from_user.id, progress_page)
         total = insights["page_total"]
         await send_text(
