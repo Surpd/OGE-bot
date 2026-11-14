@@ -18,6 +18,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
     MessageEntity,
+    PhotoSize,
     Update,
     User,
 )
@@ -60,12 +61,26 @@ class TelegramSession(BaseSession):
             message_id = self.next_message_id
             self.next_message_id += 1
         markup = getattr(method, "reply_markup", None)
+        is_photo = method.__api_method__ in {"sendPhoto", "editMessageMedia"}
         message = Message(
             message_id=message_id,
             date=datetime.now(UTC),
             chat=Chat(id=42, type="private"),
             from_user=User(id=123456, is_bot=True, first_name="Test bot"),
             text=getattr(method, "text", None),
+            photo=(
+                [
+                    PhotoSize(
+                        file_id=f"photo-{message_id}",
+                        file_unique_id="fixture",
+                        width=1200,
+                        height=1570,
+                    )
+                ]
+                if is_photo
+                else None
+            ),
+            caption=getattr(method, "caption", None),
             reply_markup=markup if isinstance(markup, InlineKeyboardMarkup) else None,
         ).as_(bot)
         self.messages[message_id] = message
@@ -156,10 +171,42 @@ async def exercise_navigation(
         await click("nav:main")
         await click("nav:progress")
         assert await repository.user_state(42) == "progress"
+        overview_photo = list(session.messages.values())[-1]
+        assert overview_photo.photo
+        assert not any(call.__api_method__ == "sendWidget" for call in session.calls)
+        keyboard = overview_photo.reply_markup.inline_keyboard
+        assert [[button.text for button in row] for row in keyboard[:3]] == [
+            ["📊 Обзор", "📚 По номерам"],
+            ["🕘 История", "⚠️ Ошибки"],
+            ["↩ В меню"],
+        ]
+        before_edits = sum(call.__api_method__ == "editMessageMedia" for call in session.calls)
+        await click("progress:numbers:0", overview_photo)
+        edit_count = sum(call.__api_method__ == "editMessageMedia" for call in session.calls)
+        assert edit_count == before_edits + 1
+        numbers_photo = list(session.messages.values())[-1]
+        await click("progress:numbers:7", numbers_photo)
+        await click("progress:history:0")
+        await click("progress:errors:0")
+        assert await repository.user_state(42) == "progress"
         await click("nav:main")
-        await click("nav:display")
-        await click("nav:math:png")
-        assert await repository.math_display(42) == "png"
+        update_id += 1
+        await feed(
+            Update(
+                update_id=update_id,
+                message=Message(
+                    message_id=900 + update_id,
+                    date=datetime.now(UTC),
+                    chat=Chat(id=42, type="private"),
+                    from_user=user,
+                    text="/progress",
+                    entities=[MessageEntity(type="bot_command", offset=0, length=9)],
+                ),
+            )
+        )
+        fallback = list(session.messages.values())[-1]
+        assert "Мой прогресс" in (fallback.text or "")
+        assert not fallback.photo
         await click("nav:main")
         await click("nav:numbers")
         await click("nav:task:6")
@@ -201,15 +248,15 @@ async def exercise_navigation(
         await click("nav:numbers")
         await click("nav:main")
         await click("nav:progress")
-        await click("nav:progress_text")
-        widget_call = next(call for call in reversed(session.calls)
-                           if call.__api_method__ == "sendWidget")
-        assert widget_call.allow_queries is True and widget_call.is_shared is False
-        assert len(widget_call.chat_data.encode("utf-8")) <= 1024
-        await click("progress:numbers")
+        assert list(session.messages.values())[-1].photo
+        assert not any(call.__api_method__ == "sendWidget" for call in session.calls)
+        await click("progress:numbers:0")
         assert await repository.user_state(42) == "progress"
         await click("nav:main")
         assert (await repository.task6_state(42))["problem"]["problem_id"] == restarted_problem_id
+        await click("nav:display")
+        await click("nav:math:png")
+        await click("nav:main")
         if graphics:
             for number, family_prefix in ((7, "OGE07-N"), (11, "OGE11-F"), (13, "OGE13-S")):
                 await click("nav:numbers")
