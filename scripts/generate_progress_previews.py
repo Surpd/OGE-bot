@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import io
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+
+from PIL import Image
 
 from app.bot.progress_image import render_progress_image
 from app.persistence.training_insights import summarize
@@ -60,7 +63,8 @@ def demo_insights() -> dict[str, Any]:
                 20 + index,
                 "solved",
                 [
-                    {"attempt_no": 1, "is_correct": True},
+                    {"attempt_no": 1, "is_correct": False},
+                    {"attempt_no": 2, "is_correct": True},
                 ],
             )
         )
@@ -98,7 +102,7 @@ def generate() -> list[Path]:
     first_history = dict(insights)
     first_history["history"] = [
         insights["history"][14],  # solved with a hint after a wrong attempt
-        insights["history"][0],
+        insights["history"][20],  # correct attempt, legacy hint usage is unknown
         insights["history"][24],  # two errors
         insights["history"][32],  # skipped
     ]
@@ -109,7 +113,7 @@ def generate() -> list[Path]:
         insights["history"][14],  # wrong first answer, then correct with a hint
         insights["history"][24],  # two wrong answers
         insights["history"][67],  # opened solution after an error
-        insights["history"][15],  # wrong first answer, then correct
+        insights["history"][20],  # second attempt correct; hint usage is unknown
     ]
     error_page["page_total"] = len(insights["errors"])
 
@@ -125,8 +129,16 @@ def generate() -> list[Path]:
     output: list[Path] = []
     for filename, data, page in pages:
         path = OUTPUT / filename
-        path.write_bytes(render_progress_image(data, page))
+        rendered = render_progress_image(data, page)
+        path.write_bytes(rendered)
         output.append(path)
+        with Image.open(io.BytesIO(rendered)) as image:
+            reduced = image.convert("RGB").resize(
+                (375, round(image.height * 375 / image.width)), Image.Resampling.LANCZOS
+            )
+        reduced_path = OUTPUT / f"{path.stem}-375.png"
+        reduced.save(reduced_path, format="PNG", optimize=True, compress_level=9)
+        output.append(reduced_path)
     return output
 
 

@@ -186,18 +186,18 @@ def draw_heading(
     title: str,
     subtitle: str,
     *,
-    y: int = 54,
+    y: int = 32,
     eyebrow: str | None = None,
 ) -> int:
-    title_font = _font(58, True)
-    subtitle_font = _font(31)
+    title_font = _font(50, True)
+    subtitle_font = _font(29)
     if eyebrow:
-        draw.text((PAD, y), eyebrow.upper(), font=_font(23, True), fill=PALETTE["blue"])
-        y += 42
+        draw.text((PAD, y), eyebrow.upper(), font=_font(26, True), fill=PALETTE["blue"])
+        y += 31
     draw.text((PAD, y), title, font=title_font, fill=PALETTE["ink"])
-    y += 76
+    y += 59
     draw.text((PAD, y), subtitle, font=subtitle_font, fill=PALETTE["muted"])
-    return y + 56
+    return y + 32
 
 
 def draw_metric(
@@ -216,17 +216,24 @@ def draw_metric(
 
 
 def _exclusive_segments(total: dict[str, Any]) -> list[tuple[str, int, str]]:
-    completed = int(total["completed"])
+    completed = max(0, int(total["completed"]))
+    solved = min(completed, max(0, int(total["correct"])))
+    unassisted = min(solved, max(0, int(total["unassisted_correct"])))
+    assisted = min(solved - unassisted, max(0, int(total["assisted_correct"])))
+    unknown_assistance = solved - unassisted - assisted
+    failed = min(completed - solved, max(0, int(total["failed"])))
+    skipped = min(completed - solved - failed, max(0, int(total["skipped"])))
+    # Derive the terminal "solution viewed" outcome from the exclusive outcome
+    # counts. The stored viewed flag is an action and may overlap other outcomes.
+    solution_viewed = completed - solved - failed - skipped
     segments = [
-        ("Без подсказки", int(total["unassisted_correct"]), PALETTE["green"]),
-        ("С подсказкой", int(total["assisted_correct"]), PALETTE["blue"]),
-        ("Старые данные · подсказка неизвестна", int(total["unknown_assistance"]), PALETTE["gray"]),
-        ("Две ошибки", int(total["failed"]), PALETTE["red"]),
-        ("Пропущено", int(total["skipped"]), "#CBD1DC"),
-        ("Открыт разбор", int(total["solutions_viewed"]), PALETTE["purple"]),
+        ("Без подсказки", unassisted, PALETTE["green"]),
+        ("С подсказкой", assisted, PALETTE["blue"]),
+        ("Старые данные · подсказка неизвестна", unknown_assistance, PALETTE["gray"]),
+        ("Две ошибки", failed, PALETTE["red"]),
+        ("Пропущено", skipped, "#CBD1DC"),
+        ("Открыт разбор", solution_viewed, PALETTE["purple"]),
     ]
-    if sum(value for _, value, _ in segments) != completed:
-        raise ValueError("Progress result categories do not partition completed tasks")
     return segments
 
 
@@ -235,7 +242,7 @@ def draw_donut(
     box: tuple[int, int, int, int],
     segments: list[tuple[str, int, str]],
     *,
-    center_value: int,
+    center_label: str = "ИТОГИ",
 ) -> None:
     from PIL import ImageDraw as PillowDraw
 
@@ -252,15 +259,11 @@ def draw_donut(
             end = start + value * 360.0 / total
             draw.pieslice(box, start=start, end=end, fill=color)
             start = end
-    inset = 78
+    inset = 62
     draw.ellipse((x1 + inset, y1 + inset, x2 - inset, y2 - inset), fill=PALETTE["card"])
     center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
-    font = _font(86, True)
     draw.text(
-        (center_x, center_y - 6), str(center_value), font=font, fill=PALETTE["ink"], anchor="mm"
-    )
-    draw.text(
-        (center_x, center_y + 54), "заданий", font=_font(25), fill=PALETTE["muted"], anchor="mm"
+        (center_x, center_y), center_label, font=_font(22, True), fill=PALETTE["muted"], anchor="mm"
     )
 
 
@@ -300,123 +303,115 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
     total = insights["total"]
     completed = int(total["completed"])
     segments = _exclusive_segments(total)
-    image = _canvas(1490)
+    image = _canvas(960)
     draw = ImageDraw.Draw(image)
     y = draw_heading(draw, "Мой прогресс", "ОГЭ по математике", eyebrow="ТВОЯ ПРАКТИКА")
 
-    rounded_card(image, (PAD, y, WIDTH - PAD, y + 210), fill=PALETTE["blue_light"])
+    rounded_card(image, (PAD, y, WIDTH - PAD, y + 124), fill=PALETTE["blue_light"])
     draw = ImageDraw.Draw(image)
-    draw.text((PAD + 38, y + 30), "Завершённых заданий", font=_font(31), fill=PALETTE["muted"])
+    draw.text((PAD + 30, y + 19), "ЗАДАНИЙ ЗАВЕРШЕНО", font=_font(29, True), fill=PALETTE["muted"])
     draw_fitted_text(
         draw,
-        (PAD + 38, y + 73),
+        (PAD + 30, y + 49),
         str(completed),
-        max_width=250,
-        size=104,
-        minimum_size=34,
+        max_width=500,
+        size=76,
+        minimum_size=30,
         fill=PALETTE["ink"],
         bold=True,
     )
-    draw.text((PAD + 320, y + 129), "из всех выданных", font=_font(29), fill=PALETTE["muted"])
-    issued = int(total["issued"])
-    draw_fitted_text(
-        draw,
-        (WIDTH - PAD - 210, y + 106),
-        str(issued),
-        max_width=170,
-        size=48,
-        minimum_size=28,
-        fill=PALETTE["blue"],
-        bold=True,
-        anchor="mm",
-    )
-    draw.text(
-        (WIDTH - PAD - 210, y + 157), "выдано", font=_font(24), fill=PALETTE["muted"], anchor="mm"
-    )
 
-    chart_y = y + 246
-    rounded_card(image, (PAD, chart_y, WIDTH - PAD, chart_y + 625))
+    chart_y = y + 140
+    chart_height = 430
+    rounded_card(image, (PAD, chart_y, WIDTH - PAD, chart_y + chart_height))
     draw = ImageDraw.Draw(image)
-    draw.text((PAD + 34, chart_y + 28), "Результаты", font=_font(36, True), fill=PALETTE["ink"])
-    donut_box = (PAD + 44, chart_y + 122, PAD + 474, chart_y + 552)
-    draw_donut(image, donut_box, segments, center_value=completed)
+    draw.text((PAD + 28, chart_y + 20), "Результаты", font=_font(32, True), fill=PALETTE["ink"])
+    donut_box = (PAD + 35, chart_y + 72, PAD + 375, chart_y + 412)
+    draw_donut(image, donut_box, segments)
     draw = ImageDraw.Draw(image)
-    legend_x = PAD + 530
-    legend_y = chart_y + 119
+    legend_x = PAD + 415
+    legend_y = chart_y + 74
+    legend_font = _font(29)
+    legend_line_height = round(legend_font.getbbox("Тд")[3] - legend_font.getbbox("Тд")[1])
     for label, value, color in segments:
-        draw.ellipse((legend_x, legend_y + 9, legend_x + 24, legend_y + 33), fill=color)
+        lines = wrap_text(draw, label, legend_font, 425, max_lines=2)
+        draw.ellipse((legend_x, legend_y + 7, legend_x + 22, legend_y + 29), fill=color)
         _draw_wrapped(
             draw,
-            (legend_x + 39, legend_y),
+            (legend_x + 34, legend_y),
             label,
-            _font(26),
+            legend_font,
             PALETTE["ink"],
-            378,
+            425,
             max_lines=2,
-            line_gap=2,
+            line_gap=0,
         )
-        draw.text(
-            (WIDTH - PAD - 34, legend_y + 1),
+        draw_fitted_text(
+            draw,
+            (WIDTH - PAD - 27, legend_y + 1),
             str(value),
-            font=_font(30, True),
+            max_width=90,
+            size=30,
+            minimum_size=22,
             fill=PALETTE["ink"],
+            bold=True,
             anchor="rt",
         )
-        legend_y += 78
+        legend_y += max(43, len(lines) * legend_line_height + 9)
 
-    bottom_y = chart_y + 660
-    card_gap = 18
+    bottom_y = chart_y + chart_height + 14
+    card_gap = 14
     card_width = (WIDTH - 2 * PAD - card_gap) // 2
-    rounded_card(image, (PAD, bottom_y, PAD + card_width, bottom_y + 300))
-    rounded_card(image, (PAD + card_width + card_gap, bottom_y, WIDTH - PAD, bottom_y + 300))
+    bottom_height = 172
+    rounded_card(image, (PAD, bottom_y, PAD + card_width, bottom_y + bottom_height))
+    rounded_card(
+        image, (PAD + card_width + card_gap, bottom_y, WIDTH - PAD, bottom_y + bottom_height)
+    )
     draw = ImageDraw.Draw(image)
-    draw.text((PAD + 30, bottom_y + 28), "Ошибки были", font=_font(27, True), fill=PALETTE["muted"])
+    draw.text((PAD + 24, bottom_y + 18), "Ошибки были", font=_font(28, True), fill=PALETTE["muted"])
     draw.text(
-        (PAD + 30, bottom_y + 76),
+        (PAD + 24, bottom_y + 55),
         f"в {int(total['error_tasks'])} заданиях",
-        font=_font(38, True),
+        font=_font(36, True),
         fill=PALETTE["red"] if total["error_tasks"] else PALETTE["ink"],
     )
-    draw.text(
-        (PAD + 30, bottom_y + 148),
-        "Ошибочные попытки могут быть",
-        font=_font(24),
-        fill=PALETTE["muted"],
-    )
-    draw.text(
-        (PAD + 30, bottom_y + 182), "и в решённых заданиях.", font=_font(24), fill=PALETTE["muted"]
+    _draw_wrapped(
+        draw,
+        (PAD + 24, bottom_y + 105),
+        "Ошибки могут быть и в решённых заданиях.",
+        _font(27),
+        PALETTE["muted"],
+        card_width - 46,
+        max_lines=2,
+        line_gap=2,
     )
 
-    right_x = PAD + card_width + card_gap + 30
+    right_x = PAD + card_width + card_gap + 24
     draw.text(
-        (right_x, bottom_y + 28),
+        (right_x, bottom_y + 18),
         "На что обратить внимание",
-        font=_font(25, True),
+        font=_font(27, True),
         fill=PALETTE["muted"],
     )
     recommendation = _recommendation(insights)
-    draw_round = ImageDraw.Draw(image)
     _draw_wrapped(
-        draw_round,
-        (right_x, bottom_y + 90),
+        draw,
+        (right_x, bottom_y + 60),
         recommendation,
-        _font(39, True),
+        _font(34, True),
         PALETTE["blue"],
-        card_width - 60,
-        max_lines=3,
-        line_gap=8,
+        card_width - 46,
+        max_lines=2,
+        line_gap=3,
     )
-    draw.text(
-        (right_x, bottom_y + 232), "Без оценок и рейтингов", font=_font(22), fill=PALETTE["muted"]
-    )
-    return image.convert("RGB")
+    return image.crop((0, 0, WIDTH, bottom_y + bottom_height + 24)).convert("RGB")
 
 
 def render_numbers(insights: dict[str, Any], offset: int) -> Image.Image:
     start = 1 if offset < NUMBER_PAGE_SIZE else NUMBER_PAGE_SIZE + 1
     stop = min(start + NUMBER_PAGE_SIZE, 15)
     visible = list(range(start, stop))
-    image = _canvas(1455)
+    image = _canvas(1200)
     draw = ImageDraw.Draw(image)
     page_title = f"№{start}–{stop - 1}"
     y = draw_heading(draw, "По номерам", "Результаты завершённых заданий", eyebrow=page_title)
@@ -427,31 +422,31 @@ def render_numbers(insights: dict[str, Any], offset: int) -> Image.Image:
         errors = int(values.get("error_tasks", 0))
         skipped = int(values.get("skipped", 0))
         row_y = y
-        rounded_card(image, (PAD, row_y, WIDTH - PAD, row_y + 145))
+        rounded_card(image, (PAD, row_y, WIDTH - PAD, row_y + 124))
         draw = ImageDraw.Draw(image)
         number_fill = PALETTE["blue_light"] if completed else PALETTE["gray_light"]
         draw.rounded_rectangle(
-            (PAD + 22, row_y + 26, PAD + 128, row_y + 119), radius=23, fill=number_fill
+            (PAD + 20, row_y + 21, PAD + 112, row_y + 103), radius=22, fill=number_fill
         )
         draw.text(
-            (PAD + 75, row_y + 73),
+            (PAD + 66, row_y + 62),
             str(number),
-            font=_font(53, True),
+            font=_font(49, True),
             fill=PALETTE["blue"] if completed else PALETTE["gray"],
             anchor="mm",
         )
-        text_x = PAD + 160
+        text_x = PAD + 138
         if completed:
             draw.text(
-                (text_x, row_y + 18),
+                (text_x, row_y + 10),
                 f"{correct} из {completed} верно",
-                font=_font(33, True),
+                font=_font(36, True),
                 fill=PALETTE["ink"],
             )
             color = PALETTE["green"] if correct else PALETTE["red"]
             draw_progress_bar(
                 draw,
-                (text_x, row_y + 67, WIDTH - PAD - 38, row_y + 83),
+                (text_x, row_y + 52, WIDTH - PAD - 36, row_y + 67),
                 correct,
                 completed,
                 color=color,
@@ -462,20 +457,20 @@ def render_numbers(insights: dict[str, Any], offset: int) -> Image.Image:
             else:
                 note = f"Ошибки: {errors}   ·   Пропуски: {skipped}"
                 note_color = PALETTE["muted"]
-            draw.text((text_x, row_y + 94), note, font=_font(24), fill=note_color)
+            draw.text((text_x, row_y + 78), note, font=_font(28), fill=note_color)
         else:
             draw.text(
-                (text_x, row_y + 24), "Пока без занятий", font=_font(31), fill=PALETTE["muted"]
+                (text_x, row_y + 30), "Пока без занятий", font=_font(32), fill=PALETTE["muted"]
             )
             draw_progress_bar(
                 draw,
-                (text_x, row_y + 79, WIDTH - PAD - 38, row_y + 95),
+                (text_x, row_y + 72, WIDTH - PAD - 36, row_y + 86),
                 0,
                 0,
                 color=PALETTE["gray"],
             )
-        y += 162
-    return image.convert("RGB")
+        y += 136
+    return image.crop((0, 0, WIDTH, y - 12 + 26)).convert("RGB")
 
 
 def _status(record: dict[str, Any]) -> tuple[str, str, str | None]:
@@ -488,6 +483,12 @@ def _status(record: dict[str, Any]) -> tuple[str, str, str | None]:
         if success is not None and success.get("used_hint") is True:
             note = "Была ошибка" if record.get("has_error") else None
             return "Верно с подсказкой", PALETTE["blue"], note
+        if success is not None and success.get("used_hint") is None:
+            attempt_no = success.get("attempt_no")
+            label = (
+                f"Верно · попытка {attempt_no}" if attempt_no in {1, 2} else "Верно · старые данные"
+            )
+            return label, PALETTE["green"], "Подсказка неизвестна"
         if success is not None and success.get("attempt_no") == 2:
             return "Верно со 2-й попытки", PALETTE["green"], "Была ошибка"
         if success is not None and success.get("attempt_no") == 1:
@@ -517,7 +518,8 @@ def _record_title(record: dict[str, Any]) -> str:
         position = record.get("number", "")
         return f"№1–5 · {story}, вопрос {position}"
     number = record.get("number", "?")
-    return f"№{number} · {family_name(family_id)}"
+    name = record.get("family_name") or family_name(family_id)
+    return f"№{number} · {name}"
 
 
 def draw_history_row(
@@ -532,26 +534,26 @@ def draw_history_row(
     title = _record_title(record)
     text_x, max_width = x1 + 60, x2 - x1 - 88
     date = _date_label(record.get("issued_at"))
-    draw.text((text_x, y1 + 16), date, font=_font(27), fill=PALETTE["muted"])
+    draw.text((text_x, y1 + 11), date, font=_font(29), fill=PALETTE["muted"])
     status, status_color, note = _status(record)
-    title_font = _font(36, True)
+    title_font = _font(34, True)
     title_lines = wrap_text(draw, title, title_font, max_width, max_lines=2)
     title_line_height = round(title_font.getbbox("Тд")[3] - title_font.getbbox("Тд")[1])
     _draw_wrapped(
         draw,
-        (text_x, y1 + 53),
+        (text_x, y1 + 42),
         title,
         title_font,
         PALETTE["ink"],
         max_width,
         max_lines=2,
-        line_gap=3,
+        line_gap=2,
     )
-    title_end = y1 + 53 + len(title_lines) * (title_line_height + 3)
-    status_y = max(y1 + 112, title_end + 12)
+    title_end = y1 + 42 + len(title_lines) * (title_line_height + 2)
+    status_y = max(y1 + 84, title_end + 8)
     chip_text = status
-    chip_font = _font(29, True)
-    chip_width = min(max_width, _measure(draw, chip_text, chip_font) + 30)
+    chip_font = _font(30, True)
+    chip_width = min(max_width, _measure(draw, chip_text, chip_font) + 28)
     chip_fill = {
         PALETTE["green"]: PALETTE["green_light"],
         PALETTE["blue"]: PALETTE["blue_light"],
@@ -559,13 +561,13 @@ def draw_history_row(
         PALETTE["purple"]: PALETTE["purple_light"],
     }.get(status_color, PALETTE["gray_light"])
     draw.rounded_rectangle(
-        (text_x, status_y, text_x + chip_width, status_y + 44), radius=18, fill=chip_fill
+        (text_x, status_y, text_x + chip_width, status_y + 40), radius=17, fill=chip_fill
     )
     _draw_wrapped(
         draw,
-        (text_x + 14, status_y + 4),
+        (text_x + 13, status_y + 3),
         chip_text,
-        _font(27, True),
+        _font(28, True),
         status_color,
         max(1, chip_width - 28),
         max_lines=1,
@@ -576,9 +578,9 @@ def draw_history_row(
         note_x = min(text_x + chip_width + 14, x2 - 210)
         _draw_wrapped(
             draw,
-            (note_x, status_y + 7),
+            (note_x, status_y + 6),
             note,
-            _font(20),
+            _font(27),
             note_color,
             max(1, x2 - 20 - note_x),
             max_lines=1,
@@ -588,11 +590,11 @@ def draw_history_row(
 
 def _history_row_height(record: dict[str, Any]) -> int:
     measure = ImageDraw.Draw(Image.new("RGB", (1, 1)))
-    font = _font(36, True)
+    font = _font(34, True)
     title_lines = wrap_text(measure, _record_title(record), font, WIDTH - 2 * PAD - 88, 2)
     line_height = round(font.getbbox("Тд")[3] - font.getbbox("Тд")[1])
-    status_y = max(112, 53 + len(title_lines) * (line_height + 3) + 12)
-    return status_y + 65
+    status_y = max(84, 42 + len(title_lines) * (line_height + 2) + 8)
+    return status_y + 55
 
 
 def render_history(insights: dict[str, Any], page: str) -> Image.Image:
@@ -600,41 +602,48 @@ def render_history(insights: dict[str, Any], page: str) -> Image.Image:
     errors_only = section == "errors"
     records = insights["errors"] if errors_only else insights["history"]
     count = int(insights.get("page_total", len(records)))
-    image = _canvas(1360)
-    draw = ImageDraw.Draw(image)
     title = "Ошибки" if errors_only else "История"
     subtitle = (
         f"{count} заданий с ошибками" if errors_only else f"Последние занятия · {count} записей"
     )
-    y = draw_heading(
-        draw, title, subtitle, eyebrow="РАЗБОР ПОПЫТОК" if errors_only else "ИСТОРИЯ ЗАНЯТИЙ"
-    )
+    eyebrow = "РАЗБОР ПОПЫТОК" if errors_only else "ИСТОРИЯ ЗАНЯТИЙ"
+    measure_image = _canvas(220)
+    y = draw_heading(ImageDraw.Draw(measure_image), title, subtitle, eyebrow=eyebrow)
     if not records:
-        rounded_card(image, (PAD, y, WIDTH - PAD, y + 330))
+        card_height = 164
+        image = _canvas(y + card_height + 24)
+        draw = ImageDraw.Draw(image)
+        draw_heading(draw, title, subtitle, eyebrow=eyebrow)
+        rounded_card(image, (PAD, y, WIDTH - PAD, y + card_height))
         draw = ImageDraw.Draw(image)
         draw.ellipse(
-            (WIDTH // 2 - 39, y + 44, WIDTH // 2 + 39, y + 122), fill=PALETTE["green_light"]
+            (WIDTH // 2 - 29, y + 18, WIDTH // 2 + 29, y + 76), fill=PALETTE["green_light"]
         )
         draw.text(
-            (WIDTH // 2, y + 83), "✓", font=_font(42, True), fill=PALETTE["green"], anchor="mm"
+            (WIDTH // 2, y + 47), "✓", font=_font(32, True), fill=PALETTE["green"], anchor="mm"
         )
         message = "Пока нет записей" if not errors_only else "Ошибок пока нет"
         draw.text(
-            (WIDTH // 2, y + 176), message, font=_font(37, True), fill=PALETTE["ink"], anchor="mm"
+            (WIDTH // 2, y + 103), message, font=_font(34, True), fill=PALETTE["ink"], anchor="mm"
         )
         draw.text(
-            (WIDTH // 2, y + 235),
+            (WIDTH // 2, y + 137),
             "Здесь появятся результаты практики",
-            font=_font(25),
+            font=_font(27),
             fill=PALETTE["muted"],
             anchor="mm",
         )
         return image.convert("RGB")
+    row_heights = [_history_row_height(record) for record in records[:PAGE_SIZE]]
+    image_height = y + sum(row_heights) + 14 * (len(row_heights) - 1) + 24
+    image = _canvas(image_height)
+    draw = ImageDraw.Draw(image)
+    y = draw_heading(draw, title, subtitle, eyebrow=eyebrow)
     for record in records[:PAGE_SIZE]:
         row_y = y
         row_height = _history_row_height(record)
         draw_history_row(image, record, (PAD, row_y, WIDTH - PAD, row_y + row_height))
-        y += row_height + 16
+        y += row_height + 14
     return image.convert("RGB")
 
 

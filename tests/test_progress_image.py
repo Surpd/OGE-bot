@@ -12,6 +12,7 @@ from app.bot.progress_image import (
     progress_image_keyboard,
     render_progress_image,
 )
+from app.persistence.training_insights import summarize
 from scripts.generate_progress_previews import demo_insights
 
 
@@ -28,6 +29,35 @@ def test_overview_categories_partition_completed_tasks() -> None:
         "Пропущено": 35,
         "Открыт разбор": 5,
     }
+
+
+def test_solution_viewed_action_does_not_overlap_terminal_outcomes() -> None:
+    insights = summarize(
+        [
+            {
+                "number": 9,
+                "family_id": "OGE09-F001",
+                "outcome": "solved",
+                "solution_viewed": True,
+                "attempt_records": [{"attempt_no": 1, "is_correct": True, "used_hint": False}],
+            },
+            {
+                "number": 12,
+                "family_id": "OGE12-F001",
+                "outcome": "failed",
+                "solution_viewed": True,
+                "attempt_records": [
+                    {"attempt_no": 1, "is_correct": False},
+                    {"attempt_no": 2, "is_correct": False},
+                ],
+            },
+        ]
+    )
+
+    assert insights["total"]["solutions_viewed"] == 2
+    segments = _exclusive_segments(insights["total"])
+    assert sum(value for _, value, _ in segments) == insights["total"]["completed"] == 2
+    assert dict((label, value) for label, value, _ in segments)["Открыт разбор"] == 0
 
 
 def test_history_status_keeps_success_green_after_an_error() -> None:
@@ -48,6 +78,19 @@ def test_history_status_keeps_success_green_after_an_error() -> None:
     assert _status(solution_after_error)[0] == "Открыт разбор"
     assert _status(solution_after_error)[2] == "Была ошибка"
     assert _status({"outcome": "active"})[0] == "В процессе"
+    unknown_hint = {
+        "outcome": "solved",
+        "has_error": True,
+        "attempt_records": [
+            {"attempt_no": 1, "is_correct": False, "used_hint": None},
+            {"attempt_no": 2, "is_correct": True, "used_hint": None},
+        ],
+    }
+    assert _status(unknown_hint) == (
+        "Верно · попытка 2",
+        "#42AD7B",
+        "Подсказка неизвестна",
+    )
 
 
 def test_progress_keyboard_has_real_navigation_and_bounded_callbacks() -> None:
@@ -135,6 +178,7 @@ def test_all_dashboard_screens_render_as_reasonable_pngs() -> None:
         **insights["total"],
         "completed": 99_999_999,
         "issued": 1_234_567_890,
+        "correct": 99_999_999,
         "unassisted_correct": 99_999_999,
         "assisted_correct": 0,
         "unknown_assistance": 0,
@@ -153,3 +197,26 @@ def test_all_dashboard_screens_render_as_reasonable_pngs() -> None:
             for screen_width in (320, 375, 430):
                 assert round(image.height * screen_width / image.width) <= 550
         assert len(png) < 10 * 1024 * 1024
+
+
+def test_history_image_height_tracks_rows_and_empty_state_is_compact() -> None:
+    insights = demo_insights()
+    one_row = dict(insights)
+    one_row["history"] = insights["history"][:1]
+    one_row["page_total"] = 1
+    four_rows = dict(insights)
+    four_rows["history"] = insights["history"][:4]
+    four_rows["page_total"] = 4
+    empty = dict(insights)
+    empty["history"] = []
+    empty["page_total"] = 0
+
+    heights = []
+    for data in (empty, one_row, four_rows):
+        png = render_progress_image(data, "history:0")
+        with Image.open(io.BytesIO(png)) as image:
+            heights.append(image.height)
+
+    assert heights[1] < heights[2]
+    assert heights[2] < 900
+    assert heights[0] < 400
