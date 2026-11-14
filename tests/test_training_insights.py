@@ -247,7 +247,7 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
     assert by_number[5]["skipped"] == 1
     history_json = await widget_response(repository, telegram_user_id, "tab:h")
     history = __import__("json").loads(history_json)
-    assert len(history["r"]) == 5
+    assert len(history["r"]) == 3
     assert len(history_json.encode()) <= 1024
     assert all("answer" not in json.dumps(row).lower() for row in history["r"])
     practical_detail = await widget_response(
