@@ -61,3 +61,5 @@ FIPI-DEMO-2027-11,11,https://pro-schools.ru/fipi/oge/demo/2027/ma-9-oge-2027-dem
 474133,7,https://math-oge.sdamgia.ru/problem?id=474133,дробь соответствует точке на прямой,OGE07-N02,hold,"Оригинальная картинка просмотрена: 58/7 соответствует C; держим до отделения от исторической структуры 311380"
 370464,7,https://math-oge.sdamgia.ru/problem?id=370464,десятичное число соответствует точке,OGE07-N03,hold,"Проверено: 0,271 соответствует D; generator не показывает координаты остальных точек"
 317074,7,https://math-oge.sdamgia.ru/problem?id=317074,рациональная координата точки A,OGE07-N05,hold,"Оригинальная картинка просмотрена: деления подписаны десятыми; текущая модель отображает только целые деления"
+348480,18,https://math-oge.sdamgia.ru/problem?id=348480,средняя линия треугольника на сетке,OGE18-M01,closed_implementation,"ENABLE_IMPL по handoff; публично выключено; AC=8 => 4"
+348638,18,https://math-oge.sdamgia.ru/problem?id=348638,средняя линия трапеции на сетке,OGE18-M02,closed_implementation,"ENABLE_IMPL по handoff; публично выключено; основания 9 и 3 => 6"

@@ -254,3 +254,10 @@
   data oracles, and reproducible table/arch SVG and PNG assets. Families remain
   disabled for student delivery pending release review. Added dedicated coverage
   and 250-seed quality reports.
+
+## Closed OGE18 M01/M02 implementation
+
+- Added exact grid generation, midpoint oracle, versioned Pillow snapshots and pixel QA.
+- Registered number 18 behind an empty public family flag; shared numeric UX and existing storage.
+- Added migration 0014, contract/flow/PG17 tests, quality report and six reproducible PNG previews.
+- No merge, deployment, production migration, public enablement or progress-widget changes.
