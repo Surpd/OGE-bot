@@ -166,3 +166,28 @@ def test_fixed_seed_versioned_regression_vectors():
     for vector in vectors:
         snapshot = generate(vector["family_id"], vector["seed"]).to_snapshot()
         assert {key: snapshot[key] for key in vector} == vector
+
+
+def test_pixel_oracle_rejects_a_renderer_that_repeats_its_own_auxiliary_line(monkeypatch):
+    from app.math import oge18_render
+
+    snapshot = generate(FAMILIES[1], 42).to_snapshot()
+    points = tuple(tuple(p) for p in snapshot["points"])
+    image = Image.open(BytesIO(base64.b64decode(snapshot["png_base64"]))).convert("RGB")
+    a, b, c, d = points
+    ImageDraw.Draw(image).line(
+        (
+            40 + 16 * (a[0] + b[0]),
+            584 - 16 * (a[1] + b[1]),
+            40 + 16 * (c[0] + d[0]),
+            584 - 16 * (c[1] + d[1]),
+        ),
+        fill="black",
+        width=3,
+    )
+    out = BytesIO()
+    image.save(out, format="PNG")
+    wrong_png = out.getvalue()
+    monkeypatch.setattr(oge18_render, "render", lambda *args: wrong_png)
+    with pytest.raises(ValueError, match="Unexpected dark ink"):
+        oge18_render.audit(wrong_png, points, False)
