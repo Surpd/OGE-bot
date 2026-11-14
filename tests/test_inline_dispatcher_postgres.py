@@ -201,7 +201,12 @@ async def exercise_navigation(
         await click("nav:numbers")
         await click("nav:main")
         await click("nav:progress")
-        await click("progress:families")
+        await click("nav:progress_text")
+        widget_call = next(call for call in reversed(session.calls)
+                           if call.__api_method__ == "sendWidget")
+        assert widget_call.allow_queries is True and widget_call.is_shared is False
+        assert len(widget_call.chat_data.encode("utf-8")) <= 1024
+        await click("progress:numbers")
         assert await repository.user_state(42) == "progress"
         await click("nav:main")
         assert (await repository.task6_state(42))["problem"]["problem_id"] == restarted_problem_id

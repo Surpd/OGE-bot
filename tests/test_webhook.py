@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 import asyncpg
 import pytest
 from aiogram import Bot
-from aiogram.types import User
+from aiogram.types import Update, User
 from fastapi.testclient import TestClient
 
 from app.bot.menu import MAIN_MENU, main_menu
@@ -58,6 +58,68 @@ def test_update_is_idempotent(client) -> None:
     assert first.status_code == replay.status_code == 200
     assert repository.updates[100] == "processed"
     assert len(repository.updates) == 1
+
+
+def test_widget_query_uses_raw_webhook_adapter_and_is_idempotent(client):
+    from app.bot.widget_api import AnswerWidgetQuery
+
+    test_client, repository = client
+    calls = []
+
+    async def fake_bot(method, **kwargs):
+        calls.append(method)
+        return True
+
+    test_client.app.state.bot = fake_bot
+    headers = {"X-Telegram-Bot-Api-Secret-Token": "test-webhook-secret"}
+    payload = {
+        "update_id": 102,
+        "widget_query": {
+            "id": "widget-query-1",
+            "from": {"id": 42},
+            "chat": {"id": 42, "type": "private"},
+            "type": {"type": "data"},
+            "data": "refresh",
+        },
+    }
+    first = test_client.post("/telegram/webhook", json=payload, headers=headers)
+    replay = test_client.post("/telegram/webhook", json=payload, headers=headers)
+    assert first.status_code == replay.status_code == 200
+    assert len(calls) == 1
+    assert isinstance(calls[0], AnswerWidgetQuery)
+    assert calls[0].widget_query_id == "widget-query-1"
+    assert '"tab":"o"' in (calls[0].data or "")
+    assert repository.updates[102] == "processed"
+
+
+def test_widget_query_rejects_a_different_private_chat_user(client):
+    from app.bot.widget_api import AnswerWidgetQuery
+
+    test_client, _ = client
+    calls = []
+
+    async def fake_bot(method, **kwargs):
+        calls.append(method)
+        return True
+
+    test_client.app.state.bot = fake_bot
+    response = test_client.post(
+        "/telegram/webhook",
+        json={
+            "update_id": 103,
+            "widget_query": {
+                "id": "private-chat-mismatch",
+                "from": {"id": 42},
+                "chat": {"id": 43, "type": "private"},
+                "type": {"type": "data"},
+                "data": "refresh",
+            },
+        },
+        headers={"X-Telegram-Bot-Api-Secret-Token": "test-webhook-secret"},
+    )
+    assert response.status_code == 200
+    assert len(calls) == 1 and isinstance(calls[0], AnswerWidgetQuery)
+    assert calls[0].data == '{"tab":"err"}'
 
 
 def test_webhook_error_has_safe_traceback_and_remains_a_failure(client, monkeypatch, caplog):
@@ -350,6 +412,10 @@ def test_production_startup_registers_the_webhook(monkeypatch: pytest.MonkeyPatc
         url="https://oge-trainer.example.onrender.com/telegram/webhook",
         secret_token="test-webhook-secret",
         drop_pending_updates=False,
+        allowed_updates=[
+            *(field for field in Update.model_fields if field != "update_id"),
+            "widget_query",
+        ],
     )
     get_settings.cache_clear()
 

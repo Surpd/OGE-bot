@@ -2263,6 +2263,29 @@ async def show_progress(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     from app.bot.progress import progress_keyboard, render_progress
+    from app.bot.progress_widget import send_progress_widget
+    from app.persistence.training_insights import training_insights
+
+    user_id = _user_id(message)
+    if user_id is None:
+        return
+    await _pause_oge15_foreground(user_id, oge15_repository)
+    await repository.save_user_state(user_id, "progress")
+    if await send_progress_widget(message, repository, user_id):
+        return
+    insights = await training_insights(repository, user_id)
+    await send_text(
+        message, repository, render_progress(insights), reply_markup=progress_keyboard()
+    )
+
+
+async def show_progress_text(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    """Explicit text-only route for clients that do not display Telegram Widgets."""
+    from app.bot.progress import progress_keyboard, render_progress
     from app.persistence.training_insights import training_insights
 
     user_id = _user_id(message)
@@ -2356,6 +2379,7 @@ def build_router() -> Router:
     router.message.register(return_to_menu, F.text == "↩ В меню")
     router.message.register(show_progress, F.text == "📊 Прогресс")
     router.message.register(show_progress, F.text == "📊 Мой прогресс")
+    router.message.register(show_progress_text, Command("progress"))
     router.message.register(show_progress_details, F.text == "📊 Подробнее")
     router.message.register(show_display_options, F.text == "⚙️ Настройки")
     router.message.register(oge15_answer)
