@@ -138,6 +138,16 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE14-G03": 3,
         "OGE14-G04": 3,
     },
+    18: {
+        "OGE18-M01": 2,
+        "OGE18-M02": 2,
+        "OGE18-D05": 3,
+        "OGE18-L02": 2,
+        "OGE18-A01": 3,
+        "OGE18-A03": 2,
+        "OGE18-A04": 3,
+        "OGE18-A05": 3,
+    },
 }
 SCENARIO_COMPLEXITY = {
     "TYRES-TABLE-EXTREME": 2,
@@ -247,10 +257,14 @@ def _shape(value: Any) -> Any:
 
 
 def _condition(item: Any, number: int) -> str:
+    if number == 18:
+        return str(item.to_snapshot().get("condition", ""))
     return str(getattr(item, "condition", getattr(item, "equation_text", "")))
 
 
 def _answer(item: Any, number: int) -> str:
+    if number == 18:
+        return str(item.to_snapshot().get("correct_answer", ""))
     if number == 7 and hasattr(item, "correct_option_index"):
         index = int(item.correct_option_index) - 1
         options = tuple(item.options)
@@ -326,6 +340,14 @@ def _stable(value: Any) -> str:
 
 
 def _oracle(number: int, family: str, item: Any) -> bool:
+    if number == 18:
+        from app.math.oge18 import from_snapshot
+
+        try:
+            restored = from_snapshot(item.to_snapshot(), audit_pixels=False)
+        except ValueError:
+            return False
+        return restored.png_bytes == item.png_bytes
     if number == 6:
         from app.math.oracle import validate_rendered_problem
 
@@ -386,6 +408,17 @@ def _oracle(number: int, family: str, item: Any) -> bool:
 
 
 def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, int], Any]]:
+    if number == 18:
+        from app.math.oge18 import (
+            ENABLED_FAMILIES,
+            GENERATOR_VERSION_V2,
+            NEW_FAMILIES,
+            generate,
+        )
+
+        return tuple(ENABLED_FAMILIES), lambda family, seed: generate(
+            family, seed, GENERATOR_VERSION_V2
+        ) if family in NEW_FAMILIES else generate(family, seed)
     module_names = {
         6: ("app.math.registry", "app.math.generator", "GENERATOR_SPECS", "generate"),
         7: ("app.math.oge07_scheduler", "app.math.numbers", "ALL_FAMILIES", "generate"),
