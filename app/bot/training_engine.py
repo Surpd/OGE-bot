@@ -273,7 +273,7 @@ async def training_callback(
         return
     if adapter.number == 18:
         try:
-            grid_from_snapshot(problem)
+            grid_from_snapshot(problem, audit_pixels=False)
         except ValueError:
             await answer_callback(callback, "Сохранённое задание повреждено.")
             return
@@ -369,7 +369,7 @@ async def training_answer(
         return
     if adapter.number == 18:
         try:
-            grid_from_snapshot(problem)
+            grid_from_snapshot(problem, audit_pixels=False)
         except ValueError:
             await send_text(message, repository, "Сохранённое задание №18 повреждено.")
             return

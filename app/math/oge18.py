@@ -91,20 +91,14 @@ def _pack(snapshot: dict[str, Any]) -> Oge18Problem:
     return Oge18Problem(json.dumps(snapshot, sort_keys=True, ensure_ascii=False))
 
 
-def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSION) -> Oge18Problem:
-    if family_id not in FAMILIES or generator_version != GENERATOR_VERSION:
-        raise ValueError("Unknown family or generator version")
-    if type(seed) is not int or not 0 <= seed < 2**63:
-        raise ValueError("Seed must be an unsigned signed-bigint-compatible integer")
+def _model_for_seed(family_id: str, seed: int) -> tuple[tuple[Point, ...], Fraction]:
     rng = random.Random(seed)
     x, y = rng.randint(2, 3), rng.randint(2, 3)
-    points: tuple[Point, ...]
     if family_id == FAMILIES[0]:
         base = rng.choice((4, 6, 8, 10, 12, 14))
         offset, height = rng.randint(1, base - 1), rng.randint(3, 11)
-        points = ((x, y), (x + offset, y + height), (x + base, y))
-        result = Fraction(base, 2)
-    else:
+        return ((x, y), (x + offset, y + height), (x + base, y)), Fraction(base, 2)
+    if family_id == FAMILIES[1]:
         lower = rng.randint(6, 12)
         upper = rng.randint(2, lower - 2)
         offset, height = rng.randint(1, lower - upper - 1), rng.randint(3, 8)
@@ -114,7 +108,16 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
             (x + offset + upper, y + height),
             (x + lower, y),
         )
-        result = Fraction(lower + upper, 2)
+        return points, Fraction(lower + upper, 2)
+    raise ValueError("Unknown family")
+
+
+def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSION) -> Oge18Problem:
+    if generator_version != GENERATOR_VERSION:
+        raise ValueError("Unknown generator version")
+    if type(seed) is not int or not 0 <= seed < 2**63:
+        raise ValueError("Seed must be an unsigned signed-bigint-compatible integer")
+    points, result = _model_for_seed(family_id, seed)
     if answer(points) != result:
         raise ValueError("Coordinate oracle mismatch")
     png = render(points, family_id == FAMILIES[0])
@@ -147,7 +150,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
     return from_snapshot(snapshot)
 
 
-def from_snapshot(snapshot: dict[str, Any]) -> Oge18Problem:
+def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge18Problem:
     try:
         if len(json.dumps(snapshot)) > 250_000:
             raise ValueError("Snapshot too large")
@@ -170,7 +173,12 @@ def from_snapshot(snapshot: dict[str, Any]) -> Oge18Problem:
         points = tuple((p[0], p[1]) for p in raw_points)
         if len(points) != (3 if family == FAMILIES[0] else 4):
             raise ValueError("Wrong vertex count")
+        expected_points, expected_result = _model_for_seed(family, seed)
+        if points != expected_points:
+            raise ValueError("Coordinates do not match family seed and generator version")
         result = answer(points)
+        if result != expected_result:
+            raise ValueError("Seed-derived answer mismatch")
         hints, solution = teaching(family, points)
         if (
             snapshot["condition"] != CONDITIONS[family]
@@ -194,7 +202,10 @@ def from_snapshot(snapshot: dict[str, Any]) -> Oge18Problem:
         png = base64.b64decode(snapshot["png_base64"], validate=True)
         if len(png) > 150_000 or hashlib.sha256(png).hexdigest() != snapshot["image_sha256"]:
             raise ValueError("Invalid PNG hash or size")
-        audit(png, points, family == FAMILIES[0])
+        if audit_pixels:
+            audit(png, points, family == FAMILIES[0])
+        elif png != render(points, family == FAMILIES[0]):
+            raise ValueError("PNG does not match versioned renderer")
         return _pack(snapshot)
     except (KeyError, TypeError, IndexError, OverflowError) as exc:
         raise ValueError("Corrupted snapshot") from exc

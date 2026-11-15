@@ -158,6 +158,17 @@ def test_answer_policy_and_queue_no_repeats_or_silent_fallback():
         }
 
 
+@pytest.mark.parametrize("family", FAMILIES)
+def test_seed_cannot_be_kept_while_all_model_fields_and_png_come_from_other_seed(family):
+    original = generate(family, 42).to_snapshot()
+    forgery = generate(family, 43).to_snapshot()
+    original_identity = original["problem_id"]
+    forgery["seed"] = original["seed"]
+    forgery["problem_id"] = original_identity
+    with pytest.raises(ValueError, match="Coordinates do not match"):
+        from_snapshot(forgery)
+
+
 def test_fixed_seed_versioned_regression_vectors():
     import json
     from pathlib import Path
@@ -191,3 +202,20 @@ def test_pixel_oracle_rejects_a_renderer_that_repeats_its_own_auxiliary_line(mon
     monkeypatch.setattr(oge18_render, "render", lambda *args: wrong_png)
     with pytest.raises(ValueError, match="Unexpected dark ink"):
         oge18_render.audit(wrong_png, points, False)
+
+
+def test_repeat_snapshot_validation_keeps_hash_and_renderer_fail_closed():
+    snapshot = generate(FAMILIES[0], 42).to_snapshot()
+    bad_hash = deepcopy(snapshot)
+    bad_hash["image_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="hash"):
+        from_snapshot(bad_hash, audit_pixels=False)
+    altered_png = deepcopy(snapshot)
+    image = Image.open(BytesIO(base64.b64decode(altered_png["png_base64"]))).convert("RGB")
+    ImageDraw.Draw(image).point((0, 0), fill="black")
+    out = BytesIO()
+    image.save(out, format="PNG")
+    altered_png["png_base64"] = base64.b64encode(out.getvalue()).decode()
+    altered_png["image_sha256"] = hashlib.sha256(out.getvalue()).hexdigest()
+    with pytest.raises(ValueError, match="versioned renderer"):
+        from_snapshot(altered_png, audit_pixels=False)
