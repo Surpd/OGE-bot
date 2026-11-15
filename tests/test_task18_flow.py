@@ -11,7 +11,14 @@ from aiogram.types import BufferedInputFile, Chat, Message, User
 from app.bot import router
 from app.bot.presentation import send_photo
 from app.math import oge18_scheduler
-from app.math.oge18 import FAMILIES, from_snapshot, generate
+from app.math.oge18 import (
+    ENABLED_FAMILIES,
+    FAMILIES,
+    NEW_FAMILIES,
+    fingerprint,
+    from_snapshot,
+    generate,
+)
 from app.persistence.repository import MemoryRepository
 
 
@@ -26,7 +33,7 @@ def message(text="", mid=100):
     return incoming
 
 
-async def test_public_flag_hides_and_blocks_task18_and_forged_navigation():
+async def test_default_menu_and_entry_offer_task18_with_a_real_png():
     repo = MemoryRepository()
     incoming = message()
     await router.choose_number(incoming, repo)
@@ -35,11 +42,74 @@ async def test_public_flag_hides_and_blocks_task18_and_forged_navigation():
         for row in incoming.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for b in row
     ]
-    assert not any(text.startswith("№18") for text in labels)
-    await router.choose_task18(incoming, repo)
-    assert "выключены" in incoming.answer.await_args.args[0]
-    assert await repo.task18_state(42) is None
-    incoming.answer_photo.assert_not_awaited()
+    assert any(text.startswith("№18") for text in labels)
+    assert ENABLED_FAMILIES == (*FAMILIES, *NEW_FAMILIES)
+    task_message = message(mid=102)
+    await router.choose_task18(task_message, repo)
+    saved = await repo.task18_state(42)
+    assert saved is not None
+    snapshot = saved["problem"]
+    assert snapshot["family_id"] in ENABLED_FAMILIES
+    assert task_message.answer_photo.await_args.args[0].data == from_snapshot(snapshot).png_bytes
+
+
+def test_default_task18_scheduler_cycles_all_families_and_skips_exhausted_family():
+    from app.math.oge18_scheduler import build_task18_candidate_batch
+
+    state: dict[str, object] = {}
+    visited = set()
+    for seed in range(len(ENABLED_FAMILIES)):
+        snapshot = build_task18_candidate_batch(state, seed)[0]
+        visited.add(snapshot["family_id"])
+        state = {
+            "family_queue": snapshot["_family_queue_after"],
+            "last_family_id": snapshot["_last_family_after"],
+            "recent_fingerprints": [snapshot["fingerprint"]],
+        }
+    assert visited == set(ENABLED_FAMILIES)
+
+    exhausted = [
+        fingerprint("OGE18-D05", ((2, 2), (5, 6))),
+        fingerprint("OGE18-D05", ((2, 2), (7, 14))),
+        fingerprint("OGE18-D05", ((2, 2), (10, 17))),
+    ]
+    fallback = build_task18_candidate_batch(
+        {
+            "family_queue": ["OGE18-D05", "OGE18-M01"],
+            "recent_fingerprints": exhausted,
+        },
+        55,
+    )
+    assert fallback[0]["family_id"] == "OGE18-M01"
+
+
+async def test_default_telegram_route_answers_and_advances_all_eight_families():
+    repo = MemoryRepository()
+    opened = message()
+    await router.choose_task18(opened, repo)
+    visited = set()
+    current_prompt_id = 101
+    for _ in ENABLED_FAMILIES:
+        saved = await repo.task18_state(42)
+        snapshot = saved["problem"]
+        family = snapshot["family_id"]
+        visited.add(family)
+        assert opened.answer_photo.await_args.args[0].data == from_snapshot(snapshot).png_bytes
+        answer_message = message(snapshot["correct_answer"], current_prompt_id + 1)
+        await router.task18_answer(answer_message, repo)
+        assert (await repo.task18_state(42))["state"]["status"] == "solved"
+        control_id = answer_message.message_id + 1
+        callback = AsyncMock()
+        callback.data = f"t18:next:{snapshot['problem_id']}"
+        callback.from_user = User(id=42, is_bot=False, first_name="Student")
+        callback.message = AsyncMock()
+        callback.message.message_id = control_id
+        callback.message.answer_photo.return_value.message_id = control_id + 1
+        callback.message.answer.return_value.message_id = control_id + 1
+        await router.task18_callback(callback, repo)
+        current_prompt_id = control_id + 1
+        opened = callback.message
+    assert visited == set(ENABLED_FAMILIES)
 
 
 @pytest.mark.parametrize("family", (FAMILIES[0], "OGE18-A03"))
