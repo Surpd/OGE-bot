@@ -9,6 +9,7 @@ from typing import cast
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 VERSION = "oge18-pillow-1"
+VERSION_V2 = "oge18-pillow-2"
 WIDTH, HEIGHT = 720, 640
 STEP, LEFT, BOTTOM = 32, 40, 584
 Point = tuple[int, int]
@@ -125,5 +126,105 @@ def audit(png: bytes, points: tuple[Point, ...], triangle: bool) -> None:
     if ImageChops.subtract(dark, allowed).getbbox() is not None:
         raise ValueError("Unexpected dark ink: auxiliary line, dimension, or label")
     reference = Image.open(BytesIO(render(points, triangle)))
+    if image.tobytes() != reference.tobytes():
+        raise ValueError("Unexpected or missing scene pixels")
+
+
+def render_family(family: str, points: tuple[Point, ...]) -> bytes:
+    """Version 2 source-shaped grid diagram; auxiliary constructions stay absent."""
+    scale = 2
+    image = Image.new("RGB", (WIDTH * scale, HEIGHT * scale), "white")
+    draw = ImageDraw.Draw(image)
+    for x in range(21):
+        px = (LEFT + x * STEP) * scale
+        draw.line((px, 40 * scale, px, BOTTOM * scale), fill=(195, 195, 195), width=2)
+    for y in range(18):
+        py = (BOTTOM - y * STEP) * scale
+        draw.line((LEFT * scale, py, 680 * scale, py), fill=(195, 195, 195), width=2)
+    screen_points = [(screen(p)[0] * scale, screen(p)[1] * scale) for p in points]
+    if family == "OGE18-D05":
+        for x, y in screen_points:
+            draw.ellipse((x - 7, y - 7, x + 7, y + 7), fill=(239, 136, 35))
+    else:
+        fill = (245, 151, 36) if family.startswith("OGE18-A") else None
+        draw.polygon(screen_points, fill=fill)
+        edge = (239, 136, 35) if family == "OGE18-L02" else (22, 22, 22)
+        draw.line([*screen_points, screen_points[0]], fill=edge, width=6, joint="curve")
+    image = image.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+    out = BytesIO()
+    image.save(out, format="PNG")
+    return out.getvalue()
+
+
+def _darkest_pixel_sum(image: Image.Image, box: tuple[int, int, int, int]) -> int:
+    crop = image.crop(box)
+    return min(
+        sum(cast(tuple[int, ...], crop.getpixel((x, y))))
+        for x in range(crop.width)
+        for y in range(crop.height)
+    )
+
+
+def audit_family(png: bytes, family: str, points: tuple[Point, ...]) -> None:
+    """Audit exact versioned pixels plus an independent allowed-object mask."""
+    try:
+        image = Image.open(BytesIO(png))
+        image.load()
+    except (OSError, ValueError) as exc:
+        raise ValueError("Invalid PNG") from exc
+    if image.format != "PNG" or image.size != (WIDTH, HEIGHT) or image.mode != "RGB":
+        raise ValueError("Invalid image contract")
+    vertices = [screen(point) for point in points]
+    for width in (360, 390, 430):
+        ratio = width / WIDTH
+        small = image.resize((width, round(HEIGHT * ratio)), Image.Resampling.LANCZOS)
+        grid_samples = [(40 + 32 * x, 40) for x in range(21)]
+        grid_samples += [(680, 584 - 32 * y) for y in range(18)]
+        for gx, gy in grid_samples:
+            px, py = round(gx * ratio), round(gy * ratio)
+            if _darkest_pixel_sum(small, (max(0, px - 1), max(0, py - 1), px + 2, py + 2)) > 735:
+                raise ValueError("Grid line missing at mobile width")
+        for index, (x, y) in enumerate(vertices):
+            if family == "OGE18-D05":
+                px, py = round(x * ratio), round(y * ratio)
+                if _darkest_pixel_sum(small, (px - 3, py - 3, px + 4, py + 4)) > 700:
+                    raise ValueError("Point missing at mobile width")
+                continue
+            a, b = vertices[index], vertices[(index + 1) % len(vertices)]
+            for step in range(9):
+                x = round((a[0] + (b[0] - a[0]) * step / 8) * ratio)
+                y = round((a[1] + (b[1] - a[1]) * step / 8) * ratio)
+                threshold = 700 if family == "OGE18-L02" else 450
+                if _darkest_pixel_sum(small, (x - 2, y - 2, x + 3, y + 3)) > threshold:
+                    raise ValueError("Polygon edge missing at mobile width")
+    boundary = Image.new("L", image.size, 0)
+    mask = ImageDraw.Draw(boundary)
+    if family == "OGE18-D05":
+        for x, y in vertices:
+            mask.ellipse((x - 9, y - 9, x + 9, y + 9), fill=255)
+        colored = boundary
+    else:
+        mask.line([*vertices, vertices[0]], fill=255, width=8)
+        if family == "OGE18-L02":
+            colored = boundary
+        else:
+            colored = Image.new("L", image.size, 0)
+            ImageDraw.Draw(colored).polygon(vertices, fill=255)
+    boundary = boundary.filter(ImageFilter.MaxFilter(7))
+    colored = colored.filter(ImageFilter.MaxFilter(3))
+    # Separate masks allow orange fill inside a polygon but only the perimeter
+    # for dark strokes, so an accidental triangle height is rejected.
+    dark = image.convert("L").point(lambda value: 255 if value < 90 else 0)
+    if ImageChops.subtract(dark, boundary).getbbox() is not None:
+        raise ValueError("Unexpected dark construction or label")
+    red, green, blue = image.split()
+    orange = ImageChops.multiply(
+        red.point(lambda value: 255 if value > 210 else 0),
+        green.point(lambda value: 255 if 90 < value < 220 else 0),
+    )
+    orange = ImageChops.multiply(orange, blue.point(lambda value: 255 if value < 100 else 0))
+    if ImageChops.subtract(orange, colored).getbbox() is not None:
+        raise ValueError("Unexpected colored pixels outside source geometry")
+    reference = Image.open(BytesIO(render_family(family, points)))
     if image.tobytes() != reference.tobytes():
         raise ValueError("Unexpected or missing scene pixels")

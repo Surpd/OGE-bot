@@ -2,7 +2,7 @@
 
 import random
 
-from app.math.oge18 import ENABLED_FAMILIES, generate
+from app.math.oge18 import ENABLED_FAMILIES, GENERATOR_VERSION_V2, NEW_FAMILIES, generate
 
 
 def build_task18_candidate_batch(
@@ -20,7 +20,12 @@ def build_task18_candidate_batch(
     recent = state.get("recent_fingerprints", [])
     for index, family in enumerate(queue):
         for _ in range(12):
-            problem = generate(family, rng.randrange(2**63))
+            version = GENERATOR_VERSION_V2 if family in NEW_FAMILIES else None
+            problem = (
+                generate(family, rng.randrange(2**63), version)
+                if version is not None
+                else generate(family, rng.randrange(2**63))
+            )
             if isinstance(recent, list) and problem.fingerprint in recent:
                 continue
             snapshot = problem.to_snapshot()
