@@ -1,0 +1,132 @@
+{
+  "families": [
+    {
+      "family_id": "OGE18-M01",
+      "exam_number": 18,
+      "name": "Средняя линия треугольника",
+      "status": "research_only",
+      "status_reason": "Closed ENABLE_IMPL only; public flag empty; live Telegram release review pending",
+      "sources": [
+        {
+          "task_id": "348480",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348480",
+          "provenance": "catalog_verified",
+          "verification_status": "original drawing checked in research handoff 2026-11-14; no FIPI attribution claim"
+        }
+      ],
+      "related_source_ids_not_individually_rechecked": [
+        "348868",
+        "349105",
+        "349244",
+        "349561"
+      ],
+      "mathematical_structure": "Exact integer grid polygon; horizontal bases; midpoint theorem",
+      "question_intent": "Find midline length from grid, without construction drawn",
+      "parameter_model": {
+        "b": [
+          4,
+          6,
+          8,
+          10,
+          12,
+          14
+        ],
+        "t": "1..b-1",
+        "h": "3..11"
+      },
+      "generation_algorithm": "local Random(seed), bounded validated safe domain",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "format": "exact decimal"
+      },
+      "rendering": {
+        "renderer_version": "oge18-pillow-1",
+        "library": "Pillow",
+        "labels": "ABC only on triangle"
+      },
+      "oracle": {
+        "method": "Fraction midpoint distance squared, cross products, shoelace, convexity"
+      },
+      "hints_and_solution": {
+        "method": "Two hints without numeric answer; exact model-derived solution"
+      },
+      "test_vectors": [
+        {
+          "source_id": "348480",
+          "answer": "4"
+        }
+      ],
+      "difficulty": "Read integer lengths from square grid; divide by two",
+      "known_exclusions": [
+        "Auxiliary lines, midpoint labels, heights, side lengths",
+        "Other OGE18 families"
+      ],
+      "risks": [
+        "Live mobile Telegram untested",
+        "Approved FIPI-2027 package not independently audited"
+      ]
+    },
+    {
+      "family_id": "OGE18-M02",
+      "exam_number": 18,
+      "name": "Средняя линия трапеции",
+      "status": "research_only",
+      "status_reason": "Closed ENABLE_IMPL only; public flag empty; live Telegram release review pending",
+      "sources": [
+        {
+          "task_id": "348638",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348638",
+          "provenance": "catalog_verified",
+          "verification_status": "original drawing checked in research handoff 2026-11-14; no FIPI attribution claim"
+        }
+      ],
+      "related_source_ids_not_individually_rechecked": [
+        "349153",
+        "349448",
+        "349451",
+        "349928"
+      ],
+      "mathematical_structure": "Exact integer grid polygon; horizontal bases; midpoint theorem",
+      "question_intent": "Find midline length from grid, without construction drawn",
+      "parameter_model": {
+        "L": "6..12",
+        "u": "2..L-2",
+        "s": "1..L-u-1",
+        "h": "3..8"
+      },
+      "generation_algorithm": "local Random(seed), bounded validated safe domain",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "format": "exact decimal"
+      },
+      "rendering": {
+        "renderer_version": "oge18-pillow-1",
+        "library": "Pillow",
+        "labels": "ABC only on triangle"
+      },
+      "oracle": {
+        "method": "Fraction midpoint distance squared, cross products, shoelace, convexity"
+      },
+      "hints_and_solution": {
+        "method": "Two hints without numeric answer; exact model-derived solution"
+      },
+      "test_vectors": [
+        {
+          "source_id": "348638",
+          "answer": "6"
+        }
+      ],
+      "difficulty": "Read integer lengths from square grid; divide by two",
+      "known_exclusions": [
+        "Auxiliary lines, midpoint labels, heights, side lengths",
+        "Other OGE18 families"
+      ],
+      "risks": [
+        "Live mobile Telegram untested",
+        "Approved FIPI-2027 package not independently audited"
+      ]
+    }
+  ]
+}

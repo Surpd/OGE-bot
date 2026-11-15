@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from importlib import import_module
 from typing import Any, Protocol, cast
 
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu, training_menu
-from app.bot.presentation import hint_message, send_text
+from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.training_ux import matches_current_condition
 from app.math.formulas import POLICY as FORMULA_POLICY
 from app.math.oge8 import POLICY as POWERS_POLICY
@@ -18,6 +18,9 @@ from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
+from app.math.oge18 import POLICY as GRID_POLICY
+from app.math.oge18 import from_snapshot as grid_from_snapshot
+from app.math.oge18_scheduler import build_task18_candidate_batch
 from app.math.probability import ANSWER_POLICY as PROBABILITY_POLICY
 from app.math.progressions import POLICY as PROGRESSION_POLICY
 from app.persistence.repository import Repository
@@ -60,6 +63,7 @@ class NumericTraining:
 
 
 NUMERIC_TRAININGS = {
+    18: NumericTraining(18, "фигуры на клетчатой сетке", GRID_POLICY, build_task18_candidate_batch),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
     10: NumericTraining(
         10,
@@ -112,6 +116,9 @@ async def send_problem(
 ) -> bool:
     from app.bot.router import _user_id
 
+    if adapter.number == 18 and not adapter.families:
+        await send_text(message, repository, "Задания №18 пока выключены.")
+        return False
     user_id = user_id_override if user_id_override is not None else _user_id(message)
     if user_id is None:
         return False
@@ -182,13 +189,26 @@ async def send_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
-    sent = await send_text(
-        message,
-        repository,
-        f"Задание №{adapter.number} · {adapter.title}\n\n{problem['condition']}\n\n"
-        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
-        reply_markup=adapter.menu(str(problem["problem_id"])),
-    )
+    if adapter.number == 18:
+        try:
+            restored = grid_from_snapshot(problem)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №18 повреждено.")
+            return False
+        sent = await send_photo(
+            message, repository, BufferedInputFile(restored.png_bytes, filename="oge18.png"),
+            caption=f"Задание №18 · {adapter.title}\n\n{problem['condition']}",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+            user_id_override=user_id,
+        )
+    else:
+        sent = await send_text(
+            message,
+            repository,
+            f"Задание №{adapter.number} · {adapter.title}\n\n{problem['condition']}\n\n"
+            "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+        )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
         await getattr(repository, f"set_{adapter.mode}_condition_message")(
@@ -213,6 +233,9 @@ async def training_callback(
         _solution_display_status,
     )
 
+    if adapter.number == 18 and not adapter.families:
+        await answer_callback(callback, "Задания №18 пока выключены.")
+        return
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != f"t{adapter.number}" or callback.message is None:
         await answer_callback(callback)
@@ -248,6 +271,12 @@ async def training_callback(
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
         await answer_callback(callback, "Это задание уже сменилось.")
         return
+    if adapter.number == 18:
+        try:
+            grid_from_snapshot(problem, audit_pixels=False)
+        except ValueError:
+            await answer_callback(callback, "Сохранённое задание повреждено.")
+            return
     if action in {"next", "skip"}:
         advanced = await send_problem(
             adapter,
@@ -304,6 +333,9 @@ async def training_answer(
 ) -> None:
     from app.bot.router import _disable_stale_keyboard, _user_id
 
+    if adapter.number == 18 and not adapter.families:
+        await send_text(message, repository, "Задания №18 пока выключены.")
+        return
     user_id = _user_id(message)
     if user_id is None or message.text is None:
         return
@@ -335,6 +367,12 @@ async def training_answer(
     ):
         await send_text(message, repository, "Политика ответа этой задачи недоступна.")
         return
+    if adapter.number == 18:
+        try:
+            grid_from_snapshot(problem, audit_pixels=False)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №18 повреждено.")
+            return
     if adapter.policy.parse(message.text) is None:
         await send_text(message, repository, adapter.invalid_answer)
         return

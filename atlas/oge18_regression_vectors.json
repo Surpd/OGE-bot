@@ -1,0 +1,92 @@
+[
+  {
+    "family_id": "OGE18-M01",
+    "seed": 0,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "2",
+    "fingerprint": "de3d6ef2e8791e1dc8398b47963d2188ae7051deafeb08ceba47ffa8e6fde5b8",
+    "image_sha256": "499e04ce4db1d2ca4e09da2bee72bb05b2f225db023bfc5b72f562b84033ae91"
+  },
+  {
+    "family_id": "OGE18-M01",
+    "seed": 1,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "4",
+    "fingerprint": "5f7164bbd8124b19f822d3979f69faea59452c90d6c102329b36025314822dfa",
+    "image_sha256": "704e93dd3014d723be393a1a0dff228253ba4b7452a577e59488eaff43b1d371"
+  },
+  {
+    "family_id": "OGE18-M01",
+    "seed": 42,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "7",
+    "fingerprint": "f35a9f8832804278f3ed4a8978ee1c7a05a4c62e716e7ef26700721cc4fb2280",
+    "image_sha256": "52dc4fa9850c3c2369335e9a8646b1b03d1b222d6c6272ac8ca485bbc8e7ca5b"
+  },
+  {
+    "family_id": "OGE18-M01",
+    "seed": 2027,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "2",
+    "fingerprint": "bb59333e1e732fc1663d18d9eb5e7283a1ed5421a9091aae5618b9e71d9eee66",
+    "image_sha256": "56c5936c252fcea9a2d665514c47a5ee33b4e27c8c939658f0fbc314563ceb1c"
+  },
+  {
+    "family_id": "OGE18-M01",
+    "seed": 90126,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "3",
+    "fingerprint": "2cd34db58f595c4cdb3ca465b6d4d500f798e5cae5150776fe756f067afe0f12",
+    "image_sha256": "c82d6cf05454337bf433228ce82743375628696f616479cafa315448e0359774"
+  },
+  {
+    "family_id": "OGE18-M02",
+    "seed": 0,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "4.5",
+    "fingerprint": "b10b7df2cebb824532047f6d1d4ed2ca3071006ce4cb1bacfb8f585e01b69a13",
+    "image_sha256": "146b8df09cc920f6dd719c5fa89d5fcebb200c09743d6cc0508ec5d80fffec82"
+  },
+  {
+    "family_id": "OGE18-M02",
+    "seed": 1,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "5",
+    "fingerprint": "97dd668859c79538ec1a57917920f60d77b2dc43715909414284bce5fa939006",
+    "image_sha256": "237ac0245bfa09f36bb97942890775a259a321d6f84d7bd2067c64c8411b3255"
+  },
+  {
+    "family_id": "OGE18-M02",
+    "seed": 42,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "8.5",
+    "fingerprint": "5807f57edca850c932fbbd4398b8f70896189e123b659e3b2f8f8067b0c37ecf",
+    "image_sha256": "98523d67000f50e5fbba17b76fd2a2c8c9cf464c05b31f53ecadecbfaf96188e"
+  },
+  {
+    "family_id": "OGE18-M02",
+    "seed": 2027,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "4",
+    "fingerprint": "3a9e14192b82e315d7a628f33d8db7432cd06def236d9b17155834ba4c581060",
+    "image_sha256": "8c2ff724e5018895520a88b565bbd6c6dac3d8df3c122d16632e00e2229a9a14"
+  },
+  {
+    "family_id": "OGE18-M02",
+    "seed": 90126,
+    "generator_version": "oge18-grid-1",
+    "renderer_version": "oge18-pillow-1",
+    "correct_answer": "6",
+    "fingerprint": "129f764910ea59591823cbcaf9638f614de3bd8cf0475b7c1713e08c15a5f20a",
+    "image_sha256": "00a606fd2663afbb700e6786c718238f16bf6edcc2b4ac3d0cfc9a550ebf32ad"
+  }
+]

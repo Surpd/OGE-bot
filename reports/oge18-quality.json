@@ -1,0 +1,66 @@
+{
+  "task": 18,
+  "generator_version": "oge18-grid-1",
+  "renderer_version": "oge18-pillow-1",
+  "families": {
+    "OGE18-M01": {
+      "candidates": 462,
+      "oracle_and_pixel_failures": 0,
+      "unique_content_fingerprints": 200,
+      "answers": {
+        "2": 78,
+        "3": 59,
+        "4": 69,
+        "5": 85,
+        "6": 76,
+        "7": 95
+      },
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=348480",
+      "source_scope": "catalog image audited in research handoff; generated analogue",
+      "status": "closed_implementation_only",
+      "public_enabled": false,
+      "contact_sheet_distinct_variants": 20,
+      "fingerprint": "base lengths, height, canonical reflected offset, target; no translation"
+    },
+    "OGE18-M02": {
+      "candidates": 300,
+      "oracle_and_pixel_failures": 0,
+      "unique_content_fingerprints": 204,
+      "answers": {
+        "10": 14,
+        "10.5": 6,
+        "11": 7,
+        "4": 7,
+        "4.5": 30,
+        "5": 34,
+        "5.5": 34,
+        "6": 25,
+        "6.5": 33,
+        "7": 25,
+        "7.5": 23,
+        "8": 25,
+        "8.5": 10,
+        "9": 15,
+        "9.5": 12
+      },
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=348638",
+      "source_scope": "catalog image audited in research handoff; generated analogue",
+      "status": "closed_implementation_only",
+      "public_enabled": false,
+      "contact_sheet_distinct_variants": 20,
+      "fingerprint": "base lengths, height, canonical reflected offset, target; no translation"
+    }
+  },
+  "smoke_samples_per_family": 50,
+  "acceptance_budget_per_family": 1200,
+  "phone_widths": [
+    360,
+    390,
+    430
+  ],
+  "visual_review": "not_performed_by_report_script",
+  "live_telegram_mobile_smoke": "not_performed; release blocker",
+  "other_geometry_families": "HOLD; outside this implementation",
+  "source_originals_embedded": false,
+  "binary_budget": "six reproducible PNG files only; no per-candidate files"
+}
