@@ -8,12 +8,12 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
-from app.math.oge18 import FAMILIES, from_snapshot
+from app.math.oge18 import FAMILIES, NEW_FAMILIES, from_snapshot
 from app.math.oge18_scheduler import build_task18_candidate_batch
 from app.persistence.repository import PostgresRepository
 
 
-@pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.parametrize("family", (*FAMILIES, *NEW_FAMILIES))
 async def test_task18_postgres_restore_duplicate_race_skip_and_restart(family):
     url = os.getenv("DATABASE_URL")
     if not url:

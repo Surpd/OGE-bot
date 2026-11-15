@@ -88,5 +88,221 @@
     "correct_answer": "6",
     "fingerprint": "129f764910ea59591823cbcaf9638f614de3bd8cf0475b7c1713e08c15a5f20a",
     "image_sha256": "00a606fd2663afbb700e6786c718238f16bf6edcc2b4ac3d0cfc9a550ebf32ad"
+  },
+  {
+    "family_id": "OGE18-D05",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "5",
+    "fingerprint": "7619054ae10614c888c0c45f50b5147ba9b8ac23250c85a5bcf1d58ef940b5f2",
+    "image_sha256": "4a8f83409fe2a220c5e5db0b772afeac5abd34c6199052acdf26759f8e17fa32"
+  },
+  {
+    "family_id": "OGE18-D05",
+    "seed": 42,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "17",
+    "fingerprint": "9c5c5c014d1e4d13ef8932684c8748f664b0863375d37f38efec31c43659595b",
+    "image_sha256": "e1da033ee9c3c9f7ecdd023df1ab7b8739effd2902cc84d33682a5b2d43d535c"
+  },
+  {
+    "family_id": "OGE18-D05",
+    "seed": 2027,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "5",
+    "fingerprint": "7619054ae10614c888c0c45f50b5147ba9b8ac23250c85a5bcf1d58ef940b5f2",
+    "image_sha256": "cbe335f69a762d2d20ecdd78c2c437e7827cd1c88766675576b71d9f06482a5e"
+  },
+  {
+    "family_id": "OGE18-D05",
+    "seed": 424242,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "17",
+    "fingerprint": "9c5c5c014d1e4d13ef8932684c8748f664b0863375d37f38efec31c43659595b",
+    "image_sha256": "0030d2df79e2dfd142186fb0d4c1e3cfc5f9cb5429f0a26b4853ab18d63f9f3e"
+  },
+  {
+    "family_id": "OGE18-L02",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "5",
+    "fingerprint": "abc99e872cfa284ff5cc318e2ef254a1f5f0086c60cce68f4f3823b6b8eab13a",
+    "image_sha256": "1c5617c3950fb0a6be518c3bd747adf79eb80f4ac006a25e4188609fa41d9ba1"
+  },
+  {
+    "family_id": "OGE18-L02",
+    "seed": 42,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "8",
+    "fingerprint": "6989715865fdea6f545f5a115419695d42a459102401c46e2079848af05a1d37",
+    "image_sha256": "e62e2c66d21b2cf07ef6649c49100992a7725ca58b48ceae9618648d0073fafb"
+  },
+  {
+    "family_id": "OGE18-L02",
+    "seed": 2027,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "8",
+    "fingerprint": "046c4e242873236f533cb870f0306ad8e522fdd95cb014c89b84286dfbf10a27",
+    "image_sha256": "f7e3d548ce02390719e14911fa05603cba1cfdcb6e814ee21e45c4c32ffb21c6"
+  },
+  {
+    "family_id": "OGE18-L02",
+    "seed": 424242,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "8",
+    "fingerprint": "16c52ae3c395d8fc952aed1f52c4ba3b10d794465dbb519a1bf0e7a103fda4d9",
+    "image_sha256": "bfe0ed80a40903c5d1e8bffbcf9ca56a8f9460fd732f001df5935d3badcf42ec"
+  },
+  {
+    "family_id": "OGE18-A01",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "25",
+    "fingerprint": "039d770f3f3f9a1eff67f2c5a6353a61271034ea84cc49dfcc4a3d6d2128b52c",
+    "image_sha256": "349eeb060d3729cb5852eb9c67765773744ff3f8e75fbbbd405fe95d659bd9cb"
+  },
+  {
+    "family_id": "OGE18-A01",
+    "seed": 42,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "35",
+    "fingerprint": "fdb9d7692d398c6214615de754f957b768566f080d751799379ced657fa0f581",
+    "image_sha256": "058bfae1c5cbb8247cece52e2b63f1ce7ce902b3b79006fa8bf9a4f235024496"
+  },
+  {
+    "family_id": "OGE18-A01",
+    "seed": 2027,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "15",
+    "fingerprint": "6560ae945c6e4bbb55ad7dddc953ac8ec0c92b5f59145e64fbcbf2329451eba2",
+    "image_sha256": "e284dbe28b8005bae2b626b5b53b8b255e3c8c1e5b6c3c80b8e0249f107aefe6"
+  },
+  {
+    "family_id": "OGE18-A01",
+    "seed": 424242,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "52.5",
+    "fingerprint": "98d31273422638133bc4488a412b4ad4971932e156af928d6b7b03aa6b861b1d",
+    "image_sha256": "26f57c45b2bf153e8cc2b5fd864517529d56cbea6d403ba5f043a58f994c0db1"
+  },
+  {
+    "family_id": "OGE18-A03",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "7.5",
+    "fingerprint": "8d10ef4871438f02de75c881df158c22e6c5227ece392c73b7e20b8db2924a81",
+    "image_sha256": "fc228d9a38d3805ca644e21c846e4dd5aff17ee1275cc29c85b81a52cf77152f"
+  },
+  {
+    "family_id": "OGE18-A03",
+    "seed": 42,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "13.5",
+    "fingerprint": "e19ab7a20320d7457a1bf0aa53d188f636d38efca2e3eca921cf1bd4b4d216bb",
+    "image_sha256": "799ea9819d0a49c7a3ca659c08ea67bc27bc65d052dc00f9cb46be61dae98606"
+  },
+  {
+    "family_id": "OGE18-A03",
+    "seed": 2027,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "6",
+    "fingerprint": "732367855c201729c21631b122833bef49d184abb46ade5a8c6560f0035c614e",
+    "image_sha256": "ddabf7f9bc5b1da4c70e3fa9263ddcbc783384447eb738e10fd363d842710b94"
+  },
+  {
+    "family_id": "OGE18-A03",
+    "seed": 424242,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "9",
+    "fingerprint": "c7a6ee7d0124378478328c56621493d44b4042ad726b43af35f95a8e262bcf7f",
+    "image_sha256": "d411a702e6f63406eccfe4b3fee21871139d3b8997f67b99f92522446c2e655b"
+  },
+  {
+    "family_id": "OGE18-A04",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "35",
+    "fingerprint": "b31f67102888359bf4d6889589717f3ac474f0765335dad7262b53d182c6b2dd",
+    "image_sha256": "ee18d83e2ea7738cdebf73380cba579bdac2673db414efb0e5f57c151959a53e"
+  },
+  {
+    "family_id": "OGE18-A04",
+    "seed": 42,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "28",
+    "fingerprint": "5e77d70c378a2c1cb11da029295435339db7a278459ee9ff0372d102f198642c",
+    "image_sha256": "fc04794710caabb9cf060efabdbc0f5f1b52ec86e9ff9645016184d69c9b2efb"
+  },
+  {
+    "family_id": "OGE18-A04",
+    "seed": 2027,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "25",
+    "fingerprint": "0934cb2a78ac7da27eefa9a5831c0d63a0210eb393f6e096d0bd80b61c47bd90",
+    "image_sha256": "70de568f2c0d95a1b2b89938c2e0ac2318377ad933314cc801f26c631fc1a12f"
+  },
+  {
+    "family_id": "OGE18-A04",
+    "seed": 424242,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "27",
+    "fingerprint": "4ae58eac46f60a7d8abf42e392e70368a497806b8ee94b350155c50a2932a0f1",
+    "image_sha256": "b917893c0550e33a0a2e7824fe15baa6218a49a3ced6fcc49aac8c3e06bd3af5"
+  },
+  {
+    "family_id": "OGE18-A05",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "16",
+    "fingerprint": "710fdbc276db09d849ba793af1789c5e1d5f9e42fd10e0bf6244366d93fb533c",
+    "image_sha256": "88e934c6df1a98a3ca4cfe8b350f4afbfff8ec19fbeadc563de486f4aabca319"
+  },
+  {
+    "family_id": "OGE18-A05",
+    "seed": 42,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "16",
+    "fingerprint": "710fdbc276db09d849ba793af1789c5e1d5f9e42fd10e0bf6244366d93fb533c",
+    "image_sha256": "8a780341892ac8f8b86f3154e9b91ad99956628b24539a0b013de86fd3a5300e"
+  },
+  {
+    "family_id": "OGE18-A05",
+    "seed": 2027,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "12",
+    "fingerprint": "ae4bb410d41b290c1da7ac5f81fdbc3cab60afedba23848eccef466ce3baa8c6",
+    "image_sha256": "2a3e6cd151297c1d732ce938368a292ec99d46e4694660b35665121fbb1168ff"
+  },
+  {
+    "family_id": "OGE18-A05",
+    "seed": 424242,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "16",
+    "fingerprint": "710fdbc276db09d849ba793af1789c5e1d5f9e42fd10e0bf6244366d93fb533c",
+    "image_sha256": "3009965c14ddc6010fe2d4367bdbdf0ad53322f4992f82e2196cc8cdee948039"
   }
 ]

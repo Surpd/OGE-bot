@@ -42,8 +42,9 @@ async def test_public_flag_hides_and_blocks_task18_and_forged_navigation():
     incoming.answer_photo.assert_not_awaited()
 
 
-async def test_same_png_and_counts_on_resume_and_corruption_fails_closed(monkeypatch):
-    monkeypatch.setattr(oge18_scheduler, "ENABLED_FAMILIES", FAMILIES)
+@pytest.mark.parametrize("family", (FAMILIES[0], "OGE18-A03"))
+async def test_same_png_and_counts_on_resume_and_corruption_fails_closed(monkeypatch, family):
+    monkeypatch.setattr(oge18_scheduler, "ENABLED_FAMILIES", (family,))
     repo = MemoryRepository()
     first = message()
     await router.choose_task18(first, repo)
