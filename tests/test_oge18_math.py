@@ -428,17 +428,38 @@ def test_exam_conditions_are_source_short_and_unitless():
         "OGE18-A05": "356974",
     }
     assert {family: SOURCES[family] for family in NEW_FAMILIES} == expected
-    assert CONDITIONS["OGE18-A01"] == (
-        "На клетчатой бумаге с размером клетки 1 × 1 изображена трапеция. Найдите её площадь."
-    )
+    expected_conditions = {
+        "OGE18-D05": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображены две точки. "
+            "Найдите расстояние между ними."
+        ),
+        "OGE18-L02": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён прямоугольный "
+            "треугольник. Найдите длину его большего катета."
+        ),
+        "OGE18-A01": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображена трапеция. Найдите её площадь."
+        ),
+        "OGE18-A03": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён треугольник. "
+            "Найдите его площадь."
+        ),
+        "OGE18-A04": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён параллелограмм. "
+            "Найдите его площадь."
+        ),
+        "OGE18-A05": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён ромб. "
+            "Найдите площадь этого ромба."
+        ),
+    }
+    assert {family: CONDITIONS[family] for family in NEW_FAMILIES} == expected_conditions
     for family in NEW_FAMILIES:
         condition = CONDITIONS[family].lower()
         assert "найдите" in condition
         assert not re.search(r"\b(?:см|мм|м²|км)\b", condition)
         assert not any(word in condition for word in ("подсказка", "формула", "пифагор"))
         assert not any(str(number) in condition for number in range(2, 10))
-    assert "длину его большего катета" in CONDITIONS["OGE18-L02"]
-    assert "Найдите площадь этого ромба" in CONDITIONS["OGE18-A05"]
 
 
 def test_teaching_fixed_coordinate_fixtures_use_school_formulas():
