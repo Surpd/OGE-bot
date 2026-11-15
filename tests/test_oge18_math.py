@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import re
 from copy import deepcopy
 from io import BytesIO
 
@@ -7,13 +8,17 @@ import pytest
 from PIL import Image, ImageDraw
 
 from app.math.oge18 import (
+    CONDITIONS,
     FAMILIES,
     GENERATOR_VERSION_V2,
     NEW_FAMILIES,
     POLICY,
+    SOURCES,
+    decimal,
     fingerprint,
     from_snapshot,
     generate,
+    teaching,
 )
 from app.math.oge18_oracle import answer
 from app.math.oge18_scheduler import build_task18_candidate_batch
@@ -294,7 +299,9 @@ def test_new_family_rejects_consistent_other_seed_model_and_png(family):
 
 
 @pytest.mark.parametrize("family", NEW_FAMILIES)
-@pytest.mark.parametrize("field", ("coordinate", "png", "hash", "condition", "version", "seed"))
+@pytest.mark.parametrize(
+    "field", ("coordinate", "png", "hash", "condition", "version", "seed", "content_version")
+)
 def test_new_family_snapshot_mutations_fail_closed(family, field):
     snapshot = generate(family, 73, GENERATOR_VERSION_V2).to_snapshot()
     damaged = deepcopy(snapshot)
@@ -313,10 +320,77 @@ def test_new_family_snapshot_mutations_fail_closed(family, field):
         damaged["condition"] += " "
     elif field == "version":
         damaged["generator_version"] = "oge18-grid-1"
+    elif field == "content_version":
+        damaged["learner_content_version"] = 99
     else:
         damaged["seed"] += 1
     with pytest.raises(ValueError):
         from_snapshot(damaged)
+
+
+@pytest.mark.parametrize("family", NEW_FAMILIES)
+def test_old_new_family_snapshot_content_remains_restorable(family):
+    from app.math.oge18 import SOURCES_V1
+    from app.math.oge18_oracle import answer_family
+
+    snapshot = generate(family, 29, GENERATOR_VERSION_V2).to_snapshot()
+    assert snapshot["learner_content_version"] == 2
+    previous = deepcopy(snapshot)
+    previous.pop("learner_content_version")
+    previous["condition"] = {
+        "OGE18-L02": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён прямоугольный "
+            "треугольник. Найдите больший катет."
+        ),
+        "OGE18-A01": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображена трапеция. "
+            "Найдите её площадь в см²."
+        ),
+        "OGE18-A05": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён ромб. Найдите его площадь."
+        ),
+    }.get(family, CONDITIONS[family])
+    value = decimal(
+        answer_family(family, tuple(tuple(point) for point in snapshot["points"]))
+    ).replace(".", ",")
+    if family == "OGE18-D05":
+        previous["hints"] = [
+            "Сосчитайте горизонтальное и вертикальное расстояния по клеткам.",
+            "Используйте теорему Пифагора для расстояния между точками.",
+        ]
+        previous["solution"] = [
+            "Квадрат расстояния равен сумме квадратов катетов.",
+            f"Расстояние между точками равно {value}.",
+        ]
+    elif family == "OGE18-L02":
+        previous["hints"] = [
+            "Найдите вершину прямого угла.",
+            "Сосчитайте клетки вдоль каждого катета и сравните длины.",
+        ]
+        previous["solution"] = [
+            "Катеты перпендикулярны; равенство длин проверяется по координатам.",
+            f"Больший катет равен {value}.",
+        ]
+    else:
+        label = {
+            "OGE18-A01": "трапеции",
+            "OGE18-A03": "треугольника",
+            "OGE18-A04": "параллелограмма",
+            "OGE18-A05": "ромба",
+        }[family]
+        previous["hints"] = [
+            "Определите размеры фигуры по клеткам.",
+            f"Используйте формулу площади {label}.",
+        ]
+        unit = " см²" if family == "OGE18-A01" else ""
+        previous["solution"] = [f"Площадь по координатам равна {value}{unit}."]
+    source = SOURCES_V1[family]
+    previous["provenance"] = {
+        "task_id": source,
+        "url": f"https://math-oge.sdamgia.ru/problem?id={source}",
+        "kind": "generated_analogue",
+    }
+    assert from_snapshot(previous).to_snapshot() == previous
 
 
 @pytest.mark.parametrize(
@@ -342,6 +416,130 @@ def test_new_family_original_coordinate_fixtures(family, points):
         "OGE18-A05": 8,
     }
     assert answer_family(family, points) == expected[family]
+
+
+def test_exam_conditions_are_source_short_and_unitless():
+    expected = {
+        "OGE18-D05": "461848",
+        "OGE18-L02": "348467",
+        "OGE18-A01": "348613",
+        "OGE18-A03": "348403",
+        "OGE18-A04": "348499",
+        "OGE18-A05": "356974",
+    }
+    assert {family: SOURCES[family] for family in NEW_FAMILIES} == expected
+    assert CONDITIONS["OGE18-A01"] == (
+        "На клетчатой бумаге с размером клетки 1 × 1 изображена трапеция. Найдите её площадь."
+    )
+    for family in NEW_FAMILIES:
+        condition = CONDITIONS[family].lower()
+        assert "найдите" in condition
+        assert not re.search(r"\b(?:см|мм|м²|км)\b", condition)
+        assert not any(word in condition for word in ("подсказка", "формула", "пифагор"))
+        assert not any(str(number) in condition for number in range(2, 10))
+    assert "длину его большего катета" in CONDITIONS["OGE18-L02"]
+    assert "Найдите площадь этого ромба" in CONDITIONS["OGE18-A05"]
+
+
+def test_teaching_fixed_coordinate_fixtures_use_school_formulas():
+    examples = {
+        "OGE18-D05": (((2, 2), (6, 5)), "По теореме Пифагора: d = √(4² + 3²) = 5."),
+        "OGE18-L02": (((2, 2), (2, 7), (9, 7)), "Больший катет: 7."),
+        "OGE18-A01": (((2, 2), (5, 4), (8, 4), (9, 2)), "S = (7 + 3) · 2 / 2 = 10."),
+        "OGE18-A03": (((2, 2), (4, 6), (9, 2)), "S = 7 · 4 / 2 = 14."),
+        "OGE18-A04": (((3, 3), (9, 3), (11, 6), (5, 6)), "S = 6 · 3 = 18."),
+        "OGE18-A05": (((7, 10), (8, 14), (9, 10), (8, 6)), "S = 2 · 8 / 2 = 8."),
+    }
+    for family, (points, expected_last_line) in examples.items():
+        _, solution = teaching(family, points)
+        assert solution[-1] == expected_last_line
+        assert all(
+            "см" not in line and "oracle" not in line and "shoelace" not in line
+            for line in solution
+        )
+
+
+def test_teaching_mass_seed_dimensions_match_generated_coordinates():
+    from math import isqrt
+
+    for family in NEW_FAMILIES:
+        for seed in range(100):
+            points = tuple(
+                tuple(point)
+                for point in generate(family, seed, GENERATOR_VERSION_V2).to_snapshot()["points"]
+            )
+            _, solution = teaching(family, points)
+            if family == "OGE18-D05":
+                dx, dy = abs(points[1][0] - points[0][0]), abs(points[1][1] - points[0][1])
+                assert solution[0] == f"По клеткам: Δx = {dx}, Δy = {dy}."
+                assert (
+                    solution[-1]
+                    == f"По теореме Пифагора: d = √({dx}² + {dy}²) = {isqrt(dx * dx + dy * dy)}."
+                )
+            elif family == "OGE18-L02":
+                legs = []
+                for i in range(3):
+                    v, p, q = points[i], points[(i + 1) % 3], points[(i + 2) % 3]
+                    u, w = (p[0] - v[0], p[1] - v[1]), (q[0] - v[0], q[1] - v[1])
+                    if u[0] * w[0] + u[1] * w[1] == 0:
+                        legs = [isqrt(u[0] ** 2 + u[1] ** 2), isqrt(w[0] ** 2 + w[1] ** 2)]
+                        break
+                small, large = sorted(legs)
+                assert solution == [
+                    f"Длины катетов: {small} и {large}.",
+                    f"Больший катет: {large}.",
+                ]
+            elif family == "OGE18-A01":
+                a, b, c, d = points
+                lower, upper, height = abs(d[0] - a[0]), abs(c[0] - b[0]), abs(b[1] - a[1])
+                assert solution[0] == f"Основания: {lower} и {upper}, высота: {height}."
+                assert solution[-1].startswith(f"S = ({lower} + {upper}) · {height} / 2 = ")
+            elif family == "OGE18-A03":
+                base, height = abs(points[2][0] - points[0][0]), abs(points[1][1] - points[0][1])
+                assert solution[0] == f"Основание: {base}, высота: {height}."
+                assert solution[-1].startswith(f"S = {base} · {height} / 2 = ")
+            elif family == "OGE18-A04":
+                base, height = abs(points[1][0] - points[0][0]), abs(points[3][1] - points[0][1])
+                assert solution[0] == f"Основание: {base}, высота: {height}."
+                assert solution[-1].startswith(f"S = {base} · {height} = ")
+            else:
+                first, second = abs(points[2][0] - points[0][0]), abs(points[3][1] - points[1][1])
+                assert solution[0] == f"Диагонали: {first} и {second}."
+                assert solution[-1].startswith(f"S = {first} · {second} / 2 = ")
+
+
+def test_teaching_uses_decimal_comma_and_snapshot_text_is_version_checked():
+    points = ((2, 2), (4, 6), (9, 2))
+    _, solution = teaching("OGE18-A03", points)
+    assert solution[-1] == "S = 7 · 4 / 2 = 14."
+    half_area = ((2, 2), (4, 5), (9, 2))
+    _, half_solution = teaching("OGE18-A03", half_area)
+    assert half_solution[-1] == "S = 7 · 3 / 2 = 10,5."
+    assert ".5" not in half_solution[-1]
+    snapshot = generate("OGE18-A01", 17, GENERATOR_VERSION_V2).to_snapshot()
+    restored = from_snapshot(snapshot)
+    assert restored.to_snapshot()["solution"] == snapshot["solution"]
+    snapshot["solution"][0] += " "
+    with pytest.raises(ValueError, match="Corrupted mathematical snapshot"):
+        from_snapshot(snapshot)
+
+
+def test_legacy_m01_m02_vectors_remain_unchanged_after_text_updates():
+    import json
+    from pathlib import Path
+
+    vectors = json.loads(Path("atlas/oge18_regression_vectors.json").read_text())
+    legacy = [vector for vector in vectors if vector["family_id"] in FAMILIES]
+    assert len(legacy) == 10
+    for vector in legacy:
+        snapshot = generate(vector["family_id"], vector["seed"]).to_snapshot()
+        assert snapshot["correct_answer"] == vector["correct_answer"]
+        assert snapshot["fingerprint"] == vector["fingerprint"]
+        assert snapshot["image_sha256"] == vector["image_sha256"]
+        assert (
+            from_snapshot(snapshot).png_bytes
+            == generate(vector["family_id"], vector["seed"]).png_bytes
+        )
 
 
 def test_rhombus_oracle_rejects_nonrhombus_and_distance_oracle_rejects_irrational():

@@ -22,11 +22,12 @@ GENERATOR_VERSION = "oge18-grid-1"
 FAMILIES = ("OGE18-M01", "OGE18-M02")
 NEW_FAMILIES = ("OGE18-D05", "OGE18-L02", "OGE18-A01", "OGE18-A03", "OGE18-A04", "OGE18-A05")
 GENERATOR_VERSION_V2 = "oge18-grid-2"
+LEARNER_CONTENT_VERSION = 2
 ENABLED_FAMILIES: tuple[str, ...] = ()
 SOURCES = {FAMILIES[0]: "348480", FAMILIES[1]: "348638"}
 SOURCES.update(
     dict(
-        zip(NEW_FAMILIES, ("461848", "348467", "311388", "348403", "348499", "356974"), strict=True)
+        zip(NEW_FAMILIES, ("461848", "348467", "348613", "348403", "348499", "356974"), strict=True)
     )
 )
 CONDITIONS = {
@@ -43,11 +44,10 @@ CONDITIONS.update(
         ),
         "OGE18-L02": (
             "На клетчатой бумаге с размером клетки 1 × 1 изображён прямоугольный "
-            "треугольник. Найдите больший катет."
+            "треугольник. Найдите длину его большего катета."
         ),
         "OGE18-A01": (
-            "На клетчатой бумаге с размером клетки 1 × 1 изображена трапеция. "
-            "Найдите её площадь в см²."
+            "На клетчатой бумаге с размером клетки 1 × 1 изображена трапеция. Найдите её площадь."
         ),
         "OGE18-A03": (
             "На клетчатой бумаге с размером клетки 1 × 1 изображён треугольник. "
@@ -58,10 +58,29 @@ CONDITIONS.update(
             "Найдите его площадь."
         ),
         "OGE18-A05": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён ромб. "
+            "Найдите площадь этого ромба."
+        ),
+    }
+)
+CONDITIONS_V1 = dict(CONDITIONS)
+CONDITIONS_V1.update(
+    {
+        "OGE18-L02": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображён прямоугольный "
+            "треугольник. Найдите больший катет."
+        ),
+        "OGE18-A01": (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображена трапеция. "
+            "Найдите её площадь в см²."
+        ),
+        "OGE18-A05": (
             "На клетчатой бумаге с размером клетки 1 × 1 изображён ромб. Найдите его площадь."
         ),
     }
 )
+SOURCES_V1 = dict(SOURCES)
+SOURCES_V1["OGE18-A01"] = "311388"
 
 
 def decimal(value: Fraction) -> str:
@@ -108,38 +127,106 @@ def teaching(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[st
     if family in NEW_FAMILIES:
         result = answer_family(family, points)
         value = decimal(result).replace(".", ",")
+
+        def length(first: Point, second: Point) -> int:
+            square = (second[0] - first[0]) ** 2 + (second[1] - first[1]) ** 2
+            exact = isqrt(square)
+            if exact * exact != square:
+                raise ValueError("The supported teaching model requires integer lengths")
+            return exact
+
         if family == "OGE18-D05":
+            dx = abs(points[1][0] - points[0][0])
+            dy = abs(points[1][1] - points[0][1])
             return (
                 [
                     "Сосчитайте горизонтальное и вертикальное расстояния по клеткам.",
                     "Используйте теорему Пифагора для расстояния между точками.",
                 ],
                 [
-                    "Квадрат расстояния равен сумме квадратов катетов.",
-                    f"Расстояние между точками равно {value}.",
+                    f"По клеткам: Δx = {dx}, Δy = {dy}.",
+                    f"По теореме Пифагора: d = √({dx}² + {dy}²) = {value}.",
                 ],
             )
         if family == "OGE18-L02":
+            legs: tuple[int, int] | None = None
+            for i in range(3):
+                vertex = points[i]
+                first, second = points[(i + 1) % 3], points[(i + 2) % 3]
+                u = (first[0] - vertex[0], first[1] - vertex[1])
+                v = (second[0] - vertex[0], second[1] - vertex[1])
+                if u[0] * v[0] + u[1] * v[1] == 0:
+                    legs = (length(vertex, first), length(vertex, second))
+                    break
+            if legs is None:
+                raise ValueError("Right angle is missing")
+            shorter, longer = sorted(legs)
             return (
                 [
                     "Найдите вершину прямого угла.",
                     "Сосчитайте клетки вдоль каждого катета и сравните длины.",
                 ],
                 [
-                    "Катеты перпендикулярны; равенство длин проверяется по координатам.",
-                    f"Больший катет равен {value}.",
+                    f"Длины катетов: {shorter} и {longer}.",
+                    f"Больший катет: {longer}.",
                 ],
             )
-        label = {
-            "OGE18-A01": "трапеции",
-            "OGE18-A03": "треугольника",
-            "OGE18-A04": "параллелограмма",
-            "OGE18-A05": "ромба",
-        }[family]
-        unit = " см²" if family == "OGE18-A01" else ""
+        if family == "OGE18-A01":
+            a, b, c, d = points
+            lower, upper = length(a, d), length(b, c)
+            height = Fraction(
+                abs((d[0] - a[0]) * (b[1] - a[1]) - (d[1] - a[1]) * (b[0] - a[0])), lower
+            )
+            h = decimal(height).replace(".", ",")
+            return (
+                [
+                    "Сосчитайте клетки вдоль оснований и найдите высоту трапеции.",
+                    "Подставьте значения в формулу площади трапеции.",
+                ],
+                [
+                    f"Основания: {lower} и {upper}, высота: {h}.",
+                    f"S = ({lower} + {upper}) · {h} / 2 = {value}.",
+                ],
+            )
+        if family == "OGE18-A03":
+            a, _, c = points
+            base = length(a, c)
+            cross = abs(
+                (points[1][0] - a[0]) * (c[1] - a[1]) - (points[1][1] - a[1]) * (c[0] - a[0])
+            )
+            height = Fraction(cross, base)
+            h = decimal(height).replace(".", ",")
+            return (
+                [
+                    "Сосчитайте клетки вдоль основания и найдите высоту треугольника.",
+                    "Площадь треугольника равна половине произведения основания на высоту.",
+                ],
+                [f"Основание: {base}, высота: {h}.", f"S = {base} · {h} / 2 = {value}."],
+            )
+        if family == "OGE18-A04":
+            a, b, _, d = points
+            base = length(a, b)
+            cross = abs((b[0] - a[0]) * (d[1] - a[1]) - (b[1] - a[1]) * (d[0] - a[0]))
+            height = Fraction(cross, base)
+            h = decimal(height).replace(".", ",")
+            return (
+                [
+                    "Сосчитайте клетки вдоль основания и найдите перпендикулярную высоту.",
+                    "Площадь параллелограмма равна произведению основания на высоту.",
+                ],
+                [f"Основание: {base}, высота: {h}.", f"S = {base} · {h} = {value}."],
+            )
+        a, b, c, d = points
+        first_diagonal, second_diagonal = length(a, c), length(b, d)
         return (
-            ["Определите размеры фигуры по клеткам.", f"Используйте формулу площади {label}."],
-            [f"Площадь по координатам равна {value}{unit}."],
+            [
+                "Найдите длины диагоналей ромба по клеткам.",
+                "Площадь ромба равна половине произведения диагоналей.",
+            ],
+            [
+                f"Диагонали: {first_diagonal} и {second_diagonal}.",
+                f"S = {first_diagonal} · {second_diagonal} / 2 = {value}.",
+            ],
         )
     if family == FAMILIES[0]:
         base = points[2][0] - points[0][0]
@@ -164,6 +251,46 @@ def teaching(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[st
             f"Основания занимают {lower} и {upper} клеток.",
             f"Длина средней линии: ({lower} + {upper}) : 2 = {formatted_result}.",
         ],
+    )
+
+
+def _teaching_v1(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[str]]:
+    """Restore the initial OGE18-grid-2 learner content for existing snapshots."""
+    if family not in NEW_FAMILIES:
+        return teaching(family, points)
+    value = decimal(answer_family(family, points)).replace(".", ",")
+    if family == "OGE18-D05":
+        return (
+            [
+                "Сосчитайте горизонтальное и вертикальное расстояния по клеткам.",
+                "Используйте теорему Пифагора для расстояния между точками.",
+            ],
+            [
+                "Квадрат расстояния равен сумме квадратов катетов.",
+                f"Расстояние между точками равно {value}.",
+            ],
+        )
+    if family == "OGE18-L02":
+        return (
+            [
+                "Найдите вершину прямого угла.",
+                "Сосчитайте клетки вдоль каждого катета и сравните длины.",
+            ],
+            [
+                "Катеты перпендикулярны; равенство длин проверяется по координатам.",
+                f"Больший катет равен {value}.",
+            ],
+        )
+    label = {
+        "OGE18-A01": "трапеции",
+        "OGE18-A03": "треугольника",
+        "OGE18-A04": "параллелограмма",
+        "OGE18-A05": "ромба",
+    }[family]
+    unit = " см²" if family == "OGE18-A01" else ""
+    return (
+        ["Определите размеры фигуры по клеткам.", f"Используйте формулу площади {label}."],
+        [f"Площадь по координатам равна {value}{unit}."],
     )
 
 
@@ -308,6 +435,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
     if family_id in NEW_FAMILIES:
         snapshot["renderer_version"] = VERSION_V2
         snapshot["geometry_model"] = "oge18-grid-model-2"
+        snapshot["learner_content_version"] = LEARNER_CONTENT_VERSION
     # The generator already checked coordinates against its independent oracle.
     # Full snapshot validation belongs at persistence and restore boundaries.
     return _pack(snapshot)
@@ -321,6 +449,9 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
         is_legacy = family in FAMILIES
         expected_gv = GENERATOR_VERSION if is_legacy else GENERATOR_VERSION_V2
         expected_rv = RENDERER_VERSION if is_legacy else VERSION_V2
+        content_version = 1 if is_legacy else snapshot.get("learner_content_version", 1)
+        if content_version not in (1, LEARNER_CONTENT_VERSION):
+            raise ValueError("Unknown learner content version")
         if (
             family not in (*FAMILIES, *NEW_FAMILIES)
             or snapshot["generator_version"] != expected_gv
@@ -355,9 +486,12 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
         result = answer(points) if is_legacy else answer_family(family, points)
         if result != expected_result:
             raise ValueError("Seed-derived answer mismatch")
-        hints, solution = teaching(family, points)
+        hints, solution = (
+            _teaching_v1(family, points) if content_version == 1 else teaching(family, points)
+        )
+        conditions = CONDITIONS if content_version == LEARNER_CONTENT_VERSION else CONDITIONS_V1
         if (
-            snapshot["condition"] != CONDITIONS[family]
+            snapshot["condition"] != conditions[family]
             or snapshot["hints"] != hints
             or snapshot["solution"] != solution
             or snapshot["correct_answer"] != decimal(result)
@@ -369,7 +503,9 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
             or (not is_legacy and snapshot["geometry_model"] != "oge18-grid-model-2")
         ):
             raise ValueError("Corrupted mathematical snapshot")
-        source = SOURCES[family]
+        source = (
+            SOURCES[family] if content_version == LEARNER_CONTENT_VERSION else SOURCES_V1[family]
+        )
         if snapshot["provenance"] != {
             "task_id": source,
             "url": f"https://math-oge.sdamgia.ru/problem?id={source}",

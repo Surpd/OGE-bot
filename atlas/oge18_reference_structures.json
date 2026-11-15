@@ -188,7 +188,8 @@
       "risks": [
         "Source is a catalog task; no claim of full exam-bank coverage.",
         "Mobile Telegram client smoke not performed."
-      ]
+      ],
+      "learner_content_version": 2
     },
     {
       "family_id": "OGE18-L02",
@@ -259,42 +260,48 @@
       "risks": [
         "Source is a catalog task; no claim of full exam-bank coverage.",
         "Mobile Telegram client smoke not performed."
-      ]
+      ],
+      "learner_content_version": 2
     },
     {
       "family_id": "OGE18-A01",
       "exam_number": 18,
       "name": "Площадь трапеции",
       "status": "research_only",
-      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, public flag empty; original catalog structure only, not a FIPI bank completeness claim.",
+      "status_reason": "Source 348613 wording and original diagram independently checked on 2026-11-15: 1 × 1 grid, horizontal-base trapezoid, no auxiliary constructions, asks area without units. Related source 311388 is a distinct unit-bearing wording (1 cm × 1 cm; answer in cm²). Closed implementation; public flag empty; catalog sample only.",
       "sources": [
+        {
+          "task_id": "348613",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348613",
+          "provenance": "catalog_verified",
+          "verification_status": "Original problem SVG independently inspected: four outlined sides and filled trapezoid on 1 × 1 grid; no height or other auxiliary construction. Wording asks for area without units; source control solution gives bases 3 and 7, height 2, answer 10."
+        },
         {
           "task_id": "311388",
           "url": "https://math-oge.sdamgia.ru/problem?id=311388",
-          "provenance": "catalog_verified",
-          "verification_status": "Original diagram independently opened and inspected; compared pictured objects and asked quantity with model; source solution/control answer checked; catalog source, not final FIPI-2027 verification."
+          "provenance": "related_catalog_verified",
+          "verification_status": "Related confirmed variant retained: 1 cm × 1 cm cells and area requested in cm²; not used for the unitless primary condition."
         }
       ],
       "related_source_ids_not_individually_rechecked": [
-        "348613",
         "348653",
         "349175",
         "349263",
         "349431",
         "349591"
       ],
-      "mathematical_structure": "Трапеция на клетчатой бумаге с горизонтальными основаниями; дополнительных построений нет.",
-      "question_intent": "Трапеция на клетчатой бумаге с горизонтальными основаниями; дополнительных построений нет.",
+      "mathematical_structure": "Трапеция на клетчатой бумаге с горизонтальными основаниями; дополнительных построений нет; ответ без единиц.",
+      "question_intent": "Найти площадь трапеции по клеткам, без добавления единиц измерения.",
       "parameter_model": {
         "control_fixture": {
           "bases": [
-            2,
-            3
+            3,
+            7
           ],
-          "height": 4
+          "height": 2
         },
         "control_answer": "10",
-        "implemented_subset": "Выпуклая решётчатая трапеция; горизонтальные основания; площадь Fraction в см²."
+        "implemented_subset": "Выпуклая решётчатая трапеция; горизонтальные основания; точная Fraction-площадь и ответ без единиц."
       },
       "generation_algorithm": "local Random(seed), bounded validated safe domain; generator oge18-grid-2",
       "answer_policy": {
@@ -311,9 +318,20 @@
         "method": "shoelace cross-check against trapezoid formula"
       },
       "hints_and_solution": {
-        "method": "Two short hints and exact coordinate-derived answer."
+        "method": "Два коротких намёка; в разборе координатно вычисленные основания и высота подставляются в формулу площади трапеции."
       },
       "test_vectors": [
+        {
+          "source_id": "348613",
+          "parameters": {
+            "bases": [
+              3,
+              7
+            ],
+            "height": 2
+          },
+          "answer": "10"
+        },
         {
           "source_id": "311388",
           "parameters": {
@@ -323,7 +341,8 @@
             ],
             "height": 4
           },
-          "answer": "10"
+          "answer": "10",
+          "notes": "related unit-bearing catalog variant"
         }
       ],
       "difficulty": "Read coordinate lengths or exact area from a square grid.",
@@ -334,7 +353,8 @@
       "risks": [
         "Source is a catalog task; no claim of full exam-bank coverage.",
         "Mobile Telegram client smoke not performed."
-      ]
+      ],
+      "learner_content_version": 2
     },
     {
       "family_id": "OGE18-A03",
@@ -400,7 +420,8 @@
       "risks": [
         "Source is a catalog task; no claim of full exam-bank coverage.",
         "Mobile Telegram client smoke not performed."
-      ]
+      ],
+      "learner_content_version": 2
     },
     {
       "family_id": "OGE18-A04",
@@ -466,7 +487,8 @@
       "risks": [
         "Source is a catalog task; no claim of full exam-bank coverage.",
         "Mobile Telegram client smoke not performed."
-      ]
+      ],
+      "learner_content_version": 2
     },
     {
       "family_id": "OGE18-A05",
@@ -534,7 +556,8 @@
       "risks": [
         "Source is a catalog task; no claim of full exam-bank coverage.",
         "Mobile Telegram client smoke not performed."
-      ]
+      ],
+      "learner_content_version": 2
     }
   ]
 }

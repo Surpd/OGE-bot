@@ -17,6 +17,7 @@
       "source_url": "https://math-oge.sdamgia.ru/problem?id=348480",
       "generator_version": "oge18-grid-1",
       "renderer_version": "oge18-pillow-1",
+      "learner_content_version": 1,
       "smoke_seed_count": 50,
       "candidate_count": 462,
       "seed_attempts_for_novelty": 462,
@@ -35,9 +36,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 33.888,
-        "repeat_restore_sha_and_renderer_bytes": 33.937,
-        "full_pixel_audit_smoke": 162.398
+        "generation_and_png_hash": 34.242,
+        "repeat_restore_sha_and_renderer_bytes": 34.313,
+        "full_pixel_audit_smoke": 165.505
       },
       "hold_reason": null
     },
@@ -49,6 +50,7 @@
       "source_url": "https://math-oge.sdamgia.ru/problem?id=348638",
       "generator_version": "oge18-grid-1",
       "renderer_version": "oge18-pillow-1",
+      "learner_content_version": 1,
       "smoke_seed_count": 50,
       "candidate_count": 300,
       "seed_attempts_for_novelty": 300,
@@ -76,9 +78,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 32.702,
-        "repeat_restore_sha_and_renderer_bytes": 32.861,
-        "full_pixel_audit_smoke": 64.393
+        "generation_and_png_hash": 33.249,
+        "repeat_restore_sha_and_renderer_bytes": 33.229,
+        "full_pixel_audit_smoke": 66.763
       },
       "hold_reason": null
     },
@@ -90,6 +92,7 @@
       "source_url": "https://math-oge.sdamgia.ru/problem?id=461848",
       "generator_version": "oge18-grid-2",
       "renderer_version": "oge18-pillow-2",
+      "learner_content_version": 2,
       "smoke_seed_count": 50,
       "candidate_count": 300,
       "seed_attempts_for_novelty": 300,
@@ -105,9 +108,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 3,
       "performance_ms_median": {
-        "generation_and_png_hash": 31.427,
-        "repeat_restore_sha_and_renderer_bytes": 31.406,
-        "full_pixel_audit_smoke": 106.62
+        "generation_and_png_hash": 32.598,
+        "repeat_restore_sha_and_renderer_bytes": 31.871,
+        "full_pixel_audit_smoke": 107.9
       },
       "hold_reason": "Finite implemented parameter model has exactly 3 normalized shapes; no synthetic novelty added."
     },
@@ -119,6 +122,7 @@
       "source_url": "https://math-oge.sdamgia.ru/problem?id=348467",
       "generator_version": "oge18-grid-2",
       "renderer_version": "oge18-pillow-2",
+      "learner_content_version": 2,
       "smoke_seed_count": 50,
       "candidate_count": 300,
       "seed_attempts_for_novelty": 300,
@@ -137,9 +141,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 32.893,
-        "repeat_restore_sha_and_renderer_bytes": 32.784,
-        "full_pixel_audit_smoke": 109.654
+        "generation_and_png_hash": 33.791,
+        "repeat_restore_sha_and_renderer_bytes": 33.369,
+        "full_pixel_audit_smoke": 111.25
       },
       "hold_reason": "Finite implemented parameter model has exactly 21 normalized shapes; no synthetic novelty added."
     },
@@ -147,10 +151,11 @@
       "qa_status": "implemented_closed",
       "source_status": "catalog_visual_verified",
       "public_enabled": false,
-      "source_id": "311388",
-      "source_url": "https://math-oge.sdamgia.ru/problem?id=311388",
+      "source_id": "348613",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=348613",
       "generator_version": "oge18-grid-2",
       "renderer_version": "oge18-pillow-2",
+      "learner_content_version": 2,
       "smoke_seed_count": 50,
       "candidate_count": 319,
       "seed_attempts_for_novelty": 319,
@@ -207,9 +212,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 33.265,
-        "repeat_restore_sha_and_renderer_bytes": 32.931,
-        "full_pixel_audit_smoke": 108.394
+        "generation_and_png_hash": 33.44,
+        "repeat_restore_sha_and_renderer_bytes": 33.318,
+        "full_pixel_audit_smoke": 108.801
       },
       "hold_reason": null
     },
@@ -221,11 +226,12 @@
       "source_url": "https://math-oge.sdamgia.ru/problem?id=348403",
       "generator_version": "oge18-grid-2",
       "renderer_version": "oge18-pillow-2",
+      "learner_content_version": 2,
       "smoke_seed_count": 50,
       "candidate_count": 1200,
       "seed_attempts_for_novelty": 1200,
       "unique_content_fingerprints": 128,
-      "known_model_capacity_note": "Finite implemented parameter model has exactly 130 normalized shapes; 128 distinct fingerprints observed in 1200 seed attempts; no synthetic novelty added.",
+      "known_model_capacity_note": "Finite implemented parameter model has exactly 130 normalized shapes; no synthetic novelty added.",
       "answers": {
         "5": 45,
         "6": 26,
@@ -270,11 +276,11 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 32.886,
-        "repeat_restore_sha_and_renderer_bytes": 32.763,
-        "full_pixel_audit_smoke": 108.623
+        "generation_and_png_hash": 33.137,
+        "repeat_restore_sha_and_renderer_bytes": 32.672,
+        "full_pixel_audit_smoke": 108.023
       },
-      "hold_reason": "Finite implemented parameter model has exactly 130 normalized shapes; 128 distinct fingerprints observed in 1200 seed attempts; no synthetic novelty added."
+      "hold_reason": "Finite implemented parameter model has exactly 130 normalized shapes; no synthetic novelty added."
     },
     "OGE18-A04": {
       "qa_status": "math_hold",
@@ -284,6 +290,7 @@
       "source_url": "https://math-oge.sdamgia.ru/problem?id=348499",
       "generator_version": "oge18-grid-2",
       "renderer_version": "oge18-pillow-2",
+      "learner_content_version": 2,
       "smoke_seed_count": 50,
       "candidate_count": 355,
       "seed_attempts_for_novelty": 355,
@@ -316,9 +323,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 32.656,
-        "repeat_restore_sha_and_renderer_bytes": 32.809,
-        "full_pixel_audit_smoke": 108.113
+        "generation_and_png_hash": 32.802,
+        "repeat_restore_sha_and_renderer_bytes": 32.874,
+        "full_pixel_audit_smoke": 108.095
       },
       "hold_reason": "Finite implemented parameter model has exactly 75 normalized shapes; no synthetic novelty added."
     },
@@ -330,6 +337,7 @@
       "source_url": "https://math-oge.sdamgia.ru/problem?id=356974",
       "generator_version": "oge18-grid-2",
       "renderer_version": "oge18-pillow-2",
+      "learner_content_version": 2,
       "smoke_seed_count": 50,
       "candidate_count": 300,
       "seed_attempts_for_novelty": 300,
@@ -348,9 +356,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 6,
       "performance_ms_median": {
-        "generation_and_png_hash": 33.231,
-        "repeat_restore_sha_and_renderer_bytes": 32.969,
-        "full_pixel_audit_smoke": 107.864
+        "generation_and_png_hash": 33.674,
+        "repeat_restore_sha_and_renderer_bytes": 33.234,
+        "full_pixel_audit_smoke": 109.097
       },
       "hold_reason": "Finite implemented parameter model has exactly 6 normalized shapes; no synthetic novelty added."
     }
@@ -378,10 +386,6 @@
     430
   ],
   "visual_review": "All six original catalog source diagrams were manually inspected. The 360px and 720px contact sheets for all six new families were manually inspected; this covers 20 distinct variants per family where available, 3 for D05, and 6 for A05.",
-  "live_telegram_mobile_smoke": "not_performed; no public release claim",
-  "public_enabled_families": [],
-  "source_originals_embedded": false,
-  "preview_policy": "Maximum 20 distinct generated PNG per family in each contact sheet; one seed0 PNG retained; existing M01/M02 previews retained.",
   "manual_contact_sheet_review": {
     "new_families_reviewed": [
       "OGE18-D05",
@@ -403,5 +407,9 @@
       "OGE18-A04": 20,
       "OGE18-A05": 6
     }
-  }
+  },
+  "live_telegram_mobile_smoke": "not_performed; no public release claim",
+  "public_enabled_families": [],
+  "source_originals_embedded": false,
+  "preview_policy": "Maximum 20 distinct generated PNG per family in each contact sheet; one seed0 PNG retained; existing M01/M02 previews retained."
 }
