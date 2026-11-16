@@ -19,7 +19,10 @@ def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
 
 
 def number_menu(
-    *, include_task7: bool = False, include_task13: bool = False, include_task11: bool = False,
+    *,
+    include_task7: bool = False,
+    include_task13: bool = False,
+    include_task11: bool = False,
 ) -> InlineKeyboardMarkup:
     from app.bot.trainings import TRAININGS
 
@@ -29,7 +32,7 @@ def number_menu(
         for training in TRAININGS
         if release_flags.get(training.number, training.available)
     ]
-    rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
+    rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
     rows.insert(0, [_button("№1–5 · Практические задания", "nav:oge15")])
     rows.append([_button("↩ В меню", "nav:main")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -50,13 +53,16 @@ def training_menu(
         rows = [[_button("➡ Следующее", f"{prefix}:next:{problem_id}")]]
     else:
         rows = [
-            [_button("💡 Подсказка", f"{prefix}:hint:{problem_id}"),
-             _button("📘 Разбор", f"{prefix}:solution:{problem_id}")],
+            [
+                _button("💡 Подсказка", f"{prefix}:hint:{problem_id}"),
+                _button("📘 Разбор", f"{prefix}:solution:{problem_id}"),
+            ],
             [_button("⏭ Пропустить", f"{prefix}:skip:{problem_id}")],
         ]
         if choices:
-            rows.insert(0, [_button(str(n), f"{prefix}:choose:{problem_id}:{n}")
-                            for n in range(1, 5)])
+            rows.insert(
+                0, [_button(str(n), f"{prefix}:choose:{problem_id}:{n}") for n in range(1, 5)]
+            )
     rows.append([_button("↩ В меню", f"{prefix}:menu:{problem_id}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
