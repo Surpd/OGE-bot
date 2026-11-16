@@ -209,3 +209,22 @@ def test_sample_review_selects_reproducible_extremes_and_suspicious_example() ->
     assert samples[7] in selected
     assert samples[0] in selected
     assert samples[-1] in selected
+
+
+def test_public_triangle_auditor_uses_current_generator_and_real_snapshot_content() -> None:
+    from app.math.oge15_complete import ALL_FAMILIES, VERSION
+    from scripts.oge_bank_quality_audit import _oracle, _sample_record
+
+    families, make = _ordinary_generator(15)
+    assert set(families) == set(ALL_FAMILIES)
+    for family in families:
+        problem = make(family, 42)
+        snapshot = problem.to_snapshot()
+        assert snapshot["generator_version"] == VERSION
+        assert _oracle(15, family, problem)
+        record = _sample_record(problem, 15, 42, True)
+        assert record["condition"] == snapshot["condition"]
+        assert record["answer"] == snapshot["correct_answer"]
+        assert record["hints"] and record["solution"]
+        assert record["construction_parameters"] is not None
+        assert record["image_sha256"] == snapshot.get("image_sha256", "")

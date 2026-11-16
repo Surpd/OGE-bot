@@ -1,0 +1,3594 @@
+[
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Два угла треугольника равны 81° и 34°. Найдите третий угол. Ответ дайте в градусах.",
+    "correct_answer": "65",
+    "family_id": "OGE15-F01",
+    "fingerprint": "446407e5ba076b6d12d55289d479d4d3e134556b2d5a53a0a80837440c1c2111",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          2.5354000908613226,
+          16.007886163982914
+        ],
+        "C": [
+          10,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Сумма внутренних углов треугольника равна 180°."
+    ],
+    "parameters": [
+      81,
+      34
+    ],
+    "problem_id": "68281c5a-7d66-57ea-a9ee-08b92025b2aa",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348885",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348885"
+    },
+    "seed": 0,
+    "solution": [
+      "Третий угол: 180° − 81° − 34° = 65°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Два угла треугольника равны 58° и 58°. Найдите третий угол. Ответ дайте в градусах.",
+    "correct_answer": "64",
+    "family_id": "OGE15-F01",
+    "fingerprint": "4f06af41254af0714fb9883a61b9569ec917a98d00b9aa96e8a461efec678e62",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          5.616288532109225,
+          8.98794046299167
+        ],
+        "C": [
+          10,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Сумма внутренних углов треугольника равна 180°."
+    ],
+    "parameters": [
+      58,
+      58
+    ],
+    "problem_id": "87d87b2b-4235-56f7-b645-cf3a3b98fc4e",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348885",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348885"
+    },
+    "seed": 42,
+    "solution": [
+      "Третий угол: 180° − 58° − 58° = 64°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол BAC равен 70°, AD — биссектриса. Найдите угол BAD. Ответ дайте в градусах.",
+    "correct_answer": "35",
+    "family_id": "OGE15-F02",
+    "fingerprint": "b6b8ce46a10453ab113b3633d42c4b16af09e86f36153fb6a6634949ab2431e7",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [
+        [
+          "B",
+          "A",
+          "D",
+          "C"
+        ]
+      ],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          3.0253457818265086,
+          8.31206922161062
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "D": [
+          6.299038459039684,
+          4.410634212492461
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "A",
+          "D"
+        ]
+      ]
+    },
+    "hints": [
+      "Биссектриса делит угол на две равные части."
+    ],
+    "image_sha256": "c97c28e59a6860a01ff4e3ed3ad3a0d5dae30c2bf7e9d3a37d6bba749c50ddbc",
+    "parameters": [
+      70,
+      50
+    ],
+    "problem_id": "82d8d146-3f61-506b-bd57-d550a41b04a9",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348610",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348610"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "∠BAD = ∠DAC = 70° / 2 = 35°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол BAC равен 52°, AD — биссектриса. Найдите угол BAD. Ответ дайте в градусах.",
+    "correct_answer": "26",
+    "family_id": "OGE15-F02",
+    "fingerprint": "b0c6760d9e179526cb5f873263bdf9ecadbac0b9abbfdd2f9b745dddad1f1e18",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [
+        [
+          "B",
+          "A",
+          "D",
+          "C"
+        ]
+      ],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          5.273636390055592,
+          6.749946768680571
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "D": [
+          7.4542641657297075,
+          3.6356875574050926
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "A",
+          "D"
+        ]
+      ]
+    },
+    "hints": [
+      "Биссектриса делит угол на две равные части."
+    ],
+    "image_sha256": "4233b7245b594842dfee55e70bc92bf85cb067de2ca1af0f832bc5fa18d6092a",
+    "parameters": [
+      52,
+      55
+    ],
+    "problem_id": "38c1d816-c315-5998-a99c-e077280accd1",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348610",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348610"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "∠BAD = ∠DAC = 52° / 2 = 26°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C равен 85°. Найдите внешний угол при вершине C. Ответ дайте в градусах.",
+    "correct_answer": "95",
+    "family_id": "OGE15-F03",
+    "fingerprint": "7d7b866de3de32880b6263a74bd09f0b00d763a7ebdeacc741ba8824327ffa67",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [
+        [
+          "B",
+          "C",
+          "X"
+        ]
+      ],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          9.128442572523417,
+          9.961946980917455
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "X": [
+          12.5,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "C",
+          "X"
+        ]
+      ]
+    },
+    "hints": [
+      "Внешний угол смежен с внутренним углом при той же вершине."
+    ],
+    "image_sha256": "11ec6e380bac16e2c6e3a5167b320e59a2aaef71eba86f7564f2bfe52bf3cc97",
+    "parameters": [
+      85
+    ],
+    "problem_id": "feb32665-2b85-5200-b71b-59b6fed653f9",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356190",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356190"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "Внешний угол: 180° − 85° = 95°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C равен 90°. Найдите внешний угол при вершине C. Ответ дайте в градусах.",
+    "correct_answer": "90",
+    "family_id": "OGE15-F03",
+    "fingerprint": "cbe0f5008d41833bed6fdc48a09de152985ee34b6c4cf7fe27bb55cb471d1698",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [
+        [
+          "B",
+          "C",
+          "X"
+        ]
+      ],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          10.000000000000002,
+          10.0
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "X": [
+          12.5,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "C",
+          "X"
+        ]
+      ]
+    },
+    "hints": [
+      "Внешний угол смежен с внутренним углом при той же вершине."
+    ],
+    "image_sha256": "20af93906c6233be423567a8d2db211413eb691461c49791d2d7c6170212aee7",
+    "parameters": [
+      90
+    ],
+    "problem_id": "b1c418c3-bc47-59fa-bebb-36e53e0d4b28",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356190",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356190"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "Внешний угол: 180° − 90° = 90°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В остроугольном треугольнике ABC проведена высота BH, угол BAC равен 49°. Найдите угол ABH. Ответ дайте в градусах.",
+    "correct_answer": "41",
+    "family_id": "OGE15-F04",
+    "fingerprint": "d485febfe5cc3ae5e94e58af438899d31b6cf041e5d67fe86440524579bbbc57",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          6.560590289905073,
+          7.54709580222772
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "H": [
+          6.560590289905073,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Рассмотрите прямоугольный треугольник ABH."
+    ],
+    "image_sha256": "6f73cc5e8c598db05b3a155f40bfd8ff5411fc77619acecebe38f569d4e2ad2c",
+    "parameters": [
+      49
+    ],
+    "problem_id": "e7b4ace0-6d9c-5733-b9a5-8171d66084ad",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356180",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356180"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "BH ⟂ AC, поэтому ∠AHB = 90°.",
+      "∠ABH = 180° − 90° − 49° = 41°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В остроугольном треугольнике ABC проведена высота BH, угол BAC равен 57°. Найдите угол ABH. Ответ дайте в градусах.",
+    "correct_answer": "33",
+    "family_id": "OGE15-F04",
+    "fingerprint": "97f2f9ccefc673056658ccb6e231fa724bbff4856af5f4b9a4eced640eb3030f",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          5.446390350150271,
+          8.386705679454241
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "H": [
+          5.446390350150271,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Рассмотрите прямоугольный треугольник ABH."
+    ],
+    "image_sha256": "95a7b97cf81f94c4259db56500a72a5fd4e220f31157f3eae47cc72b1cc18286",
+    "parameters": [
+      57
+    ],
+    "problem_id": "d6a7348a-4e21-5d10-9bed-9c2aefb7a067",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356180",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356180"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "BH ⟂ AC, поэтому ∠AHB = 90°.",
+      "∠ABH = 180° − 90° − 57° = 33°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В равнобедренном треугольнике ABC с основанием AC внешний угол при вершине C равен 134°. Найдите угол ABC. Ответ дайте в градусах.",
+    "correct_answer": "88",
+    "family_id": "OGE15-F05",
+    "fingerprint": "e1674140f5ca2fe584c34dc941ab119be28815cfa5b20642359bc4e3fcf98ed9",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ]
+      ],
+      "exterior_label": "134°",
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          4.999999999999999,
+          5.177651568952847
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "X": [
+          12.5,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "C",
+          "X"
+        ]
+      ]
+    },
+    "hints": [
+      "Углы при основании равнобедренного треугольника равны."
+    ],
+    "image_sha256": "d14d02da22da09f66d0ce47e8e679be52ad420ebbda22c93d23eed957442b46d",
+    "parameters": [
+      134
+    ],
+    "problem_id": "f75fa2ad-66a2-55e2-9f83-3ba5c9545ff0",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "311680",
+      "url": "https://math-oge.sdamgia.ru/problem?id=311680"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "∠A = ∠C = 180° − 134° = 46°.",
+      "∠B = 180° − 2 · 46° = 88°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В равнобедренном треугольнике ABC с основанием AC внешний угол при вершине C равен 120°. Найдите угол ABC. Ответ дайте в градусах.",
+    "correct_answer": "60",
+    "family_id": "OGE15-F05",
+    "fingerprint": "55ca50fcdf0651c3a3409b7b069aabba7fffc679302e51868fcd58a931448a5e",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ]
+      ],
+      "exterior_label": "120°",
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          5.000000000000001,
+          8.660254037844386
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "X": [
+          12.5,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "C",
+          "X"
+        ]
+      ]
+    },
+    "hints": [
+      "Углы при основании равнобедренного треугольника равны."
+    ],
+    "image_sha256": "0a3d872dfce0f943e8c20ed8e598a652be3d3070d2441f25b5afce9c8f20781d",
+    "parameters": [
+      120
+    ],
+    "problem_id": "4b518dd3-ea0b-547c-9461-75170a283fcd",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "311680",
+      "url": "https://math-oge.sdamgia.ru/problem?id=311680"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "∠A = ∠C = 180° − 120° = 60°.",
+      "∠B = 180° − 2 · 60° = 60°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Медиана равностороннего треугольника равна 17√3. Найдите сторону треугольника.",
+    "correct_answer": "34",
+    "family_id": "OGE15-F06",
+    "fingerprint": "905b2d88c5759ef238d3f029062249c573654bc5a3b1cc51043f64f20f70a356",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "H"
+          ],
+          [
+            "H",
+            "C"
+          ]
+        ]
+      ],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          17,
+          29.444863728670914
+        ],
+        "C": [
+          34,
+          0
+        ],
+        "H": [
+          17,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Медиана равностороннего треугольника является также высотой."
+    ],
+    "image_sha256": "50ad3f70d290f896514bd6403d103a8a196a82408308c0ccfc38f73f2b856063",
+    "parameters": [
+      17
+    ],
+    "problem_id": "a5843dd9-62ec-5961-83c3-9361cb4c4fd3",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "350010",
+      "url": "https://math-oge.sdamgia.ru/problem?id=350010"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "Высота равностороннего треугольника равна a√3 / 2.",
+      "a = 2 · 17√3 / √3 = 34."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Медиана равностороннего треугольника равна 25√3. Найдите сторону треугольника.",
+    "correct_answer": "50",
+    "family_id": "OGE15-F06",
+    "fingerprint": "5e31da5dbecb3d4d2376294cec8f60a92b447df6ea6bb53ad598b803281afceb",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "H"
+          ],
+          [
+            "H",
+            "C"
+          ]
+        ]
+      ],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          25,
+          43.30127018922193
+        ],
+        "C": [
+          50,
+          0
+        ],
+        "H": [
+          25,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Медиана равностороннего треугольника является также высотой."
+    ],
+    "image_sha256": "50ad3f70d290f896514bd6403d103a8a196a82408308c0ccfc38f73f2b856063",
+    "parameters": [
+      25
+    ],
+    "problem_id": "ae44ecbb-efb9-569e-bc76-f5e277a4b004",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "350010",
+      "url": "https://math-oge.sdamgia.ru/problem?id=350010"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "Высота равностороннего треугольника равна a√3 / 2.",
+      "a = 2 · 25√3 / √3 = 50."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведена медиана BM. Найдите угол A, если угол C равен 57° и BM = AM = MC. Ответ дайте в градусах.",
+    "correct_answer": "33",
+    "family_id": "OGE15-F07",
+    "fingerprint": "bc1316661482f60db49c0d1d16fd3de76741a9c683b950ef934d2a107f555ffe",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "M"
+          ],
+          [
+            "M",
+            "C"
+          ],
+          [
+            "B",
+            "M"
+          ]
+        ]
+      ],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          7.033683215379002,
+          4.567727288213005
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "M": [
+          5,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "M"
+        ]
+      ]
+    },
+    "hints": [
+      "Рассмотрите равнобедренные треугольники ABM и CBM."
+    ],
+    "image_sha256": "cb5ab8caa32b50b41d4e516aa47f3942be110c6f1ef9303ec9cde227d4c828f4",
+    "parameters": [
+      57
+    ],
+    "problem_id": "3e3d8337-df9a-5abc-82b2-2bc2b2dcee92",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "472372",
+      "url": "https://math-oge.sdamgia.ru/problem?id=472372"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "Пусть ∠A = x. Тогда ∠ABM = x, а ∠MBC = ∠C.",
+      "2x + 2 · 57° = 180°. Значит, x = 90° − 57° = 33°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведена медиана BM. Найдите угол A, если угол C равен 41° и BM = AM = MC. Ответ дайте в градусах.",
+    "correct_answer": "49",
+    "family_id": "OGE15-F07",
+    "fingerprint": "9269070a298fcd3ccae602faeb4b8a31e3c415e714073a892e0e1a55759b5145",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "M"
+          ],
+          [
+            "M",
+            "C"
+          ],
+          [
+            "B",
+            "M"
+          ]
+        ]
+      ],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          4.304134495199673,
+          4.951340343707852
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "M": [
+          5,
+          0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "M"
+        ]
+      ]
+    },
+    "hints": [
+      "Рассмотрите равнобедренные треугольники ABM и CBM."
+    ],
+    "image_sha256": "51ed53dcffcfc05007f2dce02a2d24843ccbe63b42334c2c4126e6843df619eb",
+    "parameters": [
+      41
+    ],
+    "problem_id": "65a1e59b-fd9b-59ca-ad1e-853e0fe5bd6f",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "472372",
+      "url": "https://math-oge.sdamgia.ru/problem?id=472372"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "Пусть ∠A = x. Тогда ∠ABM = x, а ∠MBC = ∠C.",
+      "2x + 2 · 41° = 180°. Значит, x = 90° − 41° = 49°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведены медиана BM и высота BH. AC = 88, BC = BM. Найдите AH.",
+    "correct_answer": "66",
+    "family_id": "OGE15-F08",
+    "fingerprint": "44b8f036f67fe5f920ff25c87db8ee7903909b994cc3afdf58458fd1fb0e7892",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          66,
+          60
+        ],
+        "C": [
+          88,
+          0
+        ],
+        "H": [
+          66,
+          0
+        ],
+        "M": [
+          44,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "M"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Треугольник BMC равнобедренный. Его высота является медианой."
+    ],
+    "image_sha256": "d9f962ea07eed675a6c65c8f9b20771e7d2efceaf3134cbfdb25a4d9244651d6",
+    "parameters": [
+      22,
+      60
+    ],
+    "problem_id": "88f2a06d-b1ad-577a-b022-6fdd3c991e72",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "339390",
+      "url": "https://math-oge.sdamgia.ru/problem?id=339390"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "AM = MC = 88 / 2 = 44.",
+      "MH = HC = 44 / 2 = 22.",
+      "AH = AM + MH = 44 + 22 = 66."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведены медиана BM и высота BH. AC = 32, BC = BM. Найдите AH.",
+    "correct_answer": "24",
+    "family_id": "OGE15-F08",
+    "fingerprint": "b3f5531adfae1687aecda331712004b78340ddd4155bb64ab3e7802c79b878da",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          24,
+          24
+        ],
+        "C": [
+          32,
+          0
+        ],
+        "H": [
+          24,
+          0
+        ],
+        "M": [
+          16,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "M"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Треугольник BMC равнобедренный. Его высота является медианой."
+    ],
+    "image_sha256": "40d8aeb382aea6f0ad37e57f73430116e2ff3f2f219203cb8283b75f7e24b25e",
+    "parameters": [
+      8,
+      24
+    ],
+    "problem_id": "c8c862e9-1beb-5f23-86a6-50310d6766a1",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "339390",
+      "url": "https://math-oge.sdamgia.ru/problem?id=339390"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "AM = MC = 32 / 2 = 16.",
+      "MH = HC = 16 / 2 = 8.",
+      "AH = AM + MH = 16 + 8 = 24."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведены медиана BM и высота BH. AC = 24, HC = 6, угол ACB равен 52°. Найдите угол AMB. Ответ дайте в градусах.",
+    "correct_answer": "128",
+    "family_id": "OGE15-F09",
+    "fingerprint": "728bf185d2c8d283915674a37f93d049a126ddc296dc1525c3233d0687222de7",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          18,
+          7.6796497931584735
+        ],
+        "C": [
+          24,
+          0
+        ],
+        "H": [
+          18,
+          0
+        ],
+        "M": [
+          12,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "M"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Сравните отрезки MH и HC, затем треугольники BHM и BHC."
+    ],
+    "image_sha256": "c0696b74cd0ea27d93a8a523f2ee452ffda3978dc9b5e811eced9191c42ee4b6",
+    "parameters": [
+      6,
+      52
+    ],
+    "problem_id": "74a862c3-dbe9-50e1-9f02-8f0e5c280856",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "339544",
+      "url": "https://math-oge.sdamgia.ru/problem?id=339544"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "MC = 24 / 2 = 12, MH = 12 − 6 = 6 = HC.",
+      "Прямоугольные треугольники BHM и BHC равны по катетам. Поэтому ∠BMC = ∠C = 52°.",
+      "∠AMB = 180° − 52° = 128°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведены медиана BM и высота BH. AC = 12, HC = 3, угол ACB равен 58°. Найдите угол AMB. Ответ дайте в градусах.",
+    "correct_answer": "122",
+    "family_id": "OGE15-F09",
+    "fingerprint": "08bc4aa40cd04610cf172fee688ce829b2ca2a2ce20b2c5e5f0bc36d44717886",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          9,
+          4.801003587123152
+        ],
+        "C": [
+          12,
+          0
+        ],
+        "H": [
+          9,
+          0
+        ],
+        "M": [
+          6,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "M"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Сравните отрезки MH и HC, затем треугольники BHM и BHC."
+    ],
+    "image_sha256": "30d52f6d044b67ef68bed604ef6d25b4ad75a9bd9ab4330b1b43a2ebec21fc66",
+    "parameters": [
+      3,
+      58
+    ],
+    "problem_id": "aae7fcdc-a41c-5a4c-b449-13ea8076c86d",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "339544",
+      "url": "https://math-oge.sdamgia.ru/problem?id=339544"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "MC = 12 / 2 = 6, MH = 6 − 3 = 3 = HC.",
+      "Прямоугольные треугольники BHM и BHC равны по катетам. Поэтому ∠BMC = ∠C = 58°.",
+      "∠AMB = 180° − 58° = 122°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведена биссектриса AK. Найдите угол B, если угол C равен 35° и AK = KC. Ответ дайте в градусах.",
+    "correct_answer": "75",
+    "family_id": "OGE15-F10",
+    "fingerprint": "f7c92229cdc70f116258ea642d2f7b7cd7a17440f35b03fe6f8f31b1f74901d6",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [
+        [
+          "B",
+          "A",
+          "K",
+          "C"
+        ]
+      ],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "K"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          2.03094988900631,
+          5.579988960088706
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "K": [
+          5.0,
+          3.5010376910485483
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "A",
+          "K"
+        ]
+      ]
+    },
+    "hints": [
+      "Треугольник AKC равнобедренный. Используйте также свойство биссектрисы."
+    ],
+    "image_sha256": "7c14ef3ac4b760a244ba4d1894bca9dbcf3c655a2c4fddc82e6e429958ffb920",
+    "parameters": [
+      35
+    ],
+    "problem_id": "fdfe2c6e-b746-515d-a164-2c681bceeced",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "480731",
+      "url": "https://math-oge.sdamgia.ru/problem?id=480731"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "AK = KC, поэтому ∠KAC = ∠C = 35°.",
+      "AK — биссектриса, значит ∠A = 2 · 35° = 70°.",
+      "∠B = 180° − 70° − 35° = 75°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC проведена биссектриса AK. Найдите угол B, если угол C равен 33° и AK = KC. Ответ дайте в градусах.",
+    "correct_answer": "81",
+    "family_id": "OGE15-F10",
+    "fingerprint": "d45be9601ae7461a1f8f11339743fdfc04a2c1d39c6511191b275296666b0776",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [
+        [
+          "B",
+          "A",
+          "K",
+          "C"
+        ]
+      ],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "K"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          2.2428598545222704,
+          5.037545711970479
+        ],
+        "C": [
+          10,
+          0
+        ],
+        "K": [
+          5.0,
+          3.247037965987553
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "A",
+          "K"
+        ]
+      ]
+    },
+    "hints": [
+      "Треугольник AKC равнобедренный. Используйте также свойство биссектрисы."
+    ],
+    "image_sha256": "7c863bcf06aa375060153ff66394c4a22dcc172fee3c455706f3d53c1326f161",
+    "parameters": [
+      33
+    ],
+    "problem_id": "87e28492-ef2d-5e8b-9c35-d40a6f582a2c",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "480731",
+      "url": "https://math-oge.sdamgia.ru/problem?id=480731"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "AK = KC, поэтому ∠KAC = ∠C = 33°.",
+      "AK — биссектриса, значит ∠A = 2 · 33° = 66°.",
+      "∠B = 180° − 66° − 33° = 81°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Точки M и N — середины сторон AB и BC треугольника ABC. AB = 22, BC = 23, AC = 28. Найдите MN.",
+    "correct_answer": "14",
+    "family_id": "OGE15-F11",
+    "fingerprint": "4132b51d072fd5febadf0bc98b7511d609a6f024434a111fc2a3eff5306943d9",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "M"
+          ],
+          [
+            "M",
+            "B"
+          ]
+        ],
+        [
+          [
+            "B",
+            "N"
+          ],
+          [
+            "N",
+            "C"
+          ]
+        ]
+      ],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "N"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          13.196428571428571,
+          17.602678005325885
+        ],
+        "C": [
+          28,
+          0
+        ],
+        "M": [
+          6.598214285714286,
+          8.801339002662942
+        ],
+        "N": [
+          20.598214285714285,
+          8.801339002662942
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "M",
+          "N"
+        ]
+      ]
+    },
+    "hints": [
+      "Отрезок, соединяющий середины двух сторон, — средняя линия треугольника."
+    ],
+    "image_sha256": "197291e2a6c503dc272bcc4e6a6e869408195379d18519df66e858e5d34ec87b",
+    "parameters": [
+      22,
+      23,
+      28
+    ],
+    "problem_id": "294d1f71-6596-5b23-8970-c32659215899",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "349690",
+      "url": "https://math-oge.sdamgia.ru/problem?id=349690"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "MN = AC / 2 = 28 / 2 = 14."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Точки M и N — середины сторон AB и BC треугольника ABC. AB = 37, BC = 35, AC = 38. Найдите MN.",
+    "correct_answer": "19",
+    "family_id": "OGE15-F11",
+    "fingerprint": "6b9f3c03c5e48ab7f01597992bd3de00344dc37e2622b46a08637734b2c67fc3",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [
+        [
+          [
+            "A",
+            "M"
+          ],
+          [
+            "M",
+            "B"
+          ]
+        ],
+        [
+          [
+            "B",
+            "N"
+          ],
+          [
+            "N",
+            "C"
+          ]
+        ]
+      ],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "N"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          20.894736842105264,
+          30.535388851284814
+        ],
+        "C": [
+          38,
+          0
+        ],
+        "M": [
+          10.447368421052632,
+          15.267694425642407
+        ],
+        "N": [
+          29.44736842105263,
+          15.267694425642407
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "M",
+          "N"
+        ]
+      ]
+    },
+    "hints": [
+      "Отрезок, соединяющий середины двух сторон, — средняя линия треугольника."
+    ],
+    "image_sha256": "6e9fd951e4cfc7b436b705eb56c6ebdc06b8f41ce936c644d02e44ffbc82f1d3",
+    "parameters": [
+      37,
+      35,
+      38
+    ],
+    "problem_id": "dc35827c-4d74-5c6b-a6ad-0b9c9dd56962",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "349690",
+      "url": "https://math-oge.sdamgia.ru/problem?id=349690"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "MN = AC / 2 = 38 / 2 = 19."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC отрезок DE — средняя линия. Площадь треугольника CDE равна 12. Найдите площадь треугольника ABC.",
+    "correct_answer": "48",
+    "family_id": "OGE15-F12",
+    "fingerprint": "6f784e53d10bcf9476892dfe2b471909ff194f1bd156c3d013498bf3e5411675",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          9.797958971132712,
+          0
+        ],
+        "C": [
+          3.919183588453085,
+          9.797958971132712
+        ],
+        "D": [
+          1.9595917942265424,
+          4.898979485566356
+        ],
+        "E": [
+          6.858571279792898,
+          4.898979485566356
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "D",
+          "E"
+        ]
+      ]
+    },
+    "hints": [
+      "Площади подобных треугольников относятся как квадраты соответствующих сторон."
+    ],
+    "image_sha256": "41d82f04fc2e2b26b63b4db83644b88588922405eb0257778cefdf070b692249",
+    "parameters": [
+      12
+    ],
+    "problem_id": "25ab4d4f-a437-5ad9-a839-987ee737b32a",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "341524",
+      "url": "https://math-oge.sdamgia.ru/problem?id=341524"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "DE = AB / 2. Отношение площадей ABC и CDE равно 2² = 4.",
+      "S = 4 · 12 = 48."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC отрезок DE — средняя линия. Площадь треугольника CDE равна 45. Найдите площадь треугольника ABC.",
+    "correct_answer": "180",
+    "family_id": "OGE15-F12",
+    "fingerprint": "c739ed3aa1ab8f5dc5bb4d07d058fca782a16f0da2484ae0a3f437c53296c54e",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          18.973665961010276,
+          0
+        ],
+        "C": [
+          7.589466384404111,
+          18.973665961010276
+        ],
+        "D": [
+          3.7947331922020555,
+          9.486832980505138
+        ],
+        "E": [
+          13.281566172707194,
+          9.486832980505138
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "D",
+          "E"
+        ]
+      ]
+    },
+    "hints": [
+      "Площади подобных треугольников относятся как квадраты соответствующих сторон."
+    ],
+    "image_sha256": "41d82f04fc2e2b26b63b4db83644b88588922405eb0257778cefdf070b692249",
+    "parameters": [
+      45
+    ],
+    "problem_id": "903dea25-3b23-54d6-b3af-69099e8d4d35",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "341524",
+      "url": "https://math-oge.sdamgia.ru/problem?id=341524"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "DE = AB / 2. Отношение площадей ABC и CDE равно 2² = 4.",
+      "S = 4 · 45 = 180."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Прямая, параллельная стороне AC треугольника ABC, пересекает AB и BC в точках M и N. AC = 20, MN = 8. Площадь ABC равна 300. Найдите площадь MBN.",
+    "correct_answer": "48",
+    "family_id": "OGE15-F13",
+    "fingerprint": "9826eb38d9a03f00085abe1e4fc00e09765be6af46e628d292cf5f8303c58828",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "N"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          8.0,
+          30.0
+        ],
+        "C": [
+          20,
+          0
+        ],
+        "M": [
+          4.8,
+          18.0
+        ],
+        "N": [
+          12.8,
+          18.0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "M",
+          "N"
+        ]
+      ]
+    },
+    "hints": [
+      "Треугольники MBN и ABC подобны. Найдите отношение их соответствующих сторон."
+    ],
+    "image_sha256": "0b3cebeb82d9afe7ab6c9b2b16640b0a5d322a473079b82a48abd6016b30ef98",
+    "parameters": [
+      20,
+      8,
+      300
+    ],
+    "problem_id": "5110790f-d5e1-5a04-8a75-a91882b0a4a1",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356242",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356242"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "Коэффициент подобия: MN / AC = 8 / 20.",
+      "S_MBN = 300 · (8 / 20)² = 48."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Прямая, параллельная стороне AC треугольника ABC, пересекает AB и BC в точках M и N. AC = 22, MN = 14. Площадь ABC равна 121. Найдите площадь MBN.",
+    "correct_answer": "49",
+    "family_id": "OGE15-F13",
+    "fingerprint": "0e5b32253ac4bc3589b51e4be1ba34346440a0cc41f06f68ca6878d8eb2c123c",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "M",
+        "N"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          8.8,
+          11.0
+        ],
+        "C": [
+          22,
+          0
+        ],
+        "M": [
+          3.2,
+          4.0
+        ],
+        "N": [
+          17.2,
+          4.0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "M",
+          "N"
+        ]
+      ]
+    },
+    "hints": [
+      "Треугольники MBN и ABC подобны. Найдите отношение их соответствующих сторон."
+    ],
+    "image_sha256": "dfca489a627108532c98922772cd4b1b7883bde34aa2101a584ef423baf1b2d8",
+    "parameters": [
+      22,
+      14,
+      121
+    ],
+    "problem_id": "037593a6-3718-5f68-8037-e501399f0132",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356242",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356242"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "Коэффициент подобия: MN / AC = 14 / 22.",
+      "S_MBN = 121 · (14 / 22)² = 49."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Катеты прямоугольного треугольника равны 24 и 45. Найдите гипотенузу.",
+    "correct_answer": "51",
+    "family_id": "OGE15-F14",
+    "fingerprint": "bd703d805da3dac1d2217ff4f1ef894f02d0cebbc32b7835c4631ed41981358d",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          24,
+          0
+        ],
+        "B": [
+          0,
+          45
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Квадрат гипотенузы равен сумме квадратов катетов."
+    ],
+    "image_sha256": "0f1fa3345cb2162d8c954240e972c4bedf0a08139610e73999db41627907772a",
+    "parameters": [
+      24,
+      45,
+      0
+    ],
+    "problem_id": "f174f265-6101-584c-91ac-9c585b2a24ee",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "350527",
+      "url": "https://math-oge.sdamgia.ru/problem?id=350527"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "c² = 24² + 45² = 2601.",
+      "c = 51."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Катеты прямоугольного треугольника равны 15 и 20. Найдите гипотенузу.",
+    "correct_answer": "25",
+    "family_id": "OGE15-F14",
+    "fingerprint": "8843ad1a7f474a0c3a352f4e62e28e6f73e059f23e28e92ae82aa1fb67e21134",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          15,
+          0
+        ],
+        "B": [
+          0,
+          20
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Квадрат гипотенузы равен сумме квадратов катетов."
+    ],
+    "image_sha256": "4700b3db1eeb9b62aed541e0ec2172d526da3c91ed85e163f89e38961977752e",
+    "parameters": [
+      15,
+      20,
+      0
+    ],
+    "problem_id": "bf08984d-1d30-578e-bfbc-1d035970eb7a",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "350527",
+      "url": "https://math-oge.sdamgia.ru/problem?id=350527"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "c² = 15² + 20² = 625.",
+      "c = 25."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C равен 90°, BC = 6, AB = 10. Найдите cos B.",
+    "correct_answer": "0.6",
+    "family_id": "OGE15-F15",
+    "fingerprint": "e5fe83bfb6bba148b7867100ee7d32b80e32b4ae7ad8df6c21890e1e9910183e",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          8,
+          0
+        ],
+        "B": [
+          0,
+          6
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Косинус — отношение прилежащего катета к гипотенузе."
+    ],
+    "image_sha256": "c475dbc9e9bb1e805037db2eb35ce0919189975e3382edb9a18a1d64bc7c9375",
+    "parameters": [
+      8,
+      6,
+      0
+    ],
+    "problem_id": "c46edd2d-74ad-5196-9cbe-5fa303cff2ff",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356089",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356089"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "cos B = BC / AB = 6 / 10 = 0,6."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C равен 90°, BC = 28, AB = 100. Найдите cos B.",
+    "correct_answer": "0.28",
+    "family_id": "OGE15-F15",
+    "fingerprint": "a2390e4759d7ba1af64bfb5869542fde12b001636a54b48b64515413b7139ef5",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          96,
+          0
+        ],
+        "B": [
+          0,
+          28
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Косинус — отношение прилежащего катета к гипотенузе."
+    ],
+    "image_sha256": "1b18fae6983661dbb103a9f64c89c2498f1e970190872c17df82b71f333a5fb8",
+    "parameters": [
+      96,
+      28,
+      0
+    ],
+    "problem_id": "756b4996-f84a-50a7-bba9-29c59fcb316d",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356089",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356089"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "cos B = BC / AB = 28 / 100 = 0,28."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C прямой, BC = 18, sin A = 0,6. Найдите AB.",
+    "correct_answer": "30",
+    "family_id": "OGE15-F16",
+    "fingerprint": "e110b861017def52f6cab0d8903c2e4a35f185ab0036feb1a29ff972175b1df5",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          24.0,
+          0
+        ],
+        "B": [
+          0,
+          18
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Запишите синус угла A как отношение противолежащего катета к гипотенузе."
+    ],
+    "image_sha256": "c475dbc9e9bb1e805037db2eb35ce0919189975e3382edb9a18a1d64bc7c9375",
+    "parameters": [
+      30,
+      18
+    ],
+    "problem_id": "b7988c17-887e-5f9f-bd94-2529f688f827",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "118",
+      "url": "https://math-oge.sdamgia.ru/problem?id=118"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "sin A = BC / AB.",
+      "AB = 18 / 0,6 = 30."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C прямой, BC = 24, sin A = 0,8. Найдите AB.",
+    "correct_answer": "30",
+    "family_id": "OGE15-F16",
+    "fingerprint": "05b4f3a5c437a67f3d56acff2a6ef737bb6603196d562718047edf6b99606f22",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          18.0,
+          0
+        ],
+        "B": [
+          0,
+          24
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Запишите синус угла A как отношение противолежащего катета к гипотенузе."
+    ],
+    "image_sha256": "6e1c14a6935e7fb7c092956668d79cbb5fe4e54e9eb15309238f407ce51f8f9a",
+    "parameters": [
+      30,
+      24
+    ],
+    "problem_id": "032cca8e-e235-5d2f-89b1-4a957c56f6d2",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "118",
+      "url": "https://math-oge.sdamgia.ru/problem?id=118"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "sin A = BC / AB.",
+      "AB = 24 / 0,8 = 30."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C равен 90°, AC = 16, tg A = 0,5. Найдите BC.",
+    "correct_answer": "8",
+    "family_id": "OGE15-F17",
+    "fingerprint": "b95417fbc2b2c5d9393aa6631e37cae2a7eaabe8a428ea1817dbbbb2a7c0e5a4",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          16,
+          0
+        ],
+        "B": [
+          0,
+          8.0
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Тангенс — отношение противолежащего катета к прилежащему."
+    ],
+    "image_sha256": "b03308b34de8dfd20030ba50681649a60c671886ffbaf01189a52923c64193f2",
+    "parameters": [
+      16,
+      1,
+      2
+    ],
+    "problem_id": "5a74af90-db23-566f-bdfa-531a21975925",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "311790",
+      "url": "https://math-oge.sdamgia.ru/problem?id=311790"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "tg A = BC / AC.",
+      "BC = 16 · 0,5 = 8."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC угол C равен 90°, AC = 5, tg A = 1. Найдите BC.",
+    "correct_answer": "5",
+    "family_id": "OGE15-F17",
+    "fingerprint": "56894023c5c59b713b0d5e65723b3136e5616d5f9d1e6e6b7af2fe654300de83",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          5,
+          0
+        ],
+        "B": [
+          0,
+          5.0
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Тангенс — отношение противолежащего катета к прилежащему."
+    ],
+    "image_sha256": "0f175acd4a4de220fe5912bee9f15b05211c1ac286bded6fee6d013445036c16",
+    "parameters": [
+      5,
+      2,
+      2
+    ],
+    "problem_id": "c73a8a82-302e-534c-8915-60d54cba2421",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "311790",
+      "url": "https://math-oge.sdamgia.ru/problem?id=311790"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "tg A = BC / AC.",
+      "BC = 5 · 1 = 5."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Один из острых углов прямоугольного треугольника равен 27°. Найдите другой острый угол. Ответ дайте в градусах.",
+    "correct_answer": "63",
+    "family_id": "OGE15-F18",
+    "fingerprint": "2ef138d17a5f9a420de12dd4420ca213fc94d82697ce63a3122e3986c3fb9e07",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          8.910065241883679,
+          0
+        ],
+        "B": [
+          0,
+          4.5399049973954675
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Сумма острых углов прямоугольного треугольника равна 90°."
+    ],
+    "image_sha256": "5548a39a64dc5a24994b006fe9d4034cee9f780d60fc3c62f6d58b9d995cbcb7",
+    "parameters": [
+      27
+    ],
+    "problem_id": "3087290f-ba95-57ed-aea8-868695777208",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "353022",
+      "url": "https://math-oge.sdamgia.ru/problem?id=353022"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "Другой угол: 90° − 27° = 63°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Один из острых углов прямоугольного треугольника равен 36°. Найдите другой острый угол. Ответ дайте в градусах.",
+    "correct_answer": "54",
+    "family_id": "OGE15-F18",
+    "fingerprint": "0ebdaad2eba12ec48a3bd25f2311a431666750483119b58610d1abe16a0d096c",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          8.090169943749475,
+          0
+        ],
+        "B": [
+          0,
+          5.877852522924732
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Сумма острых углов прямоугольного треугольника равна 90°."
+    ],
+    "image_sha256": "580ba81fa3d5d73e2a958f10d48fd64885ce30d1a5729e8aa8cd970bb956bc5d",
+    "parameters": [
+      36
+    ],
+    "problem_id": "c6bbaf15-b044-5773-8f76-3f6f8420a363",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "353022",
+      "url": "https://math-oge.sdamgia.ru/problem?id=353022"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "Другой угол: 90° − 36° = 54°."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Катеты прямоугольного треугольника равны 7 и 9. Найдите его площадь.",
+    "correct_answer": "31.5",
+    "family_id": "OGE15-F19",
+    "fingerprint": "7db384ac17dbe966381f5b1f2b0bfc607d5a5e0658216b67cf5dd3133e2972d2",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          7,
+          0
+        ],
+        "B": [
+          0,
+          9
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Площадь треугольника — половина произведения основания на высоту."
+    ],
+    "image_sha256": "be992ade63db2ef7a094e953d4a03c1a600bf341ef56fb12c5e1e07381cbef21",
+    "parameters": [
+      7,
+      9
+    ],
+    "problem_id": "cd996f04-2bb5-59fb-a128-92909eec5f00",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348554",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348554"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "S = 7 · 9 / 2 = 31,5."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Катеты прямоугольного треугольника равны 15 и 11. Найдите его площадь.",
+    "correct_answer": "82.5",
+    "family_id": "OGE15-F19",
+    "fingerprint": "494b055c6504fc2ef6a832ad2801446feefab39d6218bd604555dbfc3e56ff37",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          15,
+          0
+        ],
+        "B": [
+          0,
+          11
+        ],
+        "C": [
+          0,
+          0
+        ]
+      },
+      "right": [
+        [
+          "A",
+          "C",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Площадь треугольника — половина произведения основания на высоту."
+    ],
+    "image_sha256": "660f1d3195e8a215a5af4cc970ad9be01b978ee14b18425a01e3ca5029a64790",
+    "parameters": [
+      15,
+      11
+    ],
+    "problem_id": "6fc78351-b3ae-5cbe-9401-8dca10b27f87",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348554",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348554"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "S = 15 · 11 / 2 = 82,5."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Сторона треугольника равна 18, а проведённая к ней высота равна 29. Найдите площадь треугольника.",
+    "correct_answer": "261",
+    "family_id": "OGE15-F20",
+    "fingerprint": "cbd10f425e0b615fc30b2ac39898adb382bcf9cb787681d680363d7e917b385f",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          7.2,
+          29
+        ],
+        "C": [
+          18,
+          0
+        ],
+        "H": [
+          7.2,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Площадь треугольника — половина произведения основания на высоту."
+    ],
+    "image_sha256": "94d278c20ec8569edb9757ff6f156163e33742711437e1d9d10c5040dbd45cbe",
+    "parameters": [
+      18,
+      29
+    ],
+    "problem_id": "774ffdb6-f13d-5ad6-87f8-0581bd3233e0",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "169853",
+      "url": "https://math-oge.sdamgia.ru/problem?id=169853"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "S = 18 · 29 / 2 = 261."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "Сторона треугольника равна 22, а проведённая к ней высота равна 43. Найдите площадь треугольника.",
+    "correct_answer": "473",
+    "family_id": "OGE15-F20",
+    "fingerprint": "0c9657cc321674f6548987aef288a1f7aa477298a9ec117809891a9b184a0c84",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          8.8,
+          43
+        ],
+        "C": [
+          22,
+          0
+        ],
+        "H": [
+          8.8,
+          0
+        ]
+      },
+      "right": [
+        [
+          "B",
+          "H",
+          "C"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "B",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Площадь треугольника — половина произведения основания на высоту."
+    ],
+    "image_sha256": "5eb2e93afb2175dbbe45ffcd869cc1b169628dde759fa4c7649b0ac04e75d3da",
+    "parameters": [
+      22,
+      43
+    ],
+    "problem_id": "c480d897-d019-525d-bf13-0906f88bb28e",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "169853",
+      "url": "https://math-oge.sdamgia.ru/problem?id=169853"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "S = 22 · 43 / 2 = 473."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC AB = 30, BC = 22, sin ∠ABC = 0,6. Найдите площадь ABC.",
+    "correct_answer": "198",
+    "family_id": "OGE15-F21",
+    "fingerprint": "e08639b02cf06f1f8280e15ad979ad57c0e33460dcee117619ce90f8c91a3e14",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          30,
+          0
+        ],
+        "B": [
+          0,
+          0
+        ],
+        "C": [
+          17.6,
+          13.2
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Используйте площадь через две стороны и синус угла между ними."
+    ],
+    "image_sha256": "f3b0367ee03c9d5e902364f354c4e220e3979decdba83891b0f7ac545044f8a4",
+    "parameters": [
+      30,
+      22,
+      3,
+      5
+    ],
+    "problem_id": "6e9120c2-5a6f-5602-bfe0-e05224f0e026",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356159",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356159"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "S = AB · BC · sin B / 2 = 30 · 22 · 0,6 / 2 = 198."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В треугольнике ABC AB = 12, BC = 10, sin ∠ABC = 0,5. Найдите площадь ABC.",
+    "correct_answer": "30",
+    "family_id": "OGE15-F21",
+    "fingerprint": "3ca01ded85481523e1252320233dfea3cbbf9786751ba6b6756f927ab659831b",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "points": {
+        "A": [
+          12,
+          0
+        ],
+        "B": [
+          0,
+          0
+        ],
+        "C": [
+          8.660254037844386,
+          5.0
+        ]
+      },
+      "right": [],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ]
+    },
+    "hints": [
+      "Используйте площадь через две стороны и синус угла между ними."
+    ],
+    "image_sha256": "68aafefb0c4a3a3115084928336583892e8b456ace42bc1e57e4e52892d9f0d5",
+    "parameters": [
+      12,
+      10,
+      1,
+      2
+    ],
+    "problem_id": "479e6d0e-6ed2-5cd6-9797-3430ceede3bc",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "356159",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356159"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "S = AB · BC · sin B / 2 = 12 · 10 · 0,5 / 2 = 30."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В прямоугольном треугольнике ABC катет AC = 12, а высота CH, опущенная на гипотенузу, равна 6√3. Найдите sin ∠ABC.",
+    "correct_answer": "0.5",
+    "family_id": "OGE15-F22",
+    "fingerprint": "1e6c7ad71f2f73433c27a8f8a3a0976adfc705ac7a174ad0fac62bd8e5bab19c",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          12,
+          20.784609690826528
+        ],
+        "C": [
+          12,
+          0
+        ],
+        "H": [
+          3.0,
+          5.196152422706632
+        ]
+      },
+      "right": [
+        [
+          "C",
+          "H",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "C",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Найдите AH по теореме Пифагора в треугольнике ACH. Сравните углы ABC и ACH."
+    ],
+    "image_sha256": "833412df03f429678fe8caf572b0b336e5f660a902da5160ebe215465cc81b13",
+    "parameters": [
+      6,
+      1,
+      2
+    ],
+    "problem_id": "3fe2d967-2cfc-5f3a-a1c9-0b4dcabbaa4c",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348380",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348380"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 0,
+    "solution": [
+      "AH² = AC² − CH² = 12² − (6√3)² = 36. Значит, AH = 6.",
+      "∠ABC = ∠ACH: их стороны соответственно перпендикулярны.",
+      "sin B = AH / AC = 6 / 12 = 0,5."
+    ]
+  },
+  {
+    "answer_policy_id": "oge6.numeric-short",
+    "answer_policy_version": "1",
+    "attempt_index": 0,
+    "condition": "В прямоугольном треугольнике ABC катет AC = 25, а высота CH, опущенная на гипотенузу, равна 20. Найдите sin ∠ABC.",
+    "correct_answer": "0.6",
+    "family_id": "OGE15-F22",
+    "fingerprint": "c0c8580d2723c5d56e6f3857875838657c78d4e6be38c19f889cd19e23f23226",
+    "generator_version": "oge15-triangles-2",
+    "geometry": {
+      "angle_arcs": [],
+      "bisectors": [],
+      "equal": [],
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "H"
+      ],
+      "points": {
+        "A": [
+          0,
+          0
+        ],
+        "B": [
+          25,
+          33.333333333333336
+        ],
+        "C": [
+          25,
+          0
+        ],
+        "H": [
+          8.999999999999998,
+          11.999999999999998
+        ]
+      },
+      "right": [
+        [
+          "C",
+          "H",
+          "B"
+        ]
+      ],
+      "segments": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ],
+        [
+          "C",
+          "H"
+        ]
+      ]
+    },
+    "hints": [
+      "Найдите AH по теореме Пифагора в треугольнике ACH. Сравните углы ABC и ACH."
+    ],
+    "image_sha256": "7c7adfe67e625f8f81930bc4aabd4f41a619db36cb2888d62d4ae1ca8b9f9a8c",
+    "parameters": [
+      5,
+      3,
+      5
+    ],
+    "problem_id": "72b9da0b-cd76-524b-b64c-3f416e08c1ac",
+    "provenance": {
+      "kind": "generated_analogue",
+      "task_id": "348380",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348380"
+    },
+    "renderer_version": "oge15-pillow-1",
+    "seed": 42,
+    "solution": [
+      "AH² = AC² − CH² = 25² − (20)² = 225. Значит, AH = 15.",
+      "∠ABC = ∠ACH: их стороны соответственно перпендикулярны.",
+      "sin B = AH / AC = 15 / 25 = 0,6."
+    ]
+  }
+]

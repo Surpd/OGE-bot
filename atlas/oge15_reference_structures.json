@@ -1,92 +1,566 @@
-[
-  {
-    "family_id": "OGE15-F01",
-    "source_id": "348885",
-    "url": "https://math-oge.sdamgia.ru/problem?id=348885",
-    "source_status": "condition_answer_no_diagram_verified",
-    "control_answer": 68,
-    "source_diagram": "No source diagram",
-    "original_image_url": null,
-    "original_svg_sha256": null,
-    "rendering": "text_only",
-    "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
-    "runtime_status": "implemented_closed",
-    "public_enabled": false,
-    "name": "Сумма углов треугольника"
-  },
-  {
-    "family_id": "OGE15-F03",
-    "source_id": "356190",
-    "url": "https://math-oge.sdamgia.ru/problem?id=356190",
-    "source_status": "condition_answer_original_diagram_verified",
-    "control_answer": 47,
-    "source_diagram": "ABC and continuation AC beyond C; no given angle number on image",
-    "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=80974",
-    "original_svg_sha256": "bb8dc318519ae80b4bc330e14f41f1531b6d6a4bbf70756b28a98ca84f3a912a",
-    "rendering": "text_only",
-    "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
-    "runtime_status": "implemented_closed",
-    "public_enabled": false,
-    "name": "Внешний угол треугольника"
-  },
-  {
-    "family_id": "OGE15-F11",
-    "source_id": "349690",
-    "url": "https://math-oge.sdamgia.ru/problem?id=349690",
-    "source_status": "condition_answer_original_diagram_verified",
-    "control_answer": 37,
-    "source_diagram": "Triangle ABC, M/N midpoints of AB/BC; MN drawn and AB equal-half marks",
-    "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89903",
-    "original_svg_sha256": "92c7f78f8b8a9e3d7008870a5dcadc3fc6a61cdd9f37e7575f54867f965d5d2a",
-    "rendering": "text_only",
-    "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
-    "runtime_status": "implemented_closed",
-    "public_enabled": false,
-    "name": "Средняя линия треугольника"
-  },
-  {
-    "family_id": "OGE15-F14",
-    "source_id": "350527",
-    "url": "https://math-oge.sdamgia.ru/problem?id=350527",
-    "source_status": "condition_answer_original_diagram_verified",
-    "control_answer": 20,
-    "source_diagram": "Right triangle with right-angle square; no labels or dimensions",
-    "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39868",
-    "original_svg_sha256": "6273990aff42c9bce923c6f08715cd1f531a9473155aed57c9354b5364bcae5b",
-    "rendering": "text_only",
-    "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
-    "runtime_status": "implemented_closed",
-    "public_enabled": false,
-    "name": "Теорема Пифагора"
-  },
-  {
-    "family_id": "OGE15-F19",
-    "source_id": "348554",
-    "url": "https://math-oge.sdamgia.ru/problem?id=348554",
-    "source_status": "condition_answer_original_diagram_verified",
-    "control_answer": 18,
-    "source_diagram": "Right triangle with right-angle square; no labels or dimensions",
-    "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88074",
-    "original_svg_sha256": "e10a2160e1b5c3fc4eb53a2b4f04e0bb83851eb2f088b55410693b48751d7564",
-    "rendering": "text_only",
-    "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
-    "runtime_status": "implemented_closed",
-    "public_enabled": false,
-    "name": "Площадь прямоугольного треугольника"
-  },
-  {
-    "family_id": "OGE15-F20",
-    "source_id": "169853",
-    "url": "https://math-oge.sdamgia.ru/problem?id=169853",
-    "source_status": "condition_answer_original_diagram_verified",
-    "control_answer": 25,
-    "source_diagram": "Triangle with internal altitude and perpendicular mark; no dimensions",
-    "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=103788",
-    "original_svg_sha256": "e70e4c4c9ac4dd13f97c439d7282a01c1f5e0279039067e3f6e82686253f4099",
-    "rendering": "text_only",
-    "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
-    "runtime_status": "implemented_closed",
-    "public_enabled": false,
-    "name": "Площадь по основанию и высоте"
-  }
-]
+{
+  "legacy_v1": [
+    {
+      "family_id": "OGE15-F01",
+      "source_id": "348885",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348885",
+      "source_status": "condition_answer_no_diagram_verified",
+      "control_answer": 68,
+      "source_diagram": "No source diagram",
+      "original_image_url": null,
+      "original_svg_sha256": null,
+      "rendering": "text_only",
+      "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
+      "runtime_status": "implemented_closed",
+      "public_enabled": false,
+      "name": "Сумма углов треугольника"
+    },
+    {
+      "family_id": "OGE15-F03",
+      "source_id": "356190",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356190",
+      "source_status": "condition_answer_original_diagram_verified",
+      "control_answer": 47,
+      "source_diagram": "ABC and continuation AC beyond C; no given angle number on image",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=80974",
+      "original_svg_sha256": "bb8dc318519ae80b4bc330e14f41f1531b6d6a4bbf70756b28a98ca84f3a912a",
+      "rendering": "text_only",
+      "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
+      "runtime_status": "implemented_closed",
+      "public_enabled": false,
+      "name": "Внешний угол треугольника"
+    },
+    {
+      "family_id": "OGE15-F11",
+      "source_id": "349690",
+      "url": "https://math-oge.sdamgia.ru/problem?id=349690",
+      "source_status": "condition_answer_original_diagram_verified",
+      "control_answer": 37,
+      "source_diagram": "Triangle ABC, M/N midpoints of AB/BC; MN drawn and AB equal-half marks",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89903",
+      "original_svg_sha256": "92c7f78f8b8a9e3d7008870a5dcadc3fc6a61cdd9f37e7575f54867f965d5d2a",
+      "rendering": "text_only",
+      "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
+      "runtime_status": "implemented_closed",
+      "public_enabled": false,
+      "name": "Средняя линия треугольника"
+    },
+    {
+      "family_id": "OGE15-F14",
+      "source_id": "350527",
+      "url": "https://math-oge.sdamgia.ru/problem?id=350527",
+      "source_status": "condition_answer_original_diagram_verified",
+      "control_answer": 20,
+      "source_diagram": "Right triangle with right-angle square; no labels or dimensions",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39868",
+      "original_svg_sha256": "6273990aff42c9bce923c6f08715cd1f531a9473155aed57c9354b5364bcae5b",
+      "rendering": "text_only",
+      "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
+      "runtime_status": "implemented_closed",
+      "public_enabled": false,
+      "name": "Теорема Пифагора"
+    },
+    {
+      "family_id": "OGE15-F19",
+      "source_id": "348554",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348554",
+      "source_status": "condition_answer_original_diagram_verified",
+      "control_answer": 18,
+      "source_diagram": "Right triangle with right-angle square; no labels or dimensions",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88074",
+      "original_svg_sha256": "e10a2160e1b5c3fc4eb53a2b4f04e0bb83851eb2f088b55410693b48751d7564",
+      "rendering": "text_only",
+      "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
+      "runtime_status": "implemented_closed",
+      "public_enabled": false,
+      "name": "Площадь прямоугольного треугольника"
+    },
+    {
+      "family_id": "OGE15-F20",
+      "source_id": "169853",
+      "url": "https://math-oge.sdamgia.ru/problem?id=169853",
+      "source_status": "condition_answer_original_diagram_verified",
+      "control_answer": 25,
+      "source_diagram": "Triangle with internal altitude and perpendicular mark; no dimensions",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=103788",
+      "original_svg_sha256": "e70e4c4c9ac4dd13f97c439d7282a01c1f5e0279039067e3f6e82686253f4099",
+      "rendering": "text_only",
+      "rendering_reason": "All quantities, midpoint / perpendicular relations and requested value are stated in the condition; source sketch is supplementary. No figure reference in generated text.",
+      "runtime_status": "implemented_closed",
+      "public_enabled": false,
+      "name": "Площадь по основанию и высоте"
+    }
+  ],
+  "families": [
+    {
+      "family_id": "OGE15-F01",
+      "name": "Сумма углов треугольника",
+      "source_id": "348885",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348885",
+      "source_status": "text_only_original_verified",
+      "source_condition": "В треугольнике два угла равны 54° и 58°. Найдите его третий угол. Ответ дайте в градусах.",
+      "original_image_url": null,
+      "original_svg_sha256": null,
+      "control_parameters": [
+        54,
+        58
+      ],
+      "control_answer": "68",
+      "status": "public_enabled",
+      "renderer_version": null,
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "No diagram"
+    },
+    {
+      "family_id": "OGE15-F02",
+      "name": "Биссектриса угла",
+      "source_id": "348610",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348610",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  известно, что  \\angle BAC=48 градусов,   AD   — биссектриса. Найдите угол  BAD . Ответ дайте в градусах.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39768",
+      "original_svg_sha256": "258f885a41d3631f1378be2b941fe134b1ea1b10b2306617e510f6a3a20f5f52",
+      "control_parameters": [
+        48,
+        60
+      ],
+      "control_answer": "24",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, AD, equal angle arcs at A"
+    },
+    {
+      "family_id": "OGE15-F03",
+      "name": "Внешний угол треугольника",
+      "source_id": "356190",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356190",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  угол  C  равен 133°. Найдите внешний угол при вершине  C . Ответ дайте в градусах.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=80974",
+      "original_svg_sha256": "bb8dc318519ae80b4bc330e14f41f1531b6d6a4bbf70756b28a98ca84f3a912a",
+      "control_parameters": [
+        133
+      ],
+      "control_answer": "47",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, AC extended past C, exterior angle arc at C"
+    },
+    {
+      "family_id": "OGE15-F04",
+      "name": "Высота и углы",
+      "source_id": "356180",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356180",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В остроугольном треугольнике  ABC  проведена высота  BH ,  \\angle BAC=37 градусов.  Найдите угол  ABH . Ответ дайте в градусах.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89427",
+      "original_svg_sha256": "3a2ccf5fc77bf8924bb3e6fb193d835eef2594dc202c649f67e80a182c70283a",
+      "control_parameters": [
+        37
+      ],
+      "control_answer": "53",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, internal BH, right-angle mark at H"
+    },
+    {
+      "family_id": "OGE15-F05",
+      "name": "Внешний угол равнобедренного треугольника",
+      "source_id": "311680",
+      "url": "https://math-oge.sdamgia.ru/problem?id=311680",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В равнобедренном треугольнике  ABC  с основанием  AC  внешний угол при вершине  C  равен 123°. Найдите величину угла  ABC . Ответ дайте в градусах.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88059",
+      "original_svg_sha256": "01282a38f57acefa40a992d74f31c36fbb98df7059fd66fb4a0ff7dec1e85f93",
+      "control_parameters": [
+        123
+      ],
+      "control_answer": "66",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "Isosceles ABC, equal AB/BC ticks, AC extension, given exterior degree label"
+    },
+    {
+      "family_id": "OGE15-F06",
+      "name": "Медиана равностороннего треугольника",
+      "source_id": "350010",
+      "url": "https://math-oge.sdamgia.ru/problem?id=350010",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "Медиана равностороннего треугольника равна  11 корень из: начало аргумента: 3 конец аргумента .  Найдите сторону этого треугольника.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39789",
+      "original_svg_sha256": "2dbef809de5d8f9fbff857b16fb2933c67d70df574a72db80c6821f9e990446f",
+      "control_parameters": [
+        11
+      ],
+      "control_answer": "22",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "Equilateral ABC, median BH, equal AH/HC ticks"
+    },
+    {
+      "family_id": "OGE15-F07",
+      "name": "Медиана, равная половине стороны",
+      "source_id": "472372",
+      "url": "https://math-oge.sdamgia.ru/problem?id=472372",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  проведена медиана  BM . Найдите градусную меру угла  A , если   \\angle C = 65 градусов  и  BM   =   AM   =   MC .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=92973",
+      "original_svg_sha256": "3be513e5211e95b3e46bfe1a093d2f500e9315dccd4ea41f979f3a46c89d7e25",
+      "control_parameters": [
+        65
+      ],
+      "control_answer": "25",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, BM, equal AM/MC/BM ticks; no right-angle mark at B"
+    },
+    {
+      "family_id": "OGE15-F08",
+      "name": "Медиана, высота и отрезки",
+      "source_id": "339390",
+      "url": "https://math-oge.sdamgia.ru/problem?id=339390",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  проведены медиана  BM  и высота  BH . Известно, что  AC   =  84 и  BC   =   BM . Найдите  AH .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89422",
+      "original_svg_sha256": "c9afef27acb43ad3e6bde74688e04cd73e2fd345a16a61bb3791059d019832d5",
+      "control_parameters": [
+        21,
+        30
+      ],
+      "control_answer": "63",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, BM and internal BH, right-angle mark H"
+    },
+    {
+      "family_id": "OGE15-F09",
+      "name": "Медиана, высота и углы",
+      "source_id": "339544",
+      "url": "https://math-oge.sdamgia.ru/problem?id=339544",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC   BM   — медиана и  BH   — высота. Известно, что  AC   =  216,  HC   =  54 и ∠ ACB   =  40°. Найдите угол  AMB . Ответ дайте в градусах.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89426",
+      "original_svg_sha256": "3c406fc2d0449806d429caceb217e8d0e108db590632822347348ea6faca8882",
+      "control_parameters": [
+        54,
+        40
+      ],
+      "control_answer": "140",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, BM and internal BH, right-angle mark H"
+    },
+    {
+      "family_id": "OGE15-F10",
+      "name": "Биссектриса и равные отрезки",
+      "source_id": "480731",
+      "url": "https://math-oge.sdamgia.ru/problem?id=480731",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  проведена биссектриса  AK . Найдите градусную меру угла  B , если  \\angle C = 25 градусов  и  AK   =   KC .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=101829",
+      "original_svg_sha256": "d33f5f70b8602fb567f2105cfa8da465eb2e71652670f98a7e995c844a434531",
+      "control_parameters": [
+        25
+      ],
+      "control_answer": "105",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, AK, bisector arcs at A; no added equality ticks"
+    },
+    {
+      "family_id": "OGE15-F11",
+      "name": "Средняя линия треугольника",
+      "source_id": "349690",
+      "url": "https://math-oge.sdamgia.ru/problem?id=349690",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "Точки  M  и  N  являются серединами сторон  AB  и  BC  треугольника  ABC , сторона  AB  равна 66, сторона  BC  равна 37, сторона  AC  равна 74. Найдите  MN .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89903",
+      "original_svg_sha256": "92c7f78f8b8a9e3d7008870a5dcadc3fc6a61cdd9f37e7575f54867f965d5d2a",
+      "control_parameters": [
+        66,
+        37,
+        74
+      ],
+      "control_answer": "37",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, MN, midpoint ticks on AB and BC"
+    },
+    {
+      "family_id": "OGE15-F12",
+      "name": "Средняя линия и площади",
+      "source_id": "341524",
+      "url": "https://math-oge.sdamgia.ru/problem?id=341524",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  отрезок  DE   — средняя линия. Площадь треугольника  CDE  равна 97. Найдите площадь треугольника  ABC .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=40756",
+      "original_svg_sha256": "7aa98c2a281a3a4612b47c03f179def6c517becadef89e3ebd237e72736b944f",
+      "control_parameters": [
+        97
+      ],
+      "control_answer": "388",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, middle segment DE across AC/BC"
+    },
+    {
+      "family_id": "OGE15-F13",
+      "name": "Подобие и площади",
+      "source_id": "356242",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356242",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "Прямая, параллельная стороне  AC  треугольника  ABC , пересекает стороны  AB  и  BC  в точках  M  и  N  соответственно,  AC   =  18,  MN   =  8. Площадь треугольника  ABC  равна 81. Найдите площадь треугольника  MBN .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=40983",
+      "original_svg_sha256": "fac4052630513e20ce450165e893352ca1b7b0b9a576ae3e75a54eaf248eb559",
+      "control_parameters": [
+        18,
+        8,
+        81
+      ],
+      "control_answer": "16",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, internal MN parallel to AC"
+    },
+    {
+      "family_id": "OGE15-F14",
+      "name": "Теорема Пифагора",
+      "source_id": "350527",
+      "url": "https://math-oge.sdamgia.ru/problem?id=350527",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "Два катета прямоугольного треугольника равны 12 и 16. Найдите гипотенузу этого треугольника.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39868",
+      "original_svg_sha256": "6273990aff42c9bce923c6f08715cd1f531a9473155aed57c9354b5364bcae5b",
+      "control_parameters": [
+        12,
+        16,
+        0
+      ],
+      "control_answer": "20",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "additional_verified_sources": [
+        {
+          "source_id": "348419",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348419",
+          "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88124",
+          "source_status": "original_condition_answer_and_diagram_verified",
+          "original_svg_sha256": "f9c27232fd754f99dfc155e655c27ca5decdb098a4f611fba0c961f99ca6a7c8",
+          "control_answer": "9"
+        }
+      ],
+      "source_diagram_summary": "Unlettered right triangle, right-angle square"
+    },
+    {
+      "family_id": "OGE15-F15",
+      "name": "Тригонометрические отношения по сторонам",
+      "source_id": "356089",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356089",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  угол  C  равен 90°,  BC   =  8,  AB   =  10. Найдите   косинус B.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88130",
+      "original_svg_sha256": "9894d6617d24ab0f3b02187265a9e179c2da5c4b0dbd2964c22bd71cc80d00f5",
+      "control_parameters": [
+        6,
+        8,
+        0
+      ],
+      "control_answer": "0,8",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "additional_verified_sources": [
+        {
+          "source_id": "356079",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356079",
+          "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88129",
+          "source_status": "original_condition_answer_and_diagram_verified",
+          "original_svg_sha256": "9894d6617d24ab0f3b02187265a9e179c2da5c4b0dbd2964c22bd71cc80d00f5",
+          "control_answer": "0,6"
+        },
+        {
+          "source_id": "356099",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356099",
+          "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88131",
+          "source_status": "original_condition_answer_and_diagram_verified",
+          "original_svg_sha256": "9894d6617d24ab0f3b02187265a9e179c2da5c4b0dbd2964c22bd71cc80d00f5",
+          "control_answer": "0,4"
+        }
+      ],
+      "control_exact_answer": "4/5",
+      "source_diagram_summary": "ABC, right-angle square C"
+    },
+    {
+      "family_id": "OGE15-F16",
+      "name": "Сторона по синусу",
+      "source_id": "118",
+      "url": "https://math-oge.sdamgia.ru/problem?id=118",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  угол  C  прямой,  BC   =  8,   синус A = 0,4.  Найдите  AB .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88100",
+      "original_svg_sha256": "9894d6617d24ab0f3b02187265a9e179c2da5c4b0dbd2964c22bd71cc80d00f5",
+      "control_parameters": [
+        20,
+        8
+      ],
+      "control_answer": "20",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, right-angle square C"
+    },
+    {
+      "family_id": "OGE15-F17",
+      "name": "Сторона по тангенсу",
+      "source_id": "311790",
+      "url": "https://math-oge.sdamgia.ru/problem?id=311790",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  угол  C  равен 90°,  AC  = 18,   тангенс A  = 3. Найдите  BC .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89131",
+      "original_svg_sha256": "68cd466fa962f9a6548531c80f78acceebf021b8e11ed58f049ef79de0b3e6e1",
+      "control_parameters": [
+        18,
+        3,
+        1
+      ],
+      "control_answer": "54",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC, right-angle square C"
+    },
+    {
+      "family_id": "OGE15-F18",
+      "name": "Острые углы прямоугольного треугольника",
+      "source_id": "353022",
+      "url": "https://math-oge.sdamgia.ru/problem?id=353022",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "Один из острых углов прямоугольного треугольника равен 68°. Найдите его другой острый угол. Ответ дайте в градусах.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39871",
+      "original_svg_sha256": "c1b1162c972f837f27af2a3425e3a35bdefc74e279c6ceb4df0852fee6e1022c",
+      "control_parameters": [
+        68
+      ],
+      "control_answer": "22",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "Unlettered right triangle, right-angle square"
+    },
+    {
+      "family_id": "OGE15-F19",
+      "name": "Площадь прямоугольного треугольника",
+      "source_id": "348554",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348554",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "Два катета прямоугольного треугольника равны 4 и 9. Найдите площадь этого треугольника.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=88074",
+      "original_svg_sha256": "e10a2160e1b5c3fc4eb53a2b4f04e0bb83851eb2f088b55410693b48751d7564",
+      "control_parameters": [
+        4,
+        9
+      ],
+      "control_answer": "18",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "Unlettered right triangle, right-angle square"
+    },
+    {
+      "family_id": "OGE15-F20",
+      "name": "Площадь по основанию и высоте",
+      "source_id": "169853",
+      "url": "https://math-oge.sdamgia.ru/problem?id=169853",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "Сторона треугольника равна 10, а проведенная к этой стороне высота равна 5. Найдите площадь треугольника.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=103788",
+      "original_svg_sha256": "e70e4c4c9ac4dd13f97c439d7282a01c1f5e0279039067e3f6e82686253f4099",
+      "control_parameters": [
+        10,
+        5
+      ],
+      "control_answer": "25",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "Unlettered triangle with internal altitude and right-angle square"
+    },
+    {
+      "family_id": "OGE15-F21",
+      "name": "Площадь через синус",
+      "source_id": "356159",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356159",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В треугольнике  ABC  известно, что  AB   =  6,  BC   =  10,   синус \\angle ABC = дробь: числитель: 1, знаменатель: 3 конец дроби .  Найдите площадь треугольника  ABC .",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39790",
+      "original_svg_sha256": "1058e14cfc6e06b62701789959d1384931145de9c3af6e00807e868a37dcfeca",
+      "control_parameters": [
+        6,
+        10,
+        1,
+        3
+      ],
+      "control_answer": "10",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "source_diagram_summary": "ABC only"
+    },
+    {
+      "family_id": "OGE15-F22",
+      "name": "Высота к гипотенузе и синус",
+      "source_id": "348380",
+      "url": "https://math-oge.sdamgia.ru/problem?id=348380",
+      "source_status": "original_condition_answer_and_diagram_verified",
+      "source_condition": "В прямоугольном треугольнике  ABC  катет  AC   =  65, а высота  CH , опущенная на гипотенузу, равна  13 корень из: начало аргумента: 21 конец аргумента .  Найдите   синус \\angle ABC.",
+      "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=39862",
+      "original_svg_sha256": "b3497c7acf6887c93eb96846ffe65cba91424a87e559f098baa18e92b4015cd5",
+      "control_parameters": [
+        13,
+        2,
+        5
+      ],
+      "control_answer": "0,4",
+      "status": "public_enabled",
+      "renderer_version": "oge15-pillow-1",
+      "generator_version": "oge15-triangles-2",
+      "numerical_coordinate_tolerance": 1e-08,
+      "control_exact_answer": "2/5",
+      "source_diagram_summary": "ABC, CH to hypotenuse AB, right-angle square at H"
+    }
+  ]
+}

@@ -8,8 +8,9 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
+from app.math.oge15_complete import ALL_FAMILIES as FAMILIES
 from app.math.oge15_scheduler import build_task15_candidate_batch
-from app.math.oge15_triangles import FAMILIES, from_snapshot
+from app.math.oge15_triangles import from_snapshot
 from app.persistence.repository import PostgresRepository
 
 
@@ -96,6 +97,34 @@ async def test_task15_postgres_restore_duplicate_race_skip_and_restart(family):
         )
         assert await restarted.task15_reveal_solution(user_id, final_pid, 300)
         assert (await restarted.task15_progress(user_id))["solutions_viewed"] == 1
+    finally:
+        await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
+        await pool.close()
+
+
+@pytest.mark.parametrize(
+    "legacy_family", ("OGE15-F01", "OGE15-F03", "OGE15-F11", "OGE15-F14", "OGE15-F19", "OGE15-F20")
+)
+async def test_first_stage_snapshot_survives_postgres_repository_restart(legacy_family):
+    from app.math.oge15_triangles import generate
+
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        pytest.skip("DATABASE_URL not configured; PostgreSQL 17 runs in CI")
+    pool = await asyncpg.create_pool(url)
+    user_id = uuid4().int % (2**62)
+    try:
+        for migration in sorted(Path("migrations").glob("*.sql")):
+            await pool.execute(migration.read_text())
+        old = generate(legacy_family, 42).to_snapshot()
+        repo = PostgresRepository(pool)
+        await repo.ensure_task15_session(user_id)
+        await repo.advance_task15_problem(user_id, None, [old])
+        await repo.save_user_state(user_id, "task15")
+        restored = await PostgresRepository(pool).task15_state(user_id)
+        assert restored["problem"] == old
+        assert from_snapshot(restored["problem"]).to_snapshot() == old
+        assert "png_base64" not in restored["problem"]
     finally:
         await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
         await pool.close()

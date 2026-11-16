@@ -40,6 +40,8 @@
 
 | LL-26 | Geometry snapshot rendering | Порядок словарей точек и числовых подписей менялся после JSON sort_keys, поэтому восстановление выбирало другие позиции текста. | Сортировать ключи при размещении меток; проверять одинаковые PNG и pixel audit до и после JSON roundtrip. | Геометрические PNG | `tests/test_oge17_core.py::test_json_key_order_does_not_move_dimension_labels`; `test_50_smoke_math_determinism_and_policy` | covered |
 
+| LL-27 | Геометрический oracle и точность ответа | Допуск для вещественных координат пропускал ответ, ошибочный на 1e-10. | Координаты проверять с числовой погрешностью, а числовой ответ дополнительно связывать с данными точными тождествами Fraction. | №15 | `tests/test_oge15_complete.py::test_coordinate_tolerance_cannot_accept_a_nearly_correct_answer` | covered |
+
 ## Добавление урока
 
 Добавляй запись только после подтверждённого дефекта. Укажи минимальный тест, который

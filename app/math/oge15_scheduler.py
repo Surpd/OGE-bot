@@ -2,6 +2,7 @@
 
 import random
 
+from app.math.oge15_complete import VERSION
 from app.math.oge15_triangles import ENABLED_FAMILIES, generate
 
 
@@ -20,7 +21,7 @@ def build_task15_candidate_batch(
     recent = state.get("recent_fingerprints", [])
     for index, family in enumerate(queue):
         for _ in range(12):
-            problem = generate(family, rng.randrange(2**63))
+            problem = generate(family, rng.randrange(2**63), VERSION)
             if isinstance(recent, list) and problem.fingerprint in recent:
                 continue
             snapshot = problem.to_snapshot()
