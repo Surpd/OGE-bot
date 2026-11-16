@@ -9,6 +9,61 @@ from typing import Any
 from app.math.oge15_geometry import angle, cross, dot, length, midpoint, sub
 
 
+def exact_answer_contract(n: int, p: tuple[int, ...], result: Fraction) -> None:
+    """Algebraic identities are exact; coordinate tolerance must not round answers."""
+    a = p[0]
+    b = p[1] if len(p) > 1 else 0
+    if result <= 0:
+        raise ValueError("Nonpositive triangle answer")
+    if n == 1:
+        valid = result + a + b == 180
+    elif n == 2:
+        valid = 2 * result == a
+    elif n == 3:
+        valid = result + a == 180
+    elif n in (4, 7, 18):
+        valid = result + a == 90
+    elif n == 5:
+        valid = result + 2 * (180 - a) == 180
+    elif n == 6:
+        valid = 3 * result**2 == 4 * (3 * a * a)
+    elif n == 8:
+        valid = 4 * result == 3 * (4 * a)
+    elif n == 9:
+        valid = result + b == 180
+    elif n == 10:
+        valid = result + 3 * a == 180
+    elif n == 11:
+        valid = 2 * result == p[2]
+    elif n == 12:
+        valid = result == 4 * a
+    elif n == 13:
+        valid = result * a * a == p[2] * b * b
+    elif n == 14:
+        valid = result**2 == (b * b if len(p) > 2 and p[2] == 1 else a * a + b * b)
+    elif n == 15:
+        kind = p[2] if len(p) > 2 else 0
+        valid = (
+            (result * b == a)
+            if kind == 2
+            else (result**2 * (a * a + b * b) == (a * a if kind == 1 else b * b))
+        )
+    elif n == 16:
+        valid = result * Fraction(b, a) == b
+    elif n == 17:
+        valid = result * p[2] == a * b
+    elif n in (19, 20):
+        valid = 2 * result == a * b
+    elif n == 21:
+        valid = 2 * result * p[3] == a * b * p[2]
+    elif n == 22:
+        valid = result * p[2] == p[1]
+    else:
+        raise ValueError("Unknown exact answer contract")
+    if not valid:
+        raise ValueError("Exact triangle answer invariant failed")
+
+
 def validate(n: int, p: tuple[int, ...], scene: dict[str, Any], result: Fraction) -> None:
     pts = scene["points"]
     a, b, c = (pts[k] for k in "ABC")
@@ -172,4 +227,5 @@ def validate(n: int, p: tuple[int, ...], scene: dict[str, Any], result: Fraction
         distances = [length(pts[x], pts[y]) for x, y in group]
         for d in distances:
             close(d, distances[0])
+    exact_answer_contract(n, p, result)
     close(computed, float(result))

@@ -133,6 +133,7 @@ def run_complete(families: tuple[str, ...] | None = None):
             if n != 1
             else "text_only_original_verified",
             "oracle_model_checks": 1200,
+            "exact_answer_checks": 1200,
             "render_and_snapshot_checks": 300,
             "smoke_seeds": 50,
             "unique_content_fingerprints_in_1200": len(seen),

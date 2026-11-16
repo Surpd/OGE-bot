@@ -171,3 +171,10 @@ def test_complete_regression_vectors_remain_exact():
         snapshot = generate(vector["family_id"], vector["seed"], VERSION).to_snapshot()
         snapshot.pop("png_base64", None)
         assert snapshot == vector
+
+
+@pytest.mark.parametrize("n,control", enumerate(CONTROLS, 1))
+def test_coordinate_tolerance_cannot_accept_a_nearly_correct_answer(n, control):
+    p, expected = control
+    with pytest.raises(ValueError, match="Exact triangle answer invariant"):
+        validate(n, p, construct(n, p), Fraction(expected) + Fraction(1, 10**10))
