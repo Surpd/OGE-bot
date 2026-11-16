@@ -59,6 +59,7 @@ QUALITY_REPORTS: dict[int | str, str] = {
     12: "reports/oge12-quality.json",
     13: "reports/oge13-quality.json",
     14: "reports/oge14-quality.json",
+    15: "reports/oge15-quality.json",
 }
 
 COMPLEXITY: dict[int, dict[str, int]] = {
@@ -137,6 +138,12 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE14-G02": 3,
         "OGE14-G03": 3,
         "OGE14-G04": 3,
+    },
+    15: {
+        f"OGE15-F{n:02}": score
+        for n, score in enumerate(
+            (2, 1, 1, 2, 3, 3, 4, 4, 4, 4, 2, 3, 3, 2, 2, 2, 2, 1, 2, 2, 3, 4), 1
+        )
     },
     18: {
         "OGE18-M01": 2,
@@ -257,13 +264,13 @@ def _shape(value: Any) -> Any:
 
 
 def _condition(item: Any, number: int) -> str:
-    if number == 18:
+    if number in (15, 18):
         return str(item.to_snapshot().get("condition", ""))
     return str(getattr(item, "condition", getattr(item, "equation_text", "")))
 
 
 def _answer(item: Any, number: int) -> str:
-    if number == 18:
+    if number in (15, 18):
         return str(item.to_snapshot().get("correct_answer", ""))
     if number == 7 and hasattr(item, "correct_option_index"):
         index = int(item.correct_option_index) - 1
@@ -294,6 +301,11 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
         model = [{"kind": g.kind, "coefficients": g.coefficients} for g in item.graphs]
     if model is None and hasattr(item, "graph_model"):
         model = item.graph_model
+    if number == 15:
+        from app.math.oge15_complete import content_key
+        from app.math.oge15_complete import number as family_number
+
+        model = content_key(family_number(snapshot["family_id"]), tuple(snapshot["parameters"]))
     options = _options(item)
     if not options:
         options = [str(value) for value in snapshot.get("option_texts", [])]
@@ -315,13 +327,21 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
             getattr(
                 item,
                 "solution",
-                getattr(item, "solution_steps", snapshot.get("solution_steps", [])),
+                getattr(
+                    item,
+                    "solution_steps",
+                    snapshot.get("solution", snapshot.get("solution_steps", [])),
+                ),
             )
         ),
         "construction_signature": _jsonable(_shape(_jsonable(model))),
         "construction_parameters": _jsonable(model),
         "fingerprint": str(getattr(item, "fingerprint", snapshot.get("fingerprint", ""))),
-        "image_sha256": str(getattr(item, "image_sha256", getattr(item, "png_sha256", ""))),
+        "image_sha256": str(
+            getattr(
+                item, "image_sha256", getattr(item, "png_sha256", snapshot.get("image_sha256", ""))
+            )
+        ),
         "source_ids": _jsonable(getattr(item, "reference_ids", snapshot.get("reference_ids", []))),
         "content_provenance": _jsonable(
             snapshot.get("content_provenance", snapshot.get("provenance", []))
@@ -340,6 +360,13 @@ def _stable(value: Any) -> str:
 
 
 def _oracle(number: int, family: str, item: Any) -> bool:
+    if number == 15:
+        from app.math.oge15_triangles import from_snapshot
+
+        try:
+            return from_snapshot(item.to_snapshot(), audit_pixels=False) == item
+        except ValueError:
+            return False
     if number == 18:
         from app.math.oge18 import from_snapshot
 
@@ -408,6 +435,11 @@ def _oracle(number: int, family: str, item: Any) -> bool:
 
 
 def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, int], Any]]:
+    if number == 15:
+        from app.math.oge15_complete import VERSION
+        from app.math.oge15_triangles import ENABLED_FAMILIES, generate
+
+        return ENABLED_FAMILIES, lambda family, seed: generate(family, seed, VERSION)
     if number == 18:
         from app.math.oge18 import (
             ENABLED_FAMILIES,
@@ -485,6 +517,10 @@ def _complexity(number: int, family: str, examples: list[dict[str, Any]]) -> dic
         13: (
             "Решить линейное/квадратное неравенство либо систему и сопоставить множество "
             "решений с интервалами; система требует пересечения условий."
+        ),
+        15: (
+            "Углы, стороны и площади треугольников; сложность учитывает число выводов, "
+            "биссектрисы, медианы, подобие и точные тригонометрические отношения."
         ),
         14: (
             "Найти член арифметической/геометрической прогрессии; геометрический рост "
@@ -2295,7 +2331,7 @@ def run() -> dict[str, Any]:
     scenario_result, best_scenario_plans = _scenario_audit()
     reference_rows = _registry_reference_rows()
     families: dict[str, Any] = {}
-    preview_objects: dict[int, dict[str, list[Any]]] = {number: {} for number in range(6, 15)}
+    preview_objects: dict[int, dict[str, list[Any]]] = {t.number: {} for t in TRAININGS}
     for story_family, rows in scenario_result["families"].items():
         story = next(code for code, ids in PUBLIC_FAMILIES.items() if story_family in ids)
         registration = next(
@@ -2350,27 +2386,7 @@ def run() -> dict[str, Any]:
         number = training.number
         if not training.available:
             continue
-        generator = importlib.import_module(
-            {
-                6: "app.math.generator",
-                7: "app.math.oge07_scheduler",
-                8: "app.math.oge8",
-                9: "app.math.equations",
-                10: "app.math.probability",
-                11: "app.math.oge11",
-                12: "app.math.formulas",
-                13: "app.math.inequalities",
-                14: "app.math.progressions",
-            }[number]
-        )
-        enabled = (
-            tuple(
-                spec.family_id
-                for spec in importlib.import_module("app.math.registry").GENERATOR_SPECS
-            )
-            if number == 6
-            else tuple(generator.ENABLED_FAMILIES)
-        )
+        enabled, _ = _ordinary_generator(number)
         for family in enabled:
             size = EXTENDED_SEEDS.get(family, SAMPLE_SEEDS)
             print(f"OGE {number} {family}: {size} deterministic samples", flush=True)
