@@ -5,7 +5,7 @@
       "exam_number": 18,
       "name": "Средняя линия треугольника",
       "status": "research_only",
-      "status_reason": "Closed ENABLE_IMPL only; public flag empty; live Telegram release review pending",
+      "status_reason": "Implemented and enabled in ordinary №18 training; checked catalog sample only, without a full FIPI-bank coverage claim.",
       "sources": [
         {
           "task_id": "348480",
@@ -72,7 +72,7 @@
       "exam_number": 18,
       "name": "Средняя линия трапеции",
       "status": "research_only",
-      "status_reason": "Closed ENABLE_IMPL only; public flag empty; live Telegram release review pending",
+      "status_reason": "Implemented and enabled in ordinary №18 training; checked catalog sample only, without a full FIPI-bank coverage claim.",
       "sources": [
         {
           "task_id": "348638",
@@ -133,7 +133,7 @@
       "exam_number": 18,
       "name": "Расстояние между двумя точками",
       "status": "research_only",
-      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, public flag empty; original catalog structure only, not a FIPI bank completeness claim.",
+      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, included in ordinary №18 training; original catalog structure only, not a FIPI bank completeness claim.",
       "sources": [
         {
           "task_id": "461848",
@@ -182,7 +182,7 @@
       ],
       "difficulty": "Read coordinate lengths or exact area from a square grid.",
       "known_exclusions": [
-        "Public family flag remains empty.",
+        "Available in the ordinary №18 training; no claim of complete FIPI bank coverage.",
         "Other OGE18 forms and off-axis/irrational variants not generated."
       ],
       "risks": [
@@ -196,7 +196,7 @@
       "exam_number": 18,
       "name": "Больший катет прямоугольного треугольника",
       "status": "research_only",
-      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, public flag empty; original catalog structure only, not a FIPI bank completeness claim.",
+      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, included in ordinary №18 training; original catalog structure only, not a FIPI bank completeness claim.",
       "sources": [
         {
           "task_id": "348467",
@@ -254,7 +254,7 @@
       ],
       "difficulty": "Read coordinate lengths or exact area from a square grid.",
       "known_exclusions": [
-        "Public family flag remains empty.",
+        "Available in the ordinary №18 training; no claim of complete FIPI bank coverage.",
         "Other OGE18 forms and off-axis/irrational variants not generated."
       ],
       "risks": [
@@ -268,7 +268,7 @@
       "exam_number": 18,
       "name": "Площадь трапеции",
       "status": "research_only",
-      "status_reason": "Source 348613 wording and original diagram independently checked on 2026-11-15: 1 × 1 grid, horizontal-base trapezoid, no auxiliary constructions, asks area without units. Related source 311388 is a distinct unit-bearing wording (1 cm × 1 cm; answer in cm²). Closed implementation; public flag empty; catalog sample only.",
+      "status_reason": "Source 348613 wording and original diagram independently checked on 2026-11-15: 1 × 1 grid, horizontal-base trapezoid, no auxiliary constructions, asks area without units. Related source 311388 is a distinct unit-bearing wording (1 cm × 1 cm; answer in cm²). Closed implementation; included in ordinary №18 training; catalog sample only.",
       "sources": [
         {
           "task_id": "348613",
@@ -347,7 +347,7 @@
       ],
       "difficulty": "Read coordinate lengths or exact area from a square grid.",
       "known_exclusions": [
-        "Public family flag remains empty.",
+        "Available in the ordinary №18 training; no claim of complete FIPI bank coverage.",
         "Other OGE18 forms and off-axis/irrational variants not generated."
       ],
       "risks": [
@@ -361,7 +361,7 @@
       "exam_number": 18,
       "name": "Площадь треугольника",
       "status": "research_only",
-      "status_reason": "Source drawing visually checked; generator/math validated but the horizontal-base, readable-angle subset has only 130 normalized shapes, below the 200-novelty gate; public flag empty.",
+      "status_reason": "Source drawing visually checked; the readable horizontal-base model has 130 normalized shapes, with 128 observed in the quality run. This diversity note does not block ordinary training.",
       "sources": [
         {
           "task_id": "348403",
@@ -414,7 +414,7 @@
       ],
       "difficulty": "Read coordinate lengths or exact area from a square grid.",
       "known_exclusions": [
-        "Public family flag remains empty.",
+        "Available in the ordinary №18 training; no claim of complete FIPI bank coverage.",
         "Other OGE18 forms and off-axis/irrational variants not generated."
       ],
       "risks": [
@@ -428,7 +428,7 @@
       "exam_number": 18,
       "name": "Площадь параллелограмма",
       "status": "research_only",
-      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, public flag empty; original catalog structure only, not a FIPI bank completeness claim.",
+      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, included in ordinary №18 training; original catalog structure only, not a FIPI bank completeness claim.",
       "sources": [
         {
           "task_id": "348499",
@@ -481,7 +481,7 @@
       ],
       "difficulty": "Read coordinate lengths or exact area from a square grid.",
       "known_exclusions": [
-        "Public family flag remains empty.",
+        "Available in the ordinary №18 training; no claim of complete FIPI bank coverage.",
         "Other OGE18 forms and off-axis/irrational variants not generated."
       ],
       "risks": [
@@ -495,7 +495,7 @@
       "exam_number": 18,
       "name": "Площадь ромба",
       "status": "research_only",
-      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, public flag empty; original catalog structure only, not a FIPI bank completeness claim.",
+      "status_reason": "Source drawing visually checked on 2026-11-15; closed implementation, included in ordinary №18 training; original catalog structure only, not a FIPI bank completeness claim.",
       "sources": [
         {
           "task_id": "356974",
@@ -550,7 +550,7 @@
       ],
       "difficulty": "Read coordinate lengths or exact area from a square grid.",
       "known_exclusions": [
-        "Public family flag remains empty.",
+        "Available in the ordinary №18 training; no claim of complete FIPI bank coverage.",
         "Other OGE18 forms and off-axis/irrational variants not generated."
       ],
       "risks": [

@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw  # noqa: E402
 
 from app.math.answer_policy import NUMERIC_SHORT_ANSWER  # noqa: E402
 from app.math.oge18 import (  # noqa: E402
+    ENABLED_FAMILIES,
     FAMILIES,
     GENERATOR_VERSION,
     GENERATOR_VERSION_V2,
@@ -30,7 +31,7 @@ from app.math.oge18 import (  # noqa: E402
 from app.math.oge18_oracle import answer, answer_family  # noqa: E402
 from app.math.oge18_render import VERSION, VERSION_V2, audit, audit_family  # noqa: E402
 
-PUBLIC_ENABLED: tuple[str, ...] = ()
+PUBLIC_ENABLED: tuple[str, ...] = ENABLED_FAMILIES
 LOW_CAPACITY = {
     "OGE18-D05": 3,
     "OGE18-L02": 21,

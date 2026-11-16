@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 
 from app.math.oge18 import (
     CONDITIONS,
+    ENABLED_FAMILIES,
     FAMILIES,
     GENERATOR_VERSION_V2,
     NEW_FAMILIES,
@@ -149,7 +150,9 @@ def test_answer_policy_and_queue_no_repeats_or_silent_fallback():
         assert POLICY.accepts(raw, "6.5")
     for raw in ("6.49", "13/2", "6,5 см", "ответ 6,5"):
         assert not POLICY.accepts(raw, "6.5")
-    assert build_task18_candidate_batch({}, 0) == []
+    default_candidate = build_task18_candidate_batch({}, 0)
+    assert len(default_candidate) == 1
+    assert default_candidate[0]["family_id"] in ENABLED_FAMILIES
     state = {}
     seen = set()
     for seed in range(35):
