@@ -1,0 +1,566 @@
+[
+  {
+    "family_id": "OGE15-F01",
+    "seed": 0,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Два угла треугольника равны 55° и 48°. Найдите третий угол. Ответ дайте в градусах.",
+      "correct_answer": "77",
+      "family_id": "OGE15-F01",
+      "fingerprint": "3617bb71ad4690c146eba0114de2fd7386a2735c4a8cf98b4e8f46cc3754fe5a",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Сумма внутренних углов треугольника равна 180°."
+      ],
+      "parameters": [
+        55,
+        48
+      ],
+      "problem_id": "ecec1769-a363-571b-aeff-5908079f9957",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "348885",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348885"
+      },
+      "seed": 0,
+      "solution": [
+        "Третий угол равен 180° − 55° − 48° = 77°."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F01",
+    "seed": 42,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Два угла треугольника равны 95° и 24°. Найдите третий угол. Ответ дайте в градусах.",
+      "correct_answer": "61",
+      "family_id": "OGE15-F01",
+      "fingerprint": "5760da5e98b60ab0a5d794907dafb9f2b230d009de6d48dcee1aad3b65dc46c6",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Сумма внутренних углов треугольника равна 180°."
+      ],
+      "parameters": [
+        95,
+        24
+      ],
+      "problem_id": "c9b8c83a-f948-59fb-965d-9cd9ad4a1621",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "348885",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348885"
+      },
+      "seed": 42,
+      "solution": [
+        "Третий угол равен 180° − 95° − 24° = 61°."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F01",
+    "seed": 123,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Два угла треугольника равны 88° и 54°. Найдите третий угол. Ответ дайте в градусах.",
+      "correct_answer": "38",
+      "family_id": "OGE15-F01",
+      "fingerprint": "306bf2e145f332a6b198a7137204d643e38ebe6861ea56e180eeb65e980d50b1",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Сумма внутренних углов треугольника равна 180°."
+      ],
+      "parameters": [
+        88,
+        54
+      ],
+      "problem_id": "c68ea7c4-f42b-5dfd-a037-268ea74bcc52",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "348885",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348885"
+      },
+      "seed": 123,
+      "solution": [
+        "Третий угол равен 180° − 88° − 54° = 38°."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F03",
+    "seed": 0,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "В треугольнике ABC угол C равен 64°. Найдите внешний угол при вершине C. Ответ дайте в градусах.",
+      "correct_answer": "116",
+      "family_id": "OGE15-F03",
+      "fingerprint": "82e966f31539ab3b2c2d43fb1ec888babc689aec5fe8071b41a415dd71d89f40",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Внешний и внутренний углы при одной вершине смежные."
+      ],
+      "parameters": [
+        64
+      ],
+      "problem_id": "751b92bf-f509-515a-bc4f-42da596211c9",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "356190",
+        "url": "https://math-oge.sdamgia.ru/problem?id=356190"
+      },
+      "seed": 0,
+      "solution": [
+        "Внешний угол равен 180° − 64° = 116°."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F03",
+    "seed": 42,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "В треугольнике ABC угол C равен 159°. Найдите внешний угол при вершине C. Ответ дайте в градусах.",
+      "correct_answer": "21",
+      "family_id": "OGE15-F03",
+      "fingerprint": "50667323bcb3494e14a938dff8dee59ae749acc148c3b1810430f15073e70645",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Внешний и внутренний углы при одной вершине смежные."
+      ],
+      "parameters": [
+        159
+      ],
+      "problem_id": "c92ad3fd-7ae1-56b4-bcdb-f1e7b027cd97",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "356190",
+        "url": "https://math-oge.sdamgia.ru/problem?id=356190"
+      },
+      "seed": 42,
+      "solution": [
+        "Внешний угол равен 180° − 159° = 21°."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F03",
+    "seed": 123,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "В треугольнике ABC угол C равен 127°. Найдите внешний угол при вершине C. Ответ дайте в градусах.",
+      "correct_answer": "53",
+      "family_id": "OGE15-F03",
+      "fingerprint": "d802b70c98fb26a3741765ef4cc5f701bc2ce39baa5420baf9d58a4adb5aed9d",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Внешний и внутренний углы при одной вершине смежные."
+      ],
+      "parameters": [
+        127
+      ],
+      "problem_id": "7a63cac5-a902-5a78-97e4-e8a121beb054",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "356190",
+        "url": "https://math-oge.sdamgia.ru/problem?id=356190"
+      },
+      "seed": 123,
+      "solution": [
+        "Внешний угол равен 180° − 127° = 53°."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F11",
+    "seed": 0,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Точки M и N — середины сторон AB и BC треугольника ABC. AB = 61, BC = 20, AC = 52. Найдите MN.",
+      "correct_answer": "26",
+      "family_id": "OGE15-F11",
+      "fingerprint": "24658470bde56b5346a2676cd498a99bf560e5621114fb710c2f1948fd386d27",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Отрезок, соединяющий середины двух сторон треугольника, — средняя линия."
+      ],
+      "parameters": [
+        61,
+        20,
+        52
+      ],
+      "problem_id": "5756b708-8bd9-5480-839a-525bb268680d",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "349690",
+        "url": "https://math-oge.sdamgia.ru/problem?id=349690"
+      },
+      "seed": 0,
+      "solution": [
+        "Средняя линия параллельна третьей стороне и равна её половине.",
+        "MN = 52 / 2 = 26."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F11",
+    "seed": 42,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Точки M и N — середины сторон AB и BC треугольника ABC. AB = 54, BC = 68, AC = 78. Найдите MN.",
+      "correct_answer": "39",
+      "family_id": "OGE15-F11",
+      "fingerprint": "e991da3f81b2ac091451d79d386bef4601554294f28ace726d3337f8daab2c4c",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Отрезок, соединяющий середины двух сторон треугольника, — средняя линия."
+      ],
+      "parameters": [
+        54,
+        68,
+        78
+      ],
+      "problem_id": "904b4297-1d4d-56f6-9ec5-6c57bc22e1bc",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "349690",
+        "url": "https://math-oge.sdamgia.ru/problem?id=349690"
+      },
+      "seed": 42,
+      "solution": [
+        "Средняя линия параллельна третьей стороне и равна её половине.",
+        "MN = 78 / 2 = 39."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F11",
+    "seed": 123,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Точки M и N — середины сторон AB и BC треугольника ABC. AB = 32, BC = 42, AC = 48. Найдите MN.",
+      "correct_answer": "24",
+      "family_id": "OGE15-F11",
+      "fingerprint": "19f7983de0d03d16fb99cdaafd0bda5a1340cb27f2e4b5f6a569a3ddeaa6befb",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Отрезок, соединяющий середины двух сторон треугольника, — средняя линия."
+      ],
+      "parameters": [
+        32,
+        42,
+        48
+      ],
+      "problem_id": "cb2f55f6-a79a-5cff-8ca1-66690c98db76",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "349690",
+        "url": "https://math-oge.sdamgia.ru/problem?id=349690"
+      },
+      "seed": 123,
+      "solution": [
+        "Средняя линия параллельна третьей стороне и равна её половине.",
+        "MN = 48 / 2 = 24."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F14",
+    "seed": 0,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Катеты прямоугольного треугольника равны 24 и 45. Найдите гипотенузу.",
+      "correct_answer": "51",
+      "family_id": "OGE15-F14",
+      "fingerprint": "d566891a5018f7d91e19b98258649be1bbc393e06cda1729928fdf94417241f3",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "По теореме Пифагора квадрат гипотенузы равен сумме квадратов катетов."
+      ],
+      "parameters": [
+        24,
+        45
+      ],
+      "problem_id": "cc699da1-256d-5f46-baa6-4233ed234902",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "350527",
+        "url": "https://math-oge.sdamgia.ru/problem?id=350527"
+      },
+      "seed": 0,
+      "solution": [
+        "c² = 24² + 45² = 2601.",
+        "c = 51."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F14",
+    "seed": 42,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Катеты прямоугольного треугольника равны 14 и 48. Найдите гипотенузу.",
+      "correct_answer": "50",
+      "family_id": "OGE15-F14",
+      "fingerprint": "52c9123b618333caf7c21130458904dd02d3c391a0b08fe2c1c044d04e45fc33",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "По теореме Пифагора квадрат гипотенузы равен сумме квадратов катетов."
+      ],
+      "parameters": [
+        14,
+        48
+      ],
+      "problem_id": "68f18d59-d48f-568b-992b-672f40bc70f4",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "350527",
+        "url": "https://math-oge.sdamgia.ru/problem?id=350527"
+      },
+      "seed": 42,
+      "solution": [
+        "c² = 14² + 48² = 2500.",
+        "c = 50."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F14",
+    "seed": 123,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Катеты прямоугольного треугольника равны 15 и 20. Найдите гипотенузу.",
+      "correct_answer": "25",
+      "family_id": "OGE15-F14",
+      "fingerprint": "404d9ad5a3b3a12cb150d110e766d4673286ad34715706bcd01ffabf290f0bba",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "По теореме Пифагора квадрат гипотенузы равен сумме квадратов катетов."
+      ],
+      "parameters": [
+        15,
+        20
+      ],
+      "problem_id": "883573c4-4b19-5f73-9d32-e77844e54ab8",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "350527",
+        "url": "https://math-oge.sdamgia.ru/problem?id=350527"
+      },
+      "seed": 123,
+      "solution": [
+        "c² = 15² + 20² = 625.",
+        "c = 25."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F19",
+    "seed": 0,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Катеты прямоугольного треугольника равны 29 и 16. Найдите его площадь.",
+      "correct_answer": "232",
+      "family_id": "OGE15-F19",
+      "fingerprint": "b749e293cdd705a9336d9aa8e03d446890314f6677fb80830cc130b676e0dd72",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Площадь треугольника равна половине произведения основания на высоту."
+      ],
+      "parameters": [
+        29,
+        16
+      ],
+      "problem_id": "69e0130a-7da9-5cc9-b5da-5de3333530ed",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "348554",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348554"
+      },
+      "seed": 0,
+      "solution": [
+        "S = 29 · 16 / 2 = 232."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F19",
+    "seed": 42,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Катеты прямоугольного треугольника равны 3 и 13. Найдите его площадь.",
+      "correct_answer": "19.5",
+      "family_id": "OGE15-F19",
+      "fingerprint": "502cf28d4b4cf76cce54318640a905d3539d2bbb029fdd6e49c60a22d4d33e44",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Площадь треугольника равна половине произведения основания на высоту."
+      ],
+      "parameters": [
+        3,
+        13
+      ],
+      "problem_id": "b6dc3b01-a44c-5812-a50e-1641a9f2eca8",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "348554",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348554"
+      },
+      "seed": 42,
+      "solution": [
+        "S = 3 · 13 / 2 = 19,5."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F19",
+    "seed": 123,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Катеты прямоугольного треугольника равны 25 и 21. Найдите его площадь.",
+      "correct_answer": "262.5",
+      "family_id": "OGE15-F19",
+      "fingerprint": "4c0a5e4d689cb701299298cbb3cf5226dde34da124e0a8e158542d0f62dde1d4",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Площадь треугольника равна половине произведения основания на высоту."
+      ],
+      "parameters": [
+        25,
+        21
+      ],
+      "problem_id": "aab6aeb6-4eb7-5874-8744-def9e16c1c2f",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "348554",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348554"
+      },
+      "seed": 123,
+      "solution": [
+        "S = 25 · 21 / 2 = 262,5."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F20",
+    "seed": 0,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Сторона треугольника равна 3, а проведённая к ней высота равна 10. Найдите площадь треугольника.",
+      "correct_answer": "15",
+      "family_id": "OGE15-F20",
+      "fingerprint": "57fcf79c3e22919e6b272cc95dacdf85d1082b1388fe67aa947191a00889a344",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Площадь треугольника равна половине произведения основания на высоту."
+      ],
+      "parameters": [
+        3,
+        10
+      ],
+      "problem_id": "68c01d7c-b8cc-5b12-848f-2f02444c4b5e",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "169853",
+        "url": "https://math-oge.sdamgia.ru/problem?id=169853"
+      },
+      "seed": 0,
+      "solution": [
+        "S = 3 · 10 / 2 = 15."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F20",
+    "seed": 42,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Сторона треугольника равна 21, а проведённая к ней высота равна 7. Найдите площадь треугольника.",
+      "correct_answer": "73.5",
+      "family_id": "OGE15-F20",
+      "fingerprint": "2031d512b78875f43599d3bc36e0d684a55c3dd0b9f6b44e2a20e1bfbb9a15d2",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Площадь треугольника равна половине произведения основания на высоту."
+      ],
+      "parameters": [
+        21,
+        7
+      ],
+      "problem_id": "89172d95-5853-5de2-baff-bee934e0f5ca",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "169853",
+        "url": "https://math-oge.sdamgia.ru/problem?id=169853"
+      },
+      "seed": 42,
+      "solution": [
+        "S = 21 · 7 / 2 = 73,5."
+      ]
+    }
+  },
+  {
+    "family_id": "OGE15-F20",
+    "seed": 123,
+    "snapshot": {
+      "answer_policy_id": "oge6.numeric-short",
+      "answer_policy_version": "1",
+      "attempt_index": 0,
+      "condition": "Сторона треугольника равна 6, а проведённая к ней высота равна 6. Найдите площадь треугольника.",
+      "correct_answer": "18",
+      "family_id": "OGE15-F20",
+      "fingerprint": "9cb771134dbd14d70d27fb9eb391100f7db7992a68190c54dda1674eec9e1ac2",
+      "generator_version": "oge15-triangles-1",
+      "hints": [
+        "Площадь треугольника равна половине произведения основания на высоту."
+      ],
+      "parameters": [
+        6,
+        6
+      ],
+      "problem_id": "accb3044-c27a-58d0-9966-4b65a22fc4e9",
+      "provenance": {
+        "kind": "generated_analogue",
+        "task_id": "169853",
+        "url": "https://math-oge.sdamgia.ru/problem?id=169853"
+      },
+      "seed": 123,
+      "solution": [
+        "S = 6 · 6 / 2 = 18."
+      ]
+    }
+  }
+]

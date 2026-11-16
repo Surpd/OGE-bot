@@ -31,6 +31,7 @@ TRAININGS = (
     Training(12, "Формулы"),
     Training(13, "Неравенства", "app.math.inequalities"),
     Training(14, "Прогрессии"),
+    Training(15, "Треугольники", "app.math.oge15_scheduler"),
     Training(18, "Фигуры на клетчатой сетке", "app.math.oge18_scheduler"),
 )
 BY_NUMBER = {item.number: item for item in TRAININGS}

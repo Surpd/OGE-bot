@@ -261,3 +261,9 @@
 - Registered number 18 behind an empty public family flag; shared numeric UX and existing storage.
 - Added migration 0014, contract/flow/PG17 tests, quality report and six reproducible PNG previews.
 - No merge, deployment, production migration, public enablement or progress-widget changes.
+
+## Геометрия №15 — закрытый первый этап
+
+- F01/F03/F11/F14/F19/F20: точные текстовые генераторы, независимый oracle,
+  versioned snapshots, обычный numeric flow и PostgreSQL sessions.
+- №15 выключен по умолчанию; существующие №1–14 и публичный №18 сохраняются.

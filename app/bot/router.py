@@ -986,6 +986,51 @@ async def task14_answer(message: Message, repository: Repository) -> None:
     await training_answer(NUMERIC_TRAININGS[14], message, repository)
 
 
+async def _send_task15_problem(
+    message: Message,
+    repository: Repository,
+    *,
+    action: str,
+    expected_problem_id: str | None = None,
+    expected_screen: str | None = None,
+    expected_prompt_message_id: int | None = None,
+    user_id_override: int | None = None,
+    skip_active: bool = False,
+) -> bool:
+    return await send_problem(
+        NUMERIC_TRAININGS[15],
+        message,
+        repository,
+        action=action,
+        expected_problem_id=expected_problem_id,
+        expected_screen=expected_screen,
+        expected_prompt_message_id=expected_prompt_message_id,
+        user_id_override=user_id_override,
+        skip_active=skip_active,
+    )
+
+
+async def choose_task15(
+    message: Message, repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    if not NUMERIC_TRAININGS[15].families:
+        await send_text(message, repository, "Задания №15 пока выключены.")
+        return
+    await _pause_oge15_foreground(_user_id(message), oge15_repository)
+    if await _show_saved_training_choice(message, repository, 15, _user_id(message)):
+        return
+    await _send_task15_problem(message, repository, action="start")
+
+
+async def task15_callback(callback: CallbackQuery, repository: Repository) -> None:
+    await training_callback(NUMERIC_TRAININGS[15], callback, repository)
+
+
+async def task15_answer(message: Message, repository: Repository) -> None:
+    await training_answer(NUMERIC_TRAININGS[15], message, repository)
+
+
 async def _send_task18_problem(
     message: Message,
     repository: Repository,
@@ -2415,6 +2460,7 @@ def build_router() -> Router:
     router.message.register(choose_task10, F.text == TASK10_LABEL)
     router.message.register(choose_task12, F.text == TASK12_LABEL)
     router.message.register(choose_task14, F.text == TASK14_LABEL)
+    router.message.register(choose_task15, F.text == "№15 · Треугольники")
     router.message.register(choose_task18, F.text == "№18 · Фигуры на клетчатой сетке")
     router.message.register(choose_task7, F.text == TASK7_LABEL)
     router.message.register(choose_task8, F.text == TASK8_LABEL)
@@ -2440,6 +2486,7 @@ def build_router() -> Router:
     router.callback_query.register(task10_callback, F.data.startswith("t10:"))
     router.callback_query.register(task12_callback, F.data.startswith("t12:"))
     router.callback_query.register(task14_callback, F.data.startswith("t14:"))
+    router.callback_query.register(task15_callback, F.data.startswith("t15:"))
     router.callback_query.register(task18_callback, F.data.startswith("t18:"))
     router.callback_query.register(task7_callback, F.data.startswith("t7:"))
     router.callback_query.register(task8_callback, F.data.startswith("t8:"))
