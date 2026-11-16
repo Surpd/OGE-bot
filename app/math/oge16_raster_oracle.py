@@ -15,7 +15,9 @@ def audit_png(snapshot: dict[str, Any]) -> None:
     from app.math.oge16_oracle import near, require
 
     f, g = snapshot["figure"], snapshot["geometry"]
-    require(f["renderer_version"] == "oge16-pillow-1", "Unknown renderer version")
+    require(
+        f["renderer_version"] in {"oge16-pillow-1", "oge16-pillow-2"}, "Unknown renderer version"
+    )
     require(f["width"] == 720 and f["height"] == 720, "Unexpected dimensions")
     raw = base64.b64decode(f["png_base64"], validate=True)
     require(hashlib.sha256(raw).hexdigest() == f["sha256"], "PNG checksum mismatch")
@@ -56,7 +58,7 @@ def audit_png(snapshot: dict[str, Any]) -> None:
     require(missing.getextrema()[1] == 0, "Missing/shifted geometric strokes")
     allowed = expected_ink.copy()
     boxes = layout["labels"]
-    require(set(boxes) == set(points), "Missing/swapped labels")
+    require(set(boxes) == set(points) - set(g.get("hidden_labels", [])), "Missing/swapped labels")
     font = ImageFont.truetype("DejaVuSans.ttf", 28)
     for name, box in boxes.items():
         require(

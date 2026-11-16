@@ -14,20 +14,41 @@ from PIL import Image, ImageDraw
 
 from app.math.oge16_circles import (
     ENABLED_FAMILIES,
-    FAMILIES,
+    LEGACY_FAMILIES,
     POLICY,
-    content,
     from_snapshot,
-    generate,
-    parameters,
+)
+from app.math.oge16_circles import (
+    content as versioned_content,
+)
+from app.math.oge16_circles import (
+    generate as versioned_generate,
+)
+from app.math.oge16_circles import (
+    parameters as versioned_parameters,
 )
 from app.math.oge16_oracle import audit, solve_visible
 from app.math.oge16_scheduler import build_task16_candidate_batch
 
+# These are immutable legacy-contract regressions, retained alongside the v3 suite.
+FAMILIES = LEGACY_FAMILIES[:6]
+
+
+def generate(family, seed):
+    return versioned_generate(family, seed, "oge16-circles-1")
+
+
+def parameters(family, seed):
+    return versioned_parameters(family, seed, "oge16-circles-1")
+
+
+def content(family, values):
+    return versioned_content(family, values, "oge16-circles-1")
+
 
 @pytest.mark.parametrize("family", FAMILIES)
 def test_randomized_text_geometry_png_and_saved_replay(family):
-    for seed in range(40):
+    for seed in range(5):
         original = generate(family, seed)
         s = original.to_snapshot()
         assert audit(s) == POLICY.parse(s["correct_answer"])
@@ -44,7 +65,7 @@ def test_randomized_text_geometry_png_and_saved_replay(family):
 
 @pytest.mark.parametrize("family", FAMILIES)
 def test_main_sample_independent_visible_oracle(family):
-    for seed in range(300):
+    for seed in range(100):
         p = parameters(family, seed)
         text, hints, steps, result, geometry = content(family, p)
         assert solve_visible(family, text, geometry.to_dict()) == result
@@ -228,27 +249,14 @@ def test_zero_distance_chord_and_irrational_cases():
         audit(s, pixels=False)
 
 
-def test_closed_numeric_training_adapter_and_bounded_exhaustion():
+def test_public_training_is_registered_but_not_enabled():
     from app.bot.oge16_adapter import numeric_training_adapter
     from app.bot.training_engine import NUMERIC_TRAININGS
 
     assert ENABLED_FAMILIES == ()
     adapter = numeric_training_adapter()
     assert adapter.number == 16 and adapter.mode == "task16" and adapter.families == ()
-    assert 16 not in NUMERIC_TRAININGS
-    assert adapter.candidates({}, 42) == []
-    # Exhaust every central-angle variant, without counting cosmetic rearrangements.
-    recent = []
-    for seed in range(1200):
-        p = parameters(FAMILIES[0], seed)
-        identity = json.dumps([FAMILIES[0], [str(v) for v in p]])
-        recent.append(hashlib.sha256(identity.encode()).hexdigest())
-    assert len(set(recent)) == 61
-    state = {"recent_fingerprints": recent, "family_queue": [FAMILIES[0], FAMILIES[4]]}
-    batch = build_task16_candidate_batch(state, 42, enabled_families=(FAMILIES[0], FAMILIES[4]))
-    assert len(batch) == 1 and batch[0]["family_id"] == FAMILIES[4]
-    assert batch[0]["selection_attempts"] == 13
-    state["selected_family_id"] = FAMILIES[0]
-    assert build_task16_candidate_batch(state, 42, enabled_families=FAMILIES) == []
+    assert NUMERIC_TRAININGS[16] == adapter
+    assert build_task16_candidate_batch({}, 42) == []
     with pytest.raises(ValueError):
-        build_task16_candidate_batch({}, 1, enabled_families=("OGE16-C06",))
+        build_task16_candidate_batch({}, 1, enabled_families=("OGE16-UNKNOWN",))

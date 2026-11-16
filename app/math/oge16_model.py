@@ -17,14 +17,20 @@ class CircleGeometry:
     # A02 explicitly identifies the counterclockwise minor A→B arc, excluding C.
     arc: tuple[str, str, str] | None = None
 
+    hidden_labels: tuple[str, ...] = ()
+
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result: dict[str, Any] = {
             "radius": self.radius,
             "center": list(self.center),
             "points": {name: list(point) for name, point in self.points},
             "segments": [list(segment) for segment in self.segments],
             "arc": list(self.arc) if self.arc else None,
         }
+
+        if self.hidden_labels:
+            result["hidden_labels"] = list(self.hidden_labels)
+        return result
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> CircleGeometry:
@@ -34,4 +40,5 @@ class CircleGeometry:
             points=tuple((name, tuple(point)) for name, point in data["points"].items()),
             segments=tuple(tuple(pair) for pair in data["segments"]),
             arc=tuple(data["arc"]) if data["arc"] else None,
+            hidden_labels=tuple(data.get("hidden_labels", [])),
         )

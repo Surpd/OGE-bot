@@ -73,6 +73,7 @@ TASK9_LABEL = "№9 · Уравнения"
 TASK10_LABEL = "№10 · Вероятность"
 TASK12_LABEL = "№12 · Формулы"
 TASK14_LABEL = "№14 · Прогрессии"
+TASK16_LABEL = "№16 · Окружности"
 TASK8_LABEL = "№8 · Степени и корни"
 TASK13_LABEL = "№13 · Неравенства"
 TASK11_LABEL = "№11 · Графики функций"
@@ -104,7 +105,10 @@ def _has_resumable_task6(state: dict[str, object] | None) -> bool:
         return False
     session_state = state.get("state")
     return isinstance(session_state, dict) and session_state.get("status") in {
-        "active", "solved", "failed", "solution_viewed"
+        "active",
+        "solved",
+        "failed",
+        "solution_viewed",
     }
 
 
@@ -113,7 +117,10 @@ def _has_resumable_task9(state: dict[str, object] | None) -> bool:
         return False
     session_state = state.get("state")
     return isinstance(session_state, dict) and session_state.get("status") in {
-        "active", "solved", "failed", "solution_viewed"
+        "active",
+        "solved",
+        "failed",
+        "solution_viewed",
     }
 
 
@@ -238,9 +245,7 @@ async def start(
     await repository.register_user(message.from_user.id)
     await _pause_oge15_foreground(message.from_user.id, oge15_repository)
     await repository.save_user_state(message.from_user.id, "main_menu")
-    has_session = await _has_resumable_session(
-        repository, message.from_user.id, oge15_repository
-    )
+    has_session = await _has_resumable_session(repository, message.from_user.id, oge15_repository)
     logger.info("user_started")
     await send_text(
         message,
@@ -297,7 +302,10 @@ async def continue_session(
         if scenario_session is None:
             return False
         await render_oge15_session(
-            message, oge15_repository, scenario_session, show_assets=False,
+            message,
+            oge15_repository,
+            scenario_session,
+            show_assets=False,
             user_id_override=user_id,
         )
         await repository.save_user_state(user_id, "oge15")
@@ -360,16 +368,17 @@ async def choose_number(
 async def _show_saved_training_choice(
     message: Message, repository: Repository, number: int, user_id: int | None
 ) -> bool:
-    if user_id is None or not any(
-        item.number == number and item.available for item in TRAININGS
-    ):
+    if user_id is None or not any(item.number == number and item.available for item in TRAININGS):
         return False
     state = await getattr(repository, f"task{number}_state")(user_id)
     problem = state.get("problem") if state else None
     saved = state.get("state") if state else None
     status = saved.get("status") if isinstance(saved, dict) else None
     if not isinstance(problem, dict) or status not in {
-        "active", "solved", "failed", "solution_viewed"
+        "active",
+        "solved",
+        "failed",
+        "solution_viewed",
     }:
         return False
     title = next((item.title for item in TRAININGS if item.number == number), f"№{number}")
@@ -378,8 +387,7 @@ async def _show_saved_training_choice(
     await send_text(
         message,
         repository,
-        f"Сохранена практика: №{number} · {title}.\n"
-        "Можно продолжить её или начать заново.",
+        f"Сохранена практика: №{number} · {title}.\nМожно продолжить её или начать заново.",
         reply_markup=saved_training_menu(number, problem_id),
     )
     return True
@@ -394,9 +402,7 @@ async def saved_training_navigation(
     problem_id: str,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
-    training = next(
-        (item for item in TRAININGS if item.number == number and item.available), None
-    )
+    training = next((item for item in TRAININGS if item.number == number and item.available), None)
     if training is None or action not in {"continue", "restart", "confirm", "cancel"}:
         await send_text(message, repository, "Этот вариант тренировки недоступен.")
         return
@@ -574,7 +580,8 @@ async def _send_task9_problem(
 
 
 async def choose_task9(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
@@ -608,7 +615,8 @@ async def _send_task10_problem(
 
 
 async def choose_task10(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
@@ -732,7 +740,8 @@ async def _send_task11_problem(
 
 
 async def choose_task11(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
@@ -927,7 +936,8 @@ async def _send_task12_problem(
 
 
 async def choose_task12(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
@@ -969,7 +979,8 @@ async def _send_task14_problem(
 
 
 async def choose_task14(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
@@ -1011,7 +1022,8 @@ async def _send_task15_problem(
 
 
 async def choose_task15(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     if not NUMERIC_TRAININGS[15].families:
@@ -1029,6 +1041,54 @@ async def task15_callback(callback: CallbackQuery, repository: Repository) -> No
 
 async def task15_answer(message: Message, repository: Repository) -> None:
     await training_answer(NUMERIC_TRAININGS[15], message, repository)
+
+
+async def _send_task16_problem(
+    message: Message,
+    repository: Repository,
+    *,
+    action: str,
+    expected_problem_id: str | None = None,
+    expected_screen: str | None = None,
+    expected_prompt_message_id: int | None = None,
+    user_id_override: int | None = None,
+    skip_active: bool = False,
+) -> bool:
+    return await send_problem(
+        NUMERIC_TRAININGS[16],
+        message,
+        repository,
+        action=action,
+        expected_problem_id=expected_problem_id,
+        expected_screen=expected_screen,
+        expected_prompt_message_id=expected_prompt_message_id,
+        user_id_override=user_id_override,
+        skip_active=skip_active,
+    )
+
+
+async def choose_task16(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    if message.from_user is None:
+        return
+    if not NUMERIC_TRAININGS[16].families:
+        await send_text(message, repository, "Задания №16 пока выключены.")
+        return
+    await _pause_oge15_foreground(message.from_user.id, oge15_repository)
+    if await _show_saved_training_choice(message, repository, 16, message.from_user.id):
+        return
+    await _send_task16_problem(message, repository, action="start")
+
+
+async def task16_callback(callback: CallbackQuery, repository: Repository) -> None:
+    await training_callback(NUMERIC_TRAININGS[16], callback, repository)
+
+
+async def task16_answer(message: Message, repository: Repository) -> None:
+    await training_answer(NUMERIC_TRAININGS[16], message, repository)
 
 
 async def _send_task18_problem(
@@ -1056,7 +1116,8 @@ async def _send_task18_problem(
 
 
 async def choose_task18(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     if not NUMERIC_TRAININGS[18].families:
@@ -1101,7 +1162,8 @@ async def _send_task8_problem(
 
 
 async def choose_task8(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
@@ -1262,7 +1324,8 @@ async def _send_task7_problem(
 
 
 async def choose_task7(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     if not TASK7_ENABLED_FAMILIES:
@@ -1606,7 +1669,8 @@ async def _send_task13_problem(
 
 
 async def choose_task13(
-    message: Message, repository: Repository,
+    message: Message,
+    repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     await _pause_oge15_foreground(_user_id(message), oge15_repository)
@@ -2363,9 +2427,7 @@ async def show_progress(
     await repository.save_user_state(user_id, "progress")
     wrapped_message = getattr(message, "_message", None)
     edit_existing = isinstance(wrapped_message, Message) and bool(wrapped_message.photo)
-    if await send_progress_image(
-        message, repository, user_id, edit_existing=edit_existing
-    ):
+    if await send_progress_image(message, repository, user_id, edit_existing=edit_existing):
         return
     insights = await training_insights(repository, user_id)
     await send_text(
@@ -2461,6 +2523,7 @@ def build_router() -> Router:
     router.message.register(choose_task12, F.text == TASK12_LABEL)
     router.message.register(choose_task14, F.text == TASK14_LABEL)
     router.message.register(choose_task15, F.text == "№15 · Треугольники")
+    router.message.register(choose_task16, F.text == TASK16_LABEL)
     router.message.register(choose_task18, F.text == "№18 · Фигуры на клетчатой сетке")
     router.message.register(choose_task7, F.text == TASK7_LABEL)
     router.message.register(choose_task8, F.text == TASK8_LABEL)
@@ -2487,6 +2550,7 @@ def build_router() -> Router:
     router.callback_query.register(task12_callback, F.data.startswith("t12:"))
     router.callback_query.register(task14_callback, F.data.startswith("t14:"))
     router.callback_query.register(task15_callback, F.data.startswith("t15:"))
+    router.callback_query.register(task16_callback, F.data.startswith("t16:"))
     router.callback_query.register(task18_callback, F.data.startswith("t18:"))
     router.callback_query.register(task7_callback, F.data.startswith("t7:"))
     router.callback_query.register(task8_callback, F.data.startswith("t8:"))

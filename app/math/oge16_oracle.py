@@ -37,7 +37,28 @@ PATTERNS = {
         rf"Выпуклый четырёхугольник ABCD вписан в окружность\. Угол A равен "
         rf"{N}°\. Найдите угол C в градусах\."
     ),
+    "OGE16-B04": (
+        rf"Через точку A, лежащую вне окружности, проведены две прямые\. Одна прямая "
+        rf"касается окружности в точке K\. Другая прямая пересекает окружность в точках "
+        rf"B и C, причём AB = {N}, AC = {N}\. Найдите AK\."
+    ),
+    "OGE16-C02": (
+        rf"Радиус окружности, вписанной в равнобедренную трапецию, равен {N}\. "
+        rf"Найдите высоту этой трапеции\."
+    ),
+    "OGE16-C03": (
+        rf"Периметр треугольника равен {N}, одна из сторон равна {N}, а радиус "
+        rf"вписанной в него окружности равен {N}\. Найдите площадь этого треугольника\."
+    ),
 }
+TRAPEZOID_D01 = (
+    rf"Трапеция ABCD с основаниями AD и BC вписана в окружность\. Угол A равен "
+    rf"{N}°\. Найдите угол C в градусах\."
+)
+TRAPEZOID_C02 = (
+    rf"Радиус окружности, вписанной в трапецию, равен {N}\. "
+    rf"Найдите высоту этой трапеции\."
+)
 THEOREMS = {
     "OGE16-A02": "Вписанный угол равен половине центрального угла, опирающегося на ту же дугу.",
     "OGE16-A05": "Угол ABC опирается на диаметр AC и равен 90°. Острые углы в сумме дают 90°.",
@@ -53,6 +74,13 @@ THEOREMS = {
         "квадрата равна квадрату стороны."
     ),
     "OGE16-D01": "Сумма противоположных углов вписанного четырёхугольника равна 180°.",
+    "OGE16-B04": "По теореме о касательной и секущей AK² = AB · AC.",
+    "OGE16-C02": (
+        "Высота трапеции равна расстоянию между основаниями; оно равно диаметру окружности."
+    ),
+    "OGE16-C03": (
+        "Площадь треугольника равна произведению полупериметра на радиус вписанной окружности."
+    ),
 }
 SEGMENTS = {
     "OGE16-A02": {"AO", "BO", "AB", "AC", "BC"},
@@ -61,6 +89,9 @@ SEGMENTS = {
     "OGE16-B03": {"AB", "MO"},
     "OGE16-C01": {"AB", "BC", "CD", "AD"},
     "OGE16-D01": {"AB", "BC", "CD", "AD"},
+    "OGE16-B04": {"AC", "AK", "KO"},
+    "OGE16-C02": {"AB", "BC", "CD", "AD"},
+    "OGE16-C03": {"AB", "BC", "AC"},
 }
 
 
@@ -107,19 +138,49 @@ def square_root(value: Fraction) -> Fraction:
     return Fraction(n, d)
 
 
+def visible_values(family: str, condition: str) -> tuple[Fraction, ...]:
+    pattern = (
+        TRAPEZOID_D01
+        if family == "OGE16-D01" and condition.startswith("Трапеция")
+        else TRAPEZOID_C02
+        if family == "OGE16-C02" and "равнобедренную" not in condition
+        else PATTERNS.get(family)
+    )
+    if pattern is None:
+        raise ValueError("Unknown family")
+    match = re.fullmatch(pattern, condition)
+    require(match is not None, "Statement shape/target/units changed")
+    assert match is not None
+    return tuple(Fraction(s.replace(",", ".")) for s in match.groups())
+
+
 def solve_visible(family: str, condition: str, geometry: dict[str, Any]) -> Fraction:
     """Solve visible statement, then independently verify the coordinate witness."""
     require(family in PATTERNS, "Unknown family")
-    match = re.fullmatch(PATTERNS[family], condition)
-    require(match is not None, "Statement shape/target/units changed")
-    assert match is not None
-    values = tuple(Fraction(s.replace(",", ".")) for s in match.groups())
+    values = visible_values(family, condition)
     require(all(0 <= v <= 1000 for v in values), "Manual complexity limit")
     g = geometry
     p = g["points"]
     r = g["radius"]
     require(type(r) in (int, float) and 0 < r <= 1000, "Invalid radius")
-    require(g["center"] == [0.0, 0.0], "Unexpected center")
+    if family == "OGE16-B04":
+        require(g["center"] == p["O"], "Circle center disagrees with point O")
+    elif family == "OGE16-C02":
+        require(
+            isinstance(g["center"], list)
+            and len(g["center"]) == 2
+            and math.isclose(g["center"][1], r),
+            "Invalid incircle center",
+        )
+    elif family == "OGE16-C03":
+        require(
+            isinstance(g["center"], list)
+            and len(g["center"]) == 2
+            and all(math.isfinite(v) for v in g["center"]),
+            "Invalid incircle center",
+        )
+    else:
+        require(g["center"] == [0.0, 0.0], "Unexpected center")
     for point in p.values():
         require(isinstance(point, list) and len(point) == 2, "Invalid point")
         require(all(type(v) in (int, float) and math.isfinite(v) for v in point), "Nonfinite point")
@@ -130,6 +191,9 @@ def solve_visible(family: str, condition: str, geometry: dict[str, Any]) -> Frac
         "OGE16-B03": "OABM",
         "OGE16-C01": "OABCD",
         "OGE16-D01": "ABCD",
+        "OGE16-B04": "OABCK",
+        "OGE16-C02": "ABCD",
+        "OGE16-C03": "ABC",
     }
     require(set(p) == set(names[family]), "Point labels changed")
     edges = g["segments"]
@@ -140,7 +204,11 @@ def solve_visible(family: str, condition: str, geometry: dict[str, Any]) -> Frac
     )
     if family != "OGE16-A02":
         require(g["arc"] is None, "Unexpected arc")
-    center = p.get("O", p.get("A") if family == "OGE16-B01" else [0.0, 0.0])
+    center = (
+        g["center"]
+        if family in {"OGE16-C02", "OGE16-C03"}
+        else p.get("O", p["A"] if family == "OGE16-B01" else [0.0, 0.0])
+    )
     near(distance(center, g["center"]), 0)
     on_circle = {
         "OGE16-A02": "ABC",
@@ -149,6 +217,9 @@ def solve_visible(family: str, condition: str, geometry: dict[str, Any]) -> Frac
         "OGE16-B03": "AB",
         "OGE16-C01": "",
         "OGE16-D01": "ABCD",
+        "OGE16-B04": "BCK",
+        "OGE16-C02": "",
+        "OGE16-C03": "",
     }
     for name in on_circle[family]:
         near(distance(center, p[name]), r)
@@ -197,6 +268,51 @@ def solve_visible(family: str, condition: str, geometry: dict[str, Any]) -> Frac
         near(dot(vector(center, p["M"]), vector(p["A"], p["B"])), 0)
         result = 2 * square_root(radius * radius - d * d)
         near(distance(p["A"], p["B"]), float(result))
+    elif family == "OGE16-B04":
+        external, whole = values
+        require(0 < external < whole, "Secant lengths must be positive and ordered")
+        require(r > 0, "Circle radius must be positive")
+        near(distance(p["A"], p["B"]), float(external))
+        near(distance(p["A"], p["C"]), float(whole))
+        near(distance(p["B"], p["C"]), float(whole - external))
+        near(cross(vector(p["A"], p["B"]), vector(p["A"], p["C"])), 0)
+        require(dot(vector(p["A"], p["B"]), vector(p["B"], p["C"])) > 0, "Invalid secant order")
+        near(distance(center, p["K"]), r)
+        near(dot(vector(p["K"], p["A"]), vector(p["K"], center)), 0)
+        result = square_root(external * whole)
+        near(distance(p["A"], p["K"]), float(result))
+    elif family == "OGE16-C02":
+        require(a > 0, "Positive inradius required")
+        vertices = [p[n] for n in "ABCD"]
+        ab, cd = vector(p["A"], p["B"]), vector(p["C"], p["D"])
+        near(cross(ab, cd), 0)
+        near(distance(p["A"], p["D"]), distance(p["B"], p["C"]))
+        near(abs(p["A"][1] - p["D"][1]), 2 * float(a))
+        for first, second in zip(vertices, (*vertices[1:], vertices[0]), strict=True):
+            tangent_vector = vector(first, second)
+            near(
+                abs(cross(tangent_vector, vector(first, center))) / math.hypot(*tangent_vector),
+                float(a),
+            )
+        result = 2 * a
+    elif family == "OGE16-C03":
+        perimeter, triangle_side, radius = values
+        require(perimeter > triangle_side > 0 and radius > 0, "Triangle input domain")
+        vertices = [p[n] for n in "ABC"]
+        edge_vectors = [vector(vertices[i], vertices[(i + 1) % 3]) for i in range(3)]
+        lengths = [math.hypot(*edge) for edge in edge_vectors]
+        near(sum(lengths), float(perimeter))
+        near(lengths[0], float(triangle_side))
+        area = abs(cross(edge_vectors[0], vector(vertices[0], vertices[2]))) / 2
+        result = perimeter / 2 * radius
+        near(area, float(result))
+        turns = [cross(edge_vectors[i], edge_vectors[(i + 1) % 3]) for i in range(3)]
+        require(all(t > 0 for t in turns) or all(t < 0 for t in turns), "Triangle not convex")
+        distances = [
+            abs(cross(edge_vectors[i], vector(vertices[i], center))) / lengths[i] for i in range(3)
+        ]
+        for distance_to_side in distances:
+            near(distance_to_side, float(radius))
     elif family == "OGE16-C01":
         require(a > 0, "Positive radius required")
         near(r, float(a))
@@ -229,6 +345,11 @@ def solve_visible(family: str, condition: str, geometry: dict[str, Any]) -> Frac
         near(angle(p["B"], p["A"], p["D"]), float(a))
         result = 180 - a
         near(angle(p["B"], p["C"], p["D"]), float(result))
+        if condition.startswith("Трапеция"):
+            ad = vector(p["A"], p["D"])
+            bc = vector(p["B"], p["C"])
+            near(cross(ad, bc), 0)
+            require(abs(dot(ad, bc)) > 1e-8, "Degenerate trapezoid")
     require(0 < result <= 40000, "Answer complexity limit")
     return result
 
@@ -236,18 +357,41 @@ def solve_visible(family: str, condition: str, geometry: dict[str, Any]) -> Frac
 def audit(snapshot: dict[str, Any], *, pixels: bool = True) -> Fraction:
     """Validate every mathematical field and proof step; fail closed on corrupt data."""
     try:
+        if snapshot.get("generator_version") == "oge16-circles-3":
+            from app.math.oge16_complete_oracle import solve
+            from app.math.oge16_raster_oracle import audit_png
+
+            require(snapshot["snapshot_version"] == 1, "Unknown snapshot version")
+            require(type(snapshot["seed"]) is int and 0 <= snapshot["seed"] < 2**63, "Invalid seed")
+            require(
+                snapshot["answer_policy_id"] == NUMERIC_SHORT_ANSWER.policy_id
+                and snapshot["answer_policy_version"] == NUMERIC_SHORT_ANSWER.version,
+                "Unknown answer policy",
+            )
+            result = solve(snapshot)
+            if pixels:
+                audit_png(snapshot)
+            return result
         family = snapshot["family_id"]
         require(
-            snapshot["generator_version"] == "oge16-circles-1"
+            snapshot["generator_version"] in {"oge16-circles-1", "oge16-circles-2"}
             and snapshot["snapshot_version"] == 1,
             "Unknown snapshot contract",
         )
         require(type(snapshot["seed"]) is int and 0 <= snapshot["seed"] < 2**63, "Invalid seed")
         result = solve_visible(family, snapshot["condition"], snapshot["geometry"])
-        match = re.fullmatch(PATTERNS[family], snapshot["condition"])
-        assert match is not None
-        v = [Fraction(s.replace(",", ".")) for s in match.groups()]
-        model_p = (v[0], sum(v, Fraction(0))) if family == "OGE16-B01" else tuple(v)
+        v = list(visible_values(family, snapshot["condition"]))
+        if family == "OGE16-D01":
+            model_p: tuple[Fraction, ...] = (
+                (v[0], Fraction(1)) if snapshot["condition"].startswith("Трапеция") else (v[0],)
+            )
+        elif family == "OGE16-C02":
+            model_p = (
+                v[0],
+                Fraction(int("равнобедренную" in snapshot["condition"])),
+            )
+        else:
+            model_p = (v[0], sum(v, Fraction(0))) if family == "OGE16-B01" else tuple(v)
         require(
             snapshot["parameters"] == [str(n) for n in model_p], "Parameters disagree with text"
         )
@@ -276,6 +420,14 @@ def audit(snapshot: dict[str, Any], *, pixels: bool = True) -> Fraction:
                 format_decimal((result / 2) ** 2),
             )
             calculation = f"AM² = {a}² − {d}² = {h2}; AM = {h}; AB = 2 · {h} = {out}."
+        elif family == "OGE16-B04":
+            external, whole = format_decimal(v[0]), format_decimal(v[1])
+            calculation = f"AK² = {external} · {whole} = {format_decimal(v[0] * v[1])}; AK = {out}."
+        elif family == "OGE16-C02":
+            calculation = f"h = 2r = 2 · {a} = {out}."
+        elif family == "OGE16-C03":
+            radius = format_decimal(v[2])
+            calculation = f"S = p · r = {format_decimal(v[0] / 2)} · {radius} = {out}."
         else:
             side = format_decimal(2 * v[0])
             calculation = f"a = 2 · {a} = {side}; S = {side}² = {out}."
@@ -289,5 +441,13 @@ def audit(snapshot: dict[str, Any], *, pixels: bool = True) -> Fraction:
 
             audit_png(snapshot)
         return result
-    except (KeyError, TypeError, IndexError, ArithmeticError, AttributeError) as exc:
+    except (
+        KeyError,
+        TypeError,
+        IndexError,
+        ArithmeticError,
+        AttributeError,
+        SyntaxError,
+        RecursionError,
+    ) as exc:
         raise ValueError("Malformed circle snapshot") from exc

@@ -22,8 +22,13 @@ def message(user=123):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("number", [8, 10, 12, 14])
-async def test_family_choice_preserves_active_problem_and_applies_to_next(number):
+@pytest.mark.parametrize("number", [8, 10, 12, 14, 16])
+async def test_family_choice_preserves_active_problem_and_applies_to_next(number, monkeypatch):
+    if number == 16:
+        from app.math import oge16_scheduler
+        from app.math.oge16_circles import FAMILIES
+
+        monkeypatch.setattr(oge16_scheduler, "ENABLED_FAMILIES", FAMILIES)
     repository = MemoryRepository()
     adapter = NUMERIC_TRAININGS[number]
     first = message()
@@ -76,8 +81,13 @@ async def test_selected_family_never_silently_falls_back():
     assert "Все типы" in outgoing.answer.await_args.args[0]
 
 
-@pytest.mark.parametrize("number", [8, 10, 12, 14])
-def test_family_keyboard_is_bound_and_only_lists_enabled_families(number):
+@pytest.mark.parametrize("number", [8, 10, 12, 14, 16])
+def test_family_keyboard_is_bound_and_only_lists_enabled_families(number, monkeypatch):
+    if number == 16:
+        from app.math import oge16_scheduler
+        from app.math.oge16_circles import FAMILIES
+
+        monkeypatch.setattr(oge16_scheduler, "ENABLED_FAMILIES", FAMILIES)
     keyboard = family_keyboard(number)
     assert navigation_screen(keyboard) == f"family_selection:{number}"
     callbacks = [button.callback_data for row in keyboard.inline_keyboard for button in row]

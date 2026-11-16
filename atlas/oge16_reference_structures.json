@@ -3,11 +3,11 @@
     {
       "family_id": "OGE16-A01",
       "exam_number": 16,
-      "name": "Вписанные углы на одной дуге",
+      "name": "Два диаметра: равные углы при основаниях",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -22,7 +22,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=83887",
               "sha256": "9b15a4b19563eff09010776243bc5f379ffbdf7ae0747d2d2a05771ad4b4dff2"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "142",
@@ -36,7 +37,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40363",
               "sha256": "6697df6e6455253d5ff71077f36ccb21ef110e2fd1f48ce844f0bcdeac101a2e"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "314850",
@@ -50,15 +52,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=83887",
               "sha256": "9b15a4b19563eff09010776243bc5f379ffbdf7ae0747d2d2a05771ad4b4dff2"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
-      "mathematical_structure": "equal_inscribed_angles",
+      "mathematical_structure": "equal_base_angles_in_opposite_isosceles_triangles_formed_by_two_diameters",
       "question_intent": "Вписанные углы на одной дуге",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 20,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -66,45 +71,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-A01.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-A02",
       "exam_number": 16,
-      "name": "Центральный ↔ вписанный угол",
+      "name": "Центральный и вписанный углы",
       "status": "research_only",
-      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
       "implementation_status": "implemented_closed",
-      "gate_status": "ENABLE_IMPL",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -141,9 +150,11 @@
       "mathematical_structure": "inscribed = central/2",
       "question_intent": "Центральный ↔ вписанный угол",
       "parameter_model": {
-        "engineering_bounds": "phi=40..160 even; C on complementary major arc; 61 mathematical variants"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 20,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -151,44 +162,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "Pillow PNG from immutable CircleGeometry",
-        "version": "oge16-pillow-1",
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-A02.png"
       },
       "oracle": {
-        "implementation": "app/math/oge16_oracle.py",
-        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "snapshot theorem and numeric steps independently checked"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "path": "atlas/oge16_regression_vectors.json"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "one or two theorem applications; bounded arithmetic",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-A03",
       "exam_number": 16,
-      "name": "Два диаметра, центральный и вписанный",
+      "name": "Два диаметра: прямой и обратный вопрос",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -203,7 +219,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40372",
               "sha256": "2a7588c611cd60f849ed348d5d2592179c2d748af85f82763316a148fabae3c6"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "349314",
@@ -217,15 +234,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40750",
               "sha256": "5128fecf5f1d7f598234241da1aa4efa22baa384ff1d2dbc099975c153b2c09c"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "inscribed=(180-central_other)/2",
       "question_intent": "Два диаметра, центральный и вписанный",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 20,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -233,45 +253,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-A03.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-A04",
       "exam_number": 16,
-      "name": "Углы на противоположных полуокружностях",
+      "name": "Точки по разные стороны диаметра",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -286,15 +310,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40414",
               "sha256": "c1ba264d1cbc2069183c80bcc7abb8fc8e23200c594af9d455eca3c033aab79f"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "target=90-given",
       "question_intent": "Углы на противоположных полуокружностях",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -302,45 +329,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-A04.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-A05",
       "exam_number": 16,
-      "name": "Диаметр как сторона прямоугольного треугольника",
+      "name": "Центр на стороне треугольника: угол",
       "status": "research_only",
-      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
       "implementation_status": "implemented_closed",
-      "gate_status": "ENABLE_IMPL",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -378,7 +409,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=89143",
               "sha256": "7b91966bc4c1a2cd52fe8e9087de72eff5f875a951f1213b32e9e708bbd120d9"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "339503",
@@ -392,7 +424,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=88093",
               "sha256": "d1ed5890cdf5d7a3416c594d708e9e022ad18a9384ad1413c2d60191810df72e"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "341329",
@@ -406,15 +439,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=89134",
               "sha256": "3e6bc74ac9e09be3ce1f9b37c13a987ce5a525f6b45c9e4acbdae56244d9f86a"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "angles remaining=90-given",
       "question_intent": "Диаметр как сторона прямоугольного треугольника",
       "parameter_model": {
-        "engineering_bounds": "alpha=20..70 integer; AC diameter; target C; 51 variants"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 30,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -422,44 +458,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "Pillow PNG from immutable CircleGeometry",
-        "version": "oge16-pillow-1",
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-A05.png"
       },
       "oracle": {
-        "implementation": "app/math/oge16_oracle.py",
-        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "snapshot theorem and numeric steps independently checked"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "path": "atlas/oge16_regression_vectors.json"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "one or two theorem applications; bounded arithmetic",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-A06",
       "exam_number": 16,
-      "name": "Диаметр и Пифагор",
+      "name": "Центр на стороне треугольника: длина",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -474,15 +515,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=89143",
               "sha256": "7b91966bc4c1a2cd52fe8e9087de72eff5f875a951f1213b32e9e708bbd120d9"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "missing=sqrt((2R)^2-leg^2)",
       "question_intent": "Диаметр и Пифагор",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -490,35 +534,39 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-A06.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
@@ -526,9 +574,9 @@
       "exam_number": 16,
       "name": "Касательная по радиусу и внешнему отрезку",
       "status": "research_only",
-      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
       "implementation_status": "implemented_closed",
-      "gate_status": "ENABLE_IMPL",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -550,9 +598,11 @@
       "mathematical_structure": "tangent²=(r+b)²-r²",
       "question_intent": "Касательная по радиусу и внешнему отрезку",
       "parameter_model": {
-        "engineering_bounds": "four primitive triples (3,4,5),(5,12,13),(8,15,17),(7,24,25), scale n/10, n=1..100; R=first leg, d=hypotenuse; 400 variants"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -560,44 +610,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "Pillow PNG from immutable CircleGeometry",
-        "version": "oge16-pillow-1",
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-B01.png"
       },
       "oracle": {
-        "implementation": "app/math/oge16_oracle.py",
-        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "snapshot theorem and numeric steps independently checked"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "path": "atlas/oge16_regression_vectors.json"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "one or two theorem applications; bounded arithmetic",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-B02",
       "exam_number": 16,
-      "name": "Две касательные из одной точки",
+      "name": "Угол между двумя касательными",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -612,15 +667,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40167",
               "sha256": "eb304ea77430500be5cb65a109b46420f4c17a5e5ff48ec00542744229b69ce4"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "base_angle=external_angle/2",
       "question_intent": "Две касательные из одной точки",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -628,45 +686,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-B02.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-B03",
       "exam_number": 16,
-      "name": "Длина хорды через расстояние до центра",
+      "name": "Хорда по радиусу и расстоянию до центра",
       "status": "research_only",
-      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
       "implementation_status": "implemented_closed",
-      "gate_status": "ENABLE_IMPL",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -688,9 +750,11 @@
       "mathematical_structure": "chord=2*sqrt(r²-d²)",
       "question_intent": "Длина хорды через расстояние до центра",
       "parameter_model": {
-        "engineering_bounds": "same four triples and scales; R=hypotenuse, d=first leg; 400 variants; d=0 supported by oracle but not sampled"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -698,34 +762,39 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "Pillow PNG from immutable CircleGeometry",
-        "version": "oge16-pillow-1",
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-B03.png"
       },
       "oracle": {
-        "implementation": "app/math/oge16_oracle.py",
-        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "snapshot theorem and numeric steps independently checked"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "path": "atlas/oge16_regression_vectors.json"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "one or two theorem applications; bounded arithmetic",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
@@ -733,9 +802,9 @@
       "exam_number": 16,
       "name": "Касательная и секущая: степень точки",
       "status": "research_only",
-      "status_reason": "Strict point power and ordered external/whole secant segments required",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -750,15 +819,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40115",
               "sha256": "1723b401fadc101e15c8a4156522d6bb4f01038980f5d0abee6a2b574389edbb"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "tangent²=external*whole",
       "question_intent": "Касательная и секущая: степень точки",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -766,35 +838,39 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-B04.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "Strict point power and ordered external/whole secant segments required"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
@@ -802,9 +878,9 @@
       "exam_number": 16,
       "name": "Угол касательной с хордой",
       "status": "research_only",
-      "status_reason": "Minor/major intercepted arc orientation unresolved",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -819,15 +895,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40111",
               "sha256": "2fbc0be51f52cf2b44b2dc9ec1ca9f680ce817a2c0ad7497474a96760f2db404"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "angle=arc/2",
       "question_intent": "Угол касательной с хордой",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -835,45 +914,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-B05.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "Minor/major intercepted arc orientation unresolved"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-C01",
       "exam_number": 16,
-      "name": "Квадрат и вписанная окружность",
+      "name": "Окружность в квадрате: площадь, диагональ, радиус",
       "status": "research_only",
-      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
       "implementation_status": "implemented_closed",
-      "gate_status": "ENABLE_IMPL",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -922,7 +1005,8 @@
               "url": "https://oge.sdamgia.ru/formula/svg/87/87fed09285f2c8238cf1cb0c9dd5964c.svg",
               "sha256": "f62469c8c77c0657e1d4f95ae13c97ec69174cc4cd13e03230e05e09dbe28ed6"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "356399",
@@ -936,7 +1020,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=42216",
               "sha256": "7b82b685766718caa2c3dcbd4f3cf4f4f2e5bb658f240b00a30483d50a6b19b0"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "FIPI2027-DEMO-16",
@@ -954,15 +1039,18 @@
             12,
             15
           ],
-          "control": "R=7, S=196"
+          "control": "R=7, S=196",
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "side=2r; area=4r²; diagonal=2r*sqrt(2)",
       "question_intent": "Квадрат и вписанная окружность",
       "parameter_model": {
-        "engineering_bounds": "R=n/10, n=10..300; area only, 291 variants; no perimeter/diagonal"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 31,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -970,44 +1058,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "Pillow PNG from immutable CircleGeometry",
-        "version": "oge16-pillow-1",
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-C01.png"
       },
       "oracle": {
-        "implementation": "app/math/oge16_oracle.py",
-        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "snapshot theorem and numeric steps independently checked"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "path": "atlas/oge16_regression_vectors.json"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "one or two theorem applications; bounded arithmetic",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-C02",
       "exam_number": 16,
-      "name": "Высота трапеции с вписанной окружностью",
+      "name": "Окружность в трапеции: высота",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1022,7 +1115,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=89145",
               "sha256": "fc72e09e43c6045ef6fe7abf29d29eb3fdecad8e862b0b3bf72c97326d7f89c9"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "448769",
@@ -1036,15 +1130,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=66384",
               "sha256": "6d392b8076c0f50586c4e126102c5a498f54b568b443cdbf156762731b5ac720"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "height=2r",
       "question_intent": "Высота трапеции с вписанной окружностью",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 20,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1052,45 +1149,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-C02.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-C03",
       "exam_number": 16,
-      "name": "Площадь треугольника по полупериметру и r",
+      "name": "Окружность в треугольнике: площадь",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1105,15 +1206,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=88090",
               "sha256": "817d4e4b24c3e85fefe3552aae80c5fe315cba0da30d739d4774757d9319bedd"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "area=semiperimeter*r",
       "question_intent": "Площадь треугольника по полупериметру и r",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1121,45 +1225,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-C03.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-C04",
       "exam_number": 16,
-      "name": "Равносторонний треугольник и r",
+      "name": "Равносторонний треугольник: r, h, a",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1178,7 +1286,8 @@
               "url": "https://oge.sdamgia.ru/formula/svg/6a/6ac7df217d8ffb190e45e3969e0a3a86.svg",
               "sha256": "56e4e8a49ddcd6d741a7fe7d26b4018410493d898ecda1117b8efa421ac62f5f"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "356498",
@@ -1192,7 +1301,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=40187",
               "sha256": "0da2c4f00e8784c76640d916f5dca2b2e363d26920c5c311c1b2fcbe7d2816f5"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "356518",
@@ -1210,7 +1320,8 @@
               "url": "https://oge.sdamgia.ru/formula/svg/6a/6ac7df217d8ffb190e45e3969e0a3a86.svg",
               "sha256": "56e4e8a49ddcd6d741a7fe7d26b4018410493d898ecda1117b8efa421ac62f5f"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "472375",
@@ -1228,15 +1339,18 @@
               "url": "https://oge.sdamgia.ru/formula/svg/2a/2ac236aeee52a4eeb90e4f5fd54d14af.svg",
               "sha256": "f4895e08f69d82f0760cc829e38852e3fc75dbf57429326e6f1841a26655f3cb"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "r=a*sqrt(3)/6; h=3r",
       "question_intent": "Равносторонний треугольник и r",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 40,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1244,45 +1358,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-C04.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-C05",
       "exam_number": 16,
-      "name": "Описанный четырёхугольник / трапеция",
+      "name": "Описанные четырёхугольник и трапеция: сторона",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1297,7 +1415,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=88098",
               "sha256": "c1501692b3421beed0dcea11fb166efe803a4ee79b8f2cbeac4b981c6cbd7ec5"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "356603",
@@ -1311,7 +1430,8 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=88067",
               "sha256": "6351c16df2413c9abdfd7765cdcce776c6ca9ffd13621c488d539e8bb5aa2489"
             }
-          ]
+          ],
+          "implemented_subtype": true
         },
         {
           "task_id": "438296",
@@ -1325,15 +1445,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=57310",
               "sha256": "c393eea2cf3baec5e5d894f418ab0f9258f75c302abe6bbb489f15907ffdf2e5"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "AB+CD=BC+AD",
       "question_intent": "Описанный четырёхугольник / трапеция",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 20,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1341,45 +1464,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-C05.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-C06",
       "exam_number": 16,
-      "name": "Ромб и радиус вписанной окружности",
+      "name": "Ромб: диагональ, тангенс и радиус",
       "status": "research_only",
-      "status_reason": "Known overly flat rhombus diagram; requires layout/source gate",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1398,15 +1525,18 @@
               "url": "https://oge.sdamgia.ru/formula/svg/1c/1cfd4fc610d16a9c8b195e676ec2987a.svg",
               "sha256": "aed281440ee8e914cc4fe7c684a116d9fe0160b73faf3a91c3940cc304fbc005"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "r=(AC/2)*sin(arctan(tg))",
       "question_intent": "Ромб и радиус вписанной окружности",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1414,45 +1544,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-C06.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "Known overly flat rhombus diagram; requires layout/source gate"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-D01",
       "exam_number": 16,
-      "name": "Сумма противолежащих углов вписанного четырёхугольника",
+      "name": "Вписанные четырёхугольник и трапеция: угол",
       "status": "research_only",
-      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
       "implementation_status": "implemented_closed",
-      "gate_status": "ENABLE_IMPL",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1483,15 +1617,17 @@
               "sha256": "d095656611e1250a0f3179be724fe1e608baa67219e8a91708881ed14a2dbc14"
             }
           ],
-          "implemented_subtype": false
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "angle_opposite=180-angle",
       "question_intent": "Сумма противолежащих углов вписанного четырёхугольника",
       "parameter_model": {
-        "engineering_bounds": "alpha=50..130 integer; clockwise convex cyclic kite witness; 81 variants; no trapezoid target"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 20,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1499,45 +1635,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "Pillow PNG from immutable CircleGeometry",
-        "version": "oge16-pillow-1",
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-D01.png"
       },
       "oracle": {
-        "implementation": "app/math/oge16_oracle.py",
-        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "snapshot theorem and numeric steps independently checked"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "path": "atlas/oge16_regression_vectors.json"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "one or two theorem applications; bounded arithmetic",
       "known_exclusions": [
-        "323356 is not a circle problem",
-        "356448 trapezoid not implemented"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-D02",
       "exam_number": 16,
-      "name": "Правильный треугольник и описанная окружность",
+      "name": "Описанная окружность равностороннего треугольника",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1556,15 +1696,18 @@
               "url": "https://oge.sdamgia.ru/formula/svg/6a/6ac7df217d8ffb190e45e3969e0a3a86.svg",
               "sha256": "56e4e8a49ddcd6d741a7fe7d26b4018410493d898ecda1117b8efa421ac62f5f"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "a=R*sqrt(3)",
       "question_intent": "Правильный треугольник и описанная окружность",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1572,45 +1715,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-D02.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-D03",
       "exam_number": 16,
-      "name": "Квадрат и описанная окружность",
+      "name": "Описанная окружность квадрата",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1629,15 +1776,18 @@
               "url": "https://oge.sdamgia.ru/formula/svg/1f/1f320d23169c736ad2b0e7f3ff6fe192.svg",
               "sha256": "bd4e2cb20438c739426c928f044557cf8d3b756e8e5cb90baaae5f01ae38d6ac"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "side=R*sqrt(2)",
       "question_intent": "Квадрат и описанная окружность",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1645,45 +1795,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-D03.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-D04",
       "exam_number": 16,
-      "name": "Теорема синусов: радиус описанной окружности",
+      "name": "Радиус по теореме синусов",
       "status": "research_only",
-      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1702,15 +1856,18 @@
               "url": "https://oge.sdamgia.ru/formula/svg/d4/d49d8164c85078539666091c9484c5f6.svg",
               "sha256": "627110046b040e67191558f888959ecba34a2c0bc5b30842b9005e834f02e047"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "R=a/(2 sin(angle))",
       "question_intent": "Теорема синусов: радиус описанной окружности",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1718,45 +1875,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-D04.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-D05",
       "exam_number": 16,
-      "name": "Центр окружности — середина стороны квадрата",
+      "name": "Центр окружности в середине стороны квадрата",
       "status": "research_only",
-      "status_reason": "Composite geometry: independent constructive witness required",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1771,15 +1932,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=81724",
               "sha256": "2d599ae5e09a805db55c0465be545c061a9066abcca774a1df898c89d76ba9df"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "area=(4/5)*R²",
       "question_intent": "Центр окружности — середина стороны квадрата",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1787,45 +1951,49 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-D05.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "Composite geometry: independent constructive witness required"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     },
     {
       "family_id": "OGE16-D06",
       "exam_number": 16,
-      "name": "Прямоугольник, диагональ и синус",
+      "name": "Прямоугольник: диаметр и синус угла",
       "status": "research_only",
-      "status_reason": "Composite geometry: diagonal/angle/side composition needs separate acceptance",
-      "implementation_status": "HOLD",
-      "gate_status": "HOLD",
+      "status_reason": "All confirmed question variants implemented and checked; public enablement prohibited by user instruction",
+      "implementation_status": "implemented_closed",
+      "gate_status": "READY_CLOSED",
       "public_enabled": false,
       "sources": [
         {
@@ -1840,15 +2008,18 @@
               "url": "https://math-oge.sdamgia.ru/get_file?id=92975",
               "sha256": "fed99ba0158fdfdd5ffc8416c36215e3fe697fd8e1efd6e69921c18cfc0295b4"
             }
-          ]
+          ],
+          "implemented_subtype": true
         }
       ],
       "mathematical_structure": "area=D²*sin(angle)*cos(angle)",
       "question_intent": "Прямоугольник, диагональ и синус",
       "parameter_model": {
-        "engineering_bounds": "Not implemented; historical research only"
+        "engineering_bounds": "10 finite exact scales/angle values per distinct model; original R=83 control is not scaled; duplicate source formulations deduplicated by visible condition",
+        "mathematical_capacity": 10,
+        "finite_capacity_exception": "Small source-backed pools accepted; exhaustion starts a deliberate new cycle"
       },
-      "generation_algorithm": "HOLD; no runtime generator",
+      "generation_algorithm": "app/math/oge16_complete.py: source variant + scale; deterministic v3 geometry; no rejection loop; legacy v1/v2 restoration retained",
       "answer_policy": {
         "id": "oge6.numeric-short",
         "version": "1",
@@ -1856,35 +2027,39 @@
         "runtime_answer_bound": 40000
       },
       "rendering": {
-        "kind": "HOLD",
-        "version": null,
+        "kind": "Own Pillow geometry PNG; no source assets copied",
+        "version": "oge16-pillow-2",
         "width": 720,
+        "height": 720,
         "mobile_widths": [
           360,
           390,
           430
         ],
-        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+        "numeric_givens_location": "Full condition; only source-relevant labels and constructions in PNG",
+        "preview": "reports/oge16/OGE16-D06.png"
       },
       "oracle": {
-        "implementation": "not implemented",
-        "method": "HOLD"
+        "implementation": "app/math/oge16_complete_oracle.py",
+        "method": "Independent full-match visible-statement parser, Fraction/radical solve, target-specific Euclidean constraints, topology and tangencies; stored PNG SHA, primitive and glyph audit"
       },
       "hints_and_solution": {
-        "method": "HOLD"
+        "method": "Source theorem, formula with numeric substitution, exact short answer; immutable snapshot"
       },
       "test_vectors": [
         {
-          "status": "HOLD",
-          "reason": "Outside first PR"
+          "path": "tests/test_oge16_complete.py",
+          "source_controls": "SOURCE_ANSWERS",
+          "test": "test_every_confirmed_source_has_its_original_control_answer"
         }
       ],
       "difficulty": "unassessed",
       "known_exclusions": [
-        "323356 is not a circle problem"
+        "323356: erroneous classification; not a circle task"
       ],
       "risks": [
-        "Composite geometry: diagonal/angle/side composition needs separate acceptance"
+        "Public issuance remains disabled pending a separate user release decision",
+        "Coverage is the 23 confirmed registry constructions, not every unknown bank task"
       ]
     }
   ],

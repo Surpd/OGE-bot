@@ -21,6 +21,9 @@ from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.oge15_scheduler import build_task15_candidate_batch
 from app.math.oge15_triangles import POLICY as TRIANGLE_POLICY
 from app.math.oge15_triangles import from_snapshot as triangle_from_snapshot
+from app.math.oge16_circles import POLICY as CIRCLE_POLICY
+from app.math.oge16_circles import from_snapshot as circle_from_snapshot
+from app.math.oge16_scheduler import build_task16_candidate_batch
 from app.math.oge18 import POLICY as GRID_POLICY
 from app.math.oge18 import from_snapshot as grid_from_snapshot
 from app.math.oge18_scheduler import build_task18_candidate_batch
@@ -66,6 +69,7 @@ class NumericTraining:
 
 
 NUMERIC_TRAININGS = {
+    16: NumericTraining(16, "окружности", CIRCLE_POLICY, build_task16_candidate_batch),
     15: NumericTraining(15, "треугольники", TRIANGLE_POLICY, build_task15_candidate_batch),
     18: NumericTraining(18, "фигуры на клетчатой сетке", GRID_POLICY, build_task18_candidate_batch),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
@@ -118,8 +122,8 @@ async def send_problem(
 ) -> bool:
     from app.bot.router import _user_id
 
-    if adapter.number == 18 and not adapter.families:
-        await send_text(message, repository, "Задания №18 пока выключены.")
+    if adapter.number in {16, 18} and not adapter.families:
+        await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return False
     user_id = user_id_override if user_id_override is not None else _user_id(message)
     if user_id is None:
@@ -197,6 +201,33 @@ async def send_problem(
         except ValueError:
             await send_text(message, repository, "Сохранённое задание повреждено.")
             return False
+    if adapter.number == 16:
+        try:
+            restored_circle = circle_from_snapshot(problem)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №16 повреждено.")
+            return False
+        sent = await send_photo(
+            message,
+            repository,
+            BufferedInputFile(restored_circle.png, filename="oge16.png"),
+            caption=f"Задание №16 · Окружности\n\n{problem['condition']}",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+            user_id_override=user_id,
+        )
+        prompt_id = getattr(sent, "message_id", None)
+        if type(prompt_id) is int:
+            await getattr(repository, f"set_{adapter.mode}_condition_message")(
+                user_id, str(problem["problem_id"]), prompt_id
+            )
+        return await persist_open_training(
+            repository,
+            user_id,
+            adapter.mode,
+            str(problem["problem_id"]),
+            prompt_id if type(prompt_id) is int else None,
+            expected_screen,
+        )
     if adapter.number == 18:
         try:
             restored = grid_from_snapshot(problem)
@@ -243,8 +274,8 @@ async def training_callback(
         _solution_display_status,
     )
 
-    if adapter.number == 18 and not adapter.families:
-        await answer_callback(callback, "Задания №18 пока выключены.")
+    if adapter.number in {16, 18} and not adapter.families:
+        await answer_callback(callback, f"Задания №{adapter.number} пока выключены.")
         return
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != f"t{adapter.number}" or callback.message is None:
@@ -281,6 +312,12 @@ async def training_callback(
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
         await answer_callback(callback, "Это задание уже сменилось.")
         return
+    if adapter.number == 16:
+        try:
+            circle_from_snapshot(problem)
+        except ValueError:
+            await answer_callback(callback, "Сохранённое задание №16 повреждено.")
+            return
     if adapter.number == 15:
         try:
             triangle_from_snapshot(problem)
@@ -349,8 +386,8 @@ async def training_answer(
 ) -> None:
     from app.bot.router import _disable_stale_keyboard, _user_id
 
-    if adapter.number == 18 and not adapter.families:
-        await send_text(message, repository, "Задания №18 пока выключены.")
+    if adapter.number in {16, 18} and not adapter.families:
+        await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return
     user_id = _user_id(message)
     if user_id is None or message.text is None:
@@ -383,6 +420,12 @@ async def training_answer(
     ):
         await send_text(message, repository, "Политика ответа этой задачи недоступна.")
         return
+    if adapter.number == 16:
+        try:
+            circle_from_snapshot(problem)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №16 повреждено.")
+            return
     if adapter.number == 15:
         try:
             triangle_from_snapshot(problem)

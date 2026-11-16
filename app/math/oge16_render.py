@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from app.math.oge16_model import CircleGeometry, Point
 
-RENDERER_VERSION = "oge16-pillow-1"
+RENDERER_VERSION = "oge16-pillow-2"
 SIZE = 720
 
 
@@ -42,6 +42,8 @@ def render(scene: CircleGeometry) -> tuple[bytes, dict[str, Any]]:
     font = ImageFont.truetype("DejaVuSans.ttf", 28)
     boxes: dict[str, list[int]] = {}
     for name, point in scene.points:
+        if name in scene.hidden_labels:
+            continue
         px, py = pixel(point)
         vx, vy = px - cx, py - cy
         length = hypot(vx, vy)

@@ -38,6 +38,8 @@
 
 | LL-25 | Telegram math and scenario assets | Rich Math could visually merge implicit factors or duplicate `\infty`; scenario startup could send unrelated tables and resume without the material for the active question. | Test final Rich/PNG output. Keep school juxtaposition for implicit products, preserve explicit operators, route only known unreliable Rich denominator products through PNG, keep infinity literal in Rich text, and choose scenario PNG/context by the current snapshot question on start and resume. | Math presentation, №1–5 | `tests/test_rich_math_runtime.py::test_school_juxtaposition_matches_final_png_pixels`; `tests/test_rich_math_runtime.py::test_oge11_inverse_graph_caption_uses_targeted_png_fallback`; `tests/test_scenario_telegram.py::test_snapshot_materials_render_on_start_and_postgres_resume`; `tests/test_scenario_telegram.py::test_public_story_photos_are_selected_only_for_current_question` | covered |
 
+| LL-26 | Изоляция номера в persistence | Копирование методов нового номера могло сохранить ссылки на training/issued другого номера, незаметно смешав состояния. | Проверять отдельные хранилища нового номера, пустоту соседнего и восстановление PostgreSQL; не считать переименование методов достаточной проверкой. | №16 | `test_finite_cycle_restarts_without_polluting_task18_state`; `test_task16_postgres_restore_duplicate_race_skip_and_restart` | covered |
+
 ## Добавление урока
 
 Добавляй запись только после подтверждённого дефекта. Укажи минимальный тест, который
