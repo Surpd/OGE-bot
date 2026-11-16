@@ -1,0 +1,1649 @@
+{
+  "families": [
+    {
+      "family_id": "OGE16-A01",
+      "exam_number": 16,
+      "name": "Вписанные углы на одной дуге",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "116",
+          "url": "https://math-oge.sdamgia.ru/problem?id=116",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "142",
+          "url": "https://math-oge.sdamgia.ru/problem?id=142",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "314850",
+          "url": "https://math-oge.sdamgia.ru/problem?id=314850",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "equal_inscribed_angles",
+      "question_intent": "Вписанные углы на одной дуге",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-A02",
+      "exam_number": 16,
+      "name": "Центральный ↔ вписанный угол",
+      "status": "research_only",
+      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "implementation_status": "implemented_closed",
+      "gate_status": "ENABLE_IMPL",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "311956",
+          "url": "https://math-oge.sdamgia.ru/problem?id=311956",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Original A/B below, C above on complementary major arc, OA/OB shown; phi=48 -> C=24.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40283",
+              "sha256": "7b9258808faa171ec0a5719f726658224b803ab69face4b373ff9a23bceaf1e2"
+            }
+          ],
+          "implemented_subtype": true
+        },
+        {
+          "task_id": "314811",
+          "url": "https://math-oge.sdamgia.ru/problem?id=314811",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Original A/B below, C upper left on major AB arc, O inside; OA/OB shown; phi=84 -> C=42.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40303",
+              "sha256": "616b8a139b2a62ec6d43a07b80433ad646a8152870159b1c21164ab87b744a01"
+            }
+          ],
+          "implemented_subtype": true
+        }
+      ],
+      "mathematical_structure": "inscribed = central/2",
+      "question_intent": "Центральный ↔ вписанный угол",
+      "parameter_model": {
+        "engineering_bounds": "phi=40..160 even; C on complementary major arc; 61 mathematical variants"
+      },
+      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "Pillow PNG from immutable CircleGeometry",
+        "version": "oge16-pillow-1",
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "app/math/oge16_oracle.py",
+        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+      },
+      "hints_and_solution": {
+        "method": "snapshot theorem and numeric steps independently checked"
+      },
+      "test_vectors": [
+        {
+          "path": "atlas/oge16_regression_vectors.json"
+        }
+      ],
+      "difficulty": "one or two theorem applications; bounded arithmetic",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-A03",
+      "exam_number": 16,
+      "name": "Два диаметра, центральный и вписанный",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "311517",
+          "url": "https://math-oge.sdamgia.ru/problem?id=311517",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "349314",
+          "url": "https://math-oge.sdamgia.ru/problem?id=349314",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "inscribed=(180-central_other)/2",
+      "question_intent": "Два диаметра, центральный и вписанный",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-A04",
+      "exam_number": 16,
+      "name": "Углы на противоположных полуокружностях",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "339419",
+          "url": "https://math-oge.sdamgia.ru/problem?id=339419",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "target=90-given",
+      "question_intent": "Углы на противоположных полуокружностях",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-A05",
+      "exam_number": 16,
+      "name": "Диаметр как сторона прямоугольного треугольника",
+      "status": "research_only",
+      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "implementation_status": "implemented_closed",
+      "gate_status": "ENABLE_IMPL",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "341673",
+          "url": "https://math-oge.sdamgia.ru/problem?id=341673",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Original AC horizontal diameter through O; B above on circle; rendered formula images give angle A=75, target C ->15.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=89142",
+              "sha256": "c42f58fa84eeb3263ebe0dc41e97b55632de3cb0f435ff44a71410a08a0da7ad"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/86/868e010916aa29891091a01d41938aaf.svg",
+              "sha256": "1db65361ad938c30932b9a7d6b4bd94fe6ad9a04932e88249faa96e00e9d77e3"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/35/355e9fda5a9b9193a2ab7816e9d35a8d.svg",
+              "sha256": "8e7b93e0cdbf501cf59ac9aade62e91d8a03e40a0d045d2b0d00ae0a507f1bad"
+            }
+          ],
+          "implemented_subtype": true
+        },
+        {
+          "task_id": "348379",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348379",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "339503",
+          "url": "https://math-oge.sdamgia.ru/problem?id=339503",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "341329",
+          "url": "https://math-oge.sdamgia.ru/problem?id=341329",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "angles remaining=90-given",
+      "question_intent": "Диаметр как сторона прямоугольного треугольника",
+      "parameter_model": {
+        "engineering_bounds": "alpha=20..70 integer; AC diameter; target C; 51 variants"
+      },
+      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "Pillow PNG from immutable CircleGeometry",
+        "version": "oge16-pillow-1",
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "app/math/oge16_oracle.py",
+        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+      },
+      "hints_and_solution": {
+        "method": "snapshot theorem and numeric steps independently checked"
+      },
+      "test_vectors": [
+        {
+          "path": "atlas/oge16_regression_vectors.json"
+        }
+      ],
+      "difficulty": "one or two theorem applications; bounded arithmetic",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-A06",
+      "exam_number": 16,
+      "name": "Диаметр и Пифагор",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "348961",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348961",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "missing=sqrt((2R)^2-leg^2)",
+      "question_intent": "Диаметр и Пифагор",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-B01",
+      "exam_number": 16,
+      "name": "Касательная по радиусу и внешнему отрезку",
+      "status": "research_only",
+      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "implementation_status": "implemented_closed",
+      "gate_status": "ENABLE_IMPL",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "340174",
+          "url": "https://math-oge.sdamgia.ru/problem?id=340174",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Original center A, ray A-C-B with C on circle and B exterior; tangent from B extends lower left. AC=75, CB=10 -> AB=85, BT=40. Generated T/AT are explicit explanatory labels/radius, not original labels.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40484",
+              "sha256": "b9ad7e965f005c9a1c493553fab4614448c0361729b50edd77020003404d5278"
+            }
+          ],
+          "implemented_subtype": true
+        }
+      ],
+      "mathematical_structure": "tangent²=(r+b)²-r²",
+      "question_intent": "Касательная по радиусу и внешнему отрезку",
+      "parameter_model": {
+        "engineering_bounds": "four primitive triples (3,4,5),(5,12,13),(8,15,17),(7,24,25), scale n/10, n=1..100; R=first leg, d=hypotenuse; 400 variants"
+      },
+      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "Pillow PNG from immutable CircleGeometry",
+        "version": "oge16-pillow-1",
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "app/math/oge16_oracle.py",
+        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+      },
+      "hints_and_solution": {
+        "method": "snapshot theorem and numeric steps independently checked"
+      },
+      "test_vectors": [
+        {
+          "path": "atlas/oge16_regression_vectors.json"
+        }
+      ],
+      "difficulty": "one or two theorem applications; bounded arithmetic",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-B02",
+      "exam_number": 16,
+      "name": "Две касательные из одной точки",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "340337",
+          "url": "https://math-oge.sdamgia.ru/problem?id=340337",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "base_angle=external_angle/2",
+      "question_intent": "Две касательные из одной точки",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-B03",
+      "exam_number": 16,
+      "name": "Длина хорды через расстояние до центра",
+      "status": "research_only",
+      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "implementation_status": "implemented_closed",
+      "gate_status": "ENABLE_IMPL",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "340587",
+          "url": "https://math-oge.sdamgia.ru/problem?id=340587",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Original horizontal chord below center and center-to-chord perpendicular; endpoints unnamed; R=13,d=5 ->24. Generated A/B/M labels introduced explicitly; no length read off scale.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=66079",
+              "sha256": "17f601ec68ca203d80407890f6239fb5cee83d88c548eab5cf668f604cd90da1"
+            }
+          ],
+          "implemented_subtype": true
+        }
+      ],
+      "mathematical_structure": "chord=2*sqrt(r²-d²)",
+      "question_intent": "Длина хорды через расстояние до центра",
+      "parameter_model": {
+        "engineering_bounds": "same four triples and scales; R=hypotenuse, d=first leg; 400 variants; d=0 supported by oracle but not sampled"
+      },
+      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "Pillow PNG from immutable CircleGeometry",
+        "version": "oge16-pillow-1",
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "app/math/oge16_oracle.py",
+        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+      },
+      "hints_and_solution": {
+        "method": "snapshot theorem and numeric steps independently checked"
+      },
+      "test_vectors": [
+        {
+          "path": "atlas/oge16_regression_vectors.json"
+        }
+      ],
+      "difficulty": "one or two theorem applications; bounded arithmetic",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-B04",
+      "exam_number": 16,
+      "name": "Касательная и секущая: степень точки",
+      "status": "research_only",
+      "status_reason": "Strict point power and ordered external/whole secant segments required",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "356543",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356543",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "tangent²=external*whole",
+      "question_intent": "Касательная и секущая: степень точки",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "Strict point power and ordered external/whole secant segments required"
+      ]
+    },
+    {
+      "family_id": "OGE16-B05",
+      "exam_number": 16,
+      "name": "Угол касательной с хордой",
+      "status": "research_only",
+      "status_reason": "Minor/major intercepted arc orientation unresolved",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "369504",
+          "url": "https://math-oge.sdamgia.ru/problem?id=369504",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "angle=arc/2",
+      "question_intent": "Угол касательной с хордой",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "Minor/major intercepted arc orientation unresolved"
+      ]
+    },
+    {
+      "family_id": "OGE16-C01",
+      "exam_number": 16,
+      "name": "Квадрат и вписанная окружность",
+      "status": "research_only",
+      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "implementation_status": "implemented_closed",
+      "gate_status": "ENABLE_IMPL",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "324364",
+          "url": "https://math-oge.sdamgia.ru/problem?id=324364",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Same original geometry bytes as 341707, radius83 ->27556. Source regression only; generated radius limited to30.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88069",
+              "sha256": "7161124581e37c6bd837ac670f95360cefd14d7af9de061c8a56529b30d1262e"
+            }
+          ],
+          "implemented_subtype": true
+        },
+        {
+          "task_id": "341707",
+          "url": "https://math-oge.sdamgia.ru/problem?id=341707",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Axis-aligned square tangent to circle on all four sides; R=7 ->196; no perimeter target.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88070",
+              "sha256": "7161124581e37c6bd837ac670f95360cefd14d7af9de061c8a56529b30d1262e"
+            }
+          ],
+          "implemented_subtype": true
+        },
+        {
+          "task_id": "356369",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356369",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "356399",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356399",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "FIPI2027-DEMO-16",
+          "url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+          "provenance": "official_fipi_direct",
+          "verification_status": "APPROVED_DEMO_PDF_TEXT_IMAGE_AND_ANSWER_TABLE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "zip_sha256": "315ac3e5dcdebbac9c8c85c87814d9e008dfc1b44f17cfb15ec392852d943303",
+          "pdf_sha256": "f3cebf96e7cb4e7936a50b5d49075438c72ad200c146a6d465860ef74a691ec7",
+          "pdf_physical_pages": [
+            6,
+            8
+          ],
+          "printed_pages": [
+            12,
+            15
+          ],
+          "control": "R=7, S=196"
+        }
+      ],
+      "mathematical_structure": "side=2r; area=4r²; diagonal=2r*sqrt(2)",
+      "question_intent": "Квадрат и вписанная окружность",
+      "parameter_model": {
+        "engineering_bounds": "R=n/10, n=10..300; area only, 291 variants; no perimeter/diagonal"
+      },
+      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "Pillow PNG from immutable CircleGeometry",
+        "version": "oge16-pillow-1",
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "app/math/oge16_oracle.py",
+        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+      },
+      "hints_and_solution": {
+        "method": "snapshot theorem and numeric steps independently checked"
+      },
+      "test_vectors": [
+        {
+          "path": "atlas/oge16_regression_vectors.json"
+        }
+      ],
+      "difficulty": "one or two theorem applications; bounded arithmetic",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-C02",
+      "exam_number": 16,
+      "name": "Высота трапеции с вписанной окружностью",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "355413",
+          "url": "https://math-oge.sdamgia.ru/problem?id=355413",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "448769",
+          "url": "https://math-oge.sdamgia.ru/problem?id=448769",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "height=2r",
+      "question_intent": "Высота трапеции с вписанной окружностью",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-C03",
+      "exam_number": 16,
+      "name": "Площадь треугольника по полупериметру и r",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "356329",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356329",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "area=semiperimeter*r",
+      "question_intent": "Площадь треугольника по полупериметру и r",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-C04",
+      "exam_number": 16,
+      "name": "Равносторонний треугольник и r",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "356488",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356488",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "356498",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356498",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "356518",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356518",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "472375",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472375",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "r=a*sqrt(3)/6; h=3r",
+      "question_intent": "Равносторонний треугольник и r",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-C05",
+      "exam_number": 16,
+      "name": "Описанный четырёхугольник / трапеция",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "356579",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356579",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "356603",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356603",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        },
+        {
+          "task_id": "438296",
+          "url": "https://math-oge.sdamgia.ru/problem?id=438296",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "AB+CD=BC+AD",
+      "question_intent": "Описанный четырёхугольник / трапеция",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-C06",
+      "exam_number": 16,
+      "name": "Ромб и радиус вписанной окружности",
+      "status": "research_only",
+      "status_reason": "Known overly flat rhombus diagram; requires layout/source gate",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "472385",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472385",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "r=(AC/2)*sin(arctan(tg))",
+      "question_intent": "Ромб и радиус вписанной окружности",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "Known overly flat rhombus diagram; requires layout/source gate"
+      ]
+    },
+    {
+      "family_id": "OGE16-D01",
+      "exam_number": 16,
+      "name": "Сумма противолежащих углов вписанного четырёхугольника",
+      "status": "research_only",
+      "status_reason": "Closed first implementation authorized by user; public issuance disabled",
+      "implementation_status": "implemented_closed",
+      "gate_status": "ENABLE_IMPL",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "356438",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356438",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "A lower left, B upper left, C right above D; convex ABCD on circle. A=82 -> C=98; generic quadrilateral supported.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88096",
+              "sha256": "7ca8cd04445316fae754d74176e28e3258967b83441dacf7a46e8ed23d285242"
+            }
+          ],
+          "implemented_subtype": true
+        },
+        {
+          "task_id": "356448",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356448",
+          "provenance": "catalog_verified",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Original is specifically an isosceles cyclic trapezoid AD||BC, A=81 ->C=99. Visually checked but trapezoid subtype outside this generic-quadrilateral generator.",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88446",
+              "sha256": "d095656611e1250a0f3179be724fe1e608baa67219e8a91708881ed14a2dbc14"
+            }
+          ],
+          "implemented_subtype": false
+        }
+      ],
+      "mathematical_structure": "angle_opposite=180-angle",
+      "question_intent": "Сумма противолежащих углов вписанного четырёхугольника",
+      "parameter_model": {
+        "engineering_bounds": "alpha=50..130 integer; clockwise convex cyclic kite witness; 81 variants; no trapezoid target"
+      },
+      "generation_algorithm": "Versioned finite constructive coordinate witness; exact Fraction answer",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "Pillow PNG from immutable CircleGeometry",
+        "version": "oge16-pillow-1",
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "app/math/oge16_oracle.py",
+        "method": "full-match statement/target/units parser; exact Fraction solve; independent Euclidean coordinates; stored primitive pixels and glyph checks"
+      },
+      "hints_and_solution": {
+        "method": "snapshot theorem and numeric steps independently checked"
+      },
+      "test_vectors": [
+        {
+          "path": "atlas/oge16_regression_vectors.json"
+        }
+      ],
+      "difficulty": "one or two theorem applications; bounded arithmetic",
+      "known_exclusions": [
+        "323356 is not a circle problem",
+        "356448 trapezoid not implemented"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-D02",
+      "exam_number": 16,
+      "name": "Правильный треугольник и описанная окружность",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "356533",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356533",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "a=R*sqrt(3)",
+      "question_intent": "Правильный треугольник и описанная окружность",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-D03",
+      "exam_number": 16,
+      "name": "Квадрат и описанная окружность",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "369738",
+          "url": "https://math-oge.sdamgia.ru/problem?id=369738",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "side=R*sqrt(2)",
+      "question_intent": "Квадрат и описанная окружность",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-D04",
+      "exam_number": 16,
+      "name": "Теорема синусов: радиус описанной окружности",
+      "status": "research_only",
+      "status_reason": "Outside the six authorized families; source graphics and parametrization require independent acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "450514",
+          "url": "https://math-oge.sdamgia.ru/problem?id=450514",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "R=a/(2 sin(angle))",
+      "question_intent": "Теорема синусов: радиус описанной окружности",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "No whole-bank coverage claim; Telegram integration and publication are separate gates"
+      ]
+    },
+    {
+      "family_id": "OGE16-D05",
+      "exam_number": 16,
+      "name": "Центр окружности — середина стороны квадрата",
+      "status": "research_only",
+      "status_reason": "Composite geometry: independent constructive witness required",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "462105",
+          "url": "https://math-oge.sdamgia.ru/problem?id=462105",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "area=(4/5)*R²",
+      "question_intent": "Центр окружности — середина стороны квадрата",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "Composite geometry: independent constructive witness required"
+      ]
+    },
+    {
+      "family_id": "OGE16-D06",
+      "exam_number": 16,
+      "name": "Прямоугольник, диагональ и синус",
+      "status": "research_only",
+      "status_reason": "Composite geometry: diagonal/angle/side composition needs separate acceptance",
+      "implementation_status": "HOLD",
+      "gate_status": "HOLD",
+      "public_enabled": false,
+      "sources": [
+        {
+          "task_id": "472378",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472378",
+          "provenance": "historical",
+          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
+          "last_checked_at": "2026-11-05"
+        }
+      ],
+      "mathematical_structure": "area=D²*sin(angle)*cos(angle)",
+      "question_intent": "Прямоугольник, диагональ и синус",
+      "parameter_model": {
+        "engineering_bounds": "Not implemented; historical research only"
+      },
+      "generation_algorithm": "HOLD; no runtime generator",
+      "answer_policy": {
+        "id": "oge6.numeric-short",
+        "version": "1",
+        "exact_decimal_places_max": 2,
+        "runtime_answer_bound": 40000
+      },
+      "rendering": {
+        "kind": "HOLD",
+        "version": null,
+        "width": 720,
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "numeric_givens_location": "full immutable condition; geometry diagram uses point labels"
+      },
+      "oracle": {
+        "implementation": "not implemented",
+        "method": "HOLD"
+      },
+      "hints_and_solution": {
+        "method": "HOLD"
+      },
+      "test_vectors": [
+        {
+          "status": "HOLD",
+          "reason": "Outside first PR"
+        }
+      ],
+      "difficulty": "unassessed",
+      "known_exclusions": [
+        "323356 is not a circle problem"
+      ],
+      "risks": [
+        "Composite geometry: diagonal/angle/side composition needs separate acceptance"
+      ]
+    }
+  ],
+  "excluded_sources": [
+    {
+      "task_id": "323356",
+      "status": "EXCLUDE",
+      "reason": "right isosceles triangle area; no circle"
+    }
+  ]
+}

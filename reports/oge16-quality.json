@@ -1,0 +1,145 @@
+{
+  "generator_version": "oge16-circles-1",
+  "public_enabled": [],
+  "families": [
+    {
+      "family_id": "OGE16-A02",
+      "status": "implemented_closed",
+      "public_enabled": false,
+      "full_png_and_oracle_samples": 300,
+      "failures": 0,
+      "sample_unique": 60,
+      "sample_duplicate_count": 240,
+      "acceptance_attempts": 1200,
+      "acceptance_unique": 61,
+      "mathematical_capacity": 61,
+      "acceptance_target": 61,
+      "finite_capacity_exception": true,
+      "exception_reason": "Integer angles in documented safe interval; no cosmetic novelty. Bounded exhaustion and no-fallback preference tested; publication disabled.",
+      "answer_min": 20.0,
+      "answer_max": 80.0,
+      "max_answer_decimal_places": 0,
+      "mobile_sizes": [
+        360,
+        390,
+        430
+      ]
+    },
+    {
+      "family_id": "OGE16-A05",
+      "status": "implemented_closed",
+      "public_enabled": false,
+      "full_png_and_oracle_samples": 300,
+      "failures": 0,
+      "sample_unique": 50,
+      "sample_duplicate_count": 250,
+      "acceptance_attempts": 1200,
+      "acceptance_unique": 51,
+      "mathematical_capacity": 51,
+      "acceptance_target": 51,
+      "finite_capacity_exception": true,
+      "exception_reason": "Integer angles in documented safe interval; no cosmetic novelty. Bounded exhaustion and no-fallback preference tested; publication disabled.",
+      "answer_min": 20.0,
+      "answer_max": 70.0,
+      "max_answer_decimal_places": 0,
+      "mobile_sizes": [
+        360,
+        390,
+        430
+      ]
+    },
+    {
+      "family_id": "OGE16-B01",
+      "status": "implemented_closed",
+      "public_enabled": false,
+      "full_png_and_oracle_samples": 300,
+      "failures": 0,
+      "sample_unique": 216,
+      "sample_duplicate_count": 84,
+      "acceptance_attempts": 1200,
+      "acceptance_unique": 376,
+      "mathematical_capacity": 400,
+      "acceptance_target": 200,
+      "finite_capacity_exception": false,
+      "exception_reason": null,
+      "answer_min": 1.2,
+      "answer_max": 237.6,
+      "max_answer_decimal_places": 1,
+      "mobile_sizes": [
+        360,
+        390,
+        430
+      ]
+    },
+    {
+      "family_id": "OGE16-B03",
+      "status": "implemented_closed",
+      "public_enabled": false,
+      "full_png_and_oracle_samples": 300,
+      "failures": 0,
+      "sample_unique": 218,
+      "sample_duplicate_count": 82,
+      "acceptance_attempts": 1200,
+      "acceptance_unique": 375,
+      "mathematical_capacity": 400,
+      "acceptance_target": 200,
+      "finite_capacity_exception": false,
+      "exception_reason": null,
+      "answer_min": 0.8,
+      "answer_max": 475.2,
+      "max_answer_decimal_places": 1,
+      "mobile_sizes": [
+        360,
+        390,
+        430
+      ]
+    },
+    {
+      "family_id": "OGE16-C01",
+      "status": "implemented_closed",
+      "public_enabled": false,
+      "full_png_and_oracle_samples": 300,
+      "failures": 0,
+      "sample_unique": 185,
+      "sample_duplicate_count": 115,
+      "acceptance_attempts": 1200,
+      "acceptance_unique": 289,
+      "mathematical_capacity": 291,
+      "acceptance_target": 200,
+      "finite_capacity_exception": false,
+      "exception_reason": null,
+      "answer_min": 4.0,
+      "answer_max": 3576.04,
+      "max_answer_decimal_places": 2,
+      "mobile_sizes": [
+        360,
+        390,
+        430
+      ]
+    },
+    {
+      "family_id": "OGE16-D01",
+      "status": "implemented_closed",
+      "public_enabled": false,
+      "full_png_and_oracle_samples": 300,
+      "failures": 0,
+      "sample_unique": 81,
+      "sample_duplicate_count": 219,
+      "acceptance_attempts": 1200,
+      "acceptance_unique": 81,
+      "mathematical_capacity": 81,
+      "acceptance_target": 81,
+      "finite_capacity_exception": true,
+      "exception_reason": "Integer angles in documented safe interval; no cosmetic novelty. Bounded exhaustion and no-fallback preference tested; publication disabled.",
+      "answer_min": 50.0,
+      "answer_max": 130.0,
+      "max_answer_decimal_places": 0,
+      "mobile_sizes": [
+        360,
+        390,
+        430
+      ]
+    }
+  ],
+  "scope": "six candidates, not whole-bank coverage; no Telegram or DB integration"
+}

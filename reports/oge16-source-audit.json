@@ -1,0 +1,132 @@
+{
+  "checked_at": "2026-11-16",
+  "method": "download original SVG assets, render via CairoSVG on opaque white, visually inspect contact sheet; separate formula glyph assets for 341673",
+  "republication": "Original source SVG/PNG/PDF bytes are scratch only, not committed",
+  "sources": [
+    {
+      "task_id": "314811",
+      "url": "https://math-oge.sdamgia.ru/problem?id=314811",
+      "observation": "Original A/B below, C upper left on major AB arc, O inside; OA/OB shown; phi=84 -> C=42.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=40303",
+          "sha256": "616b8a139b2a62ec6d43a07b80433ad646a8152870159b1c21164ab87b744a01"
+        }
+      ]
+    },
+    {
+      "task_id": "311956",
+      "url": "https://math-oge.sdamgia.ru/problem?id=311956",
+      "observation": "Original A/B below, C above on complementary major arc, OA/OB shown; phi=48 -> C=24.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=40283",
+          "sha256": "7b9258808faa171ec0a5719f726658224b803ab69face4b373ff9a23bceaf1e2"
+        }
+      ]
+    },
+    {
+      "task_id": "341673",
+      "url": "https://math-oge.sdamgia.ru/problem?id=341673",
+      "observation": "Original AC horizontal diameter through O; B above on circle; rendered formula images give angle A=75, target C ->15.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=89142",
+          "sha256": "c42f58fa84eeb3263ebe0dc41e97b55632de3cb0f435ff44a71410a08a0da7ad"
+        },
+        {
+          "url": "https://oge.sdamgia.ru/formula/svg/86/868e010916aa29891091a01d41938aaf.svg",
+          "sha256": "1db65361ad938c30932b9a7d6b4bd94fe6ad9a04932e88249faa96e00e9d77e3"
+        },
+        {
+          "url": "https://oge.sdamgia.ru/formula/svg/35/355e9fda5a9b9193a2ab7816e9d35a8d.svg",
+          "sha256": "8e7b93e0cdbf501cf59ac9aade62e91d8a03e40a0d045d2b0d00ae0a507f1bad"
+        }
+      ]
+    },
+    {
+      "task_id": "340174",
+      "url": "https://math-oge.sdamgia.ru/problem?id=340174",
+      "observation": "Original center A, ray A-C-B with C on circle and B exterior; tangent from B extends lower left. AC=75, CB=10 -> AB=85, BT=40. Generated T/AT are explicit explanatory labels/radius, not original labels.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=40484",
+          "sha256": "b9ad7e965f005c9a1c493553fab4614448c0361729b50edd77020003404d5278"
+        }
+      ]
+    },
+    {
+      "task_id": "340587",
+      "url": "https://math-oge.sdamgia.ru/problem?id=340587",
+      "observation": "Original horizontal chord below center and center-to-chord perpendicular; endpoints unnamed; R=13,d=5 ->24. Generated A/B/M labels introduced explicitly; no length read off scale.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=66079",
+          "sha256": "17f601ec68ca203d80407890f6239fb5cee83d88c548eab5cf668f604cd90da1"
+        }
+      ]
+    },
+    {
+      "task_id": "341707",
+      "url": "https://math-oge.sdamgia.ru/problem?id=341707",
+      "observation": "Axis-aligned square tangent to circle on all four sides; R=7 ->196; no perimeter target.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=88070",
+          "sha256": "7161124581e37c6bd837ac670f95360cefd14d7af9de061c8a56529b30d1262e"
+        }
+      ]
+    },
+    {
+      "task_id": "324364",
+      "url": "https://math-oge.sdamgia.ru/problem?id=324364",
+      "observation": "Same original geometry bytes as 341707, radius83 ->27556. Source regression only; generated radius limited to30.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=88069",
+          "sha256": "7161124581e37c6bd837ac670f95360cefd14d7af9de061c8a56529b30d1262e"
+        }
+      ]
+    },
+    {
+      "task_id": "356438",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356438",
+      "observation": "A lower left, B upper left, C right above D; convex ABCD on circle. A=82 -> C=98; generic quadrilateral supported.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=88096",
+          "sha256": "7ca8cd04445316fae754d74176e28e3258967b83441dacf7a46e8ed23d285242"
+        }
+      ]
+    },
+    {
+      "task_id": "356448",
+      "url": "https://math-oge.sdamgia.ru/problem?id=356448",
+      "observation": "Original is specifically an isosceles cyclic trapezoid AD||BC, A=81 ->C=99. Visually checked but trapezoid subtype outside this generic-quadrilateral generator.",
+      "assets": [
+        {
+          "url": "https://math-oge.sdamgia.ru/get_file?id=88446",
+          "sha256": "d095656611e1250a0f3179be724fe1e608baa67219e8a91708881ed14a2dbc14"
+        }
+      ]
+    }
+  ],
+  "official": {
+    "task_id": "FIPI2027-DEMO-16",
+    "url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+    "provenance": "official_fipi_direct",
+    "verification_status": "APPROVED_DEMO_PDF_TEXT_IMAGE_AND_ANSWER_TABLE_CHECKED",
+    "last_checked_at": "2026-11-16",
+    "zip_sha256": "315ac3e5dcdebbac9c8c85c87814d9e008dfc1b44f17cfb15ec392852d943303",
+    "pdf_sha256": "f3cebf96e7cb4e7936a50b5d49075438c72ad200c146a6d465860ef74a691ec7",
+    "pdf_physical_pages": [
+      6,
+      8
+    ],
+    "printed_pages": [
+      12,
+      15
+    ],
+    "control": "R=7, S=196"
+  }
+}

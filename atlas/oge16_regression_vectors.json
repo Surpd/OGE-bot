@@ -1,0 +1,374 @@
+{
+  "source_cases": [
+    {
+      "task_id": "314811",
+      "family_id": "OGE16-A02",
+      "parameters": [
+        "84"
+      ],
+      "answer": "42"
+    },
+    {
+      "task_id": "311956",
+      "family_id": "OGE16-A02",
+      "parameters": [
+        "48"
+      ],
+      "answer": "24"
+    },
+    {
+      "task_id": "341673",
+      "family_id": "OGE16-A05",
+      "parameters": [
+        "75"
+      ],
+      "answer": "15"
+    },
+    {
+      "task_id": "340174",
+      "family_id": "OGE16-B01",
+      "parameters": [
+        "75",
+        "85"
+      ],
+      "answer": "40"
+    },
+    {
+      "task_id": "340587",
+      "family_id": "OGE16-B03",
+      "parameters": [
+        "13",
+        "5"
+      ],
+      "answer": "24"
+    },
+    {
+      "task_id": "341707",
+      "family_id": "OGE16-C01",
+      "parameters": [
+        "7"
+      ],
+      "answer": "196"
+    },
+    {
+      "task_id": "324364",
+      "family_id": "OGE16-C01",
+      "parameters": [
+        "83"
+      ],
+      "answer": "27556"
+    },
+    {
+      "task_id": "356438",
+      "family_id": "OGE16-D01",
+      "parameters": [
+        "82"
+      ],
+      "answer": "98"
+    }
+  ],
+  "snapshots": [
+    {
+      "family_id": "OGE16-A02",
+      "seed": 42,
+      "correct_answer": "69",
+      "fingerprint": "3fe2386dc8f555d64caa145f1a0a10b24b10e0b6af9f3457a1557c49b27afe72",
+      "geometry": {
+        "arc": [
+          "A",
+          "B",
+          "ccw_minor"
+        ],
+        "center": [
+          0.0,
+          0.0
+        ],
+        "points": {
+          "A": [
+            -0.9335804264972017,
+            -0.3583679495453002
+          ],
+          "B": [
+            0.9335804264972017,
+            -0.35836794954530027
+          ],
+          "C": [
+            6.123233995736766e-17,
+            1.0
+          ],
+          "O": [
+            0.0,
+            0.0
+          ]
+        },
+        "radius": 1.0,
+        "segments": [
+          [
+            "O",
+            "A"
+          ],
+          [
+            "O",
+            "B"
+          ],
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ]
+      },
+      "png_sha256": "1dbe1c07265c1d1e88da3f0e00f559c3bf3eb765169c34ff6aafdf9b60103310"
+    },
+    {
+      "family_id": "OGE16-A05",
+      "seed": 42,
+      "correct_answer": "60",
+      "fingerprint": "9c6cd73f4dd90a00048777388ccbd15cecdf964a8d57b8ac45b7633cb2532f33",
+      "geometry": {
+        "arc": null,
+        "center": [
+          0.0,
+          0.0
+        ],
+        "points": {
+          "A": [
+            -1.0,
+            0.0
+          ],
+          "B": [
+            0.5000000000000001,
+            0.8660254037844386
+          ],
+          "C": [
+            1.0,
+            0.0
+          ],
+          "O": [
+            0.0,
+            0.0
+          ]
+        },
+        "radius": 1.0,
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "A"
+          ]
+        ]
+      },
+      "png_sha256": "2e060f51e71151af923f178b2c86a5c2d7068dc7ca6f276bca13121a37422f14"
+    },
+    {
+      "family_id": "OGE16-B01",
+      "seed": 42,
+      "correct_answer": "141",
+      "fingerprint": "0935dbd0f214a3680c0f8c0a5217fb34a2f359ffef01d51d4aa45805faf4e0b3",
+      "geometry": {
+        "arc": null,
+        "center": [
+          0.0,
+          0.0
+        ],
+        "points": {
+          "A": [
+            0.0,
+            0.0
+          ],
+          "B": [
+            159.8,
+            0.0
+          ],
+          "C": [
+            75.2,
+            0.0
+          ],
+          "T": [
+            35.38823529411765,
+            -66.3529411764706
+          ]
+        },
+        "radius": 75.2,
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "T"
+          ],
+          [
+            "A",
+            "T"
+          ]
+        ]
+      },
+      "png_sha256": "9807155a7631e177eacd346f46d4a7ac4ab599b83d129436434beff5f6404bc5"
+    },
+    {
+      "family_id": "OGE16-B03",
+      "seed": 42,
+      "correct_answer": "249,6",
+      "fingerprint": "fafffd0808c6e7f3aac82019046993e7c12682bae1eb3511634081b36ad73a2a",
+      "geometry": {
+        "arc": null,
+        "center": [
+          0.0,
+          0.0
+        ],
+        "points": {
+          "A": [
+            -124.8,
+            -36.4
+          ],
+          "B": [
+            124.8,
+            -36.4
+          ],
+          "M": [
+            0.0,
+            -36.4
+          ],
+          "O": [
+            0.0,
+            0.0
+          ]
+        },
+        "radius": 130.0,
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "O",
+            "M"
+          ]
+        ]
+      },
+      "png_sha256": "85b432fad1b85ba526004b64ca51c6fd26c90ecc5562c3a53a412d09c5cdff7a"
+    },
+    {
+      "family_id": "OGE16-C01",
+      "seed": 42,
+      "correct_answer": "2916",
+      "fingerprint": "ef5826f151304fc0fc27e530682e0a42f2092999c0f3fb9231525d9119699004",
+      "geometry": {
+        "arc": null,
+        "center": [
+          0.0,
+          0.0
+        ],
+        "points": {
+          "A": [
+            -27.0,
+            -27.0
+          ],
+          "B": [
+            -27.0,
+            27.0
+          ],
+          "C": [
+            27.0,
+            27.0
+          ],
+          "D": [
+            27.0,
+            -27.0
+          ],
+          "O": [
+            0.0,
+            0.0
+          ]
+        },
+        "radius": 27.0,
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "D",
+            "A"
+          ]
+        ]
+      },
+      "png_sha256": "1062b987c04346b18089685607e5b0b0b0bd82975676996194e1336b122607dd"
+    },
+    {
+      "family_id": "OGE16-D01",
+      "seed": 42,
+      "correct_answer": "67",
+      "fingerprint": "ba9c9b3b7b0428d5573645e8ac0a68b609c8ec06e1ece16db9d96a7db12e5bc2",
+      "geometry": {
+        "arc": null,
+        "center": [
+          0.0,
+          0.0
+        ],
+        "points": {
+          "A": [
+            -1.0,
+            0.0
+          ],
+          "B": [
+            -0.39073112848927377,
+            0.9205048534524403
+          ],
+          "C": [
+            1.0,
+            0.0
+          ],
+          "D": [
+            -0.39073112848927377,
+            -0.9205048534524403
+          ]
+        },
+        "radius": 1.0,
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "D",
+            "A"
+          ]
+        ]
+      },
+      "png_sha256": "b23c53014f3f59cf8b7ec438ce3c6bcbfc2f26944ea34dbdfa4d76b735c5452e"
+    }
+  ]
+}
