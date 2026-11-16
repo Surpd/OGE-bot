@@ -276,7 +276,12 @@ def from_snapshot(snapshot: dict[str, Any], *, expected_problem_id: str) -> Quad
             raise ValueError("PNG digest mismatch")
         audit_png(png, snapshot)
         replay = generate(snapshot["family_id"], snapshot["seed"], snapshot["generator_version"])
-        if replay.to_snapshot() != snapshot:
+        # The scheduler appends issuance metadata after generation. It is not part
+        # of the deterministic mathematical/rendering contract.
+        replayed = replay.to_snapshot()
+        issued = dict(snapshot)
+        issued.pop("selection_attempts", None)
+        if replayed != issued:
             raise ValueError("Snapshot deterministic replay mismatch")
         return replay
     except (KeyError, TypeError, OverflowError, ZeroDivisionError) as exc:

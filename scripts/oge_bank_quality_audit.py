@@ -59,6 +59,7 @@ QUALITY_REPORTS: dict[int | str, str] = {
     12: "reports/oge12-quality.json",
     13: "reports/oge13-quality.json",
     14: "reports/oge14-quality.json",
+    17: "reports/oge17-quality.json",
 }
 
 COMPLEXITY: dict[int, dict[str, int]] = {
@@ -147,6 +148,14 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE18-A03": 2,
         "OGE18-A04": 3,
         "OGE18-A05": 3,
+    },
+    17: {
+        "OGE17-R03": 2,
+        "OGE17-E03": 2,
+        "OGE17-P01": 2,
+        "OGE17-P07": 2,
+        "OGE17-T04": 3,
+        "OGE17-T06": 2,
     },
 }
 SCENARIO_COMPLEXITY = {
@@ -257,13 +266,13 @@ def _shape(value: Any) -> Any:
 
 
 def _condition(item: Any, number: int) -> str:
-    if number == 18:
+    if number in (17, 18):
         return str(item.to_snapshot().get("condition", ""))
     return str(getattr(item, "condition", getattr(item, "equation_text", "")))
 
 
 def _answer(item: Any, number: int) -> str:
-    if number == 18:
+    if number in (17, 18):
         return str(item.to_snapshot().get("correct_answer", ""))
     if number == 7 and hasattr(item, "correct_option_index"):
         index = int(item.correct_option_index) - 1
@@ -340,6 +349,11 @@ def _stable(value: Any) -> str:
 
 
 def _oracle(number: int, family: str, item: Any) -> bool:
+    if number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        snapshot = item.to_snapshot()
+        return from_snapshot(snapshot, expected_problem_id=str(snapshot["problem_id"])) == item
     if number == 18:
         from app.math.oge18 import from_snapshot
 
@@ -408,6 +422,11 @@ def _oracle(number: int, family: str, item: Any) -> bool:
 
 
 def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, int], Any]]:
+    if number == 17:
+        from app.math.oge17_generator import generate
+        from app.math.oge17_scheduler import ENABLED_FAMILIES
+
+        return tuple(ENABLED_FAMILIES), generate
     if number == 18:
         from app.math.oge18 import (
             ENABLED_FAMILIES,

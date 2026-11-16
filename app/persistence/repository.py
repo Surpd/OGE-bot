@@ -2543,14 +2543,19 @@ class _Task18PostgresMixin:
 
     async def task17_state(self, telegram_user_id: int) -> dict[str, object] | None:
         row = await self._pool.fetchrow(
-            """SELECT s.state, p.snapshot FROM sessions s JOIN users u ON u.id = s.user_id
+            """SELECT s.state, s.active_problem_id, p.snapshot
+               FROM sessions s JOIN users u ON u.id = s.user_id
                LEFT JOIN issued_problems p ON p.id = s.active_problem_id
                WHERE u.telegram_user_id = $1 AND s.mode = 'task17' AND s.finished_at IS NULL
                ORDER BY s.started_at DESC LIMIT 1""",
             telegram_user_id,
         )
         return (
-            {"state": _json_object(row["state"]), "problem": _json_object(row["snapshot"])}
+            {
+                "state": _json_object(row["state"]),
+                "problem": _json_object(row["snapshot"]),
+                "issued_problem_id": str(row["active_problem_id"]),
+            }
             if row and row["snapshot"]
             else None
         )
@@ -8128,6 +8133,7 @@ class MemoryRepository(MemoryTrainingPreferences):
             last_family = problem.pop("_last_family_after", None)
             problem_id = str(problem["problem_id"])
             saved["problem"] = problem
+            saved["active_problem_id"] = problem_id
             saved["state"] = {
                 "status": "active",
                 "attempts": 0,
@@ -8143,7 +8149,11 @@ class MemoryRepository(MemoryTrainingPreferences):
         raise RuntimeError("Every task-15 candidate repeats a recent fingerprint")
 
     async def task17_state(self, telegram_user_id: int) -> dict[str, object] | None:
-        return self.training17.get(telegram_user_id)
+        saved = self.training17.get(telegram_user_id)
+        if saved is None:
+            return None
+        active_id = saved.get("active_problem_id")
+        return {**saved, "issued_problem_id": active_id}
 
     async def set_task17_prompt_message(
         self,

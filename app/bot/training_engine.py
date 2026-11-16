@@ -194,6 +194,9 @@ async def send_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
+            # Repository transition metadata is not part of the signed/replayable
+            # issued snapshot consumed by the geometry validator.
+            problem.pop("_transitioned", None)
     if adapter.number == 15:
         try:
             triangle_from_snapshot(problem)
@@ -204,7 +207,11 @@ async def send_problem(
         from app.math.oge17_generator import from_snapshot
 
         try:
-            restored17 = from_snapshot(problem, expected_problem_id=str(problem.get("problem_id")))
+            issuance = await adapter.operation(repository, "state")(user_id)
+            issued_problem_id = issuance.get("issued_problem_id") if issuance else None
+            if not isinstance(issued_problem_id, str):
+                raise ValueError("Missing trusted issuance identity")
+            restored17 = from_snapshot(problem, expected_problem_id=issued_problem_id)
         except ValueError:
             await send_text(message, repository, "Сохранённое задание №17 повреждено.")
             return False
