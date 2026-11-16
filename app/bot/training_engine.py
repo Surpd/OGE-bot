@@ -197,7 +197,7 @@ async def send_problem(
             return False
         sent = await send_photo(
             message, repository, BufferedInputFile(restored.png_bytes, filename="oge18.png"),
-            caption=f"Задание №18 · {adapter.title}\n\n{problem['condition']}",
+            caption=f"Задание №18\n\n{problem['condition']}",
             reply_markup=adapter.menu(str(problem["problem_id"])),
             user_id_override=user_id,
         )

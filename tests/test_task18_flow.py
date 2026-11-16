@@ -50,6 +50,10 @@ async def test_default_menu_and_entry_offer_task18_with_a_real_png():
     assert saved is not None
     snapshot = saved["problem"]
     assert snapshot["family_id"] in ENABLED_FAMILIES
+    assert snapshot["renderer_version"] == "oge18-pillow-3"
+    assert task_message.answer_photo.await_args.kwargs["caption"] == (
+        f"<b>Задание №18</b>\n\n{snapshot['condition']}"
+    )
     assert task_message.answer_photo.await_args.args[0].data == from_snapshot(snapshot).png_bytes
 
 
@@ -135,6 +139,32 @@ async def test_same_png_and_counts_on_resume_and_corruption_fails_closed(monkeyp
     broken.answer_photo.assert_not_awaited()
     await router.task18_answer(message("4", 108), repo)
     assert (await repo.task18_state(42))["state"]["attempts"] == 1
+
+
+@pytest.mark.parametrize(
+    "family,generator_version",
+    ((FAMILIES[0], None), ("OGE18-A03", "oge18-grid-2")),
+)
+async def test_resume_precompact_renderer_snapshot_sends_original_png(family, generator_version):
+    from app.math.oge18 import GENERATOR_VERSION_V2
+
+    problem = (
+        generate(family, 42, GENERATOR_VERSION_V2)
+        if generator_version is not None
+        else generate(family, 42)
+    )
+    snapshot = problem.to_snapshot()
+    assert snapshot["renderer_version"] in {"oge18-pillow-1", "oge18-pillow-2"}
+    repo = MemoryRepository()
+    await repo.ensure_task18_session(42)
+    await repo.advance_task18_problem(42, None, [snapshot])
+    await repo.save_user_state(42, "task18")
+    await repo.set_task18_condition_message(42, snapshot["problem_id"], 101)
+
+    resumed = message(mid=102)
+    await router.continue_session(resumed, repo)
+
+    assert resumed.answer_photo.await_args.args[0].data == problem.png_bytes
 
 
 @pytest.mark.parametrize(
