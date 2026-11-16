@@ -14,22 +14,43 @@
           "task_id": "116",
           "url": "https://math-oge.sdamgia.ru/problem?id=116",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "В окружности с центром в точке O проведены диаметры AD и BC , угол OAB равен 70°. Найдите величину угла OCD . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=83887",
+              "sha256": "9b15a4b19563eff09010776243bc5f379ffbdf7ae0747d2d2a05771ad4b4dff2"
+            }
+          ]
         },
         {
           "task_id": "142",
           "url": "https://math-oge.sdamgia.ru/problem?id=142",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "В окружности с центром в точке О проведены диаметры AD и BC , угол OCD равен 30°. Найдите величину угла OAB . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40363",
+              "sha256": "6697df6e6455253d5ff71077f36ccb21ef110e2fd1f48ce844f0bcdeac101a2e"
+            }
+          ]
         },
         {
           "task_id": "314850",
           "url": "https://math-oge.sdamgia.ru/problem?id=314850",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "В окружности с центром в точке O проведены диаметры AD и BC , угол OAB равен 70°. Найдите величину угла OCD . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=83887",
+              "sha256": "9b15a4b19563eff09010776243bc5f379ffbdf7ae0747d2d2a05771ad4b4dff2"
+            }
+          ]
         }
       ],
       "mathematical_structure": "equal_inscribed_angles",
@@ -90,9 +111,9 @@
           "task_id": "311956",
           "url": "https://math-oge.sdamgia.ru/problem?id=311956",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Original A/B below, C above on complementary major arc, OA/OB shown; phi=48 -> C=24.",
+          "visual_observation": "Треугольник ABC вписан в окружность с центром в точке O . Найдите градусную меру угла C треугольника ABC , если угол AOB равен 48°. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=40283",
@@ -105,9 +126,9 @@
           "task_id": "314811",
           "url": "https://math-oge.sdamgia.ru/problem?id=314811",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Original A/B below, C upper left on major AB arc, O inside; OA/OB shown; phi=84 -> C=42.",
+          "visual_observation": "Точка О — центр окружности, ∠ AOB = 84° (см. рис.). Найдите величину угла ACB (в градусах). Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=40303",
@@ -174,15 +195,29 @@
           "task_id": "311517",
           "url": "https://math-oge.sdamgia.ru/problem?id=311517",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "В окружности с центром O отрезки AC и BD — диаметры. Величина центрального угла AOD равна 110°. Найдите величину вписанного угла ACB . Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40372",
+              "sha256": "2a7588c611cd60f849ed348d5d2592179c2d748af85f82763316a148fabae3c6"
+            }
+          ]
         },
         {
           "task_id": "349314",
           "url": "https://math-oge.sdamgia.ru/problem?id=349314",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "В окружности с центром O отрезки AC и BD — диаметры. Угол ACB равен 36°. Найдите угол AOD . Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40750",
+              "sha256": "5128fecf5f1d7f598234241da1aa4efa22baa384ff1d2dbc099975c153b2c09c"
+            }
+          ]
         }
       ],
       "mathematical_structure": "inscribed=(180-central_other)/2",
@@ -243,8 +278,15 @@
           "task_id": "339419",
           "url": "https://math-oge.sdamgia.ru/problem?id=339419",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "На окружности по разные стороны от диаметра AB взяты точки M и N . Известно, что ∠ NBA = 38°. Найдите угол NMB . Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40414",
+              "sha256": "c1ba264d1cbc2069183c80bcc7abb8fc8e23200c594af9d455eca3c033aab79f"
+            }
+          ]
         }
       ],
       "mathematical_structure": "target=90-given",
@@ -305,9 +347,9 @@
           "task_id": "341673",
           "url": "https://math-oge.sdamgia.ru/problem?id=341673",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Original AC horizontal diameter through O; B above on circle; rendered formula images give angle A=75, target C ->15.",
+          "visual_observation": "Сторона AC треугольника ABC содержит центр описанной около него окружности. Найдите \\angle C, если \\angle A = 75 градусов. Ответ дайте в градусах. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=89142",
@@ -328,22 +370,43 @@
           "task_id": "348379",
           "url": "https://math-oge.sdamgia.ru/problem?id=348379",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Центр окружности, описанной около треугольника ABC , лежит на стороне AB . Найдите угол ABC , если угол BAC равен 30°. Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=89143",
+              "sha256": "7b91966bc4c1a2cd52fe8e9087de72eff5f875a951f1213b32e9e708bbd120d9"
+            }
+          ]
         },
         {
           "task_id": "339503",
           "url": "https://math-oge.sdamgia.ru/problem?id=339503",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Сторона AC треугольника ABC проходит через центр описанной около него окружности. Найдите ∠ C , если ∠ A = 75°. Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88093",
+              "sha256": "d1ed5890cdf5d7a3416c594d708e9e022ad18a9384ad1413c2d60191810df72e"
+            }
+          ]
         },
         {
           "task_id": "341329",
           "url": "https://math-oge.sdamgia.ru/problem?id=341329",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Сторона AC треугольника ABC проходит через центр описанной около него окружности. Найдите ∠ C , если ∠ A = 44°. Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=89134",
+              "sha256": "3e6bc74ac9e09be3ce1f9b37c13a987ce5a525f6b45c9e4acbdae56244d9f86a"
+            }
+          ]
         }
       ],
       "mathematical_structure": "angles remaining=90-given",
@@ -403,8 +466,15 @@
           "task_id": "348961",
           "url": "https://math-oge.sdamgia.ru/problem?id=348961",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Центр окружности, описанной около треугольника ABC , лежит на стороне AB . Радиус окружности равен 6,5. Найдите AC , если BC = 12. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=89143",
+              "sha256": "7b91966bc4c1a2cd52fe8e9087de72eff5f875a951f1213b32e9e708bbd120d9"
+            }
+          ]
         }
       ],
       "mathematical_structure": "missing=sqrt((2R)^2-leg^2)",
@@ -465,9 +535,9 @@
           "task_id": "340174",
           "url": "https://math-oge.sdamgia.ru/problem?id=340174",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Original center A, ray A-C-B with C on circle and B exterior; tangent from B extends lower left. AC=75, CB=10 -> AB=85, BT=40. Generated T/AT are explicit explanatory labels/radius, not original labels.",
+          "visual_observation": "На отрезке AB выбрана точка C так, что AC = 75 и BC = 10. Построена окружность с центром A , проходящая через C . Найдите длину отрезка касательной, проведенной из точки B к этой окружности. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=40484",
@@ -534,8 +604,15 @@
           "task_id": "340337",
           "url": "https://math-oge.sdamgia.ru/problem?id=340337",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Касательные в точках A и B к окружности с центром O пересекаются под углом 72°. Найдите угол ABO . Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40167",
+              "sha256": "eb304ea77430500be5cb65a109b46420f4c17a5e5ff48ec00542744229b69ce4"
+            }
+          ]
         }
       ],
       "mathematical_structure": "base_angle=external_angle/2",
@@ -596,9 +673,9 @@
           "task_id": "340587",
           "url": "https://math-oge.sdamgia.ru/problem?id=340587",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Original horizontal chord below center and center-to-chord perpendicular; endpoints unnamed; R=13,d=5 ->24. Generated A/B/M labels introduced explicitly; no length read off scale.",
+          "visual_observation": "Найдите длину хорды окружности радиусом 13 см, если расстояние от центра окружности до хорды равно 5 см. Ответ запишите в сантиметрах. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=66079",
@@ -665,8 +742,15 @@
           "task_id": "356543",
           "url": "https://math-oge.sdamgia.ru/problem?id=356543",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Через точку A , лежащую вне окружности, проведены две прямые. Одна прямая касается окружности в точке K . Другая прямая пересекает окружность в точках B и C , причем AB = 2, AC = 8. Найдите AK . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40115",
+              "sha256": "1723b401fadc101e15c8a4156522d6bb4f01038980f5d0abee6a2b574389edbb"
+            }
+          ]
         }
       ],
       "mathematical_structure": "tangent²=external*whole",
@@ -727,8 +811,15 @@
           "task_id": "369504",
           "url": "https://math-oge.sdamgia.ru/problem?id=369504",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "На окружности отмечены точки A и B так, что меньшая дуга AB равна 72°. Прямая BC касается окружности в точке B так, что угол ABC острый. Найдите угол ABC . Ответ дайте в градусах. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40111",
+              "sha256": "2fbc0be51f52cf2b44b2dc9ec1ca9f680ce817a2c0ad7497474a96760f2db404"
+            }
+          ]
         }
       ],
       "mathematical_structure": "angle=arc/2",
@@ -789,9 +880,9 @@
           "task_id": "324364",
           "url": "https://math-oge.sdamgia.ru/problem?id=324364",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Same original geometry bytes as 341707, radius83 ->27556. Source regression only; generated radius limited to30.",
+          "visual_observation": "Найдите площадь квадрата, описанного вокруг окружности радиуса 83. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=88069",
@@ -804,9 +895,9 @@
           "task_id": "341707",
           "url": "https://math-oge.sdamgia.ru/problem?id=341707",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Axis-aligned square tangent to circle on all four sides; R=7 ->196; no perimeter target.",
+          "visual_observation": "Найдите площадь квадрата, описанного вокруг окружности радиуса 7. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=88070",
@@ -819,15 +910,33 @@
           "task_id": "356369",
           "url": "https://math-oge.sdamgia.ru/problem?id=356369",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Радиус вписанной в квадрат окружности равен 2 корень из 2 . Найдите диагональ этого квадрата. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40182",
+              "sha256": "8dabbd0e4e3eec7517211949305dca08ce6cb4933369b31a81971d7f08842761"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/87/87fed09285f2c8238cf1cb0c9dd5964c.svg",
+              "sha256": "f62469c8c77c0657e1d4f95ae13c97ec69174cc4cd13e03230e05e09dbe28ed6"
+            }
+          ]
         },
         {
           "task_id": "356399",
           "url": "https://math-oge.sdamgia.ru/problem?id=356399",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Сторона квадрата равна 6. Найдите радиус окружности, вписанной в этот квадрат. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=42216",
+              "sha256": "7b82b685766718caa2c3dcbd4f3cf4f4f2e5bb658f240b00a30483d50a6b19b0"
+            }
+          ]
         },
         {
           "task_id": "FIPI2027-DEMO-16",
@@ -905,15 +1014,29 @@
           "task_id": "355413",
           "url": "https://math-oge.sdamgia.ru/problem?id=355413",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Радиус окружности, вписанной в трапецию, равен 16. Найдите высоту этой трапеции. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=89145",
+              "sha256": "fc72e09e43c6045ef6fe7abf29d29eb3fdecad8e862b0b3bf72c97326d7f89c9"
+            }
+          ]
         },
         {
           "task_id": "448769",
           "url": "https://math-oge.sdamgia.ru/problem?id=448769",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Радиус окружности, вписанной в равнобедренную трапецию, равен 12. Найдите высоту этой трапеции. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=66384",
+              "sha256": "6d392b8076c0f50586c4e126102c5a498f54b568b443cdbf156762731b5ac720"
+            }
+          ]
         }
       ],
       "mathematical_structure": "height=2r",
@@ -974,8 +1097,15 @@
           "task_id": "356329",
           "url": "https://math-oge.sdamgia.ru/problem?id=356329",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Периметр треугольника равен 50, одна из сторон равна 20, а радиус вписанной в него окружности равен 4. Найдите площадь этого треугольника. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88090",
+              "sha256": "817d4e4b24c3e85fefe3552aae80c5fe315cba0da30d739d4774757d9319bedd"
+            }
+          ]
         }
       ],
       "mathematical_structure": "area=semiperimeter*r",
@@ -1036,29 +1166,69 @@
           "task_id": "356488",
           "url": "https://math-oge.sdamgia.ru/problem?id=356488",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Сторона равностороннего треугольника равна 2 корень из 3 . Найдите радиус окружности, вписанной в этот треугольник. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40185",
+              "sha256": "fa3441c315f498c84ae49ac8eefb04aa60aa00c9ec426981bff2ffc13f279fcd"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/6a/6ac7df217d8ffb190e45e3969e0a3a86.svg",
+              "sha256": "56e4e8a49ddcd6d741a7fe7d26b4018410493d898ecda1117b8efa421ac62f5f"
+            }
+          ]
         },
         {
           "task_id": "356498",
           "url": "https://math-oge.sdamgia.ru/problem?id=356498",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Радиус окружности, вписанной в равносторонний треугольник, равен 5. Найдите высоту этого треугольника. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40187",
+              "sha256": "0da2c4f00e8784c76640d916f5dca2b2e363d26920c5c311c1b2fcbe7d2816f5"
+            }
+          ]
         },
         {
           "task_id": "356518",
           "url": "https://math-oge.sdamgia.ru/problem?id=356518",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Радиус окружности, вписанной в равносторонний треугольник, равен 2 корень из 3 . Найдите длину стороны этого треугольника. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40185",
+              "sha256": "fa3441c315f498c84ae49ac8eefb04aa60aa00c9ec426981bff2ffc13f279fcd"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/6a/6ac7df217d8ffb190e45e3969e0a3a86.svg",
+              "sha256": "56e4e8a49ddcd6d741a7fe7d26b4018410493d898ecda1117b8efa421ac62f5f"
+            }
+          ]
         },
         {
           "task_id": "472375",
           "url": "https://math-oge.sdamgia.ru/problem?id=472375",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "В окружность с центром в точке O вписан равносторонний треугольник. Расстояние от точки O до сторон треугольника равно дробь: числитель: корень из: начало аргумента: 3 конец аргумента , знаменатель: 2 конец дроби . Найдите сторону треугольника. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=92974",
+              "sha256": "da071a6203a957c24102974b4afa66d0efd75f0feb86c52d2e1094b761f47834"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/2a/2ac236aeee52a4eeb90e4f5fd54d14af.svg",
+              "sha256": "f4895e08f69d82f0760cc829e38852e3fc75dbf57429326e6f1841a26655f3cb"
+            }
+          ]
         }
       ],
       "mathematical_structure": "r=a*sqrt(3)/6; h=3r",
@@ -1119,22 +1289,43 @@
           "task_id": "356579",
           "url": "https://math-oge.sdamgia.ru/problem?id=356579",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Четырехугольник ABCD описан около окружности, AB = 7, BC = 10, CD = 14. Найдите AD . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88098",
+              "sha256": "c1501692b3421beed0dcea11fb166efe803a4ee79b8f2cbeac4b981c6cbd7ec5"
+            }
+          ]
         },
         {
           "task_id": "356603",
           "url": "https://math-oge.sdamgia.ru/problem?id=356603",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Трапеция ABCD с основаниями AD и BC описана около окружности, AB = 11, BC = 6, CD = 9. Найдите AD . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=88067",
+              "sha256": "6351c16df2413c9abdfd7765cdcce776c6ca9ffd13621c488d539e8bb5aa2489"
+            }
+          ]
         },
         {
           "task_id": "438296",
           "url": "https://math-oge.sdamgia.ru/problem?id=438296",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Трапеция ABCD с основаниями AD и BC описана около окружности, AB = 11, BC = 6, CD = 9. Найдите AD . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=57310",
+              "sha256": "c393eea2cf3baec5e5d894f418ab0f9258f75c302abe6bbb489f15907ffdf2e5"
+            }
+          ]
         }
       ],
       "mathematical_structure": "AB+CD=BC+AD",
@@ -1195,8 +1386,19 @@
           "task_id": "472385",
           "url": "https://math-oge.sdamgia.ru/problem?id=472385",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Диагональ AC ромба ABCD равна 48, а тангенс \\angle BCA = дробь: числитель: 7, знаменатель: 24 конец дроби . Найдите радиус окружности, вписанной в ромб. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=92976",
+              "sha256": "9672d60eadf9664c545dd4ee1d61a4d42139e60423c80d0b63d66ff888849625"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/1c/1cfd4fc610d16a9c8b195e676ec2987a.svg",
+              "sha256": "aed281440ee8e914cc4fe7c684a116d9fe0160b73faf3a91c3940cc304fbc005"
+            }
+          ]
         }
       ],
       "mathematical_structure": "r=(AC/2)*sin(arctan(tg))",
@@ -1257,9 +1459,9 @@
           "task_id": "356438",
           "url": "https://math-oge.sdamgia.ru/problem?id=356438",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "A lower left, B upper left, C right above D; convex ABCD on circle. A=82 -> C=98; generic quadrilateral supported.",
+          "visual_observation": "Угол A четырехугольника ABCD , вписанного в окружность, равен 82°. Найдите угол C этого четырехугольника. Ответ дайте в градусах. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=88096",
@@ -1272,9 +1474,9 @@
           "task_id": "356448",
           "url": "https://math-oge.sdamgia.ru/problem?id=356448",
           "provenance": "catalog_verified",
-          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_CHECKED",
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
           "last_checked_at": "2026-11-16",
-          "visual_observation": "Original is specifically an isosceles cyclic trapezoid AD||BC, A=81 ->C=99. Visually checked but trapezoid subtype outside this generic-quadrilateral generator.",
+          "visual_observation": "Угол A трапеции ABCD с основаниями AD и BC , вписанной в окружность, равен 81°. Найдите угол C этой трапеции. Ответ дайте в градусах. Спрятать решение",
           "original_assets": [
             {
               "url": "https://math-oge.sdamgia.ru/get_file?id=88446",
@@ -1342,8 +1544,19 @@
           "task_id": "356533",
           "url": "https://math-oge.sdamgia.ru/problem?id=356533",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Радиус окружности, описанной около равностороннего треугольника, равен 2 корень из 3 . Найдите длину стороны этого треугольника. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40183",
+              "sha256": "c47fb7e87fb928ceae183ca9d78a28cfc562e3fa0c3af53577360ea9a1d6f4a3"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/6a/6ac7df217d8ffb190e45e3969e0a3a86.svg",
+              "sha256": "56e4e8a49ddcd6d741a7fe7d26b4018410493d898ecda1117b8efa421ac62f5f"
+            }
+          ]
         }
       ],
       "mathematical_structure": "a=R*sqrt(3)",
@@ -1404,8 +1617,19 @@
           "task_id": "369738",
           "url": "https://math-oge.sdamgia.ru/problem?id=369738",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Радиус окружности, описанной около квадрата, равен 16 корень из: начало аргумента: 2 конец аргумента . Найдите длину стороны этого квадрата. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=89148",
+              "sha256": "89fecacfe81a0a161fd70a108895c07360cd9eeb33fa5d5220ba712a1cbae0c2"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/1f/1f320d23169c736ad2b0e7f3ff6fe192.svg",
+              "sha256": "bd4e2cb20438c739426c928f044557cf8d3b756e8e5cb90baaae5f01ae38d6ac"
+            }
+          ]
         }
       ],
       "mathematical_structure": "side=R*sqrt(2)",
@@ -1466,8 +1690,19 @@
           "task_id": "450514",
           "url": "https://math-oge.sdamgia.ru/problem?id=450514",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "В треугольнике ABC угол C равен 45°, AB = 6 корень из 2 . Найдите радиус окружности, описанной около этого треугольника. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=89149",
+              "sha256": "85c8fae240afaaf006d6151a56957b4eeda0907bcb8117f78032d26f2e023b06"
+            },
+            {
+              "url": "https://oge.sdamgia.ru/formula/svg/d4/d49d8164c85078539666091c9484c5f6.svg",
+              "sha256": "627110046b040e67191558f888959ecba34a2c0bc5b30842b9005e834f02e047"
+            }
+          ]
         }
       ],
       "mathematical_structure": "R=a/(2 sin(angle))",
@@ -1528,8 +1763,15 @@
           "task_id": "462105",
           "url": "https://math-oge.sdamgia.ru/problem?id=462105",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Точка O является серединой стороны CD квадрата ABCD . Радиус окружности с центром в точке O , проходящей через вершину A , равен 5. Найдите площадь квадрата ABCD . Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=81724",
+              "sha256": "2d599ae5e09a805db55c0465be545c061a9066abcca774a1df898c89d76ba9df"
+            }
+          ]
         }
       ],
       "mathematical_structure": "area=(4/5)*R²",
@@ -1590,8 +1832,15 @@
           "task_id": "472378",
           "url": "https://math-oge.sdamgia.ru/problem?id=472378",
           "provenance": "historical",
-          "verification_status": "HOLD_NOT_RECHECKED_IN_THIS_PR",
-          "last_checked_at": "2026-11-05"
+          "verification_status": "SOURCE_TEXT_AND_ORIGINAL_IMAGE_VISUALLY_CHECKED_2026-11-16",
+          "last_checked_at": "2026-11-16",
+          "visual_observation": "Синус угла между стороной и диагональю прямоугольника равен 0,6. Диаметр описанной около него окружности равен 10. Найдите площадь прямоугольника. Спрятать решение",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=92975",
+              "sha256": "fed99ba0158fdfdd5ffc8416c36215e3fe697fd8e1efd6e69921c18cfc0295b4"
+            }
+          ]
         }
       ],
       "mathematical_structure": "area=D²*sin(angle)*cos(angle)",
