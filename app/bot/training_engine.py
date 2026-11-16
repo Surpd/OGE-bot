@@ -193,11 +193,20 @@ async def send_problem(
                 return False
     if adapter.number == 15:
         try:
-            triangle_from_snapshot(problem)
+            triangle_restored = triangle_from_snapshot(problem)
         except ValueError:
             await send_text(message, repository, "Сохранённое задание повреждено.")
             return False
-    if adapter.number == 18:
+    if adapter.number == 15 and triangle_restored.png_bytes:
+        sent = await send_photo(
+            message,
+            repository,
+            BufferedInputFile(triangle_restored.png_bytes, filename="oge15.png"),
+            caption=f"Задание №15\n\n{problem['condition']}",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+            user_id_override=user_id,
+        )
+    elif adapter.number == 18:
         try:
             restored = grid_from_snapshot(problem)
         except ValueError:
@@ -283,7 +292,7 @@ async def training_callback(
         return
     if adapter.number == 15:
         try:
-            triangle_from_snapshot(problem)
+            triangle_from_snapshot(problem, audit_pixels=False)
         except ValueError:
             await answer_callback(callback, "Сохранённое задание повреждено.")
             return
@@ -385,9 +394,9 @@ async def training_answer(
         return
     if adapter.number == 15:
         try:
-            triangle_from_snapshot(problem)
+            triangle_from_snapshot(problem, audit_pixels=False)
         except ValueError:
-            await send_text(message, repository, "Сохранённое задание №18 повреждено.")
+            await send_text(message, repository, "Сохранённое задание №15 повреждено.")
             return
     if adapter.number == 18:
         try:
