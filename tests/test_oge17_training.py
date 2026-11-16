@@ -4,6 +4,7 @@ import asyncio
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
+import pytest
 from aiogram import Bot
 from aiogram.types import Chat, Message
 from fastapi.testclient import TestClient
@@ -16,8 +17,16 @@ from app.math.oge17_scheduler import build_task17_candidate_batch
 from app.persistence.repository import MemoryRepository
 
 
+@pytest.fixture(autouse=True)
+def implemented_families_for_test(monkeypatch):
+    from app.math import oge17_models, oge17_scheduler
+
+    monkeypatch.setattr(oge17_models, "ENABLED_FAMILIES", FAMILIES)
+    monkeypatch.setattr(oge17_scheduler, "ENABLED_FAMILIES", FAMILIES)
+
+
 def test_task17_recent_repeat_queue_covers_enabled_families():
-    assert len(ENABLED_FAMILIES) == 6
+    assert not ENABLED_FAMILIES
     state: dict[str, object] = {}
     issued: set[str] = set()
     families: set[str] = set()
@@ -80,5 +89,5 @@ def test_task17_choice_is_available_with_no_fingerprint_threshold():
 
     assert BY_NUMBER[17].available
     keyboard = family_keyboard(17)
-    assert len(keyboard.inline_keyboard) == 8
+    assert len(keyboard.inline_keyboard) == len(FAMILIES) + 2
     assert keyboard.inline_keyboard[0][0].callback_data == "nav:family:17:random"

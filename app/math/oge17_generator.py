@@ -25,6 +25,14 @@ from app.math.oge17_models import (
 
 def parameters(family: str, seed: int) -> dict[str, int]:
     rng = random.Random(f"{GENERATOR_VERSION}:{family}:{seed}")
+    from app.math import oge17_additional, oge17_trapezoids
+
+    if family in oge17_trapezoids.FAMILIES:
+        return oge17_trapezoids.parameters(family, rng)
+    if family in oge17_additional.FAMILIES:
+        return oge17_additional.parameters(family, rng)
+    if family in ("OGE17-R02", "OGE17-P06"):
+        return {"angle": rng.randint(30, 85)}
     if family == FAMILIES[0]:
         return {"angle_b": rng.randint(40, 140), "side": 10}
     if family == FAMILIES[1]:
@@ -44,7 +52,7 @@ def parameters(family: str, seed: int) -> dict[str, int]:
         ac = rng.randint(max(10, bd * 17 // 20), bd * 23 // 20)
         ab = rng.randint(max(abs(ac - bd) // 2 + 2, min(ac, bd) // 3), min(ac, bd) // 2)
         return {"ac": ac, "bd": bd, "ab": ab}
-    if family in FAMILIES[4:]:
+    if family in FAMILIES[4:6]:
         lower = rng.randint(9, 60)
         upper = rng.randint(max(2, lower // 4), lower - 3)
         return {
@@ -58,6 +66,12 @@ def parameters(family: str, seed: int) -> dict[str, int]:
 
 def build(family: str, p: dict[str, int]) -> dict[str, Any]:
     """Exact parameters define construction; floating coordinates are only its layout."""
+    from app.math import oge17_additional, oge17_trapezoids
+
+    if family in oge17_trapezoids.FAMILIES:
+        return oge17_trapezoids.build(family, p)
+    if family in oge17_additional.FAMILIES:
+        return oge17_additional.build(family, p)
     pts: dict[str, tuple[float, float]]
     exact: dict[str, Any]
     lines: list[str] = ["AB", "BC", "CD", "DA"]
@@ -147,7 +161,22 @@ def build(family: str, p: dict[str, int]) -> dict[str, Any]:
             "u_dot_v": str(uv),
             "parameters": p,
         }
-    elif family in FAMILIES[4:]:
+    elif family in ("OGE17-R02", "OGE17-P06"):
+        alpha = p["angle"]
+        rhombus = family == "OGE17-R02"
+        side, base = 10, 10 if rhombus else 16
+        dx, dy = side * math.cos(math.radians(alpha)), side * math.sin(math.radians(alpha))
+        pts = {"A": (0, 0), "B": (dx, dy), "C": (dx + base, dy), "D": (base, 0)}
+        shape = "ромба" if rhombus else "параллелограмма"
+        condition = (
+            f"Один из углов {shape} равен {alpha}°. "
+            f"Найдите больший угол этого {shape}. Ответ дайте в градусах."
+        )
+        result = Fraction(180 - alpha)
+        hints = ["Сумма углов, прилежащих к одной стороне, равна 180°."]
+        solution = [f"Больший угол равен 180° − {alpha}° = {180 - alpha}°."]
+        exact = {"construction": "A=0,B=v,C=u+v,D=u; |v|=10", "parameters": p}
+    elif family in FAMILIES[4:6]:
         lower, upper, h, x = (p[k] for k in ("lower", "upper", "h", "offset"))
         pts = {"A": (0, 0), "B": (x, h), "C": (x + upper, h), "D": (lower, 0)}
         if family == FAMILIES[4]:
@@ -218,7 +247,7 @@ def _pack(family: str, seed: int, p: dict[str, int]) -> QuadrilateralProblem:
         else {"s": p["s"], "t": p["t"], "h": p["h"]}
         if family == FAMILIES[2]
         else p
-        if family == FAMILIES[3]
+        if family not in FAMILIES[4:6]
         else {
             k: p[k]
             for k in (("lower", "upper") if family == FAMILIES[4] else ("lower", "upper", "h"))

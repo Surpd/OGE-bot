@@ -280,6 +280,10 @@ async def test_task7_is_hidden_and_cannot_start_when_release_flags_are_empty(
 
 @pytest.fixture(autouse=True)
 def enable_task11_for_contract_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.math import oge17_models, oge17_scheduler
+
+    monkeypatch.setattr(oge17_models, "ENABLED_FAMILIES", oge17_models.FAMILIES)
+    monkeypatch.setattr(oge17_scheduler, "ENABLED_FAMILIES", oge17_models.FAMILIES)
     monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", TASK11_FAMILIES[:1])
     monkeypatch.setattr(oge15_scheduler, "ENABLED_FAMILIES", TASK15_FAMILIES)
     monkeypatch.setattr(oge18_scheduler, "ENABLED_FAMILIES", TASK18_FAMILIES)

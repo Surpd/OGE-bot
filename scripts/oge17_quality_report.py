@@ -51,7 +51,7 @@ def run(samples: int, budget: int, output: Path, previews: Path) -> dict[str, ob
                 else {k: p[k] for k in ("s", "t", "h")}
                 if family == FAMILIES[2]
                 else p
-                if family == FAMILIES[3]
+                if family in (FAMILIES[3], "OGE17-R02", "OGE17-P06")
                 else {
                     k: p[k]
                     for k in (
@@ -96,7 +96,7 @@ def run(samples: int, budget: int, output: Path, previews: Path) -> dict[str, ob
                 (previews / f"{family}.png").write_bytes(png)
         sheet_path = previews / f"{family}-contact.png"
         sheet.save(sheet_path)
-        finite = family == FAMILIES[0]
+        finite = family in (FAMILIES[0], "OGE17-R02", "OGE17-P06")
         families[family] = {
             "smoke_seed_count": 50,
             "rendered_audited": samples,
@@ -128,7 +128,7 @@ def run(samples: int, budget: int, output: Path, previews: Path) -> dict[str, ob
     report["official_evidence"]["visual_checked"] = True
     report["families"] = families
     report["limitations"] = [
-        "R03: 101 integer ABC angles in domain 40..140; scheduler exception unapproved",
+        "R03: 101 angles; R02/P06: 56 angles; enabled with recent-repeat protected queue",
         "Preview sheets are automated checks plus visual review, not live Telegram client evidence",
         "FIPI-2027 control 2,9 -> 4.5 verified directly: task page 12, answer page 15",
         "Source bank attribution is portal attribution; not direct individual FIPI verification",

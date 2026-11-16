@@ -12,7 +12,7 @@ class Family:
     source_ids: tuple[str, ...]
     target: str
     generator_version: str = GENERATOR_VERSION
-    public_enabled: bool = True
+    public_enabled: bool = False
     source_gate: str = "catalog_text_original_diagram_published_answer_checked"
     acceptance: str = "closed_core_only"
 
@@ -23,10 +23,29 @@ REGISTRY = MappingProxyType(
             family,
             SOURCES[family],
             target,
-            acceptance="HOLD_FINITE_ANGLE_DOMAIN" if family.endswith("R03") else "closed_core_only",
+            acceptance="recent_repeat_queue",
         )
         for family, target in zip(
-            FAMILIES, ("ACD", "AC", "area", "DO", "larger_MK_KN", "area"), strict=True
+            FAMILIES,
+            (
+                "ACD",
+                "AC",
+                "area",
+                "DO",
+                "larger_MK_KN",
+                "area",
+                "larger_angle",
+                "larger_angle",
+                "height",
+                "acute_diagonal_angle",
+                "diagonal",
+                "partition_area",
+                "larger_angle",
+                "midline",
+                "larger_angle",
+                "larger_angle",
+            ),
+            strict=True,
         )
     }
 )

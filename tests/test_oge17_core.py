@@ -165,8 +165,8 @@ def test_essential_diversity_ignores_trapezoid_layout():
 def test_atlas_schema_minimum_backlog_and_source_evidence():
     atlas = json.loads(Path("atlas/oge17_reference_structures.json").read_text())
     schema = json.loads(Path("specs/family.schema.json").read_text())
-    assert len(atlas["families"]) == 6
-    assert len(atlas["backlog"]) == 21
+    assert len(atlas["families"]) == len(FAMILIES)
+    assert len(atlas["backlog"]) == 27 - len(FAMILIES)
     ids = [f["family_id"] for f in atlas["families"] + atlas["backlog"]]
     assert len(set(ids)) == 27
     for family in atlas["families"]:
@@ -181,10 +181,29 @@ def test_atlas_schema_minimum_backlog_and_source_evidence():
                 asset["visual_checked"] and len(asset["sha256"]) == 64
                 for asset in source["original_assets"]
             )
-    assert set(ENABLED_FAMILIES) == {f["family_id"] for f in atlas["families"]}
+    assert not ENABLED_FAMILIES
+    assert set(FAMILIES) == {f["family_id"] for f in atlas["families"]}
 
 
 @pytest.mark.parametrize("seed", [-1, True, 2**63, "42", 0.5])
 def test_invalid_seed_rejected(seed):
     with pytest.raises(ValueError):
         generate(FAMILIES[0], seed)
+
+
+@pytest.mark.parametrize("alpha", [20, 44, 46, 70])
+def test_rectangle_acute_diagonal_angle_boundary_branches(alpha):
+    from app.math.oge17_generator import _pack
+
+    item = _pack("OGE17-E01", 0, {"angle": alpha})
+    snapshot = item.to_snapshot()
+    assert snapshot["correct_answer"] == str(min(2 * alpha, 180 - 2 * alpha))
+    assert audit_math(snapshot) < 90
+
+
+@pytest.mark.parametrize("base,height", [(4, 8), (30, 8), (30, 48)])
+def test_partition_extreme_proportions_render_and_replay(base, height):
+    from app.math.oge17_generator import _pack
+
+    item = _pack("OGE17-P03", 0, {"base": base, "height": height})
+    assert audit_math(item.to_snapshot()) == Fraction(3 * base * height, 4)

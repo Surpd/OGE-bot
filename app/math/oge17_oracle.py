@@ -65,6 +65,17 @@ def _audit(d: dict[str, Any]) -> Fraction:
     require(min(lengths) > 0.1, "Collapsed edge")
     require(close(cross(edges[1], edges[3]), 0), "Bases not parallel")
     area = abs(sum(cross(points[x], points[y]) for x, y in zip("ABCD", "BCDA", strict=True))) / 2
+    from app.math.oge17_additional import FAMILIES as ADDITIONAL_FAMILIES
+    from app.math.oge17_trapezoids import FAMILIES as TRAPEZOID_FAMILIES
+
+    if family in TRAPEZOID_FAMILIES:
+        from app.math.oge17_trapezoid_oracle import audit as audit_trapezoid
+
+        return audit_trapezoid(d, points)
+    if family in ADDITIONAL_FAMILIES:
+        from app.math.oge17_additional_oracle import audit
+
+        return audit(d, points)
     segments = ["AB", "BC", "CD", "DA"]
     expected_labels: dict[str, str] = {}
     expected_marks: list[list[str]] = []
@@ -104,6 +115,36 @@ def _audit(d: dict[str, Any]) -> Fraction:
         expected_solution = [
             f"∠BCD = 180° − {p['angle_b']}° = {180 - p['angle_b']}°.",
             f"∠ACD = {180 - p['angle_b']}° / 2 = {format_decimal(result)}°.",
+        ]
+    elif family in ("OGE17-R02", "OGE17-P06"):
+        rhombus = family == "OGE17-R02"
+        shape = "ромба" if rhombus else "параллелограмма"
+        require(
+            re.fullmatch(
+                rf"Один из углов {shape} равен \d+°. Найдите больший угол этого {shape}\. "
+                r"Ответ дайте в градусах\.",
+                text,
+            )
+            is not None
+            and numbers == [p["angle"]],
+            "Visible adjacent-angle data/target",
+        )
+        require(30 <= p["angle"] <= 85, "Adjacent-angle domain")
+        require(close(cross(edges[0], edges[2]), 0), "Not a parallelogram")
+        if rhombus:
+            require(all(close(length, lengths[0]) for length in lengths), "Unequal rhombus sides")
+        angles = [
+            angle(
+                sub(points["ABCD"[(i - 1) % 4]], points[k]),
+                sub(points["ABCD"[(i + 1) % 4]], points[k]),
+            )
+            for i, k in enumerate("ABCD")
+        ]
+        require(close(min(angles), float(numbers[0])), "Wrong drawn acute angle")
+        result = Fraction(180) - numbers[0]
+        require(close(max(angles), float(result)), "Wrong drawn larger angle")
+        expected_solution = [
+            f"Больший угол равен 180° − {p['angle']}° = {format_decimal(result)}°."
         ]
     elif family in (FAMILIES[1], FAMILIES[3]):
         is_rectangle = family == FAMILIES[1]

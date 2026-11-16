@@ -1,13 +1,6 @@
 {
   "generator_version": "oge17-quadrilaterals-1",
-  "public_enabled": [
-    "OGE17-R03",
-    "OGE17-E03",
-    "OGE17-P01",
-    "OGE17-P07",
-    "OGE17-T04",
-    "OGE17-T06"
-  ],
+  "public_enabled": [],
   "samples": 300,
   "diversity_budget": 1200,
   "families": {
@@ -25,13 +18,13 @@
       "substantive_unique_in_budget": 101,
       "distinct_answers_in_budget": 101,
       "source_vectors": 1,
+      "official_control_vectors": 0,
       "contact_sheet": "reports/oge17-previews/OGE17-R03-contact.png",
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS_FINITE_DOMAIN",
-      "public_enabled": true,
-      "failures": 0,
-      "official_control_vectors": 0
+      "public_enabled": false,
+      "failures": 0
     },
     "OGE17-E03": {
       "smoke_seed_count": 50,
@@ -47,13 +40,13 @@
       "substantive_unique_in_budget": 729,
       "distinct_answers_in_budget": 73,
       "source_vectors": 1,
+      "official_control_vectors": 0,
       "contact_sheet": "reports/oge17-previews/OGE17-E03-contact.png",
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": true,
-      "failures": 0,
-      "official_control_vectors": 0
+      "public_enabled": false,
+      "failures": 0
     },
     "OGE17-P01": {
       "smoke_seed_count": 50,
@@ -69,13 +62,13 @@
       "substantive_unique_in_budget": 404,
       "distinct_answers_in_budget": 285,
       "source_vectors": 1,
+      "official_control_vectors": 0,
       "contact_sheet": "reports/oge17-previews/OGE17-P01-contact.png",
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": true,
-      "failures": 0,
-      "official_control_vectors": 0
+      "public_enabled": false,
+      "failures": 0
     },
     "OGE17-P07": {
       "smoke_seed_count": 50,
@@ -91,13 +84,13 @@
       "substantive_unique_in_budget": 1037,
       "distinct_answers_in_budget": 59,
       "source_vectors": 3,
+      "official_control_vectors": 0,
       "contact_sheet": "reports/oge17-previews/OGE17-P07-contact.png",
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": true,
-      "failures": 0,
-      "official_control_vectors": 0
+      "public_enabled": false,
+      "failures": 0
     },
     "OGE17-T04": {
       "smoke_seed_count": 50,
@@ -113,13 +106,13 @@
       "substantive_unique_in_budget": 732,
       "distinct_answers_in_budget": 52,
       "source_vectors": 1,
+      "official_control_vectors": 1,
       "contact_sheet": "reports/oge17-previews/OGE17-T04-contact.png",
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": true,
-      "failures": 0,
-      "official_control_vectors": 1
+      "public_enabled": false,
+      "failures": 0
     },
     "OGE17-T06": {
       "smoke_seed_count": 50,
@@ -135,25 +128,69 @@
       "substantive_unique_in_budget": 1148,
       "distinct_answers_in_budget": 604,
       "source_vectors": 1,
+      "official_control_vectors": 0,
       "contact_sheet": "reports/oge17-previews/OGE17-T06-contact.png",
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": true,
-      "failures": 0,
-      "official_control_vectors": 0
+      "public_enabled": false,
+      "failures": 0
+    },
+    "OGE17-R02": {
+      "smoke_seed_count": 50,
+      "rendered_audited": 300,
+      "mobile_widths": [
+        360,
+        390,
+        430
+      ],
+      "snapshot_replays": 50,
+      "mathematical_audits": 1200,
+      "unique_in_sample": 56,
+      "substantive_unique_in_budget": 56,
+      "distinct_answers_in_budget": 56,
+      "source_vectors": 1,
+      "official_control_vectors": 0,
+      "contact_sheet": "reports/oge17-previews/OGE17-R02-contact.png",
+      "contact_variants": 20,
+      "source_gate": "catalog_text_original_diagram_published_answer_verified",
+      "acceptance": "CLOSED_CORE_QA_PASS_FINITE_DOMAIN",
+      "public_enabled": false,
+      "failures": 0
+    },
+    "OGE17-P06": {
+      "smoke_seed_count": 50,
+      "rendered_audited": 300,
+      "mobile_widths": [
+        360,
+        390,
+        430
+      ],
+      "snapshot_replays": 50,
+      "mathematical_audits": 1200,
+      "unique_in_sample": 56,
+      "substantive_unique_in_budget": 56,
+      "distinct_answers_in_budget": 56,
+      "source_vectors": 1,
+      "official_control_vectors": 0,
+      "contact_sheet": "reports/oge17-previews/OGE17-P06-contact.png",
+      "contact_variants": 20,
+      "source_gate": "catalog_text_original_diagram_published_answer_verified",
+      "acceptance": "CLOSED_CORE_QA_PASS_FINITE_DOMAIN",
+      "public_enabled": false,
+      "failures": 0
     }
   },
-  "limitations": [
-    "R03: 101 integer ABC angles in domain 40..140; scheduler exception unapproved",
-    "Preview sheets are automated checks plus visual review, not live Telegram client evidence",
-    "FIPI-2027 control 2,9 -> 4.5 verified directly: task page 12, answer page 15",
-    "Source bank attribution is portal attribution; not direct individual FIPI verification"
-  ],
   "official_evidence": {
     "url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
     "zip_sha256": "315ac3e5dcdebbac9c8c85c87814d9e008dfc1b44f17cfb15ec392852d943303",
     "pdf_sha256": "f3cebf96e7cb4e7936a50b5d49075438c72ad200c146a6d465860ef74a691ec7",
     "visual_checked": true
-  }
+  },
+  "limitations": [
+    "R03: 101 angles; R02/P06: 56 angles; enabled with recent-repeat protected queue",
+    "Preview sheets are automated checks plus visual review, not live Telegram client evidence",
+    "FIPI-2027 control 2,9 -> 4.5 verified directly: task page 12, answer page 15",
+    "Source bank attribution is portal attribution; not direct individual FIPI verification"
+  ]
 }

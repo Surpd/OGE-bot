@@ -122,7 +122,7 @@ async def send_problem(
     from app.bot.router import _user_id
 
     if adapter.number in (17, 18) and not adapter.families:
-        await send_text(message, repository, "Задания №18 пока выключены.")
+        await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return False
     user_id = user_id_override if user_id_override is not None else _user_id(message)
     if user_id is None:
@@ -274,7 +274,7 @@ async def training_callback(
     )
 
     if adapter.number in (17, 18) and not adapter.families:
-        await answer_callback(callback, "Задания №18 пока выключены.")
+        await answer_callback(callback, f"Задания №{adapter.number} пока выключены.")
         return
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != f"t{adapter.number}" or callback.message is None:
@@ -316,6 +316,17 @@ async def training_callback(
             triangle_from_snapshot(problem)
         except ValueError:
             await answer_callback(callback, "Сохранённое задание повреждено.")
+            return
+    if adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            trusted_id = state.get("issued_problem_id") if state else None
+            if not isinstance(trusted_id, str):
+                raise ValueError("Missing trusted issuance ID")
+            from_snapshot(problem, expected_problem_id=trusted_id)
+        except ValueError:
+            await answer_callback(callback, "Сохранённое задание №17 повреждено.")
             return
     if adapter.number == 18:
         try:
@@ -380,7 +391,7 @@ async def training_answer(
     from app.bot.router import _disable_stale_keyboard, _user_id
 
     if adapter.number in (17, 18) and not adapter.families:
-        await send_text(message, repository, "Задания №18 пока выключены.")
+        await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return
     user_id = _user_id(message)
     if user_id is None or message.text is None:
@@ -418,6 +429,17 @@ async def training_answer(
             triangle_from_snapshot(problem)
         except ValueError:
             await send_text(message, repository, "Сохранённое задание №18 повреждено.")
+            return
+    if adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            trusted_id = state.get("issued_problem_id") if state else None
+            if not isinstance(trusted_id, str):
+                raise ValueError("Missing trusted issuance ID")
+            from_snapshot(problem, expected_problem_id=trusted_id)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №17 повреждено.")
             return
     if adapter.number == 18:
         try:
