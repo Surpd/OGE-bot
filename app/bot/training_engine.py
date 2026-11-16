@@ -18,6 +18,9 @@ from app.math.oge8_scheduler import build_task8_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.oge12_scheduler import build_task12_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
+from app.math.oge15_scheduler import build_task15_candidate_batch
+from app.math.oge15_triangles import POLICY as TRIANGLE_POLICY
+from app.math.oge15_triangles import from_snapshot as triangle_from_snapshot
 from app.math.oge18 import POLICY as GRID_POLICY
 from app.math.oge18 import from_snapshot as grid_from_snapshot
 from app.math.oge18_scheduler import build_task18_candidate_batch
@@ -63,6 +66,7 @@ class NumericTraining:
 
 
 NUMERIC_TRAININGS = {
+    15: NumericTraining(15, "треугольники", TRIANGLE_POLICY, build_task15_candidate_batch),
     18: NumericTraining(18, "фигуры на клетчатой сетке", GRID_POLICY, build_task18_candidate_batch),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
     10: NumericTraining(
@@ -90,9 +94,7 @@ async def persist_open_training(
         await repository.save_user_state(user_id, mode)
         return True
     if expected_screen != mode:
-        return await repository.open_training_screen(
-            user_id, expected_screen, mode, problem_id
-        )
+        return await repository.open_training_screen(user_id, expected_screen, mode, problem_id)
     return await repository.transition_task_screen(
         user_id,
         mode,
@@ -189,6 +191,12 @@ async def send_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
+    if adapter.number == 15:
+        try:
+            triangle_from_snapshot(problem)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание повреждено.")
+            return False
     if adapter.number == 18:
         try:
             restored = grid_from_snapshot(problem)
@@ -196,7 +204,9 @@ async def send_problem(
             await send_text(message, repository, "Сохранённое задание №18 повреждено.")
             return False
         sent = await send_photo(
-            message, repository, BufferedInputFile(restored.png_bytes, filename="oge18.png"),
+            message,
+            repository,
+            BufferedInputFile(restored.png_bytes, filename="oge18.png"),
             caption=f"Задание №18\n\n{problem['condition']}",
             reply_markup=adapter.menu(str(problem["problem_id"])),
             user_id_override=user_id,
@@ -271,6 +281,12 @@ async def training_callback(
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != expected_id:
         await answer_callback(callback, "Это задание уже сменилось.")
         return
+    if adapter.number == 15:
+        try:
+            triangle_from_snapshot(problem)
+        except ValueError:
+            await answer_callback(callback, "Сохранённое задание повреждено.")
+            return
     if adapter.number == 18:
         try:
             grid_from_snapshot(problem, audit_pixels=False)
@@ -367,6 +383,12 @@ async def training_answer(
     ):
         await send_text(message, repository, "Политика ответа этой задачи недоступна.")
         return
+    if adapter.number == 15:
+        try:
+            triangle_from_snapshot(problem)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №18 повреждено.")
+            return
     if adapter.number == 18:
         try:
             grid_from_snapshot(problem, audit_pixels=False)
