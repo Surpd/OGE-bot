@@ -12,7 +12,7 @@ class Family:
     source_ids: tuple[str, ...]
     target: str
     generator_version: str = GENERATOR_VERSION
-    public_enabled: bool = False
+    public_enabled: bool = True
     source_gate: str = "catalog_text_original_diagram_published_answer_checked"
     acceptance: str = "closed_core_only"
 

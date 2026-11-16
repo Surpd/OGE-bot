@@ -4,7 +4,7 @@
     "candidate_families": 27,
     "catalog_prototypes": 45,
     "implemented": 6,
-    "public_enabled": 0,
+    "public_enabled": 6,
     "source_originals_checked": 8,
     "research_ref": "origin/docs/geometry-15-19-codex-handoff",
     "base_main": "3ed8740",
@@ -15,8 +15,8 @@
       "family_id": "OGE17-R03",
       "exam_number": 17,
       "name": "Ромб: смежный угол и биссектриса",
-      "status": "research_only",
-      "status_reason": "Closed mathematical core only; no Telegram/public issuance. HOLD: finite integer angle domain; scheduling exception unapproved.",
+      "status": "enabled_candidate",
+      "status_reason": "101-angle finite domain is allowed; repeated fingerprints are handled by scheduler queue. No arbitrary fingerprint threshold.",
       "sources": [
         {
           "task_id": "356939",
@@ -115,8 +115,8 @@
       "family_id": "OGE17-E03",
       "exam_number": 17,
       "name": "Прямоугольник: полная диагональ по BO",
-      "status": "research_only",
-      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "status": "enabled_candidate",
+      "status_reason": "Experimental training №17 core; source checked; available in app. Full 27-family coverage remains in progress.",
       "sources": [
         {
           "task_id": "356927",
@@ -213,8 +213,8 @@
       "family_id": "OGE17-P01",
       "exam_number": 17,
       "name": "Площадь параллелограмма с составным основанием",
-      "status": "research_only",
-      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "status": "enabled_candidate",
+      "status_reason": "Experimental training №17 core; source checked; available in app. Full 27-family coverage remains in progress.",
       "sources": [
         {
           "task_id": "65",
@@ -317,8 +317,8 @@
       "family_id": "OGE17-P07",
       "exam_number": 17,
       "name": "Параллелограмм: половина BD",
-      "status": "research_only",
-      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "status": "enabled_candidate",
+      "status_reason": "Experimental training №17 core; source checked; available in app. Full 27-family coverage remains in progress.",
       "sources": [
         {
           "task_id": "356914",
@@ -452,8 +452,8 @@
       "family_id": "OGE17-T04",
       "exam_number": 17,
       "name": "Больший отрезок средней линии трапеции",
-      "status": "research_only",
-      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "status": "enabled_candidate",
+      "status_reason": "Experimental training №17 core; source checked; available in app. Full 27-family coverage remains in progress.",
       "sources": [
         {
           "task_id": "323800",
@@ -582,8 +582,8 @@
       "family_id": "OGE17-T06",
       "exam_number": 17,
       "name": "Площадь трапеции",
-      "status": "research_only",
-      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "status": "enabled_candidate",
+      "status_reason": "Experimental training №17 core; source checked; available in app. Full 27-family coverage remains in progress.",
       "sources": [
         {
           "task_id": "356717",

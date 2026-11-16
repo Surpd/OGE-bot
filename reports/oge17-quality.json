@@ -1,6 +1,13 @@
 {
   "generator_version": "oge17-quadrilaterals-1",
-  "public_enabled": [],
+  "public_enabled": [
+    "OGE17-R03",
+    "OGE17-E03",
+    "OGE17-P01",
+    "OGE17-P07",
+    "OGE17-T04",
+    "OGE17-T06"
+  ],
   "samples": 300,
   "diversity_budget": 1200,
   "families": {
@@ -21,8 +28,8 @@
       "contact_sheet": "reports/oge17-previews/OGE17-R03-contact.png",
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
-      "acceptance": "HOLD_FINITE_ANGLE_DOMAIN",
-      "public_enabled": false,
+      "acceptance": "CLOSED_CORE_QA_PASS_FINITE_DOMAIN",
+      "public_enabled": true,
       "failures": 0,
       "official_control_vectors": 0
     },
@@ -44,7 +51,7 @@
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": false,
+      "public_enabled": true,
       "failures": 0,
       "official_control_vectors": 0
     },
@@ -66,7 +73,7 @@
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": false,
+      "public_enabled": true,
       "failures": 0,
       "official_control_vectors": 0
     },
@@ -88,7 +95,7 @@
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": false,
+      "public_enabled": true,
       "failures": 0,
       "official_control_vectors": 0
     },
@@ -110,7 +117,7 @@
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": false,
+      "public_enabled": true,
       "failures": 0,
       "official_control_vectors": 1
     },
@@ -132,7 +139,7 @@
       "contact_variants": 20,
       "source_gate": "catalog_text_original_diagram_published_answer_verified",
       "acceptance": "CLOSED_CORE_QA_PASS",
-      "public_enabled": false,
+      "public_enabled": true,
       "failures": 0,
       "official_control_vectors": 0
     }

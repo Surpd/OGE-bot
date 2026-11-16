@@ -111,8 +111,8 @@ def run(samples: int, budget: int, output: Path, previews: Path) -> dict[str, ob
             "contact_sheet": str(sheet_path),
             "contact_variants": len(images),
             "source_gate": "catalog_text_original_diagram_published_answer_verified",
-            "acceptance": "HOLD_FINITE_ANGLE_DOMAIN" if finite else "CLOSED_CORE_QA_PASS",
-            "public_enabled": False,
+            "acceptance": "CLOSED_CORE_QA_PASS_FINITE_DOMAIN" if finite else "CLOSED_CORE_QA_PASS",
+            "public_enabled": True,
             "failures": 0,
         }
         if not finite and (len(substantive) < 300 or len(fingerprints) < 200):

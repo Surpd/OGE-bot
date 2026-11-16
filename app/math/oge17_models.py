@@ -20,7 +20,7 @@ GENERATOR_VERSION = "oge17-quadrilaterals-1"
 ORACLE_VERSION = "oge17-coordinate-oracle-1"
 RENDERER_VERSION = "oge17-pillow-1"
 FAMILIES = tuple(f"OGE17-{suffix}" for suffix in ("R03", "E03", "P01", "P07", "T04", "T06"))
-ENABLED_FAMILIES: tuple[str, ...] = ()
+ENABLED_FAMILIES: tuple[str, ...] = FAMILIES
 SOURCES = dict(
     zip(
         FAMILIES,

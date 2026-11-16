@@ -171,7 +171,7 @@ def test_atlas_schema_minimum_backlog_and_source_evidence():
     assert len(set(ids)) == 27
     for family in atlas["families"]:
         assert set(schema["required"]) <= family.keys()
-        assert family["status"] == "research_only"
+        assert family["status"] == "enabled_candidate"
         for source in family["sources"]:
             assert (
                 source["verification_status"]
@@ -181,7 +181,7 @@ def test_atlas_schema_minimum_backlog_and_source_evidence():
                 asset["visual_checked"] and len(asset["sha256"]) == 64
                 for asset in source["original_assets"]
             )
-    assert ENABLED_FAMILIES == ()
+    assert set(ENABLED_FAMILIES) == {f["family_id"] for f in atlas["families"]}
 
 
 @pytest.mark.parametrize("seed", [-1, True, 2**63, "42", 0.5])
