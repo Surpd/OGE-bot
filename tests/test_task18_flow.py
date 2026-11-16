@@ -142,6 +142,32 @@ async def test_same_png_and_counts_on_resume_and_corruption_fails_closed(monkeyp
 
 
 @pytest.mark.parametrize(
+    "family,generator_version",
+    ((FAMILIES[0], None), ("OGE18-A03", "oge18-grid-2")),
+)
+async def test_resume_precompact_renderer_snapshot_sends_original_png(family, generator_version):
+    from app.math.oge18 import GENERATOR_VERSION_V2
+
+    problem = (
+        generate(family, 42, GENERATOR_VERSION_V2)
+        if generator_version is not None
+        else generate(family, 42)
+    )
+    snapshot = problem.to_snapshot()
+    assert snapshot["renderer_version"] in {"oge18-pillow-1", "oge18-pillow-2"}
+    repo = MemoryRepository()
+    await repo.ensure_task18_session(42)
+    await repo.advance_task18_problem(42, None, [snapshot])
+    await repo.save_user_state(42, "task18")
+    await repo.set_task18_condition_message(42, snapshot["problem_id"], 101)
+
+    resumed = message(mid=102)
+    await router.continue_session(resumed, repo)
+
+    assert resumed.answer_photo.await_args.args[0].data == problem.png_bytes
+
+
+@pytest.mark.parametrize(
     "display,error",
     (
         ("auto", None),
