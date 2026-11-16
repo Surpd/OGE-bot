@@ -24,6 +24,7 @@ from app.bot.router import (
     choose_task13,
     choose_task14,
     choose_task15,
+    choose_task17,
     choose_task18,
     show_progress_details,
     task6_answer,
@@ -46,6 +47,8 @@ from app.bot.router import (
     task14_callback,
     task15_answer,
     task15_callback,
+    task17_answer,
+    task17_callback,
     task18_answer,
     task18_callback,
     unknown_message,
@@ -70,6 +73,7 @@ from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.oge15_scheduler import build_task15_candidate_batch
 from app.math.oge15_triangles import FAMILIES as TASK15_FAMILIES
+from app.math.oge17_scheduler import build_task17_candidate_batch
 from app.math.oge18 import FAMILIES as TASK18_FAMILIES
 from app.math.oge18_scheduler import build_task18_candidate_batch
 from app.math.progressions import A01
@@ -91,12 +95,39 @@ class TrainingAdapter:
 
 
 TRAININGS = (
-    TrainingAdapter(15, choose_task15, task15_answer, task15_callback,
-                    "advance_task15_problem", "set_task15_condition_message",
-                    build_task15_candidate_batch, "task15_state", "task15_progress"),
-    TrainingAdapter(18, choose_task18, task18_answer, task18_callback,
-                    "advance_task18_problem", "set_task18_condition_message",
-                    build_task18_candidate_batch, "task18_state", "task18_progress"),
+    TrainingAdapter(
+        17,
+        choose_task17,
+        task17_answer,
+        task17_callback,
+        "advance_task17_problem",
+        "set_task17_condition_message",
+        build_task17_candidate_batch,
+        "task17_state",
+        "task17_progress",
+    ),
+    TrainingAdapter(
+        15,
+        choose_task15,
+        task15_answer,
+        task15_callback,
+        "advance_task15_problem",
+        "set_task15_condition_message",
+        build_task15_candidate_batch,
+        "task15_state",
+        "task15_progress",
+    ),
+    TrainingAdapter(
+        18,
+        choose_task18,
+        task18_answer,
+        task18_callback,
+        "advance_task18_problem",
+        "set_task18_condition_message",
+        build_task18_candidate_batch,
+        "task18_state",
+        "task18_progress",
+    ),
     TrainingAdapter(
         6,
         choose_task6,
@@ -249,6 +280,10 @@ async def test_task7_is_hidden_and_cannot_start_when_release_flags_are_empty(
 
 @pytest.fixture(autouse=True)
 def enable_task11_for_contract_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.math import oge17_models, oge17_scheduler
+
+    monkeypatch.setattr(oge17_models, "ENABLED_FAMILIES", oge17_models.FAMILIES)
+    monkeypatch.setattr(oge17_scheduler, "ENABLED_FAMILIES", oge17_models.FAMILIES)
     monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", TASK11_FAMILIES[:1])
     monkeypatch.setattr(oge15_scheduler, "ENABLED_FAMILIES", TASK15_FAMILIES)
     monkeypatch.setattr(oge18_scheduler, "ENABLED_FAMILIES", TASK18_FAMILIES)

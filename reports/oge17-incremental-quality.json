@@ -1,0 +1,66 @@
+{
+  "OGE17-R04": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  },
+  "OGE17-E01": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  },
+  "OGE17-E02": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  },
+  "OGE17-P03": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  },
+  "OGE17-T02": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  },
+  "OGE17-T05": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  },
+  "OGE17-T07": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  },
+  "OGE17-T08": {
+    "mathematical_audits": 150,
+    "snapshot_replays": 10,
+    "png_pixel_audits": 10,
+    "visual_examples": 4,
+    "public_enabled": false,
+    "failures": 0
+  }
+}

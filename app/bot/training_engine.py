@@ -21,6 +21,8 @@ from app.math.oge14_scheduler import build_task14_candidate_batch
 from app.math.oge15_scheduler import build_task15_candidate_batch
 from app.math.oge15_triangles import POLICY as TRIANGLE_POLICY
 from app.math.oge15_triangles import from_snapshot as triangle_from_snapshot
+from app.math.oge17_models import POLICY as QUADRILATERAL_POLICY
+from app.math.oge17_scheduler import build_task17_candidate_batch
 from app.math.oge18 import POLICY as GRID_POLICY
 from app.math.oge18 import from_snapshot as grid_from_snapshot
 from app.math.oge18_scheduler import build_task18_candidate_batch
@@ -66,6 +68,7 @@ class NumericTraining:
 
 
 NUMERIC_TRAININGS = {
+    17: NumericTraining(17, "четырёхугольники", QUADRILATERAL_POLICY, build_task17_candidate_batch),
     15: NumericTraining(15, "треугольники", TRIANGLE_POLICY, build_task15_candidate_batch),
     18: NumericTraining(18, "фигуры на клетчатой сетке", GRID_POLICY, build_task18_candidate_batch),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
@@ -118,8 +121,8 @@ async def send_problem(
 ) -> bool:
     from app.bot.router import _user_id
 
-    if adapter.number == 18 and not adapter.families:
-        await send_text(message, repository, "Задания №18 пока выключены.")
+    if adapter.number in (17, 18) and not adapter.families:
+        await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return False
     user_id = user_id_override if user_id_override is not None else _user_id(message)
     if user_id is None:
@@ -191,6 +194,9 @@ async def send_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
+            # Repository transition metadata is not part of the signed/replayable
+            # issued snapshot consumed by the geometry validator.
+            problem.pop("_transitioned", None)
     if adapter.number == 15:
         try:
             triangle_restored = triangle_from_snapshot(problem)
@@ -203,6 +209,30 @@ async def send_problem(
             repository,
             BufferedInputFile(triangle_restored.png_bytes, filename="oge15.png"),
             caption=f"Задание №15\n\n{problem['condition']}",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+            user_id_override=user_id,
+        )
+    elif adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            issuance = await adapter.operation(repository, "state")(user_id)
+            issued_problem_id = issuance.get("issued_problem_id") if issuance else None
+            if not isinstance(issued_problem_id, str):
+                raise ValueError("Missing trusted issuance identity")
+            restored17 = from_snapshot(problem, expected_problem_id=issued_problem_id)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №17 повреждено.")
+            return False
+
+        sent = await send_photo(
+            message,
+            repository,
+            BufferedInputFile(
+                __import__("base64").b64decode(restored17.to_snapshot()["png_base64"]),
+                filename="oge17.png",
+            ),
+            caption=f"Задание №17\n\n{problem['condition']}",
             reply_markup=adapter.menu(str(problem["problem_id"])),
             user_id_override=user_id,
         )
@@ -252,8 +282,8 @@ async def training_callback(
         _solution_display_status,
     )
 
-    if adapter.number == 18 and not adapter.families:
-        await answer_callback(callback, "Задания №18 пока выключены.")
+    if adapter.number in (17, 18) and not adapter.families:
+        await answer_callback(callback, f"Задания №{adapter.number} пока выключены.")
         return
     parts = (callback.data or "").split(":", 2)
     if len(parts) != 3 or parts[0] != f"t{adapter.number}" or callback.message is None:
@@ -295,6 +325,17 @@ async def training_callback(
             triangle_from_snapshot(problem, audit_pixels=False)
         except ValueError:
             await answer_callback(callback, "Сохранённое задание повреждено.")
+            return
+    if adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            trusted_id = state.get("issued_problem_id") if state else None
+            if not isinstance(trusted_id, str):
+                raise ValueError("Missing trusted issuance ID")
+            from_snapshot(problem, expected_problem_id=trusted_id)
+        except ValueError:
+            await answer_callback(callback, "Сохранённое задание №17 повреждено.")
             return
     if adapter.number == 18:
         try:
@@ -358,8 +399,8 @@ async def training_answer(
 ) -> None:
     from app.bot.router import _disable_stale_keyboard, _user_id
 
-    if adapter.number == 18 and not adapter.families:
-        await send_text(message, repository, "Задания №18 пока выключены.")
+    if adapter.number in (17, 18) and not adapter.families:
+        await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return
     user_id = _user_id(message)
     if user_id is None or message.text is None:
@@ -397,6 +438,17 @@ async def training_answer(
             triangle_from_snapshot(problem, audit_pixels=False)
         except ValueError:
             await send_text(message, repository, "Сохранённое задание №15 повреждено.")
+            return
+    if adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            trusted_id = state.get("issued_problem_id") if state else None
+            if not isinstance(trusted_id, str):
+                raise ValueError("Missing trusted issuance ID")
+            from_snapshot(problem, expected_problem_id=trusted_id)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №17 повреждено.")
             return
     if adapter.number == 18:
         try:

@@ -38,7 +38,9 @@
 
 | LL-25 | Telegram math and scenario assets | Rich Math could visually merge implicit factors or duplicate `\infty`; scenario startup could send unrelated tables and resume without the material for the active question. | Test final Rich/PNG output. Keep school juxtaposition for implicit products, preserve explicit operators, route only known unreliable Rich denominator products through PNG, keep infinity literal in Rich text, and choose scenario PNG/context by the current snapshot question on start and resume. | Math presentation, №1–5 | `tests/test_rich_math_runtime.py::test_school_juxtaposition_matches_final_png_pixels`; `tests/test_rich_math_runtime.py::test_oge11_inverse_graph_caption_uses_targeted_png_fallback`; `tests/test_scenario_telegram.py::test_snapshot_materials_render_on_start_and_postgres_resume`; `tests/test_scenario_telegram.py::test_public_story_photos_are_selected_only_for_current_question` | covered |
 
-| LL-26 | Геометрический oracle и точность ответа | Допуск для вещественных координат пропускал ответ, ошибочный на 1e-10. | Координаты проверять с числовой погрешностью, а числовой ответ дополнительно связывать с данными точными тождествами Fraction. | №15 | `tests/test_oge15_complete.py::test_coordinate_tolerance_cannot_accept_a_nearly_correct_answer` | covered |
+| LL-26 | Geometry snapshot rendering | Порядок словарей точек и числовых подписей менялся после JSON sort_keys, поэтому восстановление выбирало другие позиции текста. | Сортировать ключи при размещении меток; проверять одинаковые PNG и pixel audit до и после JSON roundtrip. | Геометрические PNG | `tests/test_oge17_core.py::test_json_key_order_does_not_move_dimension_labels`; `test_50_smoke_math_determinism_and_policy` | covered |
+
+| LL-27 | Геометрический oracle и точность ответа | Допуск для вещественных координат пропускал ответ, ошибочный на 1e-10. | Координаты проверять с числовой погрешностью, а числовой ответ дополнительно связывать с данными точными тождествами Fraction. | №15 | `tests/test_oge15_complete.py::test_coordinate_tolerance_cannot_accept_a_nearly_correct_answer` | covered |
 
 ## Добавление урока
 
