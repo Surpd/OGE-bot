@@ -1,0 +1,113 @@
+{
+  "generator_version": "oge17-quadrilaterals-1",
+  "vectors": [
+    {
+      "family_id": "OGE17-R03",
+      "source_id": "356939",
+      "parameters": {
+        "angle_b": 72,
+        "side": 10
+      },
+      "answer": "54",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-E03",
+      "source_id": "356927",
+      "parameters": {
+        "twice_bo": 14,
+        "ab": 6
+      },
+      "answer": "14",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-P01",
+      "source_id": "65",
+      "parameters": {
+        "s": 3,
+        "t": 7,
+        "h": 4,
+        "side": 5
+      },
+      "answer": "40",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-P07",
+      "source_id": "356914",
+      "parameters": {
+        "ac": 12,
+        "bd": 20,
+        "ab": 7
+      },
+      "answer": "10",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-P07",
+      "source_id": "438297",
+      "parameters": {
+        "ac": 26,
+        "bd": 30,
+        "ab": 7
+      },
+      "answer": "15",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-P07",
+      "source_id": "478045",
+      "parameters": {
+        "ac": 22,
+        "bd": 24,
+        "ab": 3
+      },
+      "answer": "12",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-T04",
+      "source_id": "323800",
+      "parameters": {
+        "lower": 10,
+        "upper": 4,
+        "h": 6,
+        "offset": 2
+      },
+      "answer": "5",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-T06",
+      "source_id": "356717",
+      "parameters": {
+        "lower": 10,
+        "upper": 4,
+        "h": 5,
+        "offset": 2
+      },
+      "answer": "35",
+      "kind": "source_control"
+    },
+    {
+      "family_id": "OGE17-T04",
+      "source_id": "FIPI2027-DEMO17",
+      "parameters": {
+        "lower": 9,
+        "upper": 2,
+        "h": 6,
+        "offset": 2
+      },
+      "answer": "4,5",
+      "kind": "official_fipi_control",
+      "url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+      "zip_sha256": "315ac3e5dcdebbac9c8c85c87814d9e008dfc1b44f17cfb15ec392852d943303",
+      "pdf_sha256": "f3cebf96e7cb4e7936a50b5d49075438c72ad200c146a6d465860ef74a691ec7",
+      "printed_task_page": 12,
+      "printed_answer_page": 15,
+      "pdf_task_page": 6,
+      "pdf_answer_page": 8
+    }
+  ]
+}

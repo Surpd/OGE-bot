@@ -1,0 +1,899 @@
+{
+  "metadata": {
+    "exam_number": 17,
+    "candidate_families": 27,
+    "catalog_prototypes": 45,
+    "implemented": 6,
+    "public_enabled": 0,
+    "source_originals_checked": 8,
+    "research_ref": "origin/docs/geometry-15-19-codex-handoff",
+    "base_main": "3ed8740",
+    "official_control_checked": 1
+  },
+  "families": [
+    {
+      "family_id": "OGE17-R03",
+      "exam_number": 17,
+      "name": "Ромб: смежный угол и биссектриса",
+      "status": "research_only",
+      "status_reason": "Closed mathematical core only; no Telegram/public issuance. HOLD: finite integer angle domain; scheduling exception unapproved.",
+      "sources": [
+        {
+          "task_id": "356939",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356939",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "cbbf2286cc602ba061df8abfa9eab03ed02f19b6059cc89aef6bdc13f2e46de3",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=39926",
+              "sha256": "7e08e9fc5552a75f808f4c796da7f2a90b09671834e58296e2e9f636d2fafb23",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        }
+      ],
+      "mathematical_structure": "Equal sides, adjacent angles supplementary, AC bisects C",
+      "question_intent": "В ромбе ABCD угол ABC равен 72°. Найдите угол ACD. Ответ дайте в градусах.",
+      "parameter_model": {
+        "example": {
+          "angle_b": 72,
+          "side": 10
+        },
+        "exact_model": {
+          "construction": "u=(s,0); v=(-s*cos(B),s*sin(B)); A=0,B=v,C=u+v,D=u",
+          "angle_unit": "degrees",
+          "parameters": {
+            "angle_b": 72,
+            "side": 10
+          }
+        },
+        "runtime_bounds": "positive integers <=200; answer positive <=10000 with denominator 1 or 2"
+      },
+      "generation_algorithm": "Local versioned RNG; constructive vectors; invariant check; PNG audit; no fallback",
+      "answer_policy": {
+        "id": "oge17.numeric-short",
+        "version": "1",
+        "format": "single_number",
+        "max_absolute_value": 10000,
+        "max_decimal_places": 1
+      },
+      "rendering": {
+        "renderer_version": "oge17-pillow-1",
+        "size": [
+          720,
+          540
+        ],
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "no_grid": true
+      },
+      "oracle": {
+        "version": "oge17-coordinate-oracle-1",
+        "method": "Independent visible text parser, vector/angle/length/convexity and shoelace checks; analytic final pixel mask"
+      },
+      "hints_and_solution": {
+        "example_hints": [
+          "Соседние углы ромба в сумме дают 180°.",
+          "Диагональ ромба делит угол при своей вершине пополам."
+        ],
+        "example_solution": [
+          "∠BCD = 180° − 72° = 108°.",
+          "∠ACD = 108° / 2 = 54°."
+        ]
+      },
+      "test_vectors": [
+        {
+          "parameters": {
+            "angle_b": 72,
+            "side": 10
+          },
+          "answer": "54"
+        }
+      ],
+      "difficulty": "one or two elementary geometric identities; bounded short numeric arithmetic",
+      "known_exclusions": [
+        "No reverse/unverified targets",
+        "No public scheduler or Telegram integration"
+      ],
+      "risks": [
+        "Original SVG not reproduced in repository; evidence URLs/hashes recorded",
+        "Float layout is checked to 1e-8 against exact construction invariants"
+      ],
+      "diversity_expectations": {
+        "budget": 1200,
+        "minimum_samples": 300,
+        "finite_exception": "R03 has 101 angles in selected domain"
+      }
+    },
+    {
+      "family_id": "OGE17-E03",
+      "exam_number": 17,
+      "name": "Прямоугольник: полная диагональ по BO",
+      "status": "research_only",
+      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "sources": [
+        {
+          "task_id": "356927",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356927",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "77c56ca6b16c3c098361d418c6f8b90b20239961a8effe8baebe934dd9d2b1ac",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40077",
+              "sha256": "f51951ead54cd5253d62dcffe5464ad528dfc88f518d42e7761dd6990e04a746",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        }
+      ],
+      "mathematical_structure": "Four right angles, equal diagonals and coincident midpoints",
+      "question_intent": "Диагонали AC и BD прямоугольника ABCD пересекаются в точке O, BO = 7, AB = 6. Найдите AC.",
+      "parameter_model": {
+        "example": {
+          "twice_bo": 14,
+          "ab": 6
+        },
+        "exact_model": {
+          "construction": "A=(0,0),B=(0,ab),C=(sqrt(d²-ab²),ab),D=(sqrt(d²-ab²),0)",
+          "width_squared": 160,
+          "parameters": {
+            "twice_bo": 14,
+            "ab": 6
+          }
+        },
+        "runtime_bounds": "positive integers <=200; answer positive <=10000 with denominator 1 or 2"
+      },
+      "generation_algorithm": "Local versioned RNG; constructive vectors; invariant check; PNG audit; no fallback",
+      "answer_policy": {
+        "id": "oge17.numeric-short",
+        "version": "1",
+        "format": "single_number",
+        "max_absolute_value": 10000,
+        "max_decimal_places": 1
+      },
+      "rendering": {
+        "renderer_version": "oge17-pillow-1",
+        "size": [
+          720,
+          540
+        ],
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "no_grid": true
+      },
+      "oracle": {
+        "version": "oge17-coordinate-oracle-1",
+        "method": "Independent visible text parser, vector/angle/length/convexity and shoelace checks; analytic final pixel mask"
+      },
+      "hints_and_solution": {
+        "example_hints": [
+          "Диагонали прямоугольника равны и делятся точкой пересечения пополам."
+        ],
+        "example_solution": [
+          "AC = BD = 2 · BO = 2 · 7 = 14."
+        ]
+      },
+      "test_vectors": [
+        {
+          "parameters": {
+            "twice_bo": 14,
+            "ab": 6
+          },
+          "answer": "14"
+        }
+      ],
+      "difficulty": "one or two elementary geometric identities; bounded short numeric arithmetic",
+      "known_exclusions": [
+        "No reverse/unverified targets",
+        "No public scheduler or Telegram integration"
+      ],
+      "risks": [
+        "Original SVG not reproduced in repository; evidence URLs/hashes recorded",
+        "Float layout is checked to 1e-8 against exact construction invariants"
+      ],
+      "diversity_expectations": {
+        "budget": 1200,
+        "minimum_samples": 300,
+        "finite_exception": null
+      }
+    },
+    {
+      "family_id": "OGE17-P01",
+      "exam_number": 17,
+      "name": "Площадь параллелограмма с составным основанием",
+      "status": "research_only",
+      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "sources": [
+        {
+          "task_id": "65",
+          "url": "https://math-oge.sdamgia.ru/problem?id=65",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "f17827b5ed93d508c42c7cbb1f7213313c219608f5d83705cea5d287ff571a64",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40832",
+              "sha256": "719f082aab9d68d41483607606fed0b2aaa6c5b03ccba9af84d20e853fdf9a3a",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        }
+      ],
+      "mathematical_structure": "S=|cross(u,v)|=(AH+HD)*BH",
+      "question_intent": "Найдите площадь параллелограмма, изображённого на рисунке.",
+      "parameter_model": {
+        "example": {
+          "s": 3,
+          "t": 7,
+          "h": 4,
+          "side": 5
+        },
+        "exact_model": {
+          "construction": "A=(0,0),B=(s,h),C=(2s+t,h),D=(s+t,0),H=(s,0)",
+          "parameters": {
+            "s": 3,
+            "t": 7,
+            "h": 4,
+            "side": 5
+          }
+        },
+        "runtime_bounds": "positive integers <=200; answer positive <=10000 with denominator 1 or 2"
+      },
+      "generation_algorithm": "Local versioned RNG; constructive vectors; invariant check; PNG audit; no fallback",
+      "answer_policy": {
+        "id": "oge17.numeric-short",
+        "version": "1",
+        "format": "single_number",
+        "max_absolute_value": 10000,
+        "max_decimal_places": 1
+      },
+      "rendering": {
+        "renderer_version": "oge17-pillow-1",
+        "size": [
+          720,
+          540
+        ],
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "no_grid": true
+      },
+      "oracle": {
+        "version": "oge17-coordinate-oracle-1",
+        "method": "Independent visible text parser, vector/angle/length/convexity and shoelace checks; analytic final pixel mask"
+      },
+      "hints_and_solution": {
+        "example_hints": [
+          "Сложите два отрезка основания, затем используйте высоту."
+        ],
+        "example_solution": [
+          "AD = 3 + 7 = 10.",
+          "S = AD · BH = 10 · 4 = 40."
+        ]
+      },
+      "test_vectors": [
+        {
+          "parameters": {
+            "s": 3,
+            "t": 7,
+            "h": 4,
+            "side": 5
+          },
+          "answer": "40"
+        }
+      ],
+      "difficulty": "one or two elementary geometric identities; bounded short numeric arithmetic",
+      "known_exclusions": [
+        "No reverse/unverified targets",
+        "No public scheduler or Telegram integration"
+      ],
+      "risks": [
+        "Original SVG not reproduced in repository; evidence URLs/hashes recorded",
+        "Float layout is checked to 1e-8 against exact construction invariants"
+      ],
+      "diversity_expectations": {
+        "budget": 1200,
+        "minimum_samples": 300,
+        "finite_exception": null
+      }
+    },
+    {
+      "family_id": "OGE17-P07",
+      "exam_number": 17,
+      "name": "Параллелограмм: половина BD",
+      "status": "research_only",
+      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "sources": [
+        {
+          "task_id": "356914",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356914",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "dca042f94b4099fee904a360ba8ab87d682a5a5e0e5175b083b56792b38e23aa",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=96002",
+              "sha256": "a0652ac10f28d133a735d6c15ca021d2586b245ea59d07ef1fb28f87be58cc99",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        },
+        {
+          "task_id": "438297",
+          "url": "https://math-oge.sdamgia.ru/problem?id=438297",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "72b75cf08e7695e6a30797145e0fd1f0dd2117c3b0e33f806861c028e76a7b1a",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=57341",
+              "sha256": "adb7dc9e4bb0049ac8acd1214577c6e36bfa2a8e212ec613c73151f727597c65",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        },
+        {
+          "task_id": "478045",
+          "url": "https://math-oge.sdamgia.ru/problem?id=478045",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "5dd8ae7fa9c2f844a95d27bce20fb68d8137df9a029c23b6a7697dbb9e563976",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=96002",
+              "sha256": "a0652ac10f28d133a735d6c15ca021d2586b245ea59d07ef1fb28f87be58cc99",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        }
+      ],
+      "mathematical_structure": "AO=OC, BO=OD; exact Gram matrix from AC,BD,AB",
+      "question_intent": "Диагонали AC и BD параллелограмма ABCD пересекаются в точке O, AC = 12, BD = 20, AB = 7. Найдите DO.",
+      "parameter_model": {
+        "example": {
+          "ac": 12,
+          "bd": 20,
+          "ab": 7
+        },
+        "exact_model": {
+          "construction": "A=0,B=v,C=u+v,D=u; O=(u+v)/2",
+          "u_squared": "223",
+          "v_squared": "49",
+          "u_dot_v": "-64",
+          "parameters": {
+            "ac": 12,
+            "bd": 20,
+            "ab": 7
+          }
+        },
+        "runtime_bounds": "positive integers <=200; answer positive <=10000 with denominator 1 or 2"
+      },
+      "generation_algorithm": "Local versioned RNG; constructive vectors; invariant check; PNG audit; no fallback",
+      "answer_policy": {
+        "id": "oge17.numeric-short",
+        "version": "1",
+        "format": "single_number",
+        "max_absolute_value": 10000,
+        "max_decimal_places": 1
+      },
+      "rendering": {
+        "renderer_version": "oge17-pillow-1",
+        "size": [
+          720,
+          540
+        ],
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "no_grid": true
+      },
+      "oracle": {
+        "version": "oge17-coordinate-oracle-1",
+        "method": "Independent visible text parser, vector/angle/length/convexity and shoelace checks; analytic final pixel mask"
+      },
+      "hints_and_solution": {
+        "example_hints": [
+          "Диагонали параллелограмма делятся точкой пересечения пополам."
+        ],
+        "example_solution": [
+          "DO = BD / 2 = 20 / 2 = 10."
+        ]
+      },
+      "test_vectors": [
+        {
+          "parameters": {
+            "ac": 12,
+            "bd": 20,
+            "ab": 7
+          },
+          "answer": "10"
+        }
+      ],
+      "difficulty": "one or two elementary geometric identities; bounded short numeric arithmetic",
+      "known_exclusions": [
+        "No reverse/unverified targets",
+        "No public scheduler or Telegram integration"
+      ],
+      "risks": [
+        "Original SVG not reproduced in repository; evidence URLs/hashes recorded",
+        "Float layout is checked to 1e-8 against exact construction invariants"
+      ],
+      "diversity_expectations": {
+        "budget": 1200,
+        "minimum_samples": 300,
+        "finite_exception": null
+      }
+    },
+    {
+      "family_id": "OGE17-T04",
+      "exam_number": 17,
+      "name": "Больший отрезок средней линии трапеции",
+      "status": "research_only",
+      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "sources": [
+        {
+          "task_id": "323800",
+          "url": "https://math-oge.sdamgia.ru/problem?id=323800",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "716dd23e6916a08fc81398c5bc72c3745b5bf83143fb93c2912821735de3008f",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=39999",
+              "sha256": "5f5c5c11c720e112040049a7b1bb95c53260bad677110a42eaf1894391dc76b5",
+              "visual_checked": true
+            },
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=40000",
+              "sha256": "33e719798b4bfb0676f6f6f6915163c4f39c50cb413cd43cae16846a8644aebd",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        },
+        {
+          "task_id": "FIPI2027-DEMO17",
+          "url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+          "provenance": "official_fipi_direct",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "original_assets": [
+            {
+              "url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+              "sha256": "315ac3e5dcdebbac9c8c85c87814d9e008dfc1b44f17cfb15ec392852d943303",
+              "member": "МА-9 ОГЭ 2027_ДЕМО.pdf",
+              "member_sha256": "f3cebf96e7cb4e7936a50b5d49075438c72ad200c146a6d465860ef74a691ec7",
+              "visual_checked": true
+            }
+          ],
+          "printed_task_page": 12,
+          "printed_answer_page": 15,
+          "pdf_task_page": 6,
+          "pdf_answer_page": 8,
+          "statement_summary": "Bases 2 and 9; larger diagonal-part of midline; answer 4,5"
+        }
+      ],
+      "mathematical_structure": "M,N side midpoints; K=MN intersect BD; MK=L/2,KN=u/2",
+      "question_intent": "Основания трапеции ABCD равны 4 и 10. MN — средняя линия, K — точка её пересечения с диагональю BD. Найдите больший из отрезков MK и KN.",
+      "parameter_model": {
+        "example": {
+          "lower": 10,
+          "upper": 4,
+          "h": 6,
+          "offset": 2
+        },
+        "exact_model": {
+          "construction": "A=(0,0),B=(x,h),C=(x+u,h),D=(L,0)",
+          "parameters": {
+            "lower": 10,
+            "upper": 4,
+            "h": 6,
+            "offset": 2
+          }
+        },
+        "runtime_bounds": "positive integers <=200; answer positive <=10000 with denominator 1 or 2"
+      },
+      "generation_algorithm": "Local versioned RNG; constructive vectors; invariant check; PNG audit; no fallback",
+      "answer_policy": {
+        "id": "oge17.numeric-short",
+        "version": "1",
+        "format": "single_number",
+        "max_absolute_value": 10000,
+        "max_decimal_places": 1
+      },
+      "rendering": {
+        "renderer_version": "oge17-pillow-1",
+        "size": [
+          720,
+          540
+        ],
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "no_grid": true
+      },
+      "oracle": {
+        "version": "oge17-coordinate-oracle-1",
+        "method": "Independent visible text parser, vector/angle/length/convexity and shoelace checks; analytic final pixel mask"
+      },
+      "hints_and_solution": {
+        "example_hints": [
+          "Отрезки средней линии являются средними линиями двух треугольников."
+        ],
+        "example_solution": [
+          "MK = AD / 2 = 5; KN = BC / 2 = 2.",
+          "Больший отрезок MK равен 5."
+        ]
+      },
+      "test_vectors": [
+        {
+          "parameters": {
+            "lower": 10,
+            "upper": 4,
+            "h": 6,
+            "offset": 2
+          },
+          "answer": "5"
+        }
+      ],
+      "difficulty": "one or two elementary geometric identities; bounded short numeric arithmetic",
+      "known_exclusions": [
+        "No reverse/unverified targets",
+        "No public scheduler or Telegram integration"
+      ],
+      "risks": [
+        "Original SVG not reproduced in repository; evidence URLs/hashes recorded",
+        "Float layout is checked to 1e-8 against exact construction invariants"
+      ],
+      "diversity_expectations": {
+        "budget": 1200,
+        "minimum_samples": 300,
+        "finite_exception": null
+      }
+    },
+    {
+      "family_id": "OGE17-T06",
+      "exam_number": 17,
+      "name": "Площадь трапеции",
+      "status": "research_only",
+      "status_reason": "Closed mathematical core only; no Telegram/public issuance. Public integration/release acceptance is a separate PR.",
+      "sources": [
+        {
+          "task_id": "356717",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356717",
+          "provenance": "catalog_verified",
+          "verification_status": "text_original_diagram_published_answer_individually_checked",
+          "last_checked_at": "2026-11-16",
+          "html_sha256": "4780c3dc4d57667f0d0de20288b6570f9a510f3c35be6474ec85e881469fe0f0",
+          "original_assets": [
+            {
+              "url": "https://math-oge.sdamgia.ru/get_file?id=103777",
+              "sha256": "6f6eddd06ae898d2914f3513f3f93c2cb14571eb99f259ba273abf92f03fdc4d",
+              "visual_checked": true
+            }
+          ],
+          "attribution": "Portal attributes to FIPI bank; individual official item not independently retrieved"
+        }
+      ],
+      "mathematical_structure": "Parallel unequal bases; S=shoelace=(L+u)*h/2",
+      "question_intent": "Основания трапеции ABCD равны 4 и 10, а высота BH равна 5. Найдите площадь этой трапеции.",
+      "parameter_model": {
+        "example": {
+          "lower": 10,
+          "upper": 4,
+          "h": 5,
+          "offset": 2
+        },
+        "exact_model": {
+          "construction": "A=(0,0),B=(x,h),C=(x+u,h),D=(L,0)",
+          "parameters": {
+            "lower": 10,
+            "upper": 4,
+            "h": 5,
+            "offset": 2
+          }
+        },
+        "runtime_bounds": "positive integers <=200; answer positive <=10000 with denominator 1 or 2"
+      },
+      "generation_algorithm": "Local versioned RNG; constructive vectors; invariant check; PNG audit; no fallback",
+      "answer_policy": {
+        "id": "oge17.numeric-short",
+        "version": "1",
+        "format": "single_number",
+        "max_absolute_value": 10000,
+        "max_decimal_places": 1
+      },
+      "rendering": {
+        "renderer_version": "oge17-pillow-1",
+        "size": [
+          720,
+          540
+        ],
+        "mobile_widths": [
+          360,
+          390,
+          430
+        ],
+        "no_grid": true
+      },
+      "oracle": {
+        "version": "oge17-coordinate-oracle-1",
+        "method": "Independent visible text parser, vector/angle/length/convexity and shoelace checks; analytic final pixel mask"
+      },
+      "hints_and_solution": {
+        "example_hints": [
+          "Площадь трапеции равна произведению полусуммы оснований на высоту."
+        ],
+        "example_solution": [
+          "S = (4 + 10) · 5 / 2 = 35."
+        ]
+      },
+      "test_vectors": [
+        {
+          "parameters": {
+            "lower": 10,
+            "upper": 4,
+            "h": 5,
+            "offset": 2
+          },
+          "answer": "35"
+        }
+      ],
+      "difficulty": "one or two elementary geometric identities; bounded short numeric arithmetic",
+      "known_exclusions": [
+        "No reverse/unverified targets",
+        "No public scheduler or Telegram integration"
+      ],
+      "risks": [
+        "Original SVG not reproduced in repository; evidence URLs/hashes recorded",
+        "Float layout is checked to 1e-8 against exact construction invariants"
+      ],
+      "diversity_expectations": {
+        "budget": 1200,
+        "minimum_samples": 300,
+        "finite_exception": null
+      }
+    }
+  ],
+  "backlog": [
+    {
+      "family_id": "OGE17-R01",
+      "name": "Ромб: высота делит сторону на два отрезка",
+      "source_ids": [
+        "314980"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-R02",
+      "name": "Ромб: больший и меньший угол",
+      "source_ids": [
+        "356893"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-R04",
+      "name": "Ромб: высота через сторону и угол",
+      "source_ids": [
+        "356962"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-R05",
+      "name": "Ромб: перпендикуляр из пересечения диагоналей",
+      "source_ids": [
+        "472355"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-R06",
+      "name": "Ромб: угол высоты с большей диагональю",
+      "source_ids": [
+        "472365"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-R07",
+      "name": "Ромб: сторона и меньшая диагональ",
+      "source_ids": [
+        "472369"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-E01",
+      "name": "Прямоугольник: острый угол диагоналей",
+      "source_ids": [
+        "323537"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-E02",
+      "name": "Квадрат: диагональ через сторону",
+      "source_ids": [
+        "356728"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-P02",
+      "name": "Углы диагонали со сторонами",
+      "source_ids": [
+        "141",
+        "311911"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-P03",
+      "name": "Деление площади отрезком к середине",
+      "source_ids": [
+        "314870"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-P04",
+      "name": "Биссектриса и параллельные стороны",
+      "source_ids": [
+        "340156"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-P05",
+      "name": "Две высоты по площади и сторонам",
+      "source_ids": [
+        "356767"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-P06",
+      "name": "Смежные углы параллелограмма",
+      "source_ids": [
+        "356883"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T01",
+      "name": "Углы равнобедренной трапеции через диагональ",
+      "source_ids": [
+        "193"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T02",
+      "name": "Сумма двух углов равнобедренной трапеции",
+      "source_ids": [
+        "132776"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T03",
+      "name": "Основания и высота через угол 45°",
+      "source_ids": [
+        "323796",
+        "463031"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T05",
+      "name": "Средняя линия по основаниям",
+      "source_ids": [
+        "356704"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T07",
+      "name": "Больший / меньший угол равнобедренной трапеции",
+      "source_ids": [
+        "356777"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T08",
+      "name": "Углы прямоугольной трапеции",
+      "source_ids": [
+        "356873"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T09",
+      "name": "Диагональ-биссектриса, углы",
+      "source_ids": [
+        "472260"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    },
+    {
+      "family_id": "OGE17-T10",
+      "name": "Угол диагонали с меньшим основанием",
+      "source_ids": [
+        "472266"
+      ],
+      "status": "research_only",
+      "gate": "HOLD",
+      "reason": "Outside this PR; original diagram, parameterization and oracle not individually accepted"
+    }
+  ]
+}
