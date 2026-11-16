@@ -15,7 +15,17 @@ from uuid import NAMESPACE_URL, uuid5
 from app.math.answer_policy import NUMERIC_SHORT_ANSWER
 from app.math.oge18_oracle import answer, answer_family
 from app.math.oge18_render import VERSION as RENDERER_VERSION
-from app.math.oge18_render import VERSION_V2, Point, audit, audit_family, render, render_family
+from app.math.oge18_render import (
+    VERSION_V2,
+    VERSION_V3,
+    Point,
+    audit,
+    audit_compact_family,
+    audit_family,
+    render,
+    render_compact,
+    render_family,
+)
 
 POLICY = NUMERIC_SHORT_ANSWER
 GENERATOR_VERSION = "oge18-grid-1"
@@ -388,7 +398,13 @@ def _model_for_seed(
     raise ValueError("Unknown family")
 
 
-def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSION) -> Oge18Problem:
+def generate(
+    family_id: str,
+    seed: int,
+    generator_version: str = GENERATOR_VERSION,
+    *,
+    renderer_version: str | None = None,
+) -> Oge18Problem:
     if generator_version not in {GENERATOR_VERSION, GENERATOR_VERSION_V2}:
         raise ValueError("Unknown generator version")
     if family_id in NEW_FAMILIES and generator_version != GENERATOR_VERSION_V2:
@@ -401,11 +417,19 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
     oracle = answer(points) if family_id in FAMILIES else answer_family(family_id, points)
     if oracle != result:
         raise ValueError("Coordinate oracle mismatch")
-    png = (
-        render(points, family_id == FAMILIES[0])
-        if family_id in FAMILIES
-        else render_family(family_id, points)
-    )
+    legacy_renderer = RENDERER_VERSION if family_id in FAMILIES else VERSION_V2
+    supported_renderers = {legacy_renderer, VERSION_V3}
+    selected_renderer = renderer_version or legacy_renderer
+    if selected_renderer not in supported_renderers:
+        raise ValueError("Unsupported renderer version for family")
+    if selected_renderer == VERSION_V3:
+        png = render_compact(family_id, points)
+    else:
+        png = (
+            render(points, family_id == FAMILIES[0])
+            if family_id in FAMILIES
+            else render_family(family_id, points)
+        )
     hints, solution = teaching(family_id, points)
     source = SOURCES[family_id]
     snapshot = {
@@ -413,7 +437,7 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         "family_id": family_id,
         "seed": seed,
         "generator_version": generator_version,
-        "renderer_version": RENDERER_VERSION,
+        "renderer_version": selected_renderer,
         "points": [list(p) for p in points],
         "grid": {"cell_size": 1, "columns": 20, "rows": 17, "step_px": 32},
         "condition": CONDITIONS[family_id],
@@ -433,7 +457,6 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
         "image_sha256": hashlib.sha256(png).hexdigest(),
     }
     if family_id in NEW_FAMILIES:
-        snapshot["renderer_version"] = VERSION_V2
         snapshot["geometry_model"] = "oge18-grid-model-2"
         snapshot["learner_content_version"] = LEARNER_CONTENT_VERSION
     # The generator already checked coordinates against its independent oracle.
@@ -448,14 +471,14 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
         family = snapshot["family_id"]
         is_legacy = family in FAMILIES
         expected_gv = GENERATOR_VERSION if is_legacy else GENERATOR_VERSION_V2
-        expected_rv = RENDERER_VERSION if is_legacy else VERSION_V2
+        legacy_renderer = RENDERER_VERSION if is_legacy else VERSION_V2
         content_version = 1 if is_legacy else snapshot.get("learner_content_version", 1)
         if content_version not in (1, LEARNER_CONTENT_VERSION):
             raise ValueError("Unknown learner content version")
         if (
             family not in (*FAMILIES, *NEW_FAMILIES)
             or snapshot["generator_version"] != expected_gv
-            or snapshot["renderer_version"] != expected_rv
+            or snapshot["renderer_version"] not in {legacy_renderer, VERSION_V3}
         ):
             raise ValueError("Unknown snapshot version")
         seed = snapshot["seed"]
@@ -515,15 +538,24 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
         png = base64.b64decode(snapshot["png_base64"], validate=True)
         if len(png) > 150_000 or hashlib.sha256(png).hexdigest() != snapshot["image_sha256"]:
             raise ValueError("Invalid PNG hash or size")
+        renderer_version = snapshot["renderer_version"]
         if audit_pixels:
-            if is_legacy:
+            if renderer_version == VERSION_V3:
+                audit_compact_family(png, family, points)
+            elif is_legacy:
                 audit(png, points, family == FAMILIES[0])
             else:
                 audit_family(png, family, points)
-        elif png != (
-            render(points, family == FAMILIES[0]) if is_legacy else render_family(family, points)
-        ):
-            raise ValueError("PNG does not match versioned renderer")
+        else:
+            expected_png = (
+                render_compact(family, points)
+                if renderer_version == VERSION_V3
+                else render(points, family == FAMILIES[0])
+                if is_legacy
+                else render_family(family, points)
+            )
+            if png != expected_png:
+                raise ValueError("PNG does not match versioned renderer")
         return _pack(snapshot)
     except (KeyError, TypeError, IndexError, OverflowError) as exc:
         raise ValueError("Corrupted snapshot") from exc

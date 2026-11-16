@@ -291,6 +291,67 @@ def test_new_family_source_geometry_and_seed_snapshot_roundtrip(family):
         assert snapshot["geometry_model"] == "oge18-grid-model-2"
 
 
+@pytest.mark.parametrize("family", (*FAMILIES, *NEW_FAMILIES))
+def test_compact_renderer_is_centered_mobile_readable_and_restorable(family):
+    from app.math.oge18_render import PADDING_CELLS, STEP, VERSION_V3, compact_layout
+
+    problem = (
+        generate(family, 42, GENERATOR_VERSION_V2, renderer_version=VERSION_V3)
+        if family in NEW_FAMILIES
+        else generate(family, 42, renderer_version=VERSION_V3)
+    )
+    snapshot = problem.to_snapshot()
+    width, height, vertices = compact_layout(tuple(tuple(p) for p in snapshot["points"]))
+    xs = [point[0] for point in vertices]
+    ys = [point[1] for point in vertices]
+    assert min(xs) == round(PADDING_CELLS * STEP)
+    assert width - max(xs) == round(PADDING_CELLS * STEP)
+    assert min(ys) == round(PADDING_CELLS * STEP)
+    assert height - max(ys) == round(PADDING_CELLS * STEP)
+    assert snapshot["renderer_version"] == VERSION_V3
+    assert from_snapshot(snapshot).png_bytes == problem.png_bytes
+
+
+@pytest.mark.parametrize("family", (*FAMILIES, *NEW_FAMILIES))
+def test_legacy_renderer_snapshots_remain_restorable(family):
+    problem = (
+        generate(family, 42, GENERATOR_VERSION_V2)
+        if family in NEW_FAMILIES
+        else generate(family, 42)
+    )
+    snapshot = problem.to_snapshot()
+    assert snapshot["renderer_version"] in {"oge18-pillow-1", "oge18-pillow-2"}
+    assert from_snapshot(snapshot).png_bytes == problem.png_bytes
+
+
+def test_compact_pixel_audit_rejects_added_mark_and_missing_edge():
+    from app.math.oge18_render import audit_compact_family, compact_layout
+
+    family = "OGE18-A03"
+    snapshot = generate(
+        family, 42, GENERATOR_VERSION_V2, renderer_version="oge18-pillow-3"
+    ).to_snapshot()
+    points = tuple(tuple(point) for point in snapshot["points"])
+    image = Image.open(BytesIO(base64.b64decode(snapshot["png_base64"]))).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    draw.line((20, 20, image.width - 20, image.height - 20), fill=(22, 22, 22), width=3)
+    out = BytesIO()
+    image.save(out, format="PNG")
+    with pytest.raises(ValueError, match="Unexpected dark construction"):
+        audit_compact_family(out.getvalue(), family, points)
+
+    image = Image.open(BytesIO(base64.b64decode(snapshot["png_base64"]))).convert("RGB")
+    vertices = compact_layout(points)[2]
+    x0, y0 = vertices[0]
+    x1, y1 = vertices[1]
+    draw = ImageDraw.Draw(image)
+    draw.line((x0, y0, x1, y1), fill="white", width=4)
+    out = BytesIO()
+    image.save(out, format="PNG")
+    with pytest.raises(ValueError):
+        audit_compact_family(out.getvalue(), family, points)
+
+
 @pytest.mark.parametrize("family", NEW_FAMILIES)
 def test_new_family_rejects_consistent_other_seed_model_and_png(family):
     snapshot = generate(family, 42, GENERATOR_VERSION_V2).to_snapshot()

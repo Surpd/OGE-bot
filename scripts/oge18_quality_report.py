@@ -29,7 +29,12 @@ from app.math.oge18 import (  # noqa: E402
     generate,
 )
 from app.math.oge18_oracle import answer, answer_family  # noqa: E402
-from app.math.oge18_render import VERSION, VERSION_V2, audit, audit_family  # noqa: E402
+from app.math.oge18_render import (  # noqa: E402
+    VERSION,
+    VERSION_V2,
+    VERSION_V3,
+    audit_compact_family,
+)
 
 PUBLIC_ENABLED: tuple[str, ...] = ENABLED_FAMILIES
 LOW_CAPACITY = {
@@ -44,19 +49,23 @@ LOW_CAPACITY = {
 def _contact_sheet(
     family: str, variants: list[tuple[int, bytes]], width: int, directory: Path
 ) -> None:
-    height = round(640 * width / 720)
-    cell_height = height + 30
     columns = 4
+    heights = []
+    for _, png in variants:
+        with Image.open(BytesIO(png)) as image:
+            heights.append(round(image.height * width / image.width))
+    cell_height = max(heights, default=1) + 30
     rows = max(1, (len(variants) + columns - 1) // columns)
     sheet = Image.new("RGB", (width * columns, cell_height * rows), "white")
     draw = ImageDraw.Draw(sheet)
     for index, (seed, png) in enumerate(variants):
         image = Image.open(BytesIO(png)).convert("RGB")
+        height = round(image.height * width / image.width)
         image = image.resize((width, height), Image.Resampling.LANCZOS)
         x, y = (index % columns) * width, (index // columns) * cell_height
         sheet.paste(image, (x, y + 30))
         draw.text((x + 8, y + 7), f"{family} seed={seed}", fill="black")
-    sheet.save(directory / f"{family}-{width}-contact.png", optimize=True)
+    sheet.save(directory / f"{family}-compact-v3-{width}-contact.png", optimize=True)
 
 
 def run() -> dict[str, object]:
@@ -77,7 +86,7 @@ def run() -> dict[str, object]:
         accepted = 0
         for seed in range(1200):
             started = perf_counter()
-            problem = generate(family, seed, version)
+            problem = generate(family, seed, version, renderer_version=VERSION_V3)
             generation_ms.append((perf_counter() - started) * 1000)
             snapshot = problem.to_snapshot()
             points = tuple(tuple(point) for point in snapshot["points"])
@@ -88,7 +97,7 @@ def run() -> dict[str, object]:
             if hashlib.sha256(png).hexdigest() != snapshot["image_sha256"]:
                 raise AssertionError(f"PNG hash mismatch: {family} seed={seed}")
             with Image.open(BytesIO(png)) as raster:
-                if raster.format != "PNG" or raster.size != (720, 640):
+                if raster.format != "PNG" or raster.width > 720 or raster.height > 640:
                     raise AssertionError(f"PNG contract mismatch: {family} seed={seed}")
                 raster.verify()
             if seed < 50:
@@ -98,10 +107,7 @@ def run() -> dict[str, object]:
                 if restored.png_bytes != png:
                     raise AssertionError(f"Restore PNG mismatch: {family} seed={seed}")
                 started = perf_counter()
-                if new:
-                    audit_family(png, family, points)
-                else:
-                    audit(png, points, family == FAMILIES[0])
+                audit_compact_family(png, family, points)
                 pixel_audit_ms.append((perf_counter() - started) * 1000)
             answers[str(snapshot["correct_answer"])] += 1
             if problem.fingerprint not in seen and len(previews) < 20:
@@ -112,10 +118,9 @@ def run() -> dict[str, object]:
             unique_target = LOW_CAPACITY.get(family, 200)
             if accepted >= 300 and len(seen) >= unique_target:
                 break
-        if new:
-            for width in (720, 360):
-                _contact_sheet(family, previews, width, directory)
-            (directory / f"{family}-seed0.png").write_bytes(previews[0][1])
+        for width in (360,):
+            _contact_sheet(family, previews, width, directory)
+        (directory / f"{family}-compact-v3-seed0.png").write_bytes(previews[0][1])
         if new and family in LOW_CAPACITY:
             quality_status = "math_hold"
             capacity_note = (
@@ -142,7 +147,7 @@ def run() -> dict[str, object]:
             "source_id": SOURCES[family],
             "source_url": f"https://math-oge.sdamgia.ru/problem?id={SOURCES[family]}",
             "generator_version": version,
-            "renderer_version": VERSION_V2 if new else VERSION,
+            "renderer_version": VERSION_V3,
             "learner_content_version": LEARNER_CONTENT_VERSION if new else 1,
             "smoke_seed_count": 50,
             "candidate_count": accepted,
@@ -168,7 +173,12 @@ def run() -> dict[str, object]:
     report = {
         "task": 18,
         "generator_versions": {"legacy": GENERATOR_VERSION, "new": GENERATOR_VERSION_V2},
-        "renderer_versions": {"legacy": VERSION, "new": VERSION_V2},
+        "renderer_versions": {
+            "legacy": VERSION,
+            "new": VERSION_V2,
+            "compact": VERSION_V3,
+            "supported_for_saved_snapshots": [VERSION, VERSION_V2, VERSION_V3],
+        },
         "families": records,
         "status_taxonomy": [
             "implemented_closed",
@@ -191,11 +201,13 @@ def run() -> dict[str, object]:
         "uniqueness_seed_budget": 1200,
         "phone_widths": [360, 390, 430],
         "visual_review": (
-            "All six original catalog source diagrams were manually inspected. The 360px and "
-            "720px contact sheets for all six new families were manually inspected; this covers "
-            "20 distinct variants per family where available, 3 for D05, and 6 for A05."
+            "Compact v3 360px contact sheets for all eight families were manually inspected, "
+            "with 20 distinct variants per family where available, 3 for D05, and 6 for A05. "
+            "The pixel audit also verifies 360px and 390px resizing and equal grid-cell dimensions."
         ),
         "manual_contact_sheet_review": {
+            "compact_v3_families_reviewed": list(all_families),
+            "compact_v3_widths": [360],
             "new_families_reviewed": list(NEW_FAMILIES),
             "widths": [360, 720],
             "distinct_variants_seen": {
@@ -211,8 +223,8 @@ def run() -> dict[str, object]:
         "public_enabled_families": list(PUBLIC_ENABLED),
         "source_originals_embedded": False,
         "preview_policy": (
-            "Maximum 20 distinct generated PNG per family in each contact sheet; one seed0 PNG "
-            "retained; existing M01/M02 previews retained."
+            "Maximum 20 distinct generated PNG per family in compact v3 360px contact sheets; "
+            "one compact v3 seed0 PNG retained per family; existing previews retained."
         ),
     }
     (ROOT / "reports/oge18-quality.json").write_text(

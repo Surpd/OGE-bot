@@ -10,8 +10,10 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 VERSION = "oge18-pillow-1"
 VERSION_V2 = "oge18-pillow-2"
+VERSION_V3 = "oge18-pillow-3"
 WIDTH, HEIGHT = 720, 640
 STEP, LEFT, BOTTOM = 32, 40, 584
+PADDING_CELLS = 2.5
 Point = tuple[int, int]
 
 
@@ -228,3 +230,157 @@ def audit_family(png: bytes, family: str, points: tuple[Point, ...]) -> None:
     reference = Image.open(BytesIO(render_family(family, points)))
     if image.tobytes() != reference.tobytes():
         raise ValueError("Unexpected or missing scene pixels")
+
+
+def compact_layout(points: tuple[Point, ...]) -> tuple[int, int, list[tuple[int, int]]]:
+    """Return a square-cell canvas tightly framed with 2.5 cells of padding."""
+    min_x = min(point[0] for point in points)
+    max_x = max(point[0] for point in points)
+    min_y = min(point[1] for point in points)
+    max_y = max(point[1] for point in points)
+    width = round((max_x - min_x + 2 * PADDING_CELLS) * STEP)
+    height = round((max_y - min_y + 2 * PADDING_CELLS) * STEP)
+    vertices = [
+        (
+            round((x - min_x + PADDING_CELLS) * STEP),
+            round((max_y - y + PADDING_CELLS) * STEP),
+        )
+        for x, y in points
+    ]
+    return width, height, vertices
+
+
+def render_compact(family: str, points: tuple[Point, ...]) -> bytes:
+    """Version 3 scene with a centered tight crop and uniform square cells."""
+    width, height, vertices = compact_layout(points)
+    scale = 2
+    image = Image.new("RGB", (width * scale, height * scale), "white")
+    draw = ImageDraw.Draw(image)
+    min_x = min(point[0] for point in points)
+    max_x = max(point[0] for point in points)
+    min_y = min(point[1] for point in points)
+    max_y = max(point[1] for point in points)
+    for x in range(min_x - 2, max_x + 3):
+        px = round((x - min_x + PADDING_CELLS) * STEP) * scale
+        draw.line((px, 0, px, height * scale), fill=(195, 195, 195), width=2)
+    for y in range(min_y - 2, max_y + 3):
+        py = round((max_y - y + PADDING_CELLS) * STEP) * scale
+        draw.line((0, py, width * scale, py), fill=(195, 195, 195), width=2)
+    high_res_vertices = [(x * scale, y * scale) for x, y in vertices]
+    if family == "OGE18-D05":
+        for x, y in high_res_vertices:
+            draw.ellipse(
+                (x - 12 * scale, y - 12 * scale, x + 12 * scale, y + 12 * scale),
+                fill=(239, 136, 35),
+                outline=(22, 22, 22),
+                width=3 * scale,
+            )
+    else:
+        if family.startswith("OGE18-A"):
+            draw.polygon(high_res_vertices, fill=(245, 151, 36))
+        draw.line(
+            [*high_res_vertices, high_res_vertices[0]],
+            fill=(22, 22, 22),
+            width=6,
+            joint="curve",
+        )
+    if family == "OGE18-M01":
+        for label, (x, y), (dx, dy) in zip(
+            "ABC", high_res_vertices, ((-20, 10), (-8, -56), (10, 10)), strict=True
+        ):
+            draw.text((x + dx, y + dy), label, font=_font(), fill=(22, 22, 22))
+    image = image.resize((width, height), Image.Resampling.LANCZOS)
+    out = BytesIO()
+    image.save(out, format="PNG")
+    return out.getvalue()
+
+
+def audit_compact_family(png: bytes, family: str, points: tuple[Point, ...]) -> None:
+    """Verify compact PNG dimensions, grid/edge pixels, marks, and allowed ink."""
+    width, height, vertices = compact_layout(points)
+    try:
+        image = Image.open(BytesIO(png))
+        image.load()
+    except (OSError, ValueError) as exc:
+        raise ValueError("Invalid PNG") from exc
+    if image.format != "PNG" or image.size != (width, height) or image.mode != "RGB":
+        raise ValueError("Invalid compact PNG dimensions or mode")
+    for target_width in (360, 390):
+        ratio = target_width / width
+        small = image.resize(
+            (target_width, round(height * ratio)), Image.Resampling.LANCZOS
+        )
+        for x, y in vertices:
+            if family == "OGE18-D05":
+                px, py = round(x * ratio), round(y * ratio)
+                if _darkest_pixel_sum(small, (px - 3, py - 3, px + 4, py + 4)) > 650:
+                    raise ValueError("Point missing at mobile width")
+                continue
+            for edge_start, edge_end in zip(vertices, (*vertices[1:], vertices[0]), strict=True):
+                # A few independent samples at different fractions catch clipped sides.
+                for fraction in (0.0, 0.5, 1.0):
+                    px = round((edge_start[0] + (edge_end[0] - edge_start[0]) * fraction) * ratio)
+                    py = round((edge_start[1] + (edge_end[1] - edge_start[1]) * fraction) * ratio)
+                    if _darkest_pixel_sum(small, (px - 2, py - 2, px + 3, py + 3)) > 520:
+                        raise ValueError("Polygon edge missing at mobile width")
+        # Grid lines at the unoccupied top and left padding retain equal spacing.
+        min_x, max_x = min(p[0] for p in points), max(p[0] for p in points)
+        min_y, max_y = min(p[1] for p in points), max(p[1] for p in points)
+        top_y = round(STEP * 0.5 * ratio)
+        left_x = round(STEP * 0.5 * ratio)
+        grid_x = [
+            round((x - min_x + PADDING_CELLS) * STEP * ratio)
+            for x in range(min_x - 2, max_x + 3)
+        ]
+        grid_y = [
+            round((max_y - y + PADDING_CELLS) * STEP * ratio)
+            for y in range(min_y - 2, max_y + 3)
+        ]
+        for x in grid_x:
+            if _darkest_pixel_sum(small, (x - 1, top_y - 1, x + 2, top_y + 2)) > 735:
+                raise ValueError("Grid line missing at mobile width")
+        for y in grid_y:
+            if _darkest_pixel_sum(small, (left_x - 1, y - 1, left_x + 2, y + 2)) > 735:
+                raise ValueError("Grid line missing at mobile width")
+
+    boundary = Image.new("L", image.size, 0)
+    mask = ImageDraw.Draw(boundary)
+    if family == "OGE18-D05":
+        for x, y in vertices:
+            mask.ellipse((x - 14, y - 14, x + 14, y + 14), fill=255)
+        colored = Image.new("L", image.size, 0)
+        color_mask = ImageDraw.Draw(colored)
+        for x, y in vertices:
+            color_mask.ellipse((x - 13, y - 13, x + 13, y + 13), fill=255)
+    else:
+        mask.line([*vertices, vertices[0]], fill=255, width=8)
+        colored = Image.new("L", image.size, 0)
+        if family.startswith("OGE18-A"):
+            ImageDraw.Draw(colored).polygon(vertices, fill=255)
+    if family == "OGE18-M01":
+        glyph_mask = Image.new("L", (width * 2, height * 2), 0)
+        glyph_draw = ImageDraw.Draw(glyph_mask)
+        for label, (x, y), (dx, dy) in zip(
+            "ABC", vertices, ((-10, 5), (-4, -28), (5, 5)), strict=True
+        ):
+            glyph_draw.text(
+                ((x + dx) * 2, (y + dy) * 2), label, font=_font(), fill=255
+            )
+        glyph_mask = glyph_mask.resize((width, height), Image.Resampling.LANCZOS)
+        boundary = ImageChops.lighter(boundary, glyph_mask.filter(ImageFilter.MaxFilter(5)))
+    boundary = boundary.filter(ImageFilter.MaxFilter(5))
+    dark = image.convert("L").point(lambda value: 255 if value < 90 else 0)
+    if ImageChops.subtract(dark, boundary).getbbox() is not None:
+        raise ValueError("Unexpected dark construction or label")
+    red, green, blue = image.split()
+    orange = ImageChops.multiply(
+        red.point(lambda value: 255 if value > 210 else 0),
+        green.point(lambda value: 255 if 90 < value < 220 else 0),
+    )
+    orange = ImageChops.multiply(orange, blue.point(lambda value: 255 if value < 100 else 0))
+    colored = colored.filter(ImageFilter.MaxFilter(5))
+    if ImageChops.subtract(orange, colored).getbbox() is not None:
+        raise ValueError("Unexpected orange pixels outside source geometry")
+    reference = Image.open(BytesIO(render_compact(family, points)))
+    if image.tobytes() != reference.tobytes():
+        raise ValueError("Unexpected or missing compact scene pixels")

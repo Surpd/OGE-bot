@@ -50,6 +50,10 @@ async def test_default_menu_and_entry_offer_task18_with_a_real_png():
     assert saved is not None
     snapshot = saved["problem"]
     assert snapshot["family_id"] in ENABLED_FAMILIES
+    assert snapshot["renderer_version"] == "oge18-pillow-3"
+    assert task_message.answer_photo.await_args.kwargs["caption"] == (
+        f"<b>Задание №18</b>\n\n{snapshot['condition']}"
+    )
     assert task_message.answer_photo.await_args.args[0].data == from_snapshot(snapshot).png_bytes
 
 
