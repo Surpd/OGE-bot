@@ -91,7 +91,9 @@ async def test_task15_postgres_restore_duplicate_race_skip_and_restart(family):
         assert (await restarted.task15_state(user_id))["state"]["status"] == "active"
         # Solution callbacks outside the training screen must fail closed.
         assert await restarted.task15_reveal_solution(user_id, final_pid, 300) is None
-        assert await restarted.open_training_screen(user_id, "number_selection", "task15", final_pid)
+        assert await restarted.open_training_screen(
+            user_id, "number_selection", "task15", final_pid
+        )
         assert await restarted.task15_reveal_solution(user_id, final_pid, 300)
         assert (await restarted.task15_progress(user_id))["solutions_viewed"] == 1
     finally:
