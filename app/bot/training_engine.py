@@ -24,6 +24,8 @@ from app.math.oge15_triangles import from_snapshot as triangle_from_snapshot
 from app.math.oge16_circles import POLICY as CIRCLE_POLICY
 from app.math.oge16_circles import from_snapshot as circle_from_snapshot
 from app.math.oge16_scheduler import build_task16_candidate_batch
+from app.math.oge17_models import POLICY as QUADRILATERAL_POLICY
+from app.math.oge17_scheduler import build_task17_candidate_batch
 from app.math.oge18 import POLICY as GRID_POLICY
 from app.math.oge18 import from_snapshot as grid_from_snapshot
 from app.math.oge18_scheduler import build_task18_candidate_batch
@@ -70,6 +72,7 @@ class NumericTraining:
 
 NUMERIC_TRAININGS = {
     16: NumericTraining(16, "окружности", CIRCLE_POLICY, build_task16_candidate_batch),
+    17: NumericTraining(17, "четырёхугольники", QUADRILATERAL_POLICY, build_task17_candidate_batch),
     15: NumericTraining(15, "треугольники", TRIANGLE_POLICY, build_task15_candidate_batch),
     18: NumericTraining(18, "фигуры на клетчатой сетке", GRID_POLICY, build_task18_candidate_batch),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
@@ -122,7 +125,7 @@ async def send_problem(
 ) -> bool:
     from app.bot.router import _user_id
 
-    if adapter.number in {16, 18} and not adapter.families:
+    if adapter.number in {16, 17, 18} and not adapter.families:
         await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return False
     user_id = user_id_override if user_id_override is not None else _user_id(message)
@@ -195,13 +198,25 @@ async def send_problem(
                 return False
             if action == "advance" and problem.get("_transitioned") is False:
                 return False
+            # Repository transition metadata is not part of the signed/replayable
+            # issued snapshot consumed by the geometry validator.
+            problem.pop("_transitioned", None)
     if adapter.number == 15:
         try:
-            triangle_from_snapshot(problem)
+            triangle_restored = triangle_from_snapshot(problem)
         except ValueError:
             await send_text(message, repository, "Сохранённое задание повреждено.")
             return False
-    if adapter.number == 16:
+    if adapter.number == 15 and triangle_restored.png_bytes:
+        sent = await send_photo(
+            message,
+            repository,
+            BufferedInputFile(triangle_restored.png_bytes, filename="oge15.png"),
+            caption=f"Задание №15\n\n{problem['condition']}",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+            user_id_override=user_id,
+        )
+    elif adapter.number == 16:
         try:
             restored_circle = circle_from_snapshot(problem)
         except ValueError:
@@ -215,20 +230,31 @@ async def send_problem(
             reply_markup=adapter.menu(str(problem["problem_id"])),
             user_id_override=user_id,
         )
-        prompt_id = getattr(sent, "message_id", None)
-        if type(prompt_id) is int:
-            await getattr(repository, f"set_{adapter.mode}_condition_message")(
-                user_id, str(problem["problem_id"]), prompt_id
-            )
-        return await persist_open_training(
+    elif adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            issuance = await adapter.operation(repository, "state")(user_id)
+            issued_problem_id = issuance.get("issued_problem_id") if issuance else None
+            if not isinstance(issued_problem_id, str):
+                raise ValueError("Missing trusted issuance identity")
+            restored17 = from_snapshot(problem, expected_problem_id=issued_problem_id)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №17 повреждено.")
+            return False
+
+        sent = await send_photo(
+            message,
             repository,
-            user_id,
-            adapter.mode,
-            str(problem["problem_id"]),
-            prompt_id if type(prompt_id) is int else None,
-            expected_screen,
+            BufferedInputFile(
+                __import__("base64").b64decode(restored17.to_snapshot()["png_base64"]),
+                filename="oge17.png",
+            ),
+            caption=f"Задание №17\n\n{problem['condition']}",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+            user_id_override=user_id,
         )
-    if adapter.number == 18:
+    elif adapter.number == 18:
         try:
             restored = grid_from_snapshot(problem)
         except ValueError:
@@ -274,7 +300,7 @@ async def training_callback(
         _solution_display_status,
     )
 
-    if adapter.number in {16, 18} and not adapter.families:
+    if adapter.number in {16, 17, 18} and not adapter.families:
         await answer_callback(callback, f"Задания №{adapter.number} пока выключены.")
         return
     parts = (callback.data or "").split(":", 2)
@@ -320,9 +346,20 @@ async def training_callback(
             return
     if adapter.number == 15:
         try:
-            triangle_from_snapshot(problem)
+            triangle_from_snapshot(problem, audit_pixels=False)
         except ValueError:
             await answer_callback(callback, "Сохранённое задание повреждено.")
+            return
+    if adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            trusted_id = state.get("issued_problem_id") if state else None
+            if not isinstance(trusted_id, str):
+                raise ValueError("Missing trusted issuance ID")
+            from_snapshot(problem, expected_problem_id=trusted_id)
+        except ValueError:
+            await answer_callback(callback, "Сохранённое задание №17 повреждено.")
             return
     if adapter.number == 18:
         try:
@@ -386,7 +423,7 @@ async def training_answer(
 ) -> None:
     from app.bot.router import _disable_stale_keyboard, _user_id
 
-    if adapter.number in {16, 18} and not adapter.families:
+    if adapter.number in {16, 17, 18} and not adapter.families:
         await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return
     user_id = _user_id(message)
@@ -428,9 +465,20 @@ async def training_answer(
             return
     if adapter.number == 15:
         try:
-            triangle_from_snapshot(problem)
+            triangle_from_snapshot(problem, audit_pixels=False)
         except ValueError:
-            await send_text(message, repository, "Сохранённое задание №18 повреждено.")
+            await send_text(message, repository, "Сохранённое задание №15 повреждено.")
+            return
+    if adapter.number == 17:
+        from app.math.oge17_generator import from_snapshot
+
+        try:
+            trusted_id = state.get("issued_problem_id") if state else None
+            if not isinstance(trusted_id, str):
+                raise ValueError("Missing trusted issuance ID")
+            from_snapshot(problem, expected_problem_id=trusted_id)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №17 повреждено.")
             return
     if adapter.number == 18:
         try:

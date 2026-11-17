@@ -74,6 +74,7 @@ TASK10_LABEL = "№10 · Вероятность"
 TASK12_LABEL = "№12 · Формулы"
 TASK14_LABEL = "№14 · Прогрессии"
 TASK16_LABEL = "№16 · Окружности"
+TASK17_LABEL = "№17 · Четырёхугольники"
 TASK8_LABEL = "№8 · Степени и корни"
 TASK13_LABEL = "№13 · Неравенства"
 TASK11_LABEL = "№11 · Графики функций"
@@ -995,6 +996,32 @@ async def task14_callback(callback: CallbackQuery, repository: Repository) -> No
 
 async def task14_answer(message: Message, repository: Repository) -> None:
     await training_answer(NUMERIC_TRAININGS[14], message, repository)
+
+
+async def choose_task17(message: Message, repository: Repository) -> None:
+    if await _show_saved_training_choice(message, repository, 17, _user_id(message)):
+        return
+    await send_problem(NUMERIC_TRAININGS[17], message, repository, action="start")
+
+
+async def task17_callback(callback: CallbackQuery, repository: Repository) -> None:
+    await training_callback(NUMERIC_TRAININGS[17], callback, repository)
+
+
+async def task17_or_scenario_answer(
+    message: Message,
+    repository: Repository,
+    oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    user_id = _user_id(message)
+    if user_id is not None and await repository.user_state(user_id) == "task17":
+        await task17_answer(message, repository)
+        return
+    await oge15_answer(message, oge15_repository, repository)
+
+
+async def task17_answer(message: Message, repository: Repository) -> None:
+    await training_answer(NUMERIC_TRAININGS[17], message, repository)
 
 
 async def _send_task15_problem(
@@ -2522,6 +2549,7 @@ def build_router() -> Router:
     router.message.register(choose_task10, F.text == TASK10_LABEL)
     router.message.register(choose_task12, F.text == TASK12_LABEL)
     router.message.register(choose_task14, F.text == TASK14_LABEL)
+    router.message.register(choose_task17, F.text == TASK17_LABEL)
     router.message.register(choose_task15, F.text == "№15 · Треугольники")
     router.message.register(choose_task16, F.text == TASK16_LABEL)
     router.message.register(choose_task18, F.text == "№18 · Фигуры на клетчатой сетке")
@@ -2541,7 +2569,7 @@ def build_router() -> Router:
     router.message.register(show_progress_text, Command("progress"))
     router.message.register(show_progress_details, F.text == "📊 Подробнее")
     router.message.register(show_display_options, F.text == "⚙️ Настройки")
-    router.message.register(oge15_answer)
+    router.message.register(task17_or_scenario_answer)
     router.message.register(menu_section, F.text.in_(MAIN_MENU))
     router.message.register(unknown_message)
     router.callback_query.register(task6_callback, F.data.startswith("t6:"))
@@ -2549,6 +2577,7 @@ def build_router() -> Router:
     router.callback_query.register(task10_callback, F.data.startswith("t10:"))
     router.callback_query.register(task12_callback, F.data.startswith("t12:"))
     router.callback_query.register(task14_callback, F.data.startswith("t14:"))
+    router.callback_query.register(task17_callback, F.data.startswith("t17:"))
     router.callback_query.register(task15_callback, F.data.startswith("t15:"))
     router.callback_query.register(task16_callback, F.data.startswith("t16:"))
     router.callback_query.register(task18_callback, F.data.startswith("t18:"))

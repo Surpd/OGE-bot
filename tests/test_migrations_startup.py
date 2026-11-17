@@ -30,8 +30,10 @@ async def _drop_test_database(admin: asyncpg.Connection, database_name: str) -> 
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("seed_count", [0, 6])
 async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
     monkeypatch: pytest.MonkeyPatch,
+    seed_count: int,
 ) -> None:
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
@@ -40,7 +42,7 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
     seed_pool = await asyncpg.create_pool(test_url)
     try:
         for number, migration in enumerate(_migration_files(), 1):
-            if number > 6:
+            if number > seed_count:
                 break
             await seed_pool.execute(await read_migration(str(migration)))
     finally:
@@ -53,6 +55,7 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
     expected_versions = [migration.name for migration in _migration_files()]
 
     try:
+
         async def start_and_read_versions(app_instance) -> list[str]:
             async with app_instance.router.lifespan_context(app_instance):
                 repository = cast(PostgresRepository, app_instance.state.repository)
@@ -97,9 +100,12 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
             assert await repository._pool.fetchval(
                 "SELECT to_regclass('oge15_one_open_session_per_user') IS NULL"
             )
-            assert await repository._pool.fetch(
-                Path("scripts/preflight_active_sessions.sql").read_text(encoding="utf-8")
-            ) == []
+            assert (
+                await repository._pool.fetch(
+                    Path("scripts/preflight_active_sessions.sql").read_text(encoding="utf-8")
+                )
+                == []
+            )
     finally:
         get_settings.cache_clear()
         await _drop_test_database(admin, database_name)
@@ -172,11 +178,14 @@ async def test_create_app_fails_before_unique_index_without_changing_duplicate_s
 
         verify_pool = await asyncpg.create_pool(test_url)
         try:
-            assert await verify_pool.fetchval(
-                "SELECT count(*) FROM sessions WHERE user_id=$1 AND mode='task8' "
-                "AND finished_at IS NULL",
-                user_id,
-            ) == 2
+            assert (
+                await verify_pool.fetchval(
+                    "SELECT count(*) FROM sessions WHERE user_id=$1 AND mode='task8' "
+                    "AND finished_at IS NULL",
+                    user_id,
+                )
+                == 2
+            )
             assert await verify_pool.fetchval(
                 "SELECT to_regclass('sessions_one_active_task8_per_user') IS NULL"
             )
@@ -185,3 +194,50 @@ async def test_create_app_fails_before_unique_index_without_changing_duplicate_s
     finally:
         get_settings.cache_clear()
         await _drop_test_database(admin, database_name)
+
+
+@pytest.mark.asyncio
+async def test_main_migrations_upgrade_adds_only_task16_and_preserves_task17(monkeypatch, tmp_path):
+    """Upgrade the exact main migration prefix, then retry without reapplying it."""
+    from app import main
+    from app.math.oge17_generator import generate
+
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        pytest.skip("DATABASE_URL not configured")
+    admin, name, test_url = await _create_test_database(url)
+    pool = await asyncpg.create_pool(test_url)
+    try:
+        files = _migration_files()
+        assert [int(p.name[:4]) for p in files] == list(range(1, 18))
+        assert files[-1].name == "0017_task16_sessions.sql"
+        for migration in files[:-1]:
+            (tmp_path / migration.name).write_text(migration.read_text())
+        with monkeypatch.context() as patch:
+            patch.setattr(main, "_MIGRATIONS_DIR", tmp_path)
+            await main._run_schema_migrations(pool)
+        repo = PostgresRepository(pool)
+        await repo.ensure_task17_session(170016)
+        snapshot = generate("OGE17-R03", 42).to_snapshot()
+        await repo.advance_task17_problem(170016, None, [snapshot])
+        before = await pool.fetch(
+            "SELECT version, applied_at FROM app_schema_migrations ORDER BY version"
+        )
+        await main._run_schema_migrations(pool)
+        await main._run_schema_migrations(pool)
+        after = await pool.fetch(
+            "SELECT version, applied_at FROM app_schema_migrations ORDER BY version"
+        )
+        assert after[:-1] == before
+        assert after[-1]["version"] == "0017_task16_sessions.sql"
+        restored = await PostgresRepository(pool).task17_state(170016)
+        assert restored["problem"] == snapshot
+        assert await pool.fetchval(
+            "SELECT to_regclass('sessions_one_active_task16_per_user') IS NOT NULL"
+        )
+        assert await pool.fetchval(
+            "SELECT to_regclass('sessions_one_active_task17_per_user') IS NOT NULL"
+        )
+    finally:
+        await pool.close()
+        await _drop_test_database(admin, name)

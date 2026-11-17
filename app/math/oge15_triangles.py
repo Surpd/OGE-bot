@@ -11,12 +11,14 @@ from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
 from app.math.answer_policy import NUMERIC_SHORT_ANSWER
+from app.math.oge15_complete import ALL_FAMILIES
 from app.math.oge15_oracle import answer
 
 POLICY = NUMERIC_SHORT_ANSWER
 GENERATOR_VERSION = "oge15-triangles-1"
 FAMILIES = tuple(f"OGE15-F{n:02}" for n in (1, 3, 11, 14, 19, 20))
-ENABLED_FAMILIES: tuple[str, ...] = ()
+
+ENABLED_FAMILIES: tuple[str, ...] = ALL_FAMILIES
 SOURCES = dict(
     zip(FAMILIES, ("348885", "356190", "349690", "350527", "348554", "169853"), strict=True)
 )
@@ -116,11 +118,17 @@ class TriangleProblem:
         return dict(json.loads(self.serialized))
 
     @property
+    def png_bytes(self) -> bytes:
+        import base64
+
+        return base64.b64decode(self.to_snapshot().get("png_base64", ""), validate=True)
+
+    @property
     def fingerprint(self) -> str:
         return str(self.to_snapshot()["fingerprint"])
 
 
-def generate(
+def _generate_v1(
     family_id: str, seed: int, generator_version: str = GENERATOR_VERSION
 ) -> TriangleProblem:
     if generator_version != GENERATOR_VERSION or family_id not in FAMILIES:
@@ -156,14 +164,106 @@ def generate(
     return TriangleProblem(json.dumps(snapshot, sort_keys=True, ensure_ascii=False))
 
 
-def from_snapshot(snapshot: dict[str, Any]) -> TriangleProblem:
+def generate(
+    family_id: str, seed: int, generator_version: str = GENERATOR_VERSION
+) -> TriangleProblem:
+    if generator_version == GENERATOR_VERSION:
+        return _generate_v1(family_id, seed, generator_version)
+    from app.math.oge15_complete import SOURCE_IDS, VERSION, content_key, number, parameters
+    from app.math.oge15_complete import content as complete_content
+    from app.math.oge15_coordinate_oracle import validate
+    from app.math.oge15_geometry import construct
+    from app.math.oge15_render import VERSION as RENDERER_VERSION
+    from app.math.oge15_render import render
+
+    if generator_version != VERSION or type(seed) is not int or not 0 <= seed < 2**63:
+        raise ValueError("Unknown generator contract or invalid seed")
+    n = number(family_id)
+    p = parameters(n, seed)
+    text, hints, solution, value = complete_content(n, p)
+    scene = construct(n, p)
+    if n == 5:
+        scene["exterior_label"] = f"{p[0]}°"
+    validate(n, p, scene, value)
+    from app.math.oge15_complete import display
+
+    result = display(value).replace(",", ".")
+    if POLICY.parse(result) != value:
+        raise ValueError("Answer does not have a finite short numeric representation")
+    source = SOURCE_IDS[n - 1]
+    if n == 14 and p[2] == 1:
+        source = "348419"
+    if n == 15:
+        source = ("356089", "356079", "356099")[p[2]]
+    snapshot = {
+        "problem_id": str(uuid5(NAMESPACE_URL, f"{family_id}:{seed}:{generator_version}")),
+        "family_id": family_id,
+        "seed": seed,
+        "generator_version": generator_version,
+        "parameters": list(p),
+        "geometry": scene,
+        "condition": text,
+        "hints": hints,
+        "solution": solution,
+        "correct_answer": result,
+        "answer_policy_id": POLICY.policy_id,
+        "answer_policy_version": POLICY.version,
+        "attempt_index": 0,
+        "fingerprint": hashlib.sha256(
+            json.dumps([family_id, content_key(n, p)]).encode()
+        ).hexdigest(),
+        "provenance": {
+            "task_id": source,
+            "url": f"https://math-oge.sdamgia.ru/problem?id={source}",
+            "kind": "generated_analogue",
+        },
+    }
+    if n != 1:
+        import base64
+
+        png = render(scene)
+        snapshot.update(
+            renderer_version=RENDERER_VERSION,
+            png_base64=base64.b64encode(png).decode(),
+            image_sha256=hashlib.sha256(png).hexdigest(),
+        )
+    return TriangleProblem(json.dumps(snapshot, sort_keys=True, ensure_ascii=False))
+
+
+def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> TriangleProblem:
     try:
-        if len(json.dumps(snapshot)) > 16000:
+        if len(json.dumps(snapshot)) > 250000:
             raise ValueError("Snapshot too large")
+        if snapshot["generator_version"] == GENERATOR_VERSION and any(
+            key in snapshot
+            for key in ("png_base64", "image_sha256", "renderer_version", "geometry")
+        ):
+            raise ValueError("Legacy snapshot contains unversioned geometry")
         expected = generate(snapshot["family_id"], snapshot["seed"], snapshot["generator_version"])
         # Queue metadata is transport-only; every mathematical field is immutable.
         if any(snapshot.get(key) != value for key, value in expected.to_snapshot().items()):
             raise ValueError("Corrupted triangle snapshot")
+        if snapshot["generator_version"] != GENERATOR_VERSION:
+            from app.math.oge15_complete import number
+            from app.math.oge15_coordinate_oracle import validate
+
+            n = number(snapshot["family_id"])
+            validate(
+                n,
+                tuple(snapshot["parameters"]),
+                snapshot["geometry"],
+                Fraction(str(snapshot["correct_answer"])),
+            )
+            if n != 1 and audit_pixels:
+                import base64
+
+                from app.math.oge15_render import audit
+
+                audit(
+                    base64.b64decode(snapshot["png_base64"], validate=True),
+                    snapshot["geometry"],
+                    expected_png=expected.png_bytes,
+                )
         return expected
     except (KeyError, TypeError, OverflowError) as exc:
         raise ValueError("Invalid triangle snapshot") from exc

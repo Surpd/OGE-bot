@@ -24,7 +24,7 @@ async def test_task16_postgres_restore_duplicate_race_skip_and_restart(family):
         assert str(await pool.fetchval("SHOW server_version")).startswith("17.")
         for migration in sorted(Path("migrations").glob("*.sql")):
             await pool.execute(migration.read_text())
-        await pool.execute(Path("migrations/0016_task16_sessions.sql").read_text())
+        await pool.execute(Path("migrations/0017_task16_sessions.sql").read_text())
         repo = PostgresRepository(pool)
         sessions = await asyncio.gather(*(repo.ensure_task16_session(user_id) for _ in range(2)))
         assert sessions[0] == sessions[1]
