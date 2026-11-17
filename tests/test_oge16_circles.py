@@ -249,14 +249,14 @@ def test_zero_distance_chord_and_irrational_cases():
         audit(s, pixels=False)
 
 
-def test_public_training_is_registered_but_not_enabled():
+def test_public_training_is_registered_and_enabled():
     from app.bot.oge16_adapter import numeric_training_adapter
     from app.bot.training_engine import NUMERIC_TRAININGS
 
-    assert ENABLED_FAMILIES == ()
+    assert ENABLED_FAMILIES == FAMILIES
     adapter = numeric_training_adapter()
-    assert adapter.number == 16 and adapter.mode == "task16" and adapter.families == ()
+    assert adapter.number == 16 and adapter.mode == "task16" and adapter.families == FAMILIES
     assert NUMERIC_TRAININGS[16] == adapter
-    assert build_task16_candidate_batch({}, 42) == []
+    assert build_task16_candidate_batch({}, 42)[0]["family_id"] in FAMILIES
     with pytest.raises(ValueError):
         build_task16_candidate_batch({}, 1, enabled_families=("OGE16-UNKNOWN",))

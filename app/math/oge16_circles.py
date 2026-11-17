@@ -30,7 +30,7 @@ LEGACY_FAMILIES = (
     "OGE16-C02",
     "OGE16-C03",
 )
-ENABLED_FAMILIES: tuple[str, ...] = ()  # Public enablement requires a separate release decision.
+ENABLED_FAMILIES: tuple[str, ...] = FAMILIES
 POLICY = NUMERIC_SHORT_ANSWER
 SOURCES = dict(
     zip(
