@@ -68,10 +68,10 @@ def render_math_fragment(fragment: MathFragment) -> str:
     return format_math_message(fragment.unicode())
 
 
-def hint_message(hint: str, problem: object = None) -> str:
+def hint_message(hint: str, problem: object = None, *, numbered: bool = True) -> str:
     hints = problem.get("hints") if isinstance(problem, dict) else None
     number = ""
-    if isinstance(hints, list | tuple) and len(hints) > 1 and hint in hints:
+    if numbered and isinstance(hints, list | tuple) and len(hints) > 1 and hint in hints:
         number = f" №{hints.index(hint) + 1}"
     return f"Подсказка{number}:\n\n{hint}"
 

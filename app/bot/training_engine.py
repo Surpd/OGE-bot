@@ -427,7 +427,11 @@ async def training_callback(
     if action == "hint":
         hint = await adapter.operation(repository, "hint")(user_id, expected_id, prompt_id)
         await send_text(
-            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
+            message,
+            repository,
+            hint_message(hint, problem, numbered=adapter.number != 19)
+            if hint
+            else "Подсказок больше нет.",
         )
     elif action == "solution":
         revealed = await adapter.operation(repository, "reveal_solution")(
