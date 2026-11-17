@@ -33,6 +33,7 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
     fingerprints: set[tuple[str, ...]] = set()
     propositions: set[str] = set()
     proposition_pairs: set[tuple[str, str]] = set()
+    statement_appearances: Counter[str] = Counter()
     length_spreads: list[int] = []
     failed_answers = 0
     for seed in range(samples):
@@ -48,6 +49,7 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         )
         fingerprints.add(tuple(sorted(item.proposition_id for item in triple.statements)))
         proposition_ids = [item.proposition_id for item in triple.statements]
+        statement_appearances.update(item.id for item in triple.statements)
         propositions.update(proposition_ids)
         proposition_pairs.update(
             tuple(sorted(pair))
@@ -65,6 +67,13 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         raise RuntimeError(
             f"QA gate failed: {failed_answers} answer errors, "
             f"{len(fingerprints)} unique triples (<{unique_target})"
+        )
+    bank_ids = {item.id for item in STATEMENTS}
+    unused_statement_ids = sorted(bank_ids - statement_appearances.keys())
+    if unused_statement_ids:
+        raise RuntimeError(
+            f"QA sample left {len(unused_statement_ids)} statements unused: "
+            f"{', '.join(unused_statement_ids)}"
         )
     matrix = json.loads((ROOT / "specs/research/oge19/SOURCE_MATRIX.json").read_text())
     return {
@@ -85,6 +94,10 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         "topic_count": len({item.topic for item in STATEMENTS}),
         "distinct_propositions_sampled": len(propositions),
         "distinct_proposition_pairs_sampled": len(proposition_pairs),
+        "statements_sampled": len(statement_appearances),
+        "unused_statement_ids": unused_statement_ids,
+        "min_statement_appearances": min(statement_appearances.values()),
+        "max_statement_appearances": max(statement_appearances.values()),
         "mean_statement_length_spread": round(sum(length_spreads) / samples, 2),
         "max_statement_length_spread": max(length_spreads),
         "samples": samples,

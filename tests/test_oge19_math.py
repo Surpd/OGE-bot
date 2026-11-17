@@ -70,6 +70,27 @@ def test_high_risk_facts_are_pinned() -> None:
     assert all(item.source_task_id != "461001" for item in STATEMENTS)
 
 
+def test_reviewed_claims_have_consistent_proofs_and_counterexamples() -> None:
+    by_id = {item.id: item for item in STATEMENTS}
+    median_area = by_id["OGE19-A110"]
+    assert median_area.is_true
+    assert "равные половины исходной стороны" in median_area.explanation
+    assert "высота из противоположной вершины" in median_area.explanation
+
+    tangent_chord = by_id["OGE19-A123"]
+    assert tangent_chord.is_true
+    assert "противоположном сегменте" in tangent_chord.statement
+    assert "соответствующей дуги AB" in tangent_chord.explanation
+
+    median_bisector = by_id["OGE19-A124"]
+    assert not median_bisector.is_true
+    assert all(part in median_bisector.explanation for part in ("5, 6 и 7", "3,5", "5:6"))
+
+    equal_area = by_id["OGE19-A144"]
+    assert not equal_area.is_true
+    assert all(part in equal_area.explanation for part in ("2 и 6", "3 и 4", "равна 12"))
+
+
 def test_generation_is_deterministic_and_snapshots_restore() -> None:
     first = generate(20261117)
     second = generate(20261117)
@@ -104,9 +125,10 @@ def test_schema_two_snapshot_keeps_its_pinned_bank_text() -> None:
     )
 
 
-def test_many_seeds_have_three_distinct_topics_and_one_true_answer() -> None:
+def test_500_seed_sample_covers_the_bank_with_diverse_one_true_triples() -> None:
     fingerprints: set[tuple[str, ...]] = set()
-    for seed in range(300):
+    used_ids: set[str] = set()
+    for seed in range(500):
         triple = generate(seed)
         assert len(triple.statements) == 3
         assert len({item.topic for item in triple.statements}) == 3
@@ -114,8 +136,10 @@ def test_many_seeds_have_three_distinct_topics_and_one_true_answer() -> None:
         assert answer_mask(triple.statements) == triple.answer_mask
         assert len(triple.answer_mask) == 1
         assert validate_snapshot(triple.snapshot()) is None
+        used_ids.update(item.id for item in triple.statements)
         fingerprints.add(tuple(sorted(item.proposition_id for item in triple.statements)))
     assert len(fingerprints) >= 200
+    assert used_ids == {item.id for item in STATEMENTS}
 
 
 def test_theme_filter_and_position_balancing() -> None:
@@ -133,13 +157,38 @@ def test_theme_filter_and_position_balancing() -> None:
         assert len(sample.answer_mask) == 1
 
 
+def test_each_thematic_pool_is_covered_without_leaking_other_topics() -> None:
+    from app.math.oge19 import THEME_TOPICS
+
+    for theme, topics in THEME_TOPICS.items():
+        allowed = {item.id for item in STATEMENTS if item.topic in topics}
+        sampled: set[str] = set()
+        for seed in range(500):
+            triple = generate(seed, theme=theme)
+            assert all(item.topic in topics for item in triple.statements)
+            sampled.update(item.id for item in triple.statements)
+        assert sampled == allowed
+
+
 def test_generated_statements_have_similar_visible_lengths() -> None:
     spreads = []
-    for seed in range(300):
+    for seed in range(500):
         triple = generate(seed)
         lengths = [len(item.statement) for item in triple.statements]
         spreads.append(max(lengths) - min(lengths))
-    assert max(spreads) <= 20
+    assert max(spreads) <= 25
+
+
+def test_previous_schema_two_generator_snapshot_remains_restorable() -> None:
+    snapshot = json.loads(
+        (ROOT / "tests/fixtures/oge19/snapshot_v2_seed_912.json").read_text(encoding="utf-8")
+    )
+    validate_snapshot(snapshot)
+    restored = restore(snapshot)
+    assert restored.generator_version == "oge19-triples-2"
+    assert [item.statement for item in restored.statements] == [
+        item["statement"] for item in snapshot["statements"]
+    ]
 
 
 def test_answer_mask_tracks_each_possible_position() -> None:

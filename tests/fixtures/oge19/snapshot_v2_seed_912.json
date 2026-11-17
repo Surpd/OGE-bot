@@ -1,0 +1,60 @@
+{
+  "snapshot_schema_version": 2,
+  "bank_version": "oge19-claims-3",
+  "generator_version": "oge19-triples-2",
+  "answer_policy_id": "oge19.answer-single-true",
+  "answer_policy_version": "1",
+  "seed": 912,
+  "answer_mask": "1",
+  "statements": [
+    {
+      "id": "OGE19-A047",
+      "proposition_id": "parallel.alternate_interior_converse",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Если накрест лежащие углы равны, пересекаемые ими прямые параллельны.",
+      "is_true": true,
+      "explanation": "Это признак параллельности прямых.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A066",
+      "proposition_id": "parallelogram.equal_diagonals_square",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Если диагонали параллелограмма равны, то он обязательно квадрат.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольник со сторонами 2 и 3 имеет равные диагонали, но не является квадратом.",
+      "source": {
+        "task_id": "480421",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480421",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A169",
+      "proposition_id": "triangle.congruent_same_area_only",
+      "topic": "triangle_congruence",
+      "grade_band": "7-8",
+      "statement": "Равенство площадей треугольников достаточно для их равенства.",
+      "is_true": false,
+      "explanation": "Треугольники с катетами 2 и 6 и катетами 3 и 4 имеют площадь 6, но разные стороны.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    }
+  ],
+  "content_hash": "34d960bf7ea7de0eee34fbabd9a9c2bc234ff298d892c859f41ef95004ae81e1"
+}

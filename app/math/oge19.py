@@ -8,11 +8,13 @@ import random
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
+from itertools import combinations
 from pathlib import Path
 from typing import Any, cast
 
 LEGACY_GENERATOR_VERSION = "oge19-triples-1"
-GENERATOR_VERSION = "oge19-triples-2"
+GENERATOR_VERSION = "oge19-triples-3"
+SUPPORTED_GENERATOR_VERSIONS = frozenset({"oge19-triples-2", GENERATOR_VERSION})
 ANSWER_POLICY_ID = "oge19.answer-single-true"
 ANSWER_POLICY_VERSION = "1"
 SNAPSHOT_SCHEMA_VERSION = 2
@@ -210,7 +212,7 @@ def generate(
     recent_proposition_ids: tuple[str, ...] = (),
     correct_position_counts: tuple[int, int, int] = (0, 0, 0),
 ) -> Triple:
-    """Build a deterministic exam-format triple; v2 accepts bounded learner history."""
+    """Build a deterministic exam-format triple with bounded learner history."""
     if generator_version != GENERATOR_VERSION:
         raise ValueError(f"Unsupported generator version: {generator_version}")
     rng = random.Random(seed)
@@ -230,10 +232,25 @@ def generate(
     false_items = [x for x in pool if not x.is_true]
     if not true_items or len(false_items) < 2:
         raise ValueError("Selected OGE19 theme needs at least one true and two false statements")
+    # Anchor one available proposition by seed. This prevents the length/topic
+    # ranking from permanently excluding unusual but valid claims. Complementary
+    # claims are still chosen by the same topic, grade-band and length priorities.
+    anchor = pool[seed % len(pool)]
     candidate_sets: list[tuple[tuple[int, int, int], Statement, list[Statement]]] = []
-    for _ in range(64):
-        true_candidate = rng.choice(true_items)
-        false_pair = rng.sample(false_items, 2)
+    if anchor.is_true:
+        combinations_for_anchor = (
+            (anchor, first_false, second_false)
+            for first_false, second_false in combinations(false_items, 2)
+        )
+    else:
+        combinations_for_anchor = (
+            (true_candidate, anchor, other_false)
+            for true_candidate in true_items
+            for other_false in false_items
+            if other_false.id != anchor.id
+        )
+    for true_candidate, first_false, second_false in combinations_for_anchor:
+        false_pair = [first_false, second_false]
         distinct_topics = len({true_candidate.topic, *(item.topic for item in false_pair)}) == 3
         lengths = [len(true_candidate.statement), *(len(item.statement) for item in false_pair)]
         spread = max(lengths) - min(lengths)
@@ -241,11 +258,12 @@ def generate(
         # Mixed practice prefers topic variety, then similar statement lengths.
         topic_penalty = int(theme in {None, "mixed"} and not distinct_topics)
         grade_penalty = int(len(tiers) == 1)
-        candidate_sets.append(((topic_penalty, grade_penalty, spread), true_candidate, false_pair))
-    candidate_sets.sort(key=lambda item: item[0])
-    best_score = candidate_sets[0][0]
-    best_sets = [item for item in candidate_sets if item[0] == best_score]
-    _, true_item, false_items_chosen = rng.choice(best_sets[:12])
+        score = (topic_penalty, grade_penalty, spread)
+        if not candidate_sets or score < candidate_sets[0][0]:
+            candidate_sets = [(score, true_candidate, false_pair)]
+        elif score == candidate_sets[0][0]:
+            candidate_sets.append((score, true_candidate, false_pair))
+    _, true_item, false_items_chosen = rng.choice(candidate_sets)
     least_used = min(correct_position_counts)
     positions = [i for i, count in enumerate(correct_position_counts) if count == least_used]
     correct_pos = positions[seed % len(positions)]
@@ -271,7 +289,7 @@ def validate_snapshot(snapshot: Mapping[str, Any]) -> None:
         return
     if schema != SNAPSHOT_SCHEMA_VERSION:
         raise ValueError("Unsupported OGE19 snapshot schema version")
-    if version != GENERATOR_VERSION:
+    if version not in SUPPORTED_GENERATOR_VERSIONS:
         raise ValueError("Unsupported OGE19 generator version")
     if snapshot.get("answer_policy_id") != ANSWER_POLICY_ID:
         raise ValueError("Unsupported OGE19 answer policy")
@@ -342,7 +360,9 @@ def restore(snapshot: Mapping[str, Any]) -> Triple:
     raw = snapshot["statements"]
     restored = [Statement.from_dict(item) for item in raw]
     statements = (restored[0], restored[1], restored[2])
-    return Triple(statements, str(snapshot["answer_mask"]), int(snapshot["seed"]))
+    version = snapshot.get("generator_version")
+    restored_version = version if version in SUPPORTED_GENERATOR_VERSIONS else GENERATOR_VERSION
+    return Triple(statements, str(snapshot["answer_mask"]), int(snapshot["seed"]), restored_version)
 
 
 def check_answer(snapshot: Mapping[str, Any], submitted: str) -> bool:

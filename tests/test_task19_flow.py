@@ -43,6 +43,29 @@ async def test_task19_is_one_number_entry_with_compact_theme_selector(enabled_ta
 
 
 @pytest.mark.asyncio
+async def test_closed_public_gate_hides_task19_and_rejects_direct_callback(monkeypatch):
+    monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", ())
+    repo = MemoryRepository()
+    menu = incoming()
+    await router.choose_number(menu, repo)
+    labels = [
+        button.text
+        for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
+        for button in row
+    ]
+    assert "№19 · Геометрические утверждения" not in labels
+
+    callback = AsyncMock()
+    callback.data = "t19:hint:00000000-0000-0000-0000-000000000001"
+    callback.from_user = User(id=419, is_bot=False, first_name="Student")
+    callback.message = incoming(message_id=101)
+    await router.task19_callback(callback, repo)
+    callback.answer.assert_awaited_once()
+    assert "выключены" in callback.answer.await_args.args[0]
+    assert await repo.task19_state(419) is None
+
+
+@pytest.mark.asyncio
 async def test_first_task19_entry_offers_the_all_themes_path(enabled_task19):
     repo = MemoryRepository()
     chooser = incoming()
