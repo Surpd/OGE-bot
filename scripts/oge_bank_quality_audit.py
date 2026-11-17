@@ -1,4 +1,4 @@
-"""Reproduce the all-enabled-family OGE 1–14 audit sample and mobile previews.
+"""Reproduce the all-enabled-family OGE first-part audit sample and mobile previews.
 
 This intentionally reuses the runtime registry, each generator's independent
 oracle, and each production candidate scheduler. It does not change generator
@@ -18,6 +18,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import fields, is_dataclass
 from fractions import Fraction
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 from PIL import Image
@@ -62,6 +63,7 @@ QUALITY_REPORTS: dict[int | str, str] = {
     15: "reports/oge15-quality.json",
     16: "reports/oge16-quality.json",
     17: "reports/oge17-quality.json",
+    19: "reports/oge19-quality.json",
 }
 
 COMPLEXITY: dict[int, dict[str, int]] = {
@@ -180,6 +182,16 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE17-T05": 2,
         "OGE17-T07": 2,
         "OGE17-T08": 2,
+    },
+    # Preliminary theme-level difficulty estimates; dedicated reviewed claim-bank QA
+    # remains authoritative for OGE19 truth masks and mathematical explanations.
+    19: {
+        "OGE19-MIXED": 3,
+        "OGE19-TRIANGLES": 3,
+        "OGE19-QUADRILATERALS": 3,
+        "OGE19-CIRCLES": 3,
+        "OGE19-LINES-ANGLES": 2,
+        "OGE19-AREAS-METRICS": 3,
     },
 }
 SCENARIO_COMPLEXITY = {
@@ -388,6 +400,12 @@ def _stable(value: Any) -> str:
 
 
 def _oracle(number: int, family: str, item: Any) -> bool:
+    if number == 19:
+        from app.math.oge19 import check_answer, validate_snapshot
+
+        snapshot = item.to_snapshot()
+        validate_snapshot(snapshot)
+        return check_answer(snapshot, str(snapshot["correct_answer"]))
     if number == 15:
         from app.math.oge15_triangles import from_snapshot
 
@@ -475,6 +493,29 @@ def _oracle(number: int, family: str, item: Any) -> bool:
 
 
 def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, int], Any]]:
+    if number == 19:
+        from app.math.oge19_scheduler import ENABLED_FAMILIES, build_task19_candidate_batch
+
+        def make(family: str, seed: int) -> Any:
+            snapshot = build_task19_candidate_batch(
+                {}, seed, enabled_families=(family,)
+            )[0]
+            return SimpleNamespace(
+                to_snapshot=lambda: snapshot,
+                condition=snapshot["condition"],
+                correct_answer=snapshot["correct_answer"],
+                hints=snapshot["hints"],
+                solution=snapshot["solution"],
+                fingerprint=snapshot["fingerprint"],
+                generator_version=snapshot["generator_version"],
+                answer_policy_id=snapshot["answer_policy_id"],
+                answer_policy_version=snapshot["answer_policy_version"],
+                reference_ids=tuple(
+                    sorted({s["source"]["task_id"] for s in snapshot["statements"]})
+                ),
+            )
+
+        return tuple(ENABLED_FAMILIES), make
     if number == 15:
         from app.math.oge15_complete import VERSION
         from app.math.oge15_triangles import ENABLED_FAMILIES, generate
@@ -575,6 +616,10 @@ def _complexity(number: int, family: str, examples: list[dict[str, Any]]) -> dic
         14: (
             "Найти член арифметической/геометрической прогрессии; геометрический рост "
             "и неизвестные начальные данные требуют дополнительных преобразований."
+        ),
+        19: (
+            "Выбрать единственное истинное утверждение из трёх; сложность зависит от "
+            "геометрических теорем и необходимости найти контрпример. Оценка предварительная."
         ),
     }
     if number == 7 and family == "OGE07-C04":
