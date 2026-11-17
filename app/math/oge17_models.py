@@ -26,8 +26,8 @@ FAMILIES = tuple(
 )
 CORE_FAMILIES = FAMILIES
 FAMILIES += ADDITIONAL_FAMILIES + TRAPEZOID_FAMILIES
-# Public rollout is explicitly disabled; QA uses the implemented registry.
-ENABLED_FAMILIES: tuple[str, ...] = ()
+# Release: all 16 implemented and verified constructions are available in training.
+ENABLED_FAMILIES: tuple[str, ...] = FAMILIES
 SOURCES = dict(
     zip(
         CORE_FAMILIES,

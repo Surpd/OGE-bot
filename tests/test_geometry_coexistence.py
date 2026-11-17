@@ -13,8 +13,8 @@ from app.persistence.repository import MemoryRepository
 
 def test_geometry_public_gates_and_circle_inventory():
     assert len(CIRCLES) == 23
-    assert not BY_NUMBER[16].available
-    assert not BY_NUMBER[17].available
+    assert BY_NUMBER[16].available
+    assert BY_NUMBER[17].available
     assert BY_NUMBER[15].available
     assert BY_NUMBER[18].available
 

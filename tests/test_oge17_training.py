@@ -26,7 +26,7 @@ def implemented_families_for_test(monkeypatch):
 
 
 def test_task17_recent_repeat_queue_covers_enabled_families():
-    assert not ENABLED_FAMILIES
+    assert ENABLED_FAMILIES == FAMILIES
     state: dict[str, object] = {}
     issued: set[str] = set()
     families: set[str] = set()

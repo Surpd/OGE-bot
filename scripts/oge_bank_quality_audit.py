@@ -60,6 +60,7 @@ QUALITY_REPORTS: dict[int | str, str] = {
     13: "reports/oge13-quality.json",
     14: "reports/oge14-quality.json",
     15: "reports/oge15-quality.json",
+    16: "reports/oge16-quality.json",
     17: "reports/oge17-quality.json",
 }
 
@@ -156,6 +157,12 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE18-A04": 3,
         "OGE18-A05": 3,
     },
+    16: {
+        **{f"OGE16-A{i:02d}": 2 for i in range(1, 7)},
+        **{f"OGE16-B{i:02d}": 3 for i in range(1, 6)},
+        **{f"OGE16-C{i:02d}": 3 for i in range(1, 7)},
+        **{f"OGE16-D{i:02d}": 3 for i in range(1, 7)},
+    },
     17: {
         "OGE17-R03": 2,
         "OGE17-R02": 2,
@@ -165,6 +172,14 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE17-P07": 2,
         "OGE17-T04": 3,
         "OGE17-T06": 2,
+        "OGE17-R04": 2,
+        "OGE17-E01": 2,
+        "OGE17-E02": 3,
+        "OGE17-P03": 3,
+        "OGE17-T02": 2,
+        "OGE17-T05": 2,
+        "OGE17-T07": 2,
+        "OGE17-T08": 2,
     },
 }
 SCENARIO_COMPLEXITY = {
@@ -275,13 +290,13 @@ def _shape(value: Any) -> Any:
 
 
 def _condition(item: Any, number: int) -> str:
-    if number in (15, 17, 18):
+    if number in (15, 16, 17, 18):
         return str(item.to_snapshot().get("condition", ""))
     return str(getattr(item, "condition", getattr(item, "equation_text", "")))
 
 
 def _answer(item: Any, number: int) -> str:
-    if number in (15, 17, 18):
+    if number in (15, 16, 17, 18):
         return str(item.to_snapshot().get("correct_answer", ""))
     if number == 7 and hasattr(item, "correct_option_index"):
         index = int(item.correct_option_index) - 1
@@ -312,6 +327,8 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
         model = [{"kind": g.kind, "coefficients": g.coefficients} for g in item.graphs]
     if model is None and hasattr(item, "graph_model"):
         model = item.graph_model
+    if number in (16, 17) and model is None:
+        model = snapshot.get("parameters")
     if number == 15:
         from app.math.oge15_complete import content_key
         from app.math.oge15_complete import number as family_number
@@ -376,6 +393,13 @@ def _oracle(number: int, family: str, item: Any) -> bool:
 
         try:
             return from_snapshot(item.to_snapshot(), audit_pixels=False) == item
+        except ValueError:
+            return False
+    if number == 16:
+        from app.math.oge16_circles import from_snapshot
+
+        try:
+            return from_snapshot(item.to_snapshot()) == item
         except ValueError:
             return False
     if number == 17:
@@ -456,6 +480,11 @@ def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, in
         from app.math.oge15_triangles import ENABLED_FAMILIES, generate
 
         return ENABLED_FAMILIES, lambda family, seed: generate(family, seed, VERSION)
+    if number == 16:
+        from app.math.oge16_circles import generate
+        from app.math.oge16_scheduler import ENABLED_FAMILIES
+
+        return tuple(ENABLED_FAMILIES), generate
     if number == 17:
         from app.math.oge17_generator import generate
         from app.math.oge17_scheduler import ENABLED_FAMILIES

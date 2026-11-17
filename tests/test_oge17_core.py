@@ -181,7 +181,7 @@ def test_atlas_schema_minimum_backlog_and_source_evidence():
                 asset["visual_checked"] and len(asset["sha256"]) == 64
                 for asset in source["original_assets"]
             )
-    assert not ENABLED_FAMILIES
+    assert ENABLED_FAMILIES == FAMILIES
     assert set(FAMILIES) == {f["family_id"] for f in atlas["families"]}
 
 
