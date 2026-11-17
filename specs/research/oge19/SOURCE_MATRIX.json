@@ -1,0 +1,486 @@
+{
+  "title": "ОГЭ №19 — матрица 39 каталоговых прототипов",
+  "snapshot_date": "2026-11-05",
+  "catalog": "https://math-oge.sdamgia.ru/test?category_id=15&filter=all&ttest=true",
+  "IMPORTANT": "Ответы для записей catalog_analyzed выведены по логике опубликованных утверждений, но не сверены по отдельности с опубликованными карточками-решениями. Это не релизная матрица. verified_answer означает независимую проверку ответа непосредственно по карточке и решение для части позиций.",
+  "source_count": 39,
+  "mask_histogram": {
+    "1": 7,
+    "12": 4,
+    "123": 1,
+    "13": 11,
+    "2": 9,
+    "23": 1,
+    "3": 6
+  },
+  "sources": [
+    {
+      "catalog_order": 1,
+      "source_id": 67,
+      "url": "https://math-oge.sdamgia.ru/problem?id=67",
+      "answer_mask_mathematically_analyzed": "12",
+      "topics": [
+        "similarity",
+        "angles",
+        "isosceles"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 2,
+      "source_id": 119,
+      "url": "https://math-oge.sdamgia.ru/problem?id=119",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "isosceles",
+        "rectangle",
+        "circle"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 3,
+      "source_id": 145,
+      "url": "https://math-oge.sdamgia.ru/problem?id=145",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "equilateral",
+        "square",
+        "triangle_angles"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 4,
+      "source_id": 314814,
+      "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+      "answer_mask_mathematically_analyzed": "123",
+      "topics": [
+        "circumcircle",
+        "parallelogram",
+        "trapezoid_area"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 5,
+      "source_id": 314818,
+      "url": "https://math-oge.sdamgia.ru/problem?id=314818",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "isosceles",
+        "rectangle",
+        "trapezoid"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 6,
+      "source_id": 314894,
+      "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "parallel_lines",
+        "trapezoid",
+        "rhombus"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 7,
+      "source_id": 341332,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "parallelogram",
+        "rhombus_area",
+        "congruence"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 8,
+      "source_id": 341358,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "triangle_inequality",
+        "trapezoid",
+        "obtuse_triangle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 9,
+      "source_id": 341384,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341384",
+      "answer_mask_mathematically_analyzed": "23",
+      "topics": [
+        "congruence",
+        "trapezoid",
+        "triangle_inequality"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 10,
+      "source_id": 341410,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "circles",
+        "parallelogram",
+        "triangle_area"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 11,
+      "source_id": 341499,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341499",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "triangle_angles",
+        "trapezoid",
+        "circle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 12,
+      "source_id": 341525,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341525",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "triangle_inequality",
+        "triangle_angles",
+        "circumcircle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 13,
+      "source_id": 341676,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341676",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "triangle_inequality",
+        "angles",
+        "circle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 14,
+      "source_id": 341710,
+      "url": "https://math-oge.sdamgia.ru/problem?id=341710",
+      "answer_mask_mathematically_analyzed": "1",
+      "topics": [
+        "line_construction",
+        "congruence",
+        "angles"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 15,
+      "source_id": 348367,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348367",
+      "answer_mask_mathematically_analyzed": "1",
+      "topics": [
+        "square_area",
+        "trapezoid",
+        "congruence"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 16,
+      "source_id": 348369,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348369",
+      "answer_mask_mathematically_analyzed": "3",
+      "topics": [
+        "rhombus",
+        "quadrilateral_congruence",
+        "tangents"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 17,
+      "source_id": 348392,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348392",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "angles",
+        "square_area",
+        "chords"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 18,
+      "source_id": 348630,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348630",
+      "answer_mask_mathematically_analyzed": "12",
+      "topics": [
+        "right_triangle",
+        "circumcircle",
+        "lines"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 19,
+      "source_id": 348466,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348466",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "circumcircle",
+        "triangle_angles",
+        "rhombus"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 20,
+      "source_id": 348533,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348533",
+      "answer_mask_mathematically_analyzed": "3",
+      "topics": [
+        "chords",
+        "trapezoid",
+        "triangle_angles"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 21,
+      "source_id": 348535,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348535",
+      "answer_mask_mathematically_analyzed": "1",
+      "topics": [
+        "angles",
+        "parallel_lines",
+        "rectangle_diagonals"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 22,
+      "source_id": 348538,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348538",
+      "answer_mask_mathematically_analyzed": "3",
+      "topics": [
+        "square_area",
+        "trapezoid",
+        "tangents"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 23,
+      "source_id": 348580,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348580",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "rhombus_area",
+        "trapezoid",
+        "triangle_angles"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 24,
+      "source_id": 348616,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348616",
+      "answer_mask_mathematically_analyzed": "12",
+      "topics": [
+        "triangle_inequality",
+        "angle_bisector",
+        "parallelogram"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 25,
+      "source_id": 348669,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348669",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "rhombus",
+        "inscribed_angle",
+        "congruence"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 26,
+      "source_id": 348739,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348739",
+      "answer_mask_mathematically_analyzed": "12",
+      "topics": [
+        "triangle_angles",
+        "rhombus_area",
+        "parallel_lines"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 27,
+      "source_id": 348874,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348874",
+      "answer_mask_mathematically_analyzed": "3",
+      "topics": [
+        "parallelogram_area",
+        "triangle_angles",
+        "incenter"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 28,
+      "source_id": 348884,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348884",
+      "answer_mask_mathematically_analyzed": "1",
+      "topics": [
+        "right_triangle",
+        "trapezoid_midline",
+        "incircle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 29,
+      "source_id": 348897,
+      "url": "https://math-oge.sdamgia.ru/problem?id=348897",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "triangle_inequality",
+        "median",
+        "circle"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 30,
+      "source_id": 349332,
+      "url": "https://math-oge.sdamgia.ru/problem?id=349332",
+      "answer_mask_mathematically_analyzed": "1",
+      "topics": [
+        "rhombus",
+        "inscribed_angle",
+        "circles"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 31,
+      "source_id": 350053,
+      "url": "https://math-oge.sdamgia.ru/problem?id=350053",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "triangle_area",
+        "rectangle",
+        "quadrilateral_congruence"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 32,
+      "source_id": 401388,
+      "url": "https://math-oge.sdamgia.ru/problem?id=401388",
+      "answer_mask_mathematically_analyzed": "3",
+      "topics": [
+        "trapezoid",
+        "trigonometry",
+        "circle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 33,
+      "source_id": 401617,
+      "url": "https://math-oge.sdamgia.ru/problem?id=401617",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "lines",
+        "trapezoid",
+        "triangle_angles"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 34,
+      "source_id": 401622,
+      "url": "https://math-oge.sdamgia.ru/problem?id=401622",
+      "answer_mask_mathematically_analyzed": "1",
+      "topics": [
+        "rhombus",
+        "obtuse_triangle",
+        "isosceles"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 35,
+      "source_id": 401818,
+      "url": "https://math-oge.sdamgia.ru/problem?id=401818",
+      "answer_mask_mathematically_analyzed": "13",
+      "topics": [
+        "equilateral",
+        "inscribed_angle",
+        "rhombus"
+      ],
+      "review_status": "verified_answer"
+    },
+    {
+      "catalog_order": 36,
+      "source_id": 480187,
+      "url": "https://math-oge.sdamgia.ru/problem?id=480187",
+      "answer_mask_mathematically_analyzed": "3",
+      "topics": [
+        "trapezoid",
+        "parallelogram_area",
+        "inscribed_angle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 37,
+      "source_id": 480244,
+      "url": "https://math-oge.sdamgia.ru/problem?id=480244",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "trapezoid",
+        "rectangle_area",
+        "circumcircle"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 38,
+      "source_id": 480421,
+      "url": "https://math-oge.sdamgia.ru/problem?id=480421",
+      "answer_mask_mathematically_analyzed": "2",
+      "topics": [
+        "parallelogram",
+        "triangle_angles",
+        "trapezoid_area"
+      ],
+      "review_status": "catalog_analyzed"
+    },
+    {
+      "catalog_order": 39,
+      "source_id": 480735,
+      "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+      "answer_mask_mathematically_analyzed": "1",
+      "topics": [
+        "similarity",
+        "rhombus",
+        "trigonometry"
+      ],
+      "review_status": "verified_answer"
+    }
+  ]
+}

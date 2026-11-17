@@ -27,6 +27,7 @@ from app.math.oge16_circles import (
 from app.math.oge16_circles import (
     parameters as versioned_parameters,
 )
+from app.math.oge16_complete import FAMILIES as PUBLIC_FAMILIES
 from app.math.oge16_oracle import audit, solve_visible
 from app.math.oge16_scheduler import build_task16_candidate_batch
 
@@ -253,10 +254,10 @@ def test_public_training_is_registered_and_enabled():
     from app.bot.oge16_adapter import numeric_training_adapter
     from app.bot.training_engine import NUMERIC_TRAININGS
 
-    assert ENABLED_FAMILIES == FAMILIES
+    assert ENABLED_FAMILIES == PUBLIC_FAMILIES
     adapter = numeric_training_adapter()
-    assert adapter.number == 16 and adapter.mode == "task16" and adapter.families == FAMILIES
+    assert adapter.number == 16 and adapter.mode == "task16" and adapter.families == PUBLIC_FAMILIES
     assert NUMERIC_TRAININGS[16] == adapter
-    assert build_task16_candidate_batch({}, 42)[0]["family_id"] in FAMILIES
+    assert build_task16_candidate_batch({}, 42)[0]["family_id"] in PUBLIC_FAMILIES
     with pytest.raises(ValueError):
         build_task16_candidate_batch({}, 1, enabled_families=("OGE16-UNKNOWN",))

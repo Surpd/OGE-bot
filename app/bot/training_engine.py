@@ -29,6 +29,9 @@ from app.math.oge17_scheduler import build_task17_candidate_batch
 from app.math.oge18 import POLICY as GRID_POLICY
 from app.math.oge18 import from_snapshot as grid_from_snapshot
 from app.math.oge18_scheduler import build_task18_candidate_batch
+from app.math.oge19 import POLICY as STATEMENT_POLICY
+from app.math.oge19 import validate_snapshot as validate_statement_snapshot
+from app.math.oge19_scheduler import build_task19_candidate_batch
 from app.math.probability import ANSWER_POLICY as PROBABILITY_POLICY
 from app.math.progressions import POLICY as PROGRESSION_POLICY
 from app.persistence.repository import Repository
@@ -75,6 +78,13 @@ NUMERIC_TRAININGS = {
     17: NumericTraining(17, "четырёхугольники", QUADRILATERAL_POLICY, build_task17_candidate_batch),
     15: NumericTraining(15, "треугольники", TRIANGLE_POLICY, build_task15_candidate_batch),
     18: NumericTraining(18, "фигуры на клетчатой сетке", GRID_POLICY, build_task18_candidate_batch),
+    19: NumericTraining(
+        19,
+        "геометрические утверждения",
+        STATEMENT_POLICY,
+        build_task19_candidate_batch,
+        "Введите номер верного утверждения: 1, 2 или 3.",
+    ),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
     10: NumericTraining(
         10,
@@ -125,7 +135,7 @@ async def send_problem(
 ) -> bool:
     from app.bot.router import _user_id
 
-    if adapter.number in {16, 17, 18} and not adapter.families:
+    if adapter.number in {16, 17, 18, 19} and not adapter.families:
         await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return False
     user_id = user_id_override if user_id_override is not None else _user_id(message)
@@ -167,7 +177,22 @@ async def send_problem(
                     await family_exhausted(message, repository, user_id, adapter.number)
                     return False
                 candidate_state["family_queue"] = [selected]
-            candidates = adapter.candidates(candidate_state, secrets.randbelow(2**63))
+            try:
+                candidates = adapter.candidates(candidate_state, secrets.randbelow(2**63))
+            except ValueError:
+                if adapter.number != 19:
+                    raise
+                if selected is not None:
+                    from app.bot.family_selection import family_exhausted
+
+                    await family_exhausted(message, repository, user_id, adapter.number)
+                else:
+                    await send_text(
+                        message,
+                        repository,
+                        f"Пока недостаточно утверждений для нового задания №{adapter.number}.",
+                    )
+                return False
             if selected is not None:
                 candidates = [item for item in candidates if item.get("family_id") == selected]
                 if not candidates:
@@ -268,6 +293,18 @@ async def send_problem(
             reply_markup=adapter.menu(str(problem["problem_id"])),
             user_id_override=user_id,
         )
+    elif adapter.number == 19:
+        try:
+            validate_statement_snapshot(problem)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №19 повреждено.")
+            return False
+        sent = await send_text(
+            message,
+            repository,
+            f"Задание №19 · Геометрические утверждения\n\n{problem['condition']}",
+            reply_markup=adapter.menu(str(problem["problem_id"])),
+        )
     else:
         sent = await send_text(
             message,
@@ -300,7 +337,7 @@ async def training_callback(
         _solution_display_status,
     )
 
-    if adapter.number in {16, 17, 18} and not adapter.families:
+    if adapter.number in {16, 17, 18, 19} and not adapter.families:
         await answer_callback(callback, f"Задания №{adapter.number} пока выключены.")
         return
     parts = (callback.data or "").split(":", 2)
@@ -367,6 +404,12 @@ async def training_callback(
         except ValueError:
             await answer_callback(callback, "Сохранённое задание повреждено.")
             return
+    if adapter.number == 19:
+        try:
+            validate_statement_snapshot(problem)
+        except ValueError:
+            await answer_callback(callback, "Сохранённое задание №19 повреждено.")
+            return
     if action in {"next", "skip"}:
         advanced = await send_problem(
             adapter,
@@ -384,7 +427,11 @@ async def training_callback(
     if action == "hint":
         hint = await adapter.operation(repository, "hint")(user_id, expected_id, prompt_id)
         await send_text(
-            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
+            message,
+            repository,
+            hint_message(hint, problem, numbered=adapter.number != 19)
+            if hint
+            else "Подсказок больше нет.",
         )
     elif action == "solution":
         revealed = await adapter.operation(repository, "reveal_solution")(
@@ -423,7 +470,7 @@ async def training_answer(
 ) -> None:
     from app.bot.router import _disable_stale_keyboard, _user_id
 
-    if adapter.number in {16, 17, 18} and not adapter.families:
+    if adapter.number in {16, 17, 18, 19} and not adapter.families:
         await send_text(message, repository, f"Задания №{adapter.number} пока выключены.")
         return
     user_id = _user_id(message)
@@ -448,7 +495,11 @@ async def training_answer(
         await send_text(
             message,
             repository,
-            "Ответ к предыдущему заданию не принят. Напишите ответ числом в чат.",
+            (
+                "Ответ к предыдущему заданию не принят. Напишите номер ответа в чат."
+                if adapter.number == 19
+                else "Ответ к предыдущему заданию не принят. Напишите ответ числом в чат."
+            ),
         )
         return
     if (
@@ -485,6 +536,12 @@ async def training_answer(
             grid_from_snapshot(problem, audit_pixels=False)
         except ValueError:
             await send_text(message, repository, "Сохранённое задание №18 повреждено.")
+            return
+    if adapter.number == 19:
+        try:
+            validate_statement_snapshot(problem)
+        except ValueError:
+            await send_text(message, repository, "Сохранённое задание №19 повреждено.")
             return
     if adapter.policy.parse(message.text) is None:
         await send_text(message, repository, adapter.invalid_answer)

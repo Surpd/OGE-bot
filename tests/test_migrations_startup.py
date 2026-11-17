@@ -92,6 +92,9 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
                 "SELECT to_regclass('sessions_one_active_task11_per_user') IS NOT NULL"
             )
             assert await repository._pool.fetchval(
+                "SELECT to_regclass('sessions_one_active_task19_per_user') IS NOT NULL"
+            )
+            assert await repository._pool.fetchval(
                 "SELECT to_regclass('oge15_one_open_session_per_story_mode') IS NOT NULL"
             )
             assert await repository._pool.fetchval(
@@ -197,7 +200,7 @@ async def test_create_app_fails_before_unique_index_without_changing_duplicate_s
 
 
 @pytest.mark.asyncio
-async def test_main_migrations_upgrade_adds_only_task16_and_preserves_task17(monkeypatch, tmp_path):
+async def test_main_migrations_upgrade_adds_only_task19_and_preserves_task17(monkeypatch, tmp_path):
     """Upgrade the exact main migration prefix, then retry without reapplying it."""
     from app import main
     from app.math.oge17_generator import generate
@@ -209,8 +212,8 @@ async def test_main_migrations_upgrade_adds_only_task16_and_preserves_task17(mon
     pool = await asyncpg.create_pool(test_url)
     try:
         files = _migration_files()
-        assert [int(p.name[:4]) for p in files] == list(range(1, 18))
-        assert files[-1].name == "0017_task16_sessions.sql"
+        assert [int(p.name[:4]) for p in files] == list(range(1, 19))
+        assert files[-1].name == "0018_task19_sessions.sql"
         for migration in files[:-1]:
             (tmp_path / migration.name).write_text(migration.read_text())
         with monkeypatch.context() as patch:
@@ -229,7 +232,7 @@ async def test_main_migrations_upgrade_adds_only_task16_and_preserves_task17(mon
             "SELECT version, applied_at FROM app_schema_migrations ORDER BY version"
         )
         assert after[:-1] == before
-        assert after[-1]["version"] == "0017_task16_sessions.sql"
+        assert after[-1]["version"] == "0018_task19_sessions.sql"
         restored = await PostgresRepository(pool).task17_state(170016)
         assert restored["problem"] == snapshot
         assert await pool.fetchval(
@@ -237,6 +240,9 @@ async def test_main_migrations_upgrade_adds_only_task16_and_preserves_task17(mon
         )
         assert await pool.fetchval(
             "SELECT to_regclass('sessions_one_active_task17_per_user') IS NOT NULL"
+        )
+        assert await pool.fetchval(
+            "SELECT to_regclass('sessions_one_active_task19_per_user') IS NOT NULL"
         )
     finally:
         await pool.close()

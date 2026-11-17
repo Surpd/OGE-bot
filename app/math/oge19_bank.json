@@ -1,0 +1,2765 @@
+{
+  "bank_version": "oge19-claims-4",
+  "source_snapshot": "oge19-sdamgia-2026-11-05",
+  "items": [
+    {
+      "id": "OGE19-A001",
+      "proposition_id": "triangle.angle_sum",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "Сумма внутренних углов любого треугольника равна 180°.",
+      "is_true": true,
+      "explanation": "По теореме о сумме углов треугольника.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A002",
+      "proposition_id": "right_triangle.acute_angle_sum",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "Сумма острых углов прямоугольного треугольника равна 90°.",
+      "is_true": true,
+      "explanation": "Третий угол равен 90°, а сумма всех трёх равна 180°.",
+      "source": {
+        "task_id": "348884",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348884",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A003",
+      "proposition_id": "right_triangle.total_angle_sum_90",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "Сумма углов прямоугольного треугольника равна 90°.",
+      "is_true": false,
+      "explanation": "В любом треугольнике сумма углов равна 180°; прямой угол уже равен 90°.",
+      "source": {
+        "task_id": "348874",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348874",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A004",
+      "proposition_id": "obtuse_triangle.all_angles_obtuse",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "В тупоугольном треугольнике все три угла тупые.",
+      "is_true": false,
+      "explanation": "Контрпример: углы 120°, 30° и 30° образуют треугольник.",
+      "source": {
+        "task_id": "348466",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348466",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A005",
+      "proposition_id": "triangle.at_least_two_acute",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "Любой треугольник имеет не менее двух острых углов.",
+      "is_true": true,
+      "explanation": "Если бы только один угол был острым, другие два были бы не меньше 90°, и их сумма уже составила бы не меньше 180°; третий угол положителен.",
+      "source": {
+        "task_id": "401622",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401622",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A006",
+      "proposition_id": "triangle.some_angle_at_most_60",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "В каждом треугольнике найдётся угол не больше 60°.",
+      "is_true": true,
+      "explanation": "Иначе сумма трёх углов была бы больше 180°.",
+      "source": {
+        "task_id": "341499",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341499",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A007",
+      "proposition_id": "equilateral.each_angle_60",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "Каждый угол равностороннего треугольника равен 60°.",
+      "is_true": true,
+      "explanation": "Три угла равны и в сумме дают 180°.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A008",
+      "proposition_id": "triangle.two_obtuse_possible",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "В треугольнике может быть два тупых угла.",
+      "is_true": false,
+      "explanation": "Два тупых угла уже дают сумму больше 180°.",
+      "source": {
+        "task_id": "401622",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401622",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A009",
+      "proposition_id": "triangle.equal_angles_equal_sides",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "Если два угла треугольника равны, то противоположные им стороны равны.",
+      "is_true": true,
+      "explanation": "Равным углам треугольника противолежат равные стороны.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A010",
+      "proposition_id": "triangle.two_equal_angles_equilateral",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "Если два угла треугольника равны, то треугольник равносторонний.",
+      "is_true": false,
+      "explanation": "Контрпример: углы 70°, 70°, 40° задают равнобедренный, но не равносторонний треугольник.",
+      "source": {
+        "task_id": "401622",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401622",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A011",
+      "proposition_id": "right_triangle.hypotenuse_less_legs_sum",
+      "topic": "triangle_inequality",
+      "grade_band": "5-7",
+      "statement": "Гипотенуза прямоугольного треугольника меньше суммы его катетов.",
+      "is_true": true,
+      "explanation": "Это частный случай строгого неравенства треугольника.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A012",
+      "proposition_id": "triangle_sides_1_2_4_exists",
+      "topic": "triangle_inequality",
+      "grade_band": "5-7",
+      "statement": "Треугольник со сторонами 1, 2 и 4 существует.",
+      "is_true": false,
+      "explanation": "1 + 2 < 4, поэтому нарушено неравенство треугольника.",
+      "source": {
+        "task_id": "341525",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341525",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A013",
+      "proposition_id": "triangle_sides_3_4_5_exists",
+      "topic": "triangle_inequality",
+      "grade_band": "5-7",
+      "statement": "Треугольник со сторонами 3, 4 и 5 существует.",
+      "is_true": true,
+      "explanation": "3 + 4 > 5, 3 + 5 > 4 и 4 + 5 > 3.",
+      "source": {
+        "task_id": "341525",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341525",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A014",
+      "proposition_id": "triangle.strict_inequality",
+      "topic": "triangle_inequality",
+      "grade_band": "5-7",
+      "statement": "В любом невырожденном треугольнике каждая сторона меньше суммы двух других.",
+      "is_true": true,
+      "explanation": "Это строгое неравенство треугольника.",
+      "source": {
+        "task_id": "348897",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348897",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A015",
+      "proposition_id": "triangle.side_equal_sum",
+      "topic": "triangle_inequality",
+      "grade_band": "5-7",
+      "statement": "Сторона треугольника может быть равна сумме двух других сторон.",
+      "is_true": false,
+      "explanation": "При равенстве три точки лежат на одной прямой; треугольник вырожден.",
+      "source": {
+        "task_id": "348897",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348897",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A016",
+      "proposition_id": "triangle.median_bisects_side",
+      "topic": "triangle_inequality",
+      "grade_band": "5-7",
+      "statement": "Медиана треугольника делит пополам сторону, к которой проведена.",
+      "is_true": true,
+      "explanation": "Это определение медианы.",
+      "source": {
+        "task_id": "348897",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348897",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A017",
+      "proposition_id": "triangle.median_bisects_angle",
+      "topic": "triangle_inequality",
+      "grade_band": "5-7",
+      "statement": "Медиана треугольника делит пополам угол, из которого проведена.",
+      "is_true": false,
+      "explanation": "В треугольнике со сторонами 5, 6, 7 медиана из вершины между сторонами 5 и 6 делит противоположную сторону 7 пополам; по теореме о биссектрисе это потребовало бы равенства сторон 5 и 6, что неверно.",
+      "source": {
+        "task_id": "348897",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348897",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A018",
+      "proposition_id": "similarity.two_angles",
+      "topic": "triangle_similarity",
+      "grade_band": "8",
+      "statement": "Если два угла одного треугольника соответственно равны двум углам другого, треугольники подобны.",
+      "is_true": true,
+      "explanation": "Третий угол также равен; выполняется признак подобия по двум углам.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A019",
+      "proposition_id": "similarity.three_angles",
+      "topic": "triangle_similarity",
+      "grade_band": "8",
+      "statement": "Если все три угла одного треугольника соответственно равны углам другого, треугольники подобны.",
+      "is_true": true,
+      "explanation": "Равенства двух углов уже достаточно для подобия.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A020",
+      "proposition_id": "similarity.equal_angles_congruent",
+      "topic": "triangle_similarity",
+      "grade_band": "8",
+      "statement": "Если соответствующие углы треугольников равны, эти треугольники обязательно равны.",
+      "is_true": false,
+      "explanation": "Контрпример: треугольники со сторонами 3, 4, 5 и 6, 8, 10 подобны, но не равны.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A021",
+      "proposition_id": "similarity.two_equal_sides",
+      "topic": "triangle_similarity",
+      "grade_band": "8",
+      "statement": "Если две стороны одного треугольника равны двум сторонам другого, треугольники обязательно подобны.",
+      "is_true": false,
+      "explanation": "Контрпример: стороны 3, 4, 5 и 3, 4, 6; равенство двух сторон не задаёт подобие.",
+      "source": {
+        "task_id": "341384",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341384",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A022",
+      "proposition_id": "parallelogram.equal_perpendicular_diagonals_square",
+      "topic": "quadrilaterals",
+      "grade_band": "8",
+      "statement": "Если диагонали параллелограмма равны и перпендикулярны, этот параллелограмм является квадратом.",
+      "is_true": true,
+      "explanation": "Равные диагонали дают прямоугольник, перпендикулярные — ромб; фигура, являющаяся и прямоугольником, и ромбом, — квадрат.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A023",
+      "proposition_id": "congruence.sas",
+      "topic": "triangle_congruence",
+      "grade_band": "7",
+      "statement": "Если две стороны и угол между ними одного треугольника равны соответствующим элементам другого, треугольники равны.",
+      "is_true": true,
+      "explanation": "Это второй признак равенства треугольников (SAS).",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A024",
+      "proposition_id": "congruence.two_sides",
+      "topic": "triangle_congruence",
+      "grade_band": "7",
+      "statement": "Равенства двух соответствующих сторон треугольников достаточно для их равенства.",
+      "is_true": false,
+      "explanation": "Контрпример: треугольники со сторонами 3, 4, 5 и 3, 4, 6 имеют две общие длины, но не равны.",
+      "source": {
+        "task_id": "341384",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341384",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A025",
+      "proposition_id": "congruence.ssa",
+      "topic": "triangle_congruence",
+      "grade_band": "7",
+      "statement": "Равенства двух сторон и произвольного угла треугольников всегда достаточно для их равенства.",
+      "is_true": false,
+      "explanation": "Два примера задаются сторонами 13 и 14 и углом 30° напротив стороны 13: третья сторона c = 7√3 ± 2√30 (примерно 1,17 или 23,08). Оба значения дают невырожденный треугольник, поэтому данные SSA не задают равенство.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A026",
+      "proposition_id": "congruence.sss",
+      "topic": "triangle_congruence",
+      "grade_band": "7",
+      "statement": "Равенства трёх соответствующих сторон достаточно для равенства треугольников.",
+      "is_true": true,
+      "explanation": "Треугольники равны по трём сторонам (SSS).",
+      "source": {
+        "task_id": "341384",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341384",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A027",
+      "proposition_id": "congruence.equal_area",
+      "topic": "triangle_congruence",
+      "grade_band": "7",
+      "statement": "Равенство площадей двух треугольников означает их равенство.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольные треугольники с катетами 4 и 2, а также 8 и 1 имеют площадь 4, но разные длины сторон и потому не равны.",
+      "source": {
+        "task_id": "348535",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348535",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A028",
+      "proposition_id": "quadrilateral.four_sides_congruence",
+      "topic": "triangle_congruence",
+      "grade_band": "7",
+      "statement": "Четыре равных по длине стороны двух четырёхугольников гарантируют равенство этих четырёхугольников.",
+      "is_true": false,
+      "explanation": "Квадрат и неквадратный ромб с одинаковой длиной стороны имеют те же длины сторон, но разные углы.",
+      "source": {
+        "task_id": "341710",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341710",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A029",
+      "proposition_id": "isosceles.apex_bisector_median",
+      "topic": "isosceles_triangle",
+      "grade_band": "7",
+      "statement": "Биссектриса равнобедренного треугольника, проведённая из вершины между равными сторонами, является медианой.",
+      "is_true": true,
+      "explanation": "Она делит основание на равные части по признаку равенства двух треугольников.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A030",
+      "proposition_id": "isosceles.every_bisector_median",
+      "topic": "isosceles_triangle",
+      "grade_band": "7",
+      "statement": "Каждая биссектриса равнобедренного треугольника является медианой.",
+      "is_true": false,
+      "explanation": "Контрпример: в треугольнике 5, 5, 6 биссектриса при угле основания не делит противоположную сторону пополам.",
+      "source": {
+        "task_id": "314818",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314818",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A031",
+      "proposition_id": "equilateral.every_bisector_median",
+      "topic": "isosceles_triangle",
+      "grade_band": "7",
+      "statement": "Каждая биссектриса равностороннего треугольника является медианой.",
+      "is_true": true,
+      "explanation": "В равностороннем треугольнике биссектрисы совпадают с медианами.",
+      "source": {
+        "task_id": "314818",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314818",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A032",
+      "proposition_id": "equilateral.every_bisector_altitude",
+      "topic": "isosceles_triangle",
+      "grade_band": "7",
+      "statement": "Каждая биссектриса равностороннего треугольника является высотой.",
+      "is_true": true,
+      "explanation": "В равностороннем треугольнике медиана, биссектриса и высота из одной вершины совпадают.",
+      "source": {
+        "task_id": "401622",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401622",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A033",
+      "proposition_id": "equilateral.equal_altitudes",
+      "topic": "isosceles_triangle",
+      "grade_band": "7",
+      "statement": "Все высоты равностороннего треугольника равны.",
+      "is_true": true,
+      "explanation": "Высоты равностороннего треугольника являются медианами; симметрия даёт одинаковые длины.",
+      "source": {
+        "task_id": "401818",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401818",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A034",
+      "proposition_id": "isosceles.base_angles_equal",
+      "topic": "isosceles_triangle",
+      "grade_band": "7",
+      "statement": "В равнобедренном треугольнике углы при основании равны.",
+      "is_true": true,
+      "explanation": "Это свойство равнобедренного треугольника.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A035",
+      "proposition_id": "triangle.circumcenter_perpendicular_bisectors",
+      "topic": "triangle_centers",
+      "grade_band": "7-9",
+      "statement": "Серединные перпендикуляры к сторонам треугольника пересекаются в центре описанной окружности.",
+      "is_true": true,
+      "explanation": "Точка пересечения равноудалена от всех трёх вершин.",
+      "source": {
+        "task_id": "341525",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341525",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A036",
+      "proposition_id": "triangle.circumcenter_inside",
+      "topic": "triangle_centers",
+      "grade_band": "7-9",
+      "statement": "Центр описанной окружности всегда лежит внутри треугольника.",
+      "is_true": false,
+      "explanation": "Контрпример: у тупоугольного треугольника центр описанной окружности лежит вне треугольника.",
+      "source": {
+        "task_id": "348466",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348466",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A037",
+      "proposition_id": "triangle.incenter_bisectors",
+      "topic": "triangle_centers",
+      "grade_band": "7-9",
+      "statement": "Биссектрисы треугольника пересекаются в центре вписанной окружности.",
+      "is_true": true,
+      "explanation": "Точка пересечения равноудалена от сторон и является центром вписанной окружности.",
+      "source": {
+        "task_id": "348874",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348874",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A038",
+      "proposition_id": "angle_bisector.locus",
+      "topic": "triangle_centers",
+      "grade_band": "7-9",
+      "statement": "Точка на биссектрисе угла равноудалена от его сторон.",
+      "is_true": true,
+      "explanation": "Перпендикулярные расстояния до сторон равны по свойству биссектрисы.",
+      "source": {
+        "task_id": "348616",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348616",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A039",
+      "proposition_id": "triangle.circumcircle_exists",
+      "topic": "triangle_centers",
+      "grade_band": "7-9",
+      "statement": "Около любого треугольника можно описать окружность.",
+      "is_true": true,
+      "explanation": "Серединные перпендикуляры к двум сторонам пересекаются; их точка пересечения равноудалена от всех трёх вершин.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A040",
+      "proposition_id": "right_triangle.cosine_definition",
+      "topic": "right_triangle",
+      "grade_band": "8-9",
+      "statement": "Косинус острого угла прямоугольного треугольника равен отношению прилежащего катета к гипотенузе.",
+      "is_true": true,
+      "explanation": "Это определение косинуса острого угла в прямоугольном треугольнике.",
+      "source": {
+        "task_id": "401388",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401388",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A041",
+      "proposition_id": "right_triangle.cosine_inverse",
+      "topic": "right_triangle",
+      "grade_band": "8-9",
+      "statement": "Косинус острого угла равен отношению гипотенузы к прилежащему катету.",
+      "is_true": false,
+      "explanation": "Для треугольника 3–4–5 косинус угла у катета 4 равен 4/5, а не 5/4.",
+      "source": {
+        "task_id": "401388",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401388",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A042",
+      "proposition_id": "acute_tangent_less_one",
+      "topic": "right_triangle",
+      "grade_band": "8-9",
+      "statement": "Тангенс любого острого угла меньше единицы.",
+      "is_true": false,
+      "explanation": "Контрпример: tan 60° = √3 > 1.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A043",
+      "proposition_id": "acute_tangent_can_exceed_one",
+      "topic": "right_triangle",
+      "grade_band": "8-9",
+      "statement": "Существует острый угол, тангенс которого больше единицы.",
+      "is_true": true,
+      "explanation": "Например, tan 60° = √3 > 1.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A044",
+      "proposition_id": "angles.vertical_equal",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Вертикальные углы равны.",
+      "is_true": true,
+      "explanation": "Это теорема о вертикальных углах.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A045",
+      "proposition_id": "angles.linear_pair_sum",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Сумма смежных углов равна 180°.",
+      "is_true": true,
+      "explanation": "Их внешние стороны образуют прямую.",
+      "source": {
+        "task_id": "348392",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348392",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A046",
+      "proposition_id": "angles.linear_pair_equal",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Смежные углы всегда равны.",
+      "is_true": false,
+      "explanation": "Контрпример: углы 60° и 120° смежные, но не равны.",
+      "source": {
+        "task_id": "341676",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341676",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A047",
+      "proposition_id": "parallel.alternate_interior_converse",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Если накрест лежащие углы равны, пересекаемые ими прямые параллельны.",
+      "is_true": true,
+      "explanation": "Это признак параллельности прямых.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A048",
+      "proposition_id": "parallel.transitive",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Если две различные прямые параллельны одной и той же прямой, то они параллельны друг другу.",
+      "is_true": true,
+      "explanation": "Они имеют одно и то же направление и не пересекаются.",
+      "source": {
+        "task_id": "348739",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348739",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A049",
+      "proposition_id": "parallel_to_same_perpendicular",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Две прямые, параллельные одной прямой, перпендикулярны друг другу.",
+      "is_true": false,
+      "explanation": "В евклидовой плоскости обе параллельны общей прямой и друг другу.",
+      "source": {
+        "task_id": "348535",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348535",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A050",
+      "proposition_id": "line.unique_perpendicular",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Через точку вне прямой можно провести единственную прямую, перпендикулярную этой прямой.",
+      "is_true": true,
+      "explanation": "Перпендикуляр из точки к прямой существует и единственен.",
+      "source": {
+        "task_id": "341710",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341710",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A051",
+      "proposition_id": "line.exactly_two_through_point",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Через одну точку плоскости можно провести ровно две прямые.",
+      "is_true": false,
+      "explanation": "Через точку проходят бесконечно многие прямые; например, можно выбрать любые два различных направления.",
+      "source": {
+        "task_id": "348630",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348630",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A052",
+      "proposition_id": "line.three_through_point",
+      "topic": "angles_lines",
+      "grade_band": "5-7",
+      "statement": "Через одну точку плоскости можно провести три различные прямые.",
+      "is_true": true,
+      "explanation": "Достаточно взять три различных направления.",
+      "source": {
+        "task_id": "401617",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401617",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A053",
+      "proposition_id": "square.is_rhombus",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Любой квадрат является ромбом.",
+      "is_true": true,
+      "explanation": "У квадрата все четыре стороны равны, как и требуется для ромба.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A054",
+      "proposition_id": "square_not_rhombus_exists",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Существует квадрат, который не является ромбом.",
+      "is_true": false,
+      "explanation": "По определению каждый квадрат имеет четыре равные стороны и потому является ромбом.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A055",
+      "proposition_id": "rhombus_not_square_exists",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Существует ромб, который не является квадратом.",
+      "is_true": true,
+      "explanation": "Например, ромб с углами 60° и 120°.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A056",
+      "proposition_id": "rhombus.right_angle_square",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Если один из углов ромба прямой, то ромб является квадратом.",
+      "is_true": true,
+      "explanation": "Соседние углы дополняют друг друга до 180°, поэтому все углы прямые; все стороны ромба равны.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A057",
+      "proposition_id": "rhombus.all_angles_equal",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Все углы любого ромба равны.",
+      "is_true": false,
+      "explanation": "Контрпример: ромб с углами 60° и 120°.",
+      "source": {
+        "task_id": "348369",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348369",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A058",
+      "proposition_id": "rhombus.diagonals_perpendicular",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали любого ромба перпендикулярны.",
+      "is_true": true,
+      "explanation": "Диагонали ромба являются взаимно перпендикулярными биссектрисами.",
+      "source": {
+        "task_id": "348466",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348466",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A059",
+      "proposition_id": "rhombus.diagonals_bisect",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали ромба точкой пересечения делятся пополам.",
+      "is_true": true,
+      "explanation": "Ромб является параллелограммом, диагонали которого делятся пополам.",
+      "source": {
+        "task_id": "349332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=349332",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A060",
+      "proposition_id": "rhombus.diagonals_equal",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали любого ромба равны.",
+      "is_true": false,
+      "explanation": "Контрпример: ромб с углами 60° и 120° имеет диагонали разной длины.",
+      "source": {
+        "task_id": "348466",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348466",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A061",
+      "proposition_id": "rectangle.diagonals_equal",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали любого прямоугольника равны.",
+      "is_true": true,
+      "explanation": "Это свойство прямоугольника.",
+      "source": {
+        "task_id": "314818",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314818",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A062",
+      "proposition_id": "rectangle.diagonals_perpendicular",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали любого прямоугольника перпендикулярны.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольник со сторонами 2 и 4; его диагонали не перпендикулярны.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A063",
+      "proposition_id": "parallelogram.diagonals_bisect",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали параллелограмма точкой пересечения делятся пополам.",
+      "is_true": true,
+      "explanation": "Это свойство параллелограмма.",
+      "source": {
+        "task_id": "480187",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480187",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A064",
+      "proposition_id": "parallelogram.diagonals_equal",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали любого параллелограмма равны.",
+      "is_true": false,
+      "explanation": "Контрпример: ромб с углами 60° и 120°.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A065",
+      "proposition_id": "parallelogram.equal_diagonals_rectangle",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Если диагонали параллелограмма равны, то он является прямоугольником.",
+      "is_true": true,
+      "explanation": "Равенство диагоналей параллелограмма является признаком прямоугольника.",
+      "source": {
+        "task_id": "480421",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480421",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A066",
+      "proposition_id": "parallelogram.equal_diagonals_square",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Если диагонали параллелограмма равны, то он обязательно квадрат.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольник со сторонами 2 и 3 имеет равные диагонали, но не является квадратом.",
+      "source": {
+        "task_id": "480421",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480421",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A067",
+      "proposition_id": "parallelogram.perpendicular_diagonals_rhombus",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Если диагонали параллелограмма перпендикулярны, то он является ромбом.",
+      "is_true": true,
+      "explanation": "В параллелограмме перпендикулярные диагонали дают равенство соседних сторон.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A068",
+      "proposition_id": "parallelogram.diagonal_congruent_triangles",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагональ параллелограмма делит его на два равных треугольника.",
+      "is_true": true,
+      "explanation": "Общие стороны диагональ; остальные стороны попарно равны как противоположные стороны параллелограмма.",
+      "source": {
+        "task_id": "401388",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401388",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A069",
+      "proposition_id": "rectangle.diagonals_four_congruent",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагонали любого прямоугольника делят его на четыре равных по форме и размерам треугольника.",
+      "is_true": false,
+      "explanation": "В прямоугольнике 2×4 площади всех четырёх треугольников равны, но основания у них попеременно 2 и 4, поэтому треугольники не равны по форме и размерам.",
+      "source": {
+        "task_id": "348535",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348535",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A070",
+      "proposition_id": "rectangle.cyclic",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Любой прямоугольник можно вписать в окружность.",
+      "is_true": true,
+      "explanation": "Сумма противоположных углов прямоугольника равна 180°, значит, он циклический.",
+      "source": {
+        "task_id": "348630",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348630",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A071",
+      "proposition_id": "trapezoid.diagonal_equal_triangles",
+      "topic": "quadrilaterals",
+      "grade_band": "8-9",
+      "statement": "Диагональ любой трапеции делит её на два равных треугольника.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольная трапеция с основаниями 2 и 4 и высотой 3 даёт при диагонали площади 3 и 6.",
+      "source": {
+        "task_id": "348367",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348367",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A072",
+      "proposition_id": "trapezoid.midline_parallel",
+      "topic": "trapezoids",
+      "grade_band": "8-9",
+      "statement": "Средняя линия трапеции параллельна её основаниям.",
+      "is_true": true,
+      "explanation": "Это теорема о средней линии трапеции.",
+      "source": {
+        "task_id": "341384",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341384",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A073",
+      "proposition_id": "trapezoid.midline_half_sum",
+      "topic": "trapezoids",
+      "grade_band": "8-9",
+      "statement": "Средняя линия трапеции равна полусумме её оснований.",
+      "is_true": true,
+      "explanation": "По теореме о средней линии трапеции m = (a + b) / 2.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A074",
+      "proposition_id": "trapezoid.midline_sum",
+      "topic": "trapezoids",
+      "grade_band": "8-9",
+      "statement": "Средняя линия трапеции равна сумме её оснований.",
+      "is_true": false,
+      "explanation": "Контрпример: при основаниях 2 и 6 средняя линия равна 4, а сумма оснований — 8.",
+      "source": {
+        "task_id": "348884",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348884",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A075",
+      "proposition_id": "trapezoid.legs_equal",
+      "topic": "trapezoids",
+      "grade_band": "8-9",
+      "statement": "У любой трапеции боковые стороны равны.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольная трапеция с основаниями 2 и 6 и высотой 3 имеет боковые стороны 3 и 5.",
+      "source": {
+        "task_id": "314818",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314818",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A076",
+      "proposition_id": "isosceles_trapezoid.legs_equal",
+      "topic": "trapezoids",
+      "grade_band": "8-9",
+      "statement": "В равнобедренной трапеции боковые стороны равны.",
+      "is_true": true,
+      "explanation": "Это определяющее свойство равнобедренной трапеции.",
+      "source": {
+        "task_id": "401617",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401617",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A077",
+      "proposition_id": "trapezoid.area_midline_height",
+      "topic": "trapezoids",
+      "grade_band": "8-9",
+      "statement": "Площадь трапеции равна произведению полусуммы оснований на высоту.",
+      "is_true": true,
+      "explanation": "Формула площади: S = (a + b)h / 2.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A078",
+      "proposition_id": "triangle.area_half_base_height",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь треугольника равна половине произведения основания на высоту к нему.",
+      "is_true": true,
+      "explanation": "Формула площади треугольника S = ah / 2.",
+      "source": {
+        "task_id": "348874",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348874",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A079",
+      "proposition_id": "right_triangle.area_half_legs",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь прямоугольного треугольника равна половине произведения катетов.",
+      "is_true": true,
+      "explanation": "Катеты перпендикулярны и могут служить основанием и высотой.",
+      "source": {
+        "task_id": "350053",
+        "url": "https://math-oge.sdamgia.ru/problem?id=350053",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A080",
+      "proposition_id": "right_triangle.area_product_legs",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь прямоугольного треугольника равна произведению катетов.",
+      "is_true": false,
+      "explanation": "Контрпример: при катетах 3 и 4 площадь равна 6, а произведение катетов — 12.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A081",
+      "proposition_id": "rhombus.area_side_height",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь ромба равна произведению его стороны на высоту к этой стороне.",
+      "is_true": true,
+      "explanation": "Ромб является параллелограммом; его площадь равна основанию на высоту.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A082",
+      "proposition_id": "parallelogram.area_base_height",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь параллелограмма равна произведению основания на высоту к нему.",
+      "is_true": true,
+      "explanation": "Это формула площади параллелограмма.",
+      "source": {
+        "task_id": "348874",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348874",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A083",
+      "proposition_id": "parallelogram.area_half_diagonal_product",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь параллелограмма всегда равна половине произведения его диагоналей.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольник 2×4 имеет площадь 8, а половина произведения диагоналей равна 10.",
+      "source": {
+        "task_id": "348874",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348874",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A084",
+      "proposition_id": "square.area_adjacent_sides",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь квадрата равна произведению двух смежных сторон.",
+      "is_true": true,
+      "explanation": "Смежные стороны квадрата равны a, а площадь равна a².",
+      "source": {
+        "task_id": "348367",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348367",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A085",
+      "proposition_id": "rectangle.area_adjacent_sides",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь прямоугольника равна произведению длин двух смежных сторон.",
+      "is_true": true,
+      "explanation": "Это формула площади прямоугольника S = ab.",
+      "source": {
+        "task_id": "480244",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480244",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A086",
+      "proposition_id": "trapezoid.area_one_base_height",
+      "topic": "areas",
+      "grade_band": "7-9",
+      "statement": "Площадь трапеции равна произведению одного основания на высоту.",
+      "is_true": false,
+      "explanation": "Контрпример: у трапеции с основаниями 2 и 6 и высотой 3 площадь 12, а произведения оснований на высоту равны 6 и 18.",
+      "source": {
+        "task_id": "480421",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480421",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A087",
+      "proposition_id": "circle.diameters_equal",
+      "topic": "circles",
+      "grade_band": "6-9",
+      "statement": "Все диаметры одной окружности равны.",
+      "is_true": true,
+      "explanation": "Каждый диаметр равен удвоенному радиусу этой окружности.",
+      "source": {
+        "task_id": "341499",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341499",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A088",
+      "proposition_id": "circle.point_radius",
+      "topic": "circles",
+      "grade_band": "6-9",
+      "statement": "Расстояние от точки окружности до её центра равно радиусу.",
+      "is_true": true,
+      "explanation": "Это определение окружности как множества точек, равноудалённых от центра.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A089",
+      "proposition_id": "circle.all_chords_equal",
+      "topic": "circles",
+      "grade_band": "6-9",
+      "statement": "Все хорды одной окружности равны.",
+      "is_true": false,
+      "explanation": "Контрпример: в окружности радиуса 5 диаметры имеют длину 10, а хорда на расстоянии 3 от центра — длину 8.",
+      "source": {
+        "task_id": "348533",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348533",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A090",
+      "proposition_id": "circle.chord_distance",
+      "topic": "circles",
+      "grade_band": "6-9",
+      "statement": "Длина хорды окружности зависит от расстояния этой хорды до центра.",
+      "is_true": true,
+      "explanation": "При радиусе R и расстоянии d длина хорды равна 2√(R² − d²).",
+      "source": {
+        "task_id": "348392",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348392",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A091",
+      "proposition_id": "circle.inscribed_angle_diameter",
+      "topic": "circles",
+      "grade_band": "6-9",
+      "statement": "Вписанный угол, опирающийся на диаметр, равен 90°.",
+      "is_true": true,
+      "explanation": "По теореме Фалеса такой угол равен половине развёрнутого центрального угла.",
+      "source": {
+        "task_id": "348669",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348669",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A092",
+      "proposition_id": "circle.inscribed_half_central",
+      "topic": "circles",
+      "grade_band": "6-9",
+      "statement": "Вписанный угол равен половине центрального угла, опирающегося на ту же дугу.",
+      "is_true": true,
+      "explanation": "Это теорема о вписанном угле.",
+      "source": {
+        "task_id": "349332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=349332",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A093",
+      "proposition_id": "circle.inscribed_equals_central",
+      "topic": "circles",
+      "grade_band": "6-9",
+      "statement": "Вписанный угол равен центральному углу, опирающемуся на ту же дугу.",
+      "is_true": false,
+      "explanation": "Например, центральный угол 80° и вписанный угол на ту же дугу равен 40°.",
+      "source": {
+        "task_id": "349332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=349332",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A094",
+      "proposition_id": "circle.two_tangents_external_point",
+      "topic": "tangency",
+      "grade_band": "6-9",
+      "statement": "Из точки вне окружности можно провести к ней ровно две касательные.",
+      "is_true": true,
+      "explanation": "Две точки касания симметричны относительно прямой, соединяющей центры.",
+      "source": {
+        "task_id": "348369",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348369",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A095",
+      "proposition_id": "circle.tangent_segments_equal",
+      "topic": "tangency",
+      "grade_band": "6-9",
+      "statement": "Отрезки касательных, проведённых из одной внешней точки, равны.",
+      "is_true": true,
+      "explanation": "Прямоугольные треугольники с радиусами к точкам касания равны по гипотенузе и катету.",
+      "source": {
+        "task_id": "348538",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348538",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A096",
+      "proposition_id": "circle.tangents_internal_point",
+      "topic": "tangency",
+      "grade_band": "6-9",
+      "statement": "Из точки внутри окружности можно провести две касательные к окружности.",
+      "is_true": false,
+      "explanation": "Перпендикуляр от центра к касательной должен быть равен радиусу, а расстояние внутренней точки до центра меньше радиуса.",
+      "source": {
+        "task_id": "348369",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348369",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A097",
+      "proposition_id": "circle.radius_perpendicular_tangent",
+      "topic": "tangency",
+      "grade_band": "6-9",
+      "statement": "Радиус, проведённый в точку касания, перпендикулярен касательной.",
+      "is_true": true,
+      "explanation": "Это свойство касательной к окружности.",
+      "source": {
+        "task_id": "348369",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348369",
+        "basis": "source_solution_correction",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A098",
+      "proposition_id": "rhombus.incircle",
+      "topic": "tangency",
+      "grade_band": "6-9",
+      "statement": "В любой ромб можно вписать окружность.",
+      "is_true": true,
+      "explanation": "Диагонали ромба биссектируют его углы; их точка пересечения равноудалена от всех четырёх сторон и служит центром вписанной окружности.",
+      "source": {
+        "task_id": "401818",
+        "url": "https://math-oge.sdamgia.ru/problem?id=401818",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A099",
+      "proposition_id": "triangle.exterior_angle_sum_remote",
+      "topic": "triangle_angles",
+      "grade_band": "7-8",
+      "statement": "Внешний угол треугольника равен сумме двух внутренних углов, не смежных с ним.",
+      "is_true": true,
+      "explanation": "По теореме о внешнем угле треугольника.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A100",
+      "proposition_id": "triangle.medial_concurrent",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Три медианы треугольника пересекаются в одной точке.",
+      "is_true": true,
+      "explanation": "Точка пересечения медиан — центр тяжести; это следует из теоремы о медианах.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A101",
+      "proposition_id": "triangle.centroid_two_to_one",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Точка пересечения медиан делит каждую медиану в отношении 2:1, считая от вершины.",
+      "is_true": true,
+      "explanation": "Свойство центра тяжести треугольника.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A102",
+      "proposition_id": "triangle.perpendicular_bisectors_concurrent",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Серединные перпендикуляры к сторонам треугольника пересекаются в одной точке.",
+      "is_true": true,
+      "explanation": "Точка равноудалена от всех трёх вершин и является центром описанной окружности.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A103",
+      "proposition_id": "triangle.angle_bisectors_concurrent",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Биссектрисы углов треугольника пересекаются в одной точке.",
+      "is_true": true,
+      "explanation": "Точка пересечения равноудалена от сторон и является центром вписанной окружности.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A104",
+      "proposition_id": "triangle.circumcenter_inside_acute",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Центр описанной окружности остроугольного треугольника лежит внутри треугольника.",
+      "is_true": true,
+      "explanation": "Перпендикулярные биссектрисы остроугольного треугольника пересекаются внутри него.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A105",
+      "proposition_id": "triangle.median_to_hypotenuse_half",
+      "topic": "right_triangle",
+      "grade_band": "7-8",
+      "statement": "Медиана прямоугольного треугольника, проведённая к гипотенузе, равна половине гипотенузы.",
+      "is_true": true,
+      "explanation": "Середина гипотенузы равноудалена от трёх вершин.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A106",
+      "proposition_id": "triangle.pythagorean_converse",
+      "topic": "right_triangle",
+      "grade_band": "7-8",
+      "statement": "Если квадрат большей стороны треугольника равен сумме квадратов двух других сторон, треугольник прямоугольный.",
+      "is_true": true,
+      "explanation": "Обратная теорема Пифагора.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A107",
+      "proposition_id": "triangle.similar_perimeters_ratio",
+      "topic": "triangle_similarity",
+      "grade_band": "7-8",
+      "statement": "Отношение периметров подобных треугольников равно коэффициенту подобия.",
+      "is_true": true,
+      "explanation": "Все соответствующие стороны имеют один и тот же коэффициент.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A108",
+      "proposition_id": "triangle.similar_medians_ratio",
+      "topic": "triangle_similarity",
+      "grade_band": "7-8",
+      "statement": "У подобных треугольников соответствующие медианы относятся как соответствующие стороны.",
+      "is_true": true,
+      "explanation": "Подобие переводит медиану в медиану и умножает длины на коэффициент подобия.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A109",
+      "proposition_id": "triangle.same_base_height_area",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Треугольники с равными основаниями и равными высотами имеют равные площади.",
+      "is_true": true,
+      "explanation": "Площадь каждого равна половине произведения основания на высоту.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A110",
+      "proposition_id": "triangle.median_equal_area",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Медиана треугольника делит его на два треугольника равной площади.",
+      "is_true": true,
+      "explanation": "Основания этих треугольников — равные половины исходной стороны, а высота из противоположной вершины у них общая.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A112",
+      "proposition_id": "parallelogram.one_pair_parallel_equal",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Если одна пара противоположных сторон четырёхугольника равна и параллельна, то четырёхугольник является параллелограммом.",
+      "is_true": true,
+      "explanation": "Диагональ образует равные углы и равные треугольники; вторая пара сторон также параллельна и равна.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A113",
+      "proposition_id": "rhombus.diagonals_bisect_angles",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Диагонали ромба являются биссектрисами его углов.",
+      "is_true": true,
+      "explanation": "Диагональ делит равнобедренные треугольники с равными сторонами на равные части.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A114",
+      "proposition_id": "rectangle.diagonals_equal_and_bisect",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Диагонали прямоугольника равны и точкой пересечения делятся пополам.",
+      "is_true": true,
+      "explanation": "Прямоугольник — параллелограмм с равными диагоналями.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A116",
+      "proposition_id": "circle.equal_chords_equal_arcs",
+      "topic": "circles",
+      "grade_band": "7-8",
+      "statement": "Равные хорды одной окружности стягивают равные меньшие дуги.",
+      "is_true": true,
+      "explanation": "Равные хорды опираются на равные центральные углы.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A117",
+      "proposition_id": "circle.distance_line_radius_tangent",
+      "topic": "tangency",
+      "grade_band": "7-8",
+      "statement": "Если расстояние от центра окружности до прямой равно радиусу, прямая касается окружности.",
+      "is_true": true,
+      "explanation": "Перпендикуляр из центра к прямой попадает в единственную общую точку.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A118",
+      "proposition_id": "circle.external_point_tangents_equal",
+      "topic": "tangency",
+      "grade_band": "7-8",
+      "statement": "Отрезки касательных, проведённые из одной точки вне окружности, равны.",
+      "is_true": true,
+      "explanation": "Прямоугольные треугольники с радиусами к точкам касания равны по гипотенузе и катету.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A119",
+      "proposition_id": "angles.corresponding_equal_parallel",
+      "topic": "angles_lines",
+      "grade_band": "7-8",
+      "statement": "Если при пересечении двух прямых секущей соответственные углы равны, прямые параллельны.",
+      "is_true": true,
+      "explanation": "Обратный признак параллельности прямых.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A120",
+      "proposition_id": "angles.same_side_supplementary_parallel",
+      "topic": "angles_lines",
+      "grade_band": "7-8",
+      "statement": "Если внутренние односторонние углы при секущей в сумме дают 180°, прямые параллельны.",
+      "is_true": true,
+      "explanation": "Обратный признак параллельности прямых.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A121",
+      "proposition_id": "areas.parallelogram_diagonals_four_equal",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Диагонали параллелограмма делят его на четыре треугольника равной площади.",
+      "is_true": true,
+      "explanation": "Диагонали делятся пополам, а каждая диагональ делит параллелограмм пополам.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A122",
+      "proposition_id": "areas.similar_ratio_square",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Площади подобных фигур относятся как квадраты коэффициента подобия.",
+      "is_true": true,
+      "explanation": "Линейные размеры умножаются на k, поэтому площади — на k².",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A123",
+      "proposition_id": "circle.inscribed_tangent_chord_angle",
+      "topic": "circles",
+      "grade_band": "7-8",
+      "statement": "Угол между касательной и хордой равен вписанному углу, опирающемуся на ту же хорду в противоположном сегменте.",
+      "is_true": true,
+      "explanation": "По теореме об угле между касательной и хордой оба угла равны половине соответствующей дуги AB.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A124",
+      "proposition_id": "triangle.any_median_angle_bisector",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Каждая медиана треугольника является биссектрисой проведённого из неё угла.",
+      "is_true": false,
+      "explanation": "Контрпример — треугольник со сторонами 5, 6 и 7. Медиана к стороне 7 делит её на отрезки 3,5 и 3,5. Если бы она была биссектрисой, теорема о биссектрисе требовала бы отношение этих отрезков 5:6, а не 1:1.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A125",
+      "proposition_id": "triangle.any_median_altitude",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Каждая медиана треугольника является высотой.",
+      "is_true": false,
+      "explanation": "Контрпример: в треугольнике со сторонами 5, 6 и 7 медиана к стороне 7 не перпендикулярна этой стороне.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A126",
+      "proposition_id": "triangle.circumcenter_always_inside",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Центр описанной окружности любого треугольника лежит внутри него.",
+      "is_true": false,
+      "explanation": "В тупоугольном треугольнике центр описанной окружности лежит вне треугольника.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A127",
+      "proposition_id": "triangle.orthocenter_always_inside",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Точка пересечения высот любого треугольника лежит внутри него.",
+      "is_true": false,
+      "explanation": "В тупоугольном треугольнике высоты пересекаются вне треугольника.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A128",
+      "proposition_id": "triangle.orthocenter_obtuse_outside",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Точка пересечения высот тупоугольного треугольника лежит вне его.",
+      "is_true": true,
+      "explanation": "Две высоты тупоугольного треугольника пересекают продолжения противоположных сторон.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A129",
+      "proposition_id": "triangle.similar_equal_angles_equal",
+      "topic": "triangle_similarity",
+      "grade_band": "7-8",
+      "statement": "Если два треугольника имеют по одному равному углу, они подобны.",
+      "is_true": false,
+      "explanation": "Контрпример: треугольники со сторонами 3, 4, 5 и 5, 12, 13 имеют прямой угол, но не подобны.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A130",
+      "proposition_id": "triangle.equal_area_similar",
+      "topic": "triangle_similarity",
+      "grade_band": "7-8",
+      "statement": "Треугольники равной площади всегда подобны.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольные треугольники с катетами 2 и 6, а также 3 и 4 имеют площадь 6, но разные отношения катетов.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A131",
+      "proposition_id": "triangle.similar_equal_area_congruent",
+      "topic": "triangle_similarity",
+      "grade_band": "7-8",
+      "statement": "Подобные треугольники равной площади равны.",
+      "is_true": true,
+      "explanation": "Коэффициент подобия положителен, а равенство площадей даёт k²=1, значит k=1.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A132",
+      "proposition_id": "triangle.sides_2_3_5_exists",
+      "topic": "triangle_inequality",
+      "grade_band": "7-8",
+      "statement": "Существует треугольник со сторонами 2, 3 и 5.",
+      "is_true": false,
+      "explanation": "Сумма двух меньших сторон равна 5, а должна быть строго больше третьей стороны.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A133",
+      "proposition_id": "triangle.two_angles_obtuse",
+      "topic": "triangle_angles",
+      "grade_band": "7-8",
+      "statement": "В треугольнике могут быть два тупых угла.",
+      "is_true": false,
+      "explanation": "Два тупых угла уже дают сумму больше 180°.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A134",
+      "proposition_id": "triangle.exterior_angle_equals_adjacent",
+      "topic": "triangle_angles",
+      "grade_band": "7-8",
+      "statement": "Внешний угол треугольника равен смежному с ним внутреннему углу.",
+      "is_true": false,
+      "explanation": "Например, при внутреннем угле 60° внешний равен 120°.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A135",
+      "proposition_id": "triangle.median_longest_is_altitude",
+      "topic": "right_triangle",
+      "grade_band": "7-8",
+      "statement": "Медиана к наибольшей стороне любого треугольника является высотой.",
+      "is_true": false,
+      "explanation": "В треугольнике со сторонами 5, 6 и 7 медиана к стороне 7 не перпендикулярна ей.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A136",
+      "proposition_id": "triangle.pythagorean_all_sides",
+      "topic": "right_triangle",
+      "grade_band": "7-8",
+      "statement": "В прямоугольном треугольнике квадрат любого катета равен сумме квадратов двух других сторон.",
+      "is_true": false,
+      "explanation": "В треугольнике 3–4–5 квадрат катета 3 равен 9, а 4²+5²=41.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A137",
+      "proposition_id": "triangle.sine_any_triangle_opposite_ratio",
+      "topic": "right_triangle",
+      "grade_band": "7-8",
+      "statement": "В любом треугольнике синус угла равен отношению противолежащей стороны к гипотенузе.",
+      "is_true": false,
+      "explanation": "В тупоугольном треугольнике нет гипотенузы; это определение относится к прямоугольному треугольнику.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A138",
+      "proposition_id": "quadrilateral.equal_diagonals_rectangle",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Если диагонали четырёхугольника равны, то он является прямоугольником.",
+      "is_true": false,
+      "explanation": "Равнобедренная трапеция с основаниями 4 и 8 и равными боковыми сторонами имеет равные диагонали, но не является прямоугольником.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A139",
+      "proposition_id": "quadrilateral.perpendicular_diagonals_rhombus",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Если диагонали четырёхугольника перпендикулярны, то он является ромбом.",
+      "is_true": false,
+      "explanation": "У дельтоида диагонали перпендикулярны, но все четыре стороны не равны.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A140",
+      "proposition_id": "quadrilateral.bisect_diagonals_parallelogram",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Если диагонали четырёхугольника равны, то они точкой пересечения делятся пополам.",
+      "is_true": false,
+      "explanation": "У равнобедренной трапеции диагонали равны, но обычно не делятся пополам.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A141",
+      "proposition_id": "rectangle.incircle_any",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "В любой прямоугольник можно вписать окружность.",
+      "is_true": false,
+      "explanation": "Вписанная окружность возможна только в квадрате: для прямоугольника 2×4 суммы противоположных сторон 4 и 8 не равны.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A143",
+      "proposition_id": "parallelogram.diagonals_perpendicular",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Диагонали любого параллелограмма перпендикулярны.",
+      "is_true": false,
+      "explanation": "У прямоугольника 2×4 диагонали не перпендикулярны.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A144",
+      "proposition_id": "quadrilateral.equal_area_congruent",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Четырёхугольники равной площади обязательно равны.",
+      "is_true": false,
+      "explanation": "Контрпример — прямоугольники со сторонами 2 и 6 и со сторонами 3 и 4: площадь каждого равна 12, но наборы длин сторон различаются, поэтому прямоугольники не равны.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A145",
+      "proposition_id": "trapezoid.midline_half_difference",
+      "topic": "trapezoids",
+      "grade_band": "7-8",
+      "statement": "Средняя линия трапеции равна половине разности оснований.",
+      "is_true": false,
+      "explanation": "При основаниях 4 и 10 средняя линия равна 7, а половина разности равна 3.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A146",
+      "proposition_id": "trapezoid.diagonals_bisect",
+      "topic": "trapezoids",
+      "grade_band": "7-8",
+      "statement": "Диагонали любой трапеции делятся точкой пересечения пополам.",
+      "is_true": false,
+      "explanation": "В равнобедренной трапеции с неравными основаниями диагонали пересекаются не в серединах.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A147",
+      "proposition_id": "trapezoid.equal_diagonals_rectangle",
+      "topic": "trapezoids",
+      "grade_band": "7-8",
+      "statement": "Если диагонали трапеции равны, трапеция является прямоугольником.",
+      "is_true": false,
+      "explanation": "Равнобедренная трапеция с основаниями 4 и 8 имеет равные диагонали и не является прямоугольником.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A148",
+      "proposition_id": "circle.diameter_perpendicular_every_chord",
+      "topic": "circles",
+      "grade_band": "7-8",
+      "statement": "Любой диаметр окружности перпендикулярен каждой её хорде.",
+      "is_true": false,
+      "explanation": "В окружности радиуса 5 возьмите диаметр по горизонтали и хорду, соединяющую точки (0,5) и (3,4): хорда не перпендикулярна этому диаметру.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A149",
+      "proposition_id": "circle.equal_arcs_equal_chords",
+      "topic": "circles",
+      "grade_band": "7-8",
+      "statement": "Равные дуги одной окружности стягивают равные хорды.",
+      "is_true": true,
+      "explanation": "Равные дуги соответствуют равным центральным углам и равным хордам.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A150",
+      "proposition_id": "circle.equal_chords_same_center_distance",
+      "topic": "circles",
+      "grade_band": "7-8",
+      "statement": "Равные хорды одной окружности равноудалены от её центра.",
+      "is_true": true,
+      "explanation": "Перпендикуляр из центра делит каждую хорду пополам; получаются прямоугольные треугольники с равными гипотенузами и катетами.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A152",
+      "proposition_id": "circle.tangent_two_points",
+      "topic": "tangency",
+      "grade_band": "7-8",
+      "statement": "Касательная к окружности имеет с ней две общие точки.",
+      "is_true": false,
+      "explanation": "По определению касательная имеет с окружностью ровно одну общую точку.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A153",
+      "proposition_id": "circle.line_distance_greater_radius_intersects",
+      "topic": "circles",
+      "grade_band": "7-8",
+      "statement": "Если расстояние от центра окружности до прямой больше радиуса, прямая пересекает окружность.",
+      "is_true": false,
+      "explanation": "При радиусе 3 и расстоянии 4 общих точек нет.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A154",
+      "proposition_id": "circle.two_circles_three_intersections",
+      "topic": "circles",
+      "grade_band": "7-8",
+      "statement": "Две окружности могут иметь ровно три общие точки.",
+      "is_true": false,
+      "explanation": "Различные окружности имеют не более двух общих точек; три общие точки означали бы совпадение окружностей.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A155",
+      "proposition_id": "angles.vertical_supplementary",
+      "topic": "angles_lines",
+      "grade_band": "7-8",
+      "statement": "Вертикальные углы в сумме всегда равны 180°.",
+      "is_true": false,
+      "explanation": "При пересечении под углом 60° вертикальные углы равны 60° и в сумме дают 120°.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A156",
+      "proposition_id": "angles.adjacent_equal_perpendicular",
+      "topic": "angles_lines",
+      "grade_band": "7-8",
+      "statement": "Если смежные углы равны, то прямые перпендикулярны.",
+      "is_true": true,
+      "explanation": "Смежные углы в сумме 180°; два равных угла равны по 90°.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A157",
+      "proposition_id": "angles.corresponding_equal_always",
+      "topic": "angles_lines",
+      "grade_band": "7-8",
+      "statement": "Соответственные углы равны при пересечении секущей любых двух прямых.",
+      "is_true": false,
+      "explanation": "Для непараллельных прямых, пересечённых секущей, соответственные углы могут быть 70° и 110°.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A158",
+      "proposition_id": "angles.same_side_supplementary_any",
+      "topic": "angles_lines",
+      "grade_band": "7-8",
+      "statement": "Внутренние односторонние углы при секущей любых двух прямых в сумме равны 180°.",
+      "is_true": false,
+      "explanation": "Для непараллельных прямых сумма таких углов не обязана равняться 180°; например, 70° и 100°.",
+      "source": {
+        "task_id": "314894",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314894",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A159",
+      "proposition_id": "areas.equal_area_equal_base",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Равные площади треугольников означают равенство их оснований.",
+      "is_true": false,
+      "explanation": "Треугольники с основанием 4 и высотой 3, а также основанием 6 и высотой 2 имеют площадь 6.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A160",
+      "proposition_id": "areas.trapezoid_formula_difference",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Площадь трапеции равна произведению высоты на половину разности оснований.",
+      "is_true": false,
+      "explanation": "При основаниях 4 и 10 и высоте 3 площадь равна 21, а формула с разностью дала бы 9.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A161",
+      "proposition_id": "areas.rhombus_diagonal_product",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Площадь ромба равна произведению его диагоналей.",
+      "is_true": false,
+      "explanation": "У ромба с диагоналями 6 и 8 площадь равна 24, то есть половине их произведения.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A162",
+      "proposition_id": "areas.equal_area_similarity_congruent",
+      "topic": "triangle_similarity",
+      "grade_band": "7-8",
+      "statement": "Подобные фигуры равной площади имеют коэффициент подобия 1.",
+      "is_true": true,
+      "explanation": "Площади относятся как k²; при равенстве площадей положительный коэффициент k равен 1.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A163",
+      "proposition_id": "areas.same_perimeter_equal_area",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Равные периметры четырёхугольников означают равенство их площадей.",
+      "is_true": false,
+      "explanation": "Квадрат со стороной 4 и прямоугольник 2×6 имеют периметр 16, но площади 16 и 12.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A164",
+      "proposition_id": "triangle.isosceles_base_angles_converse",
+      "topic": "isosceles_triangle",
+      "grade_band": "7-8",
+      "statement": "Если два угла треугольника равны, то противолежащие им стороны равны.",
+      "is_true": true,
+      "explanation": "Теорема о равнобедренном треугольнике и обратное ей утверждение.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_proved"
+    },
+    {
+      "id": "OGE19-A165",
+      "proposition_id": "triangle.isosceles_equal_sides_all_angles",
+      "topic": "isosceles_triangle",
+      "grade_band": "7-8",
+      "statement": "В равнобедренном треугольнике все три угла равны.",
+      "is_true": false,
+      "explanation": "У треугольника со сторонами 5, 5 и 6 углы при основании равны, но вершины угол другой.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A166",
+      "proposition_id": "triangle.equilateral_right",
+      "topic": "triangle_angles",
+      "grade_band": "7-8",
+      "statement": "Равносторонний треугольник может быть прямоугольным.",
+      "is_true": false,
+      "explanation": "В равностороннем треугольнике каждый угол равен 60°.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A167",
+      "proposition_id": "triangle.angle_sum_acute",
+      "topic": "triangle_angles",
+      "grade_band": "7-8",
+      "statement": "Сумма углов остроугольного треугольника больше 180°.",
+      "is_true": false,
+      "explanation": "Сумма углов любого треугольника равна 180°.",
+      "source": {
+        "task_id": "145",
+        "url": "https://math-oge.sdamgia.ru/problem?id=145",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A168",
+      "proposition_id": "triangle.similar_corresponding_sides_equal",
+      "topic": "triangle_similarity",
+      "grade_band": "7-8",
+      "statement": "У подобных треугольников соответствующие стороны обязательно равны.",
+      "is_true": false,
+      "explanation": "Треугольники со сторонами 3, 4, 5 и 6, 8, 10 подобны, но стороны различны.",
+      "source": {
+        "task_id": "67",
+        "url": "https://math-oge.sdamgia.ru/problem?id=67",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A169",
+      "proposition_id": "triangle.congruent_same_area_only",
+      "topic": "triangle_congruence",
+      "grade_band": "7-8",
+      "statement": "Равенство площадей треугольников достаточно для их равенства.",
+      "is_true": false,
+      "explanation": "Треугольники с катетами 2 и 6 и катетами 3 и 4 имеют площадь 6, но разные стороны.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A170",
+      "proposition_id": "rectangle.is_square",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Любой прямоугольник является квадратом.",
+      "is_true": false,
+      "explanation": "Контрпример: прямоугольник со сторонами 2 и 4 имеет неравные соседние стороны.",
+      "source": {
+        "task_id": "119",
+        "url": "https://math-oge.sdamgia.ru/problem?id=119",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A171",
+      "proposition_id": "rhombus.is_rectangle",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Любой ромб является прямоугольником.",
+      "is_true": false,
+      "explanation": "Ромб с углами 60° и 120° не имеет прямых углов.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A172",
+      "proposition_id": "isosceles_trapezoid.is_parallelogram",
+      "topic": "trapezoids",
+      "grade_band": "7-8",
+      "statement": "Любая равнобедренная трапеция является параллелограммом.",
+      "is_true": false,
+      "explanation": "Равнобедренная трапеция с основаниями 4 и 8 имеет только одну пару параллельных сторон.",
+      "source": {
+        "task_id": "314814",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314814",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "verified_answer"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A173",
+      "proposition_id": "triangle.every_bisector_altitude",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Каждая биссектриса любого треугольника является высотой.",
+      "is_true": false,
+      "explanation": "В треугольнике со сторонами 5, 6 и 7 биссектриса при вершине со сторонами 5 и 6 не перпендикулярна противоположной стороне.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A174",
+      "proposition_id": "triangle.equal_medians",
+      "topic": "triangle_centers",
+      "grade_band": "7-8",
+      "statement": "Медианы любого треугольника равны.",
+      "is_true": false,
+      "explanation": "У треугольника со сторонами 5, 6 и 7 медианы, проведённые к сторонам 5 и 7, имеют разную длину.",
+      "source": {
+        "task_id": "341358",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341358",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A175",
+      "proposition_id": "triangle.equal_area_equal_height",
+      "topic": "areas",
+      "grade_band": "7-8",
+      "statement": "Равные площади треугольников означают равенство их высот.",
+      "is_true": false,
+      "explanation": "Треугольники с основанием 4 и высотой 3, а также основанием 6 и высотой 2 имеют площадь 6, но высоты различны.",
+      "source": {
+        "task_id": "341410",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341410",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    },
+    {
+      "id": "OGE19-A176",
+      "proposition_id": "parallelogram.diagonal_any_bisects_angle",
+      "topic": "quadrilaterals",
+      "grade_band": "7-8",
+      "statement": "Диагональ любого параллелограмма является биссектрисой его угла.",
+      "is_true": false,
+      "explanation": "Контрпример: в прямоугольнике 2×4 диагональ не делит прямой угол пополам.",
+      "source": {
+        "task_id": "341332",
+        "url": "https://math-oge.sdamgia.ru/problem?id=341332",
+        "basis": "mathematical_derivation",
+        "matrix_review_status": "catalog_analyzed"
+      },
+      "review_status": "independently_counterexampled"
+    }
+  ],
+  "exam_contract": {
+    "exam_year": 2027,
+    "source_url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+    "format": "single_true_statement",
+    "checked_on": "2026-11-17",
+    "fipi_document": "Official 2027 mathematics OGE demo, task 19"
+  }
+}

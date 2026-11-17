@@ -1,0 +1,59 @@
+{
+  "task_number": 19,
+  "exam_format": "single_true_statement",
+  "fipi_format_source": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+  "fipi_checked_on": "2026-11-17",
+  "generator_version": "oge19-triples-3",
+  "answer_policy_id": "oge19.answer-single-true",
+  "answer_policy_version": "1",
+  "bank_version": "oge19-claims-4",
+  "source_prototypes": 39,
+  "statement_count": 172,
+  "true_statements": 92,
+  "false_statements": 80,
+  "topic_count": 13,
+  "distinct_propositions_sampled": 172,
+  "distinct_proposition_pairs_sampled": 390,
+  "statements_sampled": 172,
+  "unused_statement_ids": [],
+  "min_statement_appearances": 3,
+  "max_statement_appearances": 30,
+  "mean_statement_length_spread": 1.62,
+  "max_statement_length_spread": 23,
+  "samples": 500,
+  "unique_triples": 211,
+  "unique_target": 200,
+  "answer_mask_counts": {
+    "1": 167,
+    "2": 167,
+    "3": 166
+  },
+  "correct_position_counts": {
+    "1": 167,
+    "2": 167,
+    "3": 166
+  },
+  "topic_appearances": {
+    "angles_lines": 130,
+    "areas": 151,
+    "circles": 124,
+    "isosceles_triangle": 63,
+    "quadrilaterals": 221,
+    "right_triangle": 92,
+    "tangency": 70,
+    "trapezoids": 117,
+    "triangle_angles": 106,
+    "triangle_centers": 154,
+    "triangle_congruence": 105,
+    "triangle_inequality": 72,
+    "triangle_similarity": 95
+  },
+  "difficulty_band_appearances": {
+    "core": 703,
+    "extension": 446,
+    "introductory": 351
+  },
+  "answer_errors": 0,
+  "snapshot_checks": 500,
+  "result": "PASS"
+}

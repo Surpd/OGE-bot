@@ -1,0 +1,56 @@
+{
+  "snapshot_schema_version": 1,
+  "generator_version": "oge19-triples-1",
+  "answer_policy_id": "oge19.answer-single-true",
+  "answer_policy_version": "1",
+  "seed": 20261117,
+  "answer_mask": "1",
+  "statements": [
+    {
+      "id": "OGE19-A019",
+      "proposition_id": "similarity.three_angles",
+      "topic": "triangle_similarity",
+      "grade_band": "8",
+      "statement": "Если все три угла одного треугольника соответственно равны углам другого, треугольники подобны.",
+      "is_true": true,
+      "explanation": "Равенства двух углов уже достаточно для подобия.",
+      "source": {
+        "task_id": "480735",
+        "url": "https://math-oge.sdamgia.ru/problem?id=480735",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      }
+    },
+    {
+      "id": "OGE19-A004",
+      "proposition_id": "obtuse_triangle.all_angles_obtuse",
+      "topic": "triangle_angles",
+      "grade_band": "5-7",
+      "statement": "В тупоугольном треугольнике все три угла тупые.",
+      "is_true": false,
+      "explanation": "Контрпример: углы 120°, 30° и 30° образуют треугольник.",
+      "source": {
+        "task_id": "348466",
+        "url": "https://math-oge.sdamgia.ru/problem?id=348466",
+        "basis": "source_statement",
+        "matrix_review_status": "catalog_analyzed"
+      }
+    },
+    {
+      "id": "OGE19-A030",
+      "proposition_id": "isosceles.every_bisector_median",
+      "topic": "isosceles_triangle",
+      "grade_band": "7",
+      "statement": "Каждая биссектриса равнобедренного треугольника является медианой.",
+      "is_true": false,
+      "explanation": "Контрпример: в треугольнике 5, 5, 6 биссектриса при угле основания не делит противоположную сторону пополам.",
+      "source": {
+        "task_id": "314818",
+        "url": "https://math-oge.sdamgia.ru/problem?id=314818",
+        "basis": "source_statement",
+        "matrix_review_status": "verified_answer"
+      }
+    }
+  ],
+  "content_hash": "d66d9674734916373e83d3ba6a2e8b25b05f2837bc3637685b34bb97224f05ae"
+}
