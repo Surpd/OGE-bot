@@ -12,6 +12,7 @@ from app.math.oge19 import (
     EXAM_FORMAT,
     GENERATOR_VERSION,
     STATEMENTS,
+    Statement,
     Triple,
     answer_mask,
     check_answer,
@@ -27,17 +28,28 @@ def test_bank_has_unique_reviewed_claims_and_known_sources() -> None:
     matrix = json.loads((ROOT / "specs/research/oge19/SOURCE_MATRIX.json").read_text())
     source_ids = {str(item["source_id"]) for item in matrix["sources"]}
     review_statuses = {item["review_status"] for item in matrix["sources"]}
-    assert 80 <= len(STATEMENTS) <= 120
+    assert len(STATEMENTS) >= 6
     assert len({item.id for item in STATEMENTS}) == len(STATEMENTS)
     assert len({item.proposition_id for item in STATEMENTS}) == len(STATEMENTS)
     assert len({item.statement for item in STATEMENTS}) == len(STATEMENTS)
+    assert len({item.source_task_id for item in STATEMENTS}) == 38
+    assert sum(item.is_true for item in STATEMENTS) == 92
+    assert sum(not item.is_true for item in STATEMENTS) == 80
+    assert {f"OGE19-A{index:03d}" for index in range(1, 99)} <= {item.id for item in STATEMENTS}
     for item in STATEMENTS:
         assert item.source_task_id in source_ids
         assert item.source_url.endswith(f"id={item.source_task_id}")
-        assert item.source_basis in {"source_statement", "source_solution_correction"}
+        assert item.source_basis in {
+            "source_statement",
+            "source_solution_correction",
+            "mathematical_derivation",
+        }
         assert item.source_matrix_review_status in review_statuses
         assert item.is_true in {True, False}
         assert item.statement and item.explanation
+        assert item.review_status == (
+            "independently_proved" if item.is_true else "independently_counterexampled"
+        )
 
 
 def test_fipi_exam_contract_uses_exactly_one_true_statement() -> None:
@@ -69,6 +81,29 @@ def test_generation_is_deterministic_and_snapshots_restore() -> None:
     assert first.generator_version == GENERATOR_VERSION
 
 
+def test_previous_snapshot_is_restored_without_rewriting_its_text() -> None:
+    legacy = json.loads((ROOT / "tests/fixtures/oge19/snapshot_v1_seed_20261117.json").read_text())
+    validate_snapshot(legacy)
+    restored = restore(legacy)
+    assert [item.statement for item in restored.statements] == [
+        item["statement"] for item in legacy["statements"]
+    ]
+    assert restored.answer_mask == legacy["answer_mask"]
+
+
+def test_schema_two_snapshot_keeps_its_pinned_bank_text() -> None:
+    snapshot = generate(912).snapshot()
+    snapshot["bank_version"] = "oge19-claims-2"
+    from hashlib import sha256
+
+    body = {key: value for key, value in snapshot.items() if key != "content_hash"}
+    canonical = json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    snapshot["content_hash"] = sha256(canonical.encode()).hexdigest()
+    assert restore(snapshot).statements == tuple(
+        Statement.from_dict(item) for item in snapshot["statements"]
+    )
+
+
 def test_many_seeds_have_three_distinct_topics_and_one_true_answer() -> None:
     fingerprints: set[tuple[str, ...]] = set()
     for seed in range(300):
@@ -81,6 +116,30 @@ def test_many_seeds_have_three_distinct_topics_and_one_true_answer() -> None:
         assert validate_snapshot(triple.snapshot()) is None
         fingerprints.add(tuple(sorted(item.proposition_id for item in triple.statements)))
     assert len(fingerprints) >= 200
+
+
+def test_theme_filter_and_position_balancing() -> None:
+    from app.math.oge19 import THEME_TOPICS
+
+    counts = [0, 0, 0]
+    for seed in range(90):
+        triple = generate(seed, correct_position_counts=tuple(counts))
+        counts[int(triple.answer_mask) - 1] += 1
+    assert max(counts) - min(counts) <= 1
+    for theme, topics in THEME_TOPICS.items():
+        sample = generate(811, theme=theme)
+        assert len(sample.statements) == 3
+        assert all(item.topic in topics for item in sample.statements)
+        assert len(sample.answer_mask) == 1
+
+
+def test_generated_statements_have_similar_visible_lengths() -> None:
+    spreads = []
+    for seed in range(300):
+        triple = generate(seed)
+        lengths = [len(item.statement) for item in triple.statements]
+        spreads.append(max(lengths) - min(lengths))
+    assert max(spreads) <= 20
 
 
 def test_answer_mask_tracks_each_possible_position() -> None:

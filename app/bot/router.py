@@ -75,6 +75,7 @@ TASK12_LABEL = "№12 · Формулы"
 TASK14_LABEL = "№14 · Прогрессии"
 TASK16_LABEL = "№16 · Окружности"
 TASK17_LABEL = "№17 · Четырёхугольники"
+TASK19_LABEL = "№19 · Геометрические утверждения"
 TASK8_LABEL = "№8 · Степени и корни"
 TASK13_LABEL = "№13 · Неравенства"
 TASK11_LABEL = "№11 · Графики функций"
@@ -1162,6 +1163,55 @@ async def task18_callback(callback: CallbackQuery, repository: Repository) -> No
 
 async def task18_answer(message: Message, repository: Repository) -> None:
     await training_answer(NUMERIC_TRAININGS[18], message, repository)
+
+
+async def choose_task19(message: Message, repository: Repository) -> None:
+    if not NUMERIC_TRAININGS[19].families:
+        await send_text(message, repository, "Задания №19 пока выключены.")
+        return
+    user_id = _user_id(message)
+    if user_id is None:
+        return
+    if await _show_saved_training_choice(message, repository, 19, user_id):
+        return
+    if await repository.training_family(user_id, 19) is None:
+        from app.bot.family_selection import show_families
+
+        await show_families(message, repository, 19)
+        return
+    await send_problem(NUMERIC_TRAININGS[19], message, repository, action="start")
+
+
+async def _send_task19_problem(
+    message: Message,
+    repository: Repository,
+    *,
+    action: str,
+    expected_problem_id: str | None = None,
+    expected_screen: str | None = None,
+    expected_prompt_message_id: int | None = None,
+    user_id_override: int | None = None,
+    skip_active: bool = False,
+) -> bool:
+    return await send_problem(
+        NUMERIC_TRAININGS[19],
+        message,
+        repository,
+        action=action,
+        expected_problem_id=expected_problem_id,
+        expected_screen=expected_screen,
+        expected_prompt_message_id=expected_prompt_message_id,
+        user_id_override=user_id_override,
+        skip_active=skip_active,
+    )
+
+
+async def task19_callback(callback: CallbackQuery, repository: Repository) -> None:
+    await training_callback(NUMERIC_TRAININGS[19], callback, repository)
+
+
+async def task19_answer(message: Message, repository: Repository) -> None:
+    await training_answer(NUMERIC_TRAININGS[19], message, repository)
 
 
 async def _send_task8_problem(
@@ -2553,6 +2603,7 @@ def build_router() -> Router:
     router.message.register(choose_task15, F.text == "№15 · Треугольники")
     router.message.register(choose_task16, F.text == TASK16_LABEL)
     router.message.register(choose_task18, F.text == "№18 · Фигуры на клетчатой сетке")
+    router.message.register(choose_task19, F.text == TASK19_LABEL)
     router.message.register(choose_task7, F.text == TASK7_LABEL)
     router.message.register(choose_task8, F.text == TASK8_LABEL)
     router.message.register(choose_task13, F.text == TASK13_LABEL)
@@ -2581,6 +2632,7 @@ def build_router() -> Router:
     router.callback_query.register(task15_callback, F.data.startswith("t15:"))
     router.callback_query.register(task16_callback, F.data.startswith("t16:"))
     router.callback_query.register(task18_callback, F.data.startswith("t18:"))
+    router.callback_query.register(task19_callback, F.data.startswith("t19:"))
     router.callback_query.register(task7_callback, F.data.startswith("t7:"))
     router.callback_query.register(task8_callback, F.data.startswith("t8:"))
     router.callback_query.register(task13_callback, F.data.startswith("t13:"))

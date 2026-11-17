@@ -41,7 +41,7 @@ def progress_keyboard(page: str = "summary", total: int = 0) -> InlineKeyboardMa
     if section == "numbers":
         number_buttons = [
             _button(f"№{number}", f"progress:number:{number}")
-            for number in range(1, 15)
+            for number in (*range(1, 15), 19)
         ]
         rows.extend(number_buttons[index:index + 2] for index in range(0, len(number_buttons), 2))
     if section in {"families", "history", "errors"}:

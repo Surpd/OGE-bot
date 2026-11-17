@@ -14,10 +14,12 @@ def _button(text: str, data: str) -> InlineKeyboardButton:
 
 def family_keyboard(number: int) -> InlineKeyboardMarkup:
     adapter = NUMERIC_TRAININGS[number]
-    rows = [[_button("🎲 Все типы", f"nav:family:{number}:random")]]
+    all_label = "🎲 Все темы" if number == 19 else "🎲 Все типы"
+    rows = [[_button(all_label, f"nav:family:{number}:random")]]
     rows.extend(
         [_button(family_name(family), f"nav:family:{number}:{index}")]
         for index, family in enumerate(adapter.families)
+        if not (number == 19 and family == "OGE19-MIXED")
     )
     rows.append([_button("← К номерам", "nav:numbers")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -27,7 +29,13 @@ def selected_keyboard(number: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [_button(f"▶ Открыть №{number}", f"nav:begin:{number}")],
-            [_button("Выбрать тип", f"nav:families:{number}"), _button("В меню", "nav:main")],
+            [
+                _button(
+                    "Выбрать тему" if number == 19 else "Выбрать тип",
+                    f"nav:families:{number}",
+                ),
+                _button("В меню", "nav:main"),
+            ],
         ]
     )
 
@@ -37,7 +45,7 @@ async def show_families(message: Message, repository: Repository, number: int) -
         return
     await repository.save_user_state(message.from_user.id, f"family_selection:{number}")
     selected = await repository.training_family(message.from_user.id, number)
-    current = family_name(selected) if selected else "Все типы"
+    current = family_name(selected) if selected else ("Все темы" if number == 19 else "Все типы")
     await send_text(
         message,
         repository,
@@ -54,7 +62,7 @@ async def select_family(
         return
     families = NUMERIC_TRAININGS[number].families
     if selection == "random":
-        family = None
+        family = "OGE19-MIXED" if number == 19 else None
     elif selection.isascii() and selection.isdigit() and int(selection) < len(families):
         family = families[int(selection)]
     else:

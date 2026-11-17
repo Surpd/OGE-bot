@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-NUMBERS = tuple(range(1, 15))
+NUMBERS = (*range(1, 15), 19)
 METRICS = ("issued", "completed", "attempts", "correct", "first_correct", "second_correct",
            "unassisted_correct", "assisted_correct", "unknown_assistance",
            "unknown_correct_attempt",
@@ -118,7 +118,7 @@ WITH tasks AS (
  FROM issued_problems p JOIN users u ON u.id=p.user_id
  LEFT JOIN sessions s ON s.id=p.session_id
  WHERE u.telegram_user_id=$1
-), relevant AS (SELECT * FROM tasks WHERE number BETWEEN 6 AND 14)
+), relevant AS (SELECT * FROM tasks WHERE number BETWEEN 6 AND 14 OR number = 19)
 """
 _METRIC_ROWS = """, metrics AS (
  SELECT p.number, p.family_id, 1::bigint AS issued,
@@ -261,7 +261,7 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
 
 async def _memory_records(repository: Any, telegram_user_id: int) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    for number in range(6, 15):
+    for number in (*range(6, 15), 19):
         attrs = ("issued_history", "attempt_history", "outcomes", "hints_history",
                  "solutions_viewed") if number == 6 else (
                      f"issued{number}", f"attempts{number}", f"outcomes{number}",

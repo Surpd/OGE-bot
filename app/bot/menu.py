@@ -79,6 +79,11 @@ def saved_training_menu(
         rows = [
             [_button("▶ Продолжить", f"nav:tr:c:{number}:{problem_id}")],
             [_button("🆕 Начать заново", f"nav:tr:r:{number}:{problem_id}")],
+            *(
+                [[_button("Выбрать тему", f"nav:families:{number}")]]
+                if number == 19
+                else []
+            ),
             [_button("↩ Назад к номерам", "nav:numbers")],
         ]
     return InlineKeyboardMarkup(inline_keyboard=rows)

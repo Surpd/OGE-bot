@@ -92,6 +92,9 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
                 "SELECT to_regclass('sessions_one_active_task11_per_user') IS NOT NULL"
             )
             assert await repository._pool.fetchval(
+                "SELECT to_regclass('sessions_one_active_task19_per_user') IS NOT NULL"
+            )
+            assert await repository._pool.fetchval(
                 "SELECT to_regclass('oge15_one_open_session_per_story_mode') IS NOT NULL"
             )
             assert await repository._pool.fetchval(

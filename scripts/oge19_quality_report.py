@@ -10,11 +10,13 @@ from pathlib import Path
 from app.math.oge19 import (
     ANSWER_POLICY_ID,
     ANSWER_POLICY_VERSION,
+    BANK_VERSION,
     EXAM_FORMAT,
     GENERATOR_VERSION,
     STATEMENTS,
     check_answer,
     generate,
+    grade_band_tier,
     validate_snapshot,
 )
 
@@ -27,7 +29,11 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
     masks: Counter[str] = Counter()
     positions: Counter[str] = Counter()
     topics: Counter[str] = Counter()
+    difficulty_bands: Counter[str] = Counter()
     fingerprints: set[tuple[str, ...]] = set()
+    propositions: set[str] = set()
+    proposition_pairs: set[tuple[str, str]] = set()
+    length_spreads: list[int] = []
     failed_answers = 0
     for seed in range(samples):
         triple = generate(seed)
@@ -36,7 +42,23 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         masks[triple.answer_mask] += 1
         positions[triple.answer_mask] += 1
         topics.update(item.topic for item in triple.statements)
+        difficulty_bands.update(
+            {1: "introductory", 2: "core", 3: "extension"}[grade_band_tier(item.grade_band)]
+            for item in triple.statements
+        )
         fingerprints.add(tuple(sorted(item.proposition_id for item in triple.statements)))
+        proposition_ids = [item.proposition_id for item in triple.statements]
+        propositions.update(proposition_ids)
+        proposition_pairs.update(
+            tuple(sorted(pair))
+            for pair in (
+                (proposition_ids[0], proposition_ids[1]),
+                (proposition_ids[0], proposition_ids[2]),
+                (proposition_ids[1], proposition_ids[2]),
+            )
+        )
+        statement_lengths = [len(item.statement) for item in triple.statements]
+        length_spreads.append(max(statement_lengths) - min(statement_lengths))
         if not check_answer(snapshot, triple.answer_mask):
             failed_answers += 1
     if failed_answers or len(fingerprints) < unique_target:
@@ -55,15 +77,23 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         "generator_version": GENERATOR_VERSION,
         "answer_policy_id": ANSWER_POLICY_ID,
         "answer_policy_version": ANSWER_POLICY_VERSION,
-        "bank_version": "oge19-claims-1",
+        "bank_version": BANK_VERSION,
         "source_prototypes": matrix["source_count"],
         "statement_count": len(STATEMENTS),
+        "true_statements": sum(item.is_true for item in STATEMENTS),
+        "false_statements": sum(not item.is_true for item in STATEMENTS),
+        "topic_count": len({item.topic for item in STATEMENTS}),
+        "distinct_propositions_sampled": len(propositions),
+        "distinct_proposition_pairs_sampled": len(proposition_pairs),
+        "mean_statement_length_spread": round(sum(length_spreads) / samples, 2),
+        "max_statement_length_spread": max(length_spreads),
         "samples": samples,
         "unique_triples": len(fingerprints),
         "unique_target": unique_target,
         "answer_mask_counts": dict(sorted(masks.items())),
         "correct_position_counts": dict(sorted(positions.items())),
         "topic_appearances": dict(sorted(topics.items())),
+        "difficulty_band_appearances": dict(sorted(difficulty_bands.items())),
         "answer_errors": failed_answers,
         "snapshot_checks": samples,
         "result": "PASS",
