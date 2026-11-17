@@ -28,8 +28,8 @@ def enabled_task19(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_task19_is_publicly_enabled_without_overrides():
-    from app.bot.trainings import BY_NUMBER
     from app.bot.training_engine import NUMERIC_TRAININGS
+    from app.bot.trainings import BY_NUMBER
 
     assert oge19_scheduler.ENABLED_FAMILIES == tuple(FAMILY_THEMES)
     assert BY_NUMBER[19].available
