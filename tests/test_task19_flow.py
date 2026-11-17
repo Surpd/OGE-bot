@@ -27,6 +27,24 @@ def enabled_task19(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_task19_is_publicly_enabled_without_overrides():
+    from app.bot.trainings import BY_NUMBER
+    from app.bot.training_engine import NUMERIC_TRAININGS
+
+    assert oge19_scheduler.ENABLED_FAMILIES == tuple(FAMILY_THEMES)
+    assert BY_NUMBER[19].available
+    assert NUMERIC_TRAININGS[19].families == tuple(FAMILY_THEMES)
+    menu = incoming()
+    await router.choose_number(menu, MemoryRepository())
+    labels = [
+        button.text
+        for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
+        for button in row
+    ]
+    assert labels.count("№19 · Геометрические утверждения") == 1
+
+
+@pytest.mark.asyncio
 async def test_task19_is_one_number_entry_with_compact_theme_selector(enabled_task19):
     menu = incoming()
     await router.choose_number(menu, MemoryRepository())
