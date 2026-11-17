@@ -19,8 +19,10 @@ def build_task18_candidate_batch(
         if len(queue) > 1 and queue[0] == state.get("last_family_id"):
             queue.reverse()
     recent = state.get("recent_fingerprints", [])
+    attempts = 0
     for index, family in enumerate(queue):
         for _ in range(12):
+            attempts += 1
             version = GENERATOR_VERSION_V2 if family in NEW_FAMILIES else None
             problem = (
                 generate(
@@ -43,7 +45,7 @@ def build_task18_candidate_batch(
                 {
                     "_family_queue_after": queue[index + 1 :],
                     "_last_family_after": family,
-                    "selection_attempts": 1,
+                    "selection_attempts": attempts,
                 }
             )
             return [snapshot]
