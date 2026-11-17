@@ -7,8 +7,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-NUMBERS = (*range(1, 15), 19)
-METRICS = ("issued", "completed", "attempts", "correct", "first_correct", "second_correct",
+NUMBERS = tuple(range(1, 20))
+METRICS = ("issued", "completed", "attempts", "incorrect_attempts", "correct",
+           "first_correct", "second_correct",
            "unassisted_correct", "assisted_correct", "unknown_assistance",
            "unknown_correct_attempt",
            "error_tasks", "failed", "skipped", "hints_used", "solutions_viewed")
@@ -58,6 +59,21 @@ def family_name(family: str) -> str:
     return names[max(prefixes, key=len)] if prefixes else "Тип из прежней версии"
 
 
+
+def recommended_number(numbers: dict[int, dict[str, Any]]) -> tuple[int, int]:
+    """Choose among currently available trainings; keep closed results in statistics."""
+    from app.bot.trainings import BY_NUMBER
+
+    return max(
+        (
+            (int(values["error_tasks"]) + int(values["skipped"]), int(number))
+            for number, values in numbers.items()
+            if int(values["completed"]) > 0
+            and (1 <= number <= 5 or (number in BY_NUMBER and BY_NUMBER[number].available))
+        ),
+        default=(0, 0),
+    )
+
 def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     total = dict.fromkeys(METRICS, 0)
     numbers = {number: dict.fromkeys(METRICS, 0) for number in NUMBERS}
@@ -82,7 +98,9 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
         used_hint = successful.get("used_hint") if successful else None
         metrics = {
             "issued": 1, "completed": int(outcome in _COMPLETED),
-            "attempts": len(attempts), "correct": int(correct),
+            "attempts": len(attempts),
+            "incorrect_attempts": sum(a.get("is_correct") is False for a in attempts),
+            "correct": int(correct),
             "first_correct": int(correct and successful is not None
                                  and successful.get("attempt_no") == 1),
             "second_correct": int(correct and successful is not None
@@ -94,7 +112,8 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
             "error_tasks": int(has_error),
             "failed": int(outcome == "failed"), "skipped": int(outcome == "skipped"),
             "hints_used": int(record.get("hints_used") or 0),
-            "solutions_viewed": int(bool(record.get("solution_viewed"))),
+            "solutions_viewed": int(bool(record.get("solution_viewed"))
+                                    or outcome == "solution_viewed"),
         }
         for target in (total, numbers[number], bucket):
             for metric, value in metrics.items():
@@ -118,12 +137,12 @@ WITH tasks AS (
  FROM issued_problems p JOIN users u ON u.id=p.user_id
  LEFT JOIN sessions s ON s.id=p.session_id
  WHERE u.telegram_user_id=$1
-), relevant AS (SELECT * FROM tasks WHERE number BETWEEN 6 AND 14 OR number = 19)
+), relevant AS (SELECT * FROM tasks WHERE number BETWEEN 6 AND 19)
 """
 _METRIC_ROWS = """, metrics AS (
  SELECT p.number, p.family_id, 1::bigint AS issued,
         (p.outcome IN ('solved','failed','skipped','solution_viewed'))::int AS completed,
-        a.attempts, (p.outcome='solved')::int AS correct,
+        a.attempts, a.incorrect_attempts, (p.outcome='solved')::int AS correct,
         (p.outcome='solved' AND a.correct_no=1)::int AS first_correct,
         (p.outcome='solved' AND a.correct_no=2)::int AS second_correct,
         (p.outcome='solved' AND a.used_hint IS FALSE)::int AS unassisted_correct,
@@ -132,9 +151,10 @@ _METRIC_ROWS = """, metrics AS (
         (p.outcome='solved' AND a.correct_no IS NULL)::int AS unknown_correct_attempt,
         a.has_error::int AS error_tasks, (p.outcome='failed')::int AS failed,
         (p.outcome='skipped')::int AS skipped, COALESCE(p.hints_used,0) AS hints_used,
-        p.solution_viewed::int AS solutions_viewed
+        (p.solution_viewed OR p.outcome='solution_viewed')::int AS solutions_viewed
  FROM relevant p CROSS JOIN LATERAL (
    SELECT count(*)::bigint AS attempts,
+          count(*) FILTER (WHERE is_correct IS FALSE)::bigint AS incorrect_attempts,
           (array_agg(attempt_no ORDER BY attempt_no) FILTER (WHERE is_correct))[1] AS correct_no,
           (array_agg(used_hint ORDER BY attempt_no) FILTER (WHERE is_correct))[1] AS used_hint,
           COALESCE(bool_or(NOT is_correct),false) AS has_error
@@ -154,6 +174,7 @@ _SCENARIO_EVENTS = """, scenario_events AS (
  WHERE app_user.telegram_user_id=$1 AND progress.status <> 'pending'
 ), scenario_attempts AS (
  SELECT attempt.session_id, attempt.position, count(*)::bigint AS attempts,
+        count(*) FILTER (WHERE NOT attempt.is_correct)::bigint AS incorrect_attempts,
         (array_agg(attempt.attempt_no ORDER BY attempt.attempt_no)
           FILTER (WHERE attempt.is_correct))[1] AS correct_no,
         (array_agg(attempt.used_hint ORDER BY attempt.attempt_no)
@@ -167,6 +188,7 @@ _SCENARIO_EVENTS = """, scenario_events AS (
  SELECT event.number, event.family_id, 1::bigint AS issued,
         (event.outcome IN ('solved','failed','skipped','solution_viewed'))::int AS completed,
         COALESCE(attempt.attempts,0)::bigint AS attempts,
+        COALESCE(attempt.incorrect_attempts,0)::bigint AS incorrect_attempts,
         (event.outcome='solved')::int AS correct,
         (event.outcome='solved' AND attempt.correct_no=1)::int AS first_correct,
         (event.outcome='solved' AND attempt.correct_no=2)::int AS second_correct,
@@ -261,7 +283,7 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
 
 async def _memory_records(repository: Any, telegram_user_id: int) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    for number in (*range(6, 15), 19):
+    for number in range(6, 20):
         attrs = ("issued_history", "attempt_history", "outcomes", "hints_history",
                  "solutions_viewed") if number == 6 else (
                      f"issued{number}", f"attempts{number}", f"outcomes{number}",

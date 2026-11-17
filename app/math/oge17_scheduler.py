@@ -21,13 +21,17 @@ def build_task17_candidate_batch(
         if len(queue) > 1 and queue[0] == state.get("last_family_id"):
             queue.reverse()
     recent = state.get("recent_fingerprints", [])
+    attempts = 0
     for i, family in enumerate(queue):
         for _ in range(12):
+            attempts += 1
             problem = generate(family, rng.randrange(2**63)).to_snapshot()
             if isinstance(recent, list) and problem["fingerprint"] in recent:
                 continue
             problem.update(
-                _family_queue_after=queue[i + 1 :], _last_family_after=family, selection_attempts=1
+                _family_queue_after=queue[i + 1 :],
+                _last_family_after=family,
+                selection_attempts=attempts,
             )
             return [problem]
     return []

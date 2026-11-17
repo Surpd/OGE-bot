@@ -1,3 +1,4 @@
+from html import unescape
 from unittest.mock import AsyncMock
 
 import pytest
@@ -177,7 +178,7 @@ async def test_task19_second_wrong_answer_reveals_each_statement_reason(enabled_
     second = incoming(wrong, 103)
     await router.task19_answer(second, repo)
     assert (await repo.task19_state(419))["state"]["status"] == "failed"
-    output = second.answer.await_args.args[0]
+    output = unescape(second.answer.await_args.args[0])
     for index, statement in enumerate(problem["statements"], 1):
         assert f"{index}." in output
         assert statement["explanation"] in output

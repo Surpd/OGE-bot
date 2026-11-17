@@ -26,7 +26,7 @@ def test_solved_metrics_use_terminal_outcome_and_attempt_time_assistance():
         record(14, outcome="skipped"),
     ])
     assert insights["total"] == {
-        "issued": 5, "completed": 5, "attempts": 6, "correct": 2,
+        "issued": 5, "completed": 5, "attempts": 6, "incorrect_attempts": 3, "correct": 2,
         "first_correct": 1, "second_correct": 1,
         "unassisted_correct": 1, "assisted_correct": 1, "unknown_assistance": 0,
         "unknown_correct_attempt": 0,
@@ -237,6 +237,7 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
     assert total["unknown_correct_attempt"] == 1
     assert total["second_correct"] == 2
     assert total["error_tasks"] == 2  # wrong first attempt remains visible
+    assert total["incorrect_attempts"] == 2
     assert total["solutions_viewed"] == 2
 
     by_number = (await training_insights(repository, telegram_user_id, "numbers"))["numbers"]
@@ -357,3 +358,81 @@ async def test_memory_pages_keep_unknown_old_results_and_bound_history():
     assert history["page_total"] == 25
     assert [r["condition"] for r in history["history"]] == [str(i) for i in range(18, 12, -1)]
     assert all("image" not in row for row in history["history"])
+
+
+@pytest.mark.asyncio
+async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
+    import json
+
+    from app.persistence.repository import PostgresRepository
+    from app.persistence.training_insights import training_record_detail
+
+    memory = MemoryRepository()
+    user_id = await insights_pool.fetchval(
+        "INSERT INTO users(telegram_user_id) VALUES(778899) RETURNING id"
+    )
+    for number in range(6, 20):
+        pid = await insights_pool.fetchval(
+            """INSERT INTO issued_problems(user_id,family_id,generator_version,fingerprint,
+               snapshot,outcome,hints_used) VALUES($1,$2,'1',$2,$3::jsonb,'solved',1)
+               RETURNING id""",
+            user_id, f"OGE{number:02}-F001", json.dumps({"condition": f"task {number}"}),
+        )
+        for attempt_no, is_correct in ((1, False), (2, True)):
+            await insights_pool.execute(
+                """INSERT INTO attempts(problem_id,user_id,attempt_no,raw_answer,
+                                     is_correct,used_hint)
+                   VALUES($1,$2,$3,'x',$4,$5)""",
+                pid, user_id, attempt_no, is_correct, is_correct,
+            )
+        issued_attr = "issued_history" if number == 6 else f"issued{number}"
+        attempts_attr = "attempt_history" if number == 6 else f"attempts{number}"
+        outcomes_attr = "outcomes" if number == 6 else f"outcomes{number}"
+        hints_attr = "hints_history" if number == 6 else f"hints{number}"
+        getattr(memory, issued_attr)[778899] = {
+            str(pid): {"family_id": f"OGE{number:02}-F001", "condition": f"task {number}"}
+        }
+        getattr(memory, attempts_attr)[778899] = [
+            {"problem_id": str(pid), "attempt_no": no, "is_correct": correct,
+             "used_hint": correct} for no, correct in ((1, False), (2, True))
+        ]
+        getattr(memory, outcomes_attr)[778899] = {str(pid): "solved"}
+        getattr(memory, hints_attr)[778899] = {str(pid): 1}
+        if number == 18:
+            target = str(pid)
+
+    pg = PostgresRepository(insights_pool)
+    sql_result = await training_insights(pg, 778899)
+    memory_result = await training_insights(memory, 778899)
+    assert sql_result["total"] == memory_result["total"]
+    assert sql_result["numbers"] == memory_result["numbers"]
+    assert sql_result["total"]["incorrect_attempts"] == 14
+    for number in range(6, 20):
+        row = sql_result["numbers"][number]
+        assert (row["issued"], row["correct"], row["second_correct"], row["error_tasks"]) == (
+            1, 1, 1, 1
+        )
+    for repo in (pg, memory):
+        assert (await training_insights(repo, 778899, "errors"))["page_total"] == 14
+        assert (await training_insights(repo, 778899, "history"))["page_total"] == 14
+        assert (await training_insights(repo, 778899, "families"))["page_total"] == 14
+        assert (await training_record_detail(repo, 778899, f"o:{target}"))["condition"] == "task 18"
+        assert await training_record_detail(repo, 778900, f"o:{target}") is None
+
+
+def test_recommendations_include_geometry_but_not_closed_number():
+    import json
+
+    from app.bot.progress_image import _recommendation as image_recommendation
+    from app.bot.progress_widget import overview_data
+    from app.persistence.training_insights import recommended_number
+
+    insights = summarize([
+        *[record(19, outcome="failed", attempts=[{"is_correct": False}]) for _ in range(5)],
+        record(18, outcome="failed", attempts=[{"is_correct": False}]),
+    ])
+    assert recommended_number(insights["numbers"]) == (1, 18)
+    assert "№18" in render_progress(insights)
+    assert "№18" in json.loads(overview_data(insights))["p"]["r"]
+    assert "№18" in image_recommendation(insights)
+    assert insights["numbers"][19]["error_tasks"] == 5
