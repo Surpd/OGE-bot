@@ -420,7 +420,11 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         assert await training_record_detail(repo, 778900, f"o:{target}") is None
 
 
-def test_recommendations_include_geometry_but_not_closed_number():
+def test_recommendations_include_geometry_but_not_closed_number(monkeypatch):
+    from app.math import oge19_scheduler
+
+    monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", ())
+
     import json
 
     from app.bot.progress_image import _recommendation as image_recommendation
@@ -436,3 +440,19 @@ def test_recommendations_include_geometry_but_not_closed_number():
     assert "№18" in json.loads(overview_data(insights))["p"]["r"]
     assert "№18" in image_recommendation(insights)
     assert insights["numbers"][19]["error_tasks"] == 5
+    monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", tuple(oge19_scheduler.FAMILY_THEMES))
+    assert recommended_number(insights["numbers"]) == (5, 19)
+    assert "№19" in render_progress(insights)
+    assert "№19" in json.loads(overview_data(insights))["p"]["r"]
+    assert "№19" in image_recommendation(insights)
+
+
+def test_progress_number_keyboard_includes_every_first_part_number():
+    keyboard = progress_keyboard("numbers")
+    buttons = [
+        button.text
+        for row in keyboard.inline_keyboard
+        for button in row
+        if button.callback_data and button.callback_data.startswith("progress:number:")
+    ]
+    assert buttons == [f"№{number}" for number in range(1, 20)]
