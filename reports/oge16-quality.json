@@ -1,0 +1,290 @@
+{
+  "generator_version": "oge16-circles-3",
+  "implemented_constructions": 23,
+  "public_enabled": [],
+  "excluded_source_ids": [
+    "323356"
+  ],
+  "math_validation": "Each finite 10–40 parameter-slot pool exhausted once in test_oge16_complete.py; no 1200-seed quota",
+  "pixel_validation": "Five PNG samples per family in tests; two visual previews; SHA, glyph and geometry audit at 360/390/430 pixels",
+  "contact_sheets": [
+    "reports/oge16/contact-1.png",
+    "reports/oge16/contact-2.png",
+    "reports/oge16/contact-3.png",
+    "reports/oge16/contact-4.png"
+  ],
+  "families": [
+    {
+      "family_id": "OGE16-A01",
+      "sources": [
+        "116",
+        "142",
+        "314850"
+      ],
+      "mathematical_capacity": 20,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-A01.png"
+    },
+    {
+      "family_id": "OGE16-A02",
+      "sources": [
+        "311956",
+        "314811"
+      ],
+      "mathematical_capacity": 20,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-A02.png"
+    },
+    {
+      "family_id": "OGE16-A03",
+      "sources": [
+        "311517",
+        "349314"
+      ],
+      "mathematical_capacity": 20,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-A03.png"
+    },
+    {
+      "family_id": "OGE16-A04",
+      "sources": [
+        "339419"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-A04.png"
+    },
+    {
+      "family_id": "OGE16-A05",
+      "sources": [
+        "341673",
+        "348379",
+        "339503",
+        "341329"
+      ],
+      "mathematical_capacity": 30,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-A05.png"
+    },
+    {
+      "family_id": "OGE16-A06",
+      "sources": [
+        "348961"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-A06.png"
+    },
+    {
+      "family_id": "OGE16-B01",
+      "sources": [
+        "340174"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-B01.png"
+    },
+    {
+      "family_id": "OGE16-B02",
+      "sources": [
+        "340337"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-B02.png"
+    },
+    {
+      "family_id": "OGE16-B03",
+      "sources": [
+        "340587"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-B03.png"
+    },
+    {
+      "family_id": "OGE16-B04",
+      "sources": [
+        "356543"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-B04.png"
+    },
+    {
+      "family_id": "OGE16-B05",
+      "sources": [
+        "369504"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-B05.png"
+    },
+    {
+      "family_id": "OGE16-C01",
+      "sources": [
+        "324364",
+        "341707",
+        "356369",
+        "356399"
+      ],
+      "mathematical_capacity": 31,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-C01.png"
+    },
+    {
+      "family_id": "OGE16-C02",
+      "sources": [
+        "355413",
+        "448769"
+      ],
+      "mathematical_capacity": 20,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-C02.png"
+    },
+    {
+      "family_id": "OGE16-C03",
+      "sources": [
+        "356329"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-C03.png"
+    },
+    {
+      "family_id": "OGE16-C04",
+      "sources": [
+        "356488",
+        "356498",
+        "356518",
+        "472375"
+      ],
+      "mathematical_capacity": 40,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-C04.png"
+    },
+    {
+      "family_id": "OGE16-C05",
+      "sources": [
+        "356579",
+        "356603",
+        "438296"
+      ],
+      "mathematical_capacity": 20,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-C05.png"
+    },
+    {
+      "family_id": "OGE16-C06",
+      "sources": [
+        "472385"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-C06.png"
+    },
+    {
+      "family_id": "OGE16-D01",
+      "sources": [
+        "356438",
+        "356448"
+      ],
+      "mathematical_capacity": 20,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-D01.png"
+    },
+    {
+      "family_id": "OGE16-D02",
+      "sources": [
+        "356533"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-D02.png"
+    },
+    {
+      "family_id": "OGE16-D03",
+      "sources": [
+        "369738"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-D03.png"
+    },
+    {
+      "family_id": "OGE16-D04",
+      "sources": [
+        "450514"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-D04.png"
+    },
+    {
+      "family_id": "OGE16-D05",
+      "sources": [
+        "462105"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-D05.png"
+    },
+    {
+      "family_id": "OGE16-D06",
+      "sources": [
+        "472378"
+      ],
+      "mathematical_capacity": 10,
+      "png_preview_samples": 2,
+      "saved_snapshot_replays": 10,
+      "public_enabled": false,
+      "preview": "reports/oge16/OGE16-D06.png"
+    }
+  ],
+  "remaining_confirmed_constructions": 0,
+  "hold_constructions": []
+}

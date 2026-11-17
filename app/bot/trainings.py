@@ -32,6 +32,7 @@ TRAININGS = (
     Training(13, "Неравенства", "app.math.inequalities"),
     Training(14, "Прогрессии"),
     Training(15, "Треугольники", "app.math.oge15_scheduler"),
+    Training(16, "Окружности", "app.math.oge16_scheduler"),
     Training(17, "Четырёхугольники", "app.math.oge17_models"),
     Training(18, "Фигуры на клетчатой сетке", "app.math.oge18_scheduler"),
 )
