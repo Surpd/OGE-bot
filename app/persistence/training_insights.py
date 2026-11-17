@@ -59,6 +59,21 @@ def family_name(family: str) -> str:
     return names[max(prefixes, key=len)] if prefixes else "Тип из прежней версии"
 
 
+
+def recommended_number(numbers: dict[int, dict[str, Any]]) -> tuple[int, int]:
+    """Choose among currently available trainings; keep closed results in statistics."""
+    from app.bot.trainings import BY_NUMBER
+
+    return max(
+        (
+            (int(values["error_tasks"]) + int(values["skipped"]), int(number))
+            for number, values in numbers.items()
+            if int(values["completed"]) > 0
+            and (1 <= number <= 5 or (number in BY_NUMBER and BY_NUMBER[number].available))
+        ),
+        default=(0, 0),
+    )
+
 def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     total = dict.fromkeys(METRICS, 0)
     numbers = {number: dict.fromkeys(METRICS, 0) for number in NUMBERS}

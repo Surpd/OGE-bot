@@ -24,6 +24,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from app.persistence.training_insights import (
     _STORY_NAMES,
     family_name,
+    recommended_number,
     training_insights,
     training_record_detail,
 )
@@ -287,15 +288,7 @@ def _recommendation(insights: dict[str, Any]) -> str:
     total = insights["total"]
     if int(total["completed"]) < 5:
         return "Порешай ещё задачи."
-    values = insights["numbers"]
-    count, number = max(
-        (
-            (int(row["error_tasks"]) + int(row["skipped"]), int(n))
-            for n, row in values.items()
-            if int(row["completed"]) > 0
-        ),
-        default=(0, 0),
-    )
+    count, number = recommended_number(insights["numbers"])
     return f"Попробуй повторить №{number}" if count and number else "Продолжай в том же темпе."
 
 

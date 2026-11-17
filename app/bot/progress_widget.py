@@ -9,6 +9,7 @@ from typing import Any, cast
 from app.persistence.training_insights import (
     _STORY_NAMES,
     family_name,
+    recommended_number,
     training_insights,
     training_record_detail,
 )
@@ -49,15 +50,10 @@ def overview_data(insights: dict[str, Any]) -> str:
     if completed < 5:
         recommendation = f"Для точной рекомендации нужно больше данных: завершено {completed} из 5."
     else:
-        candidates = [
-            (values["error_tasks"] + values["skipped"], number)
-            for number, values in insights["numbers"].items()
-            if values["completed"]
-        ]
-        count, number = max(candidates, default=(0, 0))
+        count, number = recommended_number(insights["numbers"])
         recommendation = (
             f"Можно повторить №{number}: там {count} заданий с ошибкой или пропуском."
-            if count and number else "В завершённых заданиях ошибок и пропусков не было."
+            if count and number else "Среди доступных номеров нет рекомендации по ошибкам и пропускам."
         )
     return _json({"tab": "o", "p": {
         "c": completed, "u": total["unassisted_correct"],

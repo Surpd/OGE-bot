@@ -5,7 +5,7 @@ from typing import Any
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from app.persistence.training_insights import training_insights
+from app.persistence.training_insights import recommended_number, training_insights
 
 PAGES = {
     "summary": "Обзор",
@@ -63,18 +63,13 @@ def _recommendation(total: dict[str, Any], numbers: dict[int, dict[str, Any]]) -
     completed = int(total["completed"])
     if completed < MIN_SAMPLE:
         return f"Пока мало данных для рекомендации: завершено {completed} из {MIN_SAMPLE}."
-    candidates = [
-        (int(values["error_tasks"]) + int(values["skipped"]), number)
-        for number, values in numbers.items()
-        if int(values["completed"]) > 0
-    ]
-    count, number = max(candidates, default=(0, 0))
+    count, number = recommended_number(numbers)
     if count:
         return (
             f"Можно повторить №{number}: там {count} завершённых заданий "
             "с ошибкой или пропуском."
         )
-    return "В завершённых заданиях пока нет зафиксированных ошибок и пропусков."
+    return "Среди доступных номеров нет рекомендации по ошибкам и пропускам."
 
 
 def render_progress(insights: dict[str, Any], page: str = "summary") -> str:

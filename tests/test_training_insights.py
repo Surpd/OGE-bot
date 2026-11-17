@@ -418,3 +418,21 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         assert (await training_insights(repo, 778899, "families"))["page_total"] == 14
         assert (await training_record_detail(repo, 778899, f"o:{target}"))["condition"] == "task 18"
         assert await training_record_detail(repo, 778900, f"o:{target}") is None
+
+
+def test_recommendations_include_geometry_but_not_closed_number():
+    import json
+
+    from app.bot.progress_image import _recommendation as image_recommendation
+    from app.bot.progress_widget import overview_data
+    from app.persistence.training_insights import recommended_number
+
+    insights = summarize([
+        *[record(19, outcome="failed", attempts=[{"is_correct": False}]) for _ in range(5)],
+        record(18, outcome="failed", attempts=[{"is_correct": False}]),
+    ])
+    assert recommended_number(insights["numbers"]) == (1, 18)
+    assert "№18" in render_progress(insights)
+    assert "№18" in json.loads(overview_data(insights))["p"]["r"]
+    assert "№18" in image_recommendation(insights)
+    assert insights["numbers"][19]["error_tasks"] == 5
