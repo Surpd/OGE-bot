@@ -200,3 +200,21 @@ async def test_task19_second_wrong_answer_reveals_each_statement_reason(enabled_
     for index, statement in enumerate(problem["statements"], 1):
         assert f"{index}." in output
         assert statement["explanation"] in output
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("family", tuple(FAMILY_THEMES))
+async def test_public_theme_selection_issues_reviewed_task(family):
+    from app.math.oge19 import THEME_TOPICS, validate_snapshot
+
+    repo = MemoryRepository()
+    selection = "random" if family == "OGE19-MIXED" else str(tuple(FAMILY_THEMES).index(family))
+    await select_family(incoming(), repo, 19, selection)
+    assert await repo.training_family(419, 19) == family
+    await router.choose_task19(incoming(message_id=104), repo)
+    task = (await repo.task19_state(419))["problem"]
+    validate_snapshot(task)
+    assert task["family_id"] == family
+    if family != "OGE19-MIXED":
+        assert all(row["topic"] in THEME_TOPICS[FAMILY_THEMES[family]]
+                   for row in task["statements"])

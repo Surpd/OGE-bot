@@ -228,3 +228,58 @@ def test_public_triangle_auditor_uses_current_generator_and_real_snapshot_conten
         assert record["hints"] and record["solution"]
         assert record["construction_parameters"] is not None
         assert record["image_sha256"] == snapshot.get("image_sha256", "")
+
+
+def test_oge19_audit_checks_all_public_themes_against_reviewed_bank() -> None:
+    from scripts.oge_bank_quality_audit import _oracle, _sample_record
+
+    families, make = _ordinary_generator(19)
+    assert len(families) == 6
+    for family in families:
+        problem = make(family, 42)
+        assert _oracle(19, family, problem)
+        record = _sample_record(problem, 19, 42, True)
+        assert len(record["options"]) == 3
+        assert record["correct_option_position"] == int(record["answer"])
+
+
+def test_oge19_audit_rejects_rehashed_unreviewed_statement() -> None:
+    from copy import deepcopy
+    from types import SimpleNamespace
+
+    from app.math.oge19 import refresh_snapshot_digest
+    from scripts.oge_bank_quality_audit import _oracle
+
+    _, make = _ordinary_generator(19)
+    snapshot = deepcopy(make("OGE19-MIXED", 42).to_snapshot())
+    snapshot["statements"][0]["statement"] += " Изменено."
+    refresh_snapshot_digest(snapshot)
+    altered = SimpleNamespace(to_snapshot=lambda: snapshot)
+    assert not _oracle(19, "OGE19-MIXED", altered)
+
+
+def test_oge19_audit_rejects_self_consistent_but_wrong_truth_values() -> None:
+    from copy import deepcopy
+    from types import SimpleNamespace
+
+    from app.math.oge19 import refresh_snapshot_digest, validate_snapshot
+    from scripts.oge_bank_quality_audit import _oracle
+
+    _, make = _ordinary_generator(19)
+    snapshot = deepcopy(make("OGE19-MIXED", 42).to_snapshot())
+    true_index = next(i for i, row in enumerate(snapshot["statements"]) if row["is_true"])
+    false_index = next(i for i, row in enumerate(snapshot["statements"]) if not row["is_true"])
+    for index in (true_index, false_index):
+        row = snapshot["statements"][index]
+        row["is_true"] = not row["is_true"]
+        row["review_status"] = (
+            "independently_proved" if row["is_true"] else "independently_counterexampled"
+        )
+    snapshot["answer_mask"] = snapshot["correct_answer"] = str(false_index + 1)
+    snapshot["solution"] = [
+        f"{i}. {'Верно' if row['is_true'] else 'Неверно'}: {row['explanation']}"
+        for i, row in enumerate(snapshot["statements"], 1)
+    ]
+    refresh_snapshot_digest(snapshot)
+    validate_snapshot(snapshot)  # A self-consistent snapshot alone is insufficient.
+    assert not _oracle(19, "OGE19-MIXED", SimpleNamespace(to_snapshot=lambda: snapshot))

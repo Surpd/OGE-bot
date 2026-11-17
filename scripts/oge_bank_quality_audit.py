@@ -1,7 +1,8 @@
 """Reproduce the all-enabled-family OGE first-part audit sample and mobile previews.
 
-This intentionally reuses the runtime registry, each generator's independent
-oracle, and each production candidate scheduler. It does not change generator
+This reuses the runtime registry, available independent oracles, and production
+candidate schedulers. Task 19 checks against its reviewed claim bank rather than
+automatically proving each geometry statement. It does not change generator
 state or claim that generated analogues are official source tasks.
 """
 
@@ -353,6 +354,8 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
     correct_option_positions = [
         index + 1 for index, option in enumerate(options) if option == answer
     ]
+    if number == 19:
+        correct_option_positions = [int(answer)] if answer in {"1", "2", "3"} else []
     return {
         "seed": seed,
         "valid_oracle": bool(valid),
@@ -401,11 +404,36 @@ def _stable(value: Any) -> str:
 
 def _oracle(number: int, family: str, item: Any) -> bool:
     if number == 19:
-        from app.math.oge19 import check_answer, validate_snapshot
+        from app.math.oge19 import STATEMENTS_BY_ID, THEME_TOPICS, validate_snapshot
+        from app.math.oge19_scheduler import FAMILY_THEMES
 
+        # This checks the generated triple against the independently reviewed bank;
+        # it is not a fresh proof of each theorem or counterexample.
         snapshot = item.to_snapshot()
         validate_snapshot(snapshot)
-        return check_answer(snapshot, str(snapshot["correct_answer"]))
+        statements = snapshot["statements"]
+        reviewed = [STATEMENTS_BY_ID.get(s["id"]) for s in statements]
+        if any(reference is None or reference.to_dict() != actual
+               for reference, actual in zip(reviewed, statements, strict=True)):
+            return False
+        theme = FAMILY_THEMES[family]
+        if theme != "mixed" and any(s["topic"] not in THEME_TOPICS[theme] for s in statements):
+            return False
+        correct = [str(index) for index, reference in enumerate(reviewed, 1)
+                   if reference is not None and reference.is_true]
+        condition = (
+            "Какое из следующих утверждений является истинным высказыванием?\n\n"
+            + "\n".join(f"{i}. {statement['statement']}"
+                        for i, statement in enumerate(statements, 1))
+            + "\n\nВ ответ запишите номер истинного высказывания."
+        )
+        solution = [
+            f"{i}. {'Верно' if statement['is_true'] else 'Неверно'}: {statement['explanation']}"
+            for i, statement in enumerate(statements, 1)
+        ]
+        return (len(correct) == 1 and snapshot["answer_mask"] == correct[0]
+                and snapshot["correct_answer"] == correct[0]
+                and snapshot["condition"] == condition and snapshot["solution"] == solution)
     if number == 15:
         from app.math.oge15_triangles import from_snapshot
 
@@ -505,6 +533,7 @@ def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, in
                 condition=snapshot["condition"],
                 correct_answer=snapshot["correct_answer"],
                 hints=snapshot["hints"],
+                options=tuple(s["statement"] for s in snapshot["statements"]),
                 solution=snapshot["solution"],
                 fingerprint=snapshot["fingerprint"],
                 generator_version=snapshot["generator_version"],
@@ -762,7 +791,8 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                     {
                         "seed": seed,
                         "failure_kind": "oracle_false",
-                        "reason": "independent oracle returned false",
+                        "reason": ("reviewed-bank consistency check returned false" if number == 19
+                                   else "independent oracle returned false"),
                     }
                 )
         except Exception as error:  # record the failing seed and continue the family audit
@@ -774,6 +804,12 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                 }
             )
     summary = _summarize(number, family, records, failures)
+    if number == 19:
+        summary["oracle_scope"] = (
+            "Consistency with the independently reviewed claim bank; no independent "
+            "automated proof of the mathematical truth of each claim. See "
+            "reports/oge19-quality.json and tests/test_oge19_math.py."
+        )
     if family == "OGE07-C04":
         boundary_examples = []
         integer_targets = 0
@@ -1349,7 +1385,8 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                     {
                         "seed": seed,
                         "failure_kind": "oracle_false",
-                        "reason": "independent oracle returned false",
+                        "reason": ("reviewed-bank consistency check returned false" if number == 19
+                                   else "independent oracle returned false"),
                     }
                 )
         except Exception as error:  # record the failing seed and continue the family audit
@@ -1361,6 +1398,12 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                 }
             )
     summary = _summarize(number, family, records, failures)
+    if number == 19:
+        summary["oracle_scope"] = (
+            "Consistency with the independently reviewed claim bank; no independent "
+            "automated proof of the mathematical truth of each claim. See "
+            "reports/oge19-quality.json and tests/test_oge19_math.py."
+        )
     if family == "OGE07-C04":
         boundary_examples = []
         integer_targets = 0
