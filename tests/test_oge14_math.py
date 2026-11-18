@@ -55,6 +55,7 @@ def test_task14_all_research_structures_have_source_ids_and_explicit_status() ->
 
 
 @pytest.mark.parametrize("family", IMPLEMENTED)
+@pytest.mark.mass
 def test_task14_generator_is_deterministic_and_oracles_agree(family: str) -> None:
     for seed in range(250):
         first = generate(family, seed)
@@ -136,11 +137,13 @@ def test_task14_unit_mutations_fail_rendered_condition_audit(
     assert not audit_condition(family, changed, problem.parameters)
 
 
+@pytest.mark.mass
 def test_task14_finite_stop_family_is_documented_as_bounded() -> None:
     fingerprints = {generate("OGE14-A06", seed).fingerprint for seed in range(1200)}
     assert len(fingerprints) == 42
 
 
+@pytest.mark.mass
 def test_task14_russian_counted_nouns_and_sensitive_boundaries() -> None:
     amphitheater = [generate("OGE14-A01", seed).condition for seed in range(300)]
     assert any("на 1 место больше" in condition for condition in amphitheater)
@@ -154,6 +157,7 @@ def test_task14_russian_counted_nouns_and_sensitive_boundaries() -> None:
     assert any("за первые 5 секунд" in condition for condition in braking)
 
 
+@pytest.mark.mass
 def test_task14_bounce_starts_at_first_rebound_and_uses_strict_threshold() -> None:
     for seed in range(250):
         problem = generate("OGE14-G04", seed)

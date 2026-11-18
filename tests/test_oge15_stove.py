@@ -101,6 +101,7 @@ def test_generation_and_images_are_deterministic_and_restorable() -> None:
 
 
 @pytest.mark.parametrize("family_id", FAMILY_IDS)
+@pytest.mark.mass
 def test_family_has_250_independent_oracle_valid_variants(family_id: str) -> None:
     adapter = build_adapter()
     position = next(

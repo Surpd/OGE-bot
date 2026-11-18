@@ -187,6 +187,7 @@ def test_sosnovka_source_grid_roles_areas_and_path_tile_total() -> None:
     assert (pad[2] * pad[3]) // 100 == 40
 
 
+@pytest.mark.mass
 def test_quality_250_seeds_answers_unique_and_restorable() -> None:
     adapter = build_adapter(enabled_families=frozenset(FAMILIES))
     fingerprints: set[tuple[str, ...]] = set()

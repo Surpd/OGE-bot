@@ -113,6 +113,7 @@ def test_randomized_seeds_are_deterministic_and_share_one_plan() -> None:
         assert all(q.scenario_seed == seed for q in questions)
 
 
+@pytest.mark.mass
 def test_seed_qa_reaches_200_distinct_observable_bundles_within_budget() -> None:
     fingerprints: set[str] = set()
     family_seen: set[str] = set()

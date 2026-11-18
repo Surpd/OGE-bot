@@ -133,6 +133,7 @@ def test_asset_restore_reproduces_svg_and_png_hashes() -> None:
             assert b'data-edge-id="AB"' in data
 
 
+@pytest.mark.mass
 def test_250_seed_qa_and_question_fingerprints() -> None:
     adapter = build_adapter()
     oracle = adapter.independent_oracle

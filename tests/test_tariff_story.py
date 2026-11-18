@@ -110,6 +110,7 @@ def test_every_position_builds_in_single_mode_from_the_same_world(adapter) -> No
         )
 
 
+@pytest.mark.mass
 def test_1200_seed_oracle_and_per_question_content_diversity(adapter) -> None:
     registry = _registry(adapter)
     fingerprints: dict[str, set[tuple[object, ...]]] = {

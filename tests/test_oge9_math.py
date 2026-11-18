@@ -15,6 +15,7 @@ from app.math.oge9_scheduler import _deck
 
 
 @pytest.mark.parametrize("family_id", ENABLED_FAMILIES)
+@pytest.mark.mass
 def test_equation_generator_is_deterministic_and_rendered_equation_has_exact_roots(
     family_id: str,
 ) -> None:
@@ -28,6 +29,7 @@ def test_equation_generator_is_deterministic_and_rendered_equation_has_exact_roo
 
 
 @pytest.mark.parametrize("family_id", ENABLED_FAMILIES)
+@pytest.mark.mass
 def test_each_enabled_template_reaches_200_distinct_equations_within_budget(
     family_id: str,
 ) -> None:

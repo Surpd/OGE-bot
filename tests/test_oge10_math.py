@@ -63,6 +63,7 @@ def test_russian_counted_adjective_agrees_with_count(count: int, expected: str) 
 
 
 @pytest.mark.parametrize("family_id", ENABLED_FAMILIES)
+@pytest.mark.mass
 def test_enabled_probability_families_are_exact_rendered_and_diverse(family_id: str) -> None:
     rng = random.Random(f"quality:{family_id}")
     problems = [generate(family_id, rng.randrange(2**63)) for _ in range(250)]
@@ -104,6 +105,7 @@ def test_scheduler_rotates_structural_families_and_avoids_recent_fingerprints() 
     assert all(left != right for left, right in zip(families, families[1:], strict=False))
 
 
+@pytest.mark.mass
 def test_answer_distribution_is_bounded_exact_and_reportable() -> None:
     rng = random.Random("oge10-answer-distribution")
     generated = [

@@ -112,7 +112,10 @@ async def test_task19_accepts_two_tries_and_ignores_malformed_input(enabled_task
     assert (await repo.task19_state(419))["state"]["attempts"] == 0
     wrong = "1" if problem["correct_answer"] != "1" else "2"
     await router.task19_answer(incoming(wrong, 103), repo)
-    assert (await repo.task19_state(419))["state"]["attempts"] == 1
+    after_wrong = (await repo.task19_state(419))["state"]
+    assert after_wrong["attempts"] == 1
+    assert after_wrong["status"] == "active"
+    assert (await repo.task19_progress(419))["correct"] == 0
     await router.task19_answer(incoming(problem["correct_answer"], 104), repo)
     assert (await repo.task19_state(419))["state"]["status"] == "solved"
     assert (await repo.task19_progress(419))["correct"] == 1

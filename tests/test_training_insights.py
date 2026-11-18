@@ -264,6 +264,7 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
 
 
 @pytest.mark.asyncio
+@pytest.mark.mass
 async def test_postgres_synthetic_history_has_bounded_transfer(insights_pool, record_property):
     import json
     from time import perf_counter

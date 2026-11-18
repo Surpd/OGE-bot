@@ -85,6 +85,7 @@ def test_authored_research_examples_are_regression_fixtures_for_visible_oracle()
 
 
 @pytest.mark.parametrize("family_id", ENABLED_FAMILIES)
+@pytest.mark.mass
 def test_enabled_family_passes_250_case_oracle_and_200_unique_acceptance(family_id: str) -> None:
     # R003's input domain contains 201 values; pin a stream that covers 200
     # without raising the historical 1,200-attempt acceptance bound.
@@ -390,6 +391,7 @@ def test_enabled_solution_steps_reject_wrong_rearrangements_and_substitutions() 
         assert not validate_rendered_problem(broken), family_id
 
 
+@pytest.mark.mass
 def test_r005_answer_diversity_uses_exact_geometric_sine_values_not_angle_table() -> None:
     answers: set[Fraction] = set()
     for seed in range(250):

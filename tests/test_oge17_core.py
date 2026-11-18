@@ -33,6 +33,7 @@ def test_individually_checked_source_control(vector):
 
 
 @pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.mass
 def test_50_smoke_math_determinism_and_policy(family):
     # The 300-image acceptance run is the separate quality-report command.
     for seed in range(50):
