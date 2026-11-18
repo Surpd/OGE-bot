@@ -84,11 +84,23 @@ def test_reviewed_claims_have_consistent_proofs_and_counterexamples() -> None:
 
     median_bisector = by_id["OGE19-A124"]
     assert not median_bisector.is_true
+    assert median_bisector.statement == "В любом треугольнике каждая медиана делит угол при своей вершине пополам."
     assert all(part in median_bisector.explanation for part in ("5, 6 и 7", "3,5", "5:6"))
 
     equal_area = by_id["OGE19-A144"]
     assert not equal_area.is_true
     assert all(part in equal_area.explanation for part in ("2 и 6", "3 и 4", "равна 12"))
+
+
+def test_previous_bank_version_four_remains_restorable() -> None:
+    from app.math.oge19 import refresh_snapshot_digest
+
+    snapshot = generate(912).snapshot()
+    snapshot["bank_version"] = "oge19-claims-4"
+    refresh_snapshot_digest(snapshot)
+    assert restore(snapshot).statements == tuple(
+        Statement.from_dict(item) for item in snapshot["statements"]
+    )
 
 
 def test_generation_is_deterministic_and_snapshots_restore() -> None:
