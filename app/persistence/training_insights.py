@@ -1,4 +1,8 @@
-"""Read-only cross-number insights from immutable issued tasks and accepted attempts."""
+"""Read-only cross-number insights from immutable issued tasks and accepted attempts.
+
+For legacy rows, terminal solved/failed outcomes without an attempt journal imply
+one answered task. Attempt counts, ordering and hint use remain unknown.
+"""
 from __future__ import annotations
 
 import json
@@ -8,7 +12,8 @@ from pathlib import Path
 from typing import Any
 
 NUMBERS = tuple(range(1, 20))
-METRICS = ("issued", "completed", "attempts", "incorrect_attempts", "correct",
+MIN_ANSWERED_SAMPLE = 5
+METRICS = ("issued", "completed", "answered_tasks", "attempts", "incorrect_attempts", "correct",
            "first_correct", "second_correct",
            "unassisted_correct", "assisted_correct", "unknown_assistance",
            "unknown_correct_attempt",
@@ -19,6 +24,26 @@ _STORY_NAMES = {
     "TYRES": "Шины", "PAPER": "Бумага", "STOVE": "Печь", "TARIFF": "Тарифы",
     "GARDEN": "Участок", "FLAT": "Квартира", "ROUTE": "Маршрут",
 }
+
+
+def success_rate(values: dict[str, Any]) -> float | None:
+    """Return correct tasks / uniquely answered tasks as a percentage."""
+    answered = max(0, int(values.get("answered_tasks", 0)))
+    if answered == 0:
+        return None
+    correct = min(answered, max(0, int(values.get("correct", 0))))
+    return correct * 100.0 / answered
+
+
+def success_label(values: dict[str, Any]) -> str:
+    rate = success_rate(values)
+    return "—" if rate is None else f"{rate:.0f}%"
+
+
+def _with_success_rates(result: dict[str, Any]) -> dict[str, Any]:
+    for bucket in (result["total"], *result["numbers"].values(), *result["families"]):
+        bucket["success_rate"] = success_rate(bucket)
+    return result
 
 
 @lru_cache(maxsize=1)
@@ -60,18 +85,53 @@ def family_name(family: str) -> str:
 
 
 
-def recommended_number(numbers: dict[int, dict[str, Any]]) -> tuple[int, int]:
-    """Choose among currently available trainings; keep closed results in statistics."""
+def recommended_number(
+    numbers: dict[int, dict[str, Any]],
+    families: list[dict[str, Any]] | None = None,
+) -> int | None:
+    """Return a sampled, relatively weakest available number, or None."""
     from app.bot.trainings import BY_NUMBER
 
-    return max(
-        (
-            (int(values["error_tasks"]) + int(values["skipped"]), int(number))
-            for number, values in numbers.items()
-            if int(values["completed"]) > 0
-            and (1 <= number <= 5 or (number in BY_NUMBER and BY_NUMBER[number].available))
-        ),
-        default=(0, 0),
+    eligible = [
+        (number, success_rate(values))
+        for number, values in numbers.items()
+        if int(values.get("answered_tasks", 0)) >= MIN_ANSWERED_SAMPLE
+        and (1 <= number <= 5 or (number in BY_NUMBER and BY_NUMBER[number].available))
+    ]
+    if len(eligible) < 2:
+        return None
+    weakest_rate = min(rate for _, rate in eligible if rate is not None)
+    weakest = [number for number, rate in eligible if rate == weakest_rate]
+    if weakest_rate == 100:
+        return None
+    if len(weakest) == 1:
+        return weakest[0]
+    family_rates: dict[int, float] = {}
+    for number in weakest:
+        sampled = [
+            rate for row in (families or [])
+            if int(row["number"]) == number
+            and int(row.get("answered_tasks", 0)) >= MIN_ANSWERED_SAMPLE
+            and (rate := success_rate(row)) is not None
+        ]
+        if sampled:
+            family_rates[number] = min(sampled)
+    if family_rates:
+        lowest_family_rate = min(family_rates.values())
+        family_weakest = [n for n, rate in family_rates.items() if rate == lowest_family_rate]
+        if lowest_family_rate < weakest_rate and len(family_weakest) == 1:
+            return family_weakest[0]
+    return None
+
+
+def has_recommendation_sample(numbers: dict[int, dict[str, Any]]) -> bool:
+    """Whether an available number has enough answers for a first comparison."""
+    from app.bot.trainings import BY_NUMBER
+
+    return any(
+        int(values.get("answered_tasks", 0)) >= MIN_ANSWERED_SAMPLE
+        and (1 <= number <= 5 or (number in BY_NUMBER and BY_NUMBER[number].available))
+        for number, values in numbers.items()
     )
 
 def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
@@ -92,12 +152,16 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
         attempts = record.get("attempt_records", [])
         outcome = record.get("outcome", "unknown")
         correct = outcome == "solved"
+        # For old solved/failed rows without attempt journals, the terminal
+        # result proves one answer but not its attempt number or hint use.
+        answered = bool(attempts) or (not attempts and outcome in {"solved", "failed"})
         successful = next((a for a in attempts if a.get("is_correct")), None)
         has_error = any(a.get("is_correct") is False for a in attempts)
         # Only the attempt-time flag proves whether a correct answer was assisted.
         used_hint = successful.get("used_hint") if successful else None
         metrics = {
             "issued": 1, "completed": int(outcome in _COMPLETED),
+            "answered_tasks": int(answered),
             "attempts": len(attempts),
             "incorrect_attempts": sum(a.get("is_correct") is False for a in attempts),
             "correct": int(correct),
@@ -119,22 +183,25 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
             for metric, value in metrics.items():
                 target[metric] += value
         history.append({**record, "family_name": bucket["name"], "has_error": has_error})
-    return {"total": total, "numbers": numbers, "families": list(families.values()),
-            "history": history, "errors": [r for r in history if r["has_error"]]}
+    return _with_success_rates({"total": total, "numbers": numbers,
+            "families": list(families.values()), "history": history,
+            "errors": [r for r in history if r["has_error"]]})
 
 
 # Projections below select scalar task fields only; snapshots may contain large content.
 _BASE = """
 WITH attempts_all AS (
- SELECT problem_id,user_id,attempt_no,is_correct,used_hint FROM attempts
+ SELECT 'ordinary'::text AS source, problem_id,user_id,attempt_no,is_correct,used_hint
+ FROM attempts
  UNION ALL
- SELECT mixed.problem_id, users.id, mixed.attempt_no, mixed.is_correct, mixed.used_hint
+ SELECT 'mixed'::text AS source, mixed.problem_id, users.id,
+        mixed.attempt_no, mixed.is_correct, mixed.used_hint
  FROM mixed_training_attempts mixed
  JOIN mixed_training_problems problem ON problem.id=mixed.problem_id
  JOIN mixed_training_sessions session ON session.id=problem.session_id
  JOIN users ON users.id=session.user_id
 ), tasks AS (
- SELECT p.id, p.user_id, p.family_id, p.outcome, p.hints_used,
+ SELECT 'ordinary'::text AS source, p.id, p.user_id, p.family_id, p.outcome, p.hints_used,
         p.solution_viewed_at IS NOT NULL AS solution_viewed, p.issued_at,
         CASE WHEN s.mode ~ '^task[0-9]{1,2}$' THEN substring(s.mode from 5)::int
              WHEN p.family_id ~ '^OGE0?[0-9]{1,2}-'
@@ -148,7 +215,8 @@ WITH attempts_all AS (
  LEFT JOIN sessions s ON s.id=p.session_id
  WHERE u.telegram_user_id=$1
  UNION ALL
- SELECT p.id, user_row.id AS user_id, p.family_id, p.outcome, p.hints_used,
+ SELECT 'mixed'::text AS source, p.id, user_row.id AS user_id,
+        p.family_id, p.outcome, p.hints_used,
         p.solution_viewed_at IS NOT NULL AS solution_viewed, p.issued_at, p.number::int AS number
  FROM mixed_training_problems p
  JOIN mixed_training_sessions mixed ON mixed.id=p.session_id
@@ -159,6 +227,7 @@ WITH attempts_all AS (
 _METRIC_ROWS = """, metrics AS (
  SELECT p.number, p.family_id, 1::bigint AS issued,
         (p.outcome IN ('solved','failed','skipped','solution_viewed'))::int AS completed,
+        (a.attempts > 0 OR p.outcome IN ('solved','failed'))::int AS answered_tasks,
         a.attempts, a.incorrect_attempts, (p.outcome='solved')::int AS correct,
         (p.outcome='solved' AND a.correct_no=1)::int AS first_correct,
         (p.outcome='solved' AND a.correct_no=2)::int AS second_correct,
@@ -175,7 +244,7 @@ _METRIC_ROWS = """, metrics AS (
           (array_agg(attempt_no ORDER BY attempt_no) FILTER (WHERE is_correct))[1] AS correct_no,
           (array_agg(used_hint ORDER BY attempt_no) FILTER (WHERE is_correct))[1] AS used_hint,
           COALESCE(bool_or(NOT is_correct),false) AS has_error
-   FROM attempts_all WHERE problem_id=p.id AND user_id=p.user_id
+   FROM attempts_all WHERE source=p.source AND problem_id=p.id AND user_id=p.user_id
  ) a
 )
 """
@@ -204,6 +273,8 @@ _SCENARIO_EVENTS = """, scenario_events AS (
 ), scenario_metrics AS (
  SELECT event.number, event.family_id, 1::bigint AS issued,
         (event.outcome IN ('solved','failed','skipped','solution_viewed'))::int AS completed,
+        (COALESCE(attempt.attempts,0) > 0 OR event.outcome IN ('solved','failed'))::int
+          AS answered_tasks,
         COALESCE(attempt.attempts,0)::bigint AS attempts,
         COALESCE(attempt.incorrect_attempts,0)::bigint AS incorrect_attempts,
         (event.outcome='solved')::int AS correct,
@@ -244,14 +315,19 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
     prefix = _unified_metrics_cte()
     if section in {"summary", "numbers", "number"}:
         rows = await repository._pool.fetch(
-            prefix + f"SELECT number, {_METRICS_SELECT} FROM unified "
-            "GROUP BY GROUPING SETS ((number), ())", user_id)
+            prefix + f"SELECT number, family_id, {_METRICS_SELECT} FROM unified "
+            "GROUP BY GROUPING SETS ((number,family_id), (number), ())", user_id)
         for row in rows:
             values = {metric: int(row[metric]) for metric in METRICS}
             if row["number"] is None:
                 result["total"] = values
+            elif row["family_id"] is not None:
+                result["families"].append({**values, "number": int(row["number"]),
+                                           "family_id": row["family_id"],
+                                           "name": family_name(row["family_id"])})
             else:
                 result["numbers"][int(row["number"])] = values
+        _with_success_rates(result)
         if section == "number":
             result["selected_number"] = offset
         return result
@@ -268,13 +344,16 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
         result[section] = [
             {**dict(row), "name": family_name(row["family_id"])} for row in rows
         ]
+        for bucket in result[section]:
+            bucket["success_rate"] = success_rate(bucket)
         return result
     history_cte = _BASE + _SCENARIO_EVENTS + ", history_rows AS ("
     history_cte += """
       SELECT 'o:'||p.id::text AS record_id, p.id, p.number, p.family_id, p.outcome,
              p.issued_at, left(i.snapshot->>'condition',160) AS condition,
              EXISTS (SELECT 1 FROM attempts_all a WHERE a.problem_id=p.id
-                     AND a.user_id=p.user_id AND NOT a.is_correct) AS has_error
+                     AND a.user_id=p.user_id AND a.source='ordinary'
+                     AND NOT a.is_correct) AS has_error
       FROM relevant p JOIN issued_problems i ON i.id=p.id
       UNION ALL
       SELECT 'm:'||problem.id::text, problem.id, problem.number::int,

@@ -45,7 +45,7 @@ global.document={getElementById(){return root}};
 let requests=0;
 const empty=process.argv[2]==='empty';
 const rows=Array.from({length:14},(_,i)=>[
-  i+1,empty?0:8,empty?0:5,3,1,2,1,4,1
+  i+1,empty?0:8,empty?0:5,3,60,'60%',1,2,1,4,1,2
 ]);
 global.TelegramWidget={
   chatData:JSON.stringify({tab:'n',r:rows}),
@@ -58,7 +58,7 @@ const getNumbers=()=>[...root.innerHTML.matchAll(
   /<div class="num">№(\d+)<\/div>/g
 )].map(m=>Number(m[1]));
 if(empty){
-  assert(root.innerHTML.includes('Завершённых заданий пока нет'));
+  assert(root.innerHTML.includes('Заданий пока нет'));
   assert(!root.innerHTML.includes('data-npage'));
   process.exit(0)
 }
@@ -82,7 +82,7 @@ assert.equal(count(),4);assert.equal(requests,0);
         assert result.returncode == 0, result.stderr
 
 
-def test_widget_overview_uses_only_defined_completed_result_metrics():
+def test_widget_overview_uses_answered_task_denominator_and_reports_sample():
     data = summarize([
         {"number": 9, "family_id": "OGE09-F001", "outcome": "solved",
          "attempt_records": [{"attempt_no": 1, "is_correct": True, "used_hint": False}]},
@@ -95,7 +95,10 @@ def test_widget_overview_uses_only_defined_completed_result_metrics():
     assert overview["p"]["u"] == 1
     assert overview["p"]["e"] == 1
     assert overview["p"]["x"] == 0
-    assert "2 из 5" in overview["p"]["r"]
+    assert overview["p"]["a"] == 2
+    assert overview["p"]["n"] == 1
+    assert overview["p"]["v"] == "50%"
+    assert "недостаточно ответов" in overview["p"]["r"]
 
 
 def test_widget_overview_discloses_legacy_hint_unknowns():

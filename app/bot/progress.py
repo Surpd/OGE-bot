@@ -5,7 +5,13 @@ from typing import Any
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from app.persistence.training_insights import recommended_number, training_insights
+from app.persistence.training_insights import (
+    MIN_ANSWERED_SAMPLE,
+    has_recommendation_sample,
+    recommended_number,
+    success_label,
+    training_insights,
+)
 
 PAGES = {
     "summary": "Обзор",
@@ -23,7 +29,6 @@ OUTCOMES = {
     "unknown": "результат неизвестен",
 }
 PAGE_SIZE = 6
-MIN_SAMPLE = 5
 
 
 def _button(text: str, callback: str) -> InlineKeyboardButton:
@@ -59,17 +64,18 @@ def progress_keyboard(page: str = "summary", total: int = 0) -> InlineKeyboardMa
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def _recommendation(total: dict[str, Any], numbers: dict[int, dict[str, Any]]) -> str:
-    completed = int(total["completed"])
-    if completed < MIN_SAMPLE:
-        return f"Пока мало данных для рекомендации: завершено {completed} из {MIN_SAMPLE}."
-    count, number = recommended_number(numbers)
-    if count:
-        return (
-            f"Можно повторить №{number}: там {count} завершённых заданий "
-            "с ошибкой или пропуском."
-        )
-    return "Среди доступных номеров нет рекомендации по ошибкам и пропускам."
+def _recommendation(
+    total: dict[str, Any], numbers: dict[int, dict[str, Any]],
+    families: list[dict[str, Any]] | None = None,
+) -> str:
+    number = recommended_number(numbers, families)
+    if number is not None:
+        return (f"Можно поработать над №{number}: у него самая низкая успешность среди "
+                f"номеров с выборкой не менее {MIN_ANSWERED_SAMPLE} ответов.")
+    if not has_recommendation_sample(numbers):
+        return (f"Пока недостаточно ответов для оценки номеров: нужно не менее "
+                f"{MIN_ANSWERED_SAMPLE} ответов на номер. Пропуски учитываются отдельно.")
+    return "По текущим ответам явного слабого номера нет. Пропуски показаны отдельно."
 
 
 def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
@@ -83,12 +89,14 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
             "Мой прогресс",
             "",
             f"Завершено заданий: {total['completed']}",
+            f"Ответили: {total['answered_tasks']} · верно: {total['correct']} · "
+            f"успешность: {success_label(total)}",
             f"Решено без подсказки: {total['unassisted_correct']}",
             f"Решено с подсказкой: {total['assisted_correct']}",
             f"Заданий с ошибками: {total['error_tasks']} · Пропущено: {total['skipped']}",
             "",
             "Что попробовать дальше",
-            _recommendation(total, insights["numbers"]),
+            _recommendation(total, insights["numbers"], insights.get("families")),
             "",
             "Решёнными считаются только задания со статусом «решено». Просмотр разбора "
             "самостоятельным решением не считается.",
@@ -101,22 +109,25 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
                 return f"№{selected}\n\nПо этому номеру пока нет выданных заданий."
             return "\n".join((
                 f"№{selected}",
-                f"Завершено: {values['completed']} · Решено: {values['correct']}",
+                f"Ответили: {values['answered_tasks']} · верно: {values['correct']} · "
+                f"успешность: {success_label(values)}",
                 f"Без подсказки: {values['unassisted_correct']} · "
                 f"С подсказкой: {values['assisted_correct']}",
                 f"Были ошибки: {values['error_tasks']} · Пропуски: {values['skipped']}",
                 f"Верно с первой попытки: {values['first_correct']} · "
                 f"Со второй: {values['second_correct']}",
-                "Статистика пока мала для сравнения." if values["completed"] < MIN_SAMPLE else
-                f"Верно {values['correct']} из {values['completed']} завершённых заданий.",
+                (f"Для оценки нужно не менее {MIN_ANSWERED_SAMPLE} задач с ответом."
+                 if values["answered_tasks"] < MIN_ANSWERED_SAMPLE else
+                 f"Верно {values['correct']} из {values['answered_tasks']} задач с ответом."),
             ))
         lines = ["По номерам", ""]
         for number, values in insights["numbers"].items():
             label = (
-                f"№{number} · завершено {values['completed']} · верно {values['correct']}"
+                f"№{number} · ответили {values['answered_tasks']} · верно {values['correct']} · "
+                f"{success_label(values)} · пропущено {values['skipped']}"
             )
-            if values["completed"] < MIN_SAMPLE:
-                label += " · пока мало данных"
+            if values["answered_tasks"] < MIN_ANSWERED_SAMPLE:
+                label += f" · нужно {MIN_ANSWERED_SAMPLE} ответов"
             lines.append(label)
         return "\n".join(lines)
     if section == "families":
@@ -128,7 +139,8 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
         for family in visible:
             lines.append(
                 f"\n№{family['number']} · {family['name']} · "
-                f"завершено {family['completed']} · верно {family['correct']}"
+                f"ответили {family['answered_tasks']} · верно {family['correct']} · "
+                f"успешность {success_label(family)} · пропущено {family['skipped']}"
             )
         total = int(insights.get("page_total", len(entries)))
         if total:
