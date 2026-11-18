@@ -796,6 +796,7 @@ def test_svg_is_bound_to_ordered_options_and_png_rows_follow_option_order() -> N
 
 
 @pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.mass
 def test_250_unique_conditions_within_1200_attempts(family: str) -> None:
     conditions: dict[str, object] = {}
     attempts = 0

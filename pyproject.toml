@@ -36,6 +36,7 @@ packages = ["app"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = ["mass: high-volume seed, diversity, stress or raster QA (also included in full pytest)"]
 
 [tool.ruff]
 line-length = 100

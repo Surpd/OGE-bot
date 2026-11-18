@@ -26,6 +26,7 @@ from app.math.oge18_scheduler import build_task18_candidate_batch
 
 
 @pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.mass
 def test_smoke_50_with_exact_oracle_and_snapshot(family):
     for seed in range(50):
         problem = generate(family, seed)
@@ -278,6 +279,7 @@ def test_repeat_snapshot_validation_keeps_hash_and_renderer_fail_closed():
 
 
 @pytest.mark.parametrize("family", NEW_FAMILIES)
+@pytest.mark.mass
 def test_new_family_source_geometry_and_seed_snapshot_roundtrip(family):
     from app.math.oge18_oracle import answer_family
 
@@ -544,6 +546,7 @@ def test_teaching_fixed_coordinate_fixtures_use_school_formulas():
         )
 
 
+@pytest.mark.mass
 def test_teaching_mass_seed_dimensions_match_generated_coordinates():
     from math import isqrt
 

@@ -4,12 +4,88 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Full suite or mass QA on this exact ref
+        required: true
+        default: full
+        type: choice
+        options: [full, mass]
+      expected_sha:
+        description: Exact 40-character SHA at the selected ref
+        required: true
+        type: string
+  schedule:
+    - cron: '21 2 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
-  quality:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.select.outputs.code }}
+      full: ${{ steps.select.outputs.full }}
+      base: ${{ steps.select.outputs.base }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT: ${{ github.event_name }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ]; then
+            test "${#EXPECTED_SHA}" -eq 40
+            test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          fi
+          if { [ "$EVENT" = pull_request ] || [ "$EVENT" = push ]; } &&
+             git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            python scripts/ci_select.py classify "$BASE_SHA" >> "$GITHUB_OUTPUT"
+            echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
+          else
+            printf 'code=true\nfull=true\nbase=\n' >> "$GITHUB_OUTPUT"
+          fi
+
+  fast:
+    needs: changes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.8.11'
+      - run: uv sync --frozen --all-extras
+      - run: uv run ruff check .
+      - run: uv run mypy app
+      - name: Core contracts and changed modules
+        env:
+          BASE_SHA: ${{ needs.changes.outputs.base }}
+        run: uv run python scripts/ci_select.py fast ${BASE_SHA:+"$BASE_SHA"}
+
+  full:
+    needs: changes
+    concurrency:
+      group: heavy-${{ github.event.pull_request.head.ref || github.ref_name }}
+      queue: max
+    if: >-
+      (github.event_name == 'pull_request' && needs.changes.outputs.full == 'true') ||
+      (github.event_name == 'push' && needs.changes.outputs.code == 'true') ||
+      (github.event_name == 'workflow_dispatch' && inputs.profile == 'full')
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -18,52 +94,27 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: oge_trainer
-        ports:
-          - 5432:5432
+        ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres -d oge_trainer"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
       - uses: astral-sh/setup-uv@v6
         with:
-          version: "0.8.11"
+          version: '0.8.11'
       - run: uv sync --frozen --all-extras
       - run: uv run ruff check .
       - run: uv run mypy app
-      - run: uv run pytest -q --durations=10 --capture=tee-sys
+      - name: Full suite, including mass QA
+        run: uv run pytest -q --durations=50 --capture=tee-sys
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oge_trainer
-
-      - name: Fetch the pre-V2 baseline for transport measurement
-        if: github.head_ref == 'feat/oge15-quality-ux-v2'
-        uses: actions/checkout@v4
-        with:
-          ref: d2ef063ea870299f16fbb07aadaefefdf0862346
-          path: baseline-oge15
-          persist-credentials: false
-      - name: Measure identical TYRES flow on pre-V2 main
-        if: github.head_ref == 'feat/oge15-quality-ux-v2'
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oge_trainer
-          OGE15_BASELINE_MEASUREMENT: "1"
-        run: |
-          cp tests/test_scenario_telegram.py baseline-oge15/tests/test_v2_transport_comparison.py
-          cd baseline-oge15
-          ../.venv/bin/python -m pytest -q -s \
-            'tests/test_v2_transport_comparison.py::test_dispatcher_public_menu_navigation_opens_real_oge15_task[TYRES]'
-
-  oge15-linux-render:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - run: docker build -t oge15-render-test .
-      - name: Render all public stories inside the deployment image
+      - name: Check public story rendering in the deployment image
         run: |
           docker run --rm -i oge15-render-test .venv/bin/python - <<'PY'
           from io import BytesIO
@@ -72,9 +123,7 @@ jobs:
           from app.bot.scenario_training import public_registry
           from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
           from app.math.scenarios.mobile_photos import font, scenario_photos
-
-          path = Path(font(32).path)
-          assert path.name == "DejaVuSans.ttf", path
+          assert Path(font(32).path).name == "DejaVuSans.ttf"
           registry = public_registry()
           stories = registry.available_stories(PracticeMode.FULL)
           assert len(stories) == 6
@@ -87,5 +136,68 @@ jobs:
                       with Image.open(BytesIO(photo)) as image:
                           assert image.format == "PNG"
                           image.verify()
-              print(f"{story}: three seeds rendered using {path.name}")
           PY
+
+  mass:
+    needs: changes
+    concurrency:
+      group: heavy-${{ github.event.pull_request.head.ref || github.ref_name }}
+      queue: max
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.profile == 'mass')
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oge_trainer
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oge_trainer"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.8.11'
+      - run: uv sync --frozen --all-extras
+      - run: uv run pytest -q -m mass --durations=50
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oge_trainer
+
+  quality:
+    if: always()
+    needs: [changes, fast, full, mass]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          CHANGES: ${{ needs.changes.result }}
+          FAST: ${{ needs.fast.result }}
+          FULL: ${{ needs.full.result }}
+          MASS: ${{ needs.mass.result }}
+          EVENT: ${{ github.event_name }}
+          CODE: ${{ needs.changes.outputs.code }}
+          FULL_REQUIRED: ${{ needs.changes.outputs.full }}
+          PROFILE: ${{ inputs.profile }}
+        run: |
+          test "$CHANGES" = success
+          for result in "$FAST" "$FULL" "$MASS"; do
+            case "$result" in success|skipped) ;; *) exit 1 ;; esac
+          done
+          if [ "$EVENT" = pull_request ]; then
+            test "$FAST" = success
+            if [ "$FULL_REQUIRED" = true ]; then test "$FULL" = success; fi
+          fi
+          if { [ "$EVENT" = push ] && [ "$CODE" = true ]; } ||
+             { [ "$EVENT" = workflow_dispatch ] && [ "$PROFILE" = full ]; }; then
+            test "$FULL" = success
+          fi
+          if [ "$EVENT" = schedule ] || { [ "$EVENT" = workflow_dispatch ] && [ "$PROFILE" = mass ]; }; then
+            test "$MASS" = success
+          fi

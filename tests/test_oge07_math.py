@@ -64,11 +64,13 @@ def test_generation_is_deterministic_and_has_four_options(family: str) -> None:
 
 
 @pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.mass
 def test_generation_has_diverse_fingerprints(family: str) -> None:
     assert len({generate(family, seed).fingerprint for seed in range(300)}) >= 200
 
 
 @pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.mass
 def test_independent_visible_condition_oracle(family: str) -> None:
     for seed in range(300):
         problem = generate(family, seed)
@@ -97,6 +99,7 @@ def test_independent_visible_condition_oracle(family: str) -> None:
 
 
 @pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.mass
 def test_text_explanations_match_visible_math_across_300_seeds(family: str) -> None:
     for seed in range(300):
         problem = generate(family, seed)
@@ -181,6 +184,7 @@ def test_text_explanation_oracle_rejects_sign_boundary_and_answer_mutations(fami
     assert not audit_explanation(changed)
 
 
+@pytest.mark.mass
 def test_c03_c04_seed_samples_are_strict_plausible_and_unambiguous() -> None:
     c03_positions: set[int] = set()
     c04_positions: set[int] = set()
@@ -293,6 +297,7 @@ def test_only_audited_families_are_enabled_and_scheduler_fails_closed() -> None:
 
 
 @pytest.mark.parametrize("family", ("OGE07-C03", "OGE07-C04"))
+@pytest.mark.mass
 def test_scheduler_batches_issue_only_valid_new_interval_questions(family: str) -> None:
     for seed in range(50):
         batch = build_task7_candidate_batch({}, seed, family_ids=(family,), limit=6)
@@ -375,6 +380,7 @@ def test_graph_audit_checks_exact_visible_point_condition(family: str) -> None:
 
 
 @pytest.mark.parametrize("family", tuple(GRAPH_SOURCES))
+@pytest.mark.mass
 def test_graph_problem_semantics_png_and_diversity_across_300_seeds(family: str) -> None:
     first = generate_graph_problem(family, 104)
     assert first == generate_graph_problem(family, 104)

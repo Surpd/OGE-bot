@@ -71,6 +71,7 @@ def test_seed_is_deterministic_snapshot_roundtrip_and_asset_restores_after_rebui
     assert sha256(_WHEEL_BYTES).hexdigest() == restored_snapshot.assets[0].sha256
 
 
+@pytest.mark.mass
 def test_all_enabled_families_pass_250_seed_quality_and_uniqueness_gate() -> None:
     adapter = build_adapter(
         enabled_families=frozenset(

@@ -139,6 +139,7 @@ def test_schema_two_snapshot_keeps_its_pinned_bank_text() -> None:
     )
 
 
+@pytest.mark.mass
 def test_500_seed_sample_covers_the_bank_with_diverse_one_true_triples() -> None:
     fingerprints: set[tuple[str, ...]] = set()
     used_ids: set[str] = set()
@@ -171,6 +172,7 @@ def test_theme_filter_and_position_balancing() -> None:
         assert len(sample.answer_mask) == 1
 
 
+@pytest.mark.mass
 def test_each_thematic_pool_is_covered_without_leaking_other_topics() -> None:
     from app.math.oge19 import THEME_TOPICS
 
@@ -184,6 +186,7 @@ def test_each_thematic_pool_is_covered_without_leaking_other_topics() -> None:
         assert sampled == allowed
 
 
+@pytest.mark.mass
 def test_generated_statements_have_similar_visible_lengths() -> None:
     spreads = []
     for seed in range(500):

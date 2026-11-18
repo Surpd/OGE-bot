@@ -27,6 +27,7 @@ def test_source_control_and_independent_oracle(family, case):
 
 
 @pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.mass
 def test_mass_oracle_and_replay(family):
     for seed in range(300):
         problem = generate(family, seed)

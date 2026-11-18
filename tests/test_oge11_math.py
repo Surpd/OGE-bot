@@ -101,6 +101,7 @@ def test_generation_is_deterministic_and_independently_verified(family_id: str) 
 
 
 @pytest.mark.parametrize("family_id", FAMILIES)
+@pytest.mark.mass
 def test_each_family_produces_200_unique_candidates_within_budget(family_id: str) -> None:
     problems = [generate(family_id, seed) for seed in range(300)]
     assert len({problem.fingerprint for problem in problems}) >= 200

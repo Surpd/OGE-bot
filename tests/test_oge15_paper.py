@@ -295,6 +295,7 @@ def test_static_diagram_source_preserves_the_a0_to_a5_ratio_and_half_area_chain(
         assert abs(area_ratio - 2) < 0.02
 
 
+@pytest.mark.mass
 def test_seed_space_has_expected_structural_capacity() -> None:
     fingerprints: dict[str, set[str]] = {family_id: set() for family_id in _SOURCE_IDS}
     for seed in range(1200):
