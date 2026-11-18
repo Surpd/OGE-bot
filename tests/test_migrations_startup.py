@@ -200,7 +200,9 @@ async def test_create_app_fails_before_unique_index_without_changing_duplicate_s
 
 
 @pytest.mark.asyncio
-async def test_main_migrations_upgrade_adds_only_task19_and_preserves_task17(monkeypatch, tmp_path):
+async def test_main_migrations_upgrade_adds_only_mixed_training_and_preserves_task17(
+    monkeypatch, tmp_path
+):
     """Upgrade the exact main migration prefix, then retry without reapplying it."""
     from app import main
     from app.math.oge17_generator import generate
@@ -212,8 +214,8 @@ async def test_main_migrations_upgrade_adds_only_task19_and_preserves_task17(mon
     pool = await asyncpg.create_pool(test_url)
     try:
         files = _migration_files()
-        assert [int(p.name[:4]) for p in files] == list(range(1, 19))
-        assert files[-1].name == "0018_task19_sessions.sql"
+        assert [int(p.name[:4]) for p in files] == list(range(1, 20))
+        assert files[-1].name == "0019_mixed_training.sql"
         for migration in files[:-1]:
             (tmp_path / migration.name).write_text(migration.read_text())
         with monkeypatch.context() as patch:
@@ -232,7 +234,7 @@ async def test_main_migrations_upgrade_adds_only_task19_and_preserves_task17(mon
             "SELECT version, applied_at FROM app_schema_migrations ORDER BY version"
         )
         assert after[:-1] == before
-        assert after[-1]["version"] == "0018_task19_sessions.sql"
+        assert after[-1]["version"] == "0019_mixed_training.sql"
         restored = await PostgresRepository(pool).task17_state(170016)
         assert restored["problem"] == snapshot
         assert await pool.fetchval(
