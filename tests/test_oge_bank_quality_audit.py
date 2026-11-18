@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from app.bot.scenario_training import PUBLIC_FAMILIES
 from app.bot.trainings import TRAININGS
 from scripts.oge_bank_quality_audit import (
@@ -240,7 +242,10 @@ def test_oge19_audit_checks_all_public_themes_against_reviewed_bank() -> None:
         assert _oracle(19, family, problem)
         record = _sample_record(problem, 19, 42, True)
         assert len(record["options"]) == 3
-        assert record["correct_option_position"] == int(record["answer"])
+        positions = [int(position) for position in record["answer"]]
+        assert record["correct_option_positions"] == positions
+        assert len(positions) in {1, 2}
+        assert record["correct_option_position"] == (positions[0] if len(positions) == 1 else None)
 
 
 def test_oge19_audit_rejects_rehashed_unreviewed_statement() -> None:
@@ -281,5 +286,6 @@ def test_oge19_audit_rejects_self_consistent_but_wrong_truth_values() -> None:
         for i, row in enumerate(snapshot["statements"], 1)
     ]
     refresh_snapshot_digest(snapshot)
-    validate_snapshot(snapshot)  # A self-consistent snapshot alone is insufficient.
+    with pytest.raises(ValueError, match="reviewed bank"):
+        validate_snapshot(snapshot)
     assert not _oracle(19, "OGE19-MIXED", SimpleNamespace(to_snapshot=lambda: snapshot))
