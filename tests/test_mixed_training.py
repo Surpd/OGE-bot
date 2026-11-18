@@ -86,6 +86,23 @@ async def test_mixed_oge19_multiple_true_answers_use_text_and_ignore_order(monke
     assert solved is not None and solved["problem"]["outcome"] == "solved"
 
 
+def test_mixed_task19_does_not_leak_number_of_true_statements_through_buttons():
+    from app.bot.mixed_training import _task19_button_choices
+    from app.math.oge19 import LEGACY_ANSWER_POLICY_ID
+    from app.math.oge19_scheduler import build_task19_candidate_batch
+
+    single = build_task19_candidate_batch({}, 100)[0]
+    multiple = build_task19_candidate_batch({}, 101)[0]
+    assert len(str(single["correct_answer"])) == 1
+    assert len(str(multiple["correct_answer"])) == 2
+    assert _task19_button_choices(single) == 0
+    assert _task19_button_choices(multiple) == 0
+
+    # Already-issued pre-v4 tasks retain their working answer buttons.
+    legacy = {**single, "answer_policy_id": LEGACY_ANSWER_POLICY_ID}
+    assert _task19_button_choices(legacy) == 3
+
+
 @pytest.mark.asyncio
 async def test_memory_session_replays_same_snapshot_and_counts_one_result():
     repository = MemoryRepository()
