@@ -13,7 +13,7 @@ FAMILY_THEMES = {
     "OGE19-LINES-ANGLES": "lines_angles",
     "OGE19-AREAS-METRICS": "areas_metrics",
 }
-ENABLED_FAMILIES: tuple[str, ...] = ()  # Public menu activation awaits final acceptance.
+ENABLED_FAMILIES: tuple[str, ...] = tuple(FAMILY_THEMES)  # Public release of OGE #19.
 
 
 def build_task19_candidate_batch(

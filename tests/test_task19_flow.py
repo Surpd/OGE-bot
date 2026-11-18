@@ -27,6 +27,24 @@ def enabled_task19(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_task19_is_publicly_enabled_without_overrides():
+    from app.bot.training_engine import NUMERIC_TRAININGS
+    from app.bot.trainings import BY_NUMBER
+
+    assert oge19_scheduler.ENABLED_FAMILIES == tuple(FAMILY_THEMES)
+    assert BY_NUMBER[19].available
+    assert NUMERIC_TRAININGS[19].families == tuple(FAMILY_THEMES)
+    menu = incoming()
+    await router.choose_number(menu, MemoryRepository())
+    labels = [
+        button.text
+        for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
+        for button in row
+    ]
+    assert labels.count("№19 · Геометрические утверждения") == 1
+
+
+@pytest.mark.asyncio
 async def test_task19_is_one_number_entry_with_compact_theme_selector(enabled_task19):
     menu = incoming()
     await router.choose_number(menu, MemoryRepository())
@@ -182,3 +200,21 @@ async def test_task19_second_wrong_answer_reveals_each_statement_reason(enabled_
     for index, statement in enumerate(problem["statements"], 1):
         assert f"{index}." in output
         assert statement["explanation"] in output
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("family", tuple(FAMILY_THEMES))
+async def test_public_theme_selection_issues_reviewed_task(family):
+    from app.math.oge19 import THEME_TOPICS, validate_snapshot
+
+    repo = MemoryRepository()
+    selection = "random" if family == "OGE19-MIXED" else str(tuple(FAMILY_THEMES).index(family))
+    await select_family(incoming(), repo, 19, selection)
+    assert await repo.training_family(419, 19) == family
+    await router.choose_task19(incoming(message_id=104), repo)
+    task = (await repo.task19_state(419))["problem"]
+    validate_snapshot(task)
+    assert task["family_id"] == family
+    if family != "OGE19-MIXED":
+        assert all(row["topic"] in THEME_TOPICS[FAMILY_THEMES[family]]
+                   for row in task["statements"])

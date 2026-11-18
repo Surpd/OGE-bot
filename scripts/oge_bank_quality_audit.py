@@ -1,7 +1,8 @@
-"""Reproduce the all-enabled-family OGE 1–14 audit sample and mobile previews.
+"""Reproduce the all-enabled-family OGE first-part audit sample and mobile previews.
 
-This intentionally reuses the runtime registry, each generator's independent
-oracle, and each production candidate scheduler. It does not change generator
+This reuses the runtime registry, available independent oracles, and production
+candidate schedulers. Task 19 checks against its reviewed claim bank rather than
+automatically proving each geometry statement. It does not change generator
 state or claim that generated analogues are official source tasks.
 """
 
@@ -18,6 +19,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import fields, is_dataclass
 from fractions import Fraction
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 from PIL import Image
@@ -62,6 +64,7 @@ QUALITY_REPORTS: dict[int | str, str] = {
     15: "reports/oge15-quality.json",
     16: "reports/oge16-quality.json",
     17: "reports/oge17-quality.json",
+    19: "reports/oge19-quality.json",
 }
 
 COMPLEXITY: dict[int, dict[str, int]] = {
@@ -180,6 +183,16 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE17-T05": 2,
         "OGE17-T07": 2,
         "OGE17-T08": 2,
+    },
+    # Preliminary theme-level difficulty estimates; dedicated reviewed claim-bank QA
+    # remains authoritative for OGE19 truth masks and mathematical explanations.
+    19: {
+        "OGE19-MIXED": 3,
+        "OGE19-TRIANGLES": 3,
+        "OGE19-QUADRILATERALS": 3,
+        "OGE19-CIRCLES": 3,
+        "OGE19-LINES-ANGLES": 2,
+        "OGE19-AREAS-METRICS": 3,
     },
 }
 SCENARIO_COMPLEXITY = {
@@ -341,6 +354,8 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
     correct_option_positions = [
         index + 1 for index, option in enumerate(options) if option == answer
     ]
+    if number == 19:
+        correct_option_positions = [int(answer)] if answer in {"1", "2", "3"} else []
     return {
         "seed": seed,
         "valid_oracle": bool(valid),
@@ -388,6 +403,37 @@ def _stable(value: Any) -> str:
 
 
 def _oracle(number: int, family: str, item: Any) -> bool:
+    if number == 19:
+        from app.math.oge19 import STATEMENTS_BY_ID, THEME_TOPICS, validate_snapshot
+        from app.math.oge19_scheduler import FAMILY_THEMES
+
+        # This checks the generated triple against the independently reviewed bank;
+        # it is not a fresh proof of each theorem or counterexample.
+        snapshot = item.to_snapshot()
+        validate_snapshot(snapshot)
+        statements = snapshot["statements"]
+        reviewed = [STATEMENTS_BY_ID.get(s["id"]) for s in statements]
+        if any(reference is None or reference.to_dict() != actual
+               for reference, actual in zip(reviewed, statements, strict=True)):
+            return False
+        theme = FAMILY_THEMES[family]
+        if theme != "mixed" and any(s["topic"] not in THEME_TOPICS[theme] for s in statements):
+            return False
+        correct = [str(index) for index, reference in enumerate(reviewed, 1)
+                   if reference is not None and reference.is_true]
+        condition = (
+            "Какое из следующих утверждений является истинным высказыванием?\n\n"
+            + "\n".join(f"{i}. {statement['statement']}"
+                        for i, statement in enumerate(statements, 1))
+            + "\n\nВ ответ запишите номер истинного высказывания."
+        )
+        solution = [
+            f"{i}. {'Верно' if statement['is_true'] else 'Неверно'}: {statement['explanation']}"
+            for i, statement in enumerate(statements, 1)
+        ]
+        return (len(correct) == 1 and snapshot["answer_mask"] == correct[0]
+                and snapshot["correct_answer"] == correct[0]
+                and snapshot["condition"] == condition and snapshot["solution"] == solution)
     if number == 15:
         from app.math.oge15_triangles import from_snapshot
 
@@ -475,6 +521,30 @@ def _oracle(number: int, family: str, item: Any) -> bool:
 
 
 def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, int], Any]]:
+    if number == 19:
+        from app.math.oge19_scheduler import ENABLED_FAMILIES, build_task19_candidate_batch
+
+        def make(family: str, seed: int) -> Any:
+            snapshot = build_task19_candidate_batch(
+                {}, seed, enabled_families=(family,)
+            )[0]
+            return SimpleNamespace(
+                to_snapshot=lambda: snapshot,
+                condition=snapshot["condition"],
+                correct_answer=snapshot["correct_answer"],
+                hints=snapshot["hints"],
+                options=tuple(s["statement"] for s in snapshot["statements"]),
+                solution=snapshot["solution"],
+                fingerprint=snapshot["fingerprint"],
+                generator_version=snapshot["generator_version"],
+                answer_policy_id=snapshot["answer_policy_id"],
+                answer_policy_version=snapshot["answer_policy_version"],
+                reference_ids=tuple(
+                    sorted({s["source"]["task_id"] for s in snapshot["statements"]})
+                ),
+            )
+
+        return tuple(ENABLED_FAMILIES), make
     if number == 15:
         from app.math.oge15_complete import VERSION
         from app.math.oge15_triangles import ENABLED_FAMILIES, generate
@@ -575,6 +645,10 @@ def _complexity(number: int, family: str, examples: list[dict[str, Any]]) -> dic
         14: (
             "Найти член арифметической/геометрической прогрессии; геометрический рост "
             "и неизвестные начальные данные требуют дополнительных преобразований."
+        ),
+        19: (
+            "Выбрать единственное истинное утверждение из трёх; сложность зависит от "
+            "геометрических теорем и необходимости найти контрпример. Оценка предварительная."
         ),
     }
     if number == 7 and family == "OGE07-C04":
@@ -717,7 +791,8 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                     {
                         "seed": seed,
                         "failure_kind": "oracle_false",
-                        "reason": "independent oracle returned false",
+                        "reason": ("reviewed-bank consistency check returned false" if number == 19
+                                   else "independent oracle returned false"),
                     }
                 )
         except Exception as error:  # record the failing seed and continue the family audit
@@ -729,6 +804,12 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                 }
             )
     summary = _summarize(number, family, records, failures)
+    if number == 19:
+        summary["oracle_scope"] = (
+            "Consistency with the independently reviewed claim bank; no independent "
+            "automated proof of the mathematical truth of each claim. See "
+            "reports/oge19-quality.json and tests/test_oge19_math.py."
+        )
     if family == "OGE07-C04":
         boundary_examples = []
         integer_targets = 0
@@ -1304,7 +1385,8 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                     {
                         "seed": seed,
                         "failure_kind": "oracle_false",
-                        "reason": "independent oracle returned false",
+                        "reason": ("reviewed-bank consistency check returned false" if number == 19
+                                   else "independent oracle returned false"),
                     }
                 )
         except Exception as error:  # record the failing seed and continue the family audit
@@ -1316,6 +1398,12 @@ def _family_audit(number: int, family: str, sample_size: int) -> tuple[dict[str,
                 }
             )
     summary = _summarize(number, family, records, failures)
+    if number == 19:
+        summary["oracle_scope"] = (
+            "Consistency with the independently reviewed claim bank; no independent "
+            "automated proof of the mathematical truth of each claim. See "
+            "reports/oge19-quality.json and tests/test_oge19_math.py."
+        )
     if family == "OGE07-C04":
         boundary_examples = []
         integer_targets = 0

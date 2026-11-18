@@ -262,9 +262,13 @@ async def test_number_menu_matches_registered_training_adapters() -> None:
         for button in row
         if (match := re.match(r"№(\d+)", button.text or "")) is not None
     }
-    registered_numbers = {training.number for training in TRAININGS}
+    from app.bot.trainings import TRAININGS as REGISTERED_TRAININGS
 
-    assert menu_numbers == registered_numbers | {1}
+    registered_numbers = {training.number for training in TRAININGS}
+    enabled_numbers = {training.number for training in REGISTERED_TRAININGS if training.available}
+
+    assert menu_numbers == enabled_numbers | {1}
+    assert registered_numbers <= menu_numbers
     assert any(
         button.text == "№1–5 · Практические задания"
         and (button.callback_data or "").startswith("nav:oge15")
