@@ -48,7 +48,8 @@ jobs:
             test "${#EXPECTED_SHA}" -eq 40
             test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           fi
-          if [ "$EVENT" = pull_request ] && git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+          if { [ "$EVENT" = pull_request ] || [ "$EVENT" = push ]; } &&
+             git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
             python scripts/ci_select.py classify "$BASE_SHA" >> "$GITHUB_OUTPUT"
             echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
           else
@@ -99,7 +100,7 @@ jobs:
     needs: changes
     if: >-
       (github.event_name == 'pull_request' && needs.changes.outputs.code == 'true') ||
-      github.event_name == 'push' ||
+      (github.event_name == 'push' && needs.changes.outputs.code == 'true') ||
       (github.event_name == 'workflow_dispatch' && inputs.profile == 'full')
     runs-on: ubuntu-latest
     services:
@@ -164,7 +165,7 @@ jobs:
     needs: changes
     if: >-
       (github.event_name == 'pull_request' && needs.changes.outputs.code == 'true') ||
-      github.event_name == 'push' ||
+      (github.event_name == 'push' && needs.changes.outputs.code == 'true') ||
       (github.event_name == 'workflow_dispatch' && inputs.profile == 'full')
     runs-on: ubuntu-latest
     steps:
@@ -219,7 +220,8 @@ jobs:
             test "$FAST" = success && test "$FULL" = success && test "$DOCKER" = success
             if [ "$MASS_REQUIRED" = true ]; then test "$MASS" = success; fi
           fi
-          if [ "$EVENT" = push ] || { [ "$EVENT" = workflow_dispatch ] && [ "$PROFILE" = full ]; }; then
+          if { [ "$EVENT" = push ] && [ "$CODE" = true ]; } ||
+             { [ "$EVENT" = workflow_dispatch ] && [ "$PROFILE" = full ]; }; then
             test "$FULL" = success && test "$DOCKER" = success
           fi
           if [ "$EVENT" = schedule ] || { [ "$EVENT" = workflow_dispatch ] && [ "$PROFILE" = mass ]; }; then

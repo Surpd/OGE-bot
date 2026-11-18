@@ -7,6 +7,14 @@ def test_docs_only_does_not_start_postgres_or_full_suite():
     assert classify(["README.md", "docs/guide.md"])["code"] is False
     assert classify(["README.md", "pyproject.toml"])["code"] is True
 
+    import yaml
+
+    with open(".github/workflows/ci.yml", encoding="utf-8") as stream:
+        workflow = yaml.load(stream, Loader=yaml.BaseLoader)
+    for job in ("full", "oge15-linux-render"):
+        condition = workflow["jobs"][job]["if"]
+        assert "github.event_name == 'push' && needs.changes.outputs.code == 'true'" in condition
+
 
 def test_generator_change_selects_number_and_mass_qa():
     result = classify(["app/math/oge11_render.py"])
