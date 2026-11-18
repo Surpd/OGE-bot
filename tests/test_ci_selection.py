@@ -61,6 +61,8 @@ def test_workflow_full_and_mass_are_disjoint_and_quality_checks_required_jobs():
     assert "needs.changes.outputs.full == 'true'" in jobs["full"]["if"]
     assert list(jobs["full"]["services"]) == ["postgres"]
     assert list(jobs["mass"]["services"]) == ["postgres"]
+    assert jobs["full"]["concurrency"] == jobs["mass"]["concurrency"]
+    assert jobs["full"]["concurrency"]["queue"] == "max"
     assert set(jobs["quality"]["needs"]) == {"changes", "fast", "full", "mass"}
     gate = jobs["quality"]["steps"][0]["run"]
     assert 'if [ "$FULL_REQUIRED" = true ]; then test "$FULL" = success; fi' in gate

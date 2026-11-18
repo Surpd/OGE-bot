@@ -79,6 +79,9 @@ jobs:
 
   full:
     needs: changes
+    concurrency:
+      group: heavy-${{ github.event.pull_request.head.ref || github.ref_name }}
+      queue: max
     if: >-
       (github.event_name == 'pull_request' && needs.changes.outputs.full == 'true') ||
       (github.event_name == 'push' && needs.changes.outputs.code == 'true') ||
@@ -137,6 +140,9 @@ jobs:
 
   mass:
     needs: changes
+    concurrency:
+      group: heavy-${{ github.event.pull_request.head.ref || github.ref_name }}
+      queue: max
     if: >-
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && inputs.profile == 'mass')
