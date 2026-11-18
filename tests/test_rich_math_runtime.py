@@ -281,6 +281,23 @@ def test_typed_system_is_native_latex_and_image_rows_are_not_reparsed():
     assert Image.open(io.BytesIO(render_math_image(condition, system_rows=rows))).height > 200
 
 
+@pytest.mark.parametrize(
+    "family, seed",
+    (("OGE13-S01", 11), ("OGE13-S02", 12), ("OGE13-S03", 13)),
+)
+def test_each_task13_system_family_has_rich_and_png_brace_rendering(family, seed):
+    from app.math.inequalities import generate
+
+    problem = generate(family, seed)
+    rows = tuple(problem.condition.splitlines())
+    source = f"Задание №13\n{problem.condition}"
+    rich = format_rich_message(source, system_rows=rows)
+    assert r"\begin{cases}" in rich
+    image = Image.open(io.BytesIO(render_math_image(source, system_rows=rows)))
+    assert image.format == "PNG"
+    assert image.height > 200
+
+
 def test_owned_learning_layout_numbers_hints_steps_and_separates_final_answer():
     from app.bot.presentation import hint_message
 

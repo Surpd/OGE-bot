@@ -40,6 +40,53 @@ async def test_all_public_numbers_and_linked_scenario_answers_are_reachable():
 
 
 @pytest.mark.asyncio
+async def test_mixed_oge19_multiple_true_answers_use_text_and_ignore_order(monkeypatch):
+    from app.math.oge19_scheduler import build_task19_candidate_batch
+
+    candidate = build_task19_candidate_batch({}, 101, enabled_families=("OGE19-MIXED",))[0]
+    expected = str(candidate["correct_answer"])
+    assert len(expected) == 2
+    monkeypatch.setattr(mixed_training, "available_numbers", lambda: [19])
+    monkeypatch.setattr(mixed_training, "_candidate", lambda number, state=None: candidate)
+
+    prompt_id = 5100
+    delivered = {}
+
+    async def capture_text(*_args, **kwargs):
+        delivered.update(kwargs)
+        return SimpleNamespace(message_id=prompt_id)
+
+    monkeypatch.setattr(mixed_training, "send_text", capture_text)
+    incoming = AsyncMock()
+    incoming.from_user = User(id=819, is_bot=False, first_name="Student")
+    repository = MemoryRepository()
+    await mixed_training.start_mixed(incoming, repository)
+
+    store = MixedTrainingRepository(repository)
+    current = await store.state(819)
+    assert current is not None
+    problem = current["problem"]
+    assert problem["condition"].startswith(
+        "Какие из следующих утверждений верны? В ответ запишите их номера."
+    )
+    labels = [
+        button.text
+        for row in delivered["reply_markup"].inline_keyboard
+        for button in row
+    ]
+    assert not {"1", "2", "3"}.intersection(labels)
+
+    answer = AsyncMock()
+    answer.from_user = incoming.from_user
+    answer.message_id = 5101
+    answer.reply_to_message = SimpleNamespace(message_id=problem["prompt_message_id"])
+    answer.text = expected[::-1]
+    await mixed_training.mixed_answer(answer, repository)
+    solved = await store.state(819)
+    assert solved is not None and solved["problem"]["outcome"] == "solved"
+
+
+@pytest.mark.asyncio
 async def test_memory_session_replays_same_snapshot_and_counts_one_result():
     repository = MemoryRepository()
     store = MixedTrainingRepository(repository)
@@ -333,7 +380,7 @@ async def test_telegram_mixed_graphical_and_choice_families(number: int, monkeyp
             image.verify()
 
     problem_id = str(problem["problem_id"])
-    if number in {13, 19}:
+    if number == 13 or (number == 19 and len(str(problem["correct_answer"])) == 1):
         chat_message = Message(
             message_id=2_500,
             date=datetime.now(UTC),
@@ -357,7 +404,11 @@ async def test_telegram_mixed_graphical_and_choice_families(number: int, monkeyp
         answer.reply_to_message = SimpleNamespace(
             message_id=problem["prompt_message_id"]
         )
-        answer.text = str(problem["correct_answer"])
+        answer.text = (
+            str(problem["correct_answer"])[::-1]
+            if number == 19
+            else str(problem["correct_answer"])
+        )
         await mixed_training.mixed_answer(answer, repository)
 
     solved = await store.state(incoming.from_user.id)
