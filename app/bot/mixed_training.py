@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import hashlib
 import secrets
@@ -32,6 +33,10 @@ from app.math.scenario_engine import (
 from app.math.scenarios.mobile_photos import scenario_photos_for_question
 from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.repository import Repository
+
+
+class _CandidateUnavailable(RuntimeError):
+    """A single bounded generation attempt could not produce the next task."""
 
 
 def _mixed_menu(
@@ -174,7 +179,8 @@ def _render_image(number: int, problem: dict[str, object]) -> bytes | None:
     if number == 15:
         from app.math.oge15_triangles import from_snapshot as restore_oge15
 
-        return restore_oge15(problem).png_bytes
+        png_bytes = restore_oge15(problem).png_bytes
+        return png_bytes if png_bytes else None
     if number == 16:
         from app.math.oge16_circles import from_snapshot as restore_oge16
 
@@ -288,21 +294,35 @@ async def _issue(store: MixedTrainingRepository, user_id: int) -> dict[str, obje
     saved_scenario = (
         session_state.get("scenario_snapshot") if isinstance(session_state, dict) else None
     )
-    if number == 1:
-        scenario = saved_scenario if isinstance(saved_scenario, dict) else _scenario()
-        snapshot = _scenario_question(scenario, 1)
+    if 1 <= number <= 5:
+        if isinstance(saved_scenario, dict):
+            scenario = saved_scenario
+        elif number == 1:
+            try:
+                scenario = await asyncio.to_thread(_scenario)
+            except Exception as exc:
+                raise _CandidateUnavailable("Could not generate OGE 1–5 scenario") from exc
+        else:
+            raise ValueError("Saved mixed scenario is missing during recovery")
+        snapshot = await asyncio.to_thread(_scenario_question, scenario, number)
         return await store.issue_current(
             user_id,
             revision,
-            1,
+            number,
             snapshot,
-            scenario_snapshot=scenario if not isinstance(saved_scenario, dict) else None,
+            scenario_snapshot=(
+                scenario if number == 1 and not isinstance(saved_scenario, dict) else None
+            ),
         )
     number_state = generator_states.get(str(number))
-    snapshot = _candidate(
-        number,
-        cast(dict[str, object], number_state) if isinstance(number_state, dict) else None,
-    )
+    try:
+        snapshot = await asyncio.to_thread(
+            _candidate,
+            number,
+            cast(dict[str, object], number_state) if isinstance(number_state, dict) else None,
+        )
+    except Exception as exc:
+        raise _CandidateUnavailable(f"Could not generate OGE {number}") from exc
     return await store.issue_current(user_id, revision, number, snapshot)
 
 
@@ -321,7 +341,7 @@ async def _send_problem(
     if number == 7:
         from app.math.oge07_validation import validate_task7_snapshot
 
-        if not validate_task7_snapshot(problem):
+        if not await asyncio.to_thread(validate_task7_snapshot, problem):
             raise ValueError("Mixed task 7 snapshot failed validation")
     elif number == 13:
         from app.math.inequalities import validate_snapshot as validate_inequality_snapshot
@@ -331,19 +351,33 @@ async def _send_problem(
             "OGE13-Q01",
             "OGE13-Q02",
             "OGE13-Q03",
-        } and not validate_inequality_snapshot(problem):
+        } and not await asyncio.to_thread(validate_inequality_snapshot, problem):
             raise ValueError("Mixed task 13 snapshot failed validation")
     elif number == 19:
         from app.math.oge19 import validate_snapshot as validate_statement_snapshot
 
-        validate_statement_snapshot(problem)
+        runtime_fields = {
+            "number",
+            "outcome",
+            "attempts",
+            "hints_used",
+            "prompt_message_id",
+            "id",
+            "record_id",
+            "attempt_records",
+            "issued_at",
+        }
+        statement_snapshot = {
+            key: value for key, value in problem.items() if key not in runtime_fields
+        }
+        await asyncio.to_thread(validate_statement_snapshot, statement_snapshot)
     condition = str(problem.get("condition", ""))
     scenario: ScenarioSnapshot | None = None
     if number <= 5:
         raw_scenario = problem.get("scenario_snapshot")
         if not isinstance(raw_scenario, dict):
             raise ValueError("Mixed scenario snapshot is missing")
-        scenario = ScenarioSnapshot.from_snapshot(raw_scenario)
+        scenario = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
         await send_text(message, repository, scenario.shared_context, user_id_override=user_id)
     if number == 13:
         from app.bot.router import _task13_choice_text
@@ -364,7 +398,11 @@ async def _send_problem(
         condition += (
             "\n\nНапишите ответ числом в чат. Дробную часть можно отделять запятой или точкой."
         )
-    photos = scenario_photos_for_question(scenario, number) if scenario is not None else ()
+    photos = (
+        await asyncio.to_thread(scenario_photos_for_question, scenario, number)
+        if scenario is not None
+        else ()
+    )
     if photos:
         for photo_bytes in photos:
             await send_photo(
@@ -374,7 +412,9 @@ async def _send_problem(
                 caption=f"Данные задачи №{number}",
                 user_id_override=user_id,
             )
-    image_data = None if number <= 5 else _render_image(number, problem)
+    image_data = (
+        None if number <= 5 else await asyncio.to_thread(_render_image, number, problem)
+    )
     markup = _mixed_menu(
         str(problem["problem_id"]), choices=3 if number == 19 else (4 if number == 13 else 0)
     )
@@ -406,7 +446,18 @@ async def start_mixed(message: Message, repository: Repository) -> None:
     session = await store.state(user_id)
     current = session.get("problem") if session else None
     if not isinstance(current, dict):
-        current = await _issue(store, user_id)
+        try:
+            current = await _issue(store, user_id)
+        except _CandidateUnavailable:
+            await send_text(
+                message,
+                repository,
+                "Не удалось подготовить задание. Смешанная тренировка сохранена; "
+                "нажмите «Продолжить», чтобы повторить попытку.",
+                reply_markup=main_menu(has_session=True),
+                user_id_override=user_id,
+            )
+            return
     if not isinstance(current, dict):
         await send_text(
             message,
@@ -423,8 +474,29 @@ async def continue_mixed(message: Message, repository: Repository, user_id: int)
     await store.start(user_id, available_numbers())
     state = await store.state(user_id)
     problem = state.get("problem") if state else None
+    if isinstance(problem, dict) and problem.get("outcome") != "issued":
+        await send_text(
+            message,
+            repository,
+            "Предыдущее задание уже завершено. Чтобы повторить переход, нажмите "
+            "«Следующее» под его сообщением.",
+            reply_markup=main_menu(has_session=True),
+            user_id_override=user_id,
+        )
+        return True
     if not isinstance(problem, dict):
-        problem = await _issue(store, user_id)
+        try:
+            problem = await _issue(store, user_id)
+        except _CandidateUnavailable:
+            await send_text(
+                message,
+                repository,
+                "Не удалось подготовить задание. Смешанная тренировка сохранена; "
+                "нажмите «Продолжить», чтобы повторить попытку.",
+                reply_markup=main_menu(has_session=True),
+                user_id_override=user_id,
+            )
+            return True
     if not isinstance(problem, dict):
         return False
     await _send_problem(message, repository, store, problem, user_id=user_id)
@@ -454,7 +526,7 @@ async def mixed_answer(message: Message, repository: Repository) -> None:
     task_number = problem.get("number")
     if not isinstance(task_number, int):
         return
-    correct = _is_correct(task_number, problem, message.text)
+    correct = await asyncio.to_thread(_is_correct, task_number, problem, message.text)
     if correct is None:
         await send_text(message, repository, "Ответ не соответствует формату этого задания.")
         return
@@ -532,7 +604,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         if parts[3] not in {"1", "2", "3", "4"}:
             await answer_callback(callback, "Этот вариант недоступен.")
             return
-        correct = _is_correct(number, problem, parts[3])
+        correct = await asyncio.to_thread(_is_correct, number, problem, parts[3])
         if correct is None:
             await answer_callback(callback, "Этот вариант недоступен.")
             return
@@ -636,25 +708,50 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             if len(next_numbers) > 1 and next_numbers[0] == last:
                 next_numbers[0], next_numbers[1] = next_numbers[1], next_numbers[0]
         next_number = int(next_numbers[0]) if next_numbers else None
-        scenario = _scenario() if next_number == 1 else None
+        try:
+            scenario = await asyncio.to_thread(_scenario) if next_number == 1 else None
+        except Exception:
+            await send_text(
+                message,
+                repository,
+                "Не удалось подготовить следующее задание. Занятие сохранено; "
+                "нажмите «Следующее» под завершённым заданием для повтора.",
+                reply_markup=main_menu(has_session=True),
+                user_id_override=user_id,
+            )
+            await answer_callback(callback, "Повторите переход кнопкой под заданием.")
+            return
         generator_states = state_data.get("generator_states", {})
         number_state = (
             generator_states.get(str(next_number))
             if isinstance(generator_states, dict) and next_number is not None
             else None
         )
-        snapshot = (
-            _scenario_question(scenario, 1)
-            if scenario
-            else _candidate(
-                next_number,
-                cast(dict[str, object], number_state)
-                if isinstance(number_state, dict)
-                else None,
+        try:
+            snapshot = (
+                await asyncio.to_thread(_scenario_question, scenario, 1)
+                if scenario
+                else await asyncio.to_thread(
+                    _candidate,
+                    next_number,
+                    cast(dict[str, object], number_state)
+                    if isinstance(number_state, dict)
+                    else None,
+                )
+                if next_number
+                else None
             )
-            if next_number
-            else None
-        )
+        except Exception:
+            await send_text(
+                message,
+                repository,
+                "Не удалось подготовить следующее задание. Занятие сохранено; "
+                "нажмите «Следующее» под завершённым заданием для повтора.",
+                reply_markup=main_menu(has_session=True),
+                user_id_override=user_id,
+            )
+            await answer_callback(callback, "Повторите переход кнопкой под заданием.")
+            return
         result = await store.advance(
             user_id,
             problem_id,
@@ -678,20 +775,25 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         return
     number = number_value
     if not isinstance(pending, dict):
-        generator_states = state_data.get("generator_states", {})
-        number_state = (
-            generator_states.get(str(number)) if isinstance(generator_states, dict) else None
-        )
-        pending = (
-            _scenario_question(cast(dict[str, object], result["scenario_snapshot"]), 1)
-            if isinstance(result.get("scenario_snapshot"), dict)
-            else _candidate(
-                number,
-                cast(dict[str, object], number_state)
-                if isinstance(number_state, dict)
-                else None,
+        try:
+            issued = await _issue(store, user_id)
+        except _CandidateUnavailable:
+            await send_text(
+                message,
+                repository,
+                "Не удалось подготовить следующее задание. Смешанное занятие сохранено; "
+                "нажмите «Продолжить» для безопасного повтора.",
+                reply_markup=main_menu(has_session=True),
+                user_id_override=user_id,
             )
-        )
+            await answer_callback(callback, "Занятие сохранено")
+            return
+        if not isinstance(issued, dict):
+            await answer_callback(callback, "Задание уже было открыто.")
+            return
+        await _send_problem(message, repository, store, issued, user_id=user_id)
+        await answer_callback(callback)
+        return
     issued = await store.issue_current(
         user_id,
         expected_revision,

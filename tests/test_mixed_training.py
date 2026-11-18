@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
 from aiogram.types import CallbackQuery, Chat, Message, User
+from PIL import Image
 
 from app.bot import mixed_training
 from app.bot.mixed_training import (
@@ -205,6 +207,7 @@ async def test_telegram_mixed_route_accepts_answer_and_advances(monkeypatch):
         message_id=501 + outbound.await_count
     )
     monkeypatch.setattr(mixed_training, "send_text", outbound)
+    monkeypatch.setattr(mixed_training, "send_photo", outbound)
     monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
 
     incoming = AsyncMock()
@@ -264,3 +267,266 @@ async def test_telegram_mixed_route_accepts_answer_and_advances(monkeypatch):
     assert resumed is not None
     assert resumed["problem"]["problem_id"] == next_id
     assert resumed["problem"]["condition"] == next_condition
+
+
+@pytest.mark.parametrize("number", [7, 11, 13, 15, 16, 17, 18, 19])
+@pytest.mark.asyncio
+async def test_telegram_mixed_graphical_and_choice_families(number: int, monkeypatch):
+    repository = MemoryRepository()
+    candidate = _candidate(number)
+    monkeypatch.setattr(mixed_training, "available_numbers", lambda: [number])
+    monkeypatch.setattr(mixed_training, "_candidate", lambda requested, state=None: candidate)
+
+    sent: list[tuple[str, bytes | None, str]] = []
+    next_message_id = 2_000
+
+    async def capture_text(*args, **kwargs):
+        nonlocal next_message_id
+        next_message_id += 1
+        sent.append(("text", None, str(args[2]) if len(args) > 2 else ""))
+        return SimpleNamespace(message_id=next_message_id)
+
+    async def capture_photo(message, repository, photo, *, caption=None, **kwargs):
+        nonlocal next_message_id
+        next_message_id += 1
+        sent.append(("photo", bytes(photo.data), str(caption or "")))
+        return SimpleNamespace(message_id=next_message_id)
+
+    monkeypatch.setattr(mixed_training, "send_text", capture_text)
+    monkeypatch.setattr(mixed_training, "send_photo", capture_photo)
+    monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
+
+    incoming = AsyncMock()
+    incoming.from_user = User(id=81_000 + number, is_bot=False, first_name="Student")
+    await mixed_training.start_mixed(incoming, repository)
+    store = MixedTrainingRepository(repository)
+    state = await store.state(incoming.from_user.id)
+    assert state is not None
+    problem = state["problem"]
+    assert problem["number"] == number
+    expected_png = mixed_training._render_image(number, candidate)
+    photo_messages = [data for kind, data, _ in sent if kind == "photo" and data]
+    assert bool(photo_messages) is (expected_png is not None)
+    if expected_png is not None:
+        with Image.open(BytesIO(photo_messages[-1])) as image:
+            assert image.format == "PNG"
+            image.verify()
+
+    problem_id = str(problem["problem_id"])
+    if number in {13, 19}:
+        chat_message = Message(
+            message_id=2_500,
+            date=datetime.now(UTC),
+            chat=Chat(id=incoming.from_user.id, type="private"),
+            text="Выбрать",
+        )
+        callback = CallbackQuery(
+            id=f"mixed-choice-{number}",
+            from_user=incoming.from_user,
+            chat_instance="mixed-e2e",
+            message=chat_message.model_copy(
+                update={"message_id": int(problem["prompt_message_id"])}
+            ),
+            data=f"mixed:pick:{problem_id}:{problem['correct_answer']}",
+        )
+        await mixed_training.mixed_callback(callback, repository)
+    else:
+        answer = AsyncMock()
+        answer.from_user = incoming.from_user
+        answer.message_id = 2_501
+        answer.reply_to_message = SimpleNamespace(
+            message_id=problem["prompt_message_id"]
+        )
+        answer.text = str(problem["correct_answer"])
+        await mixed_training.mixed_answer(answer, repository)
+
+    solved = await store.state(incoming.from_user.id)
+    assert solved is not None and solved["problem"]["outcome"] == "solved"
+    assert solved["problem"]["attempts"] == 1
+
+
+@pytest.mark.asyncio
+async def test_telegram_mixed_story_five_questions_then_ordinary_and_resume(monkeypatch):
+    repository = MemoryRepository()
+    scenario = _scenario(seed=815_019)
+    ordinary = _candidate(6)
+    monkeypatch.setattr(mixed_training, "available_numbers", lambda: [1, 6])
+    monkeypatch.setattr(mixed_training, "_scenario", lambda: scenario)
+    monkeypatch.setattr(mixed_training, "_candidate", lambda number, state=None: ordinary)
+    monkeypatch.setattr(mixed_training, "_render_image", lambda number, problem: None)
+    outbound = AsyncMock()
+    outbound.side_effect = lambda *args, **kwargs: SimpleNamespace(
+        message_id=3_000 + outbound.await_count
+    )
+    monkeypatch.setattr(mixed_training, "send_text", outbound)
+    monkeypatch.setattr(mixed_training, "send_photo", outbound)
+    monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
+    monkeypatch.setattr(
+        mixed_training.secrets,
+        "SystemRandom",
+        lambda: SimpleNamespace(shuffle=lambda sequence: None),
+    )
+
+    incoming = AsyncMock()
+    incoming.from_user = User(id=81_100, is_bot=False, first_name="Student")
+    await mixed_training.start_mixed(incoming, repository)
+    store = MixedTrainingRepository(repository)
+    for position in range(1, 6):
+        current = await store.state(81_100)
+        assert current is not None
+        problem = current["problem"]
+        assert problem["number"] == position
+        assert problem["scenario_snapshot"] == scenario
+        assert problem["scenario_seed"] == scenario["seed"]
+        assert problem["shared_context"] == scenario["shared_context"]
+        answer = AsyncMock()
+        answer.from_user = incoming.from_user
+        answer.message_id = 4_000 + position
+        answer.reply_to_message = SimpleNamespace(
+            message_id=problem["prompt_message_id"]
+        )
+        answer.text = str(problem["correct_answer"])
+        await mixed_training.mixed_answer(answer, repository)
+        next_callback = CallbackQuery(
+            id=f"mixed-story-next-{position}",
+            from_user=incoming.from_user,
+            chat_instance="mixed-story-e2e",
+            message=Message(
+                message_id=4_500 + position,
+                date=datetime.now(UTC),
+                chat=Chat(id=81_100, type="private"),
+                text="Далее",
+            ),
+            data=f"mixed:next:{problem['problem_id']}",
+        )
+        await mixed_training.mixed_callback(next_callback, repository)
+
+    completed_story = await store.state(81_100)
+    assert completed_story is not None
+    assert completed_story["problem"]["number"] == 6
+    old_callback = CallbackQuery(
+        id="mixed-story-old-callback",
+        from_user=incoming.from_user,
+        chat_instance="mixed-story-e2e",
+        message=Message(
+            message_id=4_600,
+            date=datetime.now(UTC),
+            chat=Chat(id=81_100, type="private"),
+            text="Старое задание",
+        ),
+        data="mixed:next:mixed-scenario-old-id",
+    )
+    await mixed_training.mixed_callback(old_callback, repository)
+    assert (await store.state(81_100))["problem"]["number"] == 6
+
+    current_id = str(completed_story["problem"]["problem_id"])
+    menu_callback = CallbackQuery(
+        id="mixed-menu-callback",
+        from_user=incoming.from_user,
+        chat_instance="mixed-story-e2e",
+        message=Message(
+            message_id=4_700,
+            date=datetime.now(UTC),
+            chat=Chat(id=81_100, type="private"),
+            text="Меню",
+        ),
+        data=f"mixed:menu:{current_id}",
+    )
+    await mixed_training.mixed_callback(menu_callback, repository)
+    assert await mixed_training.continue_mixed(incoming, repository, 81_100)
+    resumed = await store.state(81_100)
+    assert resumed is not None
+    assert resumed["problem"]["problem_id"] == current_id
+    assert resumed["problem"]["number"] == 6
+
+
+@pytest.mark.asyncio
+async def test_candidate_generation_failure_keeps_session_and_can_be_retried(monkeypatch):
+    repository = MemoryRepository()
+    monkeypatch.setattr(mixed_training, "available_numbers", lambda: [6])
+
+    def unavailable(number: int, state=None):
+        raise RuntimeError("temporary generator failure")
+
+    monkeypatch.setattr(mixed_training, "_candidate", unavailable)
+    outbound = AsyncMock(return_value=SimpleNamespace(message_id=8_001))
+    monkeypatch.setattr(mixed_training, "send_text", outbound)
+    incoming = AsyncMock()
+    incoming.from_user = User(id=81_200, is_bot=False, first_name="Student")
+
+    await mixed_training.start_mixed(incoming, repository)
+    assert "Продолжить" in outbound.await_args.args[2]
+    state = await MixedTrainingRepository(repository).state(81_200)
+    assert state is not None and state.get("problem") is None
+    assert await repository.user_state(81_200) == "mixed"
+
+    monkeypatch.setattr(mixed_training, "_candidate", lambda number, state=None: _candidate(6))
+    assert await mixed_training.continue_mixed(incoming, repository, 81_200)
+    resumed = await MixedTrainingRepository(repository).state(81_200)
+    assert resumed is not None and resumed["problem"]["outcome"] == "issued"
+
+
+@pytest.mark.asyncio
+async def test_next_candidate_failure_preserves_completed_problem_for_safe_retry(monkeypatch):
+    repository = MemoryRepository()
+    first = _candidate(6)
+    second = {**first, "problem_id": str(uuid4()), "fingerprint": str(uuid4())}
+    calls = 0
+
+    def candidate(number: int, state=None):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return first
+        if calls == 2:
+            raise RuntimeError("temporary generator failure")
+        return second
+
+    monkeypatch.setattr(mixed_training, "available_numbers", lambda: [6])
+    monkeypatch.setattr(mixed_training, "_candidate", candidate)
+    monkeypatch.setattr(mixed_training, "_render_image", lambda number, problem: None)
+    outbound = AsyncMock()
+    outbound.side_effect = lambda *args, **kwargs: SimpleNamespace(
+        message_id=9_000 + outbound.await_count
+    )
+    monkeypatch.setattr(mixed_training, "send_text", outbound)
+    monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
+    incoming = AsyncMock()
+    incoming.from_user = User(id=81_201, is_bot=False, first_name="Student")
+    await mixed_training.start_mixed(incoming, repository)
+    store = MixedTrainingRepository(repository)
+    current = await store.state(81_201)
+    assert current is not None
+    problem = current["problem"]
+
+    answer = AsyncMock()
+    answer.from_user = incoming.from_user
+    answer.message_id = 9_100
+    answer.reply_to_message = SimpleNamespace(message_id=problem["prompt_message_id"])
+    answer.text = str(problem["correct_answer"])
+    await mixed_training.mixed_answer(answer, repository)
+
+    callback = CallbackQuery(
+        id="mixed-next-retry",
+        from_user=incoming.from_user,
+        chat_instance="mixed-retry",
+        message=Message(
+            message_id=9_200,
+            date=datetime.now(UTC),
+            chat=Chat(id=81_201, type="private"),
+            text="Следующее",
+        ),
+        data=f"mixed:next:{problem['problem_id']}",
+    )
+    await mixed_training.mixed_callback(callback, repository)
+    failed_transition = await store.state(81_201)
+    assert failed_transition is not None
+    assert failed_transition["problem"]["problem_id"] == problem["problem_id"]
+    assert failed_transition["problem"]["outcome"] == "solved"
+    assert "Следующее" in outbound.await_args.args[2]
+
+    await mixed_training.mixed_callback(callback, repository)
+    retried = await store.state(81_201)
+    assert retried is not None
+    assert retried["problem"]["problem_id"] == second["problem_id"]
+    assert retried["problem"]["outcome"] == "issued"

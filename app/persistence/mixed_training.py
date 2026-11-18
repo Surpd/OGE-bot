@@ -248,7 +248,7 @@ class MixedTrainingRepository:
                 UUID(problem_id)
             except ValueError:
                 problem_id = str(uuid4())
-            snapshot = {**snapshot, "problem_id": problem_id, "mixed_number": number}
+            snapshot = {**snapshot, "problem_id": problem_id}
             session["problem"] = {
                 **snapshot,
                 "problem_id": problem_id,
@@ -320,7 +320,7 @@ class MixedTrainingRepository:
             stored_snapshot = {
                 key: value for key, value in snapshot.items() if key != "scenario_snapshot"
             }
-            stored_snapshot.update(problem_id=str(problem_id_pg), mixed_number=number)
+            stored_snapshot.update(problem_id=str(problem_id_pg))
             await connection.execute(
                 """INSERT INTO mixed_training_problems
                    (id,session_id,number,family_id,fingerprint,snapshot,snapshot_sha256)
@@ -635,7 +635,6 @@ class MixedTrainingRepository:
             position = _as_int(state.get("scenario_position"), 1)
             if isinstance(scenario, dict) and position < 5:
                 number = position + 1
-                snap = _scenario_question(scenario, number)
                 state["scenario_position"] = number
                 state["current_number"] = number
                 state["active_problem_id"] = None
@@ -648,7 +647,8 @@ class MixedTrainingRepository:
                 # The caller renders this immutable question; next request claims it.
                 return {
                     "number": number,
-                    "pending_snapshot": snap,
+                    "pending_snapshot": None,
+                    "scenario_snapshot": scenario,
                     "expected_revision": int(row["revision"]) + 1,
                 }
             queue = state.get("queue", [])
