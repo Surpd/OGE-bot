@@ -6087,7 +6087,7 @@ class PostgresRepository(
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None:
         await self._pool.execute(
             """UPDATE users SET current_state = CASE
-                 WHEN $2 IN ('task6', 'task9', 'task10', 'task12', 'task14', 'task15',
+                 WHEN $2 IN ('mixed', 'task6', 'task9', 'task10', 'task12', 'task14', 'task15',
                              'task16', 'task17', 'task18', 'task19',
                              'task11', 'task8',
                              'task13', 'task7', 'oge15')
@@ -7343,6 +7343,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         self.navigation_messages.pop(telegram_user_id, None)
         self.states[telegram_user_id] = screen
         if screen in {
+            "mixed",
             "oge15",
             "task6",
             "task9",
