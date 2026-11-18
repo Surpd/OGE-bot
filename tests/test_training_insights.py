@@ -298,6 +298,9 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
     assert by_number[4]["correct"] == 0 and by_number[4]["solutions_viewed"] == 1
     assert by_number[5]["skipped"] == 1
     memory = MemoryRepository()
+    from app.persistence.mixed_training import MixedTrainingRepository
+
+    MixedTrainingRepository(memory)
     memory.issued9[telegram_user_id] = {
         "ordinary-9": {"family_id": "OGE09-F001", "condition": "Условие №9"},
     }
@@ -467,6 +470,9 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
     from app.persistence.training_insights import training_record_detail
 
     memory = MemoryRepository()
+    from app.persistence.mixed_training import MixedTrainingRepository
+
+    MixedTrainingRepository(memory)
     user_id = await insights_pool.fetchval(
         "INSERT INTO users(telegram_user_id) VALUES(778899) RETURNING id"
     )
