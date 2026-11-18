@@ -473,8 +473,15 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
     from app.persistence.mixed_training import MixedTrainingRepository
 
     MixedTrainingRepository(memory)
+    # Other integration tests may create persistent rows for fixed Telegram
+    # IDs in this shared temporary database. Pick a fresh one so this parity
+    # comparison covers only the records created below.
+    telegram_user_id = await insights_pool.fetchval(
+        "SELECT COALESCE(MAX(telegram_user_id), 0) + 1 FROM users"
+    )
     user_id = await insights_pool.fetchval(
-        "INSERT INTO users(telegram_user_id) VALUES(778899) RETURNING id"
+        "INSERT INTO users(telegram_user_id) VALUES($1) RETURNING id",
+        telegram_user_id,
     )
     ordinary_ids = {}
     for number in range(6, 20):
@@ -495,15 +502,15 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         attempts_attr = "attempt_history" if number == 6 else f"attempts{number}"
         outcomes_attr = "outcomes" if number == 6 else f"outcomes{number}"
         hints_attr = "hints_history" if number == 6 else f"hints{number}"
-        getattr(memory, issued_attr)[778899] = {
+        getattr(memory, issued_attr)[telegram_user_id] = {
             str(pid): {"family_id": f"OGE{number:02}-F001", "condition": f"task {number}"}
         }
-        getattr(memory, attempts_attr)[778899] = [
+        getattr(memory, attempts_attr)[telegram_user_id] = [
             {"problem_id": str(pid), "attempt_no": no, "is_correct": correct,
              "used_hint": correct} for no, correct in ((1, False), (2, True))
         ]
-        getattr(memory, outcomes_attr)[778899] = {str(pid): "solved"}
-        getattr(memory, hints_attr)[778899] = {str(pid): 1}
+        getattr(memory, outcomes_attr)[telegram_user_id] = {str(pid): "solved"}
+        getattr(memory, hints_attr)[telegram_user_id] = {str(pid): 1}
         if number == 18:
             target = str(pid)
         if number == 9:
@@ -551,11 +558,11 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
             "attempt_records": attempt_records, "hints_used": int(any(answers)),
             "solution_viewed": False, "issued_at": None,
         })
-    memory._mixed_training_records[778899] = memory_mixed
+    memory._mixed_training_records[telegram_user_id] = memory_mixed
 
     pg = PostgresRepository(insights_pool)
-    sql_result = await training_insights(pg, 778899)
-    memory_result = await training_insights(memory, 778899)
+    sql_result = await training_insights(pg, telegram_user_id)
+    memory_result = await training_insights(memory, telegram_user_id)
     assert sql_result["total"] == memory_result["total"]
     assert sql_result["numbers"] == memory_result["numbers"]
     assert sql_result["total"]["incorrect_attempts"] == 17
@@ -572,11 +579,12 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
             1, 1, 1, 1
         )
     for repo in (pg, memory):
-        assert (await training_insights(repo, 778899, "errors"))["page_total"] == 16
-        assert (await training_insights(repo, 778899, "history"))["page_total"] == 17
-        assert (await training_insights(repo, 778899, "families"))["page_total"] == 14
-        assert (await training_record_detail(repo, 778899, f"o:{target}"))["condition"] == "task 18"
-        assert await training_record_detail(repo, 778900, f"o:{target}") is None
+        assert (await training_insights(repo, telegram_user_id, "errors"))["page_total"] == 16
+        assert (await training_insights(repo, telegram_user_id, "history"))["page_total"] == 17
+        assert (await training_insights(repo, telegram_user_id, "families"))["page_total"] == 14
+        detail = await training_record_detail(repo, telegram_user_id, f"o:{target}")
+        assert detail["condition"] == "task 18"
+        assert await training_record_detail(repo, telegram_user_id + 1, f"o:{target}") is None
 
 
 def test_recommendations_include_geometry_but_not_closed_number(monkeypatch):
