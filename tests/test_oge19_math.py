@@ -84,7 +84,9 @@ def test_reviewed_claims_have_consistent_proofs_and_counterexamples() -> None:
 
     median_bisector = by_id["OGE19-A124"]
     assert not median_bisector.is_true
-    assert median_bisector.statement == "В любом треугольнике каждая медиана делит угол при своей вершине пополам."
+    assert median_bisector.statement == (
+        "В любом треугольнике каждая медиана делит угол при своей вершине пополам."
+    )
     assert all(part in median_bisector.explanation for part in ("5, 6 и 7", "3,5", "5:6"))
 
     equal_area = by_id["OGE19-A144"]
