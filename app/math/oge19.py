@@ -113,7 +113,7 @@ BANK_VERSION = str(
     ]
 )
 SUPPORTED_BANK_VERSIONS = frozenset(
-    {"oge19-claims-1", "oge19-claims-2", "oge19-claims-3", BANK_VERSION}
+    {"oge19-claims-1", "oge19-claims-2", "oge19-claims-3", "oge19-claims-4", BANK_VERSION}
 )
 
 
