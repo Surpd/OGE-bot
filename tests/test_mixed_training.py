@@ -228,6 +228,26 @@ async def test_telegram_mixed_route_accepts_answer_and_advances(monkeypatch):
     solved = await store.state(794)
     assert solved is not None and solved["problem"]["outcome"] == "solved"
 
+    # A completed problem must still offer Next after leaving and resuming.
+    await store.pause(794)
+    await repository.save_user_state(794, "main_menu")
+    assert await mixed_training.continue_mixed(incoming, repository, 794)
+    reopened = await store.state(794)
+    assert reopened is not None
+    assert reopened["problem"]["problem_id"] == first_id
+    assert reopened["problem"]["outcome"] == "solved"
+    markup = outbound.await_args.kwargs["reply_markup"]
+    actions = {
+        button.callback_data
+        for row in markup.inline_keyboard
+        for button in row
+    }
+    assert f"mixed:next:{first_id}" in actions
+    assert not any(
+        action.startswith(("mixed:hint:", "mixed:skip:", "mixed:pick:"))
+        for action in actions if action is not None
+    )
+
     control_message = Message(
         message_id=700,
         date=datetime.now(UTC),
