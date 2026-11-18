@@ -397,7 +397,7 @@ async def test_telegram_mixed_graphical_and_choice_families(number: int, monkeyp
             image.verify()
 
     problem_id = str(problem["problem_id"])
-    if number == 13 or (number == 19 and len(str(problem["correct_answer"])) == 1):
+    if number == 13:
         chat_message = Message(
             message_id=2_500,
             date=datetime.now(UTC),
