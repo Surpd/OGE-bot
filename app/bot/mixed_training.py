@@ -300,9 +300,10 @@ def _is_correct(number: int, problem: dict[str, object], raw: str) -> bool | Non
 
 
 def _task19_button_choices(problem: dict[str, object]) -> int:
-    """Keep single-answer tasks clickable; use text for a set of correct numbers."""
-    answer = problem.get("correct_answer")
-    return 3 if isinstance(answer, str) and len(answer) == 1 else 0
+    """Keep old single-choice tasks usable without revealing new answer cardinality."""
+    from app.math.oge19 import LEGACY_ANSWER_POLICY_ID
+
+    return 3 if problem.get("answer_policy_id") == LEGACY_ANSWER_POLICY_ID else 0
 
 
 async def _issue(store: MixedTrainingRepository, user_id: int) -> dict[str, object] | None:
