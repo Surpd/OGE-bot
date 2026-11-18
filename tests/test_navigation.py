@@ -9,7 +9,12 @@ def callbacks(markup):
 
 
 def test_main_menu_only_exposes_implemented_sections():
-    assert callbacks(menu.main_menu()) == ["nav:numbers", "nav:progress", "nav:display"]
+    assert callbacks(menu.main_menu()) == [
+        "nav:mixed",
+        "nav:numbers",
+        "nav:progress",
+        "nav:display",
+    ]
     assert callbacks(menu.main_menu(has_session=True))[0] == "nav:resume"
 
 
@@ -115,6 +120,7 @@ async def test_stale_navigation_never_changes_training(monkeypatch):
     target = AsyncMock()
     handlers = SimpleNamespace(
         return_to_menu=AsyncMock(), choose_number=target, continue_session=AsyncMock(),
+        start_mixed=AsyncMock(),
         show_progress=AsyncMock(), show_progress_details=AsyncMock(),
     )
     monkeypatch.setattr(app.bot, "router", handlers, raising=False)
@@ -143,6 +149,7 @@ async def test_navigation_uses_tapping_user_and_claims_once(monkeypatch):
     target = AsyncMock()
     handlers = SimpleNamespace(
         return_to_menu=AsyncMock(), choose_number=target, continue_session=AsyncMock(),
+        start_mixed=AsyncMock(),
         show_progress=AsyncMock(), show_progress_details=AsyncMock(),
     )
     monkeypatch.setattr(app.bot, "router", handlers, raising=False)

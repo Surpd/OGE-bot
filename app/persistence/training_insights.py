@@ -125,19 +125,36 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 # Projections below select scalar task fields only; snapshots may contain large content.
 _BASE = """
-WITH tasks AS (
+WITH attempts_all AS (
+ SELECT problem_id,user_id,attempt_no,is_correct,used_hint FROM attempts
+ UNION ALL
+ SELECT mixed.problem_id, users.id, mixed.attempt_no, mixed.is_correct, mixed.used_hint
+ FROM mixed_training_attempts mixed
+ JOIN mixed_training_problems problem ON problem.id=mixed.problem_id
+ JOIN mixed_training_sessions session ON session.id=problem.session_id
+ JOIN users ON users.id=session.user_id
+), tasks AS (
  SELECT p.id, p.user_id, p.family_id, p.outcome, p.hints_used,
         p.solution_viewed_at IS NOT NULL AS solution_viewed, p.issued_at,
         CASE WHEN s.mode ~ '^task[0-9]{1,2}$' THEN substring(s.mode from 5)::int
              WHEN p.family_id ~ '^OGE0?[0-9]{1,2}-'
                THEN substring(p.family_id from '^OGE0?([0-9]{1,2})-')::int
-             WHEN COALESCE(p.snapshot->>'exam_number', p.snapshot->>'number') ~ '^[0-9]{1,2}$'
-               THEN COALESCE(p.snapshot->>'exam_number', p.snapshot->>'number')::int
+             WHEN COALESCE(p.snapshot->>'exam_number', p.snapshot->>'number',
+                            p.snapshot->>'mixed_number') ~ '^[0-9]{1,2}$'
+               THEN COALESCE(p.snapshot->>'exam_number', p.snapshot->>'number',
+                             p.snapshot->>'mixed_number')::int
              ELSE 0 END AS number
  FROM issued_problems p JOIN users u ON u.id=p.user_id
  LEFT JOIN sessions s ON s.id=p.session_id
  WHERE u.telegram_user_id=$1
-), relevant AS (SELECT * FROM tasks WHERE number BETWEEN 6 AND 19)
+ UNION ALL
+ SELECT p.id, user_row.id AS user_id, p.family_id, p.outcome, p.hints_used,
+        p.solution_viewed_at IS NOT NULL AS solution_viewed, p.issued_at, p.number::int AS number
+ FROM mixed_training_problems p
+ JOIN mixed_training_sessions mixed ON mixed.id=p.session_id
+ JOIN users user_row ON user_row.id=mixed.user_id
+ WHERE user_row.telegram_user_id=$1
+), relevant AS (SELECT * FROM tasks WHERE number BETWEEN 1 AND 19)
 """
 _METRIC_ROWS = """, metrics AS (
  SELECT p.number, p.family_id, 1::bigint AS issued,
@@ -158,7 +175,7 @@ _METRIC_ROWS = """, metrics AS (
           (array_agg(attempt_no ORDER BY attempt_no) FILTER (WHERE is_correct))[1] AS correct_no,
           (array_agg(used_hint ORDER BY attempt_no) FILTER (WHERE is_correct))[1] AS used_hint,
           COALESCE(bool_or(NOT is_correct),false) AS has_error
-   FROM attempts WHERE problem_id=p.id AND user_id=p.user_id
+   FROM attempts_all WHERE problem_id=p.id AND user_id=p.user_id
  ) a
 )
 """
@@ -256,9 +273,19 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
     history_cte += """
       SELECT 'o:'||p.id::text AS record_id, p.id, p.number, p.family_id, p.outcome,
              p.issued_at, left(i.snapshot->>'condition',160) AS condition,
-             EXISTS (SELECT 1 FROM attempts a WHERE a.problem_id=p.id
+             EXISTS (SELECT 1 FROM attempts_all a WHERE a.problem_id=p.id
                      AND a.user_id=p.user_id AND NOT a.is_correct) AS has_error
       FROM relevant p JOIN issued_problems i ON i.id=p.id
+      UNION ALL
+      SELECT 'm:'||problem.id::text, problem.id, problem.number::int,
+             problem.family_id,problem.outcome,problem.issued_at,
+             left(problem.snapshot->>'condition',160), EXISTS (
+                 SELECT 1 FROM mixed_training_attempts attempt
+                 WHERE attempt.problem_id=problem.id AND NOT attempt.is_correct)
+      FROM mixed_training_problems problem
+      JOIN mixed_training_sessions mixed ON mixed.id=problem.session_id
+      JOIN users user_row ON user_row.id=mixed.user_id
+      WHERE user_row.telegram_user_id=$1
       UNION ALL
       SELECT 's:'||event.session_id::text||':'||event.number::text, NULL::uuid,
              event.number,event.family_id,event.outcome,event.updated_at,
@@ -302,6 +329,10 @@ async def _memory_records(repository: Any, telegram_user_id: int) -> list[dict[s
                             "solution_viewed": pid in solutions,
                             "attempt_records": by_problem.get(str(pid), []),
                             "issued_at": None})
+    records.extend(
+        item
+        for item in getattr(repository, "_mixed_training_records", {}).get(telegram_user_id, [])
+    )
     return records
 
 
@@ -353,6 +384,35 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
                      ON u.id=a.user_id JOIN issued_problems p ON p.user_id=u.id
                      AND p.id=a.problem_id WHERE u.telegram_user_id=$1 AND p.id=$2
                    ORDER BY attempt_no""", telegram_user_id, problem_id)
+        elif len(parts) == 2 and parts[0] == "m":
+            try:
+                problem_id = UUID(parts[1])
+            except ValueError:
+                return None
+            row = await repository._pool.fetchrow(
+                """SELECT '№'||problem.number::int AS number,problem.family_id,
+                          problem.outcome,problem.issued_at,
+                          left(problem.snapshot->>'condition',200) AS condition
+                   FROM mixed_training_problems problem
+                   JOIN mixed_training_sessions mixed ON mixed.id=problem.session_id
+                   JOIN users user_row ON user_row.id=mixed.user_id
+                   WHERE user_row.telegram_user_id=$1 AND problem.id=$2""",
+                telegram_user_id,
+                problem_id,
+            )
+            if row is None:
+                return None
+            attempts = await repository._pool.fetch(
+                """SELECT attempt.attempt_no,attempt.is_correct,attempt.used_hint
+                   FROM mixed_training_attempts attempt
+                   JOIN mixed_training_problems problem ON problem.id=attempt.problem_id
+                   JOIN mixed_training_sessions mixed ON mixed.id=problem.session_id
+                   JOIN users user_row ON user_row.id=mixed.user_id
+                   WHERE user_row.telegram_user_id=$1 AND problem.id=$2
+                   ORDER BY attempt.attempt_no""",
+                telegram_user_id,
+                problem_id,
+            )
         elif len(parts) == 3 and parts[0] == "s" and parts[2].isdigit():
             try:
                 session_id = UUID(parts[1])

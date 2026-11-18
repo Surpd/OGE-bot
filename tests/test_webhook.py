@@ -423,4 +423,4 @@ def test_production_startup_registers_the_webhook(monkeypatch: pytest.MonkeyPatc
 def test_main_menu_contains_the_product_sections() -> None:
     markup = main_menu()
     labels = {button.text for row in markup.inline_keyboard for button in row}
-    assert labels == set(MAIN_MENU) - {"▶ Продолжить"}
+    assert labels == (set(MAIN_MENU) - {"▶ Продолжить"}) | {"🎲 Смешанная тренировка"}

@@ -20,6 +20,8 @@ from app.bot.menu import (
     task11_menu,
     task13_menu,
 )
+from app.bot.mixed_training import mixed_answer, mixed_callback
+from app.bot.mixed_training import start_mixed as _start_mixed
 from app.bot.navigation import navigation_callback, show_display_options
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_training import (
@@ -132,6 +134,10 @@ async def _has_resumable_session(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> bool:
     mode = await repository.last_training_mode(user_id)
+    if mode == "mixed":
+        from app.persistence.mixed_training import MixedTrainingRepository
+
+        return await MixedTrainingRepository(repository).state(user_id) is not None
     if mode == "oge15":
         return bool(
             oge15_repository is not None
@@ -314,6 +320,11 @@ async def continue_session(
         return True
 
     last = await repository.last_training_mode(user_id)
+    if last == "mixed":
+        from app.bot.mixed_training import continue_mixed
+
+        if await continue_mixed(message, repository, user_id):
+            return
     if last == "oge15" and await resume_pilot():
         return
     training = next((item for item in TRAININGS if item.mode == last), None)
@@ -344,6 +355,10 @@ async def continue_session(
     await send_text(
         message, repository, "Нет незавершённых заданий. Выберите номер.", reply_markup=main_menu()
     )
+
+
+async def start_mixed(message: Message, repository: Repository) -> None:
+    await _start_mixed(message, repository)
 
 
 async def choose_number(
@@ -2590,6 +2605,7 @@ def build_router() -> Router:
     router.callback_query.register(
         navigation_callback, F.data.startswith("nav:") | F.data.startswith("progress:")
     )
+    router.callback_query.register(mixed_callback, F.data.startswith("mixed:"))
     router.message.register(start, CommandStart())
     router.message.register(cancel, Command("cancel"))
     router.message.register(continue_session, F.text == "▶ Продолжить")
@@ -2620,6 +2636,7 @@ def build_router() -> Router:
     router.message.register(show_progress_text, Command("progress"))
     router.message.register(show_progress_details, F.text == "📊 Подробнее")
     router.message.register(show_display_options, F.text == "⚙️ Настройки")
+    router.message.register(mixed_answer, F.text)
     router.message.register(task17_or_scenario_answer)
     router.message.register(menu_section, F.text.in_(MAIN_MENU))
     router.message.register(unknown_message)

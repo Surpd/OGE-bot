@@ -154,6 +154,7 @@ async def navigation_callback(
         "nav:main": handlers.return_to_menu,
         "nav:numbers": handlers.choose_number,
         "nav:resume": handlers.continue_session,
+        "nav:mixed": handlers.start_mixed,
         "nav:progress": handlers.show_progress,
         "nav:progress_text": getattr(handlers, "show_progress_text", handlers.show_progress),
         "nav:details": handlers.show_progress_details,
@@ -214,7 +215,7 @@ async def navigation_callback(
     if oge15_repository is not None and (
         data
         in {
-            "nav:main", "nav:numbers", "nav:progress", "nav:progress_text",
+            "nav:main", "nav:numbers", "nav:mixed", "nav:progress", "nav:progress_text",
             "nav:details", "nav:display",
             "nav:settings",
         }
