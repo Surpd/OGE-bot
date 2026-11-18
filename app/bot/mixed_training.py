@@ -415,8 +415,11 @@ async def _send_problem(
     image_data = (
         None if number <= 5 else await asyncio.to_thread(_render_image, number, problem)
     )
+    completed = problem.get("outcome") in {"solved", "failed", "skipped", "solution_viewed"}
     markup = _mixed_menu(
-        str(problem["problem_id"]), choices=3 if number == 19 else (4 if number == 13 else 0)
+        str(problem["problem_id"]),
+        completed=completed,
+        choices=0 if completed else (3 if number == 19 else (4 if number == 13 else 0)),
     )
     caption = f"Задание №{number}\n\n{condition}"
     if image_data is not None:
@@ -474,16 +477,6 @@ async def continue_mixed(message: Message, repository: Repository, user_id: int)
     await store.start(user_id, available_numbers())
     state = await store.state(user_id)
     problem = state.get("problem") if state else None
-    if isinstance(problem, dict) and problem.get("outcome") != "issued":
-        await send_text(
-            message,
-            repository,
-            "Предыдущее задание уже завершено. Чтобы повторить переход, нажмите "
-            "«Следующее» под его сообщением.",
-            reply_markup=main_menu(has_session=True),
-            user_id_override=user_id,
-        )
-        return True
     if not isinstance(problem, dict):
         try:
             problem = await _issue(store, user_id)
