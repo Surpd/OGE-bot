@@ -351,11 +351,12 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
     if not options:
         options = [str(value) for value in snapshot.get("option_texts", [])]
     answer = _answer(item, number)
-    correct_option_positions = [
-        index + 1 for index, option in enumerate(options) if option == answer
-    ]
     if number == 19:
-        correct_option_positions = [int(answer)] if answer in {"1", "2", "3"} else []
+        correct_option_positions = [int(position) for position in answer if position in "123"]
+    else:
+        correct_option_positions = [
+            index + 1 for index, option in enumerate(options) if option == answer
+        ]
     return {
         "seed": seed,
         "valid_oracle": bool(valid),
@@ -365,6 +366,7 @@ def _sample_record(item: Any, number: int, seed: int, valid: bool) -> dict[str, 
         "correct_option_position": (
             correct_option_positions[0] if len(correct_option_positions) == 1 else None
         ),
+        "correct_option_positions": correct_option_positions,
         "hints": _jsonable(getattr(item, "hints", snapshot.get("hints", []))),
         "solution": _jsonable(
             getattr(
@@ -410,7 +412,10 @@ def _oracle(number: int, family: str, item: Any) -> bool:
         # This checks the generated triple against the independently reviewed bank;
         # it is not a fresh proof of each theorem or counterexample.
         snapshot = item.to_snapshot()
-        validate_snapshot(snapshot)
+        try:
+            validate_snapshot(snapshot)
+        except (ValueError, KeyError, TypeError):
+            return False
         statements = snapshot["statements"]
         reviewed = [STATEMENTS_BY_ID.get(s["id"]) for s in statements]
         if any(reference is None or reference.to_dict() != actual
@@ -419,20 +424,23 @@ def _oracle(number: int, family: str, item: Any) -> bool:
         theme = FAMILY_THEMES[family]
         if theme != "mixed" and any(s["topic"] not in THEME_TOPICS[theme] for s in statements):
             return False
-        correct = [str(index) for index, reference in enumerate(reviewed, 1)
-                   if reference is not None and reference.is_true]
+        correct = [
+            str(index)
+            for index, reference in enumerate(reviewed, 1)
+            if reference is not None and reference.is_true
+        ]
         condition = (
-            "Какое из следующих утверждений является истинным высказыванием?\n\n"
+            "Какие из следующих утверждений верны? В ответ запишите их номера.\n\n"
             + "\n".join(f"{i}. {statement['statement']}"
                         for i, statement in enumerate(statements, 1))
-            + "\n\nВ ответ запишите номер истинного высказывания."
         )
         solution = [
             f"{i}. {'Верно' if statement['is_true'] else 'Неверно'}: {statement['explanation']}"
             for i, statement in enumerate(statements, 1)
         ]
-        return (len(correct) == 1 and snapshot["answer_mask"] == correct[0]
-                and snapshot["correct_answer"] == correct[0]
+        expected_answer = "".join(correct)
+        return (len(correct) in {1, 2} and snapshot["answer_mask"] == expected_answer
+                and snapshot["correct_answer"] == expected_answer
                 and snapshot["condition"] == condition and snapshot["solution"] == solution)
     if number == 15:
         from app.math.oge15_triangles import from_snapshot

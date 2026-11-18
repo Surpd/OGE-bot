@@ -52,9 +52,8 @@ def build_task19_candidate_batch(
     snapshot = triple.snapshot()
     proposition_ids = [item.proposition_id for item in triple.statements]
     condition = (
-        "Какое из следующих утверждений является истинным высказыванием?\n\n"
+        "Какие из следующих утверждений верны? В ответ запишите их номера.\n\n"
         + "\n".join(f"{i}. {item.statement}" for i, item in enumerate(triple.statements, 1))
-        + "\n\nВ ответ запишите номер истинного высказывания."
     )
     answer = triple.answer_mask
     hints = [
@@ -88,7 +87,7 @@ def build_task19_candidate_batch(
             "atomic_proposition_ids": proposition_ids,
             "_recent_proposition_ids_after": [*recent_ids, *proposition_ids][-30:],
             "_correct_position_counts_after": [
-                position_counts[i] + (1 if answer == str(i + 1) else 0) for i in range(3)
+                position_counts[i] + (1 if str(i + 1) in answer else 0) for i in range(3)
             ],
             "_family_queue_after": queue[1:],
             "_last_family_after": family,

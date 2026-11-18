@@ -222,12 +222,14 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
         from app.math.oge13_scheduler import build_task13_candidate_batch
 
         sent: list[tuple[str, bytes | None]] = []
+        rendered_system_rows: list[tuple[str, ...] | None] = []
         message_id = 20_000
 
         async def capture_text(*args, **kwargs):
             nonlocal message_id
             message_id += 1
             sent.append(("text", None))
+            rendered_system_rows.append(kwargs.get("math_system_rows"))
             return SimpleNamespace(message_id=message_id)
 
         async def capture_photo(message, repository, photo, **kwargs):
@@ -235,6 +237,7 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
             message_id += 1
             raw = bytes(photo.data)
             sent.append(("photo", raw))
+            rendered_system_rows.append(kwargs.get("math_system_rows"))
             return SimpleNamespace(message_id=message_id)
 
         async def ack_callback(*args, **kwargs):
@@ -264,13 +267,23 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
                 break
         assert set(task13_fixtures) == {"text", "graphic"}
 
+        task13_system_fixtures = {}
+        for system_family in ("OGE13-S01", "OGE13-S02", "OGE13-S03"):
+            system_batch = build_task13_candidate_batch(
+                {"family_queue": [system_family]}, 1400 + len(task13_system_fixtures), limit=1
+            )
+            assert system_batch and system_batch[0]["family_id"] == system_family
+            task13_system_fixtures[system_family] = system_batch[0]
+
         cases: list[tuple[int, dict[str, object]]] = []
         for number in (7, 11, 15, 16, 17, 18, 19):
             cases.append((number, mixed_training._candidate(number)))
         cases.extend((13, fixture) for fixture in task13_fixtures.values())
+        cases.extend((13, fixture) for fixture in task13_system_fixtures.values())
         real_candidate = mixed_training._candidate
         for index, (number, candidate_fixture) in enumerate(cases, 1):
             sent.clear()
+            rendered_system_rows.clear()
             student_id = user_id + 10_000 + index
             numbers = [7, 6] if number == 7 else [number]
             monkeypatch.setattr(mixed_training, "available_numbers", lambda values=numbers: values)
@@ -298,6 +311,10 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
             problem = student_state["problem"]
             assert problem["number"] == number
             assert problem["family_id"] == candidate_fixture["family_id"]
+            if number == 13 and str(problem["family_id"]).startswith("OGE13-S"):
+                assert rendered_system_rows[-1] == tuple(
+                    str(problem["condition"]).splitlines()
+                )
             prompt_id = int(problem["prompt_message_id"])
             delivered_photos = [raw for kind, raw in sent if kind == "photo" and raw]
             expected_png = await asyncio.to_thread(
@@ -309,7 +326,9 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
                     assert image.format == "PNG"
                     image.verify()
 
-            if number == 7:
+            if number == 7 or (
+                number == 13 and str(problem["family_id"]).startswith("OGE13-S")
+            ) or number == 19:
                 exit_callback = CallbackQuery(
                     id="mixed-pg-menu-exit",
                     from_user=incoming.from_user,
@@ -336,7 +355,7 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
                 problem = resumed["problem"]
                 prompt_id = int(problem["prompt_message_id"])
 
-            if number in {13, 19}:
+            if number == 13:
                 callback_message = Message(
                     message_id=prompt_id,
                     date=datetime.now(UTC),
@@ -352,9 +371,12 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
                 )
                 await mixed_training.mixed_callback(callback, repository_for_user)
             else:
+                answer_text = str(problem["correct_answer"])
+                if number == 19:
+                    answer_text = answer_text[::-1]
                 answer_message = SimpleNamespace(
                     from_user=incoming.from_user,
-                    text=str(problem["correct_answer"]),
+                    text=answer_text,
                     message_id=30_000 + index,
                     reply_to_message=SimpleNamespace(message_id=prompt_id),
                 )

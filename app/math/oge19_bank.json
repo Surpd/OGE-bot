@@ -1,5 +1,5 @@
 {
-  "bank_version": "oge19-claims-5",
+  "bank_version": "oge19-claims-6",
   "source_snapshot": "oge19-sdamgia-2026-11-05",
   "items": [
     {
@@ -2758,7 +2758,21 @@
   "exam_contract": {
     "exam_year": 2027,
     "source_url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
-    "format": "single_true_statement",
+    "format": "one_or_multiple_true_statements",
+    "format_sources": [
+      {
+        "format": "single_true_statement",
+        "source_url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+        "exam_year": 2027
+      },
+      {
+        "format": "multiple_true_statements",
+        "task_id": "348449",
+        "source_url": "https://math-oge.sdamgia.ru/problem?id=348449",
+        "answer_example": "13",
+        "source_is_fipi_bank": true
+      }
+    ],
     "checked_on": "2026-11-17",
     "fipi_document": "Official 2027 mathematics OGE demo, task 19"
   }

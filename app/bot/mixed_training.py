@@ -226,6 +226,31 @@ def _is_correct(number: int, problem: dict[str, object], raw: str) -> bool | Non
             return None
         return bool(scenario_policy.accepts(raw, question.canonical_answer))
     policy: Any = None
+    if number == 19:
+        from app.math.oge19 import policy_for_snapshot, validate_snapshot
+
+        runtime_fields = {
+            "number",
+            "outcome",
+            "attempts",
+            "hints_used",
+            "prompt_message_id",
+            "id",
+            "record_id",
+            "attempt_records",
+            "issued_at",
+        }
+        statement_snapshot = {
+            key: value for key, value in problem.items() if key not in runtime_fields
+        }
+        try:
+            validate_snapshot(statement_snapshot)
+        except ValueError:
+            return None
+        policy = policy_for_snapshot(problem)
+        if policy is None or version != policy.version or policy_id != policy.policy_id:
+            return None
+        return bool(policy.accepts(raw, str(problem.get("correct_answer", ""))))
     if number == 6:
         from app.math.registry import ANSWER_POLICY_BY_SNAPSHOT
 
@@ -271,9 +296,14 @@ def _is_correct(number: int, problem: dict[str, object], raw: str) -> bool | Non
             parsed, "numerator", 0
         ) not in range(1, 5):
             return None
-    if number == 19 and parsed not in {"1", "2", "3"}:
-        return None
     return bool(policy.accepts(raw, str(problem.get("correct_answer", ""))))
+
+
+def _task19_button_choices(problem: dict[str, object]) -> int:
+    """Keep old single-choice tasks usable without revealing new answer cardinality."""
+    from app.math.oge19 import LEGACY_ANSWER_POLICY_ID
+
+    return 3 if problem.get("answer_policy_id") == LEGACY_ANSWER_POLICY_ID else 0
 
 
 async def _issue(store: MixedTrainingRepository, user_id: int) -> dict[str, object] | None:
@@ -390,7 +420,7 @@ async def _send_problem(
                 f"{index}. {value}" for index, value in enumerate(options, 1)
             )
         condition += "\n\nВведите номер варианта 1–4."
-    if number == 19:
+    if number == 19 and problem.get("answer_policy_id") == "oge19.answer-single-true":
         condition += "\n\nВведите номер верного утверждения: 1, 2 или 3."
     elif number == 11:
         condition += "\n\nВведите три цифры в порядке А, Б, В. Используйте 1, 2 и 3 по одному разу."
@@ -419,9 +449,16 @@ async def _send_problem(
     markup = _mixed_menu(
         str(problem["problem_id"]),
         completed=completed,
-        choices=0 if completed else (3 if number == 19 else (4 if number == 13 else 0)),
+        choices=0
+        if completed
+        else (_task19_button_choices(problem) if number == 19 else (4 if number == 13 else 0)),
     )
     caption = f"Задание №{number}\n\n{condition}"
+    system_rows = (
+        tuple(str(problem["condition"]).splitlines())
+        if number == 13 and str(problem.get("family_id", "")).startswith("OGE13-S")
+        else None
+    )
     if image_data is not None:
         sent = await send_photo(
             message,
@@ -430,10 +467,16 @@ async def _send_problem(
             caption=caption,
             reply_markup=markup,
             user_id_override=user_id,
+            math_system_rows=system_rows,
         )
     else:
         sent = await send_text(
-            message, repository, caption, reply_markup=markup, user_id_override=user_id
+            message,
+            repository,
+            caption,
+            reply_markup=markup,
+            user_id_override=user_id,
+            math_system_rows=system_rows,
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
@@ -594,6 +637,9 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         return
     number = number_value
     if action == "pick" and len(parts) == 4:
+        if number == 19 and not _task19_button_choices(problem):
+            await answer_callback(callback, "Введите номера верных утверждений сообщением.")
+            return
         if parts[3] not in {"1", "2", "3", "4"}:
             await answer_callback(callback, "Этот вариант недоступен.")
             return
@@ -630,7 +676,11 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             reply_markup=_mixed_menu(
                 problem_id,
                 completed=status != "active",
-                choices=3 if number == 19 else (4 if number == 13 else 0),
+                choices=(
+                    _task19_button_choices(problem)
+                    if number == 19
+                    else (4 if number == 13 else 0)
+                ),
             ),
             user_id_override=user_id,
         )

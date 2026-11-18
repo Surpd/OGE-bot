@@ -104,19 +104,28 @@ async def test_task19_accepts_two_tries_and_ignores_malformed_input(enabled_task
     await router.choose_task19(prompt, repo)
     saved = await repo.task19_state(419)
     problem = saved["problem"]
-    assert "Какое из следующих утверждений является истинным высказыванием?" in problem["condition"]
+    assert (
+        "Какие из следующих утверждений верны? В ответ запишите их номера."
+        in problem["condition"]
+    )
     assert len(problem["condition"].splitlines()) >= 5
-    assert problem["correct_answer"] in {"1", "2", "3"}
+    assert len(problem["correct_answer"]) in {1, 2}
 
     await router.task19_answer(incoming("4", 102), repo)
     assert (await repo.task19_state(419))["state"]["attempts"] == 0
-    wrong = "1" if problem["correct_answer"] != "1" else "2"
+    from app.math.oge19 import POLICY
+
+    wrong = next(
+        answer
+        for answer in ("1", "2", "3", "12", "13", "23", "123")
+        if not POLICY.accepts(answer, problem["correct_answer"])
+    )
     await router.task19_answer(incoming(wrong, 103), repo)
     after_wrong = (await repo.task19_state(419))["state"]
     assert after_wrong["attempts"] == 1
     assert after_wrong["status"] == "active"
     assert (await repo.task19_progress(419))["correct"] == 0
-    await router.task19_answer(incoming(problem["correct_answer"], 104), repo)
+    await router.task19_answer(incoming(problem["correct_answer"][::-1], 104), repo)
     assert (await repo.task19_state(419))["state"]["status"] == "solved"
     assert (await repo.task19_progress(419))["correct"] == 1
 
@@ -194,7 +203,13 @@ async def test_task19_second_wrong_answer_reveals_each_statement_reason(enabled_
     await repo.set_training_family(419, 19, "OGE19-MIXED")
     await router.choose_task19(incoming(), repo)
     problem = (await repo.task19_state(419))["problem"]
-    wrong = "1" if problem["correct_answer"] != "1" else "2"
+    from app.math.oge19 import POLICY
+
+    wrong = next(
+        answer
+        for answer in ("1", "2", "3", "12", "13", "23", "123")
+        if not POLICY.accepts(answer, problem["correct_answer"])
+    )
     await router.task19_answer(incoming(wrong, 102), repo)
     second = incoming(wrong, 103)
     await router.task19_answer(second, repo)

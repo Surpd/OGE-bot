@@ -11,7 +11,11 @@ from app.math.oge19 import (
     ANSWER_POLICY_VERSION,
     EXAM_FORMAT,
     GENERATOR_VERSION,
+    INCOMPATIBLE_PROPOSITION_PAIRS,
+    LEGACY_ANSWER_POLICY_ID,
+    LEGACY_ANSWER_POLICY_VERSION,
     STATEMENTS,
+    STATEMENTS_BY_ID,
     Statement,
     Triple,
     answer_mask,
@@ -53,9 +57,9 @@ def test_bank_has_unique_reviewed_claims_and_known_sources() -> None:
 
 
 def test_fipi_exam_contract_uses_exactly_one_true_statement() -> None:
-    assert EXAM_FORMAT == "single_true_statement"
-    assert ANSWER_POLICY_ID == "oge19.answer-single-true"
-    assert ANSWER_POLICY_VERSION == "1"
+    assert EXAM_FORMAT == "one_or_multiple_true_statements"
+    assert ANSWER_POLICY_ID == "oge19.answer-statement-set"
+    assert ANSWER_POLICY_VERSION == "2"
 
 
 def test_high_risk_facts_are_pinned() -> None:
@@ -116,6 +120,45 @@ def test_generation_is_deterministic_and_snapshots_restore() -> None:
     assert first.generator_version == GENERATOR_VERSION
 
 
+def test_generator_supports_one_and_multiple_true_statements_and_orderless_answers() -> None:
+    one = generate(912)
+    two = generate(913)
+    assert len(one.answer_mask) == 1
+    assert len(two.answer_mask) == 2
+    assert check_answer(one.snapshot(), one.answer_mask)
+    assert check_answer(two.snapshot(), two.answer_mask[::-1])
+    assert not check_answer(two.snapshot(), two.answer_mask[0])
+    assert not check_answer(two.snapshot(), "1 3")
+    assert not check_answer(two.snapshot(), "11")
+
+
+def test_multi_true_generator_is_deterministic_and_uses_only_reviewed_claims() -> None:
+    from app.math.oge19 import policy_for_snapshot
+
+    for seed in range(300):
+        triple = generate(seed)
+        assert triple == generate(seed)
+        assert triple.answer_mask == answer_mask(triple.statements)
+        assert len(triple.answer_mask) == (1 if seed % 2 == 0 else 2)
+        assert len({item.source_task_id for item in triple.statements}) == 3
+        assert all(
+            frozenset((left.proposition_id, right.proposition_id))
+            not in INCOMPATIBLE_PROPOSITION_PAIRS
+            for left, right in itertools.combinations(triple.statements, 2)
+        )
+        assert all(STATEMENTS_BY_ID[item.id] == item for item in triple.statements)
+        bank_answer = "".join(
+            str(index)
+            for index, item in enumerate(triple.statements, 1)
+            if STATEMENTS_BY_ID[item.id].is_true
+        )
+        assert bank_answer == triple.answer_mask
+        snapshot = triple.snapshot()
+        validate_snapshot(snapshot)
+        assert policy_for_snapshot(snapshot) is not None
+        assert check_answer(snapshot, triple.answer_mask[::-1])
+
+
 def test_previous_snapshot_is_restored_without_rewriting_its_text() -> None:
     legacy = json.loads((ROOT / "tests/fixtures/oge19/snapshot_v1_seed_20261117.json").read_text())
     validate_snapshot(legacy)
@@ -149,7 +192,7 @@ def test_500_seed_sample_covers_the_bank_with_diverse_one_true_triples() -> None
         assert len({item.topic for item in triple.statements}) == 3
         assert len({item.proposition_id for item in triple.statements}) == 3
         assert answer_mask(triple.statements) == triple.answer_mask
-        assert len(triple.answer_mask) == 1
+        assert len(triple.answer_mask) in {1, 2}
         assert validate_snapshot(triple.snapshot()) is None
         used_ids.update(item.id for item in triple.statements)
         fingerprints.add(tuple(sorted(item.proposition_id for item in triple.statements)))
@@ -163,13 +206,14 @@ def test_theme_filter_and_position_balancing() -> None:
     counts = [0, 0, 0]
     for seed in range(90):
         triple = generate(seed, correct_position_counts=tuple(counts))
-        counts[int(triple.answer_mask) - 1] += 1
+        for position in triple.answer_mask:
+            counts[int(position) - 1] += 1
     assert max(counts) - min(counts) <= 1
     for theme, topics in THEME_TOPICS.items():
         sample = generate(811, theme=theme)
         assert len(sample.statements) == 3
         assert all(item.topic in topics for item in sample.statements)
-        assert len(sample.answer_mask) == 1
+        assert len(sample.answer_mask) in {1, 2}
 
 
 @pytest.mark.mass
@@ -255,4 +299,38 @@ def test_snapshot_does_not_accept_mask_that_disagrees_with_truth_values() -> Non
     canonical = json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     snapshot["content_hash"] = sha256(canonical.encode("utf-8")).hexdigest()
     with pytest.raises(ValueError, match="answer mask"):
+        validate_snapshot(snapshot)
+
+
+def test_legacy_single_true_policy_remains_available_for_historical_snapshot() -> None:
+    snapshot = json.loads(
+        (ROOT / "tests/fixtures/oge19/snapshot_v2_seed_912.json").read_text(encoding="utf-8")
+    )
+    restored = restore(snapshot)
+    assert len(restored.answer_mask) == 1
+    assert check_answer(snapshot, restored.answer_mask)
+    assert not check_answer(snapshot, "12")
+    current_bank_task = generate(912)
+    old_policy_snapshot = Triple(
+        current_bank_task.statements,
+        current_bank_task.answer_mask,
+        current_bank_task.seed,
+        generator_version="oge19-triples-3",
+        answer_policy_id=LEGACY_ANSWER_POLICY_ID,
+        answer_policy_version=LEGACY_ANSWER_POLICY_VERSION,
+    ).snapshot()
+    validate_snapshot(old_policy_snapshot)
+    assert check_answer(old_policy_snapshot, current_bank_task.answer_mask)
+    assert not check_answer(old_policy_snapshot, current_bank_task.answer_mask * 2)
+
+
+def test_current_snapshot_rejects_a_rehashed_claim_outside_the_reviewed_bank() -> None:
+    from app.math.oge19 import refresh_snapshot_digest
+
+    snapshot = generate(913).snapshot()
+    statement = snapshot["statements"][0]
+    assert isinstance(statement, dict)
+    statement["statement"] = "Изменённое утверждение."
+    refresh_snapshot_digest(snapshot)
+    with pytest.raises(ValueError, match="reviewed bank"):
         validate_snapshot(snapshot)

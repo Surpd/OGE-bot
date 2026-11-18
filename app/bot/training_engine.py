@@ -30,6 +30,7 @@ from app.math.oge18 import POLICY as GRID_POLICY
 from app.math.oge18 import from_snapshot as grid_from_snapshot
 from app.math.oge18_scheduler import build_task18_candidate_batch
 from app.math.oge19 import POLICY as STATEMENT_POLICY
+from app.math.oge19 import policy_for_snapshot as statement_policy_for_snapshot
 from app.math.oge19 import validate_snapshot as validate_statement_snapshot
 from app.math.oge19_scheduler import build_task19_candidate_batch
 from app.math.probability import ANSWER_POLICY as PROBABILITY_POLICY
@@ -83,7 +84,7 @@ NUMERIC_TRAININGS = {
         "геометрические утверждения",
         STATEMENT_POLICY,
         build_task19_candidate_batch,
-        "Введите номер верного утверждения: 1, 2 или 3.",
+        "Введите номера верных утверждений подряд, например 13.",
     ),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
     10: NumericTraining(
@@ -502,9 +503,15 @@ async def training_answer(
             ),
         )
         return
+    answer_policy = (
+        statement_policy_for_snapshot(problem)
+        if adapter.number == 19
+        else adapter.policy
+    )
     if (
-        problem.get("answer_policy_id") != adapter.policy.policy_id
-        or problem.get("answer_policy_version") != adapter.policy.version
+        answer_policy is None
+        or problem.get("answer_policy_id") != answer_policy.policy_id
+        or problem.get("answer_policy_version") != answer_policy.version
     ):
         await send_text(message, repository, "Политика ответа этой задачи недоступна.")
         return
@@ -543,11 +550,11 @@ async def training_answer(
         except ValueError:
             await send_text(message, repository, "Сохранённое задание №19 повреждено.")
             return
-    if adapter.policy.parse(message.text) is None:
+    if answer_policy.parse(message.text) is None:
         await send_text(message, repository, adapter.invalid_answer)
         return
     problem_id = str(problem.get("problem_id", ""))
-    correct = adapter.policy.accepts(message.text, str(problem.get("correct_answer", "")))
+    correct = answer_policy.accepts(message.text, str(problem.get("correct_answer", "")))
     outcome = await adapter.operation(repository, "attempt")(
         user_id,
         problem_id,
