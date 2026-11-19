@@ -14,3 +14,21 @@ def matches_current_condition(message: Message, state: Mapping[str, object]) -> 
         return False
     reply = message.reply_to_message
     return reply is None or getattr(reply, "message_id", None) == condition_id
+
+
+TERMINAL_RESULTS = {
+    "solved": "✅ Задание решено.",
+    "failed": "Попытки закончились.",
+    "solution_viewed": "Вы открыли разбор.",
+    "skipped": "Задание пропущено.",
+}
+
+
+def resumed_result(status: object, problem: Mapping[str, object]) -> str | None:
+    """Show the saved outcome and any already revealed answer."""
+    if not isinstance(status, str) or status not in TERMINAL_RESULTS:
+        return None
+    result = TERMINAL_RESULTS[status]
+    if status in {"solved", "failed", "solution_viewed"} and problem.get("correct_answer"):
+        result += f"\nОтвет: {problem['correct_answer']}"
+    return result

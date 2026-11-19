@@ -23,7 +23,7 @@ from aiogram.types import (
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
 from app.bot.presentation import send_text
-from app.bot.training_ux import matches_current_condition
+from app.bot.training_ux import matches_current_condition, resumed_result
 from app.math.scenario_engine import (
     FamilyRegistry,
     PracticeMode,
@@ -538,7 +538,11 @@ async def render_session(
             "Напишите ответ в чат."
         )
     else:
-        body = f"{title} · вопрос завершён"
+        body = f"{title}\n\n{question.condition}"
+        if result_text is None:
+            result_text = resumed_result(
+                session.question_status, {"correct_answer": question.canonical_answer}
+            )
     if result_text:
         body += f"\n\n{result_text}"
     markup = _keyboard(rows)

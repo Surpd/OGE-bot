@@ -44,7 +44,7 @@ from app.bot.training_engine import (
     training_answer,
     training_callback,
 )
-from app.bot.training_ux import matches_current_condition
+from app.bot.training_ux import TERMINAL_RESULTS, matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
@@ -168,22 +168,17 @@ async def _send_problem(
     state = await repository.task6_state(user_id)
     state_value = cast(dict[str, object], state.get("state", {})) if state else {}
     current_problem = state.get("problem") if state else None
+    status = state_value.get("status")
+    terminal = action == "resume" and isinstance(status, str) and status in TERMINAL_RESULTS
     if action == "resume":
-        if isinstance(current_problem, dict) and state_value.get("status") == "active":
-            saved_problem = current_problem
-        elif isinstance(current_problem, dict):
-            await send_text(
-                message,
-                repository,
-                "Последнее задание уже завершено. Нажмите «➡ Следующее», чтобы продолжить.",
-                reply_markup=task6_menu(str(current_problem["problem_id"])),
-            )
+        if not isinstance(current_problem, dict) or (status != "active" and not terminal):
             return False
-        else:
-            await send_text(
-                message, repository, "У вас нет незавершённой тренировки.", reply_markup=main_menu()
-            )
+        if (
+            expected_problem_id is not None
+            and current_problem.get("problem_id") != expected_problem_id
+        ):
             return False
+        saved_problem = current_problem
     else:
         if (
             action == "advance"
@@ -219,18 +214,30 @@ async def _send_problem(
             and saved_problem.get("_transitioned") is False
         ):
             return False
+    body = f"Задание №6 · вычисления\n\n{saved_problem['condition']}\n\n"
+    body += (resumed_result(status, saved_problem) or "") if terminal else (
+        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой."
+    )
     sent = await send_text(
         message,
         repository,
-        f"Задание №6 · вычисления\n\n{saved_problem['condition']}\n\n"
-        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
-        reply_markup=task6_menu(str(saved_problem["problem_id"])),
+        body,
+        reply_markup=task6_menu(str(saved_problem["problem_id"]), completed=terminal),
     )
     prompt_message_id = getattr(sent, "message_id", None)
     if type(prompt_message_id) is int:
-        await repository.set_task6_condition_message(
-            user_id, str(saved_problem["problem_id"]), prompt_message_id
-        )
+        if terminal:
+            saved = await repository.set_task6_prompt_message(
+                user_id, str(saved_problem["problem_id"]), prompt_message_id,
+                expected_status=str(status),
+            )
+            if not saved:
+                await _disable_stale_keyboard(sent, saved)
+                return False
+        else:
+            await repository.set_task6_condition_message(
+                user_id, str(saved_problem["problem_id"]), prompt_message_id
+            )
     return await persist_open_training(
         repository,
         user_id,
@@ -313,8 +320,9 @@ async def continue_session(
             message,
             oge15_repository,
             scenario_session,
-            show_assets=False,
+            show_assets=True,
             user_id_override=user_id,
+            repository=repository,
         )
         await repository.save_user_state(user_id, "oge15")
         return True
@@ -330,27 +338,24 @@ async def continue_session(
     training = next((item for item in TRAININGS if item.mode == last), None)
     if training is not None and training.available:
         state = await getattr(repository, f"task{training.number}_state")(user_id)
-        if _has_resumable_task6(state):
-            problem = state.get("problem") if state else None
-            saved_state = state.get("state") if state else None
-            status = saved_state.get("status") if isinstance(saved_state, dict) else None
+        if state is not None and _has_resumable_task6(state):
+            current = cast(dict[str, object], state["problem"])
             sender = (
                 _send_problem
                 if training.number == 6
                 else globals()[f"_send_task{training.number}_problem"]
             )
+            source_screen = await repository.user_state(user_id)
             await _pause_oge15_foreground(user_id, oge15_repository)
-            if status == "active":
-                if await sender(message, repository, action="resume"):
-                    return
-            elif status in {"solved", "failed", "solution_viewed"} and isinstance(problem, dict):
-                if await sender(
-                    message,
-                    repository,
-                    action="advance",
-                    expected_problem_id=str(problem.get("problem_id", "")),
-                ):
-                    return
+            await sender(
+                message,
+                repository,
+                action="resume",
+                expected_problem_id=str(current["problem_id"]),
+                expected_screen=source_screen,
+                user_id_override=user_id,
+            )
+            return
     await repository.save_user_state(user_id, "main_menu")
     await send_text(
         message, repository, "Нет незавершённых заданий. Выберите номер.", reply_markup=main_menu()
@@ -466,19 +471,11 @@ async def saved_training_navigation(
                 user_id, training.mode, problem_id, previous_status
             )
         return
-    if status == "active":
+    if status == "active" or status in TERMINAL_RESULTS:
         await sender(
             message,
             repository,
             action="resume",
-            expected_screen="number_selection",
-            user_id_override=user_id,
-        )
-    elif status in {"solved", "failed", "solution_viewed"}:
-        await sender(
-            message,
-            repository,
-            action="advance",
             expected_problem_id=problem_id,
             expected_screen="number_selection",
             user_id_override=user_id,
@@ -518,11 +515,15 @@ async def _send_task9_problem(
     state = await repository.task9_state(user_id)
     state_value = cast(dict[str, object], state.get("state", {})) if state else {}
     current_problem = state.get("problem") if state else None
+    status = state_value.get("status")
+    terminal = action == "resume" and isinstance(status, str) and status in TERMINAL_RESULTS
     if action == "resume":
-        if not isinstance(current_problem, dict) or state_value.get("status") != "active":
-            await send_text(
-                message, repository, "Нет незавершённой тренировки №9.", reply_markup=main_menu()
-            )
+        if not isinstance(current_problem, dict) or (status != "active" and not terminal):
+            return False
+        if (
+            expected_problem_id is not None
+            and current_problem.get("problem_id") != expected_problem_id
+        ):
             return False
         saved_problem = current_problem
     else:
@@ -574,18 +575,30 @@ async def _send_task9_problem(
             return False
         if action == "advance" and saved_problem.get("_transitioned") is False:
             return False
+    body = f"Задание №9 · уравнения\n\n{saved_problem['condition']}\n\n"
+    body += (resumed_result(status, saved_problem) or "") if terminal else (
+        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой."
+    )
     sent = await send_text(
         message,
         repository,
-        f"Задание №9 · уравнения\n\n{saved_problem['condition']}\n\n"
-        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
-        reply_markup=task9_menu(str(saved_problem["problem_id"])),
+        body,
+        reply_markup=task9_menu(str(saved_problem["problem_id"]), completed=terminal),
     )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await repository.set_task9_condition_message(
-            user_id, str(saved_problem["problem_id"]), prompt_id
-        )
+        if terminal:
+            saved = await repository.set_task9_prompt_message(
+                user_id, str(saved_problem["problem_id"]), prompt_id,
+                expected_status=str(status),
+            )
+            if not saved:
+                await _disable_stale_keyboard(sent, saved)
+                return False
+        else:
+            await repository.set_task9_condition_message(
+                user_id, str(saved_problem["problem_id"]), prompt_id
+            )
     return await persist_open_training(
         repository,
         user_id,
@@ -674,11 +687,12 @@ async def _send_task11_problem(
     state_value = cast(dict[str, object], state.get("state", {})) if state else {}
     current = state.get("problem") if state else None
     freshly_generated = False
+    status = state_value.get("status")
+    terminal = action == "resume" and isinstance(status, str) and status in TERMINAL_RESULTS
     if action == "resume":
-        if not isinstance(current, dict) or state_value.get("status") != "active":
-            await send_text(
-                message, repository, "Нет незавершённой тренировки №11.", reply_markup=main_menu()
-            )
+        if not isinstance(current, dict) or (status != "active" and not terminal):
+            return False
+        if expected_problem_id is not None and current.get("problem_id") != expected_problem_id:
             return False
         problem = current
     elif action == "start" and isinstance(current, dict) and state_value.get("status") == "active":
@@ -734,18 +748,32 @@ async def _send_task11_problem(
     caption = (
         "Задание №11 · графики функций\n"
         f"{restored.condition}\n\n"
-        "Введите три цифры в порядке А, Б, В. Используйте 1, 2 и 3 по одному разу."
+        + (
+            (resumed_result(status, problem) or "") if terminal
+            else "Введите три цифры в порядке А, Б, В. Используйте 1, 2 и 3 по одному разу."
+        )
     )
     sent = await send_photo(
         message,
         repository,
         BufferedInputFile(restored.png_bytes, filename="oge11.png"),
         caption=caption,
-        reply_markup=task11_menu(restored.problem_id),
+        reply_markup=task11_menu(restored.problem_id, completed=terminal),
     )
     condition_id = getattr(sent, "message_id", None)
     if type(condition_id) is int:
-        await repository.set_task11_condition_message(user_id, restored.problem_id, condition_id)
+        if terminal:
+            saved = await repository.set_task11_prompt_message(
+                user_id, restored.problem_id, condition_id,
+                expected_status=str(status),
+            )
+            if not saved:
+                await _disable_stale_keyboard(sent, saved)
+                return False
+        else:
+            await repository.set_task11_condition_message(
+                user_id, restored.problem_id, condition_id
+            )
     return await persist_open_training(
         repository,
         user_id,
@@ -1321,11 +1349,12 @@ async def _send_task7_problem(
             reply_markup=main_menu(),
         )
         return False
+    status = state_value.get("status")
+    terminal = action == "resume" and isinstance(status, str) and status in TERMINAL_RESULTS
     if action == "resume":
-        if not isinstance(current, dict) or state_value.get("status") != "active":
-            await send_text(
-                message, repository, "Нет незавершённой тренировки №7.", reply_markup=main_menu()
-            )
+        if not isinstance(current, dict) or (status != "active" and not terminal):
+            return False
+        if expected_problem_id is not None and current.get("problem_id") != expected_problem_id:
             return False
         problem = current
     else:
@@ -1380,7 +1409,8 @@ async def _send_task7_problem(
     )
     caption = (
         "Задание №7 · числа и координатная прямая\n"
-        f"{problem['condition']}\n\n{option_lines}\n\nВведите номер варианта 1–4."
+        f"{problem['condition']}\n\n{option_lines}\n\n"
+        + ((resumed_result(status, problem) or "") if terminal else "Введите номер варианта 1–4.")
     )
     encoded = problem.get("graph_png_base64")
     if isinstance(encoded, str):
@@ -1396,15 +1426,27 @@ async def _send_task7_problem(
             repository,
             photo,
             caption=caption,
-            reply_markup=task7_menu(str(problem["problem_id"])),
+            reply_markup=task7_menu(str(problem["problem_id"]), completed=terminal),
         )
     else:
         sent = await send_text(
-            message, repository, caption, reply_markup=task7_menu(str(problem["problem_id"]))
+            message, repository, caption,
+            reply_markup=task7_menu(str(problem["problem_id"]), completed=terminal),
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await repository.set_task7_condition_message(user_id, str(problem["problem_id"]), prompt_id)
+        if terminal:
+            saved = await repository.set_task7_prompt_message(
+                user_id, str(problem["problem_id"]), prompt_id,
+                expected_status=str(status),
+            )
+            if not saved:
+                await _disable_stale_keyboard(sent, saved)
+                return False
+        else:
+            await repository.set_task7_condition_message(
+                user_id, str(problem["problem_id"]), prompt_id
+            )
     return await persist_open_training(
         repository,
         user_id,
@@ -1647,11 +1689,12 @@ async def _send_task13_problem(
     state = await repository.task13_state(user_id)
     state_value = cast(dict[str, object], state.get("state", {})) if state else {}
     current = state.get("problem") if state else None
+    status = state_value.get("status")
+    terminal = action == "resume" and isinstance(status, str) and status in TERMINAL_RESULTS
     if action == "resume":
-        if not isinstance(current, dict) or state_value.get("status") != "active":
-            await send_text(
-                message, repository, "Нет незавершённой тренировки №13.", reply_markup=main_menu()
-            )
+        if not isinstance(current, dict) or (status != "active" and not terminal):
+            return False
+        if expected_problem_id is not None and current.get("problem_id") != expected_problem_id:
             return False
         problem = current
     else:
@@ -1724,9 +1767,12 @@ async def _send_task13_problem(
         f"{problem['condition']}\n\n"
         + _task13_choice_text(problem)
         + ("\n" if _task13_choice_text(problem) else "")
-        + "Выберите один из вариантов (1–4) кнопкой или напишите его номер в чат."
+        + (
+            (resumed_result(status, problem) or "") if terminal
+            else "Выберите один из вариантов (1–4) кнопкой или напишите его номер в чат."
+        )
     )
-    markup = task13_menu(problem_id, choices=True)
+    markup = task13_menu(problem_id, completed=terminal, choices=True)
     system_rows = (
         tuple(str(problem["condition"]).splitlines())
         if str(problem.get("family_id", "")).startswith("OGE13-S")
@@ -1747,9 +1793,18 @@ async def _send_task13_problem(
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await repository.set_task13_condition_message(
-            user_id, str(problem["problem_id"]), prompt_id
-        )
+        if terminal:
+            saved = await repository.set_task13_prompt_message(
+                user_id, problem_id, prompt_id,
+                expected_status=str(status),
+            )
+            if not saved:
+                await _disable_stale_keyboard(sent, saved)
+                return False
+        else:
+            await repository.set_task13_condition_message(
+                user_id, problem_id, prompt_id
+            )
     return await persist_open_training(
         repository,
         user_id,
