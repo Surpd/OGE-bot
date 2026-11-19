@@ -53,6 +53,9 @@ PALETTE = {
     "blue_light": "#EAF0FF",
     "neutral": "#A0A9B8",
     "neutral_light": "#F1F3F6",
+    "red": "#C94954",
+    "yellow": "#A66B0A",
+    "green": "#21885E",
 }
 
 
@@ -129,6 +132,18 @@ def dashboard_tile_values(insights: dict[str, Any]) -> list[tuple[int, int, int,
     return tiles
 
 
+def dashboard_tile_accent(correct: int, answered: int) -> str:
+    """Neutral under five answers; otherwise red <50, amber <80, green >=80."""
+    if answered < MIN_ANSWERED_SAMPLE:
+        return PALETTE["neutral"]
+    rate = round(100 * min(answered, max(0, correct)) / answered)
+    if rate < 50:
+        return PALETTE["red"]
+    if rate < 80:
+        return PALETTE["yellow"]
+    return PALETTE["green"]
+
+
 def _recommendation(insights: dict[str, Any]) -> str:
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is not None:
@@ -178,7 +193,8 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
         y = GRID_TOP + row * (TILE_HEIGHT + TILE_GAP_Y)
         _card(image, (x, y, x + TILE_WIDTH, y + TILE_HEIGHT), radius=18)
         draw = ImageDraw.Draw(image)
-        stripe = PALETTE["blue"] if sufficient else PALETTE["line"]
+        accent = dashboard_tile_accent(correct, answered)
+        stripe = accent if sufficient else PALETTE["line"]
         draw.rounded_rectangle(
             (x + 12, y + 15, x + 18, y + TILE_HEIGHT - 15), radius=4, fill=stripe
         )
@@ -198,7 +214,7 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
             max_width=78,
             size=28,
             minimum_size=21,
-            fill=PALETTE["blue"] if sufficient else PALETTE["neutral"],
+            fill=accent,
             bold=True,
             anchor="rt",
         )
