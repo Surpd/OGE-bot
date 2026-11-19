@@ -42,6 +42,7 @@ from app.bot.task_view import task13_is_graph_choice as _task13_is_graph_choice
 from app.bot.training_engine import (
     NUMERIC_TRAININGS,
     persist_open_training,
+    recover_saved_training,
     send_problem,
     training_answer,
     training_callback,
@@ -149,7 +150,10 @@ async def _has_resumable_session(
     if training is None or not training.available:
         return False
     state = await getattr(repository, f"task{training.number}_state")(user_id)
-    return _has_resumable_task6(state)
+    if _has_resumable_task6(state):
+        return True
+    saved = state.get("state") if state else None
+    return isinstance(saved, dict) and saved.get("status") == "restart_ready"
 
 
 async def _send_problem(
@@ -339,7 +343,7 @@ async def continue_session(
         return
     training = next((item for item in TRAININGS if item.mode == last), None)
     if training is not None and training.available:
-        state = await getattr(repository, f"task{training.number}_state")(user_id)
+        state = await recover_saved_training(repository, user_id, training.mode)
         if state is not None and _has_resumable_task6(state):
             current = cast(dict[str, object], state["problem"])
             sender = (
@@ -394,7 +398,7 @@ async def _show_saved_training_choice(
 ) -> bool:
     if user_id is None or not any(item.number == number and item.available for item in TRAININGS):
         return False
-    state = await getattr(repository, f"task{number}_state")(user_id)
+    state = await recover_saved_training(repository, user_id, f"task{number}")
     problem = state.get("problem") if state else None
     saved = state.get("state") if state else None
     status = saved.get("status") if isinstance(saved, dict) else None
@@ -430,7 +434,7 @@ async def saved_training_navigation(
     if training is None or action not in {"continue", "restart", "confirm", "cancel"}:
         await send_text(message, repository, "Этот вариант тренировки недоступен.")
         return
-    state = await getattr(repository, f"task{number}_state")(user_id)
+    state = await recover_saved_training(repository, user_id, training.mode)
     problem = state.get("problem") if state else None
     saved = state.get("state") if state else None
     status = saved.get("status") if isinstance(saved, dict) else None

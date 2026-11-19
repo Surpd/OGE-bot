@@ -339,7 +339,7 @@ async def test_memory_saved_training_restart_is_confirmed_and_screen_handoff_is_
     )
     assert previous == "active"
     assert (await repository.task6_state(789))["state"]["status"] == "restart_ready"
-    await repository.restore_training_restart(789, "task6", problem_id, previous)
+    await continue_session(_message(789, "▶ Продолжить"), repository)
     assert (await repository.task6_state(789))["state"]["status"] == "active"
 
     await repository.save_user_state(789, "main_menu")
