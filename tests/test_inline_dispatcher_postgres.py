@@ -72,6 +72,8 @@ class TelegramSession(BaseSession):
             # dispatcher tests can assert what a Telegram user sees.
             text = html.unescape(re.sub(r"<[^>]*>", "", rich_html))
             text = re.sub(r"\{([,])\}", r"\1", text)
+            text = text.replace(r"\cdot", "·")
+            text = re.sub(r"\\frac\{([^{}]+)\}\{([^{}]+)\}", r"\1/\2", text)
         message = Message(
             message_id=message_id,
             date=datetime.now(UTC),

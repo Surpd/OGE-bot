@@ -493,6 +493,7 @@ async def progress_navigation(
             repository,
             render_progress(insights),
             reply_markup=progress_keyboard("summary"),
+            user_id_override=user_id,
         )
         if was_photo:
             try:
@@ -572,6 +573,7 @@ async def progress_navigation(
         # Keep navigation and list pages as ordinary Telegram text so their
         # keyboards and copy remain available to clients without Rich Messages.
         rich_with_navigation=(section == "item"),
+        user_id_override=user_id,
     )
     old_message = getattr(message, "_message", message)
     if sent.message_id != old_message.message_id:
