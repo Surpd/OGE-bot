@@ -414,3 +414,33 @@ async def test_only_definite_rich_rejection_falls_back_without_rescoring(error, 
         bot.send_photo.assert_not_awaited()
     repository.task6_answer.assert_not_awaited()
     await bot.session.close()
+
+
+@pytest.mark.asyncio
+async def test_png_fallback_sends_original_diagram_and_keeps_controls_under_formula():
+    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    bot = Bot("123456:TEST")
+    image_message = Message(message_id=96, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    formula_message = image_message.model_copy(update={"message_id": 97})
+    bot.send_photo = AsyncMock(side_effect=[image_message, formula_message])
+    bot.send_rich_message = AsyncMock()
+    repository = AsyncMock()
+    repository.math_display.return_value = "png"
+    original = render_math_image("y=x+1")
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Следующее", callback_data="t11:next:fixture")]
+    ])
+    result = await send_photo(
+        incoming(bot), repository, BufferedInputFile(original, filename="original.png"),
+        caption="Сопоставьте график с формулой y=x+1.",
+        diagram_caption="Графики к заданию №11", reply_markup=markup,
+    )
+    diagram, condition = (call.kwargs for call in bot.send_photo.await_args_list)
+    assert diagram["photo"].data == original
+    assert diagram["caption"] == "Графики к заданию №11"
+    assert "reply_markup" not in diagram
+    assert condition["reply_markup"] == markup
+    assert result.message_id == 97
+    bot.send_rich_message.assert_not_awaited()
+    await bot.session.close()

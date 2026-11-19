@@ -760,6 +760,7 @@ async def _send_task11_problem(
         repository,
         BufferedInputFile(restored.png_bytes, filename="oge11.png"),
         caption=caption,
+        diagram_caption="Графики к заданию №11",
         reply_markup=task11_menu(restored.problem_id, completed=terminal),
     )
     condition_id = getattr(sent, "message_id", None)
@@ -1752,6 +1753,7 @@ async def _send_task13_problem(
             repository,
             BufferedInputFile(image, filename="oge13-options.png"),
             caption=caption,
+            diagram_caption="Варианты ответа к заданию №13",
             reply_markup=markup,
             math_system_rows=math_system_rows,
         )

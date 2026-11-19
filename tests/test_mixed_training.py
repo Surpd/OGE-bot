@@ -421,6 +421,13 @@ async def test_telegram_mixed_graphical_and_choice_families(number: int, monkeyp
         answer.reply_to_message = SimpleNamespace(
             message_id=problem["prompt_message_id"]
         )
+        if number in {11, 19}:
+            answer.text = "112" if number == 11 else "11"
+            await mixed_training.mixed_answer(answer, repository)
+            unchanged = await store.state(incoming.from_user.id)
+            assert unchanged is not None and unchanged["problem"]["attempts"] == 0
+            assert "не соответствует формату" in sent[-1][2]
+            answer.message_id += 1
         answer.text = (
             str(problem["correct_answer"])[::-1]
             if number == 19

@@ -155,9 +155,10 @@ async def _send_mathematics(
     kwargs: dict[str, Any],
     force_png: bool = False,
     system_rows: tuple[str, ...] | None = None,
+    diagram_caption: str | None = None,
 ) -> Message:
     if force_png:
-        return await _send_math_image(message, text, photo, kwargs, system_rows)
+        return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
     rich = format_rich_message(text, system_rows=system_rows)
     media = None
     if photo is not None:
@@ -176,7 +177,7 @@ async def _send_mathematics(
     except (TelegramBadRequest, TelegramNotFound):
         # Only a definite rejection means no message was created. Timeouts,
         # transport failures, rate limits and server errors must propagate.
-        return await _send_math_image(message, text, photo, kwargs, system_rows)
+        return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
 
 
 async def _send_math_image(
@@ -185,18 +186,25 @@ async def _send_math_image(
     photo: BufferedInputFile | None,
     kwargs: dict[str, Any],
     system_rows: tuple[str, ...] | None = None,
+    diagram_caption: str | None = None,
 ) -> Message:
     from app.bot.math_image import render_math_image
 
+    standalone = photo if diagram_caption is not None else None
     image = await asyncio.to_thread(
         render_math_image,
         text,
-        None if photo is None else photo.data,
+        None if photo is None or standalone is not None else photo.data,
         system_rows,
     )
     bot = message.bot
     if bot is None:
         raise RuntimeError("Mathematical transport needs a mounted bot")
+    if standalone is not None:
+        await bot.send_photo(
+            chat_id=message.chat.id, message_thread_id=message.message_thread_id,
+            photo=standalone, caption=diagram_caption,
+        )
     return await bot.send_photo(
         chat_id=message.chat.id,
         message_thread_id=message.message_thread_id,
@@ -266,6 +274,7 @@ async def send_photo(
     caption: str | MathFragment,
     user_id_override: int | None = None,
     math_system_rows: tuple[str, ...] | None = None,
+    diagram_caption: str | None = None,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import prepare_navigation_markup
@@ -281,6 +290,7 @@ async def send_photo(
             force_png=(await _prefer_png(message, repository, user_id_override))
             or rich_needs_png_fallback(caption),
             system_rows=math_system_rows,
+            diagram_caption=diagram_caption,
         )
     else:
         sent = await message.answer_photo(

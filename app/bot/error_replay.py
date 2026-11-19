@@ -183,6 +183,9 @@ async def _render(
             message, repository, BufferedInputFile(photo, filename="original-task.png"),
             caption=body, reply_markup=markup, user_id_override=user_id,
             math_system_rows=math_system_rows,
+            diagram_caption=(
+                f"Данные задачи №{source.number}" if source.number in {11, 13} else None
+            ),
         )
     else:
         sent = await send_text(

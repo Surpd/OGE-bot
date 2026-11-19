@@ -246,6 +246,8 @@ def _is_correct(number: int, problem: dict[str, object], raw: str) -> bool | Non
         policy = policy_for_snapshot(problem)
         if policy is None or version != policy.version or policy_id != policy.policy_id:
             return None
+        if policy.parse(raw) is None:
+            return None
         return bool(policy.accepts(raw, str(problem.get("correct_answer", ""))))
     if number == 6:
         from app.math.registry import ANSWER_POLICY_BY_SNAPSHOT
@@ -262,11 +264,10 @@ def _is_correct(number: int, problem: dict[str, object], raw: str) -> bool | Non
     elif number == 11:
         from app.math.oge11 import POLICY_ID, POLICY_VERSION, parse_answer
 
-        return (
-            parse_answer(raw) == str(problem.get("correct_answer", ""))
-            if (policy_id == POLICY_ID and version == POLICY_VERSION)
-            else None
-        )
+        if (policy_id, version) != (POLICY_ID, POLICY_VERSION):
+            return None
+        parsed = parse_answer(raw)
+        return None if parsed is None else parsed == str(problem.get("correct_answer", ""))
     elif number == 13:
         selected = raw.strip()
         return (
@@ -455,6 +456,9 @@ async def _send_problem(
             reply_markup=markup,
             user_id_override=user_id,
             math_system_rows=math_system_rows,
+            diagram_caption=(
+                f"Данные задачи №{number}" if number in {11, 13} else None
+            ),
         )
     else:
         sent = await send_text(
