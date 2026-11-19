@@ -80,7 +80,8 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
         created = await store.start_session(user_id, snapshot, PracticeMode.FULL, POSITIONS)
 
         before_any_skip = await store.position_stats(user_id)
-        assert sum(row["issued"] for row in before_any_skip.values()) == 1
+        assert before_any_skip[1]["issued"] == 1
+        assert sum(before_any_skip[position]["issued"] for position in POSITIONS) == 1
         assert sum(row["skipped"] for row in before_any_skip.values()) == 0
         assert all(
             before_any_skip[position]["issued"] == 0
