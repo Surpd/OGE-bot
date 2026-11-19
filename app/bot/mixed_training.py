@@ -359,6 +359,7 @@ async def _send_problem(
     problem: dict[str, object],
     *,
     user_id: int,
+    previous_problem: dict[str, object] | None = None,
 ) -> None:
     number_value = problem.get("number")
     if not isinstance(number_value, int):
@@ -396,19 +397,30 @@ async def _send_problem(
         await asyncio.to_thread(validate_statement_snapshot, statement_snapshot)
     condition = question_text(number, problem)
     scenario: ScenarioSnapshot | None = None
+    previous_position: int | None = None
     if number <= 5:
         raw_scenario = problem.get("scenario_snapshot")
         if not isinstance(raw_scenario, dict):
             raise ValueError("Mixed scenario snapshot is missing")
         scenario = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
-        await send_text(
-            message, repository, scenario_context_for_question(scenario, number),
-            user_id_override=user_id,
-        )
+        if (
+            previous_problem is not None
+            and previous_problem.get("scenario_seed") == scenario.seed
+            and previous_problem.get("story_code") == scenario.story_code
+            and number > 1 and previous_problem.get("number") == number - 1
+        ):
+            previous_position = number - 1
+        context = scenario_context_for_question(scenario, number)
+        if previous_position is None or context != scenario_context_for_question(
+            scenario, previous_position,
+        ):
+            await send_text(message, repository, context, user_id_override=user_id)
     result = resumed_result(problem.get("outcome"), problem)
     condition += "\n\n" + (result or answer_instruction(number, problem))
     photos = (
-        await asyncio.to_thread(scenario_photos_for_question, scenario, number)
+        await asyncio.to_thread(
+            scenario_photos_for_question, scenario, number, previous_position=previous_position,
+        )
         if scenario is not None
         else ()
     )
@@ -782,7 +794,9 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         await answer_callback(callback, "Тренировка завершена.")
         return
     if result.get("outcome") == "issued" and isinstance(result.get("problem_id"), str):
-        await _send_problem(message, repository, store, result, user_id=user_id)
+        await _send_problem(
+            message, repository, store, result, user_id=user_id, previous_problem=problem,
+        )
         await answer_callback(callback)
         return
     pending = result.get("pending_snapshot")
@@ -809,7 +823,9 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         if not isinstance(issued, dict):
             await answer_callback(callback, "Задание уже было открыто.")
             return
-        await _send_problem(message, repository, store, issued, user_id=user_id)
+        await _send_problem(
+            message, repository, store, issued, user_id=user_id, previous_problem=problem,
+        )
         await answer_callback(callback)
         return
     issued = await store.issue_current(
@@ -824,5 +840,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
     if not isinstance(issued, dict):
         await answer_callback(callback, "Задание уже было открыто.")
         return
-    await _send_problem(message, repository, store, issued, user_id=user_id)
+    await _send_problem(
+        message, repository, store, issued, user_id=user_id, previous_problem=problem,
+    )
     await answer_callback(callback)

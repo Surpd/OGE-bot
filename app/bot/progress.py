@@ -138,12 +138,16 @@ def progress_keyboard(
     return_page: str | None = None,
     replay_action: tuple[str, str] | None = None,
     similar_action: str | None = None,
+    insights: dict[str, Any] | None = None,
 ) -> InlineKeyboardMarkup:
     """Build one revision-bound keyboard for the current text/photo screen."""
     parts = page.split(":")
     section = parts[0]
     rows: list[list[InlineKeyboardButton]] = []
     if section == "summary":
+        action = _summary_action(insights) if insights is not None else None
+        if action is not None:
+            rows.append([_button(*action)])
         rows.append([_button("📊 Подробнее о номере", "progress:details")])
         rows.append(
             [
@@ -229,7 +233,19 @@ def progress_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
+    if insights["total"]["answered_tasks"] == 0:
+        return "🎲 Смешанная тренировка", "nav:mixed"
+    number = recommended_number(insights["numbers"], insights.get("families"))
+    if number is None:
+        return None
+    route = "nav:oge15" if number <= 5 else "nav:task"
+    return f"▶ Тренировать №{number}", f"{route}:{number}"
+
+
 def _recommendation(insights: dict[str, Any]) -> str:
+    if insights["total"]["answered_tasks"] == 0:
+        return "Начните со смешанной тренировки или выберите номер."
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is not None:
         return f"Можно потренировать №{number}: у него сейчас самая низкая успешность."
@@ -510,7 +526,7 @@ async def progress_navigation(
             message,
             repository,
             render_progress(insights),
-            reply_markup=progress_keyboard("summary"),
+            reply_markup=progress_keyboard("summary", insights=insights),
             user_id_override=user_id,
         )
         if was_photo:
@@ -678,7 +694,7 @@ async def show_progress(
     insights = await training_insights(repository, telegram_user_id, "summary")
     await message.answer(
         render_progress(insights, "summary"),
-        reply_markup=progress_keyboard("summary"),
+        reply_markup=progress_keyboard("summary", insights=insights),
         parse_mode=None,
     )
 

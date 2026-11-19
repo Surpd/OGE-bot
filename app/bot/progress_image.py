@@ -13,7 +13,6 @@ from typing import Any, cast
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
 from aiogram.types import (
     BufferedInputFile,
-    InlineKeyboardButton,
     InlineKeyboardMarkup,
     InputMediaPhoto,
     Message,
@@ -145,6 +144,8 @@ def dashboard_tile_accent(correct: int, answered: int) -> str:
 
 
 def _recommendation(insights: dict[str, Any]) -> str:
+    if insights["total"]["answered_tasks"] == 0:
+        return "Начните со смешанной тренировки."
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is not None:
         return f"Можно потренировать №{number}."
@@ -243,20 +244,10 @@ def render_progress_image(insights: dict[str, Any], page: str = "summary") -> by
     return data
 
 
-def progress_image_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="📊 Подробнее о номере", callback_data="progress:details")],
-            [
-                InlineKeyboardButton(text="⚠️ Мои ошибки", callback_data="progress:errors:0"),
-                InlineKeyboardButton(text="🕘 История", callback_data="progress:history:0"),
-            ],
-            [
-                InlineKeyboardButton(text="🔄 Обновить", callback_data="progress:refresh"),
-                InlineKeyboardButton(text="↩ В меню", callback_data="nav:main"),
-            ],
-        ]
-    )
+def progress_image_keyboard(insights: dict[str, Any] | None = None) -> InlineKeyboardMarkup:
+    from app.bot.progress import progress_keyboard
+
+    return progress_keyboard(insights=insights)
 
 
 async def load_progress_page(
@@ -287,7 +278,9 @@ async def send_progress_image(
     except (OSError, RuntimeError, ValueError):
         logger.warning("progress_png_render_unavailable")
         return False
-    markup = cast(InlineKeyboardMarkup, prepare_navigation_markup(progress_image_keyboard()))
+    markup = cast(
+        InlineKeyboardMarkup, prepare_navigation_markup(progress_image_keyboard(insights))
+    )
     photo = BufferedInputFile(image, filename="progress.png")
     try:
         if edit_existing:

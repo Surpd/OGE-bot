@@ -189,7 +189,8 @@ async def exercise_navigation(
         assert overview_photo.photo
         assert not any(call.__api_method__ == "sendWidget" for call in session.calls)
         keyboard = overview_photo.reply_markup.inline_keyboard
-        assert [[button.text for button in row] for row in keyboard[:3]] == [
+        assert [[button.text for button in row] for row in keyboard[:4]] == [
+            ["🎲 Смешанная тренировка"],
             ["📊 Подробнее о номере"],
             ["⚠️ Мои ошибки", "🕘 История"],
             ["🔄 Обновить", "↩ В меню"],

@@ -198,3 +198,25 @@ def test_dashboard_uses_existing_summary_values_without_changing_metrics() -> No
     )
     tile = dashboard_tile_values(sample)[6]
     assert tile == (7, 1, 1, "100%", False)
+
+
+
+def test_dashboard_action_starts_practice_without_scoring_an_empty_history() -> None:
+    empty = demo_insights("empty")
+    markup = prepare_navigation_markup(progress_image_keyboard(empty))
+    first = markup.inline_keyboard[0][0]
+    assert first.callback_data.partition("~")[0] == "nav:mixed"
+    assert empty["total"]["answered_tasks"] == 0
+
+
+def test_dashboard_action_uses_existing_recommendation_route(monkeypatch) -> None:
+    from app.bot import progress
+
+    insights = demo_insights("full")
+    monkeypatch.setattr(progress, "recommended_number", lambda *_: 3)
+    assert progress_image_keyboard(insights).inline_keyboard[0][0].callback_data == "nav:oge15:3"
+    monkeypatch.setattr(progress, "recommended_number", lambda *_: 13)
+    assert progress_image_keyboard(insights).inline_keyboard[0][0].callback_data == "nav:task:13"
+    monkeypatch.setattr(progress, "recommended_number", lambda *_: None)
+    first = progress_image_keyboard(insights).inline_keyboard[0][0]
+    assert first.callback_data == "progress:details"
