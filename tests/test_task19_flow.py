@@ -131,7 +131,11 @@ async def test_task19_accepts_two_tries_and_ignores_malformed_input(enabled_task
 
 
 @pytest.mark.asyncio
-async def test_task19_hint_skip_resume_and_theme_are_persisted(enabled_task19):
+async def test_task19_hint_skip_resume_and_theme_are_persisted(enabled_task19, monkeypatch):
+    seeds = iter((12345, 67890))
+    monkeypatch.setattr(
+        "app.bot.training_engine.secrets.randbelow", lambda _limit: next(seeds)
+    )
     repo = MemoryRepository()
     await repo.set_training_family(419, 19, "OGE19-CIRCLES")
     prompt = incoming()

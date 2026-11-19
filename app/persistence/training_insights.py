@@ -355,6 +355,7 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
                      AND a.user_id=p.user_id AND a.source='ordinary'
                      AND NOT a.is_correct) AS has_error
       FROM relevant p JOIN issued_problems i ON i.id=p.id
+      WHERE p.source='ordinary'
       UNION ALL
       SELECT 'm:'||problem.id::text, problem.id, problem.number::int,
              problem.family_id,problem.outcome,problem.issued_at,
