@@ -111,6 +111,12 @@ async def load_replay_source(
             """SELECT p.number,p.family_id,p.fingerprint,p.snapshot,p.snapshot_sha256,p.outcome,
                       COALESCE(bool_or(NOT a.is_correct),false) AS has_error,
                       COALESCE(p.snapshot->'_original_scenario_snapshot',
+                        (SELECT archive.item->'snapshot'
+                         FROM jsonb_array_elements(COALESCE(s.state->'scenario_archive',
+                           '[]'::jsonb)) AS archive(item)
+                         WHERE archive.item->>'seed'=p.snapshot->>'scenario_seed'
+                           AND archive.item->>'story_code'=p.snapshot->>'story_code'
+                         LIMIT 1),
                         (SELECT first.snapshot->'_original_scenario_snapshot'
                          FROM mixed_training_problems first
                          WHERE first.session_id=p.session_id AND first.number=1
@@ -119,6 +125,12 @@ async def load_replay_source(
                          ORDER BY first.issued_at,first.id LIMIT 1),
                         s.state->'scenario_snapshot') AS scenario_snapshot,
                       COALESCE(p.snapshot->>'_original_scenario_snapshot_sha256',
+                        (SELECT archive.item->>'sha256'
+                         FROM jsonb_array_elements(COALESCE(s.state->'scenario_archive',
+                           '[]'::jsonb)) AS archive(item)
+                         WHERE archive.item->>'seed'=p.snapshot->>'scenario_seed'
+                           AND archive.item->>'story_code'=p.snapshot->>'story_code'
+                         LIMIT 1),
                         (SELECT first.snapshot->>'_original_scenario_snapshot_sha256'
                          FROM mixed_training_problems first
                          WHERE first.session_id=p.session_id AND first.number=1
@@ -235,6 +247,19 @@ async def _load_memory_source(
         if not isinstance(candidate, dict) and isinstance(state, dict):
             candidate = state.get("scenario_snapshot")
             scenario_digest = state.get("scenario_snapshot_sha256")
+        if not isinstance(candidate, dict) and isinstance(state, dict):
+            archive = state.get("scenario_archive")
+            if isinstance(archive, list):
+                for item in reversed(archive):
+                    if (
+                        isinstance(item, dict)
+                        and item.get("seed") == snapshot.get("scenario_seed")
+                        and item.get("story_code") == snapshot.get("story_code")
+                        and isinstance(item.get("snapshot"), dict)
+                    ):
+                        candidate = item["snapshot"]
+                        scenario_digest = item.get("sha256")
+                        break
         if not isinstance(candidate, dict):
             scenario_seed = snapshot.get("scenario_seed")
             story_code = snapshot.get("story_code")
@@ -427,7 +452,14 @@ def _assert_regenerated(snapshot: dict[str, object], problem_id: str) -> None:
         expected = generate_task14(family_id, seed, version).to_snapshot()
     else:
         raise ValueError("No deterministic restorer exists for this original family")
-    if any(snapshot.get(key) != value for key, value in expected.items()):
+    # PostgreSQL JSONB normalizes tuple-like generator fields to arrays. Compare
+    # the same persisted representation in both repositories.
+    saved_json = json.loads(json.dumps(snapshot, ensure_ascii=False))
+    expected_json = json.loads(json.dumps(expected, ensure_ascii=False))
+    if any(
+        key != "problem_id" and saved_json.get(key) != value
+        for key, value in expected_json.items()
+    ):
         raise ValueError("The original task does not match its seed and generator version")
 
 
@@ -460,13 +492,10 @@ def _scenario_question(snapshot: dict[str, object], position: int) -> dict[str, 
 
 
 def _same_question(expected: dict[str, object], saved: dict[str, object]) -> None:
-    for key in ("family_id", "condition", "answer_policy_id", "answer_policy_version"):
-        if saved.get(key) != expected.get(key):
-            raise ValueError("Mixed OGE 1–5 question differs from the saved shared scenario")
-    if str(saved.get("correct_answer", saved.get("canonical_answer", ""))) != str(
-        expected["correct_answer"]
-    ):
-        raise ValueError("Mixed OGE 1–5 answer differs from the saved shared scenario")
+    expected_json = json.loads(json.dumps(expected, ensure_ascii=False))
+    saved_json = json.loads(json.dumps(saved, ensure_ascii=False))
+    if any(saved_json.get(key) != value for key, value in expected_json.items()):
+        raise ValueError("Mixed OGE 1–5 question differs from the saved shared scenario")
 
 
 class ErrorReplayRepository:

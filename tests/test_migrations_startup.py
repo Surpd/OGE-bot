@@ -213,8 +213,10 @@ async def test_main_migrations_upgrade_adds_only_mixed_training_and_preserves_ta
     admin, name, test_url = await _create_test_database(url)
     pool = await asyncpg.create_pool(test_url)
     try:
-        files = _migration_files()
-        assert [int(p.name[:4]) for p in files] == list(range(1, 20))
+        all_files = _migration_files()
+        assert [int(p.name[:4]) for p in all_files] == list(range(1, 21))
+        assert all_files[-1].name == "0020_training_error_replays.sql"
+        files = [migration for migration in all_files if int(migration.name[:4]) <= 19]
         assert files[-1].name == "0019_mixed_training.sql"
         for migration in files[:-1]:
             (tmp_path / migration.name).write_text(migration.read_text())

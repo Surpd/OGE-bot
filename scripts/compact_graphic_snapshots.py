@@ -93,7 +93,7 @@ async def compact_old_snapshots(
                    PARTITION BY user_id ORDER BY issued_at DESC,id DESC
                ) AS position FROM all_graphics
            )
-           SELECT r.source,r.id,r.snapshot FROM ranked r
+           SELECT r.source,r.id,r.snapshot,r.snapshot_sha256 FROM ranked r
            WHERE r.position > $3 AND NOT r.is_active AND r.outcome <> 'issued'
              AND r.snapshot ?| ARRAY[
                  'graph_png_base64', 'png_base64', 'image_base64', 'picture_base64', 'option_svgs'

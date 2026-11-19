@@ -104,8 +104,6 @@ async def test_memory_mixed_position_three_recovers_original_shared_scenario_aft
     first_snapshot = {
         **first,
         "problem_id": first_id,
-        "_original_scenario_snapshot": scenario,
-        "_original_scenario_snapshot_sha256": _digest(scenario),
     }
     third_snapshot = {**third, "problem_id": third_id}
     repository._mixed_training_records[user_id] = [
@@ -132,7 +130,19 @@ async def test_memory_mixed_position_three_recovers_original_shared_scenario_aft
             "snapshot": third_snapshot,
         },
     ]
-    repository._mixed_training_sessions[user_id] = {"state": {"scenario_snapshot": None}}
+    repository._mixed_training_sessions[user_id] = {
+        "state": {
+            "scenario_snapshot": None,
+            "scenario_archive": [
+                {
+                    "seed": scenario["seed"],
+                    "story_code": scenario["story_code"],
+                    "snapshot": scenario,
+                    "sha256": _digest(scenario),
+                }
+            ],
+        }
+    }
 
     source = await load_replay_source(repository, user_id, f"m:{third_id}")
     assert source.number == 3

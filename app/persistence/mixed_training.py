@@ -24,6 +24,34 @@ def _digest(value: dict[str, object]) -> str:
     ).hexdigest()
 
 
+def _archive_scenario(state: dict[str, object], snapshot: dict[str, object]) -> None:
+    """Keep one recoverable copy per generated story in the existing session state."""
+    seed = snapshot.get("seed")
+    story_code = snapshot.get("story_code")
+    archive = state.get("scenario_archive")
+    if not isinstance(archive, list):
+        archive = []
+        state["scenario_archive"] = archive
+    for item in archive:
+        if not isinstance(item, dict):
+            continue
+        if item.get("seed") == seed and item.get("story_code") == story_code:
+            saved = item.get("snapshot")
+            if not isinstance(saved, dict) or item.get("sha256") != _digest(saved):
+                raise ValueError("Archived mixed scenario failed its integrity check")
+            if _digest(saved) != _digest(snapshot):
+                raise ValueError("Mixed scenario identity was reused for different content")
+            return
+    archive.append(
+        {
+            "seed": seed,
+            "story_code": story_code,
+            "snapshot": snapshot,
+            "sha256": _digest(snapshot),
+        }
+    )
+
+
 def _as_int(value: object, default: int = 0) -> int:
     return value if isinstance(value, int) else default
 
@@ -242,6 +270,7 @@ class MixedTrainingRepository:
                 state["scenario_snapshot"] = scenario_snapshot
                 state["scenario_snapshot_sha256"] = _digest(scenario_snapshot)
                 state["scenario_position"] = 1
+                _archive_scenario(state, scenario_snapshot)
             snapshot = _capture_scheduler_state(state, number, snapshot)
             problem_id = str(snapshot.get("problem_id") or uuid4())
             try:
@@ -263,9 +292,6 @@ class MixedTrainingRepository:
             record_snapshot = {
                 key: value for key, value in snapshot.items() if key != "scenario_snapshot"
             }
-            if number == 1 and scenario_snapshot is not None:
-                record_snapshot["_original_scenario_snapshot"] = scenario_snapshot
-                record_snapshot["_original_scenario_snapshot_sha256"] = _digest(scenario_snapshot)
             self._repository._mixed_training_records.setdefault(user_id, []).append(
                 {
                     **{key: value for key, value in session["problem"].items()
@@ -312,6 +338,7 @@ class MixedTrainingRepository:
                 state["scenario_snapshot"] = scenario_snapshot
                 state["scenario_snapshot_sha256"] = _digest(scenario_snapshot)
                 state["scenario_position"] = 1
+                _archive_scenario(state, scenario_snapshot)
             snapshot = _capture_scheduler_state(state, number, snapshot)
             try:
                 problem_uuid = UUID(str(snapshot.get("problem_id") or uuid4()))
@@ -324,11 +351,6 @@ class MixedTrainingRepository:
                 key: value for key, value in snapshot.items() if key != "scenario_snapshot"
             }
             stored_snapshot.update(problem_id=str(problem_id_pg))
-            if number == 1 and scenario_snapshot is not None:
-                # Retain this shared context once, on its first question, so later
-                # mixed questions remain exactly restorable after the live session advances.
-                stored_snapshot["_original_scenario_snapshot"] = scenario_snapshot
-                stored_snapshot["_original_scenario_snapshot_sha256"] = _digest(scenario_snapshot)
             await connection.execute(
                 """INSERT INTO mixed_training_problems
                    (id,session_id,number,family_id,fingerprint,snapshot,snapshot_sha256)
