@@ -137,6 +137,7 @@ def progress_keyboard(
     has_errors: bool = False,
     return_page: str | None = None,
     replay_action: tuple[str, str] | None = None,
+    similar_action: str | None = None,
 ) -> InlineKeyboardMarkup:
     """Build one revision-bound keyboard for the current text/photo screen."""
     parts = page.split(":")
@@ -219,6 +220,8 @@ def progress_keyboard(
         origin = return_page or "summary"
         if replay_action is not None:
             rows.append([_button(replay_action[0], replay_action[1])])
+        if similar_action is not None:
+            rows.append([_button("Решить похожее", similar_action)])
         rows.append([_button("↩ Назад к списку", f"progress:return:{encode_return_page(origin)}")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     else:
@@ -527,6 +530,7 @@ async def progress_navigation(
         from app.persistence.error_replay import ErrorReplayRepository, load_original_source
 
         replay_action = None
+        similar_action = None
         try:
             record_id = decode_record_ref(parts[1])
             return_page = decode_return_page(parts[2])
@@ -556,6 +560,10 @@ async def progress_navigation(
                             caption=f"Исходные данные №{source.number}", user_id_override=user_id,
                         )
                     if has_error:
+                        from app.bot.similar_practice import supports_similar
+
+                        if supports_similar(source):
+                            similar_action = f"progress:similar:{encode_record_ref(record_id)}"
                         replay_store = ErrorReplayRepository(repository)
                         existing = await replay_store.status_for_source(
                             user_id, source.source_type, source.source_id, source.source_position
@@ -579,7 +587,8 @@ async def progress_navigation(
             insights = {"detail": detail}
         output_page = "item"
         markup = progress_keyboard(
-            output_page, return_page=return_page, replay_action=replay_action
+            output_page, return_page=return_page, replay_action=replay_action,
+            similar_action=similar_action
         )
     elif section == "return" and len(parts) == 2:
         try:
@@ -595,6 +604,12 @@ async def progress_navigation(
         except ValueError:
             return await progress_navigation(message, repository, user_id, "errors:0")
         return await start_from_progress(message, repository, user_id, record_id)
+    elif section == "similar" and (len(parts) == 2 or len(parts) == 3 and parts[2] == "y"):
+        from app.bot.similar_practice import start_similar
+
+        return await start_similar(
+            message, repository, user_id, parts[1], confirmed=len(parts) == 3,
+        )
     elif section == "details":
         insights = await training_insights(repository, user_id, "summary")
         output_page = "details"

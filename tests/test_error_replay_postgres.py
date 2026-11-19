@@ -203,3 +203,54 @@ async def test_postgres_practical_question_replay_restores_same_scenario_positio
         PostgresRepository(error_replay_pool), user_id, source_ref
     ) == source
     assert await training_insights(PostgresRepository(error_replay_pool), user_id) == before
+
+
+@pytest.mark.asyncio
+async def test_similar_practical_error_starts_new_question_in_same_story_and_position(
+    error_replay_pool,
+):
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from app.bot.progress import encode_record_ref, progress_navigation
+
+    user_id = 9066135
+    repository = PostgresRepository(error_replay_pool)
+    await repository.register_user(user_id)
+    plan = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 66_030, story_code="FLAT"),
+        scenario_training.public_registry(),
+    )
+    scenarios = ScenarioPostgresRepository(error_replay_pool)
+    original = await scenarios.start_session(user_id, plan.snapshot, PracticeMode.SINGLE, (3,))
+    assert original is not None
+    assert await scenarios.set_condition_message(user_id, original.session_id, 3, 77110)
+    assert (await scenarios.record_attempt(
+        telegram_user_id=user_id, session_id=original.session_id, position=3,
+        telegram_message_id=77111, raw_answer="-1", normalized_answer="-1",
+        is_correct=False, reply_to_message_id=77110,
+    )).value == "accepted"
+
+    token = encode_record_ref(f"s:{original.session_id}:3")
+    msg = AsyncMock()
+    msg.from_user = SimpleNamespace(id=user_id, is_bot=False)
+    msg.message_id = 77112
+    msg.answer.return_value.message_id = 77113
+    before = await training_insights(repository, user_id)
+    await progress_navigation(msg, repository, user_id, f"similar:{token}")
+    saved = await scenarios.resume_session(user_id, original.session_id)
+    assert saved is not None and saved.attempt_count == 1
+    assert await training_insights(repository, user_id) == before
+
+    await progress_navigation(msg, repository, user_id, f"similar:{token}:y")
+    current = await ScenarioPostgresRepository(error_replay_pool).last_used_session(user_id)
+    assert current is not None and current.session_id != original.session_id
+    assert current.current_position == 3
+    assert current.snapshot.story_code == original.snapshot.story_code
+    assert current.snapshot.questions[2].family_id == original.snapshot.questions[2].family_id
+    assert current.attempt_count == 0
+    assert current.snapshot.seed != original.snapshot.seed
+    assert await load_replay_source(repository, user_id, f"s:{original.session_id}:3")
+    after = await training_insights(repository, user_id)
+    assert after["total"]["issued"] == before["total"]["issued"] + 1
+    assert after["total"]["attempts"] == before["total"]["attempts"]
