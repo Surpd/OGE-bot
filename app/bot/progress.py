@@ -316,7 +316,7 @@ def _record_list(insights: dict[str, Any], page: str) -> Text:
             elif record.get("outcome") != "failed":
                 result += " · была ошибка"
         rows.append(Text(Bold(f"{index}. {_record_title(record)}"), "\n",
-                         result.capitalize(), " · ", _date_label(record.get("issued_at"))))
+                         _date_label(record.get("issued_at")), " · ", result))
     count = int(insights.get("page_total", len(records)))
     return Text(Bold(title), "\n", f"Записи {offset + 1}–{offset + len(rows)} из {count}",
                 "\n\n", as_list(*rows, sep="\n\n"), "\n\nВыберите номер записи ниже.")
