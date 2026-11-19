@@ -50,11 +50,11 @@ PALETTE = {
     "line": "#E7EBF1",
     "blue": "#527FE3",
     "blue_light": "#EAF0FF",
-    "neutral": "#A0A9B8",
+    "neutral": "#536479",
     "neutral_light": "#F1F3F6",
-    "red": "#C94954",
-    "yellow": "#A66B0A",
-    "green": "#21885E",
+    "red": "#AC3545",
+    "yellow": "#895707",
+    "green": "#176F4C",
 }
 
 
@@ -205,19 +205,13 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
             font=_font(22, True),
             fill=PALETTE["ink"] if sufficient else PALETTE["muted"],
         )
-        draw.text(
-            (x + 28, y + 52), f"{correct}/{answered}", font=_font(25, True), fill=PALETTE["ink"]
+        draw_fitted_text(
+            draw, (x + TILE_WIDTH - 16, y + 12), rate,
+            max_width=128, size=37, minimum_size=28, fill=accent, bold=True, anchor="rt",
         )
         draw_fitted_text(
-            draw,
-            (x + TILE_WIDTH - 14, y + 53),
-            rate,
-            max_width=78,
-            size=28,
-            minimum_size=21,
-            fill=accent,
-            bold=True,
-            anchor="rt",
+            draw, (x + 28, y + 64), f"{correct}/{answered}",
+            max_width=TILE_WIDTH - 44, size=25, minimum_size=13, fill=PALETTE["ink"],
         )
 
     rec_y = GRID_TOP + GRID_ROWS * (TILE_HEIGHT + TILE_GAP_Y) - TILE_GAP_Y + 18
@@ -227,7 +221,8 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
         (PAD + 20, rec_y + 12), _recommendation(insights), font=_font(22, True), fill=PALETTE["ink"]
     )
     draw.text(
-        (PAD + 20, rec_y + 49), "Пропуски показаны отдельно.", font=_font(19), fill=PALETTE["muted"]
+        (PAD + 20, rec_y + 49), "Цвет номера появляется после пяти ответов.",
+        font=_font(19), fill=PALETTE["muted"]
     )
     return image.crop((0, 0, WIDTH, rec_y + 102)).convert("RGB")
 
