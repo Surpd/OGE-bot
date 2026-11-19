@@ -119,6 +119,9 @@ def _accepts(source: ReplaySource, raw: str) -> bool | None:
     snapshot = source.snapshot
     answer = source.correct_answer
     policy = _policy_for(source)
+    if source.number == 13:
+        choice = raw.strip()
+        return choice == answer if choice in {"1", "2", "3", "4"} else None
     if source.number == 11:
         from app.math.oge11 import parse_answer
 
@@ -207,6 +210,7 @@ async def _render(
     token = replay_token(UUID(str(replay["id"])))
     completed = replay.get("status") != "active"
     if completed:
+        await repository.save_user_state(user_id, "progress")
         await send_text(
             message, repository, "Этот повтор уже завершён.",
             reply_markup=_keyboard(token, completed=True), user_id_override=user_id,

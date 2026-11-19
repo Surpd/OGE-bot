@@ -227,6 +227,7 @@ def test_replay_callback_ids_remain_compact_and_record_refs_round_trip():
 
 
 def test_deterministic_recovery_dispatch_checks_seed_and_version_for_numbers_6_to_14():
+    from app.bot.error_replay import _accepts
     from app.math import (
         equations,
         formulas,
@@ -238,6 +239,7 @@ def test_deterministic_recovery_dispatch_checks_seed_and_version_for_numbers_6_t
         probability,
         progressions,
     )
+    from app.persistence.error_replay import ReplaySource
 
     cases = (
         (generator.generate(generator.GENERATOR_SPECS[0].family_id, 610_001), 6),
@@ -250,14 +252,16 @@ def test_deterministic_recovery_dispatch_checks_seed_and_version_for_numbers_6_t
         (inequalities.generate(inequalities.FAMILIES[0], 1_310_001), 13),
         (progressions.generate(progressions.ALL_FAMILIES[0], 1_410_001), 14),
     )
-    for problem, _number in cases:
+    for problem, number in cases:
         snapshot = problem.to_snapshot()
-        _assert_regenerated(snapshot, str(snapshot["problem_id"]))
-
+        problem_id = UUID(str(snapshot["problem_id"]))
+        _assert_regenerated(snapshot, str(problem_id))
+        source = ReplaySource("ordinary", problem_id, 0, number, snapshot)
+        assert _accepts(source, source.correct_answer) is True, number
 
 
 def test_replay_restores_text_options_and_all_scenario_materials():
-    from app.bot.error_replay import _condition, _materials
+    from app.bot.error_replay import _accepts, _condition, _materials
     from app.bot.scenario_training import public_registry
     from app.math.inequalities import generate
     from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
@@ -267,6 +271,10 @@ def test_replay_restores_text_options_and_all_scenario_materials():
     problem = generate("OGE13-L01", 13_066).to_snapshot()
     source = ReplaySource("ordinary", UUID(str(problem["problem_id"])), 0, 13, problem)
     assert _materials(source) == ("", ())
+    assert _accepts(source, source.correct_answer) is True
+    wrong = next(str(n) for n in range(1, 5) if str(n) != source.correct_answer)
+    assert _accepts(source, wrong) is False
+    assert _accepts(source, "5") is None
     assert all(
         f"{index}. {choice}" in _condition(source)
         for index, choice in enumerate(problem["option_texts"], 1)
@@ -285,7 +293,6 @@ def test_replay_restores_text_options_and_all_scenario_materials():
     context, photos = _materials(source)
     assert scenario.shared_context.splitlines()[0] in context
     assert photos == scenario_photos_for_question(scenario, photo_case)
-
 
 
 def test_replay_uses_legacy_statement_policy_and_choice_bounds():
