@@ -9,6 +9,7 @@ import argparse
 import asyncio
 import json
 import os
+from hashlib import sha256
 from typing import cast
 from uuid import UUID
 
@@ -25,6 +26,9 @@ _GRAPHIC_ATLAS_CLAUSE = """(
     jsonb_typeof(p.snapshot)='object' AND (
     (p.family_id LIKE 'OGE07-N%' AND p.snapshot ? 'graph_png_sha256')
     OR (p.family_id LIKE 'OGE11-%' AND p.snapshot ? 'image_sha256')
+    OR (p.family_id LIKE 'OGE15-%' AND p.snapshot ? 'image_sha256')
+    OR (p.family_id LIKE 'OGE17-%' AND p.snapshot ? 'png_sha256')
+    OR (p.family_id LIKE 'OGE18-%' AND p.snapshot ? 'image_sha256')
     OR p.family_id = ANY($1::text[])
     OR p.snapshot ?| ARRAY['graph_png_base64','png_base64','image_base64','picture_base64']
     )
@@ -56,25 +60,42 @@ async def compact_old_snapshots(
         task13_graph_families = list(oge13_graphic_families())
         scope_clause = "AND ($2::uuid IS NULL OR p.user_id=$2)"
         counts = await reader.fetchrow(
-            "SELECT count(*) AS total, count(DISTINCT p.user_id) AS users "
-            f"FROM issued_problems p WHERE {_GRAPHIC_ATLAS_CLAUSE} {scope_clause}",
+            """WITH graphic_rows AS (
+                 SELECT p.user_id,p.id FROM issued_problems p
+                 WHERE """ + _GRAPHIC_ATLAS_CLAUSE + " " + scope_clause + """
+                 UNION ALL
+                 SELECT s.user_id,p.id FROM mixed_training_problems p
+                 JOIN mixed_training_sessions s ON s.id=p.session_id
+                 WHERE """ + _GRAPHIC_ATLAS_CLAUSE.replace("p.user_id", "s.user_id")
+                 + " " + scope_clause.replace("p.user_id", "s.user_id") + """
+               ) SELECT count(*) AS total, count(DISTINCT user_id) AS users FROM graphic_rows""",
             task13_graph_families,
             user_uuid,
         )
-        target_query = """WITH ranked AS (
-               SELECT p.id, p.outcome,
+        target_query = """WITH all_graphics AS (
+               SELECT 'ordinary'::text AS source,p.id,p.user_id,p.issued_at,p.outcome,
+                      p.snapshot,NULL::text AS snapshot_sha256,
                       EXISTS (SELECT 1 FROM sessions s WHERE s.active_problem_id=p.id)
-                          AS is_active,
-                      row_number() OVER (
-                          PARTITION BY p.user_id ORDER BY p.issued_at DESC, p.id DESC
-                      ) AS position
+                          AS is_active
                FROM issued_problems p
                WHERE """ + _GRAPHIC_ATLAS_CLAUSE + " " + scope_clause + """
+               UNION ALL
+               SELECT 'mixed'::text AS source,p.id,s.user_id,p.issued_at,p.outcome,p.snapshot,
+                      p.snapshot_sha256,
+                      COALESCE(s.state->>'active_problem_id','')=p.id::text AS is_active
+               FROM mixed_training_problems p
+               JOIN mixed_training_sessions s ON s.id=p.session_id
+               WHERE """ + _GRAPHIC_ATLAS_CLAUSE + " " + scope_clause.replace(
+                   "p.user_id", "s.user_id"
+               ) + """
+           ), ranked AS (
+               SELECT *,row_number() OVER (
+                   PARTITION BY user_id ORDER BY issued_at DESC,id DESC
+               ) AS position FROM all_graphics
            )
-           SELECT p.id, p.snapshot FROM ranked r
-           JOIN issued_problems p ON p.id=r.id
+           SELECT r.source,r.id,r.snapshot FROM ranked r
            WHERE r.position > $3 AND NOT r.is_active AND r.outcome <> 'issued'
-             AND p.snapshot ?| ARRAY[
+             AND r.snapshot ?| ARRAY[
                  'graph_png_base64', 'png_base64', 'image_base64', 'picture_base64', 'option_svgs'
              ]"""
         result = {
@@ -104,19 +125,38 @@ async def compact_old_snapshots(
                 result["would_compact"] += 1
                 if writer is None:
                     continue
-                status = await writer.execute(
-                    """UPDATE issued_problems AS p SET snapshot=$2::jsonb
-                       WHERE p.id=$1 AND p.outcome <> 'issued'
-                         AND p.snapshot=$3::jsonb
-                         AND jsonb_typeof(p.snapshot)='object'
-                         AND NOT EXISTS (
-                             SELECT 1 FROM sessions s
-                             WHERE s.active_problem_id=p.id
-                         )""",
-                    row["id"],
-                    json.dumps(compact_snapshot(snapshot)),
-                    json.dumps(snapshot),
-                )
+                compacted = compact_snapshot(snapshot)
+                if row["source"] == "ordinary":
+                    status = await writer.execute(
+                        """UPDATE issued_problems AS p SET snapshot=$2::jsonb
+                           WHERE p.id=$1 AND p.outcome <> 'issued'
+                             AND p.snapshot=$3::jsonb
+                             AND jsonb_typeof(p.snapshot)='object'
+                             AND NOT EXISTS (
+                                 SELECT 1 FROM sessions s WHERE s.active_problem_id=p.id
+                             )""",
+                        row["id"], json.dumps(compacted), json.dumps(snapshot),
+                    )
+                else:
+                    async with writer.transaction():
+                        status = await writer.execute(
+                            """UPDATE mixed_training_problems p SET snapshot=$2::jsonb,
+                                  snapshot_sha256=$4
+                               FROM mixed_training_sessions s
+                               WHERE p.id=$1 AND s.id=p.session_id AND p.outcome <> 'issued'
+                                 AND p.snapshot=$3::jsonb AND p.snapshot_sha256=$5
+                                 AND COALESCE(s.state->>'active_problem_id','')<>p.id::text""",
+                            row["id"], json.dumps(compacted), json.dumps(snapshot),
+                            sha256(
+                                json.dumps(
+                                    compacted,
+                                    ensure_ascii=False,
+                                    sort_keys=True,
+                                    separators=(",", ":"),
+                                ).encode()
+                            ).hexdigest(),
+                            row["snapshot_sha256"],
+                        )
                 if status.endswith(" 1"):
                     result["compacted"] += 1
                 else:

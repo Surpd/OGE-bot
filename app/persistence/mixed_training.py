@@ -263,6 +263,9 @@ class MixedTrainingRepository:
             record_snapshot = {
                 key: value for key, value in snapshot.items() if key != "scenario_snapshot"
             }
+            if number == 1 and scenario_snapshot is not None:
+                record_snapshot["_original_scenario_snapshot"] = scenario_snapshot
+                record_snapshot["_original_scenario_snapshot_sha256"] = _digest(scenario_snapshot)
             self._repository._mixed_training_records.setdefault(user_id, []).append(
                 {
                     **{key: value for key, value in session["problem"].items()
@@ -321,6 +324,11 @@ class MixedTrainingRepository:
                 key: value for key, value in snapshot.items() if key != "scenario_snapshot"
             }
             stored_snapshot.update(problem_id=str(problem_id_pg))
+            if number == 1 and scenario_snapshot is not None:
+                # Retain this shared context once, on its first question, so later
+                # mixed questions remain exactly restorable after the live session advances.
+                stored_snapshot["_original_scenario_snapshot"] = scenario_snapshot
+                stored_snapshot["_original_scenario_snapshot_sha256"] = _digest(scenario_snapshot)
             await connection.execute(
                 """INSERT INTO mixed_training_problems
                    (id,session_id,number,family_id,fingerprint,snapshot,snapshot_sha256)

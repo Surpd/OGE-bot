@@ -11,7 +11,15 @@ from typing import cast
 _IMAGE_PAYLOAD_KEY_SUFFIXES = ("_base64",)
 _IMAGE_PAYLOAD_KEYS = frozenset({"option_svgs"})
 _SCHEDULER_METADATA_KEYS = frozenset(
-    {"selection_attempts", "_family_queue_after", "_last_family_after"}
+    {
+        "selection_attempts",
+        "_family_queue_after",
+        "_last_family_after",
+        "_last_group_after",
+        "_group_run_length_after",
+        "_recent_proposition_ids_after",
+        "_correct_position_counts_after",
+    }
 )
 
 
@@ -66,7 +74,15 @@ def is_graphic_snapshot(snapshot: dict[str, object]) -> bool:
         family_id.startswith("OGE11-") and "image_sha256" in snapshot
     ):
         return True
-    return family_id in oge13_graphic_families() and "rendering_version" in snapshot
+    if family_id in oge13_graphic_families() and "rendering_version" in snapshot:
+        return True
+    if family_id.startswith("OGE17-"):
+        return "png_sha256" in snapshot and "renderer_version" in snapshot
+    if family_id.startswith("OGE18-"):
+        return "image_sha256" in snapshot and "renderer_version" in snapshot
+    if family_id.startswith("OGE15-"):
+        return "image_sha256" in snapshot and "renderer_version" in snapshot
+    return False
 
 
 @cache
@@ -141,6 +157,52 @@ def restore_graphic_snapshot(snapshot: dict[str, object]) -> dict[str, object] |
             if not validate_snapshot(restored):
                 return None
             return restored
+
+        if family_id.startswith("OGE15-"):
+            from app.math.oge15_triangles import generate as generate_task15
+
+            version = snapshot.get("generator_version")
+            if not isinstance(version, str):
+                return None
+            expected = generate_task15(family_id, seed, version).to_snapshot()
+            if _generator_content(compacted) != _generator_content(expected):
+                return None
+            restored = deepcopy(snapshot)
+            restored["png_base64"] = expected["png_base64"]
+            from app.math.oge15_triangles import from_snapshot as restore_task15
+
+            validated = restore_task15(restored).to_snapshot()
+            return validated
+
+        if family_id.startswith("OGE17-"):
+            from app.math.oge17_generator import from_snapshot as validate_task17
+            from app.math.oge17_generator import generate as generate_task17
+
+            version = snapshot.get("generator_version")
+            if not isinstance(version, str):
+                return None
+            expected = generate_task17(family_id, seed, version).to_snapshot()
+            if _generator_content(compacted) != _generator_content(expected):
+                return None
+            restored = deepcopy(snapshot)
+            restored["png_base64"] = expected["png_base64"]
+            return validate_task17(
+                restored, expected_problem_id=str(snapshot.get("problem_id"))
+            ).to_snapshot()
+
+        if family_id.startswith("OGE18-"):
+            from app.math.oge18 import from_snapshot as validate_task18
+            from app.math.oge18 import generate as generate_task18
+
+            version = snapshot.get("generator_version")
+            if not isinstance(version, str):
+                return None
+            expected = generate_task18(family_id, seed, version).to_snapshot()
+            if _generator_content(compacted) != _generator_content(expected):
+                return None
+            restored = deepcopy(snapshot)
+            restored["png_base64"] = expected["png_base64"]
+            return validate_task18(restored).to_snapshot()
     except (KeyError, TypeError, ValueError, RuntimeError):
         return None
     return None
@@ -164,6 +226,10 @@ def _json_shape(value: object) -> object:
 
 def can_compact_snapshot(snapshot: dict[str, object]) -> bool:
     """Check that a full PNG snapshot can be reconstructed byte-for-byte later."""
+    # A mixed #1–5 record may own the only retained copy of its shared story
+    # snapshot. Keep that context together instead of recursively stripping its images.
+    if "_original_scenario_snapshot" in snapshot:
+        return False
     if not is_graphic_snapshot(snapshot) or not image_payload_keys(snapshot):
         return False
     restored = restore_graphic_snapshot(compact_snapshot(snapshot))
