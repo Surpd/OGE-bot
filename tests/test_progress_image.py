@@ -11,7 +11,9 @@ from app.bot.progress_image import (
     GRID_COLUMNS,
     GRID_ROWS,
     WIDTH,
+    dashboard_tile_accent,
     dashboard_tile_values,
+    PALETTE,
     progress_image_keyboard,
     render_progress_image,
 )
@@ -54,6 +56,23 @@ def test_empty_and_insufficient_samples_are_neutral_and_render_on_phone() -> Non
                 assert mobile.width == width
                 assert mobile.height < 600
         assert len(png) < 10 * 1024 * 1024
+
+
+def test_progress_tile_color_thresholds_and_small_sample_are_explicit() -> None:
+    # A single perfect answer is not enough to call a topic mastered.
+    assert dashboard_tile_accent(1, 1) == PALETTE["neutral"]
+    assert dashboard_tile_accent(4, 4) == PALETTE["neutral"]
+    assert dashboard_tile_accent(0, 0) == PALETTE["neutral"]
+
+    # Colors classify the percentage that is displayed to the student.
+    assert dashboard_tile_accent(0, 5) == PALETTE["red"]
+    assert dashboard_tile_accent(2, 5) == PALETTE["red"]  # 40%
+    assert dashboard_tile_accent(49, 100) == PALETTE["red"]
+    assert dashboard_tile_accent(5, 10) == PALETTE["yellow"]  # 50%
+    assert dashboard_tile_accent(79, 100) == PALETTE["yellow"]
+    assert dashboard_tile_accent(4, 5) == PALETTE["green"]  # 80%
+    assert dashboard_tile_accent(5, 5) == PALETTE["green"]
+    assert dashboard_tile_accent(100, 5) == PALETTE["green"]  # defensive clamp
 
 
 def test_dashboard_handles_large_counts_and_long_recommendation_without_overflow() -> None:
