@@ -10,6 +10,7 @@ from uuid import UUID
 
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.utils.formatting import Bold, Text, as_list
 
 from app.persistence.training_insights import (
     _STORY_NAMES,
@@ -226,7 +227,8 @@ def progress_keyboard(
             rows.append([_button(replay_action[0], replay_action[1])])
         if similar_action is not None:
             rows.append([_button("Решить похожее", similar_action)])
-        rows.append([_button("↩ Назад к списку", f"progress:return:{encode_return_page(origin)}")])
+        back = "↩ К истории" if origin.startswith("history") else "↩ К ошибкам"
+        rows.append([_button(back, f"progress:return:{encode_return_page(origin)}")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     else:
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
@@ -292,6 +294,32 @@ def _attempt_help_label(value: Any) -> str:
 def _progress_page_parts(page: str) -> tuple[str, list[str]]:
     parts = page.split(":")
     return parts[0], parts[1:]
+
+
+def _record_list(insights: dict[str, Any], page: str) -> Text:
+    section, parts = _progress_page_parts(page)
+    errors = section != "history"
+    title = "Мои ошибки" if errors else "История"
+    if section == "numerr" and parts:
+        title += f" · №{parts[0]}"
+    records = insights.get("errors" if errors else "history", [])
+    if not records:
+        empty = "Пока нет задач с ошибками." if errors else "Здесь появятся выданные вам задания."
+        return Text(Bold(title), "\n\n", empty)
+    offset = int(parts[-1]) if parts and parts[-1].isdigit() else 0
+    rows = []
+    for index, record in enumerate(records, offset + 1):
+        result = _outcome_label(record)
+        if record.get("has_error"):
+            if record.get("outcome") == "solved":
+                result = "решено после ошибки"
+            elif record.get("outcome") != "failed":
+                result += " · была ошибка"
+        rows.append(Text(Bold(f"{index}. {_record_title(record)}"), "\n",
+                         _date_label(record.get("issued_at")), " · ", result))
+    count = int(insights.get("page_total", len(records)))
+    return Text(Bold(title), "\n", f"Записи {offset + 1}–{offset + len(rows)} из {count}",
+                "\n\n", as_list(*rows, sep="\n\n"), "\n\nВыберите номер записи ниже.")
 
 
 def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
@@ -379,30 +407,7 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
             ]
         )
     if section in {"history", "errors", "numerr"}:
-        is_errors = section in {"errors", "numerr"}
-        title = "Мои ошибки" if is_errors else "История"
-        records = insights.get("errors" if is_errors else "history", [])
-        count = int(insights.get("page_total", len(records)))
-        number_filter = parts[0] if section == "numerr" and parts else None
-        if number_filter and number_filter.isdigit():
-            title += f" · №{number_filter}"
-        lines = [title, ""]
-        if not records:
-            return f"{title}\n\nПока нет записей."
-        offset = int(parts[-1]) if parts and parts[-1].isdigit() else 0
-        for index, record in enumerate(records, offset + 1):
-            error_note = " · была ошибка" if record.get("has_error") else ""
-            lines.extend(
-                (
-                    f"{index}. {_record_title(record)}",
-                    f"   {_date_label(record.get('issued_at'))} · "
-                    f"{_outcome_label(record)}{error_note}",
-                )
-            )
-            lines.append("")
-        stop = min(offset + len(records), count)
-        lines.append(f"Записи {offset + 1}–{stop} из {count}")
-        return "\n".join(lines).rstrip()
+        return _record_list(insights, page).render()[0]
     if section == "item":
         detail = insights.get("detail")
         if not isinstance(detail, dict):
@@ -671,7 +676,8 @@ async def progress_navigation(
     sent = await send_text(
         message,
         repository,
-        render_progress(insights, output_page),
+        (_record_list(insights, output_page) if section in {"history", "errors", "numerr"}
+         else render_progress(insights, output_page)),
         reply_markup=markup,
         # Only a record detail may include an original mathematical condition.
         # Keep navigation and list pages as ordinary Telegram text so their

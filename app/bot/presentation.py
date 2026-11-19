@@ -18,6 +18,7 @@ from aiogram.types import (
     InputRichMessageMedia,
     Message,
 )
+from aiogram.utils.formatting import Text
 
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
@@ -46,6 +47,8 @@ def format_math_message(text: str | MathFragment) -> str:
     tables, formula images, or interpreting arbitrary source text as HTML/LaTeX.
     """
     source = text if isinstance(text, str) else text.unicode()
+    if source.startswith(("Разбор:", "Вторая попытка неверна.")):
+        source = layout_text(source)
     lines = []
     for line in source.split("\n"):
         match = _HEADING.match(line)
@@ -234,7 +237,7 @@ async def _bind_navigation(
 async def send_text(
     message: Message,
     repository: Repository,
-    text: str | MathFragment,
+    text: str | MathFragment | Text,
     *,
     user_id_override: int | None = None,
     math_system_rows: tuple[str, ...] | None = None,
@@ -246,7 +249,9 @@ async def send_text(
     has_navigation = navigation_screen(kwargs.get("reply_markup")) is not None
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
-    if (
+    if isinstance(text, Text):
+        sent = await message.answer(**text.as_kwargs(), **kwargs)
+    elif (
         _has_telegram_transport(message)
         and (not has_navigation or rich_with_navigation)
         and _has_math(text)
