@@ -68,6 +68,18 @@ def _capture_scheduler_state(
     }
 
 
+def _stored_question(
+    state: dict[str, object], number: int, snapshot: dict[str, object],
+) -> dict[str, object]:
+    stored = {key: value for key, value in snapshot.items() if key != "scenario_snapshot"}
+    scenario = state.get("scenario_snapshot")
+    if number == 1 and isinstance(scenario, dict):
+        # Store history on the first question. Keep live session state bounded.
+        stored["_original_scenario_snapshot"] = scenario
+        stored["_original_scenario_snapshot_sha256"] = state["scenario_snapshot_sha256"]
+    return stored
+
+
 class MixedTrainingRepository:
     """Stores mixed sessions separately from ordinary taskN sessions."""
 
@@ -260,9 +272,7 @@ class MixedTrainingRepository:
                 "hints_used": 0,
             }
             session["problem"]["_snapshot_sha256"] = _digest(snapshot)
-            record_snapshot = {
-                key: value for key, value in snapshot.items() if key != "scenario_snapshot"
-            }
+            record_snapshot = _stored_question(state, number, snapshot)
             self._repository._mixed_training_records.setdefault(user_id, []).append(
                 {
                     **{key: value for key, value in session["problem"].items()
@@ -317,10 +327,9 @@ class MixedTrainingRepository:
             problem_id_pg = problem_uuid
             family = str(snapshot.get("family_id", f"OGE{number:02}-MIXED"))
             fingerprint = str(snapshot.get("fingerprint", problem_id_pg))
-            stored_snapshot = {
-                key: value for key, value in snapshot.items() if key != "scenario_snapshot"
-            }
-            stored_snapshot.update(problem_id=str(problem_id_pg))
+            stored_snapshot = _stored_question(
+                state, number, {**snapshot, "problem_id": str(problem_id_pg)}
+            )
             await connection.execute(
                 """INSERT INTO mixed_training_problems
                    (id,session_id,number,family_id,fingerprint,snapshot,snapshot_sha256)

@@ -28,6 +28,7 @@ from app.math.scenario_engine import (
     FamilyRegistry,
     PracticeMode,
     PracticeRequest,
+    ScenarioSnapshot,
     ScenarioUnavailable,
     build_practice_plan,
     discover_story_registry,
@@ -388,14 +389,10 @@ async def _position_step(
     )
 
 
-async def _show_data(
-    message: Message, session: ScenarioSession, *, shared: bool, current: bool
-) -> None:
-    snapshot = session.snapshot
-    story = STORY_NAMES[snapshot.story_code]
+def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> str:
     context = snapshot.shared_context
     question = next(
-        item for item in snapshot.questions if item.position == session.current_position
+        item for item in snapshot.questions if item.position == position
     )
     if snapshot.story_code == "TYRES":
         context = "\n".join(line for line in context.splitlines() if not line.startswith("|"))
@@ -428,8 +425,16 @@ async def _show_data(
         context = context.replace("Это собственная SVG/PNG схема фиксированной топологии.", "")
         if "первая лоджия" in snapshot.questions[2].condition:
             context += " На плане первая лоджия расположена слева."
+    return context
+
+
+async def _show_data(
+    message: Message, session: ScenarioSession, *, shared: bool, current: bool
+) -> None:
+    snapshot = session.snapshot
+    story = STORY_NAMES[snapshot.story_code]
     if shared:
-        await message.answer(context)
+        await message.answer(scenario_context_for_question(snapshot, session.current_position))
     if shared or current:
         photos = scenario_photos_for_question(snapshot, session.current_position)
     else:

@@ -105,17 +105,34 @@ class _Parser:
         return left
 
     def product(self, depth: int) -> str:
+        start = self.index
         left = self.unary(depth)
         divided = False
         while True:
             token = self.peek()
             if token in {"*", "·", "×", "/", ":"}:
                 self.pop()
+                right_start = self.index
                 right = self.unary(depth)
                 if token == "/":
                     left = rf"\frac{{{left}}}{{{right}}}"
                     divided = True
                 else:
+                    if token in {"*", "·", "×"} and self.peek() == "/":
+                        # In the exam form n/d · n/d, attach the second bar to its
+                        # own numerator. A formula like m·v²/2 has a compound numerator.
+                        first = self.tokens[start : right_start - 1]
+                        if first and first[0] in {"+", "-", "−"}:
+                            first = first[1:]
+                        if (
+                            len(first) == 3
+                            and first[0].isdigit() and first[1] == "/" and first[2].isdigit()
+                            and right.lstrip("+-").isdigit()
+                            and self.index + 1 < len(self.tokens)
+                            and self.tokens[self.index + 1].isdigit()
+                        ):
+                            self.pop()
+                            right = rf"\frac{{{right}}}{{{self.unary(depth)}}}"
                     left += " " + _SIGNS.get(token, r"\cdot") + " " + right
             elif token and (
                 token[0].isascii() and token[0].isalnum() or token in _GREEK or token in {"(", "√"}

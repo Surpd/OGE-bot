@@ -72,7 +72,8 @@ class TelegramSession(BaseSession):
             # dispatcher tests can assert what a Telegram user sees.
             text = html.unescape(re.sub(r"<[^>]*>", "", rich_html))
             text = re.sub(r"\{([,])\}", r"\1", text)
-            text = text.replace(r"\cdot", "·")
+            text = text.replace(r"\cdot", "·").replace(r"\div", ":")
+            text = text.replace(r"\left(", "(").replace(r"\right)", ")")
             text = re.sub(r"\\frac\{([^{}]+)\}\{([^{}]+)\}", r"\1/\2", text)
         message = Message(
             message_id=message_id,
@@ -306,13 +307,67 @@ async def exercise_navigation(
         await click(item_action)
         error_detail = list(session.messages.values())[-1]
         assert "Ошибка была: да" in (error_detail.text or "")
-        assert str(restarted["problem"]["condition"]) in (error_detail.text or "")
+        condition = str(restarted["problem"]["condition"])
+        delivery = next(
+            call for call in reversed(session.calls)
+            if call.__api_method__ in {"sendRichMessage", "sendMessage", "editMessageText"}
+        )
+        if delivery.__api_method__ == "sendRichMessage":
+            from app.bot.presentation import format_rich_message
+
+            assert format_rich_message(condition) in delivery.rich_message.html
+        else:
+            assert condition in (error_detail.text or "")
         return_action = next(
             button.callback_data.partition("~")[0]
             for row in error_detail.reply_markup.inline_keyboard
             for button in row
             if (button.callback_data or "").startswith("progress:return:")
         )
+        if not graphics:
+            replay_action = next(
+                button.callback_data.partition("~")[0]
+                for row in error_detail.reply_markup.inline_keyboard
+                for button in row
+                if (button.callback_data or "").startswith("progress:replay:")
+            )
+            await click(replay_action)
+            original_prompt = list(session.messages.values())[-1]
+            hint_action = next(
+                button.callback_data.partition("~")[0]
+                for row in original_prompt.reply_markup.inline_keyboard
+                for button in row
+                if (button.callback_data or "").startswith("replay:")
+            )
+            await click(hint_action, original_prompt, repeat=webhook)
+            assert "Подсказка" in (list(session.messages.values())[-1].text or "")
+            await click(hint_action, original_prompt)
+            assert "Подсказка" in (list(session.messages.values())[-1].text or "")
+            update_id += 1
+            await feed(
+                Update(
+                    update_id=update_id,
+                    message=Message(
+                        message_id=800 + update_id,
+                        date=datetime.now(UTC),
+                        chat=Chat(id=42, type="private"),
+                        from_user=user,
+                        text=str(restarted["problem"]["correct_answer"]),
+                        reply_to_message=original_prompt,
+                    ),
+                )
+            )
+            result = list(session.messages.values())[-1]
+            assert "Ошибка исправлена" in (result.text or "")
+            await click("progress:errors:0", result)
+            await click(item_action)
+            corrected = list(session.messages.values())[-1]
+            assert "Ошибка исправлена" in (corrected.text or "")
+            assert all(
+                not (button.callback_data or "").startswith("progress:replay:")
+                for row in corrected.reply_markup.inline_keyboard
+                for button in row
+            )
         await click(return_action)
         assert "Мои ошибки" in (list(session.messages.values())[-1].text or "")
         after_history_view = await training_insights(repository, 42)

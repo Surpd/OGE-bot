@@ -135,6 +135,7 @@ def progress_keyboard(
     family_total: int = 0,
     has_errors: bool = False,
     return_page: str | None = None,
+    replay_action: tuple[str, str] | None = None,
 ) -> InlineKeyboardMarkup:
     """Build one revision-bound keyboard for the current text/photo screen."""
     parts = page.split(":")
@@ -215,6 +216,8 @@ def progress_keyboard(
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     elif section == "item":
         origin = return_page or "summary"
+        if replay_action is not None:
+            rows.append([_button(replay_action[0], replay_action[1])])
         rows.append([_button("↩ Назад к списку", f"progress:return:{encode_return_page(origin)}")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     else:
@@ -430,6 +433,17 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
             lines.extend(("", "Принятых попыток нет."))
         if detail.get("drawing_unavailable") is True:
             lines.extend(("", "Исходный чертёж в сохранённой истории недоступен."))
+        replay_status = detail.get("replay_status")
+        if replay_status == "available":
+            lines.extend(("", "Доступен один учебный повтор исходной задачи."))
+        elif replay_status == "active":
+            lines.extend(("", "Исходный повтор можно продолжить."))
+        elif replay_status == "solved":
+            lines.extend(("", "✅ Ошибка исправлена в учебном повторе."))
+        elif replay_status == "used":
+            lines.extend(("", "Повтор исходной задачи уже использован."))
+        elif replay_status == "unavailable":
+            lines.extend(("", "Исходное задание недоступно для точного восстановления."))
         return "\n".join(lines)
     return "Страница прогресса недоступна. Откройте «Мой прогресс»."
 
@@ -503,6 +517,7 @@ async def progress_navigation(
         return
 
     if section in {"item"} and len(parts) == 3:
+        replay_action = None
         try:
             record_id = decode_record_ref(parts[1])
             return_page = decode_return_page(parts[2])
@@ -513,15 +528,56 @@ async def progress_navigation(
             detail = await training_record_detail(repository, user_id, record_id)
             if detail is not None:
                 detail["has_error"] = _record_has_error(detail)
+                if detail["has_error"] or detail.get("outcome") == "failed":
+                    from app.persistence.error_replay import (
+                        ErrorReplayRepository,
+                        load_replay_source,
+                    )
+
+                    try:
+                        source = await load_replay_source(repository, user_id, record_id)
+                    except (ValueError, KeyError, TypeError, RuntimeError):
+                        detail["replay_status"] = "unavailable"
+                    else:
+                        replay_store = ErrorReplayRepository(repository)
+                        existing = await replay_store.status_for_source(
+                            user_id, source.source_type, source.source_id, source.source_position
+                        )
+                        if existing is None:
+                            detail["replay_status"] = "available"
+                            replay_action = (
+                                "🔄 Повторить исходное",
+                                f"progress:replay:{encode_record_ref(record_id)}",
+                            )
+                        elif existing.get("status") == "active":
+                            detail["replay_status"] = "active"
+                            replay_action = (
+                                "▶ Продолжить повтор",
+                                f"progress:replay:{encode_record_ref(record_id)}",
+                            )
+                        elif existing.get("status") == "solved":
+                            detail["replay_status"] = "solved"
+                        else:
+                            detail["replay_status"] = "used"
             insights = {"detail": detail}
         output_page = "item"
-        markup = progress_keyboard(output_page, return_page=return_page)
+        markup = progress_keyboard(
+            output_page, return_page=return_page, replay_action=replay_action
+        )
     elif section == "return" and len(parts) == 2:
         try:
             page = decode_return_page(parts[1])
         except ValueError:
             page = "summary"
         return await progress_navigation(message, repository, user_id, page)
+    elif section == "replay" and len(parts) == 2:
+        from app.bot.error_replay import start_from_progress
+
+        try:
+            record_id = decode_record_ref(parts[1])
+        except ValueError:
+            return await progress_navigation(message, repository, user_id, "errors:0")
+        return await start_from_progress(message, repository, user_id, record_id)
     elif section == "details":
         insights = await training_insights(repository, user_id, "summary")
         output_page = "details"

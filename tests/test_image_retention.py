@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from app.math.inequalities import generate as generate_task13
 from app.math.oge07_graph import generate_graph_problem
 from app.math.oge11 import generate as generate_task11
@@ -58,3 +60,42 @@ def test_compaction_fails_closed_for_changed_semantics_and_unknown_versions() ->
     task11 = compact_snapshot(generate_task11("OGE11-F01", 1_100_002).to_snapshot())
     task11["generator_version"] = "unknown-version"
     assert restore_graphic_snapshot(task11) is None
+
+
+@pytest.mark.parametrize("family,seed", [
+    ("OGE15-F03", 1_500_301),
+    ("OGE17-R03", 1_700_301),
+    ("OGE18-D05", 1_800_301),
+])
+def test_new_versioned_graphic_families_compact_and_restore_exact_snapshot(family, seed):
+    if family.startswith("OGE15-"):
+        from app.math.oge15_complete import VERSION
+        from app.math.oge15_triangles import generate
+
+        generator_version = VERSION
+    elif family.startswith("OGE17-"):
+        from app.math.oge17_generator import generate
+
+        generator_version = None
+    else:
+        from app.math.oge18 import GENERATOR_VERSION_V2, generate
+
+        generator_version = GENERATOR_VERSION_V2
+
+    original = (
+        generate(family, seed, generator_version).to_snapshot()
+        if generator_version is not None
+        else generate(family, seed).to_snapshot()
+    )
+    compacted = compact_snapshot(original)
+    assert image_payload_keys(compacted) == frozenset()
+    assert can_compact_snapshot(original)
+    restored = restore_graphic_snapshot(compacted)
+    assert restored == original
+
+
+def test_graphic_compaction_refuses_to_strip_shared_mixed_scenario_context():
+    original = generate_task13("OGE13-S02", 1_300_302).to_snapshot()
+    original["_original_scenario_snapshot"] = {"images": {"png_base64": "aW1hZ2U="}}
+    original["_original_scenario_snapshot_sha256"] = "retained-with-context"
+    assert not can_compact_snapshot(original)

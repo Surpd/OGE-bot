@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 from datetime import UTC, datetime
 from pathlib import Path
@@ -102,7 +103,9 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
             "SELECT snapshot FROM mixed_training_problems WHERE id=$1::uuid",
             story_problem["problem_id"],
         )
+        stored_question = json.loads(stored_question)
         assert "scenario_snapshot" not in stored_question
+        assert stored_question["_original_scenario_snapshot"] == json.loads(json.dumps(scenario))
         restored_story = await story_store.state(story_user_id)
         assert restored_story is not None
         assert restored_story["problem"]["scenario_snapshot"] == scenario

@@ -19,6 +19,8 @@ from app.bot.presentation import format_rich_message, send_photo, send_text
     "source, expected",
     [
         ("−3/4", r"\frac{-3}{4}"),
+        ("21/4 · 4/5", r"\frac{21}{4} \cdot \frac{4}{5}"),
+        ("−2/3 × (3/5)", r"\frac{-2}{3} \times \left(\frac{3}{5}\right)"),
         ("m·v²/2", r"\frac{m \cdot {v}^{2}}{2}"),
         ("aₙ = a₁ + (n − 1)d", r"a_{n} = a_{1} + \left(n - 1\right)d"),
         ("√(49)", r"\sqrt{\left(49\right)}"),
@@ -32,6 +34,15 @@ from app.bot.presentation import format_rich_message, send_photo, send_text
 def test_lossless_grammar_has_explicit_fraction_power_and_interval_scope(source, expected):
     assert parse_formula(source) == expected
     assert "".join(span.source for span in math_spans(source)) == source
+
+
+def test_task6_fraction_product_keeps_both_factors_in_rich_and_png():
+    source = "Найдите значение выражения: 21/4 · 4/5"
+    expected = r"\frac{21}{4} \cdot \frac{4}{5}"
+    assert f"<tg-math>{expected}</tg-math>" in format_rich_message(source)
+    with Image.open(io.BytesIO(render_math_image(source))) as png:
+        assert png.format == "PNG"
+        assert png.getextrema()[0][0] < 100
 
 
 @pytest.mark.parametrize("source", ["a/bc", "1 1/2", "x1", "√x²", "x^", "(1+2", r"\frac{1}{2}"])

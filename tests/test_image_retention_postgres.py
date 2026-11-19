@@ -10,7 +10,10 @@ import pytest
 
 from app.math.oge07_graph import generate_graph_problem
 from app.math.oge07_scheduler import build_task7_candidate_batch
+from app.math.oge17_generator import generate as generate_task17
+from app.persistence.error_replay import load_replay_source
 from app.persistence.image_retention import restore_graphic_snapshot
+from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.repository import PostgresRepository, read_migration
 from app.persistence.training_insights import training_insights
 from scripts.compact_graphic_snapshots import compact_old_snapshots
@@ -139,6 +142,75 @@ async def test_postgres_retention_keeps_recent_and_active_png_and_preserves_hist
         assert active_state_after == active_state_before
         assert await repository.task7_progress(user_id) == progress_before
         assert await repository.task7_history(user_id, limit=5) == history_before
+    finally:
+        await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
+        await pool.close()
+
+
+@pytest.mark.asyncio
+async def test_mixed_graphic_snapshot_compaction_updates_hash_and_remains_replayable():
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        pytest.skip("DATABASE_URL not configured")
+    pool = await asyncpg.create_pool(database_url)
+    user_id = int(uuid4().int % (2**62)) + 1
+    try:
+        for migration in sorted(Path("migrations").glob("*.sql")):
+            await pool.execute(await read_migration(str(migration)))
+        repository = PostgresRepository(pool)
+        await repository.register_user(user_id)
+        mixed = MixedTrainingRepository(repository)
+        await mixed.start(user_id, [17])
+        expected = await mixed.expected_number(user_id)
+        assert expected is not None
+        snapshot = generate_task17("OGE17-R03", 17_703_001).to_snapshot()
+        issued = await mixed.issue_current(user_id, expected[1], 17, snapshot)
+        assert issued is not None
+        problem_id = str(issued["problem_id"])
+        assert (await mixed.answer(user_id, problem_id, "wrong", False, 770_301, None))[
+            "status"
+        ] == "active"
+        assert (await mixed.answer(user_id, problem_id, "wrong", False, 770_302, None))[
+            "status"
+        ] == "failed"
+        await pool.execute(
+            """UPDATE mixed_training_sessions SET state=state-'active_problem_id'
+               WHERE state->>'active_problem_id'=$1""",
+            problem_id,
+        )
+        user_uuid = await pool.fetchval(
+            "SELECT id FROM users WHERE telegram_user_id=$1", user_id
+        )
+        preview = await compact_old_snapshots(
+            database_url, keep_full_per_user=0, user_uuid=user_uuid
+        )
+        assert preview["would_compact"] == 1
+        applied = await compact_old_snapshots(
+            database_url, keep_full_per_user=0, apply=True, user_uuid=user_uuid
+        )
+        assert applied["compacted"] == 1
+        compacted = await pool.fetchrow(
+            "SELECT snapshot,snapshot_sha256 FROM mixed_training_problems WHERE id=$1::uuid",
+            problem_id,
+        )
+        compacted_snapshot = (
+            json.loads(compacted["snapshot"])
+            if isinstance(compacted["snapshot"], str)
+            else compacted["snapshot"]
+        )
+        assert "png_base64" not in compacted_snapshot
+        from hashlib import sha256
+
+        assert compacted["snapshot_sha256"] == sha256(
+            json.dumps(
+                compacted_snapshot,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()
+        ).hexdigest()
+        source = await load_replay_source(repository, user_id, f"m:{problem_id}")
+        assert source.snapshot["png_base64"] == snapshot["png_base64"]
     finally:
         await pool.execute("DELETE FROM users WHERE telegram_user_id=$1", user_id)
         await pool.close()

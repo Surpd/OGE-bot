@@ -57,6 +57,8 @@ def navigation_screen(markup: object) -> str | None:
             return "number_selection"
         if value and value.startswith(("nav:family:", "nav:families:", "nav:begin:")):
             return f"family_selection:{value.split(':')[2]}"
+    if any(value and value.startswith("replay:") for value in callbacks):
+        return "error_replay"
     if "nav:details" in callbacks or "nav:progress_text" in callbacks or any(
         value and value.startswith("progress:") for value in callbacks
     ):
@@ -223,6 +225,7 @@ async def navigation_callback(
     if (
         target is None and progress_page is None and family_action is None
         and display_mode is None and training_action is None
+        and not data.startswith("replay:")
     ):
         await answer_callback(callback, "Этот раздел недоступен.")
         return
@@ -258,6 +261,11 @@ async def navigation_callback(
         from app.bot.progress import progress_navigation
 
         await progress_navigation(message, repository, callback.from_user.id, progress_page)
+    elif data.startswith("replay:"):
+        from app.bot.error_replay import callback as replay_callback
+
+        await replay_callback(callback, repository)
+        return
     elif data == "nav:oge15":
         await show_public_oge15(message, oge15_repository, repository)
     elif oge15_number is not None:

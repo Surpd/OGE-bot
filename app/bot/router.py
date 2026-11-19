@@ -2574,6 +2574,11 @@ async def unknown_message(message: Message, repository: Repository) -> None:
     if user_id is None:
         return
     screen = await repository.user_state(user_id)
+    if screen == "error_replay":
+        from app.bot.error_replay import answer as error_replay_answer
+
+        await error_replay_answer(message, repository)
+        return
     for training in TRAININGS:
         if screen != training.mode:
             continue
@@ -2603,7 +2608,8 @@ async def unknown_message(message: Message, repository: Repository) -> None:
 def build_router() -> Router:
     router = Router()
     router.callback_query.register(
-        navigation_callback, F.data.startswith("nav:") | F.data.startswith("progress:")
+        navigation_callback,
+        F.data.startswith("nav:") | F.data.startswith("progress:") | F.data.startswith("replay:"),
     )
     router.callback_query.register(mixed_callback, F.data.startswith("mixed:"))
     router.message.register(start, CommandStart())
