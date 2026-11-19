@@ -591,7 +591,7 @@ async def test_task7_history_is_visible_in_detailed_progress(
     details = _message(user_id, "📊 Подробнее")
     await show_progress_details(details, repository)
 
-    assert "№7 · завершено 1 · верно 1" in details.answer.await_args.args[0]
+    assert "№7 · ответили 1 · верно 1 · 100% · пропущено 0" in details.answer.await_args.args[0]
     buttons = details.answer.await_args.kwargs["reply_markup"].inline_keyboard
     assert any(
         (button.callback_data or "").partition("~")[0] == "progress:history"

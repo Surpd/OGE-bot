@@ -446,12 +446,12 @@ async def test_progress_uses_clear_completed_and_error_labels() -> None:
     assert "Завершено заданий: 1" in text
     assert "Заданий с ошибками: 1" in text
     assert "Решено без подсказки: 0" in text
-    assert "%" not in text
+    assert "Ответили: 1 · верно: 1 · успешность: 100%" in text
     details = _message(780, "📊 Подробнее")
     await show_progress_details(details, repository)
     details_text = details.answer.await_args.args[0]
-    assert "№6 · завершено 1 · верно 1" in details_text
-    assert "пока мало данных" in details_text
+    assert "№6 · ответили 1 · верно 1 · 100% · пропущено 0" in details_text
+    assert "нужно 5 ответов" in details_text
 
 
 @pytest.mark.asyncio

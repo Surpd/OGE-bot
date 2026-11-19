@@ -26,7 +26,8 @@ def test_solved_metrics_use_terminal_outcome_and_attempt_time_assistance():
         record(14, outcome="skipped"),
     ])
     assert insights["total"] == {
-        "issued": 5, "completed": 5, "attempts": 6, "incorrect_attempts": 3, "correct": 2,
+        "issued": 5, "completed": 5, "answered_tasks": 4, "success_rate": 50.0,
+        "attempts": 6, "incorrect_attempts": 3, "correct": 2,
         "first_correct": 1, "second_correct": 1,
         "unassisted_correct": 1, "assisted_correct": 1, "unknown_assistance": 0,
         "unknown_correct_attempt": 0,
@@ -43,8 +44,55 @@ def test_historical_missing_attempts_and_assistance_are_unknown():
     assert insights["total"]["unknown_assistance"] == 2
     assert insights["total"]["unassisted_correct"] == 0
     assert insights["total"]["first_correct"] == 0
-    assert insights["total"]["unknown_assistance"] == 2
-    assert insights["total"]["unassisted_correct"] == 0
+
+
+@pytest.mark.parametrize(
+    ("outcome", "attempts", "answered", "correct", "used_hint"),
+    [
+        ("solved", [True], 1, 1, False),  # correct first attempt
+        ("solved", [False, True], 1, 1, False),  # wrong then correct
+        ("solved", [True], 1, 1, True),  # hint assisted is still correct
+        ("failed", [False, False], 1, 0, False),  # two mistakes are one task
+        ("skipped", [False], 1, 0, False),  # one mistake then skip
+        ("solution_viewed", [False], 1, 0, False),  # mistake then reveal
+        ("skipped", [], 0, 0, False),
+        ("solution_viewed", [], 0, 0, False),
+        ("issued", [], 0, 0, False),
+        ("active", [False], 1, 0, False),  # active first mistake counts immediately
+    ],
+)
+def test_answered_task_denominator_counts_tasks_not_attempts(
+    outcome, attempts, answered, correct, used_hint
+):
+    attempts = [
+        {"attempt_no": index, "is_correct": is_correct,
+         "used_hint": used_hint if is_correct else False}
+        for index, is_correct in enumerate(attempts, 1)
+    ]
+    totals = summarize([record(outcome=outcome, attempts=attempts)])["total"]
+    assert totals["issued"] == 1
+    assert totals["answered_tasks"] == answered
+    assert totals["correct"] == correct
+    assert totals["success_rate"] == (correct * 100 / answered if answered else None)
+    assert 0 <= (totals["success_rate"] or 0) <= 100
+
+
+def test_empty_and_legacy_statistics_have_safe_rates_and_unknown_assistance():
+    from app.persistence.training_insights import success_label
+
+    empty = summarize([])
+    assert empty["total"]["answered_tasks"] == 0
+    assert empty["total"]["success_rate"] is None
+    assert success_label(empty["total"]) == "—"
+    old = summarize([
+        record(outcome="solved"), record(outcome="failed"),
+        record(outcome="skipped"), record(outcome="solution_viewed"),
+    ])
+    assert old["total"]["answered_tasks"] == 2
+    assert old["total"]["correct"] == 1
+    assert old["total"]["unknown_assistance"] == 1
+    assert old["total"]["first_correct"] == old["total"]["second_correct"] == 0
+    assert old["total"]["correct"] <= old["total"]["answered_tasks"]
 
 
 @pytest.mark.asyncio
@@ -205,7 +253,7 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
         """INSERT INTO oge15_sessions(user_id,scenario_id,story_code,mode,current_position)
            VALUES($1,$2,'PAPER','full',3) RETURNING id""", user_id, scenario_id,
     )
-    statuses = ("pending", "active", "solved", "solution_viewed", "skipped")
+    statuses = ("skipped", "active", "solved", "solution_viewed", "skipped")
     for position, status in enumerate(statuses, 1):
         await pool.execute(
             """INSERT INTO oge15_question_progress(session_id,position,status,hints_used,
@@ -228,9 +276,11 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
 
     repository = PostgresRepository(pool)
     total = (await training_insights(repository, telegram_user_id))["total"]
-    assert total["issued"] == 8  # pending practical position excluded
-    assert total["completed"] == 6
+    assert total["issued"] == 9  # five individual questions share one scenario snapshot
+    assert total["completed"] == 7
+    assert total["answered_tasks"] == 5
     assert total["correct"] == 3
+    assert total["success_rate"] == 60.0
     assert total["assisted_correct"] == 2
     assert total["unassisted_correct"] == 0
     assert total["unknown_assistance"] == 1
@@ -239,13 +289,64 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
     assert total["error_tasks"] == 2  # wrong first attempt remains visible
     assert total["incorrect_attempts"] == 2
     assert total["solutions_viewed"] == 2
+    assert total["skipped"] == 2
 
     by_number = (await training_insights(repository, telegram_user_id, "numbers"))["numbers"]
-    assert by_number[1]["issued"] == 0
+    assert by_number[1]["issued"] == 1 and by_number[1]["skipped"] == 1
     assert by_number[2]["issued"] == 1 and by_number[2]["completed"] == 0
     assert by_number[3]["correct"] == 1 and by_number[3]["error_tasks"] == 1
     assert by_number[4]["correct"] == 0 and by_number[4]["solutions_viewed"] == 1
     assert by_number[5]["skipped"] == 1
+    memory = MemoryRepository()
+    from app.persistence.mixed_training import MixedTrainingRepository
+
+    MixedTrainingRepository(memory)
+    memory.issued9[telegram_user_id] = {
+        "ordinary-9": {"family_id": "OGE09-F001", "condition": "Условие №9"},
+    }
+    memory.outcomes9[telegram_user_id] = {"ordinary-9": "solved"}
+    memory.attempts9[telegram_user_id] = [
+        {"problem_id": "ordinary-9", "attempt_no": 1, "is_correct": False,
+         "used_hint": False},
+        {"problem_id": "ordinary-9", "attempt_no": 2, "is_correct": True,
+         "used_hint": True},
+    ]
+    memory.issued12[telegram_user_id] = {
+        "ordinary-12": {"family_id": "OGE12-F001", "condition": "Условие №12"},
+    }
+    memory.issued7[telegram_user_id] = {
+        "ordinary-7": {"family_id": "OGE07-F001", "condition": "Условие №7"},
+    }
+    memory.outcomes7[telegram_user_id] = {"ordinary-7": "solution_viewed"}
+    memory.solutions7[telegram_user_id] = {"ordinary-7"}
+    memory.attempts7[telegram_user_id] = [
+        {"problem_id": "ordinary-7", "attempt_no": 1, "is_correct": True,
+         "used_hint": False},
+    ]
+    memory.issued14[telegram_user_id] = {
+        "ordinary-14": {"family_id": "OGE14-F001", "condition": "Условие №14"},
+    }
+    memory.outcomes14[telegram_user_id] = {"ordinary-14": "solved"}
+    memory._mixed_training_records[telegram_user_id] = [
+        {"id": f"scenario-{position}", "record_id": f"m:scenario-{position}",
+         "number": position, "family_id": "OGE15:PAPER", "outcome": status,
+         "attempt_records": attempts, "hints_used": int(position == 3)}
+        for position, status, attempts in (
+            (1, "skipped", []),
+            (2, "active", []),
+            (3, "solved", [
+                {"attempt_no": 1, "is_correct": False, "used_hint": False},
+                {"attempt_no": 2, "is_correct": True, "used_hint": True},
+            ]),
+            (4, "solution_viewed", [
+                {"attempt_no": 1, "is_correct": True, "used_hint": False},
+            ]),
+            (5, "skipped", []),
+        )
+    ]
+    memory_total = (await training_insights(memory, telegram_user_id))["total"]
+    assert total == memory_total
+    assert (await training_insights(memory, telegram_user_id))["numbers"] == by_number
     history_json = await widget_response(repository, telegram_user_id, "tab:h")
     history = __import__("json").loads(history_json)
     assert len(history["r"]) == 3
@@ -324,7 +425,7 @@ async def test_postgres_projection_only_fetches_requested_bounded_page():
             assert "jsonb_agg" not in query
             if "GROUPING SETS" in query:
                 assert args == (123,)
-                return [{"number": None, **dict.fromkeys(METRICS, 0)}]
+                return [{"number": None, "family_id": None, **dict.fromkeys(METRICS, 0)}]
             assert args == (123, 6, 6)
             assert "LIMIT $2 OFFSET $3" in query
             assert "left(i.snapshot->>'condition',160)" in query
@@ -369,9 +470,20 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
     from app.persistence.training_insights import training_record_detail
 
     memory = MemoryRepository()
-    user_id = await insights_pool.fetchval(
-        "INSERT INTO users(telegram_user_id) VALUES(778899) RETURNING id"
+    from app.persistence.mixed_training import MixedTrainingRepository
+
+    MixedTrainingRepository(memory)
+    # Other integration tests may create persistent rows for fixed Telegram
+    # IDs in this shared temporary database. Pick a fresh one so this parity
+    # comparison covers only the records created below.
+    telegram_user_id = await insights_pool.fetchval(
+        "SELECT COALESCE(MAX(telegram_user_id), 0) + 1 FROM users"
     )
+    user_id = await insights_pool.fetchval(
+        "INSERT INTO users(telegram_user_id) VALUES($1) RETURNING id",
+        telegram_user_id,
+    )
+    ordinary_ids = {}
     for number in range(6, 20):
         pid = await insights_pool.fetchval(
             """INSERT INTO issued_problems(user_id,family_id,generator_version,fingerprint,
@@ -390,35 +502,89 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         attempts_attr = "attempt_history" if number == 6 else f"attempts{number}"
         outcomes_attr = "outcomes" if number == 6 else f"outcomes{number}"
         hints_attr = "hints_history" if number == 6 else f"hints{number}"
-        getattr(memory, issued_attr)[778899] = {
+        getattr(memory, issued_attr)[telegram_user_id] = {
             str(pid): {"family_id": f"OGE{number:02}-F001", "condition": f"task {number}"}
         }
-        getattr(memory, attempts_attr)[778899] = [
+        getattr(memory, attempts_attr)[telegram_user_id] = [
             {"problem_id": str(pid), "attempt_no": no, "is_correct": correct,
              "used_hint": correct} for no, correct in ((1, False), (2, True))
         ]
-        getattr(memory, outcomes_attr)[778899] = {str(pid): "solved"}
-        getattr(memory, hints_attr)[778899] = {str(pid): 1}
+        getattr(memory, outcomes_attr)[telegram_user_id] = {str(pid): "solved"}
+        getattr(memory, hints_attr)[telegram_user_id] = {str(pid): 1}
         if number == 18:
             target = str(pid)
+        if number == 9:
+            ordinary_ids[number] = pid
+
+    # Mixed tasks live in their own tables and must contribute once beside
+    # ordinary records, with two attempts still representing one task.
+    mixed_session = await insights_pool.fetchval(
+        """INSERT INTO mixed_training_sessions(user_id,state)
+           VALUES($1,'{}'::jsonb) RETURNING id""", user_id
+    )
+    mixed_cases = (
+        ("solved", (False, True)),
+        ("failed", (False, False)),
+        ("skipped", ()),
+    )
+    memory_mixed = []
+    for index, (outcome, answers) in enumerate(mixed_cases):
+        # IDs are table-local; a same-UUID ordinary row must not absorb mixed
+        # attempts or be counted twice as an answer.
+        mixed_id = ordinary_ids[9] if index == 0 else None
+        mixed_id = await insights_pool.fetchval(
+            """INSERT INTO mixed_training_problems(id,session_id,number,family_id,
+               fingerprint,snapshot,snapshot_sha256,outcome,hints_used)
+               VALUES(COALESCE($2::uuid,gen_random_uuid()),$1,9,'OGE09-F001',$3,
+                      '{}'::jsonb,repeat('a',64),$4,$5) RETURNING id""",
+            mixed_session, mixed_id, f"mixed-{index}", outcome, int(any(answers))
+        )
+        attempt_records = []
+        for attempt_no, is_correct in enumerate(answers, 1):
+            await insights_pool.execute(
+                """INSERT INTO mixed_training_attempts(problem_id,attempt_no,
+                   telegram_message_id,raw_answer,is_correct,used_hint)
+                   VALUES($1,$2,$3,'answer',$4,$5)""",
+                mixed_id, attempt_no, 70_000 + index * 10 + attempt_no,
+                is_correct, is_correct,
+            )
+            attempt_records.append({
+                "attempt_no": attempt_no, "is_correct": is_correct,
+                "used_hint": is_correct,
+            })
+        memory_mixed.append({
+            "id": str(mixed_id), "record_id": f"m:{mixed_id}", "number": 9,
+            "family_id": "OGE09-F001", "outcome": outcome,
+            "attempt_records": attempt_records, "hints_used": int(any(answers)),
+            "solution_viewed": False, "issued_at": None,
+        })
+    memory._mixed_training_records[telegram_user_id] = memory_mixed
 
     pg = PostgresRepository(insights_pool)
-    sql_result = await training_insights(pg, 778899)
-    memory_result = await training_insights(memory, 778899)
+    sql_result = await training_insights(pg, telegram_user_id)
+    memory_result = await training_insights(memory, telegram_user_id)
     assert sql_result["total"] == memory_result["total"]
     assert sql_result["numbers"] == memory_result["numbers"]
-    assert sql_result["total"]["incorrect_attempts"] == 14
+    assert sql_result["total"]["incorrect_attempts"] == 17
+    assert sql_result["total"]["issued"] == 17
+    assert sql_result["total"]["answered_tasks"] == 16
+    assert sql_result["total"]["correct"] == 15
+    assert sql_result["total"]["success_rate"] == 93.75
+    assert sql_result["numbers"][9]["issued"] == 4
+    assert sql_result["numbers"][9]["answered_tasks"] == 3
+    assert sql_result["numbers"][9]["skipped"] == 1
     for number in range(6, 20):
         row = sql_result["numbers"][number]
-        assert (row["issued"], row["correct"], row["second_correct"], row["error_tasks"]) == (
-            1, 1, 1, 1
-        )
+        expected = (4, 2, 2, 3) if number == 9 else (1, 1, 1, 1)
+        actual = (row["issued"], row["correct"], row["second_correct"], row["error_tasks"])
+        assert actual == expected
     for repo in (pg, memory):
-        assert (await training_insights(repo, 778899, "errors"))["page_total"] == 14
-        assert (await training_insights(repo, 778899, "history"))["page_total"] == 14
-        assert (await training_insights(repo, 778899, "families"))["page_total"] == 14
-        assert (await training_record_detail(repo, 778899, f"o:{target}"))["condition"] == "task 18"
-        assert await training_record_detail(repo, 778900, f"o:{target}") is None
+        assert (await training_insights(repo, telegram_user_id, "errors"))["page_total"] == 16
+        assert (await training_insights(repo, telegram_user_id, "history"))["page_total"] == 17
+        assert (await training_insights(repo, telegram_user_id, "families"))["page_total"] == 14
+        detail = await training_record_detail(repo, telegram_user_id, f"o:{target}")
+        assert detail["condition"] == "task 18"
+        assert await training_record_detail(repo, telegram_user_id + 1, f"o:{target}") is None
 
 
 def test_recommendations_include_geometry_but_not_closed_number(monkeypatch):
@@ -433,19 +599,67 @@ def test_recommendations_include_geometry_but_not_closed_number(monkeypatch):
     from app.persistence.training_insights import recommended_number
 
     insights = summarize([
+        *[record(9, outcome="solved", attempts=[{"is_correct": True}]) for _ in range(4)],
+        record(9, outcome="failed", attempts=[{"is_correct": False}]),
+        *[record(18, outcome="solved", attempts=[{"is_correct": True}]) for _ in range(3)],
+        *[record(18, outcome="failed", attempts=[{"is_correct": False}]) for _ in range(2)],
         *[record(19, outcome="failed", attempts=[{"is_correct": False}]) for _ in range(5)],
-        record(18, outcome="failed", attempts=[{"is_correct": False}]),
     ])
-    assert recommended_number(insights["numbers"]) == (1, 18)
+    assert recommended_number(insights["numbers"], insights["families"]) == 18
     assert "№18" in render_progress(insights)
     assert "№18" in json.loads(overview_data(insights))["p"]["r"]
     assert "№18" in image_recommendation(insights)
     assert insights["numbers"][19]["error_tasks"] == 5
     monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", tuple(oge19_scheduler.FAMILY_THEMES))
-    assert recommended_number(insights["numbers"]) == (5, 19)
+    assert recommended_number(insights["numbers"], insights["families"]) == 19
     assert "№19" in render_progress(insights)
     assert "№19" in json.loads(overview_data(insights))["p"]["r"]
     assert "№19" in image_recommendation(insights)
+
+
+def test_recommendation_requires_minimum_sample_and_avoids_ties():
+    from app.persistence.training_insights import recommended_number
+
+    four_of_four = summarize([
+        *[record(6, attempts=[{"is_correct": True}]) for _ in range(4)],
+        *[record(7, attempts=[{"is_correct": True}]) for _ in range(4)],
+    ])
+    assert recommended_number(four_of_four["numbers"], four_of_four["families"]) is None
+    tied = summarize([
+        *[record(6, outcome="failed", attempts=[{"is_correct": False}]) for _ in range(5)],
+        *[record(7, outcome="failed", attempts=[{"is_correct": False}]) for _ in range(5)],
+    ])
+    assert recommended_number(tied["numbers"], tied["families"]) is None
+
+    family_tie = summarize([
+        *[record(6, family_id="OGE06-A", outcome="failed",
+                 attempts=[{"is_correct": False}]) for _ in range(3)],
+        *[record(6, family_id="OGE06-A", attempts=[{"is_correct": True}]) for _ in range(2)],
+        *[record(6, family_id="OGE06-B", attempts=[{"is_correct": True}]) for _ in range(5)],
+        *[record(7, family_id="OGE07-A", attempts=[{"is_correct": True}]) for _ in range(7)],
+        *[record(7, family_id="OGE07-A", outcome="failed",
+                 attempts=[{"is_correct": False}]) for _ in range(3)],
+    ])
+    assert family_tie["numbers"][6]["success_rate"] == 70
+    assert family_tie["numbers"][7]["success_rate"] == 70
+    assert recommended_number(family_tie["numbers"], family_tie["families"]) == 6
+
+
+def test_progress_text_uses_answered_denominator_and_keeps_skips_separate():
+    four_answered = summarize([
+        *[record(6, attempts=[{"attempt_no": 1, "is_correct": True}]) for _ in range(4)],
+        *[record(6, outcome="skipped") for _ in range(15)],
+    ])
+    text = render_progress(four_answered, "number:6")
+    assert "Ответили: 4 · верно: 4 · успешность: 100%" in text
+    assert "Пропуски: 15" in text
+    assert "не менее 5" in text
+
+    five_answered = summarize([
+        *[record(6, attempts=[{"attempt_no": 1, "is_correct": True}]) for _ in range(4)],
+        record(6, outcome="failed", attempts=[{"attempt_no": 1, "is_correct": False}]),
+    ])
+    assert "успешность: 80%" in render_progress(five_answered, "number:6")
 
 
 def test_progress_number_keyboard_includes_every_first_part_number():

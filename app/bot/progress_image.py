@@ -23,8 +23,11 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from app.persistence.training_insights import (
     _STORY_NAMES,
+    MIN_ANSWERED_SAMPLE,
     family_name,
+    has_recommendation_sample,
     recommended_number,
+    success_label,
     training_insights,
     training_record_detail,
 )
@@ -285,11 +288,12 @@ def draw_progress_bar(
 
 
 def _recommendation(insights: dict[str, Any]) -> str:
-    total = insights["total"]
-    if int(total["completed"]) < 5:
-        return "Порешай ещё задачи."
-    count, number = recommended_number(insights["numbers"])
-    return f"Попробуй повторить №{number}" if count and number else "Продолжай в том же темпе."
+    number = recommended_number(insights["numbers"], insights.get("families"))
+    if number is not None:
+        return f"Поработай над №{number}: сейчас у него самая низкая успешность."
+    if not has_recommendation_sample(insights["numbers"]):
+        return f"Для оценки нужно не менее {MIN_ANSWERED_SAMPLE} ответов на номер."
+    return "По текущим ответам явного слабого номера нет."
 
 
 def render_overview(insights: dict[str, Any]) -> Image.Image:
@@ -401,23 +405,24 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
 
 
 def render_numbers(insights: dict[str, Any], offset: int) -> Image.Image:
-    start = 1 if offset < NUMBER_PAGE_SIZE else NUMBER_PAGE_SIZE + 1
-    stop = min(start + NUMBER_PAGE_SIZE, 15)
+    start = 1 + (offset // NUMBER_PAGE_SIZE) * NUMBER_PAGE_SIZE
+    stop = min(start + NUMBER_PAGE_SIZE, 20)
     visible = list(range(start, stop))
     image = _canvas(1200)
     draw = ImageDraw.Draw(image)
     page_title = f"№{start}–{stop - 1}"
-    y = draw_heading(draw, "По номерам", "Результаты завершённых заданий", eyebrow=page_title)
+    y = draw_heading(draw, "По номерам", "Успешность по задачам с ответом", eyebrow=page_title)
     for number in visible:
         values = insights["numbers"].get(number, {})
-        completed = int(values.get("completed", 0))
+        issued = int(values.get("issued", 0))
+        answered = int(values.get("answered_tasks", 0))
         correct = int(values.get("correct", 0))
         errors = int(values.get("error_tasks", 0))
         skipped = int(values.get("skipped", 0))
         row_y = y
         rounded_card(image, (PAD, row_y, WIDTH - PAD, row_y + 124))
         draw = ImageDraw.Draw(image)
-        number_fill = PALETTE["blue_light"] if completed else PALETTE["gray_light"]
+        number_fill = PALETTE["blue_light"] if issued else PALETTE["gray_light"]
         draw.rounded_rectangle(
             (PAD + 20, row_y + 21, PAD + 112, row_y + 103), radius=22, fill=number_fill
         )
@@ -425,27 +430,27 @@ def render_numbers(insights: dict[str, Any], offset: int) -> Image.Image:
             (PAD + 66, row_y + 62),
             str(number),
             font=_font(49, True),
-            fill=PALETTE["blue"] if completed else PALETTE["gray"],
+            fill=PALETTE["blue"] if issued else PALETTE["gray"],
             anchor="mm",
         )
         text_x = PAD + 138
-        if completed:
+        if issued:
+            result_text = (f"{correct} из {answered} с ответом · {success_label(values)}"
+                           if answered else "Нет ответов · успешность —")
             draw.text(
                 (text_x, row_y + 10),
-                f"{correct} из {completed} верно",
+                result_text,
                 font=_font(36, True),
                 fill=PALETTE["ink"],
             )
-            color = PALETTE["green"] if correct else PALETTE["red"]
-            draw_progress_bar(
-                draw,
-                (text_x, row_y + 52, WIDTH - PAD - 36, row_y + 67),
-                correct,
-                completed,
-                color=color,
-            )
-            if completed < 5:
-                note = f"Мало данных · ошибки: {errors} · пропуски: {skipped}"
+            if answered >= MIN_ANSWERED_SAMPLE:
+                draw_progress_bar(
+                    draw, (text_x, row_y + 52, WIDTH - PAD - 36, row_y + 67),
+                    correct, answered, color=PALETTE["blue"],
+                )
+            if answered < MIN_ANSWERED_SAMPLE:
+                note = (f"Мало данных · ответов: {answered}/{MIN_ANSWERED_SAMPLE} · "
+                        f"ошибки: {errors} · пропуски: {skipped}")
                 note_color = PALETTE["muted"]
             else:
                 note = f"Ошибки: {errors}   ·   Пропуски: {skipped}"
@@ -672,14 +677,17 @@ def progress_image_keyboard(section: str, offset: int, total: int) -> InlineKeyb
     if section == "numbers":
         if offset > 0:
             page_buttons = [
-                InlineKeyboardButton(text="← Назад", callback_data="progress:numbers:0")
+                InlineKeyboardButton(text="← Назад", callback_data=(
+                    f"progress:numbers:{max(0, offset - NUMBER_PAGE_SIZE)}"
+                ))
             ]
         else:
             page_buttons = []
-        if offset == 0:
+        if offset + NUMBER_PAGE_SIZE < 19:
             page_buttons.append(
                 InlineKeyboardButton(
-                    text="Дальше →", callback_data=f"progress:numbers:{NUMBER_PAGE_SIZE}"
+                    text="Дальше →",
+                    callback_data=f"progress:numbers:{offset + NUMBER_PAGE_SIZE}"
                 )
             )
         if page_buttons:

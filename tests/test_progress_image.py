@@ -131,7 +131,17 @@ def test_progress_keyboard_has_real_navigation_and_bounded_callbacks() -> None:
     previous_page = progress_image_keyboard("numbers", 7, 14)
     previous_labels = [button.text for row in previous_page.inline_keyboard for button in row]
     assert "← Назад" in previous_labels
-    assert "Дальше →" not in previous_labels
+    assert "Дальше →" in previous_labels
+    assert any(
+        button.callback_data == "progress:numbers:14"
+        for row in previous_page.inline_keyboard for button in row
+    )
+    last_page = progress_image_keyboard("numbers", 14, 19)
+    assert "Дальше →" not in [button.text for row in last_page.inline_keyboard for button in row]
+    assert any(
+        button.callback_data == "progress:numbers:7"
+        for row in last_page.inline_keyboard for button in row
+    )
 
     history = progress_image_keyboard("history", 0, PAGE_SIZE + 1)
     assert any(button.text == "Дальше →" for row in history.inline_keyboard for button in row)

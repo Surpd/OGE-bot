@@ -9,7 +9,9 @@ from typing import Any, cast
 from app.persistence.training_insights import (
     _STORY_NAMES,
     family_name,
+    has_recommendation_sample,
     recommended_number,
+    success_label,
     training_insights,
     training_record_detail,
 )
@@ -21,8 +23,8 @@ const root=document.getElementById('app'),NUMBER_PAGE=4,HISTORY_PAGE=3;let tab='
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const statusName=s=>({solved:'Решено',failed:'Две ошибки',skipped:'Пропущено',solution_viewed:'Открыт разбор',issued:'В процессе',active:'В процессе',unknown:'Нет данных'})[s]||'Нет данных';
 function shell(body){root.innerHTML='<header class="top"><div><div class="title">Мой прогресс</div><div class="muted">Только ваши результаты</div></div><button class="refresh" data-q="refresh">Обновить</button></header><nav class="tabs" aria-label="Разделы прогресса"><button class="'+(tab==='o'?'active':'')+'" data-q="tab:o">Обзор</button><button class="'+(tab==='n'?'active':'')+'" data-q="tab:n">По номерам</button><button class="'+(tab==='h'?'active':'')+'" data-q="tab:h">История и ошибки</button></nav>'+body+(errorText?'<div class="error">'+esc(errorText)+'</div>':'')+(busy?'<div class="loading">Обновляем…</div>':'')}
-function overview(p){let body='<section class="grid"><div class="card"><span>Завершено заданий</span><b>'+(p.c||0)+'</b></div><div class="card"><span>Решено без подсказок</span><b>'+(p.u||0)+'</b></div><div class="card"><span>Решено с подсказкой</span><b>'+(p.h||0)+'</b></div><div class="card"><span>Были ошибки · пропущено</span><b>'+(p.e||0)+' · '+(p.s||0)+'</b></div></section><div class="muted">Старых правильных решений с неизвестным использованием подсказки: '+(p.x||0)+'.</div><div class="recommend"><b>Что попробовать дальше</b><br>'+esc(p.r||'Пока мало данных для рекомендации.')+'</div>';shell(body)}
-function numbers(rows){let hasResults=rows.some(x=>x[1]>0),pages=hasResults?Math.ceil(rows.length/NUMBER_PAGE):0;if(numberPage>=pages)numberPage=Math.max(0,pages-1);let visible=rows.slice(numberPage*NUMBER_PAGE,(numberPage+1)*NUMBER_PAGE),body='';if(!hasResults){body='<div class="empty">Завершённых заданий пока нет. Начните с любого номера.</div>'}else{body='<section class="rows">'+visible.map(x=>{let n=x[0],done=x[1],correct=x[2],expanded=detail===n,bar=done>=5;return '<article class="row"><div class="num">№'+n+'</div><div class="rowtext"><strong>'+correct+' верно из '+done+' завершённых</strong>'+(bar?'<div class="bar"><i style="width:'+Math.round(correct/done*100)+'%"></i></div>':'<small>Пока мало данных ('+done+'/5)</small>')+'</div><button class="more" data-detail="'+n+'">'+(expanded?'Скрыть':'Подробнее')+'</button>'+(expanded?'<div class="detail">Без подсказки: '+x[3]+' · С подсказкой: '+x[4]+'<br>Задания с ошибкой: '+x[5]+' · Пропуски: '+x[6]+'<br>Верно с первой попытки: '+x[7]+' · Со второй: '+x[8]+'</div>':'')+'</article>'}).join('')+'</section>'}if(pages>1)body+='<div class="page"><button data-npage="-1" '+(numberPage===0?'disabled':'')+'>← Назад</button><span class="muted">'+(numberPage+1)+' / '+pages+'</span><button data-npage="1" '+(numberPage>=pages-1?'disabled':'')+'>Дальше →</button></div>';shell(body)}
+function overview(p){let body='<section class="grid"><div class="card"><span>Завершено заданий</span><b>'+(p.c||0)+'</b></div><div class="card"><span>Успешность · ответили</span><b>'+(p.n||0)+' верно из '+(p.a||0)+' · '+(p.v||'—')+'</b></div><div class="card"><span>Решено без подсказок</span><b>'+(p.u||0)+'</b></div><div class="card"><span>Решено с подсказкой</span><b>'+(p.h||0)+'</b></div><div class="card"><span>Были ошибки · пропущено</span><b>'+(p.e||0)+' · '+(p.s||0)+'</b></div></section><div class="muted">Старых правильных решений с неизвестным использованием подсказки: '+(p.x||0)+'.</div><div class="recommend"><b>Что попробовать дальше</b><br>'+esc(p.r||'Пока мало данных для рекомендации.')+'</div>';shell(body)}
+function numbers(rows){let hasResults=rows.some(x=>x[1]>0),pages=hasResults?Math.ceil(rows.length/NUMBER_PAGE):0;if(numberPage>=pages)numberPage=Math.max(0,pages-1);let visible=rows.slice(numberPage*NUMBER_PAGE,(numberPage+1)*NUMBER_PAGE),body='';if(!hasResults){body='<div class="empty">Заданий пока нет. Начните с любого номера.</div>'}else{body='<section class="rows">'+visible.map(x=>{let n=x[0],issued=x[1],answered=x[2],correct=x[3],rate=x[4],rateLabel=x[5],expanded=detail===n,bar=answered>=5&&rate!==null,note=answered<5?'Мало данных ('+answered+'/5 ответов)':'Выборка от 5 ответов';return '<article class="row"><div class="num">№'+n+'</div><div class="rowtext"><strong>'+correct+' верно из '+answered+' с ответом · '+rateLabel+'</strong>'+(bar?'<div class="bar"><i style="width:'+rate+'%"></i></div>':'')+'<small>'+note+' · пропущено '+x[9]+'</small></div><button class="more" data-detail="'+n+'">'+(expanded?'Скрыть':'Подробнее')+'</button>'+(expanded?'<div class="detail">Выдано: '+issued+' · Без подсказки: '+x[6]+' · С подсказкой: '+x[7]+'<br>Задания с ошибкой: '+x[8]+' · Пропуски: '+x[9]+'<br>Верно с первой попытки: '+x[10]+' · Со второй: '+x[11]+'</div>':'')+'</article>'}).join('')+'</section>'}if(pages>1)body+='<div class="page"><button data-npage="-1" '+(numberPage===0?'disabled':'')+'>← Назад</button><span class="muted">'+(numberPage+1)+' / '+pages+'</span><button data-npage="1" '+(numberPage>=pages-1?'disabled':'')+'>Дальше →</button></div>';shell(body)}
 function history(rows,more){let body='<div class="toggle"><button class="more" data-q="history:0">Все занятия</button><button class="more" data-q="errors:0">С ошибками</button></div>';if(!rows.length)body+='<div class="empty">Записей пока нет.</div>';else{body+='<section class="items">'+rows.map(x=>'<article class="item"><div><strong>№'+esc(x.n)+' · '+esc(x.f)+'</strong><small>'+esc(x.d)+' · '+esc(statusName(x.o))+(x.e?' · была ошибка':'')+'</small></div><button class="more" data-item="'+esc(x.i)+'">Подробно</button></article>').join('')+'</section><div class="page">'+(historyPage>0?'<button data-q="'+historyMode+':'+Math.max(0,historyPage-HISTORY_PAGE)+'">Назад</button>':'')+(more?'<button data-q="'+historyMode+':'+(historyPage+HISTORY_PAGE)+'">Ещё</button>':'')+'</div>'}shell(body)}
 function itemDetail(d){let attempts=(d.a||[]).map(a=>'<span class="tag">'+a.n+'-я попытка: '+(a.ok?'верно':'ошибка')+(a.h?' · была подсказка':'')+'</span>').join('');shell('<article class="item"><div><strong>'+esc(d.n)+' · '+esc(d.f)+'</strong><small>'+esc(d.date||'')+' · '+esc(statusName(d.o))+'</small></div><button class="more" data-back="1">Назад</button><div class="condition">'+esc(d.c)+'</div><div class="attempts">'+(attempts||'<span class="muted">Попыток нет в сохранённой истории.</span>')+'</div></article>')}
 function draw(data){errorText='';payload=data;if(data.tab==='o'){tab='o';overview(data.p||{})}else if(data.tab==='n'){tab='n';detail=null;numberPage=0;numbers(data.r||[])}else if(data.tab==='h'){tab='h';detail=null;historyMode=data.m||'history';historyPage=data.p||0;lastHistory=data;history(data.r||[],!!data.more)}else if(data.tab==='d'){tab='h';itemDetail(data.d)}else if(data.tab==='err'){tab=data.keep||'o';errorText='Не удалось загрузить данные. Нажмите «Обновить» и попробуйте ещё раз.';shell('<div class="empty">Данные не изменены.</div>')}}
@@ -47,18 +49,19 @@ def _json(data: dict[str, Any]) -> str:
 def overview_data(insights: dict[str, Any]) -> str:
     total = insights["total"]
     completed = total["completed"]
-    if completed < 5:
-        recommendation = f"Для точной рекомендации нужно больше данных: завершено {completed} из 5."
+    number = recommended_number(insights["numbers"], insights.get("families"))
+    if number is not None:
+        recommendation = f"Можно поработать над №{number}: у него самая низкая успешность."
+    elif not has_recommendation_sample(insights["numbers"]):
+        recommendation = "Пока недостаточно ответов: для оценки нужно не менее 5 на номер."
     else:
-        count, number = recommended_number(insights["numbers"])
-        recommendation = (
-            f"Можно повторить №{number}: там {count} заданий с ошибкой или пропуском."
-            if count and number else "Среди доступных номеров нет рекомендации по ошибкам и пропускам."
-        )
+        recommendation = "По текущим ответам явного слабого номера нет."
     return _json({"tab": "o", "p": {
         "c": completed, "u": total["unassisted_correct"],
         "h": total["assisted_correct"], "e": total["error_tasks"],
         "s": total["skipped"], "x": total["unknown_assistance"], "r": recommendation,
+        "a": total["answered_tasks"], "n": total["correct"],
+        "v": success_label(total),
     }})
 
 
@@ -70,10 +73,11 @@ async def widget_response(repository: Any, telegram_user_id: int, request: str) 
         return overview_data(await training_insights(repository, telegram_user_id))
     if request == "tab:n":
         insights = await training_insights(repository, telegram_user_id, "numbers")
-        number_rows = [[number, *[values[key] for key in (
-            "completed", "correct", "unassisted_correct", "assisted_correct", "error_tasks",
-            "skipped", "first_correct", "second_correct",
-        )]] for number, values in insights["numbers"].items()]
+        number_rows = [[number, values["issued"], values["answered_tasks"], values["correct"],
+                        values["success_rate"], success_label(values), *[values[key] for key in (
+                            "unassisted_correct", "assisted_correct", "error_tasks",
+                            "skipped", "first_correct", "second_correct",
+                        )]] for number, values in insights["numbers"].items()]
         return _json({"tab": "n", "r": number_rows})
     if request == "tab:h":
         request = "history:0"
