@@ -146,7 +146,7 @@
       ],
       "control_answer": "47",
       "status": "public_enabled",
-      "renderer_version": "oge15-pillow-1",
+      "renderer_version": "oge15-pillow-2",
       "generator_version": "oge15-triangles-2",
       "numerical_coordinate_tolerance": 1e-08,
       "source_diagram_summary": "ABC, AC extended past C, exterior angle arc at C"
@@ -184,7 +184,7 @@
       ],
       "control_answer": "66",
       "status": "public_enabled",
-      "renderer_version": "oge15-pillow-1",
+      "renderer_version": "oge15-pillow-2",
       "generator_version": "oge15-triangles-2",
       "numerical_coordinate_tolerance": 1e-08,
       "source_diagram_summary": "Isosceles ABC, equal AB/BC ticks, AC extension, given exterior degree label"
@@ -262,7 +262,7 @@
       ],
       "control_answer": "140",
       "status": "public_enabled",
-      "renderer_version": "oge15-pillow-1",
+      "renderer_version": "oge15-pillow-2",
       "generator_version": "oge15-triangles-2",
       "numerical_coordinate_tolerance": 1e-08,
       "source_diagram_summary": "ABC, BM and internal BH, right-angle mark H"

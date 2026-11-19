@@ -168,7 +168,10 @@ def test_complete_regression_vectors_remain_exact():
     from pathlib import Path
 
     for vector in json.loads(Path("atlas/oge15_complete_regression_vectors.json").read_text()):
-        snapshot = generate(vector["family_id"], vector["seed"], VERSION).to_snapshot()
+        snapshot = generate(
+            vector["family_id"], vector["seed"], VERSION,
+            renderer_version=vector.get("renderer_version")
+        ).to_snapshot()
         snapshot.pop("png_base64", None)
         assert snapshot == vector
 
@@ -178,3 +181,26 @@ def test_coordinate_tolerance_cannot_accept_a_nearly_correct_answer(n, control):
     p, expected = control
     with pytest.raises(ValueError, match="Exact triangle answer invariant"):
         validate(n, p, construct(n, p), Fraction(expected) + Fraction(1, 10**10))
+
+
+@pytest.mark.parametrize("family,seed", [("OGE15-F03", 7), ("OGE15-F05", 0), ("OGE15-F09", 6)])
+def test_new_baseline_labels_leave_the_edge_clear_and_replay_both_rasters(family, seed):
+    from app.math.oge15_render import VERSION as OLD_RENDERER
+    from app.math.oge15_render import layout
+    from app.persistence.image_retention import compact_snapshot, restore_graphic_snapshot
+
+    old = generate(family, seed, VERSION, renderer_version=OLD_RENDERER).to_snapshot()
+    current = generate(family, seed, VERSION).to_snapshot()
+    assert old["image_sha256"] != current["image_sha256"]
+    assert {key for key in old if old[key] != current[key]} == {
+        "renderer_version", "image_sha256", "png_base64"
+    }
+    for saved in (old, current):
+        assert from_snapshot(saved).to_snapshot() == saved
+        assert restore_graphic_snapshot(compact_snapshot(saved)) == saved
+    name = "H" if family.endswith("09") else "C"
+    x, y = map(round, layout(current["geometry"])[name])
+    with Image.open(BytesIO(base64.b64decode(current["png_base64"]))) as image:
+        # White space between the horizontal baseline and the full glyph below it.
+        assert image.crop((x - 12, y + 6, x + 12, y + 14)).convert("L").getextrema() == (255, 255)
+        assert image.crop((x - 14, y + 15, x + 14, y + 47)).convert("L").getextrema()[0] < 64
