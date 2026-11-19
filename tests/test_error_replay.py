@@ -10,6 +10,7 @@ from app.math.oge17_generator import generate as generate_task17
 from app.persistence.error_replay import (
     ErrorReplayRepository,
     _assert_regenerated,
+    _digest,
     load_replay_source,
 )
 from app.persistence.repository import MemoryRepository
@@ -84,6 +85,60 @@ async def test_memory_replay_closes_self_score_after_solution_and_checks_owner()
     )
     closed_attempt = await store.record_attempt(10, replay_id, "999", True, 32110, None)
     assert closed_attempt is not None and closed_attempt["event"] == "closed"
+
+
+@pytest.mark.asyncio
+async def test_memory_mixed_position_three_recovers_original_shared_scenario_after_exit():
+    from app.bot.mixed_training import _scenario, _scenario_question
+
+    repository = MemoryRepository()
+    from app.persistence.mixed_training import MixedTrainingRepository
+
+    MixedTrainingRepository(repository)
+    user_id = 13
+    scenario = _scenario(seed=661_003)
+    first_id = "00000000-0000-4000-8000-000000006613"
+    third_id = "00000000-0000-4000-8000-000000006615"
+    first = _scenario_question(scenario, 1)
+    third = _scenario_question(scenario, 3)
+    first_snapshot = {
+        **first,
+        "problem_id": first_id,
+        "_original_scenario_snapshot": scenario,
+        "_original_scenario_snapshot_sha256": _digest(scenario),
+    }
+    third_snapshot = {**third, "problem_id": third_id}
+    repository._mixed_training_records[user_id] = [
+        {
+            "id": first_id,
+            "record_id": f"m:{first_id}",
+            "problem_id": first_id,
+            "number": 1,
+            "family_id": first["family_id"],
+            "condition": first["condition"],
+            "outcome": "solved",
+            "attempt_records": [{"attempt_no": 1, "is_correct": True}],
+            "snapshot": first_snapshot,
+        },
+        {
+            "id": third_id,
+            "record_id": f"m:{third_id}",
+            "problem_id": third_id,
+            "number": 3,
+            "family_id": third["family_id"],
+            "condition": third["condition"],
+            "outcome": "issued",
+            "attempt_records": [{"attempt_no": 1, "is_correct": False}],
+            "snapshot": third_snapshot,
+        },
+    ]
+    repository._mixed_training_sessions[user_id] = {"state": {"scenario_snapshot": None}}
+
+    source = await load_replay_source(repository, user_id, f"m:{third_id}")
+    assert source.number == 3
+    assert source.scenario_snapshot == scenario
+    assert source.condition == third["condition"]
+    assert source.correct_answer == third["correct_answer"]
 
 
 @pytest.mark.asyncio

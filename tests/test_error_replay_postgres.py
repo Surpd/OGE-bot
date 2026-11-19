@@ -61,6 +61,63 @@ async def test_postgres_mixed_replay_resumes_by_reference_without_changing_progr
 
 
 @pytest.mark.asyncio
+async def test_postgres_mixed_scenario_question_replays_from_original_shared_snapshot(
+    error_replay_pool,
+):
+    from app.bot.mixed_training import _issue, _scenario, _scenario_question
+
+    user_id = 9066103
+    repository = PostgresRepository(error_replay_pool)
+    await repository.register_user(user_id)
+    store = MixedTrainingRepository(repository)
+    await store.start(user_id, [1])
+    expected = await store.expected_number(user_id)
+    assert expected is not None
+    scenario = _scenario(seed=661_003)
+    current = await store.issue_current(
+        user_id,
+        expected[1],
+        1,
+        _scenario_question(scenario, 1),
+        scenario_snapshot=scenario,
+    )
+    assert current is not None
+
+    for position in (1, 2):
+        assert current["number"] == position
+        answered = await store.answer(
+            user_id,
+            str(current["problem_id"]),
+            str(current["correct_answer"]),
+            True,
+            66_100 + position,
+            None,
+        )
+        assert answered is not None and answered["status"] == "solved"
+        transition = await store.advance(user_id, str(current["problem_id"]), None, None)
+        assert transition is not None and transition["number"] == position + 1
+        store = MixedTrainingRepository(PostgresRepository(error_replay_pool))
+        current = await _issue(store, user_id)
+        assert current is not None
+
+    assert current["number"] == 3
+    attempted = await store.answer(
+        user_id, str(current["problem_id"]), "wrong", False, 66_103, None
+    )
+    assert attempted is not None and attempted["status"] == "active"
+
+    source = await load_replay_source(
+        PostgresRepository(error_replay_pool),
+        user_id,
+        f"m:{current['problem_id']}",
+    )
+    assert source.number == 3
+    assert source.scenario_snapshot == scenario
+    assert source.condition == current["condition"]
+    assert source.correct_answer == current["correct_answer"]
+
+
+@pytest.mark.asyncio
 async def test_postgres_practical_question_replay_restores_same_scenario_position(
     error_replay_pool,
 ):

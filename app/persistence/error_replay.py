@@ -151,6 +151,7 @@ async def load_replay_source(
             )
             question = await asyncio.to_thread(_scenario_question, scenario_snapshot, number)
             await asyncio.to_thread(_same_question, question, snapshot)
+            question["problem_id"] = str(source_id)
             snapshot = question
         snapshot = await asyncio.to_thread(
             _restore_and_validate,
@@ -196,7 +197,14 @@ async def _load_memory_source(
     from app.persistence.training_insights import training_record_detail
 
     detail = await training_record_detail(repository, user_id, record_id)
-    if not detail or not (detail.get("has_error") or detail.get("outcome") == "failed"):
+    attempt_records = detail.get("attempt_records", []) if detail else []
+    has_error = isinstance(attempt_records, list) and any(
+        isinstance(attempt, dict) and attempt.get("is_correct") is False
+        for attempt in attempt_records
+    )
+    if not detail or not (
+        detail.get("has_error") or has_error or detail.get("outcome") == "failed"
+    ):
         raise ValueError("Only confirmed incorrect answers can be repeated")
     snapshot = detail.get("snapshot")
     if not isinstance(snapshot, dict):
@@ -223,11 +231,37 @@ async def _load_memory_source(
         session = getattr(repository, "_mixed_training_sessions", {}).get(user_id)
         state = session.get("state", {}) if isinstance(session, dict) else {}
         candidate = snapshot.get("_original_scenario_snapshot")
+        scenario_digest = snapshot.get("_original_scenario_snapshot_sha256")
         if not isinstance(candidate, dict) and isinstance(state, dict):
             candidate = state.get("scenario_snapshot")
+            scenario_digest = state.get("scenario_snapshot_sha256")
+        if not isinstance(candidate, dict):
+            scenario_seed = snapshot.get("scenario_seed")
+            story_code = snapshot.get("story_code")
+            for record in reversed(
+                getattr(repository, "_mixed_training_records", {}).get(user_id, [])
+            ):
+                saved = record.get("snapshot")
+                if (
+                    isinstance(saved, dict)
+                    and record.get("number") == 1
+                    and saved.get("scenario_seed") == scenario_seed
+                    and saved.get("story_code") == story_code
+                    and isinstance(saved.get("_original_scenario_snapshot"), dict)
+                ):
+                    candidate = saved["_original_scenario_snapshot"]
+                    scenario_digest = saved.get("_original_scenario_snapshot_sha256")
+                    break
         if isinstance(candidate, dict):
             scenario_snapshot = candidate
-            snapshot = await asyncio.to_thread(_scenario_question, candidate, number)
+            if not isinstance(scenario_digest, str):
+                raise ValueError("The original mixed scenario has no integrity digest")
+            await asyncio.to_thread(_check_scenario_snapshot, candidate, scenario_digest)
+            snapshot = cast(
+                dict[str, object],
+                await asyncio.to_thread(_scenario_question, candidate, number),
+            )
+            snapshot["problem_id"] = str(source_id)
     if source_type == "scenario":
         raise ValueError("MemoryRepository does not store OGE 1–5 source sessions")
     snapshot = cast(dict[str, object], snapshot)
