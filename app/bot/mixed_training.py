@@ -21,7 +21,8 @@ from aiogram.types import (
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
 from app.bot.presentation import hint_message, send_photo, send_text
-from app.bot.scenario_training import public_registry
+from app.bot.scenario_training import public_registry, scenario_context_for_question
+from app.bot.task_view import answer_instruction, question_text, system_rows, task13_is_graph_choice
 from app.bot.training_ux import matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
 from app.math.scenario_engine import (
@@ -167,12 +168,7 @@ def _render_image(number: int, problem: dict[str, object]) -> bytes | None:
         from app.math.oge11 import from_snapshot as restore_oge11
 
         return restore_oge11(problem).png_bytes
-    if number == 13 and str(problem.get("family_id", "")) not in {
-        "OGE13-L01",
-        "OGE13-Q01",
-        "OGE13-Q02",
-        "OGE13-Q03",
-    }:
+    if number == 13 and task13_is_graph_choice(problem):
         from app.math.inequalities import render_option_sheet_snapshot_png
 
         return render_option_sheet_snapshot_png(problem)
@@ -376,12 +372,9 @@ async def _send_problem(
     elif number == 13:
         from app.math.inequalities import validate_snapshot as validate_inequality_snapshot
 
-        if str(problem.get("family_id")) in {
-            "OGE13-L01",
-            "OGE13-Q01",
-            "OGE13-Q02",
-            "OGE13-Q03",
-        } and not await asyncio.to_thread(validate_inequality_snapshot, problem):
+        if not task13_is_graph_choice(problem) and not await asyncio.to_thread(
+            validate_inequality_snapshot, problem
+        ):
             raise ValueError("Mixed task 13 snapshot failed validation")
     elif number == 19:
         from app.math.oge19 import validate_snapshot as validate_statement_snapshot
@@ -401,37 +394,19 @@ async def _send_problem(
             key: value for key, value in problem.items() if key not in runtime_fields
         }
         await asyncio.to_thread(validate_statement_snapshot, statement_snapshot)
-    condition = str(problem.get("condition", ""))
+    condition = question_text(number, problem)
     scenario: ScenarioSnapshot | None = None
     if number <= 5:
         raw_scenario = problem.get("scenario_snapshot")
         if not isinstance(raw_scenario, dict):
             raise ValueError("Mixed scenario snapshot is missing")
         scenario = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
-        await send_text(message, repository, scenario.shared_context, user_id_override=user_id)
-    if number == 13:
-        from app.bot.router import _task13_choice_text
-
-        condition += "\n" + _task13_choice_text(problem)
-    if number == 7:
-        options = problem.get("options", [])
-        if isinstance(options, list):
-            condition += "\n\n" + "\n".join(
-                f"{index}. {value}" for index, value in enumerate(options, 1)
-            )
-        condition += "\n\nВведите номер варианта 1–4."
-    result = resumed_result(problem.get("outcome"), problem)
-    if result is not None:
-        condition += "\n\n" + result
-    elif number == 19:
-        if problem.get("answer_policy_id") == "oge19.answer-single-true":
-            condition += "\n\nВведите номер верного утверждения: 1, 2 или 3."
-    elif number == 11:
-        condition += "\n\nВведите три цифры в порядке А, Б, В. Используйте 1, 2 и 3 по одному разу."
-    elif number not in {7, 13}:
-        condition += (
-            "\n\nНапишите ответ числом в чат. Дробную часть можно отделять запятой или точкой."
+        await send_text(
+            message, repository, scenario_context_for_question(scenario, number),
+            user_id_override=user_id,
         )
+    result = resumed_result(problem.get("outcome"), problem)
+    condition += "\n\n" + (result or answer_instruction(number, problem))
     photos = (
         await asyncio.to_thread(scenario_photos_for_question, scenario, number)
         if scenario is not None
@@ -458,11 +433,7 @@ async def _send_problem(
         else (_task19_button_choices(problem) if number == 19 else (4 if number == 13 else 0)),
     )
     caption = f"Задание №{number}\n\n{condition}"
-    system_rows = (
-        tuple(str(problem["condition"]).splitlines())
-        if number == 13 and str(problem.get("family_id", "")).startswith("OGE13-S")
-        else None
-    )
+    math_system_rows = system_rows(number, problem)
     if image_data is not None:
         sent = await send_photo(
             message,
@@ -471,7 +442,7 @@ async def _send_problem(
             caption=caption,
             reply_markup=markup,
             user_id_override=user_id,
-            math_system_rows=system_rows,
+            math_system_rows=math_system_rows,
         )
     else:
         sent = await send_text(
@@ -480,7 +451,7 @@ async def _send_problem(
             caption,
             reply_markup=markup,
             user_id_override=user_id,
-            math_system_rows=system_rows,
+            math_system_rows=math_system_rows,
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:

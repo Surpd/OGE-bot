@@ -313,3 +313,43 @@ def test_replay_uses_legacy_statement_policy_and_choice_bounds():
     source = ReplaySource("ordinary", UUID(str(graph["problem_id"])), 0, 7, graph)
     assert _accepts(source, "0") is None
     assert _accepts(source, source.correct_answer) is True
+
+
+@pytest.mark.asyncio
+async def test_history_shows_verified_photo_for_a_solved_problem_without_enabling_replay():
+    import base64
+
+    from app.bot.progress import encode_record_ref, encode_return_page, progress_navigation
+
+    repository = MemoryRepository()
+    user_id = 6618
+    snapshot = generate_task17("OGE17-R03", 17_000_325).to_snapshot()
+    problem_id = str(snapshot["problem_id"])
+    repository.issued17[user_id] = {problem_id: snapshot}
+    repository.outcomes17[user_id] = {problem_id: "solved"}
+    repository.attempts17[user_id] = [
+        {"problem_id": problem_id, "attempt_no": 1, "is_correct": True}
+    ]
+    before = await training_insights(repository, user_id)
+    reference = f"o:{problem_id}"
+    page = f"item:{encode_record_ref(reference)}:{encode_return_page('history:0')}"
+    message = AsyncMock()
+    message.message_id = 66
+    message.answer.return_value.message_id = 68
+    await progress_navigation(message, repository, user_id, page)
+    assert message.answer_photo.await_args.args[0].data == base64.b64decode(
+        str(snapshot["png_base64"])
+    )
+    assert snapshot["condition"] in message.answer.await_args.args[0]
+    markup = message.answer.await_args.kwargs["reply_markup"]
+    assert all(
+        not button.callback_data.startswith("progress:replay:")
+        for row in markup.inline_keyboard for button in row
+    )
+    with pytest.raises(ValueError):
+        await load_replay_source(repository, user_id, reference)
+    with pytest.raises(ValueError):
+        from app.persistence.error_replay import load_original_source
+
+        await load_original_source(repository, user_id + 1, reference)
+    assert await training_insights(repository, user_id) == before
