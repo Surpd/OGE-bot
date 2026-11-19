@@ -383,20 +383,29 @@ async def exercise_navigation(
         if graphics:
             for number, family_prefix in ((7, "OGE07-N"), (11, "OGE11-F"), (13, "OGE13-S")):
                 await click("nav:numbers")
-                photo_count = sum(c.__api_method__ == "sendPhoto" for c in session.calls)
+                call_count = len(session.calls)
                 await click(f"nav:task:{number}")
-                assert (
-                    sum(c.__api_method__ == "sendPhoto" for c in session.calls) == photo_count + 1
-                )
+                photos = [c for c in session.calls[call_count:] if c.__api_method__ == "sendPhoto"]
+                assert len(photos) == (1 if number == 7 else 2)
+                if len(photos) == 2:
+                    assert photos[0].reply_markup is None
+                    assert photos[1].reply_markup is not None
                 state_reader = getattr(repository, f"task{number}_state")
                 issued = await state_reader(42)
                 assert issued["problem"]["family_id"].startswith(family_prefix)
-                image = next(
-                    call.photo
-                    for call in reversed(session.calls)
-                    if call.__api_method__ == "sendPhoto"
-                )
-                assert image.data.startswith(b"\x89PNG\r\n\x1a\n")
+                assert all(call.photo.data.startswith(b"\x89PNG\r\n\x1a\n") for call in photos)
+                if number == 11:
+                    import base64
+
+                    assert photos[0].photo.data == base64.b64decode(
+                        issued["problem"]["png_base64"], validate=True
+                    )
+                if number == 13:
+                    from app.math.inequalities import render_option_sheet_snapshot_png
+
+                    assert photos[0].photo.data == render_option_sheet_snapshot_png(
+                        issued["problem"]
+                    )
                 task_id = issued["problem"]["problem_id"]
                 await click(f"t{number}:menu:{task_id}")
                 await click("nav:resume")
