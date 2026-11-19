@@ -1,11 +1,10 @@
-"""Pillow-rendered, deterministic progress dashboard for Telegram photos."""
+"""Compact, single-image progress dashboard for Telegram."""
 
 from __future__ import annotations
 
 import asyncio
 import io
 import logging
-from datetime import date, datetime
 from functools import lru_cache
 from importlib.util import find_spec
 from pathlib import Path
@@ -22,44 +21,39 @@ from aiogram.types import (
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from app.persistence.training_insights import (
-    _STORY_NAMES,
     MIN_ANSWERED_SAMPLE,
-    family_name,
     has_recommendation_sample,
+    recommendation_sample_count,
     recommended_number,
     success_label,
     training_insights,
-    training_record_detail,
 )
 
 logger = logging.getLogger(__name__)
 
-WIDTH = 1200
-PAGE_SIZE = 4
-NUMBER_PAGE_SIZE = 7
+WIDTH = 900
 PHOTO_LIMIT = 10 * 1024 * 1024
+GRID_COLUMNS = 3
+GRID_ROWS = 7
+PAD = 36
+TILE_WIDTH = (WIDTH - 2 * PAD - 2 * 12) // GRID_COLUMNS
+TILE_HEIGHT = 106
+TILE_GAP_X = 12
+TILE_GAP_Y = 12
+GRID_TOP = 280
+GRID_LEFT = (WIDTH - (GRID_COLUMNS * TILE_WIDTH + (GRID_COLUMNS - 1) * TILE_GAP_X)) // 2
 
 PALETTE = {
-    "background": "#F4F6FB",
+    "background": "#F4F6F9",
     "card": "#FFFFFF",
-    "ink": "#25324A",
-    "muted": "#7E8AA2",
-    "line": "#E9EDF5",
-    "blue": "#648BEA",
-    "blue_light": "#ECF1FF",
-    "purple": "#9A82DF",
-    "purple_light": "#F1EDFF",
-    "green": "#42AD7B",
-    "green_light": "#E8F6EF",
-    "red": "#D96973",
-    "red_light": "#FCEDEF",
-    "gray": "#AAB3C2",
-    "gray_light": "#F0F2F6",
-    "white": "#FFFFFF",
+    "ink": "#26344A",
+    "muted": "#758198",
+    "line": "#E7EBF1",
+    "blue": "#527FE3",
+    "blue_light": "#EAF0FF",
+    "neutral": "#A0A9B8",
+    "neutral_light": "#F1F3F6",
 }
-
-RADIUS = 30
-PAD = 60
 
 
 @lru_cache(maxsize=8)
@@ -84,7 +78,7 @@ def draw_fitted_text(
     *,
     max_width: int,
     size: int,
-    minimum_size: int = 24,
+    minimum_size: int = 18,
     fill: str = PALETTE["ink"],
     bold: bool = False,
     anchor: str = "lt",
@@ -92,637 +86,168 @@ def draw_fitted_text(
     font_size = size
     font = _font(font_size, bold)
     while font_size > minimum_size and _measure(draw, text, font) > max_width:
-        font_size -= 2
+        font_size -= 1
         font = _font(font_size, bold)
     draw.text(xy, text, font=font, fill=fill, anchor=anchor)
-
-
-def wrap_text(
-    draw: ImageDraw.ImageDraw,
-    text: str,
-    font: ImageFont.FreeTypeFont,
-    width: int,
-    max_lines: int | None = None,
-) -> list[str]:
-    """Word-wrap Cyrillic, splitting exceptionally long tokens without clipping."""
-    lines: list[str] = []
-    current = ""
-    for word in str(text).split():
-        pieces = [word]
-        if _measure(draw, word, font) > width:
-            pieces = []
-            piece = ""
-            for char in word:
-                candidate = piece + char
-                if piece and _measure(draw, candidate, font) > width:
-                    pieces.append(piece)
-                    piece = char
-                else:
-                    piece = candidate
-            if piece:
-                pieces.append(piece)
-        for piece in pieces:
-            candidate = f"{current} {piece}" if current else piece
-            if current and _measure(draw, candidate, font) > width:
-                lines.append(current)
-                current = piece
-            else:
-                current = candidate
-    if current:
-        lines.append(current)
-    if not lines:
-        return [""]
-    if max_lines is not None and len(lines) > max_lines:
-        lines = lines[:max_lines]
-        last = lines[-1]
-        while last and _measure(draw, last + "…", font) > width:
-            last = last[:-1]
-        lines[-1] = last.rstrip() + "…"
-    return lines
-
-
-def _draw_wrapped(
-    draw: ImageDraw.ImageDraw,
-    xy: tuple[int, int],
-    text: str,
-    font: ImageFont.FreeTypeFont,
-    fill: str,
-    width: int,
-    *,
-    max_lines: int | None = None,
-    line_gap: int = 8,
-) -> int:
-    x, y = xy
-    lines = wrap_text(draw, text, font, width, max_lines)
-    line_height = round(font.getbbox("Тд")[3] - font.getbbox("Тд")[1])
-    for line in lines:
-        draw.text((x, y), line, font=font, fill=fill, anchor="lt")
-        y += line_height + line_gap
-    return y
 
 
 def _canvas(height: int) -> Image.Image:
     return Image.new("RGBA", (WIDTH, height), PALETTE["background"])
 
 
-def rounded_card(
+def _card(
     image: Image.Image,
     box: tuple[int, int, int, int],
     *,
+    radius: int = 22,
     fill: str = PALETTE["card"],
-    radius: int = RADIUS,
 ) -> None:
     x1, y1, x2, y2 = box
-    shadow_pad = 20
+    shadow_pad = 12
     shadow = Image.new("RGBA", (x2 - x1 + shadow_pad * 2, y2 - y1 + shadow_pad * 2))
     ImageDraw.Draw(shadow).rounded_rectangle(
         (shadow_pad, shadow_pad, shadow.width - shadow_pad, shadow.height - shadow_pad),
         radius=radius,
-        fill=(34, 57, 99, 22),
+        fill=(38, 52, 74, 16),
     )
-    shadow = shadow.filter(ImageFilter.GaussianBlur(12))
-    image.alpha_composite(shadow, (x1 - shadow_pad, y1 - shadow_pad + 5))
+    image.alpha_composite(
+        shadow.filter(ImageFilter.GaussianBlur(8)), (x1 - shadow_pad, y1 - shadow_pad + 3)
+    )
     ImageDraw.Draw(image).rounded_rectangle(box, radius=radius, fill=fill)
 
 
-def draw_heading(
-    draw: ImageDraw.ImageDraw,
-    title: str,
-    subtitle: str,
-    *,
-    y: int = 32,
-    eyebrow: str | None = None,
-) -> int:
-    title_font = _font(50, True)
-    subtitle_font = _font(29)
-    if eyebrow:
-        draw.text((PAD, y), eyebrow.upper(), font=_font(26, True), fill=PALETTE["blue"])
-        y += 31
-    draw.text((PAD, y), title, font=title_font, fill=PALETTE["ink"])
-    y += 59
-    draw.text((PAD, y), subtitle, font=subtitle_font, fill=PALETTE["muted"])
-    return y + 32
-
-
-def draw_metric(
-    draw: ImageDraw.ImageDraw,
-    xy: tuple[int, int],
-    value: int | str,
-    label: str,
-    *,
-    accent: str = PALETTE["blue"],
-    value_size: int = 60,
-) -> None:
-    x, y = xy
-    draw.text((x, y), str(value), font=_font(value_size, True), fill=accent, anchor="lt")
-    value_height = _font(value_size, True).getbbox("72")[3]
-    draw.text((x, y + value_height + 7), label, font=_font(27), fill=PALETTE["muted"], anchor="lt")
-
-
-def _exclusive_segments(total: dict[str, Any]) -> list[tuple[str, int, str]]:
-    completed = max(0, int(total["completed"]))
-    solved = min(completed, max(0, int(total["correct"])))
-    unassisted = min(solved, max(0, int(total["unassisted_correct"])))
-    assisted = min(solved - unassisted, max(0, int(total["assisted_correct"])))
-    unknown_assistance = solved - unassisted - assisted
-    failed = min(completed - solved, max(0, int(total["failed"])))
-    skipped = min(completed - solved - failed, max(0, int(total["skipped"])))
-    # Derive the terminal "solution viewed" outcome from the exclusive outcome
-    # counts. The stored viewed flag is an action and may overlap other outcomes.
-    solution_viewed = completed - solved - failed - skipped
-    segments = [
-        ("Без подсказки", unassisted, PALETTE["green"]),
-        ("С подсказкой", assisted, PALETTE["blue"]),
-        ("Старые данные · подсказка неизвестна", unknown_assistance, PALETTE["gray"]),
-        ("Две ошибки", failed, PALETTE["red"]),
-        ("Пропущено", skipped, "#CBD1DC"),
-        ("Открыт разбор", solution_viewed, PALETTE["purple"]),
-    ]
-    return segments
-
-
-def draw_donut(
-    image: Image.Image,
-    box: tuple[int, int, int, int],
-    segments: list[tuple[str, int, str]],
-    *,
-    center_label: str = "ИТОГИ",
-) -> None:
-    from PIL import ImageDraw as PillowDraw
-
-    x1, y1, x2, y2 = box
-    draw = PillowDraw.Draw(image)
-    total = sum(value for _, value, _ in segments)
-    if total == 0:
-        draw.arc(box, 0, 359, fill=PALETTE["line"], width=60)
-    else:
-        start = -90.0
-        for _, value, color in segments:
-            if value <= 0:
-                continue
-            end = start + value * 360.0 / total
-            draw.pieslice(box, start=start, end=end, fill=color)
-            start = end
-    inset = 62
-    draw.ellipse((x1 + inset, y1 + inset, x2 - inset, y2 - inset), fill=PALETTE["card"])
-    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
-    draw.text(
-        (center_x, center_y), center_label, font=_font(22, True), fill=PALETTE["muted"], anchor="mm"
-    )
-
-
-def draw_progress_bar(
-    draw: ImageDraw.ImageDraw,
-    box: tuple[int, int, int, int],
-    value: int,
-    maximum: int,
-    *,
-    color: str = PALETTE["green"],
-) -> None:
-    x1, y1, x2, y2 = box
-    draw.rounded_rectangle(box, radius=(y2 - y1) // 2, fill=PALETTE["gray_light"])
-    if value <= 0 or maximum <= 0:
-        return
-    width = round((x2 - x1) * min(value, maximum) / maximum)
-    draw.rounded_rectangle((x1, y1, x1 + width, y2), radius=(y2 - y1) // 2, fill=color)
+def dashboard_tile_values(insights: dict[str, Any]) -> list[tuple[int, int, int, str, bool]]:
+    """Return number, correct, answered, rate label, and sample sufficiency."""
+    tiles = []
+    numbers = insights.get("numbers", {})
+    for number in range(1, 20):
+        values = numbers.get(number, {})
+        answered = max(0, int(values.get("answered_tasks", 0)))
+        correct = min(answered, max(0, int(values.get("correct", 0))))
+        rate = success_label({"answered_tasks": answered, "correct": correct})
+        tiles.append((number, correct, answered, rate, answered >= MIN_ANSWERED_SAMPLE))
+    return tiles
 
 
 def _recommendation(insights: dict[str, Any]) -> str:
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is not None:
-        return f"Поработай над №{number}: сейчас у него самая низкая успешность."
-    if not has_recommendation_sample(insights["numbers"]):
-        return f"Для оценки нужно не менее {MIN_ANSWERED_SAMPLE} ответов на номер."
-    return "По текущим ответам явного слабого номера нет."
+        return f"Можно потренировать №{number}."
+    sampled_count = recommendation_sample_count(insights["numbers"])
+    if sampled_count < 2 or not has_recommendation_sample(insights["numbers"]):
+        return f"Пока недостаточно данных: нужно {MIN_ANSWERED_SAMPLE} ответов на номер."
+    return "По изученным номерам явной слабой темы нет."
 
 
 def render_overview(insights: dict[str, Any]) -> Image.Image:
     total = insights["total"]
-    completed = int(total["completed"])
-    segments = _exclusive_segments(total)
-    image = _canvas(960)
+    image = _canvas(1240)
     draw = ImageDraw.Draw(image)
-    y = draw_heading(draw, "Мой прогресс", "ОГЭ по математике", eyebrow="ТВОЯ ПРАКТИКА")
+    draw.text((PAD, 24), "Мой прогресс", font=_font(42, True), fill=PALETTE["ink"])
+    draw.text((PAD, 76), "ОГЭ по математике · задания №1–19", font=_font(23), fill=PALETTE["muted"])
 
-    rounded_card(image, (PAD, y, WIDTH - PAD, y + 124), fill=PALETTE["blue_light"])
-    draw = ImageDraw.Draw(image)
-    draw.text((PAD + 30, y + 19), "ЗАДАНИЙ ЗАВЕРШЕНО", font=_font(29, True), fill=PALETTE["muted"])
-    draw_fitted_text(
-        draw,
-        (PAD + 30, y + 49),
-        str(completed),
-        max_width=500,
-        size=76,
-        minimum_size=30,
-        fill=PALETTE["ink"],
-        bold=True,
+    metric_y, metric_h, metric_gap = 122, 112, 12
+    metric_width = (WIDTH - 2 * PAD - 2 * metric_gap) // 3
+    metrics = (
+        ("Верно", str(max(0, int(total.get("correct", 0))))),
+        ("Успешность", success_label(total)),
+        ("Пропущено", str(max(0, int(total.get("skipped", 0))))),
     )
-
-    chart_y = y + 140
-    chart_height = 430
-    rounded_card(image, (PAD, chart_y, WIDTH - PAD, chart_y + chart_height))
-    draw = ImageDraw.Draw(image)
-    draw.text((PAD + 28, chart_y + 20), "Результаты", font=_font(32, True), fill=PALETTE["ink"])
-    donut_box = (PAD + 35, chart_y + 72, PAD + 375, chart_y + 412)
-    draw_donut(image, donut_box, segments)
-    draw = ImageDraw.Draw(image)
-    legend_x = PAD + 415
-    legend_y = chart_y + 74
-    legend_font = _font(29)
-    legend_line_height = round(legend_font.getbbox("Тд")[3] - legend_font.getbbox("Тд")[1])
-    for label, value, color in segments:
-        lines = wrap_text(draw, label, legend_font, 425, max_lines=2)
-        draw.ellipse((legend_x, legend_y + 7, legend_x + 22, legend_y + 29), fill=color)
-        _draw_wrapped(
+    for index, (label, value) in enumerate(metrics):
+        x = PAD + index * (metric_width + metric_gap)
+        _card(image, (x, metric_y, x + metric_width, metric_y + metric_h), radius=20)
+        draw = ImageDraw.Draw(image)
+        draw_fitted_text(
             draw,
-            (legend_x + 34, legend_y),
-            label,
-            legend_font,
-            PALETTE["ink"],
-            425,
-            max_lines=2,
-            line_gap=0,
+            (x + 18, metric_y + 12),
+            value,
+            max_width=metric_width - 36,
+            size=46,
+            minimum_size=24,
+            fill=PALETTE["blue"],
+            bold=True,
+        )
+        draw.text((x + 18, metric_y + 73), label, font=_font(22), fill=PALETTE["muted"])
+
+    draw = ImageDraw.Draw(image)
+    draw.text((PAD, 252), "Результаты по номерам", font=_font(24, True), fill=PALETTE["ink"])
+    for number, correct, answered, rate, sufficient in dashboard_tile_values(insights):
+        index = number - 1
+        row, column = divmod(index, GRID_COLUMNS)
+        x = GRID_LEFT + column * (TILE_WIDTH + TILE_GAP_X)
+        y = GRID_TOP + row * (TILE_HEIGHT + TILE_GAP_Y)
+        _card(image, (x, y, x + TILE_WIDTH, y + TILE_HEIGHT), radius=18)
+        draw = ImageDraw.Draw(image)
+        stripe = PALETTE["blue"] if sufficient else PALETTE["line"]
+        draw.rounded_rectangle(
+            (x + 12, y + 15, x + 18, y + TILE_HEIGHT - 15), radius=4, fill=stripe
+        )
+        draw.text(
+            (x + 28, y + 14),
+            f"№{number}",
+            font=_font(22, True),
+            fill=PALETTE["ink"] if sufficient else PALETTE["muted"],
+        )
+        draw.text(
+            (x + 28, y + 52), f"{correct}/{answered}", font=_font(25, True), fill=PALETTE["ink"]
         )
         draw_fitted_text(
             draw,
-            (WIDTH - PAD - 27, legend_y + 1),
-            str(value),
-            max_width=90,
-            size=30,
-            minimum_size=22,
-            fill=PALETTE["ink"],
+            (x + TILE_WIDTH - 14, y + 53),
+            rate,
+            max_width=78,
+            size=28,
+            minimum_size=21,
+            fill=PALETTE["blue"] if sufficient else PALETTE["neutral"],
             bold=True,
             anchor="rt",
         )
-        legend_y += max(43, len(lines) * legend_line_height + 9)
 
-    bottom_y = chart_y + chart_height + 14
-    card_gap = 14
-    card_width = (WIDTH - 2 * PAD - card_gap) // 2
-    bottom_height = 172
-    rounded_card(image, (PAD, bottom_y, PAD + card_width, bottom_y + bottom_height))
-    rounded_card(
-        image, (PAD + card_width + card_gap, bottom_y, WIDTH - PAD, bottom_y + bottom_height)
-    )
+    rec_y = GRID_TOP + GRID_ROWS * (TILE_HEIGHT + TILE_GAP_Y) - TILE_GAP_Y + 18
+    _card(image, (PAD, rec_y, WIDTH - PAD, rec_y + 88), radius=18, fill=PALETTE["blue_light"])
     draw = ImageDraw.Draw(image)
-    draw.text((PAD + 24, bottom_y + 18), "Ошибки были", font=_font(28, True), fill=PALETTE["muted"])
     draw.text(
-        (PAD + 24, bottom_y + 55),
-        f"в {int(total['error_tasks'])} заданиях",
-        font=_font(36, True),
-        fill=PALETTE["red"] if total["error_tasks"] else PALETTE["ink"],
+        (PAD + 20, rec_y + 12), _recommendation(insights), font=_font(22, True), fill=PALETTE["ink"]
     )
-    _draw_wrapped(
-        draw,
-        (PAD + 24, bottom_y + 105),
-        "Ошибки могут быть и в решённых заданиях.",
-        _font(27),
-        PALETTE["muted"],
-        card_width - 46,
-        max_lines=2,
-        line_gap=2,
-    )
-
-    right_x = PAD + card_width + card_gap + 24
     draw.text(
-        (right_x, bottom_y + 18),
-        "На что обратить внимание",
-        font=_font(27, True),
-        fill=PALETTE["muted"],
+        (PAD + 20, rec_y + 49), "Пропуски показаны отдельно.", font=_font(19), fill=PALETTE["muted"]
     )
-    recommendation = _recommendation(insights)
-    _draw_wrapped(
-        draw,
-        (right_x, bottom_y + 60),
-        recommendation,
-        _font(34, True),
-        PALETTE["blue"],
-        card_width - 46,
-        max_lines=2,
-        line_gap=3,
-    )
-    return image.crop((0, 0, WIDTH, bottom_y + bottom_height + 24)).convert("RGB")
-
-
-def render_numbers(insights: dict[str, Any], offset: int) -> Image.Image:
-    start = 1 + (offset // NUMBER_PAGE_SIZE) * NUMBER_PAGE_SIZE
-    stop = min(start + NUMBER_PAGE_SIZE, 20)
-    visible = list(range(start, stop))
-    image = _canvas(1200)
-    draw = ImageDraw.Draw(image)
-    page_title = f"№{start}–{stop - 1}"
-    y = draw_heading(draw, "По номерам", "Успешность по задачам с ответом", eyebrow=page_title)
-    for number in visible:
-        values = insights["numbers"].get(number, {})
-        issued = int(values.get("issued", 0))
-        answered = int(values.get("answered_tasks", 0))
-        correct = int(values.get("correct", 0))
-        errors = int(values.get("error_tasks", 0))
-        skipped = int(values.get("skipped", 0))
-        row_y = y
-        rounded_card(image, (PAD, row_y, WIDTH - PAD, row_y + 124))
-        draw = ImageDraw.Draw(image)
-        number_fill = PALETTE["blue_light"] if issued else PALETTE["gray_light"]
-        draw.rounded_rectangle(
-            (PAD + 20, row_y + 21, PAD + 112, row_y + 103), radius=22, fill=number_fill
-        )
-        draw.text(
-            (PAD + 66, row_y + 62),
-            str(number),
-            font=_font(49, True),
-            fill=PALETTE["blue"] if issued else PALETTE["gray"],
-            anchor="mm",
-        )
-        text_x = PAD + 138
-        if issued:
-            result_text = (f"{correct} из {answered} с ответом · {success_label(values)}"
-                           if answered else "Нет ответов · успешность —")
-            draw.text(
-                (text_x, row_y + 10),
-                result_text,
-                font=_font(36, True),
-                fill=PALETTE["ink"],
-            )
-            if answered >= MIN_ANSWERED_SAMPLE:
-                draw_progress_bar(
-                    draw, (text_x, row_y + 52, WIDTH - PAD - 36, row_y + 67),
-                    correct, answered, color=PALETTE["blue"],
-                )
-            if answered < MIN_ANSWERED_SAMPLE:
-                note = (f"Мало данных · ответов: {answered}/{MIN_ANSWERED_SAMPLE} · "
-                        f"ошибки: {errors} · пропуски: {skipped}")
-                note_color = PALETTE["muted"]
-            else:
-                note = f"Ошибки: {errors}   ·   Пропуски: {skipped}"
-                note_color = PALETTE["muted"]
-            draw.text((text_x, row_y + 78), note, font=_font(28), fill=note_color)
-        else:
-            draw.text(
-                (text_x, row_y + 30), "Пока без занятий", font=_font(32), fill=PALETTE["muted"]
-            )
-            draw_progress_bar(
-                draw,
-                (text_x, row_y + 72, WIDTH - PAD - 36, row_y + 86),
-                0,
-                0,
-                color=PALETTE["gray"],
-            )
-        y += 136
-    return image.crop((0, 0, WIDTH, y - 12 + 26)).convert("RGB")
-
-
-def _status(record: dict[str, Any]) -> tuple[str, str, str | None]:
-    outcome = record.get("outcome")
-    attempts = record.get("attempt_records") or []
-    if outcome in {"issued", "active", "pending"}:
-        return "В процессе", PALETTE["muted"], None
-    if outcome == "solved":
-        success = next((item for item in attempts if item.get("is_correct")), None)
-        if success is not None and success.get("used_hint") is True:
-            note = "Была ошибка" if record.get("has_error") else None
-            return "Верно с подсказкой", PALETTE["blue"], note
-        if success is not None and success.get("used_hint") is None:
-            attempt_no = success.get("attempt_no")
-            label = (
-                f"Верно · попытка {attempt_no}" if attempt_no in {1, 2} else "Верно · старые данные"
-            )
-            return label, PALETTE["green"], "Подсказка неизвестна"
-        if success is not None and success.get("attempt_no") == 2:
-            return "Верно со 2-й попытки", PALETTE["green"], "Была ошибка"
-        if success is not None and success.get("attempt_no") == 1:
-            note = "Была ошибка" if record.get("has_error") else None
-            return "Верно с 1-й попытки", PALETTE["green"], note
-        return "Верно · старые данные", PALETTE["green"], "Подсказка неизвестна"
-    if outcome == "failed":
-        return "Две ошибки", PALETTE["red"], None
-    if outcome == "skipped":
-        return "Пропущено", PALETTE["gray"], None
-    if outcome == "solution_viewed":
-        note = "Была ошибка" if record.get("has_error") else None
-        return "Открыт разбор", PALETTE["purple"], note
-    return "Результат неизвестен", PALETTE["gray"], None
-
-
-def _date_label(value: Any) -> str:
-    if isinstance(value, datetime | date):
-        return value.strftime("%d.%m.%Y")
-    return "Дата неизвестна"
-
-
-def _record_title(record: dict[str, Any]) -> str:
-    family_id = str(record.get("family_id", ""))
-    if family_id.startswith("OGE15:"):
-        story = _STORY_NAMES.get(family_id.partition(":")[2], "Практика")
-        position = record.get("number", "")
-        return f"№1–5 · {story}, вопрос {position}"
-    number = record.get("number", "?")
-    name = record.get("family_name") or family_name(family_id)
-    return f"№{number} · {name}"
-
-
-def draw_history_row(
-    image: Image.Image,
-    record: dict[str, Any],
-    box: tuple[int, int, int, int],
-) -> None:
-    x1, y1, x2, y2 = box
-    rounded_card(image, box)
-    draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((x1 + 20, y1 + 21, x1 + 33, y2 - 21), radius=6, fill=_status(record)[1])
-    title = _record_title(record)
-    text_x, max_width = x1 + 60, x2 - x1 - 88
-    date = _date_label(record.get("issued_at"))
-    draw.text((text_x, y1 + 11), date, font=_font(29), fill=PALETTE["muted"])
-    status, status_color, note = _status(record)
-    title_font = _font(34, True)
-    title_lines = wrap_text(draw, title, title_font, max_width, max_lines=2)
-    title_line_height = round(title_font.getbbox("Тд")[3] - title_font.getbbox("Тд")[1])
-    _draw_wrapped(
-        draw,
-        (text_x, y1 + 42),
-        title,
-        title_font,
-        PALETTE["ink"],
-        max_width,
-        max_lines=2,
-        line_gap=2,
-    )
-    title_end = y1 + 42 + len(title_lines) * (title_line_height + 2)
-    status_y = max(y1 + 84, title_end + 8)
-    chip_text = status
-    chip_font = _font(30, True)
-    chip_width = min(max_width, _measure(draw, chip_text, chip_font) + 28)
-    chip_fill = {
-        PALETTE["green"]: PALETTE["green_light"],
-        PALETTE["blue"]: PALETTE["blue_light"],
-        PALETTE["red"]: PALETTE["red_light"],
-        PALETTE["purple"]: PALETTE["purple_light"],
-    }.get(status_color, PALETTE["gray_light"])
-    draw.rounded_rectangle(
-        (text_x, status_y, text_x + chip_width, status_y + 40), radius=17, fill=chip_fill
-    )
-    _draw_wrapped(
-        draw,
-        (text_x + 13, status_y + 3),
-        chip_text,
-        _font(28, True),
-        status_color,
-        max(1, chip_width - 28),
-        max_lines=1,
-        line_gap=0,
-    )
-    if note:
-        note_color = PALETTE["red"] if note == "Была ошибка" else PALETTE["muted"]
-        note_x = min(text_x + chip_width + 14, x2 - 210)
-        _draw_wrapped(
-            draw,
-            (note_x, status_y + 6),
-            note,
-            _font(27),
-            note_color,
-            max(1, x2 - 20 - note_x),
-            max_lines=1,
-            line_gap=0,
-        )
-
-
-def _history_row_height(record: dict[str, Any]) -> int:
-    measure = ImageDraw.Draw(Image.new("RGB", (1, 1)))
-    font = _font(34, True)
-    title_lines = wrap_text(measure, _record_title(record), font, WIDTH - 2 * PAD - 88, 2)
-    line_height = round(font.getbbox("Тд")[3] - font.getbbox("Тд")[1])
-    status_y = max(84, 42 + len(title_lines) * (line_height + 2) + 8)
-    return status_y + 55
-
-
-def render_history(insights: dict[str, Any], page: str) -> Image.Image:
-    section = page.partition(":")[0]
-    errors_only = section == "errors"
-    records = insights["errors"] if errors_only else insights["history"]
-    count = int(insights.get("page_total", len(records)))
-    title = "Ошибки" if errors_only else "История"
-    subtitle = (
-        f"{count} заданий с ошибками" if errors_only else f"Последние занятия · {count} записей"
-    )
-    eyebrow = "РАЗБОР ПОПЫТОК" if errors_only else "ИСТОРИЯ ЗАНЯТИЙ"
-    measure_image = _canvas(220)
-    y = draw_heading(ImageDraw.Draw(measure_image), title, subtitle, eyebrow=eyebrow)
-    if not records:
-        card_height = 164
-        image = _canvas(y + card_height + 24)
-        draw = ImageDraw.Draw(image)
-        draw_heading(draw, title, subtitle, eyebrow=eyebrow)
-        rounded_card(image, (PAD, y, WIDTH - PAD, y + card_height))
-        draw = ImageDraw.Draw(image)
-        draw.ellipse(
-            (WIDTH // 2 - 29, y + 18, WIDTH // 2 + 29, y + 76), fill=PALETTE["green_light"]
-        )
-        draw.text(
-            (WIDTH // 2, y + 47), "✓", font=_font(32, True), fill=PALETTE["green"], anchor="mm"
-        )
-        message = "Пока нет записей" if not errors_only else "Ошибок пока нет"
-        draw.text(
-            (WIDTH // 2, y + 103), message, font=_font(34, True), fill=PALETTE["ink"], anchor="mm"
-        )
-        draw.text(
-            (WIDTH // 2, y + 137),
-            "Здесь появятся результаты практики",
-            font=_font(27),
-            fill=PALETTE["muted"],
-            anchor="mm",
-        )
-        return image.convert("RGB")
-    row_heights = [_history_row_height(record) for record in records[:PAGE_SIZE]]
-    image_height = y + sum(row_heights) + 14 * (len(row_heights) - 1) + 24
-    image = _canvas(image_height)
-    draw = ImageDraw.Draw(image)
-    y = draw_heading(draw, title, subtitle, eyebrow=eyebrow)
-    for record in records[:PAGE_SIZE]:
-        row_y = y
-        row_height = _history_row_height(record)
-        draw_history_row(image, record, (PAD, row_y, WIDTH - PAD, row_y + row_height))
-        y += row_height + 14
-    return image.convert("RGB")
+    return image.crop((0, 0, WIDTH, rec_y + 102)).convert("RGB")
 
 
 def render_progress_image(insights: dict[str, Any], page: str = "summary") -> bytes:
-    section, _, raw_offset = page.partition(":")
-    offset = int(raw_offset) if raw_offset.isascii() and raw_offset.isdigit() else 0
-    if section == "numbers":
-        image = render_numbers(insights, offset)
-    elif section in {"history", "errors"}:
-        image = render_history(insights, page)
-    else:
-        image = render_overview(insights)
+    """Render the one-page, all-numbers dashboard; other screens are text."""
+    del page
+    image = render_overview(insights)
     output = io.BytesIO()
     image.save(output, format="PNG", optimize=True, compress_level=9)
     data = output.getvalue()
-    if len(data) > PHOTO_LIMIT or max(image.size) > 10000 or max(image.size) / min(image.size) > 20:
+    if len(data) > PHOTO_LIMIT or max(image.size) > 10000:
         raise ValueError("Progress image exceeds Telegram photo limits")
     return data
 
 
-def progress_image_keyboard(section: str, offset: int, total: int) -> InlineKeyboardMarkup:
-    rows = [
-        [
-            InlineKeyboardButton(text="📊 Обзор", callback_data="progress:summary"),
-            InlineKeyboardButton(text="📚 По номерам", callback_data="progress:numbers:0"),
-        ],
-        [
-            InlineKeyboardButton(text="🕘 История", callback_data="progress:history:0"),
-            InlineKeyboardButton(text="⚠️ Ошибки", callback_data="progress:errors:0"),
-        ],
-        [InlineKeyboardButton(text="↩ В меню", callback_data="nav:main")],
-    ]
-    if section == "numbers":
-        if offset > 0:
-            page_buttons = [
-                InlineKeyboardButton(text="← Назад", callback_data=(
-                    f"progress:numbers:{max(0, offset - NUMBER_PAGE_SIZE)}"
-                ))
-            ]
-        else:
-            page_buttons = []
-        if offset + NUMBER_PAGE_SIZE < 19:
-            page_buttons.append(
-                InlineKeyboardButton(
-                    text="Дальше →",
-                    callback_data=f"progress:numbers:{offset + NUMBER_PAGE_SIZE}"
-                )
-            )
-        if page_buttons:
-            rows.append(page_buttons)
-    elif section in {"history", "errors"}:
-        page_buttons = []
-        if offset > 0:
-            page_buttons.append(
-                InlineKeyboardButton(
-                    text="← Назад", callback_data=f"progress:{section}:{max(0, offset - PAGE_SIZE)}"
-                )
-            )
-        if offset + PAGE_SIZE < total:
-            page_buttons.append(
-                InlineKeyboardButton(
-                    text="Дальше →", callback_data=f"progress:{section}:{offset + PAGE_SIZE}"
-                )
-            )
-        if page_buttons:
-            rows.append(page_buttons)
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+def progress_image_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📊 Подробнее о номере", callback_data="progress:details")],
+            [
+                InlineKeyboardButton(text="⚠️ Мои ошибки", callback_data="progress:errors:0"),
+                InlineKeyboardButton(text="🕘 История", callback_data="progress:history:0"),
+            ],
+            [
+                InlineKeyboardButton(text="🔄 Обновить", callback_data="progress:refresh"),
+                InlineKeyboardButton(text="↩ В меню", callback_data="nav:main"),
+            ],
+        ]
+    )
 
 
-async def load_progress_page(repository: Any, user_id: int, page: str) -> dict[str, Any]:
-    insights = await training_insights(repository, user_id, page, PAGE_SIZE)
-    section = page.partition(":")[0]
-    if section in {"history", "errors"}:
-        records = insights[section]
-        for record in records:
-            record_id = record.get("record_id")
-            if isinstance(record_id, str):
-                detail = await training_record_detail(repository, user_id, record_id)
-                if detail is not None:
-                    record["attempt_records"] = detail.get("attempt_records", [])
-    return insights
+async def load_progress_page(
+    repository: Any, user_id: int, page: str = "summary"
+) -> dict[str, Any]:
+    del page
+    return await training_insights(repository, user_id, "summary")
 
 
 async def send_progress_image(
@@ -742,14 +267,11 @@ async def send_progress_image(
 
     insights = await load_progress_page(repository, user_id, page)
     try:
-        image = await asyncio.to_thread(render_progress_image, insights, page)
+        image = await asyncio.to_thread(render_progress_image, insights)
     except (OSError, RuntimeError, ValueError):
         logger.warning("progress_png_render_unavailable")
         return False
-    section, _, raw_offset = page.partition(":")
-    offset = int(raw_offset) if raw_offset.isascii() and raw_offset.isdigit() else 0
-    markup = progress_image_keyboard(section, offset, int(insights.get("page_total", 0)))
-    markup = cast(InlineKeyboardMarkup, prepare_navigation_markup(markup))
+    markup = cast(InlineKeyboardMarkup, prepare_navigation_markup(progress_image_keyboard()))
     photo = BufferedInputFile(image, filename="progress.png")
     try:
         if edit_existing:
@@ -759,9 +281,6 @@ async def send_progress_image(
     except (TelegramBadRequest, TelegramNotFound):
         logger.warning("progress_png_delivery_unavailable")
         return False
-    if isinstance(sent, Message):
-        nav_message = sent
-    else:
-        nav_message = cast(Message, message)
+    nav_message = sent if isinstance(sent, Message) else cast(Message, message)
     await bind_navigation(nav_message, repository, user_id, "progress", navigation_revision(markup))
     return True

@@ -171,24 +171,35 @@ async def exercise_navigation(
         await click("nav:main")
         await click("nav:progress")
         assert await repository.user_state(42) == "progress"
+        assert (await repository.task6_progress(42))["issued"] == 0
         overview_photo = list(session.messages.values())[-1]
         assert overview_photo.photo
         assert not any(call.__api_method__ == "sendWidget" for call in session.calls)
         keyboard = overview_photo.reply_markup.inline_keyboard
         assert [[button.text for button in row] for row in keyboard[:3]] == [
-            ["📊 Обзор", "📚 По номерам"],
-            ["🕘 История", "⚠️ Ошибки"],
-            ["↩ В меню"],
+            ["📊 Подробнее о номере"],
+            ["⚠️ Мои ошибки", "🕘 История"],
+            ["🔄 Обновить", "↩ В меню"],
         ]
         before_edits = sum(call.__api_method__ == "editMessageMedia" for call in session.calls)
-        await click("progress:numbers:0", overview_photo)
+        await click("progress:refresh", overview_photo)
         edit_count = sum(call.__api_method__ == "editMessageMedia" for call in session.calls)
         assert edit_count == before_edits + 1
-        numbers_photo = list(session.messages.values())[-1]
-        await click("progress:numbers:7", numbers_photo)
+        await click("progress:details")
+        await click("progress:number:6")
+        number_detail = list(session.messages.values())[-1]
+        assert "№6" in (number_detail.text or "")
+        assert any(
+            (button.callback_data or "").partition("~")[0] == "nav:task:6"
+            for row in number_detail.reply_markup.inline_keyboard
+            for button in row
+        )
+        await click("progress:summary")
         await click("progress:history:0")
+        await click("progress:summary")
         await click("progress:errors:0")
         assert await repository.user_state(42) == "progress"
+        await click("progress:summary")
         await click("nav:main")
         update_id += 1
         await feed(
@@ -241,6 +252,21 @@ async def exercise_navigation(
         assert (await repository.task6_progress(42))["issued"] == 2
         assert await repository.user_state(42) == "task6"
         restarted_problem_id = restarted["problem"]["problem_id"]
+        wrong_answer = "1" if str(restarted["problem"]["correct_answer"]) == "0" else "0"
+        update_id += 1
+        await feed(
+            Update(
+                update_id=update_id,
+                message=Message(
+                    message_id=700 + update_id,
+                    date=datetime.now(UTC),
+                    chat=Chat(id=42, type="private"),
+                    from_user=user,
+                    text=wrong_answer,
+                ),
+            )
+        )
+        assert (await repository.task6_progress(42))["attempts"] == 1
         await click(f"t6:menu:{restarted_problem_id}")
         await click("nav:numbers")
         await click("nav:task:8")
@@ -250,8 +276,37 @@ async def exercise_navigation(
         await click("nav:progress")
         assert list(session.messages.values())[-1].photo
         assert not any(call.__api_method__ == "sendWidget" for call in session.calls)
-        await click("progress:numbers:0")
+        await click("progress:details")
+        await click("progress:number:8")
         assert await repository.user_state(42) == "progress"
+        await click("progress:summary")
+        from app.persistence.training_insights import training_insights
+
+        before_history_view = await training_insights(repository, 42)
+        await click("progress:errors:0")
+        error_list = list(session.messages.values())[-1]
+        item_action = next(
+            button.callback_data.partition("~")[0]
+            for row in error_list.reply_markup.inline_keyboard
+            for button in row
+            if (button.callback_data or "").startswith("progress:item:")
+        )
+        await click(item_action)
+        error_detail = list(session.messages.values())[-1]
+        assert "Ошибка была: да" in (error_detail.text or "")
+        assert str(restarted["problem"]["condition"]) in (error_detail.text or "")
+        return_action = next(
+            button.callback_data.partition("~")[0]
+            for row in error_detail.reply_markup.inline_keyboard
+            for button in row
+            if (button.callback_data or "").startswith("progress:return:")
+        )
+        await click(return_action)
+        assert "Мои ошибки" in (list(session.messages.values())[-1].text or "")
+        after_history_view = await training_insights(repository, 42)
+        assert before_history_view["total"] == after_history_view["total"]
+        assert before_history_view["numbers"] == after_history_view["numbers"]
+        await click("progress:summary")
         await click("nav:main")
         assert (await repository.task6_state(42))["problem"]["problem_id"] == restarted_problem_id
         await click("nav:display")

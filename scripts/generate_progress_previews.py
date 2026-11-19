@@ -1,144 +1,86 @@
-"""Generate deterministic fictional Telegram progress dashboard previews."""
+"""Generate deterministic fictional previews for the unified progress screen."""
 
 from __future__ import annotations
 
-import io
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
 from app.bot.progress_image import render_progress_image
-from app.persistence.training_insights import summarize
+from app.persistence.training_insights import NUMBERS, summarize
 
 OUTPUT = Path("reports/previews")
 
 
-def _record(
-    index: int,
-    outcome: str,
-    attempts: list[dict[str, Any]],
-    **extra: Any,
-) -> dict[str, Any]:
-    number = index % 14 + 1
+def _record(number: int, index: int, outcome: str, correct: bool = False) -> dict[str, Any]:
     family = "OGE15:PAPER" if number <= 5 else f"OGE{number:02}-F001"
+    attempts = (
+        [{"attempt_no": 1, "is_correct": True, "used_hint": False}]
+        if correct
+        else [{"attempt_no": 1, "is_correct": False, "used_hint": False}]
+    )
+    if outcome in {"skipped", "solution_viewed"} and index % 2 == 0:
+        attempts = []
     return {
         "number": number,
         "family_id": family,
         "outcome": outcome,
         "attempt_records": attempts,
-        "issued_at": datetime(2026, 11, 14, tzinfo=UTC) - timedelta(hours=107 - index),
-        "condition": f"Учебный пример {index + 1}",
-        **extra,
+        "issued_at": datetime(2026, 11, 14, tzinfo=UTC),
+        "condition": f"Демонстрационная задача {number}.{index + 1}",
     }
 
 
-def demo_insights() -> dict[str, Any]:
+def demo_insights(kind: str) -> dict[str, Any]:
     records: list[dict[str, Any]] = []
-    for index in range(14):
-        records.append(
-            _record(
-                index,
-                "solved",
-                [
-                    {"attempt_no": 1, "is_correct": True, "used_hint": False},
-                ],
-            )
+    if kind == "partial":
+        records.extend(
+            _record(6, i, "solved" if i < 3 else "failed", correct=i < 3) for i in range(4)
         )
-    for index in range(6):
-        records.append(
-            _record(
-                14 + index,
-                "solved",
-                [
-                    {"attempt_no": 1, "is_correct": False, "used_hint": False},
-                    {"attempt_no": 2, "is_correct": True, "used_hint": True},
-                ],
-            )
+        records.extend(
+            _record(11, i, "solved" if i < 2 else "failed", correct=i < 2) for i in range(5)
         )
-    for index in range(4):
-        records.append(
-            _record(
-                20 + index,
-                "solved",
-                [
-                    {"attempt_no": 1, "is_correct": False},
-                    {"attempt_no": 2, "is_correct": True},
-                ],
+        records.extend(_record(14, i, "skipped") for i in range(3))
+    elif kind == "full":
+        for number in NUMBERS:
+            answered = 5 + number % 4
+            correct_count = (number * 3) % (answered + 1)
+            records.extend(
+                _record(
+                    number,
+                    index,
+                    "solved" if index < correct_count else "failed",
+                    correct=index < correct_count,
+                )
+                for index in range(answered)
             )
-        )
-    for index in range(8):
-        records.append(
-            _record(
-                24 + index,
-                "failed",
-                [
-                    {"attempt_no": 1, "is_correct": False},
-                    {"attempt_no": 2, "is_correct": False},
-                ],
+            records.extend(
+                _record(number, index + answered, "skipped") for index in range(number % 3)
             )
-        )
-    for index in range(35):
-        attempts = [{"attempt_no": 1, "is_correct": False}] if index < 7 else []
-        records.append(_record(32 + index, "skipped", attempts))
-    for index in range(5):
-        attempts = [{"attempt_no": 1, "is_correct": False}] if index < 3 else []
-        records.append(_record(67 + index, "solution_viewed", attempts, solution_viewed=True))
-    insights = summarize(records)
-    assert insights["total"]["completed"] == 72
-    assert insights["total"]["skipped"] == 35
-    assert insights["total"]["unassisted_correct"] == 14
-    assert insights["total"]["assisted_correct"] == 6
-    assert insights["total"]["unknown_assistance"] == 4
-    assert insights["total"]["failed"] == 8
-    assert insights["total"]["solutions_viewed"] == 5
-    return insights
+    elif kind != "empty":
+        raise ValueError(f"Unknown preview kind: {kind}")
+    return summarize(records)
 
 
 def generate() -> list[Path]:
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    insights = demo_insights()
-    first_history = dict(insights)
-    first_history["history"] = [
-        insights["history"][14],  # solved with a hint after a wrong attempt
-        insights["history"][20],  # correct attempt, legacy hint usage is unknown
-        insights["history"][24],  # two errors
-        insights["history"][32],  # skipped
-    ]
-    first_history["page_total"] = len(insights["history"])
-
-    error_page = dict(insights)
-    error_page["errors"] = [
-        insights["history"][14],  # wrong first answer, then correct with a hint
-        insights["history"][24],  # two wrong answers
-        insights["history"][67],  # opened solution after an error
-        insights["history"][20],  # second attempt correct; hint usage is unknown
-    ]
-    error_page["page_total"] = len(insights["errors"])
-
-    empty = summarize([])
-    pages = [
-        ("progress-dashboard-overview.png", insights, "summary"),
-        ("progress-dashboard-numbers-1-7.png", insights, "numbers:0"),
-        ("progress-dashboard-numbers-8-14.png", insights, "numbers:7"),
-        ("progress-dashboard-history.png", first_history, "history:0"),
-        ("progress-dashboard-errors.png", error_page, "errors:0"),
-        ("progress-dashboard-empty.png", empty, "summary"),
-    ]
     output: list[Path] = []
-    for filename, data, page in pages:
-        path = OUTPUT / filename
-        rendered = render_progress_image(data, page)
-        path.write_bytes(rendered)
+    for kind in ("empty", "partial", "full"):
+        png = render_progress_image(demo_insights(kind))
+        path = OUTPUT / f"progress-{kind}.png"
+        path.write_bytes(png)
         output.append(path)
-        with Image.open(io.BytesIO(rendered)) as image:
-            reduced = image.convert("RGB").resize(
-                (375, round(image.height * 375 / image.width)), Image.Resampling.LANCZOS
-            )
-        reduced_path = OUTPUT / f"{path.stem}-375.png"
-        reduced.save(reduced_path, format="PNG", optimize=True, compress_level=9)
-        output.append(reduced_path)
+        with Image.open(path) as image:
+            for width in (360, 390):
+                resized = image.resize(
+                    (width, round(image.height * width / image.width)),
+                    Image.Resampling.LANCZOS,
+                )
+                reduced_path = OUTPUT / f"progress-{kind}-{width}.png"
+                resized.save(reduced_path, format="PNG", optimize=True, compress_level=9)
+                output.append(reduced_path)
     return output
 
 

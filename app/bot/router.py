@@ -2560,12 +2560,12 @@ async def show_progress_details(
         return
     await _pause_oge15_foreground(user_id, oge15_repository)
     await repository.save_user_state(user_id, "progress")
-    insights = await training_insights(repository, user_id, "numbers")
+    insights = await training_insights(repository, user_id)
     await send_text(
         message,
         repository,
-        render_progress(insights, "numbers"),
-        reply_markup=progress_keyboard("numbers"),
+        render_progress(insights, "details"),
+        reply_markup=progress_keyboard("details"),
     )
 
 

@@ -27,7 +27,6 @@ from app.bot.router import (
     choose_task16,
     choose_task17,
     choose_task18,
-    show_progress_details,
     task6_answer,
     task6_callback,
     task7_answer,
@@ -588,26 +587,24 @@ async def test_task7_history_is_visible_in_detailed_progress(
     problem = state["problem"]
 
     await task7_answer(_message(user_id, str(problem["correct_answer"])), repository)
-    details = _message(user_id, "📊 Подробнее")
-    await show_progress_details(details, repository)
+    from app.bot.progress import load_progress_text_page, render_progress
+    from app.persistence.training_insights import family_name, training_insights
 
-    assert "№7 · ответили 1 · верно 1 · 100% · пропущено 0" in details.answer.await_args.args[0]
-    buttons = details.answer.await_args.kwargs["reply_markup"].inline_keyboard
-    assert any(
-        (button.callback_data or "").partition("~")[0] == "progress:history"
-        for row in buttons
-        for button in row
-    )
-    from app.bot.progress import show_progress as show_progress_page
-    from app.persistence.training_insights import family_name
+    details = await training_insights(repository, user_id)
+    number_text = render_progress(details, "number:7")
+    assert "№7" in number_text
+    assert "Задач с ответом: 1" in number_text
+    assert "Решено правильно: 1" in number_text
+    assert "Успешность: 100%" in number_text
 
-    history = _message(user_id, "История")
-    await show_progress_page(history, repository, user_id, page="history")
-    rendered = history.answer.await_args.args[0]
+    history_data = await load_progress_text_page(repository, user_id, "history:0")
+    rendered = render_progress(history_data, "history:0")
     assert "История" in rendered and "№7" in rendered
     assert family_name(str(problem["family_id"])) in rendered
-    assert " ".join(str(problem["condition"]).split())[:120] in rendered
     assert "решено" in rendered
+    history_record = history_data["history"][0]
+    item_text = render_progress({"detail": history_record}, "item")
+    assert " ".join(str(problem["condition"]).split()) in item_text
 
 
 @pytest.mark.asyncio
