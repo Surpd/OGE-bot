@@ -37,6 +37,8 @@ from app.bot.scenario_training import (
 from app.bot.scenario_training import (
     render_session as render_oge15_session,
 )
+from app.bot.task_view import answer_instruction, question_text, system_rows
+from app.bot.task_view import task13_is_graph_choice as _task13_is_graph_choice
 from app.bot.training_engine import (
     NUMERIC_TRAININGS,
     persist_open_training,
@@ -750,7 +752,7 @@ async def _send_task11_problem(
         f"{restored.condition}\n\n"
         + (
             (resumed_result(status, problem) or "") if terminal
-            else "Введите три цифры в порядке А, Б, В. Используйте 1, 2 и 3 по одному разу."
+            else answer_instruction(11, problem)
         )
     )
     sent = await send_photo(
@@ -1401,17 +1403,9 @@ async def _send_task7_problem(
             reply_markup=main_menu(),
         )
         return False
-    options = problem.get("options", [])
-    option_lines = (
-        "\n".join(f"{i}. {v}" for i, v in enumerate(options, 1))
-        if isinstance(options, list)
-        else ""
-    )
-    caption = (
-        "Задание №7 · числа и координатная прямая\n"
-        f"{problem['condition']}\n\n{option_lines}\n\n"
-        + ((resumed_result(status, problem) or "") if terminal else "Введите номер варианта 1–4.")
-    )
+    footer = resumed_result(status, problem) if terminal else answer_instruction(7, problem)
+    caption = f"Задание №7 · числа и координатная прямая\n{question_text(7, problem)}\n\n{footer}"
+
     encoded = problem.get("graph_png_base64")
     if isinstance(encoded, str):
         try:
@@ -1655,22 +1649,6 @@ async def task7_answer(message: Message, repository: Repository) -> None:
         await _disable_stale_keyboard(sent, saved)
 
 
-_TASK13_TEXT_FAMILIES = {"OGE13-L01", "OGE13-Q01", "OGE13-Q02", "OGE13-Q03"}
-
-
-def _task13_choice_text(problem: dict[str, object]) -> str:
-    choices = problem.get("option_texts", [])
-    if str(problem.get("family_id", "")) not in _TASK13_TEXT_FAMILIES or not isinstance(
-        choices, list
-    ):
-        return ""
-    return "\n".join(f"{index}. {choice}" for index, choice in enumerate(choices, 1))
-
-
-def _task13_is_graph_choice(problem: dict[str, object]) -> bool:
-    return str(problem.get("family_id", "")) not in _TASK13_TEXT_FAMILIES
-
-
 async def _send_task13_problem(
     message: Message,
     repository: Repository,
@@ -1762,22 +1740,12 @@ async def _send_task13_problem(
                 reply_markup=main_menu(),
             )
             return False
-    caption = (
-        "Задание №13 · неравенства\n"
-        f"{problem['condition']}\n\n"
-        + _task13_choice_text(problem)
-        + ("\n" if _task13_choice_text(problem) else "")
-        + (
-            (resumed_result(status, problem) or "") if terminal
-            else "Выберите один из вариантов (1–4) кнопкой или напишите его номер в чат."
-        )
+    footer = resumed_result(status, problem) if terminal else (
+        "Выберите вариант кнопкой или напишите его номер в чат."
     )
+    caption = f"Задание №13 · неравенства\n{question_text(13, problem)}\n\n{footer}"
     markup = task13_menu(problem_id, completed=terminal, choices=True)
-    system_rows = (
-        tuple(str(problem["condition"]).splitlines())
-        if str(problem.get("family_id", "")).startswith("OGE13-S")
-        else None
-    )
+    math_system_rows = system_rows(13, problem)
     if image is not None:
         sent = await send_photo(
             message,
@@ -1785,11 +1753,11 @@ async def _send_task13_problem(
             BufferedInputFile(image, filename="oge13-options.png"),
             caption=caption,
             reply_markup=markup,
-            math_system_rows=system_rows,
+            math_system_rows=math_system_rows,
         )
     else:
         sent = await send_text(
-            message, repository, caption, reply_markup=markup, math_system_rows=system_rows
+            message, repository, caption, reply_markup=markup, math_system_rows=math_system_rows
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:

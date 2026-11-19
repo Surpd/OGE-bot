@@ -72,11 +72,18 @@ def parse_record_ref(record_id: str) -> tuple[str, UUID, int]:
 async def load_replay_source(
     repository: Any, telegram_user_id: int, record_id: str
 ) -> ReplaySource:
-    """Load a confirmed error and prove that its original snapshot is still usable."""
+    """Load a confirmed mistake for a scored replay."""
+    return await load_original_source(repository, telegram_user_id, record_id, require_error=True)
+
+
+async def load_original_source(
+    repository: Any, telegram_user_id: int, record_id: str, *, require_error: bool = False,
+) -> ReplaySource:
+    """Prove that the owner can still see the exact issued question and materials."""
     source_type, source_id, position = parse_record_ref(record_id)
     if not hasattr(repository, "_pool"):
         return await _load_memory_source(repository, telegram_user_id, record_id, source_type,
-                                         source_id, position)
+                                         source_id, position, require_error=require_error)
     pool = repository._pool
     if source_type == "ordinary":
         row = await pool.fetchrow(
@@ -91,7 +98,7 @@ async def load_replay_source(
                GROUP BY p.id""",
             telegram_user_id, source_id,
         )
-        if row is None or not (row["has_error"] or row["outcome"] == "failed"):
+        if row is None or (require_error and not (row["has_error"] or row["outcome"] == "failed")):
             raise ValueError("Only confirmed incorrect answers can be repeated")
         snapshot = _object(row["snapshot"])
         snapshot = await asyncio.to_thread(
@@ -136,7 +143,7 @@ async def load_replay_source(
                GROUP BY p.id,s.id""",
             telegram_user_id, source_id,
         )
-        if row is None or not (row["has_error"] or row["outcome"] == "failed"):
+        if row is None or (require_error and not (row["has_error"] or row["outcome"] == "failed")):
             raise ValueError("Only confirmed incorrect answers can be repeated")
         snapshot = _object(row["snapshot"])
         if _digest(snapshot) != str(row["snapshot_sha256"]).strip():
@@ -180,7 +187,7 @@ async def load_replay_source(
              AND progress.status <> 'pending'""",
         telegram_user_id, source_id, position,
     )
-    if row is None or not (row["has_error"] or row["status"] == "failed"):
+    if row is None or (require_error and not (row["has_error"] or row["status"] == "failed")):
         raise ValueError("Only confirmed incorrect answers can be repeated")
     scenario_snapshot = _object(row["snapshot"])
     await asyncio.to_thread(_check_scenario_snapshot, scenario_snapshot, row["snapshot_sha256"])
@@ -195,6 +202,8 @@ async def _load_memory_source(
     source_type: str,
     source_id: UUID,
     position: int,
+    *,
+    require_error: bool,
 ) -> ReplaySource:
     from app.persistence.training_insights import training_record_detail
 
@@ -204,8 +213,10 @@ async def _load_memory_source(
         isinstance(attempt, dict) and attempt.get("is_correct") is False
         for attempt in attempt_records
     )
-    if not detail or not (
-        detail.get("has_error") or has_error or detail.get("outcome") == "failed"
+    if not detail or (
+        require_error and not (
+            detail.get("has_error") or has_error or detail.get("outcome") == "failed"
+        )
     ):
         raise ValueError("Only confirmed incorrect answers can be repeated")
     snapshot = detail.get("snapshot")

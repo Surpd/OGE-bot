@@ -19,6 +19,7 @@ from aiogram.types import (
 
 from app.bot.callbacks import answer_callback
 from app.bot.presentation import send_photo, send_text
+from app.bot.task_view import answer_instruction, question_text, system_rows, verified_photo
 from app.persistence.error_replay import (
     ErrorReplayRepository,
     ReplayAlreadyActive,
@@ -140,66 +141,11 @@ def _accepts(source: ReplaySource, raw: str) -> bool | None:
     return bool(policy.accepts(raw, answer))
 
 
-def _original_png(source: ReplaySource) -> bytes | None:
-    snapshot = source.snapshot
-    family = str(snapshot.get("family_id", ""))
-    if family.startswith("OGE11-"):
-        from app.math.oge11 import from_snapshot as restore_oge11
-
-        return restore_oge11(snapshot).png_bytes
-    if family.startswith("OGE13-"):
-        from app.bot.router import _task13_is_graph_choice
-        from app.math.inequalities import render_option_sheet_snapshot_png
-
-        if _task13_is_graph_choice(snapshot):
-            return render_option_sheet_snapshot_png(snapshot)
-        return None
-    if family.startswith("OGE15-"):
-        from app.math.oge15_triangles import from_snapshot as restore_oge15
-
-        image = restore_oge15(snapshot).png_bytes
-        return image or None
-    if family.startswith("OGE16-"):
-        from app.math.oge16_circles import from_snapshot as restore_oge16
-
-        return restore_oge16(snapshot).png
-    if family.startswith("OGE17-"):
-        from app.math.oge17_generator import from_snapshot as restore_oge17
-
-        problem_id = str(snapshot.get("problem_id", ""))
-        restored = restore_oge17(snapshot, expected_problem_id=problem_id).to_snapshot()
-        return base64.b64decode(str(restored["png_base64"]), validate=True)
-    if family.startswith("OGE18-"):
-        from app.math.oge18 import from_snapshot as restore_oge18
-
-        return restore_oge18(snapshot).png_bytes
-    for key in ("graph_png_base64", "png_base64", "image_base64", "picture_base64"):
-        payload = snapshot.get(key)
-        if isinstance(payload, str):
-            return base64.b64decode(payload, validate=True)
-    return None
-
-
 def _condition(source: ReplaySource) -> str:
-    condition = source.condition
-    if source.number == 7:
-        options = source.snapshot.get("options")
-        if not isinstance(options, list) or len(options) != 4:
-            raise ValueError("The original №7 options are unavailable")
-        condition += "\n\n" + "\n".join(
-            f"{index}. {option}" for index, option in enumerate(options, 1)
-        )
-        condition += "\n\nВведите номер варианта 1–4."
-    elif source.number == 13:
-        from app.bot.router import _task13_choice_text
-
-        choices = _task13_choice_text(source.snapshot)
-        if choices:
-            condition += "\n\n" + choices
-        condition += "\n\nВведите номер варианта 1–4."
-    elif source.number == 11:
-        condition += "\n\nВведите три цифры в порядке А, Б, В."
-    return condition
+    return (
+        question_text(source.number, source.snapshot) + "\n\n"
+        + answer_instruction(source.number, source.snapshot)
+    )
 
 
 async def _render(
@@ -230,21 +176,18 @@ async def _render(
                 caption=f"Данные задачи №{source.number}", user_id_override=user_id,
             )
     photo = photos[0] if photos and not context else None
-    system_rows = (
-        tuple(source.condition.splitlines())
-        if str(source.snapshot.get("family_id", "")).startswith("OGE13-S") else None
-    )
+    math_system_rows = system_rows(source.number, source.snapshot)
     markup = _keyboard(token, completed=completed)
     if photo is not None:
         sent = await send_photo(
             message, repository, BufferedInputFile(photo, filename="original-task.png"),
             caption=body, reply_markup=markup, user_id_override=user_id,
-            math_system_rows=system_rows,
+            math_system_rows=math_system_rows,
         )
     else:
         sent = await send_text(
             message, repository, body, reply_markup=markup, user_id_override=user_id,
-            rich_with_navigation=True, math_system_rows=system_rows,
+            rich_with_navigation=True, math_system_rows=math_system_rows,
         )
     await store.set_prompt(user_id, UUID(str(replay["id"])), sent.message_id)
 
@@ -260,7 +203,7 @@ def _materials(source: ReplaySource) -> tuple[str, tuple[bytes, ...]]:
             scenario_context_for_question(snapshot, source.number),
             scenario_photos_for_question(snapshot, source.number),
         )
-    photo = _original_png(source)
+    photo = verified_photo(source.number, source.snapshot)
     return "", (photo,) if photo is not None else ()
 
 

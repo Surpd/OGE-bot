@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 from datetime import date, datetime
 from typing import Any
@@ -516,7 +517,15 @@ async def progress_navigation(
                 pass
         return
 
+    math_system_rows: tuple[str, ...] | None = None
     if section in {"item"} and len(parts) == 3:
+        from aiogram.types import BufferedInputFile
+
+        from app.bot.error_replay import _materials
+        from app.bot.presentation import send_photo
+        from app.bot.task_view import question_text, system_rows
+        from app.persistence.error_replay import ErrorReplayRepository, load_original_source
+
         replay_action = None
         try:
             record_id = decode_record_ref(parts[1])
@@ -528,17 +537,25 @@ async def progress_navigation(
             detail = await training_record_detail(repository, user_id, record_id)
             if detail is not None:
                 detail["has_error"] = _record_has_error(detail)
-                if detail["has_error"] or detail.get("outcome") == "failed":
-                    from app.persistence.error_replay import (
-                        ErrorReplayRepository,
-                        load_replay_source,
-                    )
-
-                    try:
-                        source = await load_replay_source(repository, user_id, record_id)
-                    except (ValueError, KeyError, TypeError, RuntimeError):
+                has_error = detail["has_error"] or detail.get("outcome") == "failed"
+                try:
+                    source = await load_original_source(repository, user_id, record_id)
+                    context, photos = await asyncio.to_thread(_materials, source)
+                except (ValueError, KeyError, TypeError, RuntimeError):
+                    if has_error:
                         detail["replay_status"] = "unavailable"
-                    else:
+                else:
+                    detail["condition"] = question_text(source.number, source.snapshot)
+                    detail["drawing_unavailable"] = False
+                    math_system_rows = system_rows(source.number, source.snapshot)
+                    if context:
+                        await send_text(message, repository, context, user_id_override=user_id)
+                    for png in photos:
+                        await send_photo(
+                            message, repository, BufferedInputFile(png, filename="original.png"),
+                            caption=f"Исходные данные №{source.number}", user_id_override=user_id,
+                        )
+                    if has_error:
                         replay_store = ErrorReplayRepository(repository)
                         existing = await replay_store.status_for_source(
                             user_id, source.source_type, source.source_id, source.source_position
@@ -549,13 +566,13 @@ async def progress_navigation(
                                 "🔄 Повторить исходное",
                                 f"progress:replay:{encode_record_ref(record_id)}",
                             )
-                        elif existing.get("status") == "active":
+                        elif existing["status"] == "active":
                             detail["replay_status"] = "active"
                             replay_action = (
                                 "▶ Продолжить повтор",
                                 f"progress:replay:{encode_record_ref(record_id)}",
                             )
-                        elif existing.get("status") == "solved":
+                        elif existing["status"] == "solved":
                             detail["replay_status"] = "solved"
                         else:
                             detail["replay_status"] = "used"
@@ -629,6 +646,7 @@ async def progress_navigation(
         # Keep navigation and list pages as ordinary Telegram text so their
         # keyboards and copy remain available to clients without Rich Messages.
         rich_with_navigation=(section == "item"),
+        math_system_rows=math_system_rows,
         user_id_override=user_id,
     )
     old_message = getattr(message, "_message", message)
