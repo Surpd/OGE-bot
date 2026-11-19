@@ -59,6 +59,7 @@ class ScenarioPostgresRepository:
         positions: tuple[int, ...],
         *,
         replace_session_id: UUID | None = None,
+        expected_screen: str | None = None,
     ) -> ScenarioSession | None:
         if telegram_user_id <= 0:
             raise ValueError("Telegram user id must be positive")
@@ -81,9 +82,11 @@ class ScenarioPostgresRepository:
                    SET telegram_user_id=EXCLUDED.telegram_user_id RETURNING id""",
                 telegram_user_id,
             )
-            await connection.fetchrow(
-                "SELECT id FROM users WHERE id=$1 FOR UPDATE", user_id
+            screen = await connection.fetchval(
+                "SELECT current_state->>'screen' FROM users WHERE id=$1 FOR UPDATE", user_id,
             )
+            if expected_screen is not None and screen != expected_screen:
+                return None
             existing = await connection.fetchrow(
                 """SELECT id FROM oge15_sessions WHERE user_id=$1 AND story_code=$2
                    AND mode=$3 AND status <> 'completed' FOR UPDATE""",
