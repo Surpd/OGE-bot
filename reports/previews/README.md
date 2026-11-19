@@ -8,8 +8,10 @@ The managed environment has Chromium installed but cannot complete a headless sc
 
 The current all-numbers screen is rendered by Pillow in `app/bot/progress_image.py`. Run `uv run python scripts/generate_progress_previews.py` to regenerate these three fictional-data states:
 
-* [Empty progress](progress-empty.png), [360 px](progress-empty-360.png), [390 px](progress-empty-390.png)
-* [Partially filled progress](progress-partial.png), [360 px](progress-partial-360.png), [390 px](progress-partial-390.png)
-* [All numbers with varied results](progress-full.png), [360 px](progress-full-360.png), [390 px](progress-full-390.png)
+* [Empty progress](progress-empty.png), [360 px](progress-empty-360.png), [390 px](progress-empty-390.png), [430 px](progress-empty-430.png)
+* [Partially filled progress](progress-partial.png), [360 px](progress-partial-360.png), [390 px](progress-partial-390.png), [430 px](progress-partial-430.png)
+* [All numbers with varied results](progress-full.png), [360 px](progress-full-360.png), [390 px](progress-full-390.png), [430 px](progress-full-430.png)
 
-The source images are 900 px wide and show all 19 numbers in one 3-column grid. Phone-width files are LANCZOS resizes of the renderer output, checked visually at 360 and 390 px. Sample data is synthetic and contains no student records. These previews are not screenshots from a live Telegram client.
+The source images are 900 px wide and show all 19 numbers in one 3-column grid. Phone-width files are LANCZOS resizes of the renderer output, checked visually at 360, 390 and 430 px. Sample data is synthetic and contains no student records. These previews are not screenshots from a live Telegram client.
+
+[Previous and current overview at 360 px](progress-comparison.png).

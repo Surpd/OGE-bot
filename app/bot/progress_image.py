@@ -17,7 +17,7 @@ from aiogram.types import (
     InputMediaPhoto,
     Message,
 )
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 from app.persistence.training_insights import (
     MIN_ANSWERED_SAMPLE,
@@ -104,17 +104,6 @@ def _card(
     radius: int = 22,
     fill: str = PALETTE["card"],
 ) -> None:
-    x1, y1, x2, y2 = box
-    shadow_pad = 12
-    shadow = Image.new("RGBA", (x2 - x1 + shadow_pad * 2, y2 - y1 + shadow_pad * 2))
-    ImageDraw.Draw(shadow).rounded_rectangle(
-        (shadow_pad, shadow_pad, shadow.width - shadow_pad, shadow.height - shadow_pad),
-        radius=radius,
-        fill=(38, 52, 74, 16),
-    )
-    image.alpha_composite(
-        shadow.filter(ImageFilter.GaussianBlur(8)), (x1 - shadow_pad, y1 - shadow_pad + 3)
-    )
     ImageDraw.Draw(image).rounded_rectangle(box, radius=radius, fill=fill)
 
 
@@ -169,9 +158,11 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
         ("Успешность", success_label(total)),
         ("Пропущено", str(max(0, int(total.get("skipped", 0))))),
     )
+    _card(image, (PAD, metric_y, WIDTH - PAD, metric_y + metric_h), radius=12, fill="#203B50")
     for index, (label, value) in enumerate(metrics):
         x = PAD + index * (metric_width + metric_gap)
-        _card(image, (x, metric_y, x + metric_width, metric_y + metric_h), radius=20)
+        if index:
+            draw.line((x - 6, metric_y + 20, x - 6, metric_y + metric_h - 20), fill="#587083")
         draw = ImageDraw.Draw(image)
         draw_fitted_text(
             draw,
@@ -180,19 +171,24 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
             max_width=metric_width - 36,
             size=46,
             minimum_size=24,
-            fill=PALETTE["blue"],
+            fill="white",
             bold=True,
         )
-        draw.text((x + 18, metric_y + 73), label, font=_font(22), fill=PALETTE["muted"])
+        draw.text((x + 18, metric_y + 73), label, font=_font(24), fill="#D4E3EA")
 
     draw = ImageDraw.Draw(image)
     draw.text((PAD, 252), "Результаты по номерам", font=_font(24, True), fill=PALETTE["ink"])
+    grid_bottom = GRID_TOP + GRID_ROWS * (TILE_HEIGHT + TILE_GAP_Y) - TILE_GAP_Y
+    _card(image, (PAD, GRID_TOP, WIDTH - PAD, grid_bottom), radius=10)
     for number, correct, answered, rate, sufficient in dashboard_tile_values(insights):
         index = number - 1
         row, column = divmod(index, GRID_COLUMNS)
         x = GRID_LEFT + column * (TILE_WIDTH + TILE_GAP_X)
         y = GRID_TOP + row * (TILE_HEIGHT + TILE_GAP_Y)
-        _card(image, (x, y, x + TILE_WIDTH, y + TILE_HEIGHT), radius=18)
+        if row:
+            draw.line((x + 8, y - 6, x + TILE_WIDTH - 8, y - 6), fill=PALETTE["line"], width=2)
+        if column:
+            draw.line((x - 6, y + 10, x - 6, y + TILE_HEIGHT - 10), fill=PALETTE["line"], width=2)
         draw = ImageDraw.Draw(image)
         accent = dashboard_tile_accent(correct, answered)
         stripe = accent if sufficient else PALETTE["line"]
@@ -214,7 +210,7 @@ def render_overview(insights: dict[str, Any]) -> Image.Image:
             max_width=TILE_WIDTH - 44, size=25, minimum_size=13, fill=PALETTE["ink"],
         )
 
-    rec_y = GRID_TOP + GRID_ROWS * (TILE_HEIGHT + TILE_GAP_Y) - TILE_GAP_Y + 18
+    rec_y = grid_bottom + 18
     _card(image, (PAD, rec_y, WIDTH - PAD, rec_y + 88), radius=18, fill=PALETTE["blue_light"])
     draw = ImageDraw.Draw(image)
     draw.text(
