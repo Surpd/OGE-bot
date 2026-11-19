@@ -40,3 +40,7 @@ Accordingly, the new renderer is an authored deterministic GRID-4 SVG/PNG witnes
 ## Release gate
 
 Student access is disabled pending the original-diagram audit and a separately approved flow integration. No shared engine, migration, Telegram router, or other story adapter changed. This report does not claim full atlas or bank coverage.
+
+## Повторная сверка исходной карты
+
+Оригинал карточки 408182 удалось открыть. На квадратной сетке пункты 1, 2, 3 лежат на одной дороге, пункт 4 расположен над пунктом 3. Две пунктирные дороги ведут к пункту 4. Отмечены водоём и масштаб 2 км. У прототипа GRID-4 узлы занимают **четыре угла прямоугольника**. Совпадение отдельных числовых ответов не подтверждает соответствие карты. Историческая запись о недоступности рисунка выше описывает предыдущую проверку. Публичная выдача остаётся выключенной. [Карточка 408182](https://math-oge.sdamgia.ru/problem?id=408182) · [Оригинал](https://math-oge.sdamgia.ru/get_file?id=43115) · [Три варианта прототипа бота](previews/print-review/ROUTE-closed.png)

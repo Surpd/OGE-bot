@@ -819,3 +819,12 @@ def test_fast_40_condition_option_oracles(family: str) -> None:
     for seed in range(40):
         problem = generate(family, seed)
         assert _oracle_matching_options(problem) == [problem.correct_option_number]
+
+
+def test_boundary_captions_leave_a_clear_band_above_open_and_closed_dots() -> None:
+    problem = generate("OGE13-L02", 2701)
+    width, _, pixels = _decode_rgb_png(render_option_sheet_png(problem))
+    for i in range(4):
+        y = 185 + i * 250 - 15
+        start = (y * width + 100) * 3
+        assert pixels[start:start + 1080 * 3] == bytes([255]) * (1080 * 3)

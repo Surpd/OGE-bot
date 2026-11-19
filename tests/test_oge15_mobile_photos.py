@@ -146,3 +146,50 @@ async def test_public_card_sends_only_materials_needed_for_current_question(stor
         upload = call.args[0]
         assert upload.filename.endswith(".png")
         assert upload.data.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def test_paper_photo_bisects_the_remaining_sheet_along_its_long_side():
+    with Image.open(BytesIO(mobile_photos.paper_diagram())) as image:
+        # A1 occupies the whole right half. The A2 cut ends at the first fold.
+        assert image.getpixel((450, 600)) != (255, 255, 255)
+        assert image.getpixel((360, 384)) != (255, 255, 255)
+        assert image.getpixel((570, 384)) == (255, 255, 255)
+        # The A3 cut ends at A2 and never divides the right half.
+        assert image.getpixel((242, 352)) != (255, 255, 255)
+        assert image.getpixel((242, 415)) == (255, 255, 255)
+
+
+def test_wide_tariff_values_do_not_intersect_months_or_the_series(monkeypatch):
+    labels = []
+    original = ImageDraw.ImageDraw.text
+
+    def capture(draw, xy, text, **kwargs):
+        if text[0].isdigit():
+            labels.append(draw.textbbox(xy, text, **{
+                key: kwargs[key] for key in ("font", "anchor")
+            }))
+        return original(draw, xy, text, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    payload = mobile_photos.tariff_chart({
+        "minutes": (400, 0) * 6,
+        "gb_quarters": (1, 39, 40, 39) * 3,
+    })
+    assert len(labels) == 24
+    with Image.open(BytesIO(payload)) as image:
+        for index, box in enumerate(labels):
+            left, top, right, bottom = box
+            assert 0 <= left < right < image.width and 0 <= top < bottom < image.height
+            if index % 12:
+                assert labels[index - 1][2] < left
+            assert (20, 86, 138) not in image.crop(box).get_flattened_data()
+
+
+def test_garden_cells_continue_inside_the_house_footprint():
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 42, "GARDEN"), public_registry()
+    ).snapshot
+    with Image.open(BytesIO(mobile_photos.garden_plan(snapshot))) as image:
+        # Inside the upper wing, adjoining square cells are 60 image pixels wide.
+        for x in (510, 570, 630):
+            assert image.getpixel((x, 170)) != image.getpixel((x + 8, 170))
