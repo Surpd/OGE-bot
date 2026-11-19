@@ -448,7 +448,7 @@ async def test_progress_uses_dashboard_metrics_and_number_selector() -> None:
     details = _message(780, "📊 Подробнее")
     await show_progress_details(details, repository)
     details_text = details.answer.await_args.args[0]
-    assert details_text == "Подробнее о номере\n\nВыберите №1–19."
+    assert details_text == "<b>Подробнее о номере</b>\n\nВыберите №1–19."
 
 
 @pytest.mark.asyncio

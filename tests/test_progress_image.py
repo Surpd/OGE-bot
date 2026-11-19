@@ -119,6 +119,25 @@ def test_summary_buttons_and_all_callback_payloads_fit_telegram_limit() -> None:
     )
 
 
+def test_practical_progress_links_preserve_the_selected_number_on_every_family_page() -> None:
+    for number in range(1, 6):
+        pages = (
+            progress_keyboard("number", number=number),
+            progress_keyboard("family:1:6", number=number, family_total=20),
+        )
+        for markup in pages:
+            prepared = prepare_navigation_markup(markup)
+            action = next(
+                button
+                for row in prepared.inline_keyboard
+                for button in row
+                if button.text == f"Тренировать №{number}"
+            )
+            assert action.callback_data is not None
+            assert action.callback_data.startswith(f"nav:oge15:{number}~")
+            assert len(action.callback_data.encode("utf-8")) <= 64
+
+
 def test_record_callbacks_use_compact_reversible_source_references() -> None:
     refs = (
         "o:12345678-1234-5678-1234-567812345678",
