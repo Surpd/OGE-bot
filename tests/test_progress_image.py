@@ -138,6 +138,33 @@ def test_record_callbacks_use_compact_reversible_source_references() -> None:
         assert data is not None and len(data.encode("utf-8")) <= 64
 
 
+def test_history_buttons_are_compact_and_follow_numbered_records_on_each_page() -> None:
+    records = [
+        {
+            "record_id": f"o:12345678-1234-5678-1234-56781234567{index}",
+            "number": 6,
+            "family_id": "OGE06-F001",
+        }
+        for index in range(8)
+    ]
+    for page, return_page in (("history:6", "h6"), ("errors:6", "e6")):
+        markup = prepare_navigation_markup(
+            progress_keyboard(page, 20, records=records[:6])
+        )
+        rows = markup.inline_keyboard
+        assert [[button.text for button in row] for row in rows[:2]] == [
+            ["7", "8", "9"], ["10", "11", "12"]
+        ]
+        buttons = [button for row in rows[:2] for button in row]
+        for button, record in zip(buttons, records[:6], strict=True):
+            assert button.callback_data is not None
+            assert button.callback_data.startswith("progress:item:")
+            callback, revision = button.callback_data.rsplit("~", 1)
+            assert callback.endswith(f":{return_page}")
+            assert decode_record_ref(callback.split(":")[2]) == record["record_id"]
+            assert revision and len(button.callback_data.encode("utf-8")) <= 64
+
+
 def test_dashboard_uses_existing_summary_values_without_changing_metrics() -> None:
     sample = summarize(
         [

@@ -126,6 +126,44 @@ def test_all_pages_are_bounded_and_paginate_without_exposing_answers():
     assert "progress:history:12" in callbacks
     assert "progress:summary" in callbacks
 
+
+@pytest.mark.asyncio
+async def test_mixed_practical_history_uses_saved_story_and_neutral_legacy_fallback():
+    repository = MemoryRepository()
+    repository._mixed_training_records = {
+        81: [
+            {
+                "record_id": "m:paper-question",
+                "number": 3,
+                "family_id": "PAPER-F02-AREA",
+                "snapshot": {"story_code": "PAPER", "condition": "Сохранённое условие"},
+                "outcome": "solved",
+                "attempt_records": [],
+            },
+            {
+                "record_id": "m:old-question",
+                "number": 4,
+                "family_id": "unknown-old-family",
+                "snapshot": {"condition": "Старое условие"},
+                "outcome": "skipped",
+                "attempt_records": [],
+            },
+            {
+                "record_id": "s:12345678-1234-5678-1234-567812345678:2",
+                "number": 2,
+                "family_id": "OGE15:TYRES",
+                "outcome": "active",
+                "attempt_records": [],
+            },
+        ]
+    }
+    page = await training_insights(repository, 81, "history:0")
+    text = render_progress(page, "history:0")
+    assert "№1–5 · Бумага, вопрос 3" in text
+    assert "№1–5 · сюжет неизвестного формата, вопрос 4" in text
+    assert "№1–5 · Шины, вопрос 2" in text
+    assert all("snapshot" not in row for row in page["history"])
+
 @pytest.fixture
 async def insights_pool():
     import os
@@ -697,12 +735,39 @@ def test_progress_text_uses_answered_denominator_and_keeps_skips_separate():
     assert "Решено правильно: 4" in text
     assert "Успешность: 100%" in text
     assert "Пропущено: 15" in text
+    assert "Данных недостаточно для оценки: нужно 5 задач с ответом." in text
 
     five_answered = summarize([
         *[record(6, attempts=[{"attempt_no": 1, "is_correct": True}]) for _ in range(4)],
         record(6, outcome="failed", attempts=[{"attempt_no": 1, "is_correct": False}]),
     ])
-    assert "Успешность: 80%" in render_progress(five_answered, "number:6")
+    enough_text = render_progress(five_answered, "number:6")
+    assert "Успешность: 80%" in enough_text
+    assert "Данных недостаточно для оценки" not in enough_text
+
+
+def test_history_only_warns_when_a_known_drawing_is_missing():
+    from app.bot.progress import render_progress
+    from app.persistence.training_insights import _drawing_unavailable
+
+    assert not _drawing_unavailable({"family_id": "OGE06-F001", "condition": "x+1"})
+    assert _drawing_unavailable({"family_id": "OGE11-F001", "image_sha256": "abc"})
+    assert _drawing_unavailable({
+        "family_id": "OGE16-C01", "figure": {"renderer_version": "v1", "sha256": "abc"}
+    })
+    assert not _drawing_unavailable({
+        "family_id": "OGE11-F001", "image_sha256": "abc", "png_base64": "encoded"
+    })
+    ordinary = render_progress({"detail": {
+        "number": "№6", "family_id": "OGE06-F001", "condition": "Текстовая задача",
+        "outcome": "solved", "attempt_records": [], "drawing_unavailable": False,
+    }}, "item")
+    assert "чертёж" not in ordinary.lower()
+    graphic = render_progress({"detail": {
+        "number": "№11", "family_id": "OGE11-F001", "condition": "Найдите значение",
+        "outcome": "solved", "attempt_records": [], "drawing_unavailable": True,
+    }}, "item")
+    assert "Исходный чертёж в сохранённой истории недоступен." in graphic
 
 
 def test_progress_number_keyboard_includes_every_first_part_number():

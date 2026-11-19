@@ -17,6 +17,7 @@ from app.persistence.training_insights import (
     has_recommendation_sample,
     recommendation_sample_count,
     recommended_number,
+    record_story_code,
     success_label,
     training_insights,
     training_record_detail,
@@ -184,7 +185,8 @@ def progress_keyboard(
         if number is None and section == "numerr" and len(parts) > 1:
             number = int(parts[1])
         origin = encode_return_page(page)
-        for record in records or []:
+        numbered_buttons: list[InlineKeyboardButton] = []
+        for index, record in enumerate(records or [], offset + 1):
             record_id = record.get("record_id")
             if not isinstance(record_id, str):
                 continue
@@ -192,10 +194,10 @@ def progress_keyboard(
                 token = encode_record_ref(record_id)
             except (ValueError, TypeError):
                 continue
-            label = _record_button_label(record)
             callback = f"progress:item:{token}:{origin}"
             if len(callback.encode("utf-8")) <= 64:
-                rows.append([_button(label, callback)])
+                numbered_buttons.append(_button(str(index), callback))
+        rows.extend(numbered_buttons[i : i + 3] for i in range(0, len(numbered_buttons), 3))
         navigation: list[InlineKeyboardButton] = []
         prefix = "progress:" + ":".join(parts[:-1]) + ":"
         if offset:
@@ -228,17 +230,20 @@ def _recommendation(insights: dict[str, Any]) -> str:
 
 def _record_title(record: dict[str, Any]) -> str:
     family = str(record.get("family_id", ""))
-    if family.startswith("OGE15:"):
-        story = _STORY_NAMES.get(family.partition(":")[2], "Практический сюжет")
+    story_code = record_story_code(record)
+    if family.startswith("OGE15:") or story_code is not None or _is_mixed_practical_record(record):
+        story = _STORY_NAMES.get(story_code or "", "сюжет неизвестного формата")
         return f"№1–5 · {story}, вопрос {record.get('number', '?')}"
     number = record.get("number", "?")
     name = record.get("family_name") or family_name(family)
     return f"№{number} · {name}"
 
 
-def _record_button_label(record: dict[str, Any]) -> str:
-    label = _record_title(record)
-    return label if len(label) <= 48 else label[:47].rstrip() + "…"
+def _is_mixed_practical_record(record: dict[str, Any]) -> bool:
+    if not str(record.get("record_id", "")).startswith("m:"):
+        return False
+    number = str(record.get("number", "")).removeprefix("№")
+    return number.isascii() and number.isdigit() and int(number) in range(1, 6)
 
 
 def _date_label(value: Any) -> str:
@@ -300,6 +305,10 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
                 f"Без подсказки: {values.get('unassisted_correct', 0)}",
             )
         )
+        if int(values.get("answered_tasks", 0)) < MIN_ANSWERED_SAMPLE:
+            lines.append(
+                f"Данных недостаточно для оценки: нужно {MIN_ANSWERED_SAMPLE} задач с ответом."
+            )
         if values.get("unknown_assistance", 0):
             lines.append(f"Подсказка неизвестна: {values['unknown_assistance']}")
         lines.extend(
@@ -372,9 +381,15 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
         if not isinstance(detail, dict):
             return "Запись не найдена или недоступна."
         family = str(detail.get("family_id", ""))
-        if family.startswith("OGE15:"):
-            story = _STORY_NAMES.get(family.partition(":")[2], "Практический сюжет")
-            title = f"Практика №1–5 · {story} · вопрос {detail.get('number', '?')}"
+        story_code = record_story_code(detail)
+        if (
+            family.startswith("OGE15:")
+            or story_code is not None
+            or _is_mixed_practical_record(detail)
+        ):
+            story = _STORY_NAMES.get(story_code or "", "сюжет неизвестного формата")
+            position = str(detail.get("number", "?")).removeprefix("№")
+            title = f"Практика №1–5 · {story} · вопрос {position}"
         else:
             raw_number = str(detail.get("number", "0"))
             number = (
@@ -409,7 +424,8 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
             lines.extend(("", "Для этой старой записи журнал попыток не сохранился."))
         else:
             lines.extend(("", "Принятых попыток нет."))
-        lines.extend(("", "Чертёж в этом просмотре не восстанавливается из истории."))
+        if detail.get("drawing_unavailable") is True:
+            lines.extend(("", "Исходный чертёж в сохранённой истории недоступен."))
         return "\n".join(lines)
     return "Страница прогресса недоступна. Откройте «Мой прогресс»."
 

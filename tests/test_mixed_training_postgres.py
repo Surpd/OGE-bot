@@ -106,6 +106,25 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
         restored_story = await story_store.state(story_user_id)
         assert restored_story is not None
         assert restored_story["problem"]["scenario_snapshot"] == scenario
+        story_history = await training_insights(
+            PostgresRepository(pool), story_user_id, "history:0"
+        )
+        assert len(story_history["history"]) == 1
+        assert story_history["history"][0]["story_code"] == scenario["story_code"]
+        from app.bot.progress import render_progress
+        from app.persistence.training_insights import _STORY_NAMES
+
+        rendered_story = render_progress(story_history, "history:0")
+        assert f"№1–5 · {_STORY_NAMES[scenario['story_code']]}, вопрос 1" in rendered_story
+        assert "Тип из прежней версии" not in rendered_story
+        from app.persistence.training_insights import training_record_detail
+
+        story_detail = await training_record_detail(
+            PostgresRepository(pool), story_user_id, f"m:{story_problem['problem_id']}"
+        )
+        assert story_detail is not None
+        assert story_detail["story_code"] == scenario["story_code"]
+        assert story_detail["condition"] == story_problem["condition"]
 
         # Simulate a process death after the position transaction commits but
         # before issue_current() claims and stores the next scenario question.
@@ -152,6 +171,30 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
             expected_question = canonical_scenario.questions[position]
             assert current["condition"] == expected_question.condition
             assert current["correct_answer"] == expected_question.canonical_answer
+
+        skip_user_id = story_user_id + 1
+        skip_store = MixedTrainingRepository(PostgresRepository(pool))
+        await skip_store.start(skip_user_id, [1])
+        skip_expected = await skip_store.expected_number(skip_user_id)
+        assert skip_expected is not None
+        skip_scenario = _scenario(seed=192510)
+        skip_problem = await skip_store.issue_current(
+            skip_user_id, skip_expected[1], 1, _scenario_question(skip_scenario, 1),
+            scenario_snapshot=skip_scenario,
+        )
+        assert skip_problem is not None
+        unissued = await training_insights(PostgresRepository(pool), skip_user_id)
+        assert unissued["total"]["issued"] == 1
+        assert unissued["total"]["skipped"] == 0
+        assert all(
+            unissued["numbers"][position]["issued"] == 0
+            and unissued["numbers"][position]["skipped"] == 0
+            for position in range(2, 6)
+        )
+        assert await skip_store.action(skip_user_id, str(skip_problem["problem_id"]), "skip")
+        skipped = await training_insights(PostgresRepository(pool), skip_user_id)
+        assert skipped["total"]["issued"] == 1
+        assert skipped["total"]["skipped"] == 1
 
         assert current["number"] == 5
         final_answer = await story_store.answer(

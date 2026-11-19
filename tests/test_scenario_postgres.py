@@ -79,6 +79,15 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
         snapshot = _snapshot()
         created = await store.start_session(user_id, snapshot, PracticeMode.FULL, POSITIONS)
 
+        before_any_skip = await store.position_stats(user_id)
+        assert sum(row["issued"] for row in before_any_skip.values()) == 1
+        assert sum(row["skipped"] for row in before_any_skip.values()) == 0
+        assert all(
+            before_any_skip[position]["issued"] == 0
+            and before_any_skip[position]["skipped"] == 0
+            for position in range(2, 6)
+        )
+
         assert await pool.fetchval("SELECT count(*) FROM oge15_scenarios") == 1
         assert await pool.fetchval("SELECT count(*) FROM oge15_question_progress") == 5
         assert await pool.fetchval("SELECT count(*) FROM oge15_scenario_assets") == 1
@@ -251,6 +260,8 @@ async def test_switchable_sessions_are_owned_by_story_mode_and_foreground_is_ato
 
         paper = await store.start_session(user_id, _snapshot("PAPER"), PracticeMode.FULL, POSITIONS)
         assert paper is not None
+        switched_stats = await store.position_stats(user_id)
+        assert sum(row["skipped"] for row in switched_stats.values()) == 0
         assert (await store.resume_session(user_id, tyres.session_id)).status == "paused"
         assert (await store.resume_session(user_id)).session_id == paper.session_id
         assert await store.record_attempt(
