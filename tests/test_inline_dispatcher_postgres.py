@@ -1,6 +1,8 @@
 """Real aiogram routing and real PostgreSQL; only Telegram HTTP is substituted."""
 
 import fnmatch
+import html
+import re
 import shutil
 from contextlib import AsyncExitStack
 from datetime import UTC, datetime
@@ -62,12 +64,20 @@ class TelegramSession(BaseSession):
             self.next_message_id += 1
         markup = getattr(method, "reply_markup", None)
         is_photo = method.__api_method__ in {"sendPhoto", "editMessageMedia"}
+        text = getattr(method, "text", None)
+        if method.__api_method__ == "sendRichMessage":
+            rich_message = getattr(method, "rich_message", None)
+            rich_html = getattr(rich_message, "html", "")
+            # The fake transport exposes Rich Message copy as readable text so
+            # dispatcher tests can assert what a Telegram user sees.
+            text = html.unescape(re.sub(r"<[^>]*>", "", rich_html))
+            text = re.sub(r"\{([,])\}", r"\1", text)
         message = Message(
             message_id=message_id,
             date=datetime.now(UTC),
             chat=Chat(id=42, type="private"),
             from_user=User(id=123456, is_bot=True, first_name="Test bot"),
-            text=getattr(method, "text", None),
+            text=text,
             photo=(
                 [
                     PhotoSize(

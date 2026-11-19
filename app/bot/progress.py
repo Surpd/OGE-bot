@@ -568,7 +568,10 @@ async def progress_navigation(
         repository,
         render_progress(insights, output_page),
         reply_markup=markup,
-        rich_with_navigation=True,
+        # Only a record detail may include an original mathematical condition.
+        # Keep navigation and list pages as ordinary Telegram text so their
+        # keyboards and copy remain available to clients without Rich Messages.
+        rich_with_navigation=(section == "item"),
     )
     old_message = getattr(message, "_message", message)
     if sent.message_id != old_message.message_id:
