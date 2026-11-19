@@ -47,6 +47,8 @@ def format_math_message(text: str | MathFragment) -> str:
     tables, formula images, or interpreting arbitrary source text as HTML/LaTeX.
     """
     source = text if isinstance(text, str) else text.unicode()
+    if source.startswith(("Разбор:", "Вторая попытка неверна.")):
+        source = layout_text(source)
     lines = []
     for line in source.split("\n"):
         match = _HEADING.match(line)

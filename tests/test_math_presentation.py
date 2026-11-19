@@ -119,3 +119,11 @@ async def test_rich_math_transport_keeps_revision_bound_navigation_markup(monkey
         for button in row
     )
     repository.set_navigation_message.assert_awaited_once()
+
+
+def test_text_solution_keeps_feedback_steps_and_final_answer_in_reading_order():
+    result = format_math_message("Вторая попытка неверна. Ответ: 4\n\nРазбор:\nСложим 2 и 2.")
+    assert result.splitlines() == [
+        "Вторая попытка неверна.", "", "<b>Разбор:</b>", "1. Сложим 2 и 2.",
+        "", "<b>Ответ:</b> 4",
+    ]
