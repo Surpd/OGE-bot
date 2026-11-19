@@ -10,10 +10,10 @@ from app.bot.progress import decode_record_ref, encode_record_ref, progress_keyb
 from app.bot.progress_image import (
     GRID_COLUMNS,
     GRID_ROWS,
+    PALETTE,
     WIDTH,
     dashboard_tile_accent,
     dashboard_tile_values,
-    PALETTE,
     progress_image_keyboard,
     render_progress_image,
 )
