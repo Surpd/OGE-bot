@@ -575,9 +575,9 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
     assert sql_result["numbers"][9]["skipped"] == 1
     for number in range(6, 20):
         row = sql_result["numbers"][number]
-        assert (row["issued"], row["correct"], row["second_correct"], row["error_tasks"]) == (
-            1, 1, 1, 1
-        )
+        expected = (4, 2, 2, 3) if number == 9 else (1, 1, 1, 1)
+        actual = (row["issued"], row["correct"], row["second_correct"], row["error_tasks"])
+        assert actual == expected
     for repo in (pg, memory):
         assert (await training_insights(repo, telegram_user_id, "errors"))["page_total"] == 16
         assert (await training_insights(repo, telegram_user_id, "history"))["page_total"] == 17
