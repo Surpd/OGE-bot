@@ -99,6 +99,20 @@ NUMERIC_TRAININGS = {
 }
 
 
+async def recover_saved_training(
+    repository: Repository, user_id: int, mode: str
+) -> dict[str, object] | None:
+    load_state = getattr(repository, f"{mode}_state")
+    saved = await load_state(user_id)
+    state = saved.get("state") if saved else None
+    problem = saved.get("problem") if saved else None
+    if isinstance(state, dict) and state.get("status") == "restart_ready":
+        if isinstance(problem, dict) and isinstance(problem.get("problem_id"), str):
+            await repository.restore_training_restart(user_id, mode, problem["problem_id"])
+            saved = await load_state(user_id)
+    return cast(dict[str, object] | None, saved)
+
+
 async def persist_open_training(
     repository: Repository,
     user_id: int,

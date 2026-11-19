@@ -36,7 +36,7 @@ class Repository(Protocol):
     ) -> str | None: ...
 
     async def restore_training_restart(
-        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str
+        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str | None = None
     ) -> None: ...
 
     async def open_training_screen(
@@ -6150,12 +6150,13 @@ class PostgresRepository(
             return str(previous)
 
     async def restore_training_restart(
-        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str
+        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str | None = None
     ) -> None:
         async with self._pool.acquire() as connection, connection.transaction():
             row = await connection.fetchrow(
-                """SELECT s.id, s.active_problem_id, s.state FROM sessions s
+                """SELECT s.id, s.active_problem_id, s.state, p.outcome FROM sessions s
                    JOIN users u ON u.id=s.user_id
+                   JOIN issued_problems p ON p.id=s.active_problem_id AND p.user_id=u.id
                    WHERE u.telegram_user_id=$1 AND s.mode=$2 AND s.finished_at IS NULL
                    ORDER BY s.started_at DESC LIMIT 1 FOR UPDATE OF s""",
                 telegram_user_id,
@@ -6166,7 +6167,12 @@ class PostgresRepository(
             state = _json_object(row["state"])
             if state.get("status") != "restart_ready":
                 return
-            state["status"] = previous_status
+            # The original result is unchanged by preparation, even if the
+            # process stopped before it could keep the previous status in memory.
+            outcome = row["outcome"]
+            if outcome not in {"issued", "solved", "failed", "solution_viewed"}:
+                return
+            state["status"] = "active" if outcome == "issued" else outcome
             await connection.execute(
                 "UPDATE sessions SET state=$2::jsonb WHERE id=$1",
                 row["id"],
@@ -7393,10 +7399,11 @@ class MemoryRepository(MemoryTrainingPreferences):
         if previous not in {"active", "solved", "failed", "solution_viewed"}:
             return None
         state["status"] = "restart_ready"
+        state["restart_from_status"] = previous
         return str(previous)
 
     async def restore_training_restart(
-        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str
+        self, telegram_user_id: int, mode: str, problem_id: str, previous_status: str | None = None
     ) -> None:
         stores = {
             "task6": self.training,
@@ -7421,7 +7428,9 @@ class MemoryRepository(MemoryTrainingPreferences):
             return
         state = cast(dict[str, object], saved["state"])
         if state.get("status") == "restart_ready":
-            state["status"] = previous_status
+            previous = state.pop("restart_from_status", previous_status)
+            if previous in {"active", "solved", "failed", "solution_viewed"}:
+                state["status"] = previous
 
     async def open_training_screen(
         self, telegram_user_id: int, source_screen: str, mode: str, problem_id: str

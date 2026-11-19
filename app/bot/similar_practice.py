@@ -12,6 +12,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.mixed_training import _builders
 from app.bot.presentation import send_text
+from app.bot.training_engine import recover_saved_training
 from app.bot.trainings import BY_NUMBER
 from app.math.scenario_engine import (
     PracticeMode,
@@ -159,8 +160,9 @@ async def _start_ordinary(
     number = source.number
     mode = BY_NUMBER[number].mode
     await getattr(repository, f"ensure_{mode}_session")(user_id)
-    current = await getattr(repository, f"{mode}_state")(user_id)
-    state = current.get("state", {}) if current else {}
+    current = await recover_saved_training(repository, user_id, mode)
+    saved_state = current.get("state") if current else None
+    state = cast(dict[str, object], saved_state) if isinstance(saved_state, dict) else {}
     problem = current.get("problem") if current else None
     problem_id = str(problem["problem_id"]) if isinstance(problem, dict) else None
     active = problem_id is not None and state.get("status") == "active"
@@ -172,7 +174,7 @@ async def _start_ordinary(
             reply_markup=_choices(token, active=True), user_id_override=user_id,
         )
         return True
-    candidates = await asyncio.to_thread(_candidates, source, cast(dict[str, object], state))
+    candidates = await asyncio.to_thread(_candidates, source, state)
     if not candidates:
         return False
     previous_status = None

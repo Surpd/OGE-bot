@@ -245,6 +245,49 @@ async def test_postgres_global_continue_restores_latest_task_until_next(
     assert task9_after["state"]["status"] == "active"
 
 
+@pytest.mark.parametrize("status", ["active", "solved", "failed", "solution_viewed"])
+@pytest.mark.asyncio
+async def test_postgres_interrupted_restart_restores_the_original_question(navigation_pool, status):
+    repository, user_id = await register(navigation_pool)
+    await choose_task12(telegram_message(user_id, "№12 · Формулы"), repository)
+    original = await repository.task12_state(user_id)
+    assert original is not None and isinstance(original["problem"], dict)
+    problem_id = str(original["problem"]["problem_id"])
+    assert await repository.task12_attempt(user_id, problem_id, "-99999999", False)
+    if status == "solution_viewed":
+        assert await repository.task12_reveal_solution(user_id, problem_id)
+    if status in {"solved", "failed"}:
+        correct = status == "solved"
+        answer = str(original["problem"]["correct_answer"]) if correct else "-99999999"
+        assert await repository.task12_attempt(user_id, problem_id, answer, correct)
+
+    original = await repository.task12_state(user_id)
+    metrics = await repository.task12_progress(user_id)
+    assert original is not None and original["state"]["status"] == status
+    await repository.save_user_state(user_id, "number_selection")
+    assert await repository.prepare_training_restart(
+        user_id, "task12", problem_id, "number_selection",
+    ) == status
+
+    # The old process stops after preparing the restart and before issuing anything.
+    restarted = PostgresRepository(navigation_pool)
+    await restarted.save_user_state(user_id, "main_menu")
+    assert await _has_resumable_session(restarted, user_id)
+    if status in {"active", "solved"}:
+        await continue_session(telegram_message(user_id, "▶ Продолжить"), restarted)
+    else:
+        await choose_task12(telegram_message(user_id, "№12 · Формулы"), restarted)
+        await router.saved_training_navigation(
+            telegram_message(user_id, "Продолжить"), restarted, user_id, "continue", 12, problem_id,
+        )
+    recovered = await restarted.task12_state(user_id)
+    assert recovered is not None and recovered["problem"] == original["problem"]
+    assert recovered["state"]["status"] == status
+    assert recovered["state"]["attempts"] == original["state"]["attempts"]
+    assert await restarted.user_state(user_id) == "task12"
+    assert await restarted.task12_progress(user_id) == metrics
+
+
 @pytest.mark.asyncio
 async def test_postgres_disabled_last_used_training_hides_continue_without_fallback(
     navigation_pool, monkeypatch
