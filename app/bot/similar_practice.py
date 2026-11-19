@@ -21,7 +21,7 @@ from app.math.scenario_engine import (
     ScenarioUnavailable,
     build_practice_plan,
 )
-from app.math.scenarios.recent_questions import question_signature
+from app.math.scenarios.recent_questions import is_recent_fixed_single, question_signature
 from app.persistence.error_replay import ReplaySource, load_replay_source
 from app.persistence.repository import Repository
 from app.persistence.scenario_repository import ScenarioPostgresRepository
@@ -85,6 +85,8 @@ def _scenario_plan(
     position = source.number
     question = original.questions[position - 1]
     excluded = recent | {question_signature(original, question)}
+    if is_recent_fixed_single(PracticePlan(PracticeMode.SINGLE, original, (position,)), excluded):
+        return None
     registry = public_registry()
     for _ in range(12):
         plan = build_practice_plan(

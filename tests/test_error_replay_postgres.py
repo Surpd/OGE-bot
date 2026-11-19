@@ -218,7 +218,7 @@ async def test_similar_practical_error_starts_new_question_in_same_story_and_pos
     repository = PostgresRepository(error_replay_pool)
     await repository.register_user(user_id)
     plan = build_practice_plan(
-        PracticeRequest(PracticeMode.FULL, 66_030, story_code="FLAT"),
+        PracticeRequest(PracticeMode.FULL, 66_030, story_code="TARIFF"),
         scenario_training.public_registry(),
     )
     scenarios = ScenarioPostgresRepository(error_replay_pool)
