@@ -24,34 +24,6 @@ def _digest(value: dict[str, object]) -> str:
     ).hexdigest()
 
 
-def _archive_scenario(state: dict[str, object], snapshot: dict[str, object]) -> None:
-    """Keep one recoverable copy per generated story in the existing session state."""
-    seed = snapshot.get("seed")
-    story_code = snapshot.get("story_code")
-    archive = state.get("scenario_archive")
-    if not isinstance(archive, list):
-        archive = []
-        state["scenario_archive"] = archive
-    for item in archive:
-        if not isinstance(item, dict):
-            continue
-        if item.get("seed") == seed and item.get("story_code") == story_code:
-            saved = item.get("snapshot")
-            if not isinstance(saved, dict) or item.get("sha256") != _digest(saved):
-                raise ValueError("Archived mixed scenario failed its integrity check")
-            if _digest(saved) != _digest(snapshot):
-                raise ValueError("Mixed scenario identity was reused for different content")
-            return
-    archive.append(
-        {
-            "seed": seed,
-            "story_code": story_code,
-            "snapshot": snapshot,
-            "sha256": _digest(snapshot),
-        }
-    )
-
-
 def _as_int(value: object, default: int = 0) -> int:
     return value if isinstance(value, int) else default
 
@@ -94,6 +66,18 @@ def _capture_scheduler_state(
         for key, value in snapshot.items()
         if key not in _AFTER_FIELDS
     }
+
+
+def _stored_question(
+    state: dict[str, object], number: int, snapshot: dict[str, object],
+) -> dict[str, object]:
+    stored = {key: value for key, value in snapshot.items() if key != "scenario_snapshot"}
+    scenario = state.get("scenario_snapshot")
+    if number == 1 and isinstance(scenario, dict):
+        # Store history on the first question. Keep live session state bounded.
+        stored["_original_scenario_snapshot"] = scenario
+        stored["_original_scenario_snapshot_sha256"] = state["scenario_snapshot_sha256"]
+    return stored
 
 
 class MixedTrainingRepository:
@@ -270,7 +254,6 @@ class MixedTrainingRepository:
                 state["scenario_snapshot"] = scenario_snapshot
                 state["scenario_snapshot_sha256"] = _digest(scenario_snapshot)
                 state["scenario_position"] = 1
-                _archive_scenario(state, scenario_snapshot)
             snapshot = _capture_scheduler_state(state, number, snapshot)
             problem_id = str(snapshot.get("problem_id") or uuid4())
             try:
@@ -289,9 +272,7 @@ class MixedTrainingRepository:
                 "hints_used": 0,
             }
             session["problem"]["_snapshot_sha256"] = _digest(snapshot)
-            record_snapshot = {
-                key: value for key, value in snapshot.items() if key != "scenario_snapshot"
-            }
+            record_snapshot = _stored_question(state, number, snapshot)
             self._repository._mixed_training_records.setdefault(user_id, []).append(
                 {
                     **{key: value for key, value in session["problem"].items()
@@ -338,7 +319,6 @@ class MixedTrainingRepository:
                 state["scenario_snapshot"] = scenario_snapshot
                 state["scenario_snapshot_sha256"] = _digest(scenario_snapshot)
                 state["scenario_position"] = 1
-                _archive_scenario(state, scenario_snapshot)
             snapshot = _capture_scheduler_state(state, number, snapshot)
             try:
                 problem_uuid = UUID(str(snapshot.get("problem_id") or uuid4()))
@@ -347,10 +327,9 @@ class MixedTrainingRepository:
             problem_id_pg = problem_uuid
             family = str(snapshot.get("family_id", f"OGE{number:02}-MIXED"))
             fingerprint = str(snapshot.get("fingerprint", problem_id_pg))
-            stored_snapshot = {
-                key: value for key, value in snapshot.items() if key != "scenario_snapshot"
-            }
-            stored_snapshot.update(problem_id=str(problem_id_pg))
+            stored_snapshot = _stored_question(
+                state, number, {**snapshot, "problem_id": str(problem_id_pg)}
+            )
             await connection.execute(
                 """INSERT INTO mixed_training_problems
                    (id,session_id,number,family_id,fingerprint,snapshot,snapshot_sha256)

@@ -104,6 +104,8 @@ async def test_memory_mixed_position_three_recovers_original_shared_scenario_aft
     first_snapshot = {
         **first,
         "problem_id": first_id,
+        "_original_scenario_snapshot": scenario,
+        "_original_scenario_snapshot_sha256": _digest(scenario),
     }
     third_snapshot = {**third, "problem_id": third_id}
     repository._mixed_training_records[user_id] = [
@@ -130,19 +132,7 @@ async def test_memory_mixed_position_three_recovers_original_shared_scenario_aft
             "snapshot": third_snapshot,
         },
     ]
-    repository._mixed_training_sessions[user_id] = {
-        "state": {
-            "scenario_snapshot": None,
-            "scenario_archive": [
-                {
-                    "seed": scenario["seed"],
-                    "story_code": scenario["story_code"],
-                    "snapshot": scenario,
-                    "sha256": _digest(scenario),
-                }
-            ],
-        }
-    }
+    repository._mixed_training_sessions[user_id] = {"state": {"scenario_snapshot": None}}
 
     source = await load_replay_source(repository, user_id, f"m:{third_id}")
     assert source.number == 3
@@ -189,7 +179,7 @@ async def test_telegram_replay_answer_flow_keeps_two_attempts_out_of_progress(
     replay = await store.start(user_id, source)
     replay_id = UUID(str(replay["id"]))
     await store.set_prompt(user_id, replay_id, 400)
-    monkeypatch.setattr(error_replay, "_render", AsyncMock())
+    monkeypatch.setattr(error_replay, "_feedback", AsyncMock())
 
     def answer_message(message_id: int, text: str):
         return SimpleNamespace(
@@ -207,7 +197,7 @@ async def test_telegram_replay_answer_flow_keeps_two_attempts_out_of_progress(
     solved = repository._training_error_replays[(user_id, "ordinary", problem_id, 0)]
     assert solved["status"] == "solved" and solved["attempt_count"] == 2
     assert (await training_insights(repository, user_id)) == before
-    assert error_replay._render.await_count == 2
+    assert error_replay._feedback.await_count == 2
 
 
 def test_replay_callback_ids_remain_compact_and_record_refs_round_trip():
@@ -263,3 +253,56 @@ def test_deterministic_recovery_dispatch_checks_seed_and_version_for_numbers_6_t
     for problem, _number in cases:
         snapshot = problem.to_snapshot()
         _assert_regenerated(snapshot, str(snapshot["problem_id"]))
+
+
+
+def test_replay_restores_text_options_and_all_scenario_materials():
+    from app.bot.error_replay import _condition, _materials
+    from app.bot.scenario_training import public_registry
+    from app.math.inequalities import generate
+    from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
+    from app.math.scenarios.mobile_photos import scenario_photos_for_question
+    from app.persistence.error_replay import ReplaySource, _scenario_question
+
+    problem = generate("OGE13-L01", 13_066).to_snapshot()
+    source = ReplaySource("ordinary", UUID(str(problem["problem_id"])), 0, 13, problem)
+    assert _materials(source) == ("", ())
+    assert all(
+        f"{index}. {choice}" in _condition(source)
+        for index, choice in enumerate(problem["option_texts"], 1)
+    )
+    scenario = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 66_002, story_code="PAPER"), public_registry()
+    ).snapshot
+    photo_case = next(
+        position for position in range(1, 6)
+        if len(scenario_photos_for_question(scenario, position)) > 1
+    )
+    source = ReplaySource(
+        "scenario", source.source_id, photo_case, photo_case,
+        _scenario_question(scenario.to_snapshot(), photo_case), scenario.to_snapshot(),
+    )
+    context, photos = _materials(source)
+    assert scenario.shared_context.splitlines()[0] in context
+    assert photos == scenario_photos_for_question(scenario, photo_case)
+
+
+
+def test_replay_uses_legacy_statement_policy_and_choice_bounds():
+    import json
+    from pathlib import Path
+
+    from app.bot.error_replay import _accepts
+    from app.math.oge07_graph import generate_graph_problem
+    from app.persistence.error_replay import ReplaySource
+
+    legacy = json.loads(Path("tests/fixtures/oge19/snapshot_v1_seed_20261117.json").read_text())
+    source = ReplaySource("ordinary", UUID(int=1), 0, 19, {
+        **legacy, "correct_answer": legacy["answer_mask"],
+    })
+    assert _accepts(source, source.correct_answer) is True
+    assert _accepts(source, "13") is None
+    graph = generate_graph_problem("OGE07-N01", 66_019).to_snapshot()
+    source = ReplaySource("ordinary", UUID(str(graph["problem_id"])), 0, 7, graph)
+    assert _accepts(source, "0") is None
+    assert _accepts(source, source.correct_answer) is True

@@ -91,6 +91,10 @@ def _policy_for(source: ReplaySource) -> Any:
         from app.math.oge11 import POLICY_ID, POLICY_VERSION
 
         policy = ("oge11" if (policy_id, policy_version) == (POLICY_ID, POLICY_VERSION) else None)
+    elif number == 19:
+        from app.math.oge19 import policy_for_snapshot
+
+        policy = policy_for_snapshot(snapshot)
     elif number == 13:
         from app.math.inequalities import POLICY
 
@@ -128,7 +132,7 @@ def _accepts(source: ReplaySource, raw: str) -> bool | None:
             return None
         return bool(policy.accepts(raw, answer))
     parsed = policy.parse(raw)
-    if parsed is None:
+    if parsed is None or (source.number == 7 and parsed not in range(1, 5)):
         return None
     return bool(policy.accepts(raw, answer))
 
@@ -136,28 +140,17 @@ def _accepts(source: ReplaySource, raw: str) -> bool | None:
 def _original_png(source: ReplaySource) -> bytes | None:
     snapshot = source.snapshot
     family = str(snapshot.get("family_id", ""))
-    if family.startswith("OGE07-N"):
-        from app.math.oge07_graph import generate_graph_problem
-        from app.math.oge07_validation import validate_task7_snapshot
-        from app.persistence.image_retention import restore_graphic_snapshot
-
-        restored = restore_graphic_snapshot(snapshot) or snapshot
-        validate_task7_snapshot(restored)
-        data = restored.get("graph_png_base64")
-        if isinstance(data, str):
-            return base64.b64decode(data, validate=True)
-        generated = generate_graph_problem(family, int(cast(int, snapshot["seed"]))).to_snapshot()
-        if generated != snapshot:
-            raise ValueError("The original graph could not be verified")
-        return base64.b64decode(str(generated["graph_png_base64"]), validate=True)
     if family.startswith("OGE11-"):
         from app.math.oge11 import from_snapshot as restore_oge11
 
         return restore_oge11(snapshot).png_bytes
     if family.startswith("OGE13-"):
+        from app.bot.router import _task13_is_graph_choice
         from app.math.inequalities import render_option_sheet_snapshot_png
 
-        return render_option_sheet_snapshot_png(snapshot)
+        if _task13_is_graph_choice(snapshot):
+            return render_option_sheet_snapshot_png(snapshot)
+        return None
     if family.startswith("OGE15-"):
         from app.math.oge15_triangles import from_snapshot as restore_oge15
 
@@ -184,97 +177,135 @@ def _original_png(source: ReplaySource) -> bytes | None:
     return None
 
 
+def _condition(source: ReplaySource) -> str:
+    condition = source.condition
+    if source.number == 7:
+        options = source.snapshot.get("options")
+        if not isinstance(options, list) or len(options) != 4:
+            raise ValueError("The original №7 options are unavailable")
+        condition += "\n\n" + "\n".join(
+            f"{index}. {option}" for index, option in enumerate(options, 1)
+        )
+        condition += "\n\nВведите номер варианта 1–4."
+    elif source.number == 13:
+        from app.bot.router import _task13_choice_text
+
+        choices = _task13_choice_text(source.snapshot)
+        if choices:
+            condition += "\n\n" + choices
+        condition += "\n\nВведите номер варианта 1–4."
+    elif source.number == 11:
+        condition += "\n\nВведите три цифры в порядке А, Б, В."
+    return condition
+
+
 async def _render(
     message: Message, repository: Repository, store: ErrorReplayRepository,
-    replay: dict[str, object], source: ReplaySource, *, user_id: int | None = None,
-    status_text: str | None = None, prepared_photo: bytes | None = None,
-    photo_prepared: bool = False,
+    replay: dict[str, object], source: ReplaySource, *, user_id: int,
+    materials: tuple[str, tuple[bytes, ...]], notice: str = "",
 ) -> None:
-    user_id = user_id or _user_id(message)
-    replay_id = UUID(str(replay["id"]))
-    token = replay_token(replay_id)
+    token = replay_token(UUID(str(replay["id"])))
     completed = replay.get("status") != "active"
-    body = f"Повтор исходной задачи №{source.number}\n\n{source.condition}"
-    if status_text:
-        body += "\n\n" + status_text
     if completed:
-        body += "\n\n" + (
-            "✅ Ошибка исправлена."
-            if replay.get("status") == "solved"
-            else "Повтор использован. Первоначальный результат сохранён."
+        await send_text(
+            message, repository, "Этот повтор уже завершён.",
+            reply_markup=_keyboard(token, completed=True), user_id_override=user_id,
         )
-    else:
-        attempt_count = int(cast(int, replay.get("attempt_count", 0)))
-        body += f"\n\nПопытка {attempt_count + 1} из 2. Ответ не изменит исходную статистику."
-    markup = _keyboard(token, completed=completed)
-    photo = prepared_photo if photo_prepared else await asyncio.to_thread(
-        _render_snapshot_photo, source
+        return
+    body = f"Повтор исходной задачи №{source.number}\n\n{_condition(source)}"
+    if notice:
+        body = notice + "\n\n" + body
+    attempt_count = int(cast(int, replay.get("attempt_count", 0)))
+    body += f"\n\nПопытка {attempt_count + 1} из 2. Повтор учитывается отдельно."
+    context, photos = materials
+    if context:
+        await send_text(message, repository, context, user_id_override=user_id)
+        for data in photos:
+            await send_photo(
+                message, repository, BufferedInputFile(data, filename="scenario.png"),
+                caption=f"Данные задачи №{source.number}", user_id_override=user_id,
+            )
+    photo = photos[0] if photos and not context else None
+    system_rows = (
+        tuple(source.condition.splitlines())
+        if str(source.snapshot.get("family_id", "")).startswith("OGE13-S") else None
     )
+    markup = _keyboard(token, completed=completed)
     if photo is not None:
         sent = await send_photo(
             message, repository, BufferedInputFile(photo, filename="original-task.png"),
             caption=body, reply_markup=markup, user_id_override=user_id,
+            math_system_rows=system_rows,
         )
     else:
         sent = await send_text(
             message, repository, body, reply_markup=markup, user_id_override=user_id,
+            rich_with_navigation=True, math_system_rows=system_rows,
         )
-    if not completed and type(sent.message_id) is int:
-        await store.set_prompt(user_id, replay_id, sent.message_id)
+    await store.set_prompt(user_id, UUID(str(replay["id"])), sent.message_id)
 
 
-def _user_id(message: Message) -> int:
-    sender = message.from_user
-    if sender is None:
-        raise ValueError("Telegram user identity is missing")
-    return sender.id
-
-
-def _render_snapshot_photo(source: ReplaySource) -> bytes | None:
+def _materials(source: ReplaySource) -> tuple[str, tuple[bytes, ...]]:
     if source.scenario_snapshot is not None:
+        from app.bot.scenario_training import scenario_context_for_question
         from app.math.scenario_engine import ScenarioSnapshot
         from app.math.scenarios.mobile_photos import scenario_photos_for_question
 
         snapshot = ScenarioSnapshot.from_snapshot(source.scenario_snapshot)
-        photos = scenario_photos_for_question(snapshot, source.number)
-        return photos[0] if photos else None
-    return _original_png(source)
+        return (
+            scenario_context_for_question(snapshot, source.number),
+            scenario_photos_for_question(snapshot, source.number),
+        )
+    photo = _original_png(source)
+    return "", (photo,) if photo is not None else ()
 
 
 async def start_from_progress(
     message: Message, repository: Repository, user_id: int, record_id: str,
 ) -> None:
     store = ErrorReplayRepository(repository)
+    notice = ""
     try:
         source = await load_replay_source(repository, user_id, record_id)
-        photo = await asyncio.to_thread(_render_snapshot_photo, source)
-        replay = await store.start(user_id, source)
-    except ReplayAlreadyActive:
-        await send_text(
-            message,
-            repository,
-            "Сначала завершите текущий повтор или вернитесь к нему из подробностей ошибки.",
-            user_id_override=user_id,
-        )
-        return
+        _policy_for(source)
+        materials = await asyncio.to_thread(_materials, source)
+        _condition(source)
+        try:
+            replay = await store.start(user_id, source)
+        except ReplayAlreadyActive:
+            active = await _active_replay(repository, user_id)
+            if active is None:
+                raise ValueError("The active replay cannot be restored") from None
+            replay, source = active
+            _policy_for(source)
+            materials = await asyncio.to_thread(_materials, source)
+            _condition(source)
+            await store.set_screen(user_id, "error_replay")
+            notice = "Открыт ваш незавершённый повтор."
     except (ValueError, KeyError, TypeError, binascii.Error, RuntimeError):
         await send_text(
-            message, repository,
-            "Исходное задание недоступно для точного восстановления. "
-            "Просмотр исходного условия остаётся доступен.",
-            user_id_override=user_id,
+            message, repository, "Не удалось восстановить исходную задачу для повтора.",
+            reply_markup=_keyboard("", completed=True), user_id_override=user_id,
         )
         return
-    if replay["status"] == "active":
-        await _render(
-            message, repository, store, replay, source,
-            user_id=user_id, prepared_photo=photo, photo_prepared=True,
-        )
-    else:
-        await _render(
-            message, repository, store, replay, source,
-            user_id=user_id, prepared_photo=photo, photo_prepared=True,
-        )
+    await _render(
+        message, repository, store, replay, source,
+        user_id=user_id, materials=materials, notice=notice,
+    )
+
+
+async def _feedback(
+    message: Message, repository: Repository, user_id: int,
+    replay: dict[str, object], text: str,
+) -> None:
+    # Send feedback separately. Replies to the original condition stay valid.
+    await send_text(
+        message, repository, text,
+        reply_markup=_keyboard(
+            replay_token(UUID(str(replay["id"]))), completed=replay["status"] != "active",
+        ),
+        user_id_override=user_id, rich_with_navigation=True,
+    )
 
 
 async def answer(message: Message, repository: Repository) -> None:
@@ -297,7 +328,11 @@ async def answer(message: Message, repository: Repository) -> None:
         message, {"problem_prompt_message_id": replay.get("prompt_message_id")}
     ):
         return
-    correct = _accepts(source, message.text)
+    try:
+        correct = _accepts(source, message.text)
+    except ValueError:
+        await send_text(message, repository, "Не удалось проверить ответ к исходной задаче.")
+        return
     if correct is None:
         await send_text(message, repository, "Введите ответ в формате, указанном в условии.")
         return
@@ -316,8 +351,11 @@ async def answer(message: Message, repository: Repository) -> None:
     elif result.get("status") == "solved":
         text = "✅ Верно! Ошибка исправлена в учебном повторе."
     else:
-        text = "Правильный ответ: " + source.correct_answer
-    await _render(message, repository, store, result, source, status_text=text)
+        text = f"Попытки закончились. Правильный ответ: {source.correct_answer}"
+        solution = source.snapshot.get("solution_steps", source.snapshot.get("solution"))
+        if isinstance(solution, list) and solution:
+            text += "\n\nРазбор\n" + "\n".join(map(str, solution))
+    await _feedback(message, repository, user_id, result, text)
 
 
 async def callback(callback: CallbackQuery, repository: Repository) -> None:
@@ -331,31 +369,24 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
         await answer_callback(callback, "Кнопка повтора устарела.")
         return
     store = ErrorReplayRepository(repository)
-    if parts[2] == "b":
-        await repository.save_user_state(callback.from_user.id, "progress")
-        await answer_callback(callback)
-        return
     active = await _active_replay(repository, callback.from_user.id, replay_id)
     if active is None:
         await answer_callback(callback, "Этот повтор недоступен.")
+        if isinstance(callback.message, Message):
+            await repository.save_user_state(callback.from_user.id, "progress")
+            await send_text(
+                callback.message, repository, "Не удалось открыть исходную задачу.",
+                reply_markup=_keyboard("", completed=True), user_id_override=callback.from_user.id,
+            )
         return
     replay, source = active
     if parts[2] == "h":
         text = await store.action(callback.from_user.id, replay_id, "hint", source.snapshot)
-        if text is None:
-            await answer_callback(callback, "Подсказка недоступна.")
-            return
         await answer_callback(callback)
         if isinstance(callback.message, Message):
-            replay["hints_used"] = int(cast(int, replay.get("hints_used", 0))) + 1
-            await _render(
-                callback.message,
-                repository,
-                store,
-                replay,
-                source,
-                user_id=callback.from_user.id,
-                status_text="Подсказка:\n" + text,
+            await _feedback(
+                callback.message, repository, callback.from_user.id, replay,
+                "Подсказка:\n" + text if text is not None else "Подсказок больше нет.",
             )
         return
     if parts[2] == "s":
@@ -364,19 +395,12 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
             await answer_callback(callback, "Разбор уже открыт или повтор завершён.")
             return
         replay["status"] = "solution_viewed"
-        replay["solution_viewed"] = True
+        await repository.save_user_state(callback.from_user.id, "progress")
         await answer_callback(callback)
         if isinstance(callback.message, Message):
-            await _render(
-                callback.message,
-                repository,
-                store,
-                replay,
-                source,
-                user_id=callback.from_user.id,
-                status_text=(
-                    "Разбор открыт. Самостоятельный зачёт за повтор закрыт.\n" + solution
-                ),
+            await _feedback(
+                callback.message, repository, callback.from_user.id, replay,
+                "Разбор\n" + solution,
             )
         return
     await answer_callback(callback, "Действие повтора недоступно.")

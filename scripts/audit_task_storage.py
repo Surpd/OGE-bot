@@ -82,18 +82,20 @@ async def audit(database_url: str) -> dict[str, Any]:
                     """SELECT count(*)::bigint AS sessions,
                               COALESCE(sum(pg_column_size(state)),0)::bigint AS state_bytes,
                               COALESCE(avg(pg_column_size(state)),0)::bigint AS average_bytes,
-                              count(*) FILTER (WHERE state ? 'scenario_snapshot')::bigint
+                              count(*) FILTER (
+                                WHERE jsonb_typeof(state->'scenario_snapshot')='object'
+                              )::bigint
                                 AS with_shared_scenario,
                               count(*) FILTER (WHERE status='completed')::bigint AS completed
                        FROM mixed_training_sessions"""
                 )
             )
-            report["scenario_duplicates"] = dict(
+            report["mixed_scenario_history"] = dict(
                 await connection.fetchrow(
-                    """SELECT count(*)::bigint AS retained_mixed_question_copies,
+                    """SELECT count(*)::bigint AS retained_shared_scenarios,
                               COALESCE(sum(pg_column_size(
                                   snapshot->'_original_scenario_snapshot'
-                              )),0)::bigint AS duplicated_scenario_bytes
+                              )),0)::bigint AS retained_scenario_bytes
                        FROM mixed_training_problems
                        WHERE snapshot ? '_original_scenario_snapshot'"""
                 )

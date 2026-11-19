@@ -40,6 +40,7 @@ async def test_postgres_mixed_replay_resumes_by_reference_without_changing_progr
     assert wrong is not None and wrong["status"] == "active"
 
     before = await training_insights(repository, user_id)
+    assert await repository.last_training_mode(user_id) == "mixed"
     source = await load_replay_source(repository, user_id, f"m:{problem_id}")
     assert source.snapshot["condition"] == original["condition"]
     assert source.correct_answer == original["correct_answer"]
@@ -50,7 +51,17 @@ async def test_postgres_mixed_replay_resumes_by_reference_without_changing_progr
         store.start(user_id, source), store.start(user_id, source)
     )
     assert first["id"] == second["id"]
-    restarted = ErrorReplayRepository(PostgresRepository(error_replay_pool))
+    restarted_repo = PostgresRepository(error_replay_pool)
+    restarted = ErrorReplayRepository(restarted_repo)
+    assert await restarted_repo.last_training_mode(user_id) == "mixed"
+    replay_id = UUID(str(first["id"]))
+    await restarted.set_prompt(user_id, replay_id, 100)
+    await restarted.set_prompt(user_id, replay_id, 99)
+    stale = await restarted.record_attempt(user_id, replay_id, "1", False, 100, None)
+    assert stale is not None and stale["event"] == "stale"
+    await restarted_repo.save_user_state(user_id, "progress")
+    paused = await restarted.record_attempt(user_id, replay_id, "1", False, 101, 100)
+    assert paused is not None and paused["event"] == "stale"
     resumed = await restarted.status_for_source(user_id, "mixed", UUID(problem_id), 0)
     assert resumed is not None and resumed["id"] == first["id"]
     assert await error_replay_pool.fetchval(
@@ -106,15 +117,36 @@ async def test_postgres_mixed_scenario_question_replays_from_original_shared_sna
     )
     assert attempted is not None and attempted["status"] == "active"
 
+    original = current
+    for position in (3, 4, 5):
+        assert current["number"] == position
+        solved = await store.answer(
+            user_id, str(current["problem_id"]), str(current["correct_answer"]),
+            True, 67_100 + position, None,
+        )
+        assert solved is not None and solved["status"] == "solved"
+        transition = await store.advance(
+            user_id, str(current["problem_id"]), None, None, new_cycle=[6],
+        )
+        assert transition is not None
+        if position < 5:
+            current = await _issue(store, user_id)
+            assert current is not None
+    assert transition["number"] == 6
+    current_session = await store.state(user_id)
+    assert current_session is not None
+    assert current_session["state"]["scenario_snapshot"] is None
+    assert "scenario_archive" not in current_session["state"]
+
     source = await load_replay_source(
         PostgresRepository(error_replay_pool),
         user_id,
-        f"m:{current['problem_id']}",
+        f"m:{original['problem_id']}",
     )
     assert source.number == 3
     assert source.scenario_snapshot == scenario
-    assert source.condition == current["condition"]
-    assert source.correct_answer == current["correct_answer"]
+    assert source.condition == original["condition"]
+    assert source.correct_answer == original["correct_answer"]
 
 
 @pytest.mark.asyncio

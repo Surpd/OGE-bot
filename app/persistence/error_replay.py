@@ -111,30 +111,20 @@ async def load_replay_source(
             """SELECT p.number,p.family_id,p.fingerprint,p.snapshot,p.snapshot_sha256,p.outcome,
                       COALESCE(bool_or(NOT a.is_correct),false) AS has_error,
                       COALESCE(p.snapshot->'_original_scenario_snapshot',
-                        (SELECT archive.item->'snapshot'
-                         FROM jsonb_array_elements(COALESCE(s.state->'scenario_archive',
-                           '[]'::jsonb)) AS archive(item)
-                         WHERE archive.item->>'seed'=p.snapshot->>'scenario_seed'
-                           AND archive.item->>'story_code'=p.snapshot->>'story_code'
-                         LIMIT 1),
                         (SELECT first.snapshot->'_original_scenario_snapshot'
                          FROM mixed_training_problems first
                          WHERE first.session_id=p.session_id AND first.number=1
                            AND first.snapshot->>'scenario_seed'=p.snapshot->>'scenario_seed'
+                           AND first.snapshot->>'story_code'=p.snapshot->>'story_code'
                            AND first.snapshot ? '_original_scenario_snapshot'
                          ORDER BY first.issued_at,first.id LIMIT 1),
                         s.state->'scenario_snapshot') AS scenario_snapshot,
                       COALESCE(p.snapshot->>'_original_scenario_snapshot_sha256',
-                        (SELECT archive.item->>'sha256'
-                         FROM jsonb_array_elements(COALESCE(s.state->'scenario_archive',
-                           '[]'::jsonb)) AS archive(item)
-                         WHERE archive.item->>'seed'=p.snapshot->>'scenario_seed'
-                           AND archive.item->>'story_code'=p.snapshot->>'story_code'
-                         LIMIT 1),
                         (SELECT first.snapshot->>'_original_scenario_snapshot_sha256'
                          FROM mixed_training_problems first
                          WHERE first.session_id=p.session_id AND first.number=1
                            AND first.snapshot->>'scenario_seed'=p.snapshot->>'scenario_seed'
+                           AND first.snapshot->>'story_code'=p.snapshot->>'story_code'
                            AND first.snapshot ? '_original_scenario_snapshot'
                          ORDER BY first.issued_at,first.id LIMIT 1),
                         s.state->>'scenario_snapshot_sha256') AS scenario_sha256
@@ -244,22 +234,6 @@ async def _load_memory_source(
         state = session.get("state", {}) if isinstance(session, dict) else {}
         candidate = snapshot.get("_original_scenario_snapshot")
         scenario_digest = snapshot.get("_original_scenario_snapshot_sha256")
-        if not isinstance(candidate, dict) and isinstance(state, dict):
-            candidate = state.get("scenario_snapshot")
-            scenario_digest = state.get("scenario_snapshot_sha256")
-        if not isinstance(candidate, dict) and isinstance(state, dict):
-            archive = state.get("scenario_archive")
-            if isinstance(archive, list):
-                for item in reversed(archive):
-                    if (
-                        isinstance(item, dict)
-                        and item.get("seed") == snapshot.get("scenario_seed")
-                        and item.get("story_code") == snapshot.get("story_code")
-                        and isinstance(item.get("snapshot"), dict)
-                    ):
-                        candidate = item["snapshot"]
-                        scenario_digest = item.get("sha256")
-                        break
         if not isinstance(candidate, dict):
             scenario_seed = snapshot.get("scenario_seed")
             story_code = snapshot.get("story_code")
@@ -277,16 +251,16 @@ async def _load_memory_source(
                     candidate = saved["_original_scenario_snapshot"]
                     scenario_digest = saved.get("_original_scenario_snapshot_sha256")
                     break
-        if isinstance(candidate, dict):
-            scenario_snapshot = candidate
-            if not isinstance(scenario_digest, str):
-                raise ValueError("The original mixed scenario has no integrity digest")
-            await asyncio.to_thread(_check_scenario_snapshot, candidate, scenario_digest)
-            snapshot = cast(
-                dict[str, object],
-                await asyncio.to_thread(_scenario_question, candidate, number),
-            )
-            snapshot["problem_id"] = str(source_id)
+        if not isinstance(candidate, dict) and isinstance(state, dict):
+            candidate = state.get("scenario_snapshot")
+            scenario_digest = state.get("scenario_snapshot_sha256")
+        if not isinstance(candidate, dict):
+            raise ValueError("The original mixed scenario is unavailable")
+        scenario_snapshot = candidate
+        await asyncio.to_thread(_check_scenario_snapshot, candidate, scenario_digest)
+        question = await asyncio.to_thread(_scenario_question, candidate, number)
+        await asyncio.to_thread(_same_question, question, snapshot)
+        snapshot = {**question, "problem_id": str(source_id)}
     if source_type == "scenario":
         raise ValueError("MemoryRepository does not store OGE 1–5 source sessions")
     snapshot = cast(dict[str, object], snapshot)
@@ -352,14 +326,13 @@ def _restore_and_validate(
 
 
 def _validate_known_snapshot(snapshot: dict[str, object], family_id: str, problem_id: str) -> None:
-    if family_id.startswith("OGE07-N"):
+    if family_id.startswith("OGE07-"):
         from app.math.oge07_validation import validate_task7_snapshot
 
-        validate_task7_snapshot(snapshot)
+        if not validate_task7_snapshot(snapshot):
+            raise ValueError("The original №7 task failed validation")
         _assert_regenerated(snapshot, problem_id)
     elif family_id.startswith("OGE06-"):
-        _assert_regenerated(snapshot, problem_id)
-    elif family_id.startswith("OGE07-"):
         _assert_regenerated(snapshot, problem_id)
     elif family_id.startswith("OGE08-"):
         _assert_regenerated(snapshot, problem_id)
@@ -377,7 +350,8 @@ def _validate_known_snapshot(snapshot: dict[str, object], family_id: str, proble
     elif family_id.startswith("OGE13-"):
         from app.math.inequalities import validate_snapshot as validate_inequality
 
-        validate_inequality(snapshot)
+        if not validate_inequality(snapshot):
+            raise ValueError("The original №13 task failed validation")
         _assert_regenerated(snapshot, problem_id)
     elif family_id.startswith("OGE14-"):
         _assert_regenerated(snapshot, problem_id)
@@ -401,6 +375,8 @@ def _validate_known_snapshot(snapshot: dict[str, object], family_id: str, proble
         from app.math.oge19 import validate_snapshot as validate_task19
 
         validate_task19(snapshot)
+        if snapshot.get("correct_answer") != snapshot.get("answer_mask"):
+            raise ValueError("The original №19 answer differs from the verified answer mask")
 
 
 def _assert_regenerated(snapshot: dict[str, object], problem_id: str) -> None:
@@ -583,7 +559,9 @@ class ErrorReplayRepository:
                     user_uuid, source.source_type, source.source_id, source.source_position,
                 )
             await connection.execute(
-                """UPDATE users SET current_state=jsonb_build_object('screen','error_replay')
+                """UPDATE users SET current_state=jsonb_set(
+                       current_state - 'navigation_message_id' - 'navigation_revision',
+                       '{screen}', '"error_replay"'::jsonb)
                    WHERE id=$1""",
                 user_uuid,
             )
@@ -593,13 +571,16 @@ class ErrorReplayRepository:
         if self._pool is None:
             for (owner, *_), row in self._repository._training_error_replays.items():
                 if owner == user_id and row["id"] == str(replay_id):
-                    row["prompt_message_id"] = message_id
+                    previous = row.get("prompt_message_id") or 0
+                    if row["status"] == "active" and message_id > previous:
+                        row["prompt_message_id"] = message_id
                     return
             return
         await self._pool.execute(
             """UPDATE training_error_replays r SET prompt_message_id=$3,updated_at=now()
                FROM users u WHERE r.user_id=u.id AND u.telegram_user_id=$1 AND r.id=$2
-                 AND r.status='active'""",
+                 AND r.status='active' AND (r.prompt_message_id IS NULL
+                     OR r.prompt_message_id < $3)""",
             user_id, replay_id, message_id,
         )
 
@@ -611,14 +592,17 @@ class ErrorReplayRepository:
             row = self._memory_row(user_id, replay_id)
             if row is None:
                 return None
-            if reply_to is not None and row.get("prompt_message_id") != reply_to:
-                return {**row, "event": "stale"}
             attempts = row["attempts"]
             assert isinstance(attempts, list)
             if any(item.get("message_id") == message_id for item in attempts):
                 return {**row, "event": "duplicate"}
             if row["status"] != "active":
                 return {**row, "event": "closed"}
+            if (
+                await self._repository.user_state(user_id) != "error_replay"
+                or not _matches_prompt(row, message_id, reply_to)
+            ):
+                return {**row, "event": "stale"}
             number = int(cast(int, row["attempt_count"])) + 1
             attempts.append({"attempt_no": number, "message_id": message_id,
                              "raw_answer": raw_answer[:200], "is_correct": correct,
@@ -629,23 +613,32 @@ class ErrorReplayRepository:
                 row["status"] = "solved"
             elif number >= 2:
                 row["status"] = "failed"
+            if row["status"] != "active":
+                await self._repository.save_user_state(user_id, "progress")
             return {**row, "event": "accepted"}
         async with self._pool.acquire() as connection, connection.transaction():
+            owner = await connection.fetchrow(
+                "SELECT id,current_state->>'screen' AS screen FROM users "
+                "WHERE telegram_user_id=$1 FOR UPDATE", user_id,
+            )
+            if owner is None:
+                return None
             row = await connection.fetchrow(
-                """SELECT r.* FROM training_error_replays r JOIN users u ON u.id=r.user_id
-                   WHERE u.telegram_user_id=$1 AND r.id=$2 FOR UPDATE OF r""",
-                user_id, replay_id,
+                "SELECT * FROM training_error_replays WHERE user_id=$1 AND id=$2 FOR UPDATE",
+                owner["id"], replay_id,
             )
             if row is None:
                 return None
             result = _replay_row(row)
             attempts = cast_attempts(result.get("attempts"))
-            if reply_to is not None and result.get("prompt_message_id") != reply_to:
-                return {**result, "event": "stale"}
             if any(item.get("message_id") == message_id for item in attempts):
                 return {**result, "event": "duplicate"}
             if result["status"] != "active":
                 return {**result, "event": "closed"}
+            if owner["screen"] != "error_replay" or not _matches_prompt(
+                result, message_id, reply_to
+            ):
+                return {**result, "event": "stale"}
             attempt_no = int(cast(int, result["attempt_count"])) + 1
             attempts.append({"attempt_no": attempt_no, "message_id": message_id,
                              "raw_answer": raw_answer[:200], "is_correct": correct,
@@ -658,6 +651,12 @@ class ErrorReplayRepository:
                    ELSE now() END WHERE id=$1""",
                 replay_id, json.dumps(attempts), attempt_no, status,
             )
+            if status != "active":
+                await connection.execute(
+                    """UPDATE users SET current_state=jsonb_set(
+                           current_state - 'navigation_message_id' - 'navigation_revision',
+                           '{screen}', '"progress"'::jsonb) WHERE id=$1""", owner["id"],
+                )
             return {**result, "attempts": attempts, "attempt_count": attempt_no,
                     "status": status, "event": "accepted"}
 
@@ -721,6 +720,11 @@ class ErrorReplayRepository:
             if owner == user_id and row["id"] == str(replay_id):
                 return cast(dict[str, object], row)
         return None
+
+
+def _matches_prompt(row: dict[str, object], message_id: int, reply_to: int | None) -> bool:
+    prompt = row.get("prompt_message_id")
+    return isinstance(prompt, int) and message_id > prompt and reply_to in {None, prompt}
 
 
 def _replay_row(row: Any) -> dict[str, object]:
