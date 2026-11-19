@@ -465,22 +465,31 @@ _QUESTION_PHOTO_INDEXES: dict[str, tuple[int, ...]] = {
 }
 
 
-def scenario_photos_for_question(
-    snapshot: ScenarioSnapshot, position: int
-) -> tuple[bytes, ...]:
-    """Return only PNG materials needed to solve this position from its snapshot."""
+def _photo_indexes(snapshot: ScenarioSnapshot, position: int) -> tuple[int, ...]:
     if position not in range(1, 6):
         raise ValueError("Scenario question position must be between 1 and 5")
     question = next((item for item in snapshot.questions if item.position == position), None)
     if question is None:
         raise ValueError("Question is not present in the scenario snapshot")
-    indexes = (
+    return (
         *_SHARED_PHOTO_INDEXES.get(snapshot.story_code, ()),
         *_QUESTION_PHOTO_INDEXES.get(question.family_id, ()),
     )
-    photos = scenario_photos(snapshot)
+
+
+def scenario_photos_for_question(
+    snapshot: ScenarioSnapshot, position: int, *, previous_position: int | None = None,
+) -> tuple[bytes, ...]:
+    """Select required materials, omitting ones already shown in an adjacent question."""
+    indexes = _photo_indexes(snapshot, position)
+    if previous_position is not None:
+        previous = set(_photo_indexes(snapshot, previous_position))
+        indexes = tuple(index for index in indexes if index not in previous)
+    if not indexes:
+        return ()
     if any(index < 0 for index in indexes):
         raise ValueError("Question material index cannot be negative")
+    photos = scenario_photos(snapshot)
     # Some pre-table GARDEN snapshots legitimately have no heating PNG. Keep
     # those immutable legacy sessions resumable instead of failing to render.
     return tuple(

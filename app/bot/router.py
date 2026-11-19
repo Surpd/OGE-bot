@@ -2546,7 +2546,8 @@ async def show_progress(
         return
     insights = await training_insights(repository, user_id)
     await send_text(
-        message, repository, render_progress(insights), reply_markup=progress_keyboard()
+        message, repository, render_progress(insights),
+        reply_markup=progress_keyboard(insights=insights),
     )
 
 
@@ -2566,7 +2567,8 @@ async def show_progress_text(
     await repository.save_user_state(user_id, "progress")
     insights = await training_insights(repository, user_id)
     await send_text(
-        message, repository, render_progress(insights), reply_markup=progress_keyboard()
+        message, repository, render_progress(insights),
+        reply_markup=progress_keyboard(insights=insights),
     )
 
 

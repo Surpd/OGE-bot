@@ -1746,3 +1746,18 @@ async def test_concurrent_scenario_callbacks_and_replies_are_user_scoped(oge15_n
             assert current.attempt_count == 1 and current.hints_used == 1
     finally:
         await bot.session.close()
+
+
+def test_mixed_advance_sends_only_new_question_materials():
+    from app.bot.scenario_training import public_registry
+    from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
+    from app.math.scenarios.mobile_photos import scenario_photos_for_question
+
+    scenario = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 66002, "PAPER"), public_registry(),
+    ).snapshot
+    previous = scenario_photos_for_question(scenario, 1)
+    resumed = scenario_photos_for_question(scenario, 2)
+    assert len(previous) == 2
+    assert len(resumed) == 1 and resumed[0] in previous
+    assert scenario_photos_for_question(scenario, 2, previous_position=1) == ()
