@@ -22,7 +22,7 @@ from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_training import public_registry
-from app.bot.training_ux import matches_current_condition
+from app.bot.training_ux import matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
 from app.math.scenario_engine import (
     PracticeMode,
@@ -420,8 +420,12 @@ async def _send_problem(
                 f"{index}. {value}" for index, value in enumerate(options, 1)
             )
         condition += "\n\nВведите номер варианта 1–4."
-    if number == 19 and problem.get("answer_policy_id") == "oge19.answer-single-true":
-        condition += "\n\nВведите номер верного утверждения: 1, 2 или 3."
+    result = resumed_result(problem.get("outcome"), problem)
+    if result is not None:
+        condition += "\n\n" + result
+    elif number == 19:
+        if problem.get("answer_policy_id") == "oge19.answer-single-true":
+            condition += "\n\nВведите номер верного утверждения: 1, 2 или 3."
     elif number == 11:
         condition += "\n\nВведите три цифры в порядке А, Б, В. Используйте 1, 2 и 3 по одному разу."
     elif number not in {7, 13}:

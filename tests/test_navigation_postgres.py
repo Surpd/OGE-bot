@@ -173,7 +173,7 @@ async def test_postgres_existing_migration_chain_is_idempotent_and_preserves_dat
 
 @pytest.mark.parametrize("terminal", [False, True], ids=["active", "terminal"])
 @pytest.mark.asyncio
-async def test_postgres_global_continue_selects_latest_task_and_advances_once(
+async def test_postgres_global_continue_restores_latest_task_until_next(
     navigation_pool, terminal: bool
 ):
     repository, user_id = await register(navigation_pool)
@@ -207,31 +207,32 @@ async def test_postgres_global_continue_selects_latest_task_and_advances_once(
     after_continue = await restarted.task12_state(user_id)
     assert after_continue is not None and isinstance(after_continue["problem"], dict)
     if terminal:
-        next_problem_id = str(after_continue["problem"]["problem_id"])
-        assert next_problem_id != task12_problem_id
-        assert after_continue["state"]["status"] == "active"
-        after_progress = await restarted.task12_progress(user_id)
-        assert after_progress["issued"] == before_progress["issued"] + 1
-        assert after_progress["solutions_viewed"] == before_progress["solutions_viewed"]
+        assert after_continue["problem"]["problem_id"] == task12_problem_id
+        assert after_continue["state"]["status"] == "solution_viewed"
+        assert await restarted.task12_progress(user_id) == before_progress
+        new_prompt_id = int(after_continue["state"]["input_prompt_message_id"])
+        assert new_prompt_id != old_prompt_id
         stale_callback = AsyncMock()
         stale_callback.data = f"t12:next:{task12_problem_id}"
         stale_callback.from_user = User(id=user_id, is_bot=False, first_name="Integration")
         stale_callback.message = AsyncMock()
         stale_callback.message.message_id = old_prompt_id
-        stale_callback.message.answer.return_value.message_id = old_prompt_id + 2
         await task12_callback(stale_callback, restarted)
-        await task12_callback(stale_callback, restarted)
-        after_stale_callbacks = await restarted.task12_state(user_id)
-        assert after_stale_callbacks is not None
-        assert after_stale_callbacks["problem"]["problem_id"] == next_problem_id
-        assert (await restarted.task12_progress(user_id))["issued"] == after_progress["issued"]
-        # A second Continue while the new problem is active restores it rather
-        # than issuing another one.
-        await return_to_menu(telegram_message(user_id, "↩ В меню"), restarted)
-        await continue_session(telegram_message(user_id, "▶ Продолжить"), restarted)
-        repeated = await restarted.task12_state(user_id)
-        assert repeated is not None and repeated["problem"]["problem_id"] == next_problem_id
-        assert (await restarted.task12_progress(user_id))["issued"] == after_progress["issued"]
+        assert await restarted.task12_progress(user_id) == before_progress
+
+        current_callback = AsyncMock()
+        current_callback.data = stale_callback.data
+        current_callback.from_user = stale_callback.from_user
+        current_callback.message = telegram_message(user_id, "➡ Следующее")
+        current_callback.message.message_id = new_prompt_id
+        await task12_callback(current_callback, restarted)
+        await task12_callback(current_callback, restarted)
+        advanced = await restarted.task12_state(user_id)
+        assert advanced is not None and advanced["problem"]["problem_id"] != task12_problem_id
+        assert advanced["state"]["status"] == "active"
+        after_progress = await restarted.task12_progress(user_id)
+        assert after_progress["issued"] == before_progress["issued"] + 1
+        assert after_progress["solutions_viewed"] == before_progress["solutions_viewed"]
     else:
         assert after_continue["problem"]["problem_id"] == task12_problem_id
         assert after_continue["state"]["status"] == "active"

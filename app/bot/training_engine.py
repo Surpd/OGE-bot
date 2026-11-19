@@ -11,7 +11,7 @@ from aiogram.types import BufferedInputFile, CallbackQuery, Message
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu, training_menu
 from app.bot.presentation import hint_message, send_photo, send_text
-from app.bot.training_ux import matches_current_condition
+from app.bot.training_ux import TERMINAL_RESULTS, matches_current_condition, resumed_result
 from app.math.formulas import POLICY as FORMULA_POLICY
 from app.math.oge8 import POLICY as POWERS_POLICY
 from app.math.oge8_scheduler import build_task8_candidate_batch
@@ -146,14 +146,12 @@ async def send_problem(
     state = await adapter.operation(repository, "state")(user_id)
     state_value = cast(dict[str, object], state.get("state", {})) if state else {}
     current = state.get("problem") if state else None
+    status = state_value.get("status")
+    terminal = action == "resume" and isinstance(status, str) and status in TERMINAL_RESULTS
     if action == "resume":
-        if not isinstance(current, dict) or state_value.get("status") != "active":
-            await send_text(
-                message,
-                repository,
-                f"Нет незавершённой тренировки №{adapter.number}.",
-                reply_markup=main_menu(),
-            )
+        if not isinstance(current, dict) or (status != "active" and not terminal):
+            return False
+        if expected_problem_id is not None and current.get("problem_id") != expected_problem_id:
             return False
         problem = current
     else:
@@ -227,6 +225,9 @@ async def send_problem(
             # Repository transition metadata is not part of the signed/replayable
             # issued snapshot consumed by the geometry validator.
             problem.pop("_transitioned", None)
+    result = resumed_result(status, problem) if terminal else None
+    result_suffix = f"\n\n{result}" if result else ""
+    markup = adapter.menu(str(problem["problem_id"]), completed=terminal)
     if adapter.number == 15:
         try:
             triangle_restored = triangle_from_snapshot(problem)
@@ -238,8 +239,8 @@ async def send_problem(
             message,
             repository,
             BufferedInputFile(triangle_restored.png_bytes, filename="oge15.png"),
-            caption=f"Задание №15\n\n{problem['condition']}",
-            reply_markup=adapter.menu(str(problem["problem_id"])),
+            caption=f"Задание №15\n\n{problem['condition']}" + result_suffix,
+            reply_markup=markup,
             user_id_override=user_id,
         )
     elif adapter.number == 16:
@@ -252,8 +253,8 @@ async def send_problem(
             message,
             repository,
             BufferedInputFile(restored_circle.png, filename="oge16.png"),
-            caption=f"Задание №16 · Окружности\n\n{problem['condition']}",
-            reply_markup=adapter.menu(str(problem["problem_id"])),
+            caption=f"Задание №16 · Окружности\n\n{problem['condition']}" + result_suffix,
+            reply_markup=markup,
             user_id_override=user_id,
         )
     elif adapter.number == 17:
@@ -276,8 +277,8 @@ async def send_problem(
                 __import__("base64").b64decode(restored17.to_snapshot()["png_base64"]),
                 filename="oge17.png",
             ),
-            caption=f"Задание №17\n\n{problem['condition']}",
-            reply_markup=adapter.menu(str(problem["problem_id"])),
+            caption=f"Задание №17\n\n{problem['condition']}" + result_suffix,
+            reply_markup=markup,
             user_id_override=user_id,
         )
     elif adapter.number == 18:
@@ -290,8 +291,8 @@ async def send_problem(
             message,
             repository,
             BufferedInputFile(restored.png_bytes, filename="oge18.png"),
-            caption=f"Задание №18\n\n{problem['condition']}",
-            reply_markup=adapter.menu(str(problem["problem_id"])),
+            caption=f"Задание №18\n\n{problem['condition']}" + result_suffix,
+            reply_markup=markup,
             user_id_override=user_id,
         )
     elif adapter.number == 19:
@@ -303,22 +304,32 @@ async def send_problem(
         sent = await send_text(
             message,
             repository,
-            f"Задание №19 · Геометрические утверждения\n\n{problem['condition']}",
-            reply_markup=adapter.menu(str(problem["problem_id"])),
+            f"Задание №19 · Геометрические утверждения\n\n{problem['condition']}" + result_suffix,
+            reply_markup=markup,
         )
     else:
         sent = await send_text(
             message,
             repository,
-            f"Задание №{adapter.number} · {adapter.title}\n\n{problem['condition']}\n\n"
-            "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
-            reply_markup=adapter.menu(str(problem["problem_id"])),
+            f"Задание №{adapter.number} · {adapter.title}\n\n{problem['condition']}"
+            + (result_suffix if terminal else "\n\n" + adapter.invalid_answer),
+            reply_markup=markup,
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await getattr(repository, f"set_{adapter.mode}_condition_message")(
-            user_id, str(problem["problem_id"]), prompt_id
-        )
+        if terminal:
+            saved = await getattr(repository, f"set_{adapter.mode}_prompt_message")(
+                user_id, str(problem["problem_id"]), prompt_id, expected_status=str(status)
+            )
+            if not saved:
+                from app.bot.router import _disable_stale_keyboard
+
+                await _disable_stale_keyboard(sent, saved)
+                return False
+        else:
+            await getattr(repository, f"set_{adapter.mode}_condition_message")(
+                user_id, str(problem["problem_id"]), prompt_id
+            )
     return await persist_open_training(
         repository,
         user_id,

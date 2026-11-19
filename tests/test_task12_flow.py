@@ -248,7 +248,7 @@ async def test_task12_sessions_are_independent_and_continue_uses_latest_mode() -
 
 
 @pytest.mark.asyncio
-async def test_continue_after_terminal_task_explicitly_issues_one_next_problem() -> None:
+async def test_continue_after_terminal_task_waits_for_next_button() -> None:
     repository = MemoryRepository()
     await choose_task12(_message(1005, "№12 · Формулы"), repository)
     old_problem_id = str(repository.training12[1005]["problem"]["problem_id"])
@@ -258,10 +258,26 @@ async def test_continue_after_terminal_task_explicitly_issues_one_next_problem()
     await return_to_menu(_message(1005, "↩ В меню"), repository)
     assert await repository.last_training_mode(1005) == "task12"
     assert len(repository.issued12[1005]) == issued_before
-    await continue_session(_message(1005, "▶ Продолжить"), repository)
+    resumed = _message(1005, "▶ Продолжить")
+    await continue_session(resumed, repository)
 
     state = await repository.task12_state(1005)
-    assert state is not None and state["state"]["status"] == "active"
-    assert state["problem"]["problem_id"] != old_problem_id
+    assert state is not None and state["state"]["status"] == "solution_viewed"
+    assert state["problem"]["problem_id"] == old_problem_id
+    assert len(repository.issued12[1005]) == issued_before
+    markup = resumed.answer.await_args.kwargs["reply_markup"]
+    assert {button.callback_data for row in markup.inline_keyboard for button in row} == {
+        f"t12:next:{old_problem_id}", f"t12:menu:{old_problem_id}"
+    }
+    callback = AsyncMock()
+    callback.data = f"t12:next:{old_problem_id}"
+    callback.from_user = User(id=1005, is_bot=False, first_name="Student")
+    callback.message = AsyncMock()
+    callback.message.message_id = state["state"]["input_prompt_message_id"]
+    callback.message.answer.return_value.message_id = callback.message.message_id + 1
+    await task12_callback(callback, repository)
+    await task12_callback(callback, repository)
+    after = await repository.task12_state(1005)
+    assert after is not None and after["problem"]["problem_id"] != old_problem_id
     assert len(repository.issued12[1005]) == issued_before + 1
     assert (await repository.task12_progress(1005))["solutions_viewed"] == 1

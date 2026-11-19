@@ -7467,6 +7467,8 @@ class MemoryRepository(MemoryTrainingPreferences):
         saved = (
             self.training.get(telegram_user_id)
             if mode == "task6"
+            else self.training7.get(telegram_user_id)
+            if mode == "task7"
             else self.training9.get(telegram_user_id)
             if mode == "task9"
             else self.training10.get(telegram_user_id)
