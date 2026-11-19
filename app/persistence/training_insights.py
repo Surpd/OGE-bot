@@ -21,8 +21,8 @@ METRICS = ("issued", "completed", "answered_tasks", "attempts", "incorrect_attem
 
 _COMPLETED = frozenset({"solved", "failed", "skipped", "solution_viewed"})
 _STORY_NAMES = {
-    "TYRES": "Шины", "PAPER": "Бумага", "STOVE": "Печь", "TARIFF": "Тарифы",
-    "GARDEN": "Участок", "FLAT": "Квартира", "ROUTE": "Маршрут",
+    "TYRES": "Шины", "PAPER": "Бумага", "STOVE": "Печи", "TARIFF": "Тарифы",
+    "GARDEN": "Участки", "FLAT": "Квартиры", "ROUTE": "Маршруты",
 }
 
 
@@ -82,6 +82,26 @@ def family_name(family: str) -> str:
     # Runtime generators may split a registry family into operation variants.
     prefixes = [key for key in names if family.startswith(key + "-")]
     return names[max(prefixes, key=len)] if prefixes else "Тип из прежней версии"
+
+
+def record_story_code(record: dict[str, Any]) -> str | None:
+    """Read a practical story identifier from the record or its saved snapshot."""
+    family = record.get("family_id")
+    if isinstance(family, str) and family.startswith("OGE15:"):
+        return family.partition(":")[2] or None
+    if isinstance(family, str):
+        for story_code in _STORY_NAMES:
+            if family == story_code or family.startswith(story_code + "-"):
+                return story_code
+    recorded_code = record.get("story_code")
+    if isinstance(recorded_code, str) and recorded_code:
+        return recorded_code
+    snapshot = record.get("snapshot")
+    if isinstance(snapshot, dict):
+        snapshot_code = snapshot.get("story_code")
+        if isinstance(snapshot_code, str) and snapshot_code:
+            return snapshot_code
+    return None
 
 
 
@@ -355,8 +375,8 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
         return result
     history_cte = _BASE + _SCENARIO_EVENTS + ", history_rows AS ("
     history_cte += """
-      SELECT 'o:'||p.id::text AS record_id, p.id, p.number, p.family_id, p.outcome,
-             p.issued_at,
+      SELECT 'o:'||p.id::text AS record_id, p.id, p.number, p.family_id,
+             NULL::text AS story_code, p.outcome, p.issued_at,
              EXISTS (SELECT 1 FROM attempts_all a WHERE a.problem_id=p.id
                      AND a.user_id=p.user_id AND a.source='ordinary'
                      AND NOT a.is_correct) AS has_error
@@ -364,7 +384,8 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
       WHERE p.source='ordinary'
       UNION ALL
       SELECT 'm:'||problem.id::text, problem.id, problem.number::int,
-             problem.family_id,problem.outcome,problem.issued_at, EXISTS (
+             problem.family_id,problem.snapshot->>'story_code',
+             problem.outcome,problem.issued_at, EXISTS (
                  SELECT 1 FROM mixed_training_attempts attempt
                  WHERE attempt.problem_id=problem.id AND NOT attempt.is_correct)
       FROM mixed_training_problems problem
@@ -373,7 +394,8 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
       WHERE user_row.telegram_user_id=$1
       UNION ALL
       SELECT 's:'||event.session_id::text||':'||event.number::text, NULL::uuid,
-             event.number,event.family_id,event.outcome,event.updated_at, EXISTS (
+             event.number,event.family_id,scenario.story_code,event.outcome,event.updated_at,
+             EXISTS (
                  SELECT 1 FROM oge15_attempts a WHERE a.session_id=event.session_id
                    AND a.position=event.number AND NOT a.is_correct)
       FROM scenario_events event JOIN oge15_scenarios scenario
@@ -422,10 +444,13 @@ async def _memory_records(repository: Any, telegram_user_id: int) -> list[dict[s
                             "solution_viewed": pid in solutions,
                             "attempt_records": by_problem.get(str(pid), []),
                             "issued_at": None})
-    records.extend(
-        item
-        for item in getattr(repository, "_mixed_training_records", {}).get(telegram_user_id, [])
-    )
+    for item in getattr(repository, "_mixed_training_records", {}).get(telegram_user_id, []):
+        record = dict(item)
+        story_code = record_story_code(record)
+        if story_code is not None:
+            record["story_code"] = story_code
+        record.pop("snapshot", None)
+        records.append(record)
     return records
 
 
@@ -485,7 +510,8 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
                 """SELECT '№'||CASE WHEN p.family_id ~ '^OGE0?[0-9]{1,2}-'
                      THEN substring(p.family_id from '^OGE0?([0-9]{1,2})-')::int
                      ELSE 0 END AS number,p.family_id,p.outcome,p.issued_at,
-                     p.snapshot->>'condition' AS condition
+                     p.snapshot->>'condition' AS condition,p.snapshot,
+                     NULL::text AS story_code
                    FROM issued_problems p JOIN users u ON u.id=p.user_id
                    WHERE u.telegram_user_id=$1 AND p.id=$2""", telegram_user_id, problem_id)
             if row is None:
@@ -503,7 +529,8 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
             row = await repository._pool.fetchrow(
                 """SELECT '№'||problem.number::int AS number,problem.family_id,
                           problem.outcome,problem.issued_at,
-                          problem.snapshot->>'condition' AS condition
+                          problem.snapshot->>'condition' AS condition,problem.snapshot,
+                          problem.snapshot->>'story_code' AS story_code
                    FROM mixed_training_problems problem
                    JOIN mixed_training_sessions mixed ON mixed.id=problem.session_id
                    JOIN users user_row ON user_row.id=mixed.user_id
@@ -537,7 +564,9 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
                      'OGE15:'||scenario.story_code AS family_id,progress.status AS outcome,
                      progress.updated_at AS issued_at,
                      scenario.snapshot->'questions'->(progress.position-1)->>'condition'
-                       AS condition
+                       AS condition,
+                     scenario.snapshot->'questions'->(progress.position-1) AS snapshot,
+                     scenario.story_code AS story_code
                    FROM oge15_question_progress progress
                    JOIN oge15_sessions session ON session.id=progress.session_id
                    JOIN oge15_scenarios scenario ON scenario.id=session.scenario_id
@@ -553,9 +582,37 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
                 session_id, position)
         else:
             return None
-        return {**dict(row), "attempt_records": [dict(attempt) for attempt in attempts]}
+        detail = dict(row)
+        detail["drawing_unavailable"] = _drawing_unavailable(detail.get("snapshot"))
+        return {**detail, "attempt_records": [dict(attempt) for attempt in attempts]}
 
     for record in await _memory_records(repository, telegram_user_id):
         if record.get("record_id") == record_id:
-            return record
+            return {**record, "drawing_unavailable": _drawing_unavailable(record.get("snapshot"))}
     return None
+
+
+def _drawing_unavailable(snapshot: object) -> bool:
+    """Flag a known graphic snapshot only when its saved drawing payload is absent."""
+    if not isinstance(snapshot, dict):
+        return False
+    from app.persistence.image_retention import image_payload_keys, is_graphic_snapshot
+
+    def has_image_signature(value: object) -> bool:
+        if isinstance(value, dict):
+            if any(
+                isinstance(value.get(key), str)
+                for key in ("image_sha256", "png_sha256", "graph_png_sha256")
+            ):
+                return True
+            if isinstance(value.get("renderer_version"), str) and isinstance(
+                value.get("sha256"), str
+            ):
+                return True
+            return any(has_image_signature(child) for child in value.values())
+        if isinstance(value, list):
+            return any(has_image_signature(child) for child in value)
+        return False
+
+    known_graphic = is_graphic_snapshot(snapshot) or has_image_signature(snapshot)
+    return known_graphic and not image_payload_keys(snapshot)
