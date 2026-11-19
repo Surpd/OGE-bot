@@ -307,7 +307,17 @@ async def exercise_navigation(
         await click(item_action)
         error_detail = list(session.messages.values())[-1]
         assert "Ошибка была: да" in (error_detail.text or "")
-        assert str(restarted["problem"]["condition"]) in (error_detail.text or "")
+        condition = str(restarted["problem"]["condition"])
+        delivery = next(
+            call for call in reversed(session.calls)
+            if call.__api_method__ in {"sendRichMessage", "sendMessage", "editMessageText"}
+        )
+        if delivery.__api_method__ == "sendRichMessage":
+            from app.bot.presentation import format_rich_message
+
+            assert format_rich_message(condition) in delivery.rich_message.html
+        else:
+            assert condition in (error_detail.text or "")
         return_action = next(
             button.callback_data.partition("~")[0]
             for row in error_detail.reply_markup.inline_keyboard
