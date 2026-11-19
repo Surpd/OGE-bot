@@ -124,7 +124,7 @@ def test_all_pages_are_bounded_and_paginate_without_exposing_answers():
     callbacks = [b.callback_data for row in keyboard.inline_keyboard for b in row]
     assert "progress:history:0" in callbacks
     assert "progress:history:12" in callbacks
-    assert "nav:main" in callbacks
+    assert "progress:summary" in callbacks
 
 @pytest.fixture
 async def insights_pool():
@@ -213,6 +213,7 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
 
     from app.bot.progress_widget import widget_response
     from app.persistence.repository import PostgresRepository
+    from app.persistence.training_insights import training_record_detail
 
     pool = insights_pool
     telegram_user_id = 918273645
@@ -275,6 +276,15 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
     )
 
     repository = PostgresRepository(pool)
+    story_record = await training_record_detail(
+        repository, telegram_user_id, f"s:{session_id}:3"
+    )
+    assert story_record is not None
+    assert story_record["condition"] == "Практическое условие 3"
+    assert [attempt["is_correct"] for attempt in story_record["attempt_records"]] == [False, True]
+    assert await training_record_detail(
+        repository, telegram_user_id + 1, f"s:{session_id}:3"
+    ) is None
     total = (await training_insights(repository, telegram_user_id))["total"]
     assert total["issued"] == 9  # five individual questions share one scenario snapshot
     assert total["completed"] == 7
@@ -428,7 +438,7 @@ async def test_postgres_projection_only_fetches_requested_bounded_page():
                 return [{"number": None, "family_id": None, **dict.fromkeys(METRICS, 0)}]
             assert args == (123, 6, 6)
             assert "LIMIT $2 OFFSET $3" in query
-            assert "left(i.snapshot->>'condition',160)" in query
+            assert "->>'condition'" not in query
             return [{"id": "old", "number": 9, "family_id": "OGE09-F001",
                      "condition": "x+1=2", "outcome": "solved", "issued_at": datetime.now(UTC)}]
 
@@ -441,7 +451,7 @@ async def test_postgres_projection_only_fetches_requested_bounded_page():
     history = await training_insights(repository, 123, "history:6")
     assert history["page_total"] == 10000
     assert len(history["history"]) == 1
-    assert "Записи 7–12 из 10000" in render_progress(history, "history:6")
+    assert "Записи 7–7 из 10000" in render_progress(history, "history:6")
     assert "snapshot" not in history["history"][0]
 
 
@@ -484,12 +494,14 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         telegram_user_id,
     )
     ordinary_ids = {}
+    long_condition = "Исходное условие №18 — " + "точный текст " * 40
     for number in range(6, 20):
+        condition = long_condition if number == 18 else f"task {number}"
         pid = await insights_pool.fetchval(
             """INSERT INTO issued_problems(user_id,family_id,generator_version,fingerprint,
                snapshot,outcome,hints_used) VALUES($1,$2,'1',$2,$3::jsonb,'solved',1)
                RETURNING id""",
-            user_id, f"OGE{number:02}-F001", json.dumps({"condition": f"task {number}"}),
+            user_id, f"OGE{number:02}-F001", json.dumps({"condition": condition}),
         )
         for attempt_no, is_correct in ((1, False), (2, True)):
             await insights_pool.execute(
@@ -503,7 +515,7 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         outcomes_attr = "outcomes" if number == 6 else f"outcomes{number}"
         hints_attr = "hints_history" if number == 6 else f"hints{number}"
         getattr(memory, issued_attr)[telegram_user_id] = {
-            str(pid): {"family_id": f"OGE{number:02}-F001", "condition": f"task {number}"}
+            str(pid): {"family_id": f"OGE{number:02}-F001", "condition": condition}
         }
         getattr(memory, attempts_attr)[telegram_user_id] = [
             {"problem_id": str(pid), "attempt_no": no, "is_correct": correct,
@@ -528,6 +540,7 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         ("skipped", ()),
     )
     memory_mixed = []
+    mixed_target = None
     for index, (outcome, answers) in enumerate(mixed_cases):
         # IDs are table-local; a same-UUID ordinary row must not absorb mixed
         # attempts or be counted twice as an answer.
@@ -536,9 +549,12 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
             """INSERT INTO mixed_training_problems(id,session_id,number,family_id,
                fingerprint,snapshot,snapshot_sha256,outcome,hints_used)
                VALUES(COALESCE($2::uuid,gen_random_uuid()),$1,9,'OGE09-F001',$3,
-                      '{}'::jsonb,repeat('a',64),$4,$5) RETURNING id""",
-            mixed_session, mixed_id, f"mixed-{index}", outcome, int(any(answers))
+                      $6::jsonb,repeat('a',64),$4,$5) RETURNING id""",
+            mixed_session, mixed_id, f"mixed-{index}", outcome, int(any(answers)),
+            json.dumps({"condition": f"Mixed condition {index}"})
         )
+        if index == 0:
+            mixed_target = mixed_id
         attempt_records = []
         for attempt_no, is_correct in enumerate(answers, 1):
             await insights_pool.execute(
@@ -555,6 +571,7 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         memory_mixed.append({
             "id": str(mixed_id), "record_id": f"m:{mixed_id}", "number": 9,
             "family_id": "OGE09-F001", "outcome": outcome,
+            "condition": f"Mixed condition {index}",
             "attempt_records": attempt_records, "hints_used": int(any(answers)),
             "solution_viewed": False, "issued_at": None,
         })
@@ -582,9 +599,19 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         assert (await training_insights(repo, telegram_user_id, "errors"))["page_total"] == 16
         assert (await training_insights(repo, telegram_user_id, "history"))["page_total"] == 17
         assert (await training_insights(repo, telegram_user_id, "families"))["page_total"] == 14
+        number_errors = await training_insights(
+            repo, telegram_user_id, "numerr:9:0", number_filter=9
+        )
+        assert number_errors["page_total"] == 3
+        assert all(row["number"] == 9 for row in number_errors["errors"])
         detail = await training_record_detail(repo, telegram_user_id, f"o:{target}")
-        assert detail["condition"] == "task 18"
+        assert detail["condition"] == long_condition
         assert await training_record_detail(repo, telegram_user_id + 1, f"o:{target}") is None
+        mixed_detail = await training_record_detail(repo, telegram_user_id, f"m:{mixed_target}")
+        assert mixed_detail is not None and mixed_detail["condition"] == "Mixed condition 0"
+        assert await training_record_detail(
+            repo, telegram_user_id + 1, f"m:{mixed_target}"
+        ) is None
 
 
 def test_recommendations_include_geometry_but_not_closed_number(monkeypatch):
@@ -613,8 +640,23 @@ def test_recommendations_include_geometry_but_not_closed_number(monkeypatch):
     monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", tuple(oge19_scheduler.FAMILY_THEMES))
     assert recommended_number(insights["numbers"], insights["families"]) == 19
     assert "№19" in render_progress(insights)
-    assert "№19" in json.loads(overview_data(insights))["p"]["r"]
-    assert "№19" in image_recommendation(insights)
+
+
+def test_progress_recommendation_is_neutral_when_only_one_available_number_is_sampled(
+    monkeypatch,
+):
+    from app.bot.progress_image import _recommendation as image_recommendation
+    from app.math import oge19_scheduler
+    from app.persistence.training_insights import recommendation_sample_count
+
+    monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", ())
+    insights = summarize([
+        *[record(9, outcome="solved", attempts=[{"is_correct": True}]) for _ in range(5)],
+        *[record(19, outcome="failed", attempts=[{"is_correct": False}]) for _ in range(5)],
+    ])
+    assert recommendation_sample_count(insights["numbers"]) == 1
+    assert "недостаточно данных" in render_progress(insights)
+    assert "недостаточно данных" in image_recommendation(insights)
 
 
 def test_recommendation_requires_minimum_sample_and_avoids_ties():
@@ -651,19 +693,20 @@ def test_progress_text_uses_answered_denominator_and_keeps_skips_separate():
         *[record(6, outcome="skipped") for _ in range(15)],
     ])
     text = render_progress(four_answered, "number:6")
-    assert "Ответили: 4 · верно: 4 · успешность: 100%" in text
-    assert "Пропуски: 15" in text
-    assert "не менее 5" in text
+    assert "Задач с ответом: 4" in text
+    assert "Решено правильно: 4" in text
+    assert "Успешность: 100%" in text
+    assert "Пропущено: 15" in text
 
     five_answered = summarize([
         *[record(6, attempts=[{"attempt_no": 1, "is_correct": True}]) for _ in range(4)],
         record(6, outcome="failed", attempts=[{"attempt_no": 1, "is_correct": False}]),
     ])
-    assert "успешность: 80%" in render_progress(five_answered, "number:6")
+    assert "Успешность: 80%" in render_progress(five_answered, "number:6")
 
 
 def test_progress_number_keyboard_includes_every_first_part_number():
-    keyboard = progress_keyboard("numbers")
+    keyboard = progress_keyboard("details")
     buttons = [
         button.text
         for row in keyboard.inline_keyboard

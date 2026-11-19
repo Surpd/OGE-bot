@@ -124,8 +124,13 @@ async def widget_response(repository: Any, telegram_user_id: int, request: str) 
             {"n": row["attempt_no"], "ok": row["is_correct"], "h": row.get("used_hint") is True}
             for row in record.get("attempt_records", [])
         ]
+        display_number: int | str = record["number"]
+        if family.startswith("OGE15:"):
+            story_code = family.partition(":")[2]
+            position = record_id.rsplit(":", 1)[-1]
+            display_number = f"№1–5 · {story_code} · №{position}"
         return _json({"tab": "d", "d": {
-            "n": record["number"], "f": name, "date": date.strftime("%d.%m.%y") if date else "",
+            "n": display_number, "f": name, "date": date.strftime("%d.%m.%y") if date else "",
             "o": record["outcome"], "c": " ".join(str(record.get("condition") or "").split())[:200],
             "a": attempts,
         }})

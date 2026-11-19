@@ -124,15 +124,20 @@ def recommended_number(
     return None
 
 
-def has_recommendation_sample(numbers: dict[int, dict[str, Any]]) -> bool:
-    """Whether an available number has enough answers for a first comparison."""
+def recommendation_sample_count(numbers: dict[int, dict[str, Any]]) -> int:
+    """Count available numbers with enough answers to compare results."""
     from app.bot.trainings import BY_NUMBER
 
-    return any(
+    return sum(
         int(values.get("answered_tasks", 0)) >= MIN_ANSWERED_SAMPLE
         and (1 <= number <= 5 or (number in BY_NUMBER and BY_NUMBER[number].available))
         for number, values in numbers.items()
     )
+
+
+def has_recommendation_sample(numbers: dict[int, dict[str, Any]]) -> bool:
+    """Whether an available number has enough answers for a first comparison."""
+    return recommendation_sample_count(numbers) > 0
 
 def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     total = dict.fromkeys(METRICS, 0)
@@ -308,7 +313,8 @@ def _unified_metrics_cte() -> str:
 
 
 async def _postgres_insights(repository: Any, user_id: int, page: str,
-                             page_size: int) -> dict[str, Any]:
+                             page_size: int,
+                             number_filter: int | None = None) -> dict[str, Any]:
     section, offset, limit = _page(page, page_size)
     result = summarize([])
     result.update(page_offset=offset, page_total=0, paginated=True)
@@ -350,7 +356,7 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
     history_cte = _BASE + _SCENARIO_EVENTS + ", history_rows AS ("
     history_cte += """
       SELECT 'o:'||p.id::text AS record_id, p.id, p.number, p.family_id, p.outcome,
-             p.issued_at, left(i.snapshot->>'condition',160) AS condition,
+             p.issued_at,
              EXISTS (SELECT 1 FROM attempts_all a WHERE a.problem_id=p.id
                      AND a.user_id=p.user_id AND a.source='ordinary'
                      AND NOT a.is_correct) AS has_error
@@ -358,8 +364,7 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
       WHERE p.source='ordinary'
       UNION ALL
       SELECT 'm:'||problem.id::text, problem.id, problem.number::int,
-             problem.family_id,problem.outcome,problem.issued_at,
-             left(problem.snapshot->>'condition',160), EXISTS (
+             problem.family_id,problem.outcome,problem.issued_at, EXISTS (
                  SELECT 1 FROM mixed_training_attempts attempt
                  WHERE attempt.problem_id=problem.id AND NOT attempt.is_correct)
       FROM mixed_training_problems problem
@@ -368,20 +373,28 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
       WHERE user_row.telegram_user_id=$1
       UNION ALL
       SELECT 's:'||event.session_id::text||':'||event.number::text, NULL::uuid,
-             event.number,event.family_id,event.outcome,event.updated_at,
-             left(scenario.snapshot->'questions'->(event.number-1)->>'condition',160), EXISTS (
+             event.number,event.family_id,event.outcome,event.updated_at, EXISTS (
                  SELECT 1 FROM oge15_attempts a WHERE a.session_id=event.session_id
                    AND a.position=event.number AND NOT a.is_correct)
       FROM scenario_events event JOIN oge15_scenarios scenario
         ON scenario.id=event.scenario_id
     ) """
-    where = " WHERE has_error" if section == "errors" else ""
+    filters = []
+    if section == "errors":
+        filters.append("has_error")
+    if number_filter is not None:
+        filters.append("number=$2")
+    where = " WHERE " + " AND ".join(filters) if filters else ""
+    filter_args = (user_id, number_filter) if number_filter is not None else (user_id,)
     result["page_total"] = await repository._pool.fetchval(
-        history_cte + "SELECT count(*) FROM history_rows" + where, user_id)
+        history_cte + "SELECT count(*) FROM history_rows" + where, *filter_args)
+    limit_position = len(filter_args) + 1
+    offset_position = len(filter_args) + 2
     rows = await repository._pool.fetch(
         history_cte + "SELECT * FROM history_rows" + where +
-        " ORDER BY issued_at DESC,record_id DESC LIMIT $2 OFFSET $3",
-        user_id, limit, offset)
+        f" ORDER BY issued_at DESC,record_id DESC "
+        f"LIMIT ${limit_position} OFFSET ${offset_position}",
+        *filter_args, limit, offset)
     result[section] = [
         {**dict(row), "family_name": family_name(row["family_id"])} for row in rows
     ]
@@ -417,17 +430,35 @@ async def _memory_records(repository: Any, telegram_user_id: int) -> list[dict[s
 
 
 async def training_insights(repository: Any, telegram_user_id: int,
-                            page: str = "summary", page_size: int = 6) -> dict[str, Any]:
+                            page: str = "summary", page_size: int = 6,
+                            *, number_filter: int | None = None) -> dict[str, Any]:
     """Read-only, user-scoped summary and bounded history across all available numbers."""
     if hasattr(repository, "_pool"):
-        return await _postgres_insights(repository, telegram_user_id, page, page_size)
+        normalized_page = (
+            "errors:" + page.rpartition(":")[2] if page.startswith("numerr:") else page
+        )
+        return await _postgres_insights(
+            repository, telegram_user_id, normalized_page, page_size, number_filter
+        )
     result = summarize(await _memory_records(repository, telegram_user_id))
     section, offset, limit = _page(page, page_size)
-    total = len(result.get(section, [])) if section in {"families", "history", "errors"} else 0
+    if page.startswith("numerr:"):
+        section = "errors"
+        offset = int(page.rpartition(":")[2]) if page.rpartition(":")[2].isdigit() else 0
+    if section in {"history", "errors"}:
+        page_records = result.get(section, [])
+        if number_filter is not None:
+            page_records = [
+                row for row in page_records if int(row.get("number", 0)) == number_filter
+            ]
+        total = len(page_records)
+        result[section] = page_records[offset:offset + limit]
+    else:
+        total = len(result.get(section, [])) if section == "families" else 0
     if section in {"families", "history", "errors"}:
         if section == "families":
             result[section].sort(key=lambda row: (row["number"], row["family_id"]))
-        result[section] = result[section][offset:offset + limit]
+            result[section] = result[section][offset:offset + limit]
     if section != "history":
         result["history"] = []
     if section != "errors":
@@ -454,7 +485,7 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
                 """SELECT '№'||CASE WHEN p.family_id ~ '^OGE0?[0-9]{1,2}-'
                      THEN substring(p.family_id from '^OGE0?([0-9]{1,2})-')::int
                      ELSE 0 END AS number,p.family_id,p.outcome,p.issued_at,
-                     left(p.snapshot->>'condition',200) AS condition
+                     p.snapshot->>'condition' AS condition
                    FROM issued_problems p JOIN users u ON u.id=p.user_id
                    WHERE u.telegram_user_id=$1 AND p.id=$2""", telegram_user_id, problem_id)
             if row is None:
@@ -472,7 +503,7 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
             row = await repository._pool.fetchrow(
                 """SELECT '№'||problem.number::int AS number,problem.family_id,
                           problem.outcome,problem.issued_at,
-                          left(problem.snapshot->>'condition',200) AS condition
+                          problem.snapshot->>'condition' AS condition
                    FROM mixed_training_problems problem
                    JOIN mixed_training_sessions mixed ON mixed.id=problem.session_id
                    JOIN users user_row ON user_row.id=mixed.user_id
@@ -502,10 +533,10 @@ async def training_record_detail(repository: Any, telegram_user_id: int,
             if position not in range(1, 6):
                 return None
             row = await repository._pool.fetchrow(
-                """SELECT '№1–5 · '||scenario.story_code||' · №'||progress.position AS number,
+                """SELECT progress.position::int AS number,
                      'OGE15:'||scenario.story_code AS family_id,progress.status AS outcome,
                      progress.updated_at AS issued_at,
-                     left(scenario.snapshot->'questions'->(progress.position-1)->>'condition',200)
+                     scenario.snapshot->'questions'->(progress.position-1)->>'condition'
                        AS condition
                    FROM oge15_question_progress progress
                    JOIN oge15_sessions session ON session.id=progress.session_id

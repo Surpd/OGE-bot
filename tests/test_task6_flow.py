@@ -430,7 +430,7 @@ async def test_reply_to_previous_problem_is_rejected_after_next_callback() -> No
 
 
 @pytest.mark.asyncio
-async def test_progress_uses_clear_completed_and_error_labels() -> None:
+async def test_progress_uses_dashboard_metrics_and_number_selector() -> None:
     repository = MemoryRepository()
     await choose_task6(_message(780, "№6 · Вычисления"), repository)
     state = await repository.task6_state(780)
@@ -443,15 +443,12 @@ async def test_progress_uses_clear_completed_and_error_labels() -> None:
     progress_message = _message(780, "📊 Прогресс")
     await show_progress_text(progress_message, repository)
     text = progress_message.answer.await_args.args[0]
-    assert "Завершено заданий: 1" in text
-    assert "Заданий с ошибками: 1" in text
-    assert "Решено без подсказки: 0" in text
-    assert "Ответили: 1 · верно: 1 · успешность: 100%" in text
+    assert "Верно: 1 · Успешность: 100% · Пропущено: 0" in text
+    assert "Задач с ответом: 1 · Выдано: 1" in text
     details = _message(780, "📊 Подробнее")
     await show_progress_details(details, repository)
     details_text = details.answer.await_args.args[0]
-    assert "№6 · ответили 1 · верно 1 · 100% · пропущено 0" in details_text
-    assert "нужно 5 ответов" in details_text
+    assert details_text == "Подробнее о номере\n\nВыберите №1–19."
 
 
 @pytest.mark.asyncio
@@ -460,7 +457,8 @@ async def test_empty_progress_uses_zero_accuracy_without_division_error() -> Non
     message = _message(772, "📊 Прогресс")
     await show_progress_text(message, repository)
     text = message.answer.await_args.args[0]
-    assert "Завершено заданий: 0" in text
+    assert "Верно: 0 · Успешность: — · Пропущено: 0" in text
+    assert "Задач с ответом: 0 · Выдано: 0" in text
     assert "%" not in text
     assert "оценка освоения" not in text
 

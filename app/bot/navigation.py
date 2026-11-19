@@ -57,12 +57,12 @@ def navigation_screen(markup: object) -> str | None:
             return "number_selection"
         if value and value.startswith(("nav:family:", "nav:families:", "nav:begin:")):
             return f"family_selection:{value.split(':')[2]}"
-    if "nav:task:6" in callbacks:
-        return "number_selection"
     if "nav:details" in callbacks or "nav:progress_text" in callbacks or any(
         value and value.startswith("progress:") for value in callbacks
     ):
         return "progress"
+    if "nav:task:6" in callbacks:
+        return "number_selection"
     if "nav:numbers" in callbacks:
         return "main_menu"
     return None
@@ -236,29 +236,9 @@ async def navigation_callback(
         else:
             await select_family(message, repository, number, selection)
     elif progress_page is not None:
-        from app.bot.presentation import send_text
-        from app.bot.progress import progress_keyboard, render_progress
-        from app.bot.progress_image import send_progress_image
-        from app.persistence.training_insights import training_insights
+        from app.bot.progress import progress_navigation
 
-        await repository.save_user_state(callback.from_user.id, "progress")
-        if await send_progress_image(
-            message,
-            repository,
-            callback.from_user.id,
-            progress_page,
-            edit_existing=bool(callback.message.photo),
-        ):
-            await answer_callback(callback)
-            return
-        insights = await training_insights(repository, callback.from_user.id, progress_page)
-        total = insights["page_total"]
-        await send_text(
-            message,
-            repository,
-            render_progress(insights, progress_page),
-            reply_markup=progress_keyboard(progress_page, total),
-        )
+        await progress_navigation(message, repository, callback.from_user.id, progress_page)
     elif data == "nav:oge15":
         await show_public_oge15(message, oge15_repository, repository)
     elif training_action is not None:
