@@ -30,7 +30,10 @@ from app.bot.math_notation import (
 from app.persistence.repository import Repository
 
 _HEADING = re.compile(
-    r"^(Задание №[^\n]+|Разбор(?: \(самостоятельное решение не засчитывается\))?:|"
+    r"^((?:.+ · )?Задание №[^\n]+|Мой прогресс[^\n]*|Подробнее о номере|"
+    r"Практика №[^\n]*|История(?: · №\d+)?|Мои ошибки(?: · №\d+)?|"
+    r"№\d+ · [^\n]+|Исходное условие:|Результат:|Попытки:|По семействам:|"
+    r"Разбор(?: \(самостоятельное решение не засчитывается\))?:|"
     r"Подсказка(?: №\d+)?:|Ответ:|Правильный ответ:|Правильный вариант:)"
 )
 _INLINE_ANSWER = re.compile(r"(Ответ:|Правильный ответ:|Правильный вариант:)")
@@ -227,15 +230,17 @@ async def send_text(
     *,
     user_id_override: int | None = None,
     math_system_rows: tuple[str, ...] | None = None,
+    rich_with_navigation: bool = False,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
 
+    has_navigation = navigation_screen(kwargs.get("reply_markup")) is not None
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
     if (
         _has_telegram_transport(message)
-        and navigation_screen(kwargs.get("reply_markup")) is None
+        and (not has_navigation or rich_with_navigation)
         and _has_math(text)
     ):
         sent = await _send_mathematics(

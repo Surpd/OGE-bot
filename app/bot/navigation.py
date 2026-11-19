@@ -63,6 +63,19 @@ def navigation_screen(markup: object) -> str | None:
         return "progress"
     if "nav:task:6" in callbacks:
         return "number_selection"
+    if any(
+        value
+        and value.startswith(
+            (
+                "oge15:story:", "oge15:mode:", "oge15:start:", "oge15:return:",
+                "oge15:new:", "oge15:unfinished", "oge15:resume:", "oge15:restart:",
+                "oge15:new-confirm:", "oge15:restart-confirm:", "oge15:restart-cancel:",
+                "oge15:rc:", "oge15:rx:",
+            )
+        )
+        for value in callbacks
+    ):
+        return "oge15_menu"
     if "nav:numbers" in callbacks:
         return "main_menu"
     return None
@@ -163,6 +176,12 @@ async def navigation_callback(
     target = targets.get(data)
     if data == "nav:oge15":
         target = show_public_oge15
+    oge15_number: int | None = None
+    if data.startswith("nav:oge15:"):
+        value = data.removeprefix("nav:oge15:")
+        if value.isascii() and value.isdigit() and int(value) in range(1, 6):
+            oge15_number = int(value)
+            target = show_public_oge15
     if data.startswith("nav:task:"):
         from app.bot.trainings import TRAININGS
 
@@ -241,6 +260,10 @@ async def navigation_callback(
         await progress_navigation(message, repository, callback.from_user.id, progress_page)
     elif data == "nav:oge15":
         await show_public_oge15(message, oge15_repository, repository)
+    elif oge15_number is not None:
+        await show_public_oge15(
+            message, oge15_repository, repository, selected_number=oge15_number
+        )
     elif training_action is not None:
         action, number, problem_id = training_action
         await handlers.saved_training_navigation(

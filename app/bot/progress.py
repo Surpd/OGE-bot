@@ -160,7 +160,7 @@ def progress_keyboard(
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     elif section == "number" and number is not None:
         if number in range(1, 6):
-            rows.append([_button("Тренировать №1–5", "nav:oge15")])
+            rows.append([_button(f"Тренировать №{number}", f"nav:oge15:{number}")])
         else:
             rows.append([_button(f"Тренировать №{number}", f"nav:task:{number}")])
         if has_errors:
@@ -171,6 +171,10 @@ def progress_keyboard(
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     elif section == "family" and number is not None:
         offset = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
+        if number in range(1, 6):
+            rows.append([_button(f"Тренировать №{number}", f"nav:oge15:{number}")])
+        else:
+            rows.append([_button(f"Тренировать №{number}", f"nav:task:{number}")])
         nav: list[InlineKeyboardButton] = []
         if offset:
             nav.append(_button("← Назад", f"progress:family:{number}:{max(0, offset - PAGE_SIZE)}"))
@@ -564,6 +568,7 @@ async def progress_navigation(
         repository,
         render_progress(insights, output_page),
         reply_markup=markup,
+        rich_with_navigation=True,
     )
     old_message = getattr(message, "_message", message)
     if sent.message_id != old_message.message_id:

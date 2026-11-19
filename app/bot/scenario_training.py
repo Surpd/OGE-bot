@@ -172,15 +172,24 @@ def _has_user(user_id: int | None) -> bool:
     return user_id is not None and user_id > 0
 
 
-def _story_keyboard() -> InlineKeyboardMarkup:
-    rows = [[_button(name, f"oge15:story:{code}")] for code, name in STORY_NAMES.items()]
+def _story_keyboard(selected_number: int | None = None) -> InlineKeyboardMarkup:
+    suffix = f":n{selected_number}" if selected_number is not None else ""
+    rows = [
+        [_button(name, f"oge15:story:{code}{suffix}")]
+        for code, name in STORY_NAMES.items()
+    ]
     rows.extend(
         (
-            [_button("🎲 Случайный сюжет", "oge15:story:RANDOM")],
+            [_button("🎲 Случайный сюжет", f"oge15:story:RANDOM{suffix}")],
             [_button("📂 Незавершённые тренировки", "oge15:unfinished")],
-            [_button("📊 Статистика", "oge15:stats")],
         )
     )
+    if selected_number is not None:
+        rows.append(
+            [_button(f"↩ К статистике №{selected_number}", f"oge15:return:{selected_number}")]
+        )
+    else:
+        rows.append([_button("↩ В меню", "nav:main")])
     return _keyboard(rows)
 
 
@@ -188,6 +197,8 @@ async def show_public_oge15(
     message: Message,
     oge15_repository: ScenarioPostgresRepository | None = None,
     repository: Repository | None = None,
+    *,
+    selected_number: int | None = None,
 ) -> None:
     user_id = message.from_user.id if message.from_user else None
     if not _has_user(user_id):
@@ -198,59 +209,138 @@ async def show_public_oge15(
     if repository is not None and user_id is not None:
         await oge15_repository.pause_foreground(user_id)
         await repository.save_user_state(user_id, "oge15_menu")
-    await message.answer(
-        "Практические задания №1–5\nВыберите сюжет:",
-        reply_markup=_story_keyboard(),
+    text = (
+        f"Практика №{selected_number} · выберите сюжет:"
+        if selected_number is not None
+        else "Практические задания №1–5\nВыберите сюжет:"
     )
+    if repository is None:
+        await message.answer(text, reply_markup=_story_keyboard(selected_number))
+    else:
+        await send_text(
+            message,
+            repository,
+            text,
+            reply_markup=_story_keyboard(selected_number),
+            user_id_override=user_id,
+        )
 
 
 async def _send_selection(
-    callback: CallbackQuery, text: str, keyboard: InlineKeyboardMarkup
+    callback: CallbackQuery,
+    text: str,
+    keyboard: InlineKeyboardMarkup,
+    repository: Repository | None = None,
 ) -> None:
     if isinstance(callback.message, Message):
-        await callback.message.answer(text, reply_markup=keyboard)
+        if repository is None:
+            await callback.message.answer(text, reply_markup=keyboard)
+        else:
+            await send_text(
+                callback.message,
+                repository,
+                text,
+                reply_markup=keyboard,
+                user_id_override=callback.from_user.id,
+            )
     await answer_callback(callback)
 
 
-async def _session_choice(callback: CallbackQuery, session: ScenarioSession) -> None:
+async def _session_choice(
+    callback: CallbackQuery,
+    session: ScenarioSession,
+    repository: Repository | None = None,
+    return_number: int | None = None,
+) -> None:
     story = STORY_NAMES.get(session.snapshot.story_code, session.snapshot.story_code)
-    lesson = "всю пятёрку" if session.mode is PracticeMode.FULL else "одно задание"
+    lesson = "пятёрку" if session.mode is PracticeMode.FULL else "одно задание"
+    new_label = "🆕 Новая пятёрка" if session.mode is PracticeMode.FULL else "🆕 Новое задание"
+    back_button = (
+        _button(f"↩ К статистике №{return_number}", f"oge15:return:{return_number}")
+        if return_number is not None
+        else _button("↩ К сюжетам", "oge15:home")
+    )
     await _send_selection(
         callback,
         f"Сохранена тренировка «{story}» — {lesson}, №{session.current_position}.",
         _keyboard(
             [
-                [_button("▶ Продолжить", f"oge15:resume:{session.session_id}")],
-                [_button("🆕 Начать заново", f"oge15:restart:{session.session_id}")],
-                [_button("↩ К сюжетам", "oge15:home")],
+                [_button(f"▶ Продолжить · {lesson} · №{session.current_position}",
+                         f"oge15:resume:{session.session_id}")],
+                [_button(new_label, f"oge15:restart:{session.session_id}")],
+                [back_button],
             ]
         ),
+        repository,
     )
 
 
 async def _story_step(
-    callback: CallbackQuery, code: str, store: ScenarioPostgresRepository
+    callback: CallbackQuery,
+    code: str,
+    store: ScenarioPostgresRepository,
+    repository: Repository | None,
+    requested_position: int | None = None,
 ) -> None:
     if code != "RANDOM" and code not in STORY_NAMES:
         await answer_callback(callback, "Этот сюжет недоступен.")
         return
     title = "Случайный сюжет" if code == "RANDOM" else STORY_NAMES[code]
+    if requested_position is not None:
+        if code == "RANDOM":
+            await _start_session(
+                callback, store, repository, code, PracticeMode.SINGLE, str(requested_position)
+            )
+            return
+        saved_session = await store.find_open_session(
+            callback.from_user.id, code, PracticeMode.SINGLE
+        )
+        if saved_session is not None:
+            if saved_session.current_position == requested_position:
+                await _session_choice(
+                    callback, saved_session, repository, return_number=requested_position
+                )
+            else:
+                await _send_selection(
+                    callback,
+                    f"Для сюжета «{title}» сохранено одно задание "
+                    f"№{saved_session.current_position}. "
+                    f"Для статистики выбран №{requested_position}.",
+                    _keyboard(
+                        [
+                            [
+                                _button(
+                                    "▶ Продолжить сохранённое",
+                                    f"oge15:resume:{saved_session.session_id}",
+                                )
+                            ],
+                            [_button(
+                                f"🆕 Начать задание №{requested_position}",
+                                f"oge15:new:{code}:{requested_position}",
+                            )],
+                            [_button(f"↩ К статистике №{requested_position}",
+                                     f"oge15:return:{requested_position}")],
+                        ]
+                    ),
+                    repository,
+                )
+            return
+        await _start_session(
+            callback, store, repository, code, PracticeMode.SINGLE, str(requested_position)
+        )
+        return
     if code != "RANDOM":
-        saved = [
+        saved_sessions = [
             session for session in await store.list_open_sessions(callback.from_user.id)
             if session.snapshot.story_code == code
         ]
-        if saved:
+        if saved_sessions:
             rows: list[list[InlineKeyboardButton]] = []
-            for session in saved:
+            for session in saved_sessions:
                 lesson = "пятёрка" if session.mode is PracticeMode.FULL else "одно задание"
                 rows.append([_button(
                     f"▶ Продолжить · {lesson} · №{session.current_position}",
                     f"oge15:resume:{session.session_id}",
-                )])
-                rows.append([_button(
-                    f"🆕 Начать заново · {lesson}",
-                    f"oge15:restart:{session.session_id}",
                 )])
             rows.extend((
                 [_button("Выбрать одно задание", f"oge15:mode:{code}:single")],
@@ -261,6 +351,7 @@ async def _story_step(
                 callback,
                 f"Сюжет: {title}. Сохранённые тренировки можно продолжить или начать заново.",
                 _keyboard(rows),
+                repository,
             )
             return
     await _send_selection(
@@ -273,10 +364,13 @@ async def _story_step(
                 [_button("↩ К сюжетам", "oge15:home")],
             ]
         ),
+        repository,
     )
 
 
-async def _position_step(callback: CallbackQuery, code: str) -> None:
+async def _position_step(
+    callback: CallbackQuery, code: str, repository: Repository | None = None
+) -> None:
     await _send_selection(
         callback,
         "Выберите номер задания:",
@@ -290,6 +384,7 @@ async def _position_step(callback: CallbackQuery, code: str) -> None:
                 [_button("↩ К сюжетам", "oge15:home")],
             ]
         ),
+        repository,
     )
 
 
@@ -366,6 +461,7 @@ async def render_session(
     edit_current: bool = False,
     result_text: str | None = None,
     user_id_override: int | None = None,
+    repository: Repository | None = None,
 ) -> None:
     telegram_user_id = user_id_override or (message.from_user.id if message.from_user else 0)
     if await _retire_unsafe(message, store, telegram_user_id, session):
@@ -450,7 +546,16 @@ async def render_session(
         except TelegramBadRequest:
             pass
     if controls is None:
-        controls = await message.answer(body, reply_markup=markup)
+        if repository is not None and not edit_current:
+            controls = await send_text(
+                message,
+                repository,
+                body,
+                reply_markup=markup,
+                user_id_override=telegram_user_id,
+            )
+        else:
+            controls = await message.answer(body, reply_markup=markup)
     if session.question_status == "active":
         await store.set_condition_message(
             telegram_user_id, session.session_id, session.current_position, controls.message_id
@@ -553,12 +658,21 @@ async def _start_session(
             user_id, plan.snapshot.story_code, plan.mode
         )
         if existing is not None:
-            await _session_choice(callback, existing)
+            return_number = (
+                int(position_text)
+                if mode is PracticeMode.SINGLE
+                and position_text is not None
+                and position_text.isascii()
+                and position_text.isdigit()
+                else None
+            )
+            await _session_choice(callback, existing, repository, return_number)
         else:
             await answer_callback(callback, "Это занятие уже изменилось. Выберите сюжет ещё раз.")
         return
     await render_session(
-        callback.message, store, session, show_assets=True, user_id_override=user_id
+        callback.message, store, session, show_assets=True, user_id_override=user_id,
+        repository=repository,
     )
     if repository is not None:
         await repository.save_user_state(user_id, "oge15")
@@ -655,7 +769,9 @@ async def answer_message(
     else:
         await message.answer("Пока неверно. Попробуйте ещё раз.")
         return
-    await render_session(message, store, updated, show_assets=False, result_text=result_text)
+    await render_session(
+        message, store, updated, show_assets=False, result_text=result_text, repository=repository
+    )
 
 
 async def handle_callback(
@@ -670,27 +786,49 @@ async def handle_callback(
         await answer_callback(callback, "Практические задания №1–5 сейчас недоступны.")
         return
     data = callback.data or ""
+    data = data.partition("~")[0]
+    if "~" in (callback.data or "") and repository is not None:
+        if not await repository.claim_navigation_message(
+            callback.from_user.id,
+            callback.message.message_id if isinstance(callback.message, Message) else 0,
+            (callback.data or "").rpartition("~")[2],
+        ):
+            await answer_callback(callback, "Это меню устарело. Откройте актуальную страницу.")
+            return
     if data == "oge15:home":
         if repository is not None:
             await repository.save_user_state(callback.from_user.id, "oge15_menu")
-        await _send_selection(callback, "Выберите сюжет:", _story_keyboard())
+        await _send_selection(callback, "Выберите сюжет:", _story_keyboard(), repository)
         return
     if data == "oge15:stats":
-        stats = await oge15_repository.position_stats(callback.from_user.id)
-        lines = ["Статистика практики №1–5:"]
-        for position in range(6):
-            row = stats.get(position, {})
-            label = "Всего" if position == 0 else f"№{position}"
-            lines.append(
-                f"{label}: выдано {row.get('issued', 0)}, верно {row.get('correct', 0)}, "
-                f"пропущено {row.get('skipped', 0)}"
+        from app.bot.progress import progress_navigation
+
+        if isinstance(callback.message, Message) and repository is not None:
+            await progress_navigation(
+                callback.message, repository, callback.from_user.id, "summary"
             )
-        await _send_selection(callback, "\n".join(lines), _story_keyboard())
+            await answer_callback(callback)
         return
+    if data.startswith("oge15:return:"):
+        value = data.removeprefix("oge15:return:")
+        if value.isascii() and value.isdigit() and int(value) in range(1, 6):
+            from app.bot.progress import progress_navigation
+
+            if isinstance(callback.message, Message) and repository is not None:
+                await progress_navigation(
+                    callback.message, repository, callback.from_user.id, f"number:{value}"
+                )
+                await answer_callback(callback)
+            return
     if data == "oge15:unfinished":
         sessions = await oge15_repository.list_open_sessions(callback.from_user.id)
         if not sessions:
-            await _send_selection(callback, "Нет незавершённых тренировок.", _story_keyboard())
+            await _send_selection(
+                callback,
+                "Нет незавершённых тренировок.",
+                _story_keyboard(),
+                repository,
+            )
             return
         rows = []
         for saved in sessions:
@@ -701,11 +839,88 @@ async def handle_callback(
                 f"oge15:resume:{saved.session_id}",
             )])
         rows.append([_button("↩ К сюжетам", "oge15:home")])
-        await _send_selection(callback, "Ваши незавершённые тренировки:", _keyboard(rows))
+        await _send_selection(
+            callback, "Ваши незавершённые тренировки:", _keyboard(rows), repository
+        )
         return
+    if data.startswith("oge15:rc:"):
+        data = data.replace("oge15:rc:", "oge15:restart-confirm:", 1)
+    elif data.startswith("oge15:rx:"):
+        data = data.replace("oge15:rx:", "oge15:restart-cancel:", 1)
     parts = data.split(":")
     if len(parts) == 3 and parts[:2] == ["oge15", "story"]:
-        await _story_step(callback, parts[2], oge15_repository)
+        await _story_step(callback, parts[2], oge15_repository, repository)
+        return
+    if len(parts) == 4 and parts[:2] == ["oge15", "story"]:
+        selected_position = parts[3][1:] if parts[3].startswith("n") else ""
+        if (
+            selected_position.isascii()
+            and selected_position.isdigit()
+            and int(selected_position) in range(1, 6)
+        ):
+            await _story_step(
+                callback, parts[2], oge15_repository, repository, int(selected_position)
+            )
+        else:
+            await answer_callback(callback, "Этот выбор устарел.")
+        return
+    if len(parts) == 4 and parts[:2] == ["oge15", "new"]:
+        code, position_text = parts[2], parts[3]
+        if (
+            code not in STORY_NAMES
+            or not position_text.isascii()
+            or not position_text.isdigit()
+            or int(position_text) not in range(1, 6)
+        ):
+            await answer_callback(callback, "Этот выбор недоступен.")
+            return
+        existing = await oge15_repository.find_open_session(
+            callback.from_user.id, code, PracticeMode.SINGLE
+        )
+        if existing is None:
+            await _start_session(
+                callback, oge15_repository, repository, code, PracticeMode.SINGLE, position_text
+            )
+            return
+        await _send_selection(
+            callback,
+            f"Начать задание №{position_text} сюжета «{STORY_NAMES[code]}»? "
+            "Текущее занятие сохранено в истории.",
+            _keyboard(
+                [
+                    [_button("🆕 Подтвердить", f"oge15:new-confirm:{code}:{position_text}")],
+                    [_button(f"↩ К статистике №{position_text}", f"oge15:return:{position_text}")],
+                ]
+            ),
+            repository,
+        )
+        return
+    if len(parts) == 4 and parts[:2] == ["oge15", "new-confirm"]:
+        code, position_text = parts[2], parts[3]
+        if (
+            code not in STORY_NAMES
+            or not position_text.isascii()
+            or not position_text.isdigit()
+            or int(position_text) not in range(1, 6)
+        ):
+            await answer_callback(callback, "Этот выбор устарел.")
+            return
+        existing = await oge15_repository.find_open_session(
+            callback.from_user.id, code, PracticeMode.SINGLE
+        )
+        if existing is None:
+            await answer_callback(callback, "Это занятие уже изменилось. Выберите сюжет ещё раз.")
+            return
+        await answer_callback(callback)
+        await _start_session(
+            callback,
+            oge15_repository,
+            repository,
+            code,
+            PracticeMode.SINGLE,
+            position_text,
+            replace_session_id=existing.session_id,
+        )
         return
     if len(parts) == 4 and parts[:2] == ["oge15", "mode"] and parts[3] in {"single", "full"}:
         code, mode = parts[2], PracticeMode(parts[3])
@@ -717,9 +932,9 @@ async def handle_callback(
                 if code != "RANDOM" else None
             )
             if selected_session is None:
-                await _position_step(callback, code)
+                await _position_step(callback, code, repository)
             else:
-                await _session_choice(callback, selected_session)
+                await _session_choice(callback, selected_session, repository)
         else:
             selected_session = (
                 await oge15_repository.find_open_session(callback.from_user.id, code, mode)
@@ -728,7 +943,7 @@ async def handle_callback(
             if selected_session is None:
                 await _start_session(callback, oge15_repository, repository, code, mode, None)
             else:
-                await _session_choice(callback, selected_session)
+                await _session_choice(callback, selected_session, repository)
         return
     if len(parts) == 5 and parts[:2] == ["oge15", "start"] and parts[3] == "single":
         if parts[2] not in {*STORY_NAMES, "RANDOM"} or parts[4] not in {
@@ -743,7 +958,7 @@ async def handle_callback(
         return
     if len(parts) == 6 and parts[:2] in (["oge15", "act"], ["o", "a"]):
         try:
-            session_id, position, revision = UUID(parts[2]), int(parts[3]), int(parts[4])
+            session_id, action_position, revision = UUID(parts[2]), int(parts[3]), int(parts[4])
         except ValueError:
             await answer_callback(callback, "Эта кнопка устарела.")
             return
@@ -755,7 +970,7 @@ async def handle_callback(
         if session is None:
             await answer_callback(callback, "Это занятие уже завершено.")
             return
-        if position not in range(1, 6) or action not in {
+        if action_position not in range(1, 6) or action not in {
             "hint",
             "solution",
             "skip",
@@ -769,13 +984,13 @@ async def handle_callback(
             await answer_callback(callback, "Это меню устарело. Откройте /start.")
             return
         question = next(
-            (item for item in session.snapshot.questions if item.position == position), None
+            (item for item in session.snapshot.questions if item.position == action_position), None
         )
         if question is None:
             await answer_callback(callback, "Эта кнопка устарела.")
             return
         if (
-            session.current_position == position
+            session.current_position == action_position
             and session.navigation_revision == revision
             and session.control_message_id == callback.message.message_id
             and await _retire_unsafe(
@@ -790,7 +1005,7 @@ async def handle_callback(
             session_id=session_id,
             control_message_id=callback.message.message_id,
             expected_revision=revision,
-            expected_position=position,
+            expected_position=action_position,
             action=action,
             hint_count=len(question.hints),
         )
@@ -815,6 +1030,7 @@ async def handle_callback(
                 show_assets=False,
                 edit_current=True,
                 user_id_override=callback.from_user.id,
+                repository=repository,
             )
             return
         if updated is not None and updated.status != "active" and action != "pause":
@@ -869,7 +1085,7 @@ async def handle_callback(
             return
         result_text = None
         if action == "hint":
-            q = next(q for q in updated.snapshot.questions if q.position == position)
+            q = next(q for q in updated.snapshot.questions if q.position == action_position)
             hint = q.hints[min(updated.hints_used - 1, len(q.hints) - 1)]
             if updated.snapshot.story_code == "TARIFF":
                 hint = hint.replace("На графике выберите сплошную линию и левую шкалу минут.",
@@ -878,7 +1094,7 @@ async def handle_callback(
                                     "Используйте верхний график «Звонки, мин».")
             await callback.message.answer(hint)
         elif action == "solution":
-            q = next(q for q in updated.snapshot.questions if q.position == position)
+            q = next(q for q in updated.snapshot.questions if q.position == action_position)
             result_text = "Разбор:\n" + "\n".join(q.solution_steps)
         elif action == "pause":
             if repository is not None:
@@ -902,6 +1118,7 @@ async def handle_callback(
             edit_current=action in {"hint", "solution"},
             result_text=result_text,
             user_id_override=callback.from_user.id,
+            repository=repository,
         )
         return
     if len(parts) == 3 and parts[:2] == ["oge15", "resume"]:
@@ -922,6 +1139,7 @@ async def handle_callback(
                 session,
                 show_assets=True,
                 user_id_override=callback.from_user.id,
+                repository=repository,
             )
             if repository is not None:
                 await repository.save_user_state(callback.from_user.id, "oge15")
@@ -944,10 +1162,11 @@ async def handle_callback(
             "Сохранённые результаты останутся в истории.",
             _keyboard(
                 [
-                    [_button("🆕 Подтвердить", f"oge15:restart-confirm:{old_id}")],
-                    [_button("↩ Отмена", f"oge15:restart-cancel:{old_id}")],
+                    [_button("🆕 Подтвердить", f"oge15:rc:{old_id}")],
+                    [_button("↩ Отмена", f"oge15:rx:{old_id}")],
                 ]
             ),
+            repository,
         )
         return
     if len(parts) == 3 and parts[:2] in (
@@ -963,9 +1182,9 @@ async def handle_callback(
             await answer_callback(callback, "Это занятие уже изменилось.")
             return
         if parts[1] == "restart-cancel":
-            await _session_choice(callback, existing)
+            await _session_choice(callback, existing, repository)
             return
-        position_text = (
+        restart_position_text = (
             str(existing.current_position)
             if existing.mode is PracticeMode.SINGLE
             else None
@@ -977,7 +1196,7 @@ async def handle_callback(
             repository,
             existing.snapshot.story_code,
             existing.mode,
-            position_text,
+            restart_position_text,
             replace_session_id=old_id,
         )
         return

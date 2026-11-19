@@ -17,7 +17,7 @@ from test_inline_dispatcher_postgres import TelegramSession
 from test_navigation_postgres import navigation_pool as postgres_db_fixture  # noqa: F401, F811
 
 from app.bot import router, scenario_training
-from app.bot.navigation import navigation_callback
+from app.bot.navigation import navigation_callback, navigation_screen, prepare_navigation_markup
 from app.bot.router import build_router, choose_task12, continue_session, return_to_menu
 from app.math.scenario_engine import (
     PracticeMode,
@@ -135,6 +135,7 @@ async def test_stale_and_repeated_main_callback_preserve_scenario_state(
 
 def test_oge15_public_number_menu_and_story_exclusions() -> None:
     from app.bot.menu import number_menu
+    from app.bot.scenario_training import _button, _keyboard
 
     buttons = [b for row in number_menu().inline_keyboard for b in row]
     assert any(
@@ -145,6 +146,137 @@ def test_oge15_public_number_menu_and_story_exclusions() -> None:
     assert scenario_training._has_user(987654321)
     assert not scenario_training._has_user(None)
     assert "ROUTE" not in scenario_training.STORY_NAMES
+    assert "oge15:stats" not in {
+        button.callback_data
+        for row in scenario_training._story_keyboard().inline_keyboard
+        for button in row
+    }
+    selected = prepare_navigation_markup(scenario_training._story_keyboard(3))
+    assert navigation_screen(selected) == "oge15_menu"
+    assert all(
+        button.callback_data is None or len(button.callback_data.encode("utf-8")) <= 64
+        for row in selected.inline_keyboard
+        for button in row
+    )
+    saved_id = UUID("12345678-1234-5678-1234-567812345678")
+    compact_confirmation = prepare_navigation_markup(
+        _keyboard(
+            [
+                [_button("Подтвердить", f"oge15:rc:{saved_id}")],
+                [_button("Отмена", f"oge15:rx:{saved_id}")],
+                [_button("Продолжить", f"oge15:resume:{saved_id}")],
+                [_button("Новое", f"oge15:restart:{saved_id}")],
+            ]
+        )
+    )
+    assert all(
+        button.callback_data is not None and len(button.callback_data.encode("utf-8")) <= 64
+        for row in compact_confirmation.inline_keyboard
+        for button in row
+    )
+    assert any(
+        button.callback_data is not None
+        and button.callback_data.startswith("oge15:story:TARIFF:n3~")
+        for row in selected.inline_keyboard
+        for button in row
+    )
+
+
+@pytest.mark.asyncio
+async def test_progress_selected_practice_starts_exact_position_without_mode_prompt(monkeypatch):
+    callback = SimpleNamespace(from_user=SimpleNamespace(id=8123))
+    store = SimpleNamespace(find_open_session=AsyncMock(return_value=None))
+    repository = AsyncMock()
+    start = AsyncMock()
+    monkeypatch.setattr(scenario_training, "_start_session", start)
+
+    await scenario_training._story_step(callback, "TYRES", store, repository, 1)
+
+    start.assert_awaited_once()
+    assert start.await_args.args[3:] == ("TYRES", PracticeMode.SINGLE, "1")
+
+
+@pytest.mark.asyncio
+async def test_progress_selected_practice_does_not_substitute_a_different_saved_position(
+    monkeypatch,
+):
+    saved = SimpleNamespace(
+        current_position=5, session_id=UUID("12345678-1234-5678-1234-567812345678")
+    )
+    callback = SimpleNamespace(
+        from_user=SimpleNamespace(id=8124),
+        message=Message(
+            message_id=4,
+            date=datetime.now(UTC),
+            chat=Chat(id=8124, type="private"),
+        ),
+    )
+    store = SimpleNamespace(find_open_session=AsyncMock(return_value=saved))
+    selection = AsyncMock()
+    monkeypatch.setattr(scenario_training, "_send_selection", selection)
+
+    await scenario_training._story_step(callback, "TARIFF", store, AsyncMock(), 3)
+
+    markup = selection.await_args.args[2]
+    callbacks = [
+        button.callback_data
+        for row in markup.inline_keyboard
+        for button in row
+    ]
+    assert "oge15:new:TARIFF:3" in callbacks
+    assert "oge15:resume:12345678-1234-5678-1234-567812345678" in callbacks
+
+
+@pytest.mark.asyncio
+async def test_legacy_practice_stats_callback_redirects_to_unified_progress(monkeypatch):
+    from app.bot import progress
+
+    show_progress = AsyncMock()
+    acknowledge = AsyncMock()
+    monkeypatch.setattr(progress, "progress_navigation", show_progress)
+    monkeypatch.setattr(scenario_training, "answer_callback", acknowledge)
+    callback = SimpleNamespace(
+        data="oge15:stats",
+        from_user=User(id=8125, is_bot=False, first_name="Legacy"),
+        message=Message(
+            message_id=5,
+            date=datetime.now(UTC),
+            chat=Chat(id=8125, type="private"),
+        ),
+    )
+    repository = AsyncMock()
+
+    await scenario_training.handle_callback(callback, AsyncMock(), repository)
+
+    show_progress.assert_awaited_once_with(
+        callback.message, repository, 8125, "summary"
+    )
+    acknowledge.assert_awaited_once_with(callback)
+
+
+@pytest.mark.asyncio
+async def test_stale_revision_on_practice_story_menu_is_rejected(monkeypatch):
+    answer = AsyncMock()
+    story_step = AsyncMock()
+    monkeypatch.setattr(scenario_training, "answer_callback", answer)
+    monkeypatch.setattr(scenario_training, "_story_step", story_step)
+    callback = SimpleNamespace(
+        id="stale-practice-story",
+        data="oge15:story:TYRES:n3~oldrev",
+        from_user=User(id=8126, is_bot=False, first_name="Stale"),
+        message=Message(
+            message_id=6,
+            date=datetime.now(UTC),
+            chat=Chat(id=8126, type="private"),
+        ),
+    )
+    repository = AsyncMock()
+    repository.claim_navigation_message.return_value = False
+
+    await scenario_training.handle_callback(callback, AsyncMock(), repository)
+
+    story_step.assert_not_awaited()
+    answer.assert_awaited_once()
 
 
 def test_public_registry_is_explicit_and_excludes_unconfirmed_or_blocked_families() -> None:
@@ -344,6 +476,94 @@ async def _feed(
     await dispatcher.feed_update(
         bot, update, repository=repository, oge15_repository=scenario_repository
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("number", "story"), [(1, "TYRES"), (3, "TARIFF")])
+async def test_progress_starts_the_requested_practical_position_on_postgres(
+    oge15_navigation_pool, number: int, story: str, monkeypatch
+) -> None:
+    from app.bot.navigation import bind_navigation, navigation_revision, prepare_navigation_markup
+    from app.bot.progress import progress_keyboard
+
+    monkeypatch.setattr(scenario_training.secrets, "randbelow", lambda _: 721)
+    transport = TelegramSession()
+    bot = Bot("123456:TEST", session=transport)
+    dispatcher = Dispatcher()
+    dispatcher.include_router(build_router())
+    repository = PostgresRepository(oge15_navigation_pool)
+    store = ScenarioPostgresRepository(oge15_navigation_pool)
+    user_id = int(uuid4().int % (2**62)) + 1
+    user = User(id=user_id, is_bot=False, first_name="Progress practical journey")
+    await repository.register_user(user_id)
+    await repository.save_user_state(user_id, "progress")
+    markup = prepare_navigation_markup(progress_keyboard("number", number=number))
+    details = await bot.send_message(42, text=f"№{number}", reply_markup=markup)
+    await bind_navigation(
+        details, repository, user_id, "progress", navigation_revision(markup)
+    )
+    update_id = 0
+
+    async def tap(message: Message, label: str) -> Message:
+        nonlocal update_id
+        callback_data = next(
+            button.callback_data
+            for row in message.reply_markup.inline_keyboard
+            for button in row
+            if button.text == label
+        )
+        assert callback_data is not None
+        update_id += 1
+        await _feed(
+            dispatcher,
+            bot,
+            repository,
+            store,
+            Update(
+                update_id=update_id,
+                callback_query=CallbackQuery(
+                    id=f"progress-practical-{user_id}-{update_id}",
+                    from_user=user,
+                    chat_instance="progress-practical",
+                    message=message,
+                    data=callback_data,
+                ),
+            ),
+        )
+        return max(transport.messages.values(), key=lambda item: item.message_id)
+
+    try:
+        selection = await tap(details, f"Тренировать №{number}")
+        assert await repository.user_state(user_id) == "oge15_menu"
+        assert any(
+            button.text == f"↩ К статистике №{number}"
+            for row in selection.reply_markup.inline_keyboard
+            for button in row
+        )
+        returned = await tap(selection, f"↩ К статистике №{number}")
+        assert await repository.user_state(user_id) == "progress"
+        selection = await tap(returned, f"Тренировать №{number}")
+        story_selection = await tap(selection, scenario_training.STORY_NAMES[story])
+        session = await store.resume_session(user_id)
+        assert session is not None
+        assert session.snapshot.story_code == story
+        assert session.mode is PracticeMode.SINGLE
+        assert session.current_position == number
+        assert session.question_status == "active"
+        assert len(
+            next(q for q in session.snapshot.questions if q.position == number).condition
+        ) > 10
+        assert any(
+            "Задание" in (item.text or "")
+            or (item.reply_markup and item.reply_markup.inline_keyboard)
+            for item in transport.messages.values()
+        )
+        assert story_selection.message_id == session.control_message_id
+    finally:
+        await oge15_navigation_pool.execute(
+            "DELETE FROM users WHERE telegram_user_id=$1", user_id
+        )
+        await bot.session.close()
 
 
 @pytest.mark.asyncio
@@ -1400,13 +1620,14 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         )
         menu = max(transport.messages.values(), key=lambda item: item.message_id)
         menu = await tap(menu, "Шины")
-        await tap(menu, "🆕 Начать заново · пятёрка")
+        choice = await tap(menu, "Вся пятёрка")
+        await tap(choice, "🆕 Новая пятёрка")
         confirmation = max(transport.messages.values(), key=lambda item: item.message_id)
         assert "Сохранённые результаты останутся в истории" in (confirmation.text or "")
         await tap(confirmation, "↩ Отмена")
         assert (await store.resume_session(user_id, tyres.session_id)).current_position == 3
         choice = max(transport.messages.values(), key=lambda item: item.message_id)
-        await tap(choice, "🆕 Начать заново")
+        await tap(choice, "🆕 Новая пятёрка")
         confirmation = max(transport.messages.values(), key=lambda item: item.message_id)
         await tap(confirmation, "🆕 Подтвердить")
         restarted_tyres = await store.resume_session(user_id)

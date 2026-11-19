@@ -87,3 +87,35 @@ async def test_callback_bot_sender_binds_navigation_to_explicit_user(photo):
     repository.set_navigation_message.assert_awaited_once_with(
         42, "main_menu", 982, navigation_revision(call.kwargs["reply_markup"])
     )
+
+
+@pytest.mark.asyncio
+async def test_rich_math_transport_keeps_revision_bound_navigation_markup(monkeypatch):
+    import app.bot.presentation as presentation
+    from app.bot.progress import progress_keyboard
+
+    sent = SimpleNamespace(message_id=991)
+    message = SimpleNamespace(answer=AsyncMock(), from_user=SimpleNamespace(id=42))
+    repository = AsyncMock()
+    rich_send = AsyncMock(return_value=sent)
+    monkeypatch.setattr(presentation, "_has_telegram_transport", lambda _: True)
+    monkeypatch.setattr(presentation, "_has_math", lambda _: True)
+    monkeypatch.setattr(presentation, "_send_mathematics", rich_send)
+
+    await send_text(
+        message,
+        repository,
+        "Задание №3 · x² = 9",
+        reply_markup=progress_keyboard("number", number=3),
+        user_id_override=42,
+        rich_with_navigation=True,
+    )
+
+    assert not message.answer.await_count
+    reply_markup = rich_send.await_args.args[3]["reply_markup"]
+    assert any(
+        button.callback_data and "~" in button.callback_data
+        for row in reply_markup.inline_keyboard
+        for button in row
+    )
+    repository.set_navigation_message.assert_awaited_once()
