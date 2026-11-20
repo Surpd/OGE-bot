@@ -16,17 +16,20 @@ from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
 GENERATOR_VERSION = "0.1.0"
 MAX_CANDIDATES = 32
-SEEDS_PER_FAMILY = 6
+SEEDS_PER_FAMILY = 4
 MAX_GENERATION_ATTEMPTS = 64
 
+R02 = "OGE08-R02"
+R03 = "OGE08-R03"
 R01 = "OGE08-R01"
 R05 = "OGE08-R05"
 R06 = "OGE08-R06"
 R04 = "OGE08-R04"
 R08 = "OGE08-R08"
-ENABLED_FAMILIES = (R01, R04, R05, R06, R08)
+ENABLED_FAMILIES = (R01, R02, R03, R04, R05, R06, R08)
 ALL_FAMILIES = tuple(f"OGE08-R{i:02d}" for i in range(1, 18))
 REFERENCE_IDS = {
+    R02: ("355406",), R03: ("FIPI-2027-8",),
     R01: ("460990",), R04: ("137285",), R05: ("406280",),
     R06: ("369495",), R08: ("400942",),
 }
@@ -265,6 +268,34 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
              f"При делении: {positive - negative} − {denominator} = {exponent}.",
              f"Получаем {base}^{exponent} = {base**exponent}."),
             "multiply_and_divide_powers", Fraction(base**exponent),
+        )
+    if family_id == R02:
+        base = rng.randint(2, 8)
+        inner, outer = rng.randint(2, 4), rng.randint(2, 4)
+        exponent = rng.randint(max(1, inner * outer - 12), min(4, inner * outer - 1))
+        negative = inner * outer - exponent
+        return _build(
+            R02, seed, f"{base}**(-{negative})*({base}**{inner})**{outer}",
+            (base, negative, inner, outer),
+            ("При возведении степени в степень перемножьте показатели.",
+             "При умножении степеней одного основания сложите их показатели."),
+            (f"Показатель второй степени: {inner} · {outer} = {inner*outer}.",
+             f"Общий показатель: −{negative} + {inner*outer} = {exponent}.",
+             f"Ответ: {base}^{exponent} = {base**exponent}."),
+            "nested_power_product", Fraction(base**exponent),
+        )
+    if family_id == R03:
+        a, b = rng.sample(range(2, 11), 2)
+        common, extra = rng.randint(2, 7), rng.randint(1, 3)
+        return _build(
+            R03, seed, f"{a}**{common+extra}*{b}**{common}/{a*b}**{common}",
+            (a, b, common, extra),
+            ("Разложите основание степени в знаменателе на множители.",
+             "Сократите степени каждого основания отдельно."),
+            (f"Знаменатель: ({a}·{b})^{common} = {a}^{common}·{b}^{common}.",
+             f"Сокращаем {b}^{common}; остаётся {a}^({common+extra} − {common}).",
+             f"Получаем {a}^{extra} = {a**extra}."),
+            "composite_denominator", Fraction(a**extra),
         )
     if family_id == R05:
         factor = rng.randint(2, 12)

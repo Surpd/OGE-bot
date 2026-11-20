@@ -89,7 +89,8 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE07-N01": 3,
         "OGE07-N04": 3,
     },
-    8: {"OGE08-R01": 2, "OGE08-R04": 2, "OGE08-R05": 2, "OGE08-R06": 2, "OGE08-R08": 3},
+    8: {"OGE08-R02": 2, "OGE08-R03": 3,
+        "OGE08-R01": 2, "OGE08-R04": 2, "OGE08-R05": 2, "OGE08-R06": 2, "OGE08-R08": 3},
     9: {
         "OGE09-L1": 2,
         "OGE09-L2": 2,

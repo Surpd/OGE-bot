@@ -2,7 +2,7 @@
   "exam_number": 8,
   "generator_version": "0.1.0",
   "level": "main",
-  "enabled_family_count": 5,
+  "enabled_family_count": 7,
   "families": {
     "OGE08-R01": {
       "sample_count": 250,
@@ -11,6 +11,24 @@
       "unique_fingerprints": 217,
       "attempts_to_200_unique": 250,
       "max_absolute_answer_numerator": 6561,
+      "acceptance_passed": true
+    },
+    "OGE08-R02": {
+      "sample_count": 250,
+      "oracle_failures": 0,
+      "rendered_mismatches": 0,
+      "unique_fingerprints": 200,
+      "attempts_to_200_unique": 655,
+      "max_absolute_answer_numerator": 4096,
+      "acceptance_passed": true
+    },
+    "OGE08-R03": {
+      "sample_count": 250,
+      "oracle_failures": 0,
+      "rendered_mismatches": 0,
+      "unique_fingerprints": 220,
+      "attempts_to_200_unique": 250,
+      "max_absolute_answer_numerator": 1000,
       "acceptance_passed": true
     },
     "OGE08-R04": {
