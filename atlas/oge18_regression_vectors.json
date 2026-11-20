@@ -328,5 +328,41 @@
     "fingerprint": "710fdbc276db09d849ba793af1789c5e1d5f9e42fd10e0bf6244366d93fb533c",
     "image_sha256": "3009965c14ddc6010fe2d4367bdbdf0ad53322f4992f82e2196cc8cdee948039",
     "learner_content_version": 2
+  },
+  {
+    "family_id": "OGE18-L01",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "8",
+    "fingerprint": "fb6b74c1f49afc50cca722eb1769e56bdd1912735af8c05a8e2a2914687cbbed",
+    "image_sha256": "c505d43da0efa6a32dccf43823c36441b88979e5968547cb311dd964f2392c2e"
+  },
+  {
+    "family_id": "OGE18-L01",
+    "seed": 29,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "8",
+    "fingerprint": "fb6b74c1f49afc50cca722eb1769e56bdd1912735af8c05a8e2a2914687cbbed",
+    "image_sha256": "a5a3b14ead822d6d6bd89c76a872873d6a7f9bf4c1999233fe384187a6604d16"
+  },
+  {
+    "family_id": "OGE18-H01",
+    "seed": 0,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "2.5",
+    "fingerprint": "64bcf2e4045bd3e28bdc80b1ca19f0f1f4d00c9bf7eef7eada9644e5f319b9e0",
+    "image_sha256": "a303ec036b27e303d361c25aee6e6bc4db00cfb0c4c26e224da89a9e4566af94"
+  },
+  {
+    "family_id": "OGE18-H01",
+    "seed": 29,
+    "generator_version": "oge18-grid-2",
+    "renderer_version": "oge18-pillow-2",
+    "correct_answer": "7.5",
+    "fingerprint": "502ab5ee95f19d2725040ecf15cd9a73c11bbc1295f8ba23211d1f0e37d30066",
+    "image_sha256": "e5b52a795ca5909013650b7796791d4e05ecebb04357d955a599d5905ffec45a"
   }
 ]

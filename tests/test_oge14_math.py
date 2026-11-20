@@ -47,9 +47,7 @@ def test_task14_all_research_structures_have_source_ids_and_explicit_status() ->
     assert set(SOURCE_IDS) == set(ALL_FAMILIES)
     assert all(SOURCE_IDS[family] for family in ALL_FAMILIES)
     assert A04 not in ENABLED_FAMILIES and A11 not in ENABLED_FAMILIES
-    assert set(ENABLED_FAMILIES) == {
-        family for family in IMPLEMENTED if family != "OGE14-A06"
-    }
+    assert set(ENABLED_FAMILIES) == set(IMPLEMENTED)
     assert FAMILY_STATUS[A04] == "disabled_hold_historical_topic"
     assert FAMILY_STATUS[A11] == "disabled_hold_degenerate_progression"
 
@@ -141,6 +139,18 @@ def test_task14_unit_mutations_fail_rendered_condition_audit(
 def test_task14_finite_stop_family_is_documented_as_bounded() -> None:
     fingerprints = {generate("OGE14-A06", seed).fingerprint for seed in range(1200)}
     assert len(fingerprints) == 42
+    from app.math.oge14_scheduler import build_task14_candidate_batch
+
+    batch = build_task14_candidate_batch(
+        {"family_queue": ["OGE14-A06", "OGE14-A07"], "recent_fingerprints": list(fingerprints)},
+        seed=459977,
+    )
+    assert batch and all(candidate["family_id"] == "OGE14-A07" for candidate in batch)
+    for n in range(3, 9):
+        for decrease in range(2, 9):
+            parameters = {"n": n, "d": decrease, "a1": n * decrease}
+            expected = sum(range(n * decrease, 0, -decrease))
+            assert solve_condition("OGE14-A06", _render("OGE14-A06", parameters)) == expected
 
 
 @pytest.mark.mass

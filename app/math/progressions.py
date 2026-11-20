@@ -41,14 +41,13 @@ A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, G01, G02, G03, G04 = (
     )
 )
 ALL_FAMILIES = (A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, G01, G02, G03, G04)
-# These 12 P1 families passed the oracle, visible-text, 200-variant diversity,
-# shared UX, and PostgreSQL 17 CI gates. A06 has a smaller natural domain and
-# stays off until its bounded-capacity exception is reviewed.
+# A06 uses the 42 valid stopping-distance pairs checked against the source.
 ENABLED_FAMILIES: tuple[str, ...] = (
     A01,
     A02,
     A03,
     A05,
+    A06,
     A07,
     A08,
     A09,
@@ -65,7 +64,7 @@ FAMILY_STATUS = {
 }
 FAMILY_STATUS[A04] = "disabled_hold_historical_topic"
 FAMILY_STATUS[A11] = "disabled_hold_degenerate_progression"
-FAMILY_STATUS[A06] = "disabled_bounded_capacity_acceptance_review"
+FAMILY_STATUS[A06] = "enabled_bounded_42"
 
 POLICY = AnswerPolicy(
     "oge14.numeric-short",

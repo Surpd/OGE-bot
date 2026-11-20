@@ -558,6 +558,46 @@
         "Mobile Telegram client smoke not performed."
       ],
       "learner_content_version": 2
+    },
+    {
+      "family_id": "OGE18-L01",
+      "exam_number": 18,
+      "name": "Большая диагональ ромба",
+      "status": "public_enabled",
+      "public_enabled": true,
+      "sources": [
+        {
+          "task_id": "348446",
+          "url": "https://math-oge.sdamgia.ru/problem?id=348446",
+          "provenance": "catalog_verified",
+          "verification_status": "condition_diagram_and_solution_checked",
+          "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=89555",
+          "sha256": "e2469b70bb77b38ad708337e7d42d758b718744cb12a814456044bc892a113da"
+        }
+      ],
+      "original_diagram": "Оранжевый контур ромба, диагонали не проведены. По клеткам расстояния между противоположными вершинами 10 и 4.",
+      "control_answer": "10",
+      "distinct_shapes": 6
+    },
+    {
+      "family_id": "OGE18-H01",
+      "exam_number": 18,
+      "name": "Медиана к гипотенузе по клеткам",
+      "status": "public_enabled",
+      "public_enabled": true,
+      "sources": [
+        {
+          "task_id": "311958",
+          "url": "https://math-oge.sdamgia.ru/problem?id=311958",
+          "provenance": "catalog_verified",
+          "verification_status": "condition_diagram_and_solution_checked",
+          "original_image_url": "https://math-oge.sdamgia.ru/get_file?id=41318",
+          "sha256": "d46dd9cb6a70e4d37e5af82e8845f643ec0fafa59f7948166258394101936bfb"
+        }
+      ],
+      "original_diagram": "Только контур прямоугольного треугольника с катетами 3 и 4. Медиана отсутствует на исходном рисунке.",
+      "control_answer": "2,5",
+      "distinct_shapes": 5
     }
   ]
 }

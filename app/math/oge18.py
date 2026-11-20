@@ -30,17 +30,34 @@ from app.math.oge18_render import (
 POLICY = NUMERIC_SHORT_ANSWER
 GENERATOR_VERSION = "oge18-grid-1"
 FAMILIES = ("OGE18-M01", "OGE18-M02")
-NEW_FAMILIES = ("OGE18-D05", "OGE18-L02", "OGE18-A01", "OGE18-A03", "OGE18-A04", "OGE18-A05")
+ORIGINAL_V2_FAMILIES = (
+    "OGE18-D05",
+    "OGE18-L02",
+    "OGE18-A01",
+    "OGE18-A03",
+    "OGE18-A04",
+    "OGE18-A05",
+)
+NEW_FAMILIES = (*ORIGINAL_V2_FAMILIES, "OGE18-L01", "OGE18-H01")
 GENERATOR_VERSION_V2 = "oge18-grid-2"
 LEARNER_CONTENT_VERSION = 2
 ENABLED_FAMILIES: tuple[str, ...] = (*FAMILIES, *NEW_FAMILIES)
 SOURCES = {FAMILIES[0]: "348480", FAMILIES[1]: "348638"}
 SOURCES.update(
     dict(
-        zip(NEW_FAMILIES, ("461848", "348467", "348613", "348403", "348499", "356974"), strict=True)
+        zip(
+            ORIGINAL_V2_FAMILIES,
+            ("461848", "348467", "348613", "348403", "348499", "356974"),
+            strict=True,
+        )
     )
 )
+SOURCES.update({"OGE18-L01": "348446", "OGE18-H01": "311958"})
 CONDITIONS = {
+    "OGE18-L01": "На клетчатой бумаге с размером клетки 1 × 1 изображён ромб. "
+    "Найдите длину его большей диагонали.",
+    "OGE18-H01": "На клетчатой бумаге с размером клетки 1 × 1 изображён прямоугольный "
+    "треугольник. Найдите длину медианы, проведённой из вершины прямого угла.",
     FAMILIES[0]: "На клетчатой сетке со стороной клетки 1 изображён треугольник ABC. "
     "Найдите длину его средней линии, параллельной AC.",
     FAMILIES[1]: "На клетчатой сетке со стороной клетки 1 изображена трапеция. "
@@ -158,7 +175,7 @@ def teaching(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[st
                     f"По теореме Пифагора: d = √({dx}² + {dy}²) = {value}.",
                 ],
             )
-        if family == "OGE18-L02":
+        if family in {"OGE18-L02", "OGE18-H01"}:
             legs: tuple[int, int] | None = None
             for i in range(3):
                 vertex = points[i]
@@ -171,6 +188,19 @@ def teaching(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[st
             if legs is None:
                 raise ValueError("Right angle is missing")
             shorter, longer = sorted(legs)
+            if family == "OGE18-H01":
+                hyp = isqrt(shorter**2 + longer**2)
+                return (
+                    [
+                        "Сосчитайте клетки вдоль катетов и найдите гипотенузу.",
+                        "Медиана из прямого угла равна половине гипотенузы.",
+                    ],
+                    [
+                        f"Катеты равны {shorter} и {longer}. Гипотенуза равна "
+                        f"√({shorter}² + {longer}²) = {hyp}.",
+                        f"Медиана равна {hyp} : 2 = {value}.",
+                    ],
+                )
             return (
                 [
                     "Найдите вершину прямого угла.",
@@ -228,6 +258,17 @@ def teaching(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[st
             )
         a, b, c, d = points
         first_diagonal, second_diagonal = length(a, c), length(b, d)
+        if family == "OGE18-L01":
+            return (
+                [
+                    "Найдите две пары противоположных вершин ромба.",
+                    "По клеткам сравните расстояния между вершинами каждой пары.",
+                ],
+                [
+                    f"Диагонали равны {first_diagonal} и {second_diagonal}.",
+                    f"Длина большей диагонали равна {value}.",
+                ],
+            )
         return (
             [
                 "Найдите длины диагоналей ромба по клеткам.",
@@ -358,6 +399,12 @@ def _model_for_seed(
             x = rng.randint(2 + max(0, -dx), 17 - max(0, dx))
             y = rng.randint(2 + max(0, -dy), 17 - max(0, dy))
             return ((x, y), (x + dx, y + dy)), Fraction(isqrt(dx * dx + dy * dy))
+        if family_id == "OGE18-H01":
+            w, h, hyp = rng.choice(((3, 4, 5), (5, 12, 13), (6, 8, 10), (8, 15, 17), (9, 12, 15)))
+            if rng.randrange(2):
+                w, h = h, w
+            x, y = rng.randint(2, 17 - w), rng.randint(2, 17 - h)
+            return ((x, y), (x, y + h), (x + w, y + h)), Fraction(hyp, 2)
         if family_id == "OGE18-L02":
             w, h = rng.randint(3, 9), rng.randint(3, 9)
             while w == h:
@@ -389,11 +436,13 @@ def _model_for_seed(
             y = rng.randint(2, 17 - height)
             points = ((x, y), (x + base, y), (x + base + dx, y + height), (x + dx, y + height))
             return points, answer_family(family_id, points)
-        if family_id == "OGE18-A05":
+        if family_id in {"OGE18-A05", "OGE18-L01"}:
             p = rng.randint(2, 5)
             q = rng.choice(tuple(v for v in range(2, 6) if v != p))
             cx, cy = rng.randint(7, 12), rng.randint(7, 12)
             points = ((cx - p, cy), (cx, cy + q), (cx + p, cy), (cx, cy - q))
+            if family_id == "OGE18-L01":
+                return points, Fraction(2 * max(p, q))
             return points, answer_family(family_id, points)
     raise ValueError("Unknown family")
 
@@ -473,6 +522,8 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
         expected_gv = GENERATOR_VERSION if is_legacy else GENERATOR_VERSION_V2
         legacy_renderer = RENDERER_VERSION if is_legacy else VERSION_V2
         content_version = 1 if is_legacy else snapshot.get("learner_content_version", 1)
+        if family in {"OGE18-L01", "OGE18-H01"} and content_version != LEARNER_CONTENT_VERSION:
+            raise ValueError("Unknown learner content version")
         if content_version not in (1, LEARNER_CONTENT_VERSION):
             raise ValueError("Unknown learner content version")
         if (
@@ -499,7 +550,7 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
             else 2
             if family == "OGE18-D05"
             else 3
-            if family in {"OGE18-L02", "OGE18-A03"}
+            if family in {"OGE18-L02", "OGE18-A03", "OGE18-H01"}
             else 4
         ):
             raise ValueError("Wrong vertex count")

@@ -67,6 +67,16 @@ def _numeric(
 
 GENERATOR_SPECS = (
     GeneratorSpec(
+        "OGE06-F003-UNIT-SUM", "oge6.fraction.reciprocal_of_unit_fraction_sum", ("463020",),
+        1, "divide(integer,group(add(fraction,fraction)))", _numeric("unit-sum", 1),
+        _manual(1800, 1800, 1800, 1800, 12),
+    ),
+    GeneratorSpec(
+        "OGE06-F004-DEC-DIV", "oge6.decimal.quotient_in_fraction_bar",
+        ("348647", "438264", "438308", "438339", "438368"),
+        5, "fraction_bar(decimal,decimal)", _numeric("dec-div", 0), _manual(100, 50, 50, 100, 6),
+    ),
+    GeneratorSpec(
         "OGE06-F001-ADD",
         "oge6.fraction.add.two_terms",
         ("314264",),
@@ -165,7 +175,7 @@ ANSWER_POLICY_BY_SNAPSHOT = {
 }
 SELECTION_WEIGHT_TOTAL = sum(spec.selection_weight for spec in GENERATOR_SPECS)
 
-if SELECTION_WEIGHT_TOTAL != 17:
+if SELECTION_WEIGHT_TOTAL != 23:
     raise RuntimeError(
-        "OGE-6 enabled weights must match 17 prototypes; confirmed scarce families are disabled"
+        "OGE-6 enabled weights must match 23 catalog prototypes"
     )

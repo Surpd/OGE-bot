@@ -23,6 +23,7 @@ from app.math.oge07_graph import (
 )
 from app.math.oge07_graph import (
     GRAPH_SOURCES,
+    LEGACY_VERSION,
     GraphModel,
     GraphProblem,
     _build_graph_problem,
@@ -95,7 +96,8 @@ def validate_task7_snapshot(value: object) -> bool:
             )
         if family not in GRAPH_SOURCES:
             return False
-        if snapshot.get("generator_version") != GRAPH_GENERATOR_VERSION:
+        version = snapshot.get("generator_version")
+        if not isinstance(version, str) or version not in (GRAPH_GENERATOR_VERSION, LEGACY_VERSION):
             return False
         png_value = snapshot.get("graph_png_base64")
         model_value = snapshot.get("graph_model")
@@ -116,7 +118,7 @@ def validate_task7_snapshot(value: object) -> bool:
             hints=tuple(cast(list[str], snapshot.get("hints", []))),
             solution=tuple(cast(list[str], snapshot.get("solution", []))),
         )
-        expected_graph = _build_graph_problem(family, seed, png)
+        expected_graph = _build_graph_problem(family, seed, png, version)
         expected = expected_graph.to_snapshot()
         return (
             audit_graph_problem(graph)

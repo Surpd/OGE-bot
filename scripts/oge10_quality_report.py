@@ -67,6 +67,8 @@ def analyze_family(
     rendered_values = [
         int(value) for problem in sample for value in re.findall(r"\d+", problem.condition)
     ]
+    if sample[0].diagram:
+        rendered_values = [n for problem in sample for n in problem.diagram]
     places = Counter(_places(value) for value in answers)
     reference_values = [
         Fraction(str(entry["answer"]))

@@ -32,3 +32,6 @@ Enabled families: **C01, C02, C03, C04, C06, N01, N04**. C05, N02, N03 and N05 r
 The enabled text and graph candidates are exercised against the visible-condition, explanation, graph-pixel and snapshot oracles over 300 fixed seeds per family by `scripts/oge07_quality_report.py`. The same generator tests cover all 11 candidates, including held candidates, so release decisions are separate from mathematical smoke coverage. The JSON evidence is written to `reports/oge07-quality.json`.
 
 Source image review was done in the browser on the original source pages; no source image is copied into the application. The report records the observed diagrams and independently computed answers rather than relying on the source's published solution. Only the six explicitly listed families appear in the learner menu, controlled by the enabled family list.
+
+Версия 1.2.0 рисует центр математической точки на оси (oge07-line-v3).
+Версия 1.1.0 сохраняет исходный рисунок oge07-line-v2 для истории и повтора.

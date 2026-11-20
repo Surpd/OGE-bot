@@ -25,6 +25,8 @@ from app.bot.scenario_training import public_registry, scenario_context_for_ques
 from app.bot.task_view import answer_instruction, question_text, system_rows, task13_is_graph_choice
 from app.bot.training_ux import matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
+from app.math.probability import GRAPH_FAMILIES
+from app.math.probability_diagram import render_snapshot as render_probability_diagram
 from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
@@ -156,6 +158,8 @@ def _string_list(value: object) -> list[str]:
 
 
 def _render_image(number: int, problem: dict[str, object]) -> bytes | None:
+    if number == 10 and problem.get("family_id") in GRAPH_FAMILIES:
+        return render_probability_diagram(problem)
     raw = problem.get("graph_png_base64") if number == 7 else problem.get("png_base64")
     if isinstance(raw, str):
         try:

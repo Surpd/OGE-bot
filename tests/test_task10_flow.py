@@ -32,6 +32,7 @@ def _message(user_id: int, text: str) -> AsyncMock:
     message.text = text
     message.message_id = value
     message.answer.return_value.message_id = value + 1
+    message.answer_photo.return_value.message_id = value + 1
     return message
 
 
@@ -162,6 +163,7 @@ async def test_task10_solution_viewed_is_not_scored_and_menu_resume_preserves_st
     callback.message = AsyncMock()
     callback.message.message_id = saved["state"]["input_prompt_message_id"]
     callback.message.answer.return_value.message_id = int(callback.message.message_id) + 2
+    callback.message.answer_photo.return_value = callback.message.answer.return_value
     await task10_callback(callback, repository)
     assert repository.training10[1002]["state"]["status"] == "solution_viewed"
     assert (await repository.task10_progress(1002))["correct"] == 0
@@ -173,6 +175,7 @@ async def test_task10_solution_viewed_is_not_scored_and_menu_resume_preserves_st
         "input_prompt_message_id"
     ]
     next_callback.message.answer.return_value.message_id = int(next_callback.message.message_id) + 2
+    next_callback.message.answer_photo.return_value = next_callback.message.answer.return_value
     await task10_callback(next_callback, repository)
     next_state = await repository.task10_state(1002)
     assert next_state is not None and isinstance(next_state["problem"], dict)
@@ -206,6 +209,7 @@ async def test_task10_double_next_old_callback_and_stats_leave_only_latest_task_
             "input_prompt_message_id"
         ]
         callback.message.answer.return_value.message_id = int(callback.message.message_id) + 1
+        callback.message.answer_photo.return_value = callback.message.answer.return_value
         await task10_callback(callback, repository)
 
     await click_next(first_id)
@@ -231,3 +235,22 @@ async def test_task10_sessions_are_independent_and_continue_uses_latest_mode() -
     await return_to_menu(_message(1004, "↩ В меню"), repository)
     await continue_session(_message(1004, "▶ Продолжить"), repository)
     assert await repository.user_state(1004) == "task10"
+
+
+@pytest.mark.asyncio
+async def test_task10_euler_photo_is_the_original_after_resume(monkeypatch) -> None:
+    from app.math import oge10_scheduler
+    from app.math.probability import WEIGHTED_POINTS
+    from app.math.probability_diagram import render_snapshot
+
+    monkeypatch.setattr(oge10_scheduler, "ENABLED_FAMILIES", (WEIGHTED_POINTS,))
+    repository = MemoryRepository()
+    opening = _message(1077, "№10")
+    await choose_task10(opening, repository)
+    original = repository.training10[1077]["problem"]
+    expected = render_snapshot(original)
+    assert opening.answer_photo.await_args.args[0].data == expected
+    await return_to_menu(_message(1077, "↩ В меню"), repository)
+    resume = _message(1077, "▶ Продолжить")
+    await continue_session(resume, repository)
+    assert resume.answer_photo.await_args.args[0].data == expected

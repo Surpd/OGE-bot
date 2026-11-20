@@ -79,10 +79,13 @@ def main() -> None:
             accept_rng = random.Random(f"oge12-acceptance:{REPORT_SEED}:{family_id}")
             seen: set[str] = set()
             acceptance_attempts = 0
-            while len(seen) < UNIQUE_TARGET and acceptance_attempts < ATTEMPT_LIMIT:
+            target = 16 if family_id == "OGE12-R014" else UNIQUE_TARGET
+            while len(seen) < target and acceptance_attempts < ATTEMPT_LIMIT:
                 item = generate(family_id, accept_rng.randrange(2**63))
                 acceptance_attempts += 1
                 seen.add(item.fingerprint)
+            if len(seen) < target:
+                raise AssertionError(f"Acceptance failed for {family_id}")
             unique_count = len(seen)
         examples = (
             [
@@ -118,6 +121,8 @@ def main() -> None:
             "sample_count": SAMPLE_COUNT,
             "acceptance_attempts": acceptance_attempts,
             "unique_fingerprints": unique_count,
+            **({"bank_capacity": 16, "generator_version": "oge12-well-1"}
+               if family_id == "OGE12-R014" else {}),
             "duplicate_rejections": duplicate_rejections,
             "math_oracle_failures": displayed_failures,
             "rendered_oracle_failures": render_failures,

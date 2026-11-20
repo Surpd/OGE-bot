@@ -72,7 +72,7 @@ def answer_family(family: str, points: tuple[Point, ...]) -> Fraction:
         if root * root != square:
             raise ValueError("Distance is not an exact integer")
         return Fraction(root)
-    if family == "OGE18-L02":
+    if family in {"OGE18-L02", "OGE18-H01"}:
         if len(points) != 3:
             raise ValueError("Right triangle requires three vertices")
         if any(type(v) is not int or not 2 <= v <= 17 for point in points for v in point):
@@ -84,10 +84,17 @@ def answer_family(family: str, points: tuple[Point, ...]) -> Fraction:
             if u[0] * v[0] + u[1] * v[1] == 0:
                 aa, bb = u[0] ** 2 + u[1] ** 2, v[0] ** 2 + v[1] ** 2
                 hyp = (a[0] - c[0]) ** 2 + (a[1] - c[1]) ** 2
+                if family == "OGE18-H01":
+                    # Twice the vector from the right vertex to the midpoint.
+                    mx, my = u[0] + v[0], u[1] + v[1]
+                    square = mx * mx + my * my
+                    if not aa or not bb or square != hyp or isqrt(square) ** 2 != square:
+                        raise ValueError("Invalid median to hypotenuse")
+                    return Fraction(isqrt(square), 2)
                 if aa != bb and isqrt(aa) ** 2 == aa and isqrt(bb) ** 2 == bb and hyp == aa + bb:
                     return Fraction(max(isqrt(aa), isqrt(bb)))
         raise ValueError("No unique larger perpendicular integer leg")
-    if family not in {"OGE18-A01", "OGE18-A03", "OGE18-A04", "OGE18-A05"}:
+    if family not in {"OGE18-L01", "OGE18-A01", "OGE18-A03", "OGE18-A04", "OGE18-A05"}:
         raise ValueError("Unknown family")
     if len(points) != (3 if family == "OGE18-A03" else 4):
         raise ValueError("Wrong polygon vertex count")
@@ -146,6 +153,12 @@ def answer_family(family: str, points: tuple[Point, ...]) -> Fraction:
     if u[0] * v[0] + u[1] * v[1] != 0:
         raise ValueError("Rhombus diagonals are not perpendicular")
     diagonal_product = (u[0] ** 2 + u[1] ** 2) * (v[0] ** 2 + v[1] ** 2)
+    if family == "OGE18-L01":
+        first, second = sum(k * k for k in u), sum(k * k for k in v)
+        largest = max(first, second)
+        if first == second or isqrt(largest) ** 2 != largest:
+            raise ValueError("No unique integer longer diagonal")
+        return Fraction(isqrt(largest))
     if diagonal_product != area2**2:
         raise ValueError("Rhombus diagonal formula and shoelace disagree")
     return Fraction(area2, 2)

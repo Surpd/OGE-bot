@@ -30,6 +30,7 @@ REFERENCE_ANSWER_SAMPLES = (
     ("OGE09-K2", "357568", Fraction(3)),
     ("OGE09-K3", "357133", Fraction(1, 2)),
     ("OGE09-K3", "357135", Fraction(-7, 2)),
+    ("OGE09-K5", "369496", Fraction(3, 5)),
     ("OGE09-K6", "357173", Fraction(-8)),
 )
 

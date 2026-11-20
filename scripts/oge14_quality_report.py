@@ -103,9 +103,8 @@ def run() -> dict[str, object]:
                 for p in problems
             ),
             "gate_note": (
-                "42-fingerprint natural finite capacity (n=3..8, d=2..8); stays disabled: "
-                "rolling global history retains only 30 fingerprints and cannot guarantee "
-                "the full family cycle without repeats; no artificial parameter expansion"
+                "42 valid pairs (n=3..8, d=2..8). One appearance per shuffled deck; "
+                "the rolling history prevents recent exact repeats."
                 if family == "OGE14-A06"
                 else "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
                 if family in FAMILY_STATUS and FAMILY_STATUS[family].startswith("enabled_")

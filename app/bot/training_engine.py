@@ -1,5 +1,6 @@
 """Shared numeric-training state machine; adapters retain versioned policies and schedulers."""
 
+import asyncio
 import secrets
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -34,6 +35,8 @@ from app.math.oge19 import policy_for_snapshot as statement_policy_for_snapshot
 from app.math.oge19 import validate_snapshot as validate_statement_snapshot
 from app.math.oge19_scheduler import build_task19_candidate_batch
 from app.math.probability import ANSWER_POLICY as PROBABILITY_POLICY
+from app.math.probability import GRAPH_FAMILIES
+from app.math.probability_diagram import render_snapshot as render_probability_diagram
 from app.math.progressions import POLICY as PROGRESSION_POLICY
 from app.persistence.repository import Repository
 
@@ -256,6 +259,17 @@ async def send_problem(
             caption=f"Задание №15\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             user_id_override=user_id,
+        )
+    elif adapter.number == 10 and problem.get("family_id") in GRAPH_FAMILIES:
+        try:
+            picture = await asyncio.to_thread(render_probability_diagram, problem)
+        except (ValueError, RuntimeError):
+            await send_text(message, repository, "Сохранённая диаграмма №10 повреждена.")
+            return False
+        sent = await send_photo(
+            message, repository, BufferedInputFile(picture, filename="oge10.png"),
+            caption=f"Задание №10\n\n{problem['condition']}" + result_suffix,
+            reply_markup=markup, user_id_override=user_id,
         )
     elif adapter.number == 16:
         try:

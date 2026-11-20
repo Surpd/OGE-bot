@@ -172,3 +172,10 @@ def test_k6_exact_fingerprint_domain_is_limited_but_exceeds_acceptance_floor() -
         assert value in range(1, 13)
         assert coefficient > 0
         assert constant.denominator == 1 and constant <= 196
+
+
+def test_factorised_reference_asks_for_lesser_root() -> None:
+    assert solve_rendered_equation("(-5x + 3)·(-x + 6) = 0") == (Fraction(3, 5), Fraction(6))
+    problem = generate_equation("OGE09-K5", 58)
+    assert problem.target_root == min(problem.roots)
+    assert all("= 0" in step for step in problem.solution[:2])

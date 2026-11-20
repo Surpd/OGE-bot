@@ -3,7 +3,13 @@
 import random
 import uuid
 
-from app.math.oge19 import GENERATOR_VERSION, POLICY, generate, refresh_snapshot_digest
+from app.math.oge19 import (
+    GENERATOR_VERSION,
+    POLICY,
+    NoCompatibleTriple,
+    generate,
+    refresh_snapshot_digest,
+)
 
 FAMILY_THEMES = {
     "OGE19-MIXED": "mixed",
@@ -43,17 +49,33 @@ def build_task19_candidate_batch(
     position_counts = (
         tuple(counts[:3]) if isinstance(counts, list) and len(counts) >= 3 else (0, 0, 0)
     )
-    triple = generate(
-        seed,
-        theme=theme,
-        recent_proposition_ids=recent_ids,
-        correct_position_counts=position_counts,
+    fingerprints = state.get("recent_fingerprints", [])
+    seen = (
+        set(x for x in fingerprints if isinstance(x, str))
+        if isinstance(fingerprints, list)
+        else set()
     )
+    for attempt in range(12):
+        candidate_seed = seed if attempt == 0 else rng.getrandbits(63)
+        try:
+            triple = generate(
+                candidate_seed,
+                theme=theme,
+                recent_proposition_ids=recent_ids if attempt < 4 else recent_ids[-9:],
+                correct_position_counts=position_counts,
+                excluded_fingerprints=frozenset(seen) if attempt else frozenset(),
+            )
+        except NoCompatibleTriple:
+            continue
+        proposition_ids = [item.proposition_id for item in triple.statements]
+        fingerprint = ":".join(sorted(proposition_ids))
+        if fingerprint not in seen:
+            break
+    else:
+        return []
     snapshot = triple.snapshot()
-    proposition_ids = [item.proposition_id for item in triple.statements]
-    condition = (
-        "Какие из следующих утверждений верны? В ответ запишите их номера.\n\n"
-        + "\n".join(f"{i}. {item.statement}" for i, item in enumerate(triple.statements, 1))
+    condition = "Какие из следующих утверждений верны? В ответ запишите их номера.\n\n" + "\n".join(
+        f"{i}. {item.statement}" for i, item in enumerate(triple.statements, 1)
     )
     answer = triple.answer_mask
     hints = [
@@ -72,18 +94,18 @@ def build_task19_candidate_batch(
     ]
     snapshot.update(
         {
-            "problem_id": str(uuid.UUID(int=seed % (1 << 128))),
+            "problem_id": str(uuid.uuid4()),
             "family_id": family,
             "generator_version": GENERATOR_VERSION,
-            "seed": seed,
+            "seed": candidate_seed,
             "correct_answer": answer,
             "answer_policy_id": POLICY.policy_id,
             "answer_policy_version": POLICY.version,
             "condition": condition,
             "solution": solution,
             "hints": hints,
-            "fingerprint": ":".join(sorted(proposition_ids)),
-            "selection_attempts": 1,
+            "fingerprint": fingerprint,
+            "selection_attempts": attempt + 1,
             "atomic_proposition_ids": proposition_ids,
             "_recent_proposition_ids_after": [*recent_ids, *proposition_ids][-30:],
             "_correct_position_counts_after": [
