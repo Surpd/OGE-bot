@@ -3,7 +3,13 @@
 import random
 import uuid
 
-from app.math.oge19 import GENERATOR_VERSION, POLICY, generate, refresh_snapshot_digest
+from app.math.oge19 import (
+    GENERATOR_VERSION,
+    POLICY,
+    NoCompatibleTriple,
+    generate,
+    refresh_snapshot_digest,
+)
 
 FAMILY_THEMES = {
     "OGE19-MIXED": "mixed",
@@ -51,12 +57,16 @@ def build_task19_candidate_batch(
     )
     for attempt in range(12):
         candidate_seed = seed if attempt == 0 else rng.getrandbits(63)
-        triple = generate(
-            candidate_seed,
-            theme=theme,
-            recent_proposition_ids=recent_ids,
-            correct_position_counts=position_counts,
-        )
+        try:
+            triple = generate(
+                candidate_seed,
+                theme=theme,
+                recent_proposition_ids=recent_ids if attempt < 4 else recent_ids[-9:],
+                correct_position_counts=position_counts,
+                excluded_fingerprints=frozenset(seen) if attempt else frozenset(),
+            )
+        except NoCompatibleTriple:
+            continue
         proposition_ids = [item.proposition_id for item in triple.statements]
         fingerprint = ":".join(sorted(proposition_ids))
         if fingerprint not in seen:

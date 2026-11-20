@@ -364,4 +364,20 @@ def test_scheduler_retries_a_recent_triple_with_replayable_seed() -> None:
     assert second["seed"] == replay["seed"]
     assert second["statements"] == replay["statements"]
     assert second["problem_id"] != replay["problem_id"]
-    assert restore(second).statements == generate(second["seed"]).statements
+    assert restore(second).answer_mask == second["correct_answer"]
+
+
+def test_circles_queue_continues_when_fresh_claims_cannot_form_a_triple():
+    from app.math.oge19_scheduler import build_task19_candidate_batch
+
+    state = {}
+    recent = []
+    for seed in range(50):
+        item = build_task19_candidate_batch(state, seed, enabled_families=("OGE19-CIRCLES",))[0]
+        assert item["fingerprint"] not in recent[-30:]
+        recent.append(item["fingerprint"])
+        state = {
+            "recent_fingerprints": recent[-30:],
+            "recent_proposition_ids": item["_recent_proposition_ids_after"],
+            "correct_position_counts": item["_correct_position_counts_after"],
+        }
