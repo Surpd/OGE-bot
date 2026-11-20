@@ -337,9 +337,6 @@ def test_current_snapshot_rejects_a_rehashed_claim_outside_the_reviewed_bank() -
 
 
 def test_published_quality_report_matches_active_bank_and_counts_positions() -> None:
-    import json
-    from pathlib import Path
-
     from app.math import oge19
 
     report = json.loads(Path("reports/oge19-quality.json").read_text())
@@ -353,3 +350,18 @@ def test_published_quality_report_matches_active_bank_and_counts_positions() -> 
         digit: sum(count for mask, count in counts.items() if digit in mask) for digit in "123"
     }
     assert set(report["theme_samples"]) == set(oge19.THEME_TOPICS)
+
+
+def test_scheduler_retries_a_recent_triple_with_replayable_seed() -> None:
+    from app.math.oge19_scheduler import build_task19_candidate_batch
+
+    first = build_task19_candidate_batch({}, 2027)[0]
+    state = {"recent_fingerprints": [first["fingerprint"]]}
+    second = build_task19_candidate_batch(state, 2027)[0]
+    assert second["fingerprint"] != first["fingerprint"]
+    assert second["selection_attempts"] > 1
+    replay = build_task19_candidate_batch(state, 2027)[0]
+    assert second["seed"] == replay["seed"]
+    assert second["statements"] == replay["statements"]
+    assert second["problem_id"] != replay["problem_id"]
+    assert restore(second).statements == generate(second["seed"]).statements

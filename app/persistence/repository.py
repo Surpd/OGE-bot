@@ -3438,7 +3438,7 @@ class _Task19PostgresMixin:
                     session["active_problem_id"],
                 )
                 if current_row is None:
-                    raise RuntimeError("Active task-18 snapshot is missing")
+                    raise RuntimeError("Active task-19 snapshot is missing")
                 current = _json_object(current_row["snapshot"])
                 if expected_problem_id != active_id or skip_active != (
                     state.get("status") == "active"
@@ -3450,9 +3450,9 @@ class _Task19PostgresMixin:
                         session["active_problem_id"],
                     )
             elif expected_problem_id is not None:
-                raise RuntimeError("Expected active task-18 problem is missing")
+                raise RuntimeError("Expected active task-19 problem is missing")
             if not candidates:
-                raise RuntimeError("No task-18 candidates available")
+                raise RuntimeError("No task-19 candidates available")
             recent_value = state.get("recent_fingerprints", [])
             recent_order = (
                 [x for x in recent_value if isinstance(x, str)]
@@ -3516,7 +3516,7 @@ class _Task19PostgresMixin:
                     json.dumps(next_state, ensure_ascii=False),
                 )
                 return {**problem, "_transitioned": True}
-            raise RuntimeError("Every task-18 candidate repeats a recent fingerprint")
+            raise RuntimeError("Every task-19 candidate repeats a recent fingerprint")
 
     async def task19_state(self, telegram_user_id: int) -> dict[str, object] | None:
         row = await self._pool.fetchrow(
@@ -9650,10 +9650,8 @@ class MemoryRepository(MemoryTrainingPreferences):
                 state.get("status") == "active"
             ):
                 return {**cast(dict[str, object], current), "_transitioned": False}
-            if skip_active:
-                self.outcomes19.setdefault(telegram_user_id, {})[current_id] = "skipped"
         elif expected_problem_id is not None:
-            raise RuntimeError("Expected active task-18 problem is missing")
+            raise RuntimeError("Expected active task-19 problem is missing")
         recent = state.get("recent_fingerprints", [])
         recent_order = (
             [item for item in recent if isinstance(item, str)] if isinstance(recent, list) else []
@@ -9662,6 +9660,8 @@ class MemoryRepository(MemoryTrainingPreferences):
             fingerprint = str(candidate.get("fingerprint", ""))
             if fingerprint in recent_order:
                 continue
+            if skip_active and current_id is not None:
+                self.outcomes19.setdefault(telegram_user_id, {})[current_id] = "skipped"
             problem = dict(candidate)
             queue = problem.pop("_family_queue_after", [])
             last_family = problem.pop("_last_family_after", None)
@@ -9685,7 +9685,7 @@ class MemoryRepository(MemoryTrainingPreferences):
             self.issued19.setdefault(telegram_user_id, {})[problem_id] = problem
             self.outcomes19.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
-        raise RuntimeError("Every task-18 candidate repeats a recent fingerprint")
+        raise RuntimeError("Every task-19 candidate repeats a recent fingerprint")
 
     async def task19_state(self, telegram_user_id: int) -> dict[str, object] | None:
         return self.training19.get(telegram_user_id)
