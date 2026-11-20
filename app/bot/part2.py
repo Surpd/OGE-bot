@@ -89,7 +89,11 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
         choices = await bank.choices(value)
         if command == "menu":
             await repo.save_user_state(owner, "part2_menu")
-            rows = [[("Случайное задание / продолжить", f"p2:open:{value}")]] if choices else []
+            rows = (
+                [[("Случайное задание / продолжить", f"p2:open:{value}")]]
+                if choices
+                else [[("Обновить", f"p2:menu:{value}")]]
+            )
             for choice in choices:
                 rows.append([(choice["title"], f"p2:open:{value}:{choice['subtype_id']}")])
             rows.append([("К номерам", "nav:numbers")])
@@ -164,7 +168,10 @@ async def collect(message: Message, repository: Repository) -> None:
         body,
         photo.file_id if photo else None,
         get_settings().oge_grading_max_images,
+        message.media_group_id,
     )
     await message.answer(
-        "Добавлено к решению." if saved else "Часть работы уже учтена или достигнут лимит."
+        "Добавлено к решению."
+        if saved
+        else "Фото или текст не добавлены. Проверьте текущее задание и лимит."
     )
