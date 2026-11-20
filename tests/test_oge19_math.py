@@ -334,3 +334,22 @@ def test_current_snapshot_rejects_a_rehashed_claim_outside_the_reviewed_bank() -
     refresh_snapshot_digest(snapshot)
     with pytest.raises(ValueError, match="reviewed bank"):
         validate_snapshot(snapshot)
+
+
+def test_published_quality_report_matches_active_bank_and_counts_positions() -> None:
+    import json
+    from pathlib import Path
+
+    from app.math import oge19
+
+    report = json.loads(Path("reports/oge19-quality.json").read_text())
+    assert report["generator_version"] == oge19.GENERATOR_VERSION
+    assert report["bank_version"] == oge19.BANK_VERSION
+    assert report["answer_policy_version"] == oge19.ANSWER_POLICY_VERSION
+    assert report["statement_count"] == len(oge19.STATEMENTS)
+    counts = report["answer_mask_counts"]
+    assert sum(counts.values()) == report["samples"]
+    assert report["correct_position_counts"] == {
+        digit: sum(count for mask, count in counts.items() if digit in mask) for digit in "123"
+    }
+    assert set(report["theme_samples"]) == set(oge19.THEME_TOPICS)
