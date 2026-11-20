@@ -1,9 +1,10 @@
+import asyncio
 import hmac
 import logging
 import re
 import traceback
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Any
 
@@ -190,7 +191,18 @@ def create_app(
         application.state.oge15_repository = oge15_repo
         application.state.bot = telegram_bot
         application.state.dispatcher = dispatcher
-        yield
+        maintenance = None
+        if pool is not None and settings.oge_part2_enabled:
+            from app.persistence.part2_grades import maintain_work
+
+            maintenance = asyncio.create_task(maintain_work(pool))
+        try:
+            yield
+        finally:
+            if maintenance:
+                maintenance.cancel()
+                with suppress(asyncio.CancelledError):
+                    await maintenance
         if bot is None:
             await telegram_bot.session.close()
         if pool is not None:
