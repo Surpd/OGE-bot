@@ -84,8 +84,10 @@ class Part2Training:
         body: str | None,
         photo: str | None,
         limit: int,
+        media_group: str | None = None,
     ) -> bool:
         async with self.pool.acquire() as conn, conn.transaction():
+            await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
             row = await conn.fetchrow(
                 """SELECT id FROM part2_issues WHERE owner=$1 AND id=$2 AND NOT closed
                 AND revision=$3 FOR UPDATE""",
@@ -94,6 +96,15 @@ class Part2Training:
                 revision,
             )
             if not row:
+                return False
+            if media_group and await conn.fetchval(
+                """SELECT EXISTS(SELECT 1 FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
+                   WHERE w.media_group=$1 AND i.owner=$2 AND (w.issue_id,w.revision)<>($3,$4))""",
+                media_group,
+                owner,
+                issue,
+                revision,
+            ):
                 return False
             count = await conn.fetchrow(
                 """SELECT count(*) entries,count(photo) photos FROM part2_work
@@ -105,12 +116,13 @@ class Part2Training:
                 return False
             return bool(
                 await conn.fetchval(
-                    """INSERT INTO part2_work(issue_id,revision,message_id,body,photo)
-                VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING RETURNING true""",
+                    """INSERT INTO part2_work(issue_id,revision,message_id,body,photo,media_group)
+                VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING RETURNING true""",
                     issue,
                     revision,
                     message,
                     body,
                     photo,
+                    media_group,
                 )
             )

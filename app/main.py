@@ -192,7 +192,9 @@ def create_app(
         application.state.bot = telegram_bot
         application.state.dispatcher = dispatcher
         maintenance = None
-        if pool is not None and settings.oge_part2_enabled:
+        if pool is not None and await pool.fetchval(
+            "SELECT to_regclass('part2_grades') IS NOT NULL"
+        ):
             from app.persistence.part2_grades import maintain_work
 
             maintenance = asyncio.create_task(maintain_work(pool))
@@ -203,10 +205,10 @@ def create_app(
                 maintenance.cancel()
                 with suppress(asyncio.CancelledError):
                     await maintenance
-        if bot is None:
-            await telegram_bot.session.close()
-        if pool is not None:
-            await pool.close()
+            if bot is None:
+                await telegram_bot.session.close()
+            if pool is not None:
+                await pool.close()
 
     application = FastAPI(title="OGE Trainer", lifespan=lifespan)
 

@@ -50,7 +50,8 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
-    if "nav:numbers" in callbacks and any(c and c.startswith("p2:open:") for c in callbacks):
+    if "nav:numbers" in callbacks and any(c and c.startswith(("p2:open:", "p2:menu:"))
+                                          for c in callbacks):
         return "part2_menu"
     if "nav:task:6" not in callbacks and any(c and c.startswith("p2:") for c in callbacks):
         return "part2"

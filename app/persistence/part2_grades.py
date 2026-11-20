@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 from decimal import Decimal
 from typing import Any
 
@@ -26,6 +27,14 @@ async def reserve(
         )
         if version is None:
             return "Эта работа уже отправлена.", []
+        if await conn.fetchval(
+            "SELECT EXISTS(SELECT 1 FROM part2_work WHERE issue_id=$1 AND revision=$2"
+            " AND created_at < now()-interval '7 days')",
+            issue,
+            revision,
+        ):
+            await conn.execute("UPDATE part2_issues SET revision=revision+1 WHERE id=$1", issue)
+            return "Срок хранения истёк. Пришлите решение целиком.", []
         work = await conn.fetch(
             """SELECT body,photo FROM part2_work WHERE issue_id=$1 AND revision=$2
                AND created_at>now()-interval '7 days' ORDER BY message_id""",
@@ -95,14 +104,27 @@ async def finish(
 
 async def expire_work(pool: asyncpg.Pool) -> None:
     # Keep the result and its cost even after the transient Telegram file IDs expire.
-    await pool.execute("DELETE FROM part2_work WHERE created_at < now() - interval '7 days'")
-    await pool.execute(
-        "UPDATE part2_grades SET status='error' WHERE status='pending' "
-        "AND created_at < now() - interval '10 minutes'"
-    )
+    async with pool.acquire() as conn, conn.transaction():
+        # Expiring one page invalidates that draft as a whole. Never grade the surviving
+        # fragments as if the student had submitted a complete solution.
+        await conn.execute(
+            """UPDATE part2_issues i SET revision=revision+1
+            WHERE EXISTS (SELECT 1 FROM part2_work w WHERE w.issue_id=i.id
+              AND w.revision=i.revision AND w.created_at < now()-interval '7 days')"""
+        )
+        await conn.execute("DELETE FROM part2_work WHERE created_at < now()-interval '7 days'")
+        await conn.execute(
+            "UPDATE part2_grades SET status='error' WHERE status='pending' "
+            "AND created_at < now() - interval '10 minutes'"
+        )
 
 
 async def maintain_work(pool: asyncpg.Pool) -> None:
     while True:
-        await expire_work(pool)
-        await asyncio.sleep(3600)
+        try:
+            await expire_work(pool)
+        except (asyncpg.PostgresError, OSError, TimeoutError):
+            logging.getLogger(__name__).warning("part2_retention_retry")
+            await asyncio.sleep(60)
+        else:
+            await asyncio.sleep(3600)
