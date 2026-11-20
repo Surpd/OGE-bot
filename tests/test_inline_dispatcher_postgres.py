@@ -56,13 +56,29 @@ class TelegramSession(BaseSession):
             )
         if method.__api_method__ == "getMe":
             return User(id=123456, is_bot=True, first_name="Test bot", username="TestBot")
-        if method.__api_method__ in {"answerCallbackQuery", "editMessageReplyMarkup"}:
+        if method.__api_method__ == "answerCallbackQuery":
+            return True
+        if method.__api_method__ == "deleteMessage":
+            self.messages.pop(method.message_id)
+            return True
+        if method.__api_method__ == "editMessageReplyMarkup":
+            message = self.messages[method.message_id]
+            self.messages[method.message_id] = message.model_copy(
+                update={"reply_markup": method.reply_markup}
+            )
             return True
         message_id = getattr(method, "message_id", None)
         if message_id is None:
             message_id = self.next_message_id
             self.next_message_id += 1
         markup = getattr(method, "reply_markup", None)
+        previous = self.messages.get(message_id)
+        reply_parameters = getattr(method, "reply_parameters", None)
+        reply = (
+            self.messages.get(reply_parameters.message_id)
+            if reply_parameters is not None
+            else previous.reply_to_message if previous is not None else None
+        )
         is_photo = method.__api_method__ in {"sendPhoto", "editMessageMedia"}
         text = getattr(method, "text", None)
         if method.__api_method__ == "sendRichMessage":
@@ -81,6 +97,7 @@ class TelegramSession(BaseSession):
             chat=Chat(id=42, type="private"),
             from_user=User(id=123456, is_bot=True, first_name="Test bot"),
             text=text,
+            reply_to_message=reply,
             photo=(
                 [
                     PhotoSize(
@@ -199,7 +216,14 @@ async def exercise_navigation(
         await click("progress:refresh", overview_photo)
         edit_count = sum(call.__api_method__ == "editMessageMedia" for call in session.calls)
         assert edit_count == before_edits + 1
-        await click("progress:details")
+        overview_photo = session.messages[overview_photo.message_id]
+        await click("progress:details", overview_photo)
+        number_picker = list(session.messages.values())[-1]
+        assert number_picker.reply_to_message.message_id == overview_photo.message_id
+        assert session.messages[overview_photo.message_id].photo == overview_photo.photo
+        assert session.messages[overview_photo.message_id].reply_markup is None
+        await click("progress:refresh", overview_photo)
+        assert list(session.messages.values())[-1].message_id == number_picker.message_id
         await click("progress:number:6")
         number_detail = list(session.messages.values())[-1]
         assert "№6" in (number_detail.text or "")
@@ -208,7 +232,14 @@ async def exercise_navigation(
             for row in number_detail.reply_markup.inline_keyboard
             for button in row
         )
+        assert number_detail.message_id == number_picker.message_id
+        await click("progress:details")
+        await click("progress:number:6")
+        photos_sent = sum(call.__api_method__ == "sendPhoto" for call in session.calls)
         await click("progress:summary")
+        assert number_picker.message_id not in session.messages
+        assert list(session.messages.values())[-1].message_id == overview_photo.message_id
+        assert sum(call.__api_method__ == "sendPhoto" for call in session.calls) == photos_sent
         await click("progress:history:0")
         await click("progress:summary")
         await click("progress:errors:0")
