@@ -120,9 +120,15 @@ jobs:
           from io import BytesIO
           from pathlib import Path
           from PIL import Image
+          from importlib.util import find_spec
+          from app.persistence.part2_bank import load_bank
           from app.bot.scenario_training import public_registry
           from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
           from app.math.scenarios.mobile_photos import font, scenario_photos
+          # The deployment image has its own atlas allowlist in .dockerignore.
+          subtypes, cards = load_bank()
+          assert len(subtypes) == 81 and len(cards) == 486
+          assert find_spec("scripts.import_part2") is not None
           assert Path(font(32).path).name == "DejaVuSans.ttf"
           registry = public_registry()
           stories = registry.available_stories(PracticeMode.FULL)
