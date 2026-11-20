@@ -68,7 +68,9 @@ def generate() -> list[Path]:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     output: list[Path] = []
     for kind in ("empty", "partial", "full"):
-        png = render_progress_image(demo_insights(kind))
+        insights = demo_insights(kind)
+        insights.update(display_identity="Вася", display_handle="@vasya")
+        png = render_progress_image(insights)
         path = OUTPUT / f"progress-{kind}.png"
         path.write_bytes(png)
         output.append(path)
