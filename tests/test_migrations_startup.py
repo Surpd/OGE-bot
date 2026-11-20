@@ -214,8 +214,9 @@ async def test_main_migrations_upgrade_adds_only_mixed_training_and_preserves_ta
     pool = await asyncpg.create_pool(test_url)
     try:
         all_files = _migration_files()
-        assert [int(p.name[:4]) for p in all_files] == list(range(1, 21))
-        assert all_files[-1].name == "0020_training_error_replays.sql"
+        assert [int(p.name[:4]) for p in all_files] == list(range(1, len(all_files) + 1))
+        assert all_files[19].name == "0020_training_error_replays.sql"
+        assert all_files[20].name == "0021_part2_bank.sql"
         files = [migration for migration in all_files if int(migration.name[:4]) <= 19]
         assert files[-1].name == "0019_mixed_training.sql"
         for migration in files[:-1]:
@@ -235,10 +236,11 @@ async def test_main_migrations_upgrade_adds_only_mixed_training_and_preserves_ta
         after = await pool.fetch(
             "SELECT version, applied_at FROM app_schema_migrations ORDER BY version"
         )
-        assert after[:-2] == before
-        assert [row["version"] for row in after[-2:]] == [
+        assert after[:len(before)] == before
+        assert [row["version"] for row in after[len(before):]] == [
             "0019_mixed_training.sql",
             "0020_training_error_replays.sql",
+            *(path.name for path in all_files[20:]),
         ]
         restored = await PostgresRepository(pool).task17_state(170016)
         assert restored["problem"] == snapshot
