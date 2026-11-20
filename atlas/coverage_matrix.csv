@@ -87,3 +87,7 @@ FIPI-DEMO-2027-11,11,https://pro-schools.ru/fipi/oge/demo/2027/ma-9-oge-2027-dem
 314118,12,https://math-oge.sdamgia.ru/problem?id=314118,стоимость колодца,OGE12-R014,verified_source,Реализация и границы параметров: PR #84
 314142,12,https://math-oge.sdamgia.ru/problem?id=314142,стоимость колодца,OGE12-R014,verified_source,Реализация и границы параметров: PR #84
 459977,14,https://math-oge.sdamgia.ru/problem?id=459977,путь до остановки,OGE14-A06,verified_source,Реализация и границы параметров: PR #86
+311958,18,https://math-oge.sdamgia.ru/problem?id=311958,медиана к гипотенузе,OGE18-H01,verified_source,#88
+348446,18,https://math-oge.sdamgia.ru/problem?id=348446,большая диагональ ромба,OGE18-L01,verified_source,#88
+323750,18,https://math-oge.sdamgia.ru/problem?id=323750,площадь составного многоугольника,,confirmed_missing,"Площадь 20,5 проверена"
+356077,13,https://math-oge.sdamgia.ru/problem?id=356077,ограниченный квадрат,OGE13-Q06,confirmed_missing,"Закрытый отрезок [-8;8], вариант 4"
