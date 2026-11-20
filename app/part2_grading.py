@@ -86,6 +86,9 @@ def inputs(
     card: dict[str, Any], reference: list[bytes], text: list[str], photos: list[bytes]
 ) -> ResponseInputParam:
     context = {k: card[k] for k in ("statement", "answer_or_claim", "reference_solution", "rubric")}
+    for field in ("response_kind", "solution_steps"):
+        if field in card:
+            context[field] = card[field]
     context["visual_models"] = [v.get("construction") for v in card["visuals"]]
     official: ResponseInputMessageContentListParam = [
         {"type": "input_text", "text": json.dumps(context, ensure_ascii=False)}
