@@ -13,9 +13,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS part2_open_number ON part2_issues(owner,number
 CREATE INDEX IF NOT EXISTS part2_recent ON part2_issues(owner,number,issued_at);
 CREATE TABLE IF NOT EXISTS part2_work (
  issue_id bigint NOT NULL REFERENCES part2_issues, revision integer NOT NULL,
- message_id bigint NOT NULL, body text, photo text, created_at timestamptz NOT NULL DEFAULT now(),
+ message_id bigint NOT NULL, media_group text, body text, photo text, created_at timestamptz NOT NULL DEFAULT now(),
  PRIMARY KEY(issue_id,message_id)
 );
+CREATE INDEX IF NOT EXISTS part2_work_album ON part2_work(media_group) WHERE media_group IS NOT NULL;
 ALTER TABLE part2_issues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE part2_work ENABLE ROW LEVEL SECURITY;
 COMMIT;

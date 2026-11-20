@@ -39,15 +39,20 @@ async def test_import_is_atomic_and_replay_keeps_the_original_version(tmp_path):
             assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 12
             for name in ("figures", "taxonomy.json", "reviewed_versions.json"):
                 (tmp_path / name).symlink_to(ATLAS / name)
-            card = json.loads((ATLAS / "tasks.jsonl").read_text().splitlines()[0])
+            first, remaining = (ATLAS / "tasks.jsonl").read_text().split("\n", 1)
+            card = json.loads(first)
             original = card["statement"]
             card["statement"] += " v2"
             path = tmp_path / "tasks.jsonl"
-            path.write_text(json.dumps(card))
+            path.write_text(first)
+            with pytest.raises(ValueError, match="Incomplete atlas"):
+                await import_bank(conn, tmp_path)
+            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 12
+            path.write_text(json.dumps(card) + "\n" + remaining)
             with pytest.raises(ValueError, match="without a new version"):
                 await import_bank(conn, tmp_path)
             card["content_version"] += 1
-            path.write_text(json.dumps(card))
+            path.write_text(json.dumps(card) + "\n" + remaining)
             await import_bank(conn, tmp_path)
             rows = await conn.fetch(
                 "SELECT payload->>'statement' text FROM part2_versions "

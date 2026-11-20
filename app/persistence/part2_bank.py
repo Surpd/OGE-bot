@@ -19,14 +19,25 @@ def figure(path: str, root: Path = ATLAS) -> bytes:
 
 def load_bank(root: Path = ATLAS) -> tuple[list[dict[str, Any]], list[tuple[str, int, str, str]]]:
     subtypes = json.loads((root / "taxonomy.json").read_text())["subtypes"]
+    expected = {tid: item for item in subtypes for tid in item["card_ids"]}
+    seen: set[str] = set()
     cards = []
     for line in (root / "tasks.jsonl").read_text().splitlines():
         task = json.loads(line)
+        tid = task["task_id"]
+        subtype = expected.get(tid)
+        if tid in seen or not subtype or any(
+            task[key] != subtype[key] for key in ("number", "family_id", "subtype_id")
+        ):
+            raise ValueError(f"Card does not match taxonomy: {tid}")
+        seen.add(tid)
         for visual in task["visuals"]:
             visual["sha256"] = hashlib.sha256(figure(visual["path"], root)).hexdigest()
         payload = json.dumps(task, ensure_ascii=False, sort_keys=True)
         digest = hashlib.sha256(payload.encode()).hexdigest()
         cards.append((task["task_id"], task["content_version"], payload, digest))
+    if seen != expected.keys():
+        raise ValueError("Incomplete atlas")
     return subtypes, cards
 
 
