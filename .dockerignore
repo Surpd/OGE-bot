@@ -5,6 +5,8 @@ __pycache__
 .pytest_cache
 tests
 atlas/*
+!atlas/part2/
+atlas/part2/cards/
 !atlas/atlas.json
 !atlas/oge*_reference_structures.json
 specs
