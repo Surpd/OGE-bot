@@ -67,52 +67,73 @@ def table(title: str, rows: list[list[str]], widths: tuple[int, ...]) -> bytes:
 
 
 def tariff_chart(context: Mapping[str, object]) -> bytes:
-    image = Image.new("RGB", (960, 660), "white")
+    image = Image.new("RGB", (960, 659), "white")
     draw = ImageDraw.Draw(image)
-    for key, title, top, divisor in (
-        ("minutes", "Звонки, мин", 20, 1),
-        ("gb_quarters", "Интернет, ГБ", 340, 4),
-    ):
-        values = cast(tuple[int, ...], context[key])
-        scale = 135 / max(1, max(values))
-        points = [(61 + i * 76, top + 222 - round(value * scale)) for i, value in enumerate(values)]
-        draw.text((24, top), title, font=font(39), fill=INK)
-        draw.line((27, top + 222, 930, top + 222), fill=INK, width=3)
-        for x, y in points:
-            draw.line((x, y, x, top + 222), fill="#ccd1d5", width=2)
-        draw.line(points, fill=BLUE, width=6)
-        for i, ((x, y), value) in enumerate(zip(points, values, strict=True)):
-            label = f"{value / divisor:g}".replace(".", ",")
-            # Reserve the width of this label on both adjoining line segments.
-            face = font(29)
-            while face.getlength(label) > 64:
-                face = font(face.size - 1)
-            fraction = (face.getlength(label) / 2 + 4) / 76
-            neighbours = points[max(0, i - 1):i + 2]
-            label_bottom = min(y + (other_y - y) * fraction for _, other_y in neighbours) - 10
-            draw.ellipse((x - 6, y - 6, x + 6, y + 6), fill=BLUE)
-            draw.text(
-                (x, round(label_bottom)),
-                label,
-                font=face,
-                fill=INK,
-                anchor="mb",
+    minutes_color, internet_color = "#ad430e", "#14568a"
+    left, right, top, bottom, step = 104, 856, 84, 564, 30
+    months = ("янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек")
+    month_x = [128 + i * 64 for i in range(len(months))]
+    axis_font = font(34)
+
+    # A grid step represents 25 minutes on the left and 0.25 GB on the right.
+    for quarter in range(17):
+        y = bottom - step * quarter
+        major = quarter % 2 == 0
+        draw.line((left, y, right, y), fill="#b0bac3" if major else "#d8dfe5", width=2)
+        if major:
+            draw.text((left - 12, y), str(25 * quarter), font=axis_font, fill=INK, anchor="rm")
+            label = f"{quarter / 4:g}".replace(".", ",")
+            draw.text((right + 12, y), label, font=axis_font, fill=INK, anchor="lm")
+
+    for index, (x, month) in enumerate(zip(month_x, months, strict=True), 1):
+        draw.line((x, top, x, bottom), fill="#d8dfe5", width=2)
+        draw.text((x, bottom + 12), str(index), font=axis_font, fill=INK, anchor="mt")
+        draw.text((x, bottom + 52), month, font=font(26), fill=INK, anchor="mt")
+
+    draw.line(((left, top), (left, bottom), (right, bottom), (right, top)), fill=INK, width=3)
+    for x in (left, right):
+        draw.polygon(((x, top - 10), (x - 6, top + 5), (x + 6, top + 5)), fill=INK)
+
+    minute_points = list(
+        zip(
+            month_x,
+            (bottom - step * (v // 25) for v in cast(tuple[int, ...], context["minutes"])),
+            strict=True,
+        )
+    )
+    internet_points = list(
+        zip(
+            month_x,
+            (bottom - step * v for v in cast(tuple[int, ...], context["gb_quarters"])),
+            strict=True,
+        )
+    )
+    draw.line(minute_points, fill=minutes_color, width=6)
+    for (x1, y1), (x2, y2) in zip(internet_points[:-1], internet_points[1:], strict=True):
+        dx, dy = x2 - x1, y2 - y1
+        length = hypot(dx, dy)
+        for offset in range(0, round(length), 30):
+            start, end = offset / length, min(offset + 17, length) / length
+            draw.line(
+                (x1 + start * dx, y1 + start * dy, x1 + end * dx, y1 + end * dy),
+                fill=internet_color,
+                width=6,
             )
-            month = (
-                "янв",
-                "фев",
-                "мар",
-                "апр",
-                "май",
-                "июн",
-                "июл",
-                "авг",
-                "сен",
-                "окт",
-                "ноя",
-                "дек",
-            )[i]
-            draw.text((x, top + 248), month, font=font(30), fill=INK, anchor="mt")
+    for x, y in minute_points:
+        draw.ellipse((x - 6, y - 6, x + 6, y + 6), fill=minutes_color)
+    # A hollow diamond leaves the minutes dot visible when both series coincide.
+    for x, y in internet_points:
+        draw.polygon(
+            ((x, y - 13), (x + 13, y), (x, y + 13), (x - 13, y)),
+            outline=internet_color,
+            width=4,
+        )
+
+    draw.line((23, 39, 85, 39), fill=minutes_color, width=6)
+    draw.text((97, 39), "Минуты", font=axis_font, fill=INK, anchor="lm")
+    for x in (600, 623, 646):
+        draw.line((x, 39, x + 13, 39), fill=internet_color, width=6)
+    draw.text((674, 39), "Интернет, ГБ", font=axis_font, fill=INK, anchor="lm")
     return png(image)
 
 

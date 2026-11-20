@@ -159,30 +159,24 @@ def test_paper_photo_bisects_the_remaining_sheet_along_its_long_side():
         assert image.getpixel((242, 415)) == (255, 255, 255)
 
 
-def test_wide_tariff_values_do_not_intersect_months_or_the_series(monkeypatch):
-    labels = []
-    original = ImageDraw.ImageDraw.text
-
-    def capture(draw, xy, text, **kwargs):
-        if text[0].isdigit():
-            labels.append(draw.textbbox(xy, text, **{
-                key: kwargs[key] for key in ("font", "anchor")
-            }))
-        return original(draw, xy, text, **kwargs)
-
-    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
-    payload = mobile_photos.tariff_chart({
-        "minutes": (400, 0) * 6,
-        "gb_quarters": (1, 39, 40, 39) * 3,
-    })
-    assert len(labels) == 24
+def test_tariff_png_uses_shared_months_and_both_axes_at_the_saved_scale():
+    # Include 0, 400 min / 4 GB, quarter units and a pair of coincident points.
+    minutes = (400, 0, 25, 225) * 3
+    quarters = (0, 16, 1, 15) * 3
+    payload = mobile_photos.tariff_chart({"minutes": minutes, "gb_quarters": quarters})
+    orange, blue = (173, 67, 14), (20, 86, 138)
     with Image.open(BytesIO(payload)) as image:
-        for index, box in enumerate(labels):
-            left, top, right, bottom = box
-            assert 0 <= left < right < image.width and 0 <= top < bottom < image.height
-            if index % 12:
-                assert labels[index - 1][2] < left
-            assert (20, 86, 138) not in image.crop(box).get_flattened_data()
+        for month, (duration, traffic) in enumerate(zip(minutes, quarters, strict=True)):
+            x = 128 + 64 * month
+            assert image.getpixel((x, 564 - duration * 480 // 400)) == orange
+            assert image.getpixel((x, 564 - traffic * 480 // 16 - 11)) == blue
+
+    payload = mobile_photos.tariff_chart({"minutes": (200,) * 12, "gb_quarters": (8,) * 12})
+    with Image.open(BytesIO(payload)) as image:
+        assert image.getpixel((128, 324)) == orange
+        assert image.getpixel((128, 313)) == blue
+        assert image.getpixel((144, 324)) == blue  # Dash over the coincident solid line.
+        assert image.getpixel((151, 324)) == orange  # Gap in the dashed series.
 
 
 def test_garden_cells_continue_inside_the_house_footprint():
