@@ -9,7 +9,7 @@
 - app/persistence/training_insights.py: источник истины для статистики, success_rate, success_label, MIN_ANSWERED_SAMPLE = 5, NUMBERS = 1–19.
 - tests/test_progress_image.py и tests/test_training_insights.py: существующие регрессии.
 - AGENTS.md, specs/TRAINING_UX_CONTRACT.md, specs/TRAINING_ARCHITECTURE.md, specs/LESSONS_LEARNED.md: обязательные инструкции. Учесть LL-12, LL-19, LL-20, LL-21 и LL-22.
-- README.md и reference_renderer.py в этом каталоге: утверждённая геометрия, цвета, размер и демонстрация.
+- README.md, preview_19.svg, preview_25.svg и reference_renderer.py в этом каталоге: утверждённая геометрия, цвета, размер и демонстрация.
 
 ## Задача по шагам
 
