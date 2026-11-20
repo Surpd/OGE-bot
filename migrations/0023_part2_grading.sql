@@ -12,4 +12,16 @@ CREATE TABLE IF NOT EXISTS part2_grades (
 );
 CREATE INDEX IF NOT EXISTS part2_grade_month ON part2_grades(created_at);
 ALTER TABLE part2_grades ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON part2_grades FROM PUBLIC;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        REVOKE ALL ON part2_grades FROM anon;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+        REVOKE ALL ON part2_grades FROM authenticated;
+    END IF;
+END $$;
+
 COMMIT;
