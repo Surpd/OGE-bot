@@ -135,12 +135,9 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
                 rich_with_navigation=True,
             )
     elif command == "check":
-        await send_text(
-            message,
-            repo,
-            "Проверка пока недоступна. Работа сохранена.",
-            reply_markup=controls(value),
-        )
+        from app.bot.part2_check import check
+
+        await check(message, repo, owner, row, bank)
 
 
 async def collect(message: Message, repository: Repository) -> None:
