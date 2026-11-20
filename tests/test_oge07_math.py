@@ -469,7 +469,7 @@ def test_png_pixel_oracle_rejects_shifted_point_with_unchanged_model(family: str
         assert raw[row] == 0
         pixels.extend(raw[row + 1 : row + stride + 1])
     center = projection(problem.graph_model)[str(problem.graph_model["points"][0]["id"])]
-    point_y, radius = 121, 8
+    point_y, radius = 145, 8
     white, blue = (255, 255, 255), (35, 105, 190)
     for y in range(point_y - radius, point_y + radius + 1):
         for x in range(center - radius, center + radius + 1):
@@ -484,3 +484,8 @@ def test_png_pixel_oracle_rejects_shifted_point_with_unchanged_model(family: str
                 pixels[offset : offset + 3] = bytes(blue)
     mutated_png = _replace_png_pixels(data, pixels, width, height)
     assert not audit_png(problem.graph_model, mutated_png)
+
+def test_pre_axis_fix_snapshot_restores_original_point_pixels() -> None:
+    problem = generate_graph_problem("OGE07-N01", 104, "1.1.0")
+    assert problem.png_sha256 == "5e071c6247902510c42fe2e85e43309daaadb0fd0553f8c46db7eb3d5dbb1785"
+    assert validate_task7_snapshot(problem.to_snapshot())
