@@ -155,6 +155,78 @@
           "answer": "0.25"
         }
       ]
+    },
+    {
+      "atlas_id": "OGE10-F005",
+      "family_id": "OGE10-F005-EULER-COUNTS",
+      "name": "Диаграмма Эйлера: количества",
+      "structure": "Четыре положительных количества; сложение и деление на общее количество.",
+      "generator": "Четыре положительных количества; сложение и деление на общее количество.",
+      "examples": [
+        {
+          "task_id": "472228",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472228"
+        },
+        {
+          "task_id": "472237",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472237"
+        }
+      ]
+    },
+    {
+      "atlas_id": "OGE10-F005",
+      "family_id": "OGE10-F005-EULER-MASSES",
+      "name": "Диаграмма Эйлера: вероятности областей",
+      "structure": "Четыре вероятности в сотых с суммой 1; сумма выбранных областей.",
+      "generator": "Четыре вероятности в сотых с суммой 1; сумма выбранных областей.",
+      "examples": [
+        {
+          "task_id": "472253",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472253"
+        },
+        {
+          "task_id": "472258",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472258"
+        }
+      ]
+    },
+    {
+      "atlas_id": "OGE10-F005",
+      "family_id": "OGE10-F005-TREE",
+      "name": "Дерево вероятностей",
+      "structure": "Два шага, на втором вероятность зависит от ветви; сумма произведений.",
+      "generator": "Два шага, на втором вероятность зависит от ветви; сумма произведений.",
+      "examples": [
+        {
+          "task_id": "472226",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472226"
+        },
+        {
+          "task_id": "472232",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472232"
+        },
+        {
+          "task_id": "472234",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472234"
+        }
+      ]
+    },
+    {
+      "family_id": "OGE10-F005-WEIGHTED-POINTS",
+      "atlas_id": "OGE10-F005",
+      "name": "Диаграмма Эйлера: вероятности точек",
+      "structure": "Восемь исходов с указанными вероятностями. Выбор точек по принадлежности множествам.",
+      "generator": "Две точки в каждой области, положительные массы в сотых с суммой 1.",
+      "examples": [
+        {
+          "task_id": "472255",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472255"
+        },
+        {
+          "task_id": "472259",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472259"
+        }
+      ]
     }
   ],
   "research_only": [
@@ -185,9 +257,14 @@
     },
     {
       "atlas_id": "OGE10-F005",
-      "name": "Visual tree/diagram probability",
-      "examples": [],
-      "reason": "No source-backed rendered diagram fixture or independent visual condition parser yet."
+      "name": "Диаграммы с равновозможными точками",
+      "examples": [
+        {
+          "task_id": "472222",
+          "url": "https://math-oge.sdamgia.ru/problem?id=472222"
+        }
+      ],
+      "reason": "Счёт точек без весов ещё не реализован."
     }
   ],
   "known_source_correction": {

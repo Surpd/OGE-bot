@@ -30,6 +30,12 @@ DISJOINT_UNION = "OGE10-F007-DISJOINT-UNION-RESIDUAL"
 REMAINDER_CATEGORY = "OGE10-F008-REMAINDER-CATEGORY"
 OVERLAPPING_GROUP = "OGE10-F009-OVERLAPPING-GROUPS"
 
+EULER_COUNTS = "OGE10-F005-EULER-COUNTS"
+EULER_MASSES = "OGE10-F005-EULER-MASSES"
+PROBABILITY_TREE = "OGE10-F005-TREE"
+WEIGHTED_POINTS = "OGE10-F005-WEIGHTED-POINTS"
+GRAPH_FAMILIES = (EULER_COUNTS, EULER_MASSES, PROBABILITY_TREE, WEIGHTED_POINTS)
+
 ENABLED_FAMILIES = (
     DRAW_CATEGORY,
     COMPLEMENT,
@@ -37,9 +43,14 @@ ENABLED_FAMILIES = (
     DISJOINT_UNION,
     OVERLAPPING_GROUP,
     EMPIRICAL,
+    *GRAPH_FAMILIES,
 )
 
 SOURCE_IDS: dict[str, tuple[str, ...]] = {
+    WEIGHTED_POINTS: ("472255", "472259"),
+    EULER_COUNTS: ("472228", "472237"),
+    EULER_MASSES: ("472253", "472258"),
+    PROBABILITY_TREE: ("472226", "472232", "472234"),
     DRAW_CATEGORY: ("132732", "311525"),
     COMPLEMENT: ("149", "132730"),
     REMAINDER_CATEGORY: ("132738",),
@@ -99,6 +110,8 @@ class ProbabilityProblem:
     solution: tuple[str, ...]
     fingerprint: str
 
+    diagram: tuple[int, ...] = ()
+
     def to_snapshot(self) -> dict[str, object]:
         return {
             "problem_id": self.problem_id,
@@ -110,6 +123,7 @@ class ProbabilityProblem:
             "correct_answer": self.correct_answer,
             "answer_policy_id": self.answer_policy_id,
             "answer_policy_version": self.answer_policy_version,
+            **({"diagram_version": 1, "diagram": list(self.diagram)} if self.diagram else {}),
             "sample_space": [sorted(outcome) for outcome in self.sample_space],
             "event": self.event,
             "hints": list(self.hints),
@@ -449,6 +463,99 @@ def _overlapping_groups(seed: int) -> ProbabilityProblem:
     )
 
 
+def _diagram_problem(family: str, seed: int) -> ProbabilityProblem:
+    rng = random.Random(seed)
+    values: tuple[int, ...]
+    signature: tuple[int, ...]
+    solution: tuple[str, ...]
+    indices: tuple[int, ...]
+    terms: tuple[int, ...]
+    if family == PROBABILITY_TREE:
+        a, left, right = (rng.randrange(1, 10) for _ in range(3))
+        values = (a, left, right)
+        space = tuple(
+            frozenset({"B"}) if y < (left if x < a else right) else frozenset()
+            for x in range(10) for y in range(10)
+        )
+        event: dict[str, object] = {"kind": "has", "label": "B"}
+        text = "На рисунке изображено дерево случайного опыта. Найдите вероятность события B."
+        hints = ("Найдите все пути от начала дерева к исходу B.",
+                 "Для каждого пути перемножьте вероятности ветвей, затем сложите произведения.")
+        favorable = a * left + (10 - a) * right
+        solution = (f"Через A: {a}/10 · {left}/10 = {a*left}/100.",
+                    f"Через противоположное событие: {10-a}/10 · {right}/10 = {(10-a)*right}/100.",
+                    f"Пути несовместны. Складываем: {favorable}/100 = "
+                    f"{_exact_answer(Fraction(favorable, 100))}.")
+        signature = values
+    elif family == WEIGHTED_POINTS:
+        cuts = sorted(rng.sample(range(1, 100), 7))
+        values = tuple(b - a for a, b in zip([0, *cuts], [*cuts, 100], strict=True))
+        regions = ("A", "A", "AB", "AB", "B", "B", "", "")
+        space = tuple(frozenset(region) for region, mass in zip(regions, values, strict=True)
+                      for _ in range(mass))
+        a_event: dict[str, object] = {"kind": "has", "label": "A"}
+        b_event = {"kind": "has", "label": "B"}
+        complement = rng.randrange(2)
+        union: dict[str, object] = {"kind": "or", "events": [{"kind": "not", "event": a_event}, b_event]}
+        if complement:
+            event, target, terms = union, "A̅ ∪ B", values[2:]
+            reason = "Берём все точки, кроме тех, которые лежат только в A."
+        else:
+            event, target, terms = {"kind": "not", "event": union}, "A ∩ B̅", values[:2]
+            reason = "Берём точки внутри A, лежащие вне B."
+        signature = (*values, complement)
+        text = ("На диаграмме показаны все исходы опыта. У каждой точки указана её вероятность. "
+                f"Найдите вероятность события {target}.")
+        hints = ("Выберите точки, принадлежащие указанному событию.",
+                 "Вероятности исходов различны. Сложите вероятности выбранных точек.")
+        solution = (reason, "Складываем вероятности: "
+                    + " + ".join(_exact_answer(Fraction(n, 100)) for n in terms)
+                    + " = " + _exact_answer(Fraction(sum(terms), 100)) + ".")
+    else:
+        total = 100 if family == EULER_MASSES else rng.choice((20, 25, 40, 50, 100))
+        cuts = sorted(rng.sample(range(1, total), 3))
+        values = tuple(b - a for a, b in zip([0, *cuts], [*cuts, total], strict=True))
+        labels: tuple[frozenset[str], ...] = (frozenset("A"), frozenset("AB"), frozenset("B"), frozenset())
+        space = tuple(label for label, count in zip(labels, values, strict=True)
+                      for _ in range(count))
+        complement = rng.randrange(2)
+        a_event = {"kind": "has", "label": "A"}
+        b_event = {"kind": "has", "label": "B"}
+        if complement:
+            target = "A̅ ∪ B"
+            event = {"kind": "or", "events": [{"kind": "not", "event": a_event}, b_event]}
+            indices = (1, 2, 3)
+            reason = "Подходят все области, кроме части A вне B."
+        elif family == EULER_COUNTS:
+            target = "A ∪ B"
+            event = {"kind": "or", "events": [a_event, b_event]}
+            indices = (0, 1, 2)
+            reason = "Объединение содержит обе непересекающиеся части кругов и их пересечение."
+        else:
+            target, event, indices = "A", a_event, (0, 1)
+            reason = "В A входят его собственная часть и пересечение с B."
+        signature = (*values, complement)
+        terms = tuple(values[i] for i in indices)
+        favorable = sum(terms)
+        if family == EULER_COUNTS:
+            description = "В областях диаграммы указаны количества равновозможных исходов."
+            solution = (reason, "Благоприятных исходов: " + " + ".join(map(str, terms))
+                        + f" = {favorable}.", "Всего: " + " + ".join(map(str, values))
+                        + f" = {total}. Вероятность: {favorable}/{total} = "
+                        + _exact_answer(Fraction(favorable, total)) + ".")
+            method = "Разделите число благоприятных исходов на общее число исходов."
+        else:
+            description = "В каждой области диаграммы указана её вероятность."
+            solution = (reason, "Складываем вероятности: "
+                        + " + ".join(_exact_answer(Fraction(n, 100)) for n in terms)
+                        + " = " + _exact_answer(Fraction(favorable, 100)) + ".")
+            method = "Сложите вероятности выбранных непересекающихся областей."
+        text = f"{description} Найдите вероятность события {target}."
+        hints = ("Определите, какие области удовлетворяют условию события.", method)
+    return replace(_problem(family, seed, text, space, event, signature, hints, solution),
+                   diagram=values)
+
+
 _GENERATORS = {
     DRAW_CATEGORY: _draw_category,
     COMPLEMENT: _complement,
@@ -464,11 +571,16 @@ def generate(
 ) -> ProbabilityProblem:
     if generator_version != GENERATOR_VERSION:
         raise ValueError(f"Unsupported OGE-10 generator version: {generator_version}")
+    if seed < 0:
+        raise ValueError("seed must be non-negative")
+    if family_id in GRAPH_FAMILIES:
+        problem = _diagram_problem(family_id, seed)
+        if not validate_rendered_problem(problem):
+            raise RuntimeError("Inconsistent probability diagram")
+        return problem
     generator = _GENERATORS.get(family_id)
     if generator is None:
         raise ValueError(f"OGE-10 family is not enabled: {family_id}")
-    if seed < 0:
-        raise ValueError("seed must be non-negative")
     # Some valid sample-space counts yield repeating or overlong decimals. Retry
     # boundedly with a deterministic seed stream, retaining the caller's seed in
     # the public problem identity and snapshot.
@@ -492,6 +604,34 @@ def generate(
 
 def solve_rendered_condition(problem: ProbabilityProblem) -> Fraction | None:
     """Reconstruct the probability from the student-facing Russian text alone."""
+    if problem.family_id == WEIGHTED_POINTS:
+        if len(problem.diagram) != 8 or min(problem.diagram) <= 0 or sum(problem.diagram) != 100:
+            return None
+        point_mass = Fraction(sum(problem.diagram[:2]), 100)
+        if problem.condition.endswith("события A ∩ B̅."):
+            return point_mass
+        if problem.condition.endswith("события A̅ ∪ B."):
+            return 1 - point_mass
+        return None
+    if problem.family_id == PROBABILITY_TREE:
+        if len(problem.diagram) != 3 or not problem.condition.endswith("события B."):
+            return None
+        a, left, right = (Fraction(n, 10) for n in problem.diagram)
+        return a * left + (1 - a) * right
+    if problem.family_id in (EULER_COUNTS, EULER_MASSES):
+        if len(problem.diagram) != 4 or min(problem.diagram) <= 0:
+            return None
+        only_a, both, only_b, outside = problem.diagram
+        total = sum(problem.diagram)
+        if problem.family_id == EULER_MASSES and total != 100:
+            return None
+        if problem.condition.endswith("события A̅ ∪ B."):
+            return Fraction(total - only_a, total)
+        if problem.condition.endswith("события A ∪ B."):
+            return Fraction(total - outside, total)
+        if problem.condition.endswith("события A."):
+            return Fraction(only_a + both, total)
+        return None
     visible = tuple(int(value) for value in re.findall(r"\d+", problem.condition))
     if problem.family_id == DRAW_CATEGORY:
         if len(visible) != 4 or sum(visible[1:]) != visible[0]:

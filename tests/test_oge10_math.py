@@ -113,7 +113,7 @@ def test_answer_distribution_is_bounded_exact_and_reportable() -> None:
     ]
     values = [problem.answer for problem in generated]
     places = Counter(values)
-    assert len(values) == 1500
+    assert len(values) == 250 * len(ENABLED_FAMILIES)
     assert all(isinstance(value, Fraction) and 0 <= value <= 1 for value in places)
     assert all(
         ANSWER_POLICY.parse(problem.correct_answer) == problem.answer for problem in generated
@@ -162,3 +162,19 @@ def test_source_registry_maps_every_enabled_family_to_concrete_examples() -> Non
         assert enabled[family_id]["examples"]
         assert enabled[family_id]["structure"]
         assert enabled[family_id]["generator"]
+
+
+@pytest.mark.parametrize("family", [f for f in ENABLED_FAMILIES if f.startswith("OGE10-F005-")])
+def test_graphical_task_ordinary_mixed_and_history_share_verified_original(family: str) -> None:
+    from app.bot.mixed_training import _render_image
+    from app.bot.task_view import verified_photo
+    from app.math.probability_diagram import render_snapshot
+
+    problem = generate(family, 42)
+    snapshot = json.loads(json.dumps(problem.to_snapshot()))
+    image = render_snapshot(snapshot)
+    assert image.startswith(b"\x89PNG")
+    assert _render_image(10, snapshot) == verified_photo(10, snapshot) == image
+    snapshot["diagram"][0] += 1
+    with pytest.raises(ValueError, match="Inconsistent"):
+        render_snapshot(snapshot)

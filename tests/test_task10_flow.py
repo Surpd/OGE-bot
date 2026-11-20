@@ -32,6 +32,7 @@ def _message(user_id: int, text: str) -> AsyncMock:
     message.text = text
     message.message_id = value
     message.answer.return_value.message_id = value + 1
+    message.answer_photo.return_value.message_id = value + 1
     return message
 
 

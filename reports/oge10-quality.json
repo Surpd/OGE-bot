@@ -525,11 +525,319 @@
         }
       ],
       "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F005-EULER-COUNTS",
+      "source_ids": [
+        "472228",
+        "472237"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 250,
+      "duplicate_rejections": 0,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        86
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "20": 35,
+        "100": 20,
+        "5": 34,
+        "40": 28,
+        "50": 34,
+        "25": 61,
+        "4": 9,
+        "10": 19,
+        "2": 4,
+        "8": 6
+      },
+      "answer_decimal_places": {
+        "1": 57,
+        "2": 159,
+        "3": 34
+      },
+      "source_answer_examples": [],
+      "source_answer_decimal_places": {},
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/4",
+        "max": "49/50",
+        "mean": 0.75628
+      },
+      "examples": [
+        {
+          "problem_id": "08317715-6d3b-5aaa-81fa-c88b1eafb74c",
+          "seed": 3410932973860906464,
+          "condition": "В областях диаграммы указаны количества равновозможных исходов. Найдите вероятность события A̅ ∪ B.",
+          "answer": "0,95",
+          "fingerprint": "d19ada5e759d372e1db91cd33bfceccfcb113b710efbb351b8e1fa2049f6722e"
+        },
+        {
+          "problem_id": "0a897a9f-b791-54a2-8ef1-ef95d324aec0",
+          "seed": 5461138469621725177,
+          "condition": "В областях диаграммы указаны количества равновозможных исходов. Найдите вероятность события A̅ ∪ B.",
+          "answer": "0,85",
+          "fingerprint": "23fba7239bf2dca89e9d88c9a3f2d6af803dbc8bcb970a42f745fc2d5bbc0c08"
+        },
+        {
+          "problem_id": "5099c7ff-602e-5164-aec6-9cc965ba96bd",
+          "seed": 8210011950165194731,
+          "condition": "В областях диаграммы указаны количества равновозможных исходов. Найдите вероятность события A ∪ B.",
+          "answer": "0,91",
+          "fingerprint": "bd346fb21aac7f02adbb89ae475c1e6e9e1d6931bd02df02fa17db03a8e1cd54"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F005-EULER-MASSES",
+      "source_ids": [
+        "472253",
+        "472258"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 250,
+      "duplicate_rejections": 0,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        83
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "50": 49,
+        "100": 93,
+        "25": 54,
+        "20": 20,
+        "2": 2,
+        "5": 11,
+        "4": 11,
+        "10": 10
+      },
+      "answer_decimal_places": {
+        "1": 23,
+        "2": 227
+      },
+      "source_answer_examples": [],
+      "source_answer_decimal_places": {},
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "7/100",
+        "max": "99/100",
+        "mean": 0.65336
+      },
+      "examples": [
+        {
+          "problem_id": "9abfbbec-9891-52e1-b5da-7bad1385401d",
+          "seed": 7088746898967618821,
+          "condition": "В каждой области диаграммы указана её вероятность. Найдите вероятность события A.",
+          "answer": "0,74",
+          "fingerprint": "fd8bab0a2261c9990650e33081235567e75e426172495adb3d47833703d47daa"
+        },
+        {
+          "problem_id": "0fd6ac48-80e4-513d-8a53-bec4beff3a35",
+          "seed": 5781869656871298326,
+          "condition": "В каждой области диаграммы указана её вероятность. Найдите вероятность события A̅ ∪ B.",
+          "answer": "0,87",
+          "fingerprint": "cfd39b3e27610c06ca1599bf48cbb858678b74abce1f8effc949f639857600da"
+        },
+        {
+          "problem_id": "b3de19fe-aff0-555d-95ef-0d824b164ba2",
+          "seed": 169358241379632349,
+          "condition": "В каждой области диаграммы указана её вероятность. Найдите вероятность события A̅ ∪ B.",
+          "answer": "0,98",
+          "fingerprint": "84c53f407c5a0f1465609d542cde27ac3f2342bb13bada7c1793e914b333fd2c"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F005-TREE",
+      "source_ids": [
+        "472226",
+        "472232",
+        "472234"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 206,
+      "duplicate_rejections": 44,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        9
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "5": 23,
+        "50": 67,
+        "100": 50,
+        "25": 51,
+        "20": 21,
+        "2": 13,
+        "10": 21,
+        "4": 4
+      },
+      "answer_decimal_places": {
+        "1": 57,
+        "2": 193
+      },
+      "source_answer_examples": [],
+      "source_answer_decimal_places": {},
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/10",
+        "max": "9/10",
+        "mean": 0.51356
+      },
+      "examples": [
+        {
+          "problem_id": "7492e506-92d5-50f1-8f73-6fa7bd6f9010",
+          "seed": 2422969694213670079,
+          "condition": "На рисунке изображено дерево случайного опыта. Найдите вероятность события B.",
+          "answer": "0,4",
+          "fingerprint": "e7e65352428ce5b0980166e0b5c5514dda3d87d36433249b80212a3c5dcc9be5"
+        },
+        {
+          "problem_id": "f3fdccfd-6f93-5e14-88dd-e7ceacff8366",
+          "seed": 6831370189928294539,
+          "condition": "На рисунке изображено дерево случайного опыта. Найдите вероятность события B.",
+          "answer": "0,4",
+          "fingerprint": "d6ba8a0eb04bbc286fd7707a61808df9c1c4e1873486663d1de44b82876375d6"
+        },
+        {
+          "problem_id": "3c6a231a-2d02-5af5-a9dc-8dc923a9c532",
+          "seed": 2667785133915588689,
+          "condition": "На рисунке изображено дерево случайного опыта. Найдите вероятность события B.",
+          "answer": "0,62",
+          "fingerprint": "784d027c4031fd4a5979c023129a78f45d1ea8daa4cb709c038ef2b74993cad9"
+        }
+      ],
+      "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F005-WEIGHTED-POINTS",
+      "source_ids": [
+        "472255",
+        "472259"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 250,
+      "unique_fingerprints": 250,
+      "duplicate_rejections": 0,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        65
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "25": 55,
+        "50": 49,
+        "100": 102,
+        "5": 12,
+        "20": 15,
+        "4": 6,
+        "10": 10,
+        "2": 1
+      },
+      "answer_decimal_places": {
+        "1": 23,
+        "2": 227
+      },
+      "source_answer_examples": [],
+      "source_answer_decimal_places": {},
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "3/100",
+        "max": "49/50",
+        "mean": 0.47844
+      },
+      "examples": [
+        {
+          "problem_id": "e2a2c3ff-15e9-58f1-8dd9-97501f823d7e",
+          "seed": 1352218965636117024,
+          "condition": "На диаграмме показаны все исходы опыта. У каждой точки указана её вероятность. Найдите вероятность события A̅ ∪ B.",
+          "answer": "0,88",
+          "fingerprint": "bc34d263ec396f9c448660bd7ed52923ee0e21535da024711049970114c456c2"
+        },
+        {
+          "problem_id": "875f62d3-291b-5739-b86b-26ba7e061299",
+          "seed": 5302373889122121780,
+          "condition": "На диаграмме показаны все исходы опыта. У каждой точки указана её вероятность. Найдите вероятность события A ∩ B̅.",
+          "answer": "0,18",
+          "fingerprint": "02aad44e7a546bf0e7f5647087ecf5082052f0b7ae9409e165ff9a14a3414431"
+        },
+        {
+          "problem_id": "5262f881-fbfa-5dc6-b773-540c766b96b0",
+          "seed": 2442262693955333861,
+          "condition": "На диаграмме показаны все исходы опыта. У каждой точки указана её вероятность. Найдите вероятность события A ∩ B̅.",
+          "answer": "0,14",
+          "fingerprint": "d12cc7f67dfc219ee139c8d1ff00fbf4ca3f1e5d5fa0636bf233781f71a9b315"
+        }
+      ],
+      "acceptance": "passed"
     }
   ],
   "overall": {
-    "families_enabled": 6,
-    "families_total": 6,
-    "unique_task_instances_in_samples": 1500
+    "families_enabled": 10,
+    "families_total": 10,
+    "unique_task_instances_in_samples": 2500
   }
 }
