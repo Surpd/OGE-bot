@@ -6,7 +6,7 @@
     "catalog_prototypes": 26,
     "catalog_cards_with_clones": 78,
     "fipi_original_pdfs_individually_verified": false,
-    "enabled_families": ["OGE08-R01", "OGE08-R02", "OGE08-R03", "OGE08-R04", "OGE08-R05", "OGE08-R06", "OGE08-R08"],
+    "enabled_families": ["OGE08-R01", "OGE08-R02", "OGE08-R03", "OGE08-R04", "OGE08-R05", "OGE08-R06", "OGE08-R08", "OGE08-R09"],
     "disabled_by_default": true
   },
   "families": [
@@ -18,7 +18,7 @@
     {"family_id":"OGE08-R06","math_shape":"radical_conjugates","source_ids":["369495"],"status":"enabled","enabled":true,"active_reference_ids":["369495"],"source_urls":["https://math-oge.sdamgia.ru/problem?id=369495"],"verified_example":"(sqrt(11)-3)*(sqrt(11)+3) = 2","parameterization":"(sqrt(n)-k)*(sqrt(n)+k)","answer_shape":"integer","source_status":"Portal expression and solution checked; 2027 codifier 2.4–2.5."},
     {"family_id":"OGE08-R07","math_shape":"sum_radicals_times_root","source_ids":["383598"],"status":"research_only","enabled":false,"reason":"Portal attribution to a 2020 exam is erroneous; the 2020 exam was not held."},
     {"family_id":"OGE08-R08","math_shape":"binomial_square_cancel","source_ids":["400942"],"active_reference_ids":["400942"],"source_urls":["https://math-oge.sdamgia.ru/problem?id=400942"],"status":"enabled","enabled":true,"source_status":"Portal attribution to St Petersburg trial exam 2025-02-06; original FIPI PDF not checked","parameterization":"(sqrt(n)+k)^2-2*k*sqrt(n), nonsquare integer 2<=n<=80, 1<=k<=7","answer_shape":"integer"},
-    {"family_id":"OGE08-R09","math_shape":"squared_root_quotient","source_ids":["438266","474136","474142"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
+    {"family_id":"OGE08-R09","math_shape":"squared_root_quotient","source_ids":["474136","474142"],"status":"enabled","enabled":true,"reason":"Current generator uses the squared denominator. 474142 reverses the quotient and can require a decimal answer. 438266 is a different structure: square root of an even power.","active_reference_ids":["474136"],"source_urls":["https://math-oge.sdamgia.ru/problem?id=474136"],"verified_example":"72/(2√3)² = 6","answer_shape":"integer"},
     {"family_id":"OGE08-R10","math_shape":"literal_powers","source_ids":["412184","474139","479793"],"status":"research_only","enabled":false,"reason":"Not selected for this release."},
     {"family_id":"OGE08-R11","math_shape":"two_variable_powers","source_ids":["412211"],"status":"research_only","enabled":false,"reason":"Radical substitution not selected for this release."},
     {"family_id":"OGE08-R12","math_shape":"sqrt_perfect_square_binomial","source_ids":["412188"],"status":"research_only","enabled":false,"reason":"Absolute-value sign cases are not implemented in this release."},

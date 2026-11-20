@@ -26,12 +26,13 @@ R05 = "OGE08-R05"
 R06 = "OGE08-R06"
 R04 = "OGE08-R04"
 R08 = "OGE08-R08"
-ENABLED_FAMILIES = (R01, R02, R03, R04, R05, R06, R08)
+R09 = "OGE08-R09"
+ENABLED_FAMILIES = (R01, R02, R03, R04, R05, R06, R08, R09)
 ALL_FAMILIES = tuple(f"OGE08-R{i:02d}" for i in range(1, 18))
 REFERENCE_IDS = {
     R02: ("355406",), R03: ("FIPI-2027-8",),
     R01: ("460990",), R04: ("137285",), R05: ("406280",),
-    R06: ("369495",), R08: ("400942",),
+    R06: ("369495",), R08: ("400942",), R09: ("474136",),
 }
 
 POLICY = AnswerPolicy(
@@ -320,6 +321,21 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
             (f"Получаем (√{n})² − {k}².",
              f"Вычитаем квадраты: {n} − {k*k} = {n-k*k}."),
             "conjugate_radicals", Fraction(n-k*k),
+        )
+    if family_id == R09:
+        coefficient = rng.randint(2, 8)
+        radicand = rng.choice((2, 3, 5, 6, 7, 10, 11, 13))
+        quotient = rng.randint(2, 9)
+        denominator = coefficient**2 * radicand
+        numerator = denominator * quotient
+        return _build(
+            R09, seed, f"{numerator}/({coefficient}*sqrt({radicand}))**2",
+            (numerator, coefficient, radicand),
+            ("Возведите каждый множитель в знаменателе в квадрат.",
+             "Квадрат корня из положительного числа равен этому числу."),
+            (f"Знаменатель: {coefficient}² · {radicand} = {denominator}.",
+             f"Делим: {numerator}/{denominator} = {quotient}."),
+            "quotient_by_squared_radical", Fraction(quotient),
         )
     if family_id == R04:
         left_rad = rng.randint(2, 12)

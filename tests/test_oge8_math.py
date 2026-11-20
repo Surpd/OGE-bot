@@ -18,6 +18,7 @@ from app.math.oge8 import (
     R05,
     R06,
     R08,
+    R09,
     _oracle_text,
     generate,
     verify_problem,
@@ -26,7 +27,7 @@ from app.math.oge8_scheduler import build_task8_candidate_batch
 
 
 def test_only_source_checked_numeric_families_are_enabled() -> None:
-    assert ENABLED_FAMILIES == (R01, R02, R03, R04, R05, R06, R08)
+    assert ENABLED_FAMILIES == (R01, R02, R03, R04, R05, R06, R08, R09)
     assert set(ENABLED_FAMILIES) <= set(ALL_FAMILIES)
 
 
@@ -36,7 +37,7 @@ def test_atlas_keeps_unverified_structures_disabled_and_cites_active_sources() -
     assert set(atlas["metadata"]["enabled_families"]) == set(ENABLED_FAMILIES)
     assert families[R04]["active_reference_ids"] == ["137285"]
     assert families[R08]["active_reference_ids"] == ["400942"]
-    assert sum(item["enabled"] for item in families.values()) == 7
+    assert sum(item["enabled"] for item in families.values()) == 8
     assert families["OGE08-R07"]["enabled"] is False
     assert families["OGE08-R15"]["enabled"] is False
 
@@ -82,6 +83,7 @@ def test_oracle_rejects_visible_condition_mutation(family: str, seed: int) -> No
         ("Вычислите: (√(11)-3)·(√(11)+3)", Fraction(2)),
         ("Вычислите: 7^8·10^6/70^6", Fraction(49)),
         ("Вычислите: 4^(-10)·(4^3)^4", Fraction(16)),
+        ("Вычислите: 72/(2·√(3))^2", Fraction(6)),
         ("Вычислите: sqrt(9)", Fraction(3)),
         ("Вычислите: √(0)", Fraction(0)),
         ("Вычислите: (-2)**4", Fraction(16)),
