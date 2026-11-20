@@ -64,6 +64,8 @@ def controls(row: dict[str, Any]) -> InlineKeyboardMarkup:
         ]
     if row["solution_viewed_at"]:
         rows.append([("К выбору", f"p2:menu:{number}")])
+    if row["draft"] and not row["solution_viewed_at"]:
+        rows.insert(1, [("Моя работа", f"p2:draft:{issue}")])
     return keyboard(rows)
 
 
@@ -338,6 +340,19 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
     number = row["number"]
     if command == "resume":
         await resume(message, repo, owner, value)
+    elif command == "draft":
+        from app.bot.part2_progress import page as written_page
+
+        await repo.save_user_state(owner, "part2_menu")
+        await written_page(
+            message,
+            repo,
+            owner,
+            ["work", str(value), str(row["revision"]), "0"],
+            resume_issue=True,
+        )
+    elif command == "next":
+        await show_choices(message, repo, bank, owner, number)
     elif command == "skip":
         await repo.save_user_state(owner, "part2_menu")
         skipped = await bank.skip(owner, value, row["revision"])

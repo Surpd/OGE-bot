@@ -13,7 +13,9 @@ from app.persistence.part2_insights import history, revision, summary
 from app.persistence.repository import Repository
 
 
-async def page(message: Message, repo: Repository, owner: int, parts: list[str]) -> None:
+async def page(
+    message: Message, repo: Repository, owner: int, parts: list[str], *, resume_issue: bool = False
+) -> None:
     bank = store(repo)
     rows = []
     message_text = "Запись недоступна."
@@ -81,9 +83,9 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
                 from app.bot.part2_check import grading_reply
                 from app.part2_grading import Assessment
 
-                lines = [f"№{r['number']} · Работа {attempt}", r["statement"]]
-                if r["repeat_kind"]:
-                    lines.append("Повторная тренировка.")
+                lines = []
+                repetition = "\nПовторная тренировка" if r["repeat_kind"] else ""
+                title = f"№{r['number']} · Работа {attempt}{repetition}"
                 for visual in json.loads(r["visuals"]):
                     if visual["role"] != "condition":
                         continue
@@ -94,6 +96,9 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
                         )
                     except (OSError, ValueError, TelegramBadRequest):
                         lines.append("Исходный рисунок сейчас недоступен.")
+                await send_text(
+                    message, repo, f"{title}\n\n{r['statement']}", rich_with_navigation=True
+                )
                 for piece in work:
                     if piece["body"]:
                         await send_text(
@@ -150,8 +155,12 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
                     )
                 if arrows:
                     rows.append(arrows)
-            rows.append([("К письменным работам", f"progress:works:{offset}")])
-    rows.append([("Мой прогресс", "progress:summary")])
+            if resume_issue and record:
+                rows.append([("К заданию", f"p2:resume:{issue}"), ("К номерам", "nav:numbers")])
+            else:
+                rows.append([("К письменным работам", f"progress:works:{offset}")])
+    if not resume_issue:
+        rows.append([("Мой прогресс", "progress:summary")])
     await send_text(
         message,
         repo,

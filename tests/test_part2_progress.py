@@ -152,16 +152,12 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         )
 
     async def tap(action):
-        msg = next(
-            m
-            for m in reversed(telegram.messages.values())
-            if m.reply_markup
-            and any(
-                b.callback_data.partition("~")[0] == action
-                for row in m.reply_markup.inline_keyboard
-                for b in row
-            )
+        message_id = await bank_pool.fetchval(
+            "SELECT (current_state->>'navigation_message_id')::int "
+            "FROM users WHERE telegram_user_id=$1",
+            user.id,
         )
+        msg = telegram.messages[message_id]
         cb = next(
             b.callback_data
             for row in msg.reply_markup.inline_keyboard
@@ -410,6 +406,9 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         await tap("p2:menu:22")
         await tap("nav:numbers")
         await tap("p2:menu:23")
+        dp = Dispatcher()
+        dp.include_router(build_router())
+        repo = PostgresRepository(bank_pool)
         await tap(f"p2:resume:{issue}")
         assert (await bank.current(42))["id"] == issue
         await tap("p2:menu:23")
@@ -417,6 +416,9 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         await tap("p2:menu:22")
         await tap(f"p2:resume:{other['id']}")
         assert (await bank.current(42))["draft"]
+        await tap(f"p2:draft:{other['id']}")
+        assert any("Черновик графика." in (m.text or "") for m in telegram.messages.values())
+        await tap(f"p2:resume:{other['id']}")
         await tap(f"p2:solution:{other['id']}")
         assert (await bank.current(42))["solution_viewed_at"] is None
         await tap(f"p2:reveal:{other['id']}")

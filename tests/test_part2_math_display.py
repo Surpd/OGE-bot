@@ -41,3 +41,17 @@ def test_formula_fallback_preserves_denominators_and_interval_endpoints():
     assert plain_text(math) == "(1)/(2x), (−∞;1]∪(2;3)"
     assert rich_needs_png_fallback(math)
     assert "<tg-math>" in format_rich_message(r"Найдите корни \(x^4=(2x-8)^2\).")
+
+
+def test_multiline_feedback_uses_math_layout_instead_of_literal_environment():
+    message = (
+        "Что правильно: "
+        r"\[\begin{aligned} x^2-4 &= 0 \\ "
+        "\n"
+        r"(x-2)(x+2) &= 0 \end{aligned}\]"
+    )
+    assert rich_needs_png_fallback(message)
+    assert r"\[" not in format_rich_message(message)
+    assert r"\begin" not in plain_text(message)
+    with Image.open(io.BytesIO(render_math_image(message))) as rendered:
+        assert rendered.height > 200

@@ -81,3 +81,18 @@ async def test_unseen_before_repeats_and_version_updates_keep_seen_identity(bank
     assert draft["draft"] and draft["card"] == a["card"]
     assert (await bank.current(1))["id"] == first
     assert (await bank_pool.fetchval("SELECT count(*) FROM part2_grades")) == 0
+
+    # The old result qualifies for explicit error practice, and remains in history.
+    await bank_pool.execute(
+        """INSERT INTO part2_grades(issue_id,revision,model,prompt_version,rubric_version,
+               status,score,reserved_usd,cost_usd)
+           VALUES($1,1,'synthetic','test',1,'graded',1,0,0)""",
+        first,
+    )
+    assert await bank.finish(1, first)
+    alternative = await bank.open(1, 20, subtype, repeat="errors")
+    assert alternative and alternative != first
+    assert (await bank.current(1, alternative))["task_id"] == a["task_id"]
+    assert (
+        await bank_pool.fetchval("SELECT score FROM part2_grades WHERE issue_id=$1", first)
+    ) == 1

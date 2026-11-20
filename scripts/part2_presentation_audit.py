@@ -23,6 +23,15 @@ RAW_TEX = re.compile(r"\\(?:[a-zA-Z]+|[()\[\]{}])")
 ASSET_ROLE = {"condition", "solution"}
 
 
+FIXED_PROOFS = {
+    "311573": "restored_internal_feet_from_source_diagram",
+    "155": "restored_internal_points_from_source_diagram",
+    "A24-cyclic-external-02": "secant_through_center",
+    "A24-common-chord-03": "center_at_chord_midpoint",
+    "A24-rigid-motion-01": "coincident_points_at_vertex",
+}
+
+
 def font(size: int):
     return ImageFont.truetype(get_data_path() + "/fonts/ttf/DejaVuSans.ttf", size)
 
@@ -184,6 +193,7 @@ def audit(previews, report):
                     if card["source_id"] in {"339709", "97C87B"}
                     else []
                 ),
+                "editorial_revision": FIXED_PROOFS.get(card["source_id"]),
                 "max_formula_width_px": max(widths, default=0),
             }
         )

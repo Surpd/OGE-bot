@@ -7,7 +7,10 @@ DELIMITERS = re.compile(
     r"\\\((.*?)\\\)|\\\[(.*?)\\\]|\$\$([^$]+)\$\$|(?<!\$)\$([^$\n]+)\$",
     re.DOTALL,
 )
-CASES = re.compile(r"(.*?)\\begin\{cases\}(.*?)\\end\{cases\}(.*)", re.DOTALL)
+BLOCK = re.compile(
+    r"(.*?)\\begin\{(cases|aligned|align\*?|gathered|split)\}(.*?)\\end\{\2\}(.*)",
+    re.DOTALL,
+)
 TOKEN = re.compile(r"\\[a-zA-Z]+|\\.|.")
 LOCAL_COMMANDS = {
     r"\le": r"\leq",
@@ -60,13 +63,13 @@ def formulas(source: str) -> Iterator[tuple[int, int, str]]:
         yield match.start(), match.end(), next(s.strip() for s in match.groups() if s is not None)
 
 
-def case_parts(latex: str) -> tuple[str, tuple[tuple[str, ...], ...], str] | None:
-    match = CASES.fullmatch(latex)
+def block_parts(latex: str) -> tuple[str, tuple[tuple[str, ...], ...], str, bool] | None:
+    match = BLOCK.fullmatch(latex)
     if match is None:
         return None
-    left, body, right = match.groups()
+    left, environment, body, right = match.groups()
     rows = tuple(tuple(cell.strip() for cell in row.split("&")) for row in body.split(r"\\"))
-    return left.strip(), rows, right.strip()
+    return left.strip(), rows, right.strip(), environment == "cases"
 
 
 def local_tex(latex: str) -> str:
@@ -111,14 +114,14 @@ def local_tex(latex: str) -> str:
 
 def plain_tex(latex: str) -> str:
     """Readable grouped notation, also used if a provider supplies unsupported TeX."""
-    cases = case_parts(latex)
-    if cases:
-        left, rows, right = cases
+    block = block_parts(latex)
+    if block:
+        left, rows, right, brace = block
         return (
             plain_tex(left)
-            + " { "
+            + (" { " if brace else " ")
             + "  ;  ".join("  ".join(map(plain_tex, row)) for row in rows)
-            + " } "
+            + (" } " if brace else " ")
             + plain_tex(right)
         ).strip()
 
@@ -166,6 +169,16 @@ def plain_tex(latex: str) -> str:
         return "".join(pieces)
 
     return group(0)
+
+
+def flatten_math_lines(source: str) -> str:
+    parts: list[str] = []
+    previous = 0
+    for start, end, _ in formulas(source):
+        parts.extend((source[previous:start], re.sub(r"\s*\n\s*", " ", source[start:end])))
+        previous = end
+    parts.append(source[previous:])
+    return "".join(parts)
 
 
 def plain_text(source: str) -> str:

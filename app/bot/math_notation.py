@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass
 from html import escape
 
-from app.bot.explicit_math import case_parts, formulas
+from app.bot.explicit_math import block_parts, formulas
 
 _SUPER = dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺", "0123456789-+", strict=True))
 _SUB = dict(zip("₀₁₂₃₄₅₆₇₈₉ₙ", "0123456789n", strict=True))
@@ -260,7 +260,7 @@ def rich_needs_png_fallback(source: str | object) -> bool:
             _RICH_UNSAFE_DENOMINATOR_PRODUCT.search(span.source)
             or span.explicit
             and (
-                case_parts(span.latex)
+                block_parts(span.latex)
                 or any(cmd in span.latex for cmd in (r"\infty", r"\cup", r"\left"))
                 or re.search(r"\\(?:d?frac)\{[^{}]+\}\{(?:\d+\s*[a-z]|[^{}]+[+\-])", span.latex)
             )

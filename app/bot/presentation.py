@@ -20,7 +20,7 @@ from aiogram.types import (
 )
 from aiogram.utils.formatting import Text
 
-from app.bot.explicit_math import plain_text
+from app.bot.explicit_math import flatten_math_lines, plain_text
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import (
@@ -95,7 +95,7 @@ def format_rich_message(
         return "<tg-math-block>" + escape(source.latex()) + "</tg-math-block>"
     lines = []
     solution = False
-    source_lines = layout_text(source).split("\n")
+    source_lines = layout_text(flatten_math_lines(source)).split("\n")
     skipped = 0
     for index, line in enumerate(source_lines):
         if skipped:

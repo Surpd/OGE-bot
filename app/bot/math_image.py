@@ -6,7 +6,7 @@ from functools import lru_cache
 
 from PIL import Image, ImageDraw, ImageFont
 
-from app.bot.explicit_math import case_parts, local_tex, plain_tex
+from app.bot.explicit_math import block_parts, flatten_math_lines, local_tex, plain_tex
 from app.bot.math_fragments import MathFragment, System
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import Span, math_spans, parse_formula
@@ -37,12 +37,12 @@ def _formula(latex: str, size: int = 20) -> Image.Image:
 
 @lru_cache(maxsize=128)
 def _explicit_formula(latex: str) -> Image.Image:
-    cases = case_parts(latex)
+    cases = block_parts(latex)
     if cases is None:
         return _formula(local_tex(latex), 24)
     from matplotlib import get_data_path
 
-    left, rows, right = cases
+    left, rows, right, with_brace = cases
     cells = [
         [_formula(local_tex(cell), 24) if cell else Image.new("RGBA", (1, 1)) for cell in row]
         for row in rows
@@ -56,27 +56,34 @@ def _explicit_formula(latex: str) -> Image.Image:
     prefix = _formula(local_tex(left), 24) if left else None
     suffix = _formula(local_tex(right), 24) if right else None
     start = prefix.width + 10 if prefix else 0
+    indent = 32 if with_brace else 0
     body_width = sum(widths) + 28 * (columns - 1)
     height = sum(heights)
     image = Image.new(
         "RGBA",
-        (start + 32 + body_width + (suffix.width + 8 if suffix else 0), height),
+        (start + indent + body_width + (suffix.width + 8 if suffix else 0), height),
         (255, 255, 255, 255),
     )
     if prefix:
         image.paste(prefix, (0, (height - prefix.height) // 2))
     if suffix:
-        image.paste(suffix, (start + 40 + body_width, (height - suffix.height) // 2))
-    brace = Image.new("RGBA", (height, height * 2))
-    font = ImageFont.truetype(get_data_path() + "/fonts/ttf/DejaVuSans.ttf", height)
-    ImageDraw.Draw(brace).text((0, 0), "{", font=font, fill="#17212b")
-    bounds = brace.getbbox()
-    if bounds:
-        brace = brace.crop(bounds).resize((27, height - 4), Image.Resampling.LANCZOS)
-        image.paste(brace, (start, 2), brace)
+        y_suffix = (
+            height - suffix.height - 4
+            if right in (".", ",", ";", ":")
+            else ((height - suffix.height) // 2)
+        )
+        image.paste(suffix, (start + indent + 8 + body_width, y_suffix))
+    if with_brace:
+        brace = Image.new("RGBA", (height, height * 2))
+        font = ImageFont.truetype(get_data_path() + "/fonts/ttf/DejaVuSans.ttf", height)
+        ImageDraw.Draw(brace).text((0, 0), "{", font=font, fill="#17212b")
+        bounds = brace.getbbox()
+        if bounds:
+            brace = brace.crop(bounds).resize((27, height - 4), Image.Resampling.LANCZOS)
+            image.paste(brace, (start, 2), brace)
     y = 0
     for row, row_height in zip(cells, heights, strict=True):
-        x = start + 32
+        x = start + indent
         for index, cell in enumerate(row):
             image.paste(cell, (x, y + (row_height - cell.height) // 2))
             x += widths[index] + 28
@@ -97,7 +104,7 @@ def render_math_image(
     """
     with _RENDER_LOCK:
         if isinstance(source, str):
-            laid_out = layout_text(source)
+            laid_out = layout_text(flatten_math_lines(source))
             system_range = None
             lines = laid_out.split("\n")
             if system_rows and all(parse_formula(row) is not None for row in system_rows):
@@ -199,9 +206,16 @@ def _render(
         if prefix is not None:
             add(Span(prefix), bold)
             spans = math_spans(line[len(prefix) :])
-        for span in spans:
+        for index, span in enumerate(spans):
             if span.latex is not None:
-                block = span.explicit and case_parts(span.latex) is not None
+                block = span.explicit and block_parts(span.latex) is not None
+                if span.explicit and index + 1 < len(spans):
+                    following = spans[index + 1]
+                    if following.latex is None and following.source[:1] in (".", ",", ";", ":"):
+                        punctuation = following.source[0]
+                        span = Span(span.source + punctuation, span.latex + punctuation, True)
+                        tail = following.source[1:]
+                        spans[index + 1] = Span(tail.lstrip() if block else tail)
                 if block and row:
                     rows.append(row)
                     row, row_width = [], 0
