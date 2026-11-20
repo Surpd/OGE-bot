@@ -120,3 +120,20 @@ async def test_budget_and_revisions_survive_duplicates_and_unknown_provider_cost
     await expire_work(bank_pool)
     assert await bank_pool.fetchval("SELECT count(*) FROM part2_work") == 0
     assert await bank_pool.fetchval("SELECT score FROM part2_grades WHERE revision=2") == 2
+
+
+async def test_daily_limit_and_unreadable_grade(bank_pool):
+    bank = Part2Training(bank_pool)
+    s = Settings(oge_grading_daily_user_limit=1, oge_grading_monthly_budget_usd=1)
+    issue = await bank.open(1, 20)
+    assert await bank.append(1, issue, 1, 301, None, "photo", 2, "album")
+    assert (await reserve(bank_pool, s, 1, issue, 1))[1]
+    result = Assessment.model_validate(
+        {**VALID, "status": "unreadable", "score": None, "needs_review": True}
+    )
+    await finish(bank_pool, s, issue, 1, (result, 10, 10, "demo"), dispatched=True)
+    assert not await bank.append(1, issue, 2, 302, None, "late photo", 2, "album")
+    assert await bank.append(1, issue, 2, 303, "новая версия", None, 2)
+    assert (await reserve(bank_pool, s, 1, issue, 2))[0].startswith("Дневной")
+    row = await bank_pool.fetchrow("SELECT status,score FROM part2_grades")
+    assert tuple(row.values()) == ("unreadable", None)

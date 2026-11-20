@@ -57,6 +57,7 @@ async def check(
             )
             async with AsyncOpenAI(
                 api_key=s.openai_api_key.get_secret_value(),
+                base_url="https://api.openai.com/v1",
                 max_retries=0,
                 timeout=s.oge_grading_timeout_seconds,
             ) as client:
