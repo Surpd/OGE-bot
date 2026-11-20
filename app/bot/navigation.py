@@ -109,7 +109,9 @@ class NavigationMessage:
         screen = navigation_screen(kwargs.get("reply_markup"))
         if screen is not None:
             try:
-                edited = await self._message.edit_text(text, **kwargs)
+                edit_kwargs = kwargs.copy()
+                edit_kwargs.pop("reply_parameters", None)
+                edited = await self._message.edit_text(text, **edit_kwargs)
                 sent = edited if isinstance(edited, Message) else self._message
             except TelegramBadRequest:
                 # Expired/deleted menus may no longer be editable. Create one
