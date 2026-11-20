@@ -29,7 +29,7 @@ async def reserve(
             return "Эта работа уже отправлена.", []
         if await conn.fetchval(
             "SELECT EXISTS(SELECT 1 FROM part2_work WHERE issue_id=$1 AND revision=$2"
-            " AND created_at < now()-interval '7 days')",
+            " AND (photo_expired OR (photo IS NOT NULL AND created_at < now()-interval '7 days')))",
             issue,
             revision,
         ):
@@ -37,7 +37,7 @@ async def reserve(
             return "Срок хранения истёк. Пришлите решение целиком.", []
         work = await conn.fetch(
             """SELECT body,photo FROM part2_work WHERE issue_id=$1 AND revision=$2
-               AND created_at>now()-interval '7 days' ORDER BY message_id""",
+               ORDER BY message_id""",
             issue,
             revision,
         )
@@ -103,16 +103,20 @@ async def finish(
 
 
 async def expire_work(pool: asyncpg.Pool) -> None:
-    # Keep the result and its cost even after the transient Telegram file IDs expire.
+    # Only Telegram photo handles expire. Preserve the original text and its history.
     async with pool.acquire() as conn, conn.transaction():
         # Expiring one page invalidates that draft as a whole. Never grade the surviving
         # fragments as if the student had submitted a complete solution.
         await conn.execute(
             """UPDATE part2_issues i SET revision=revision+1
             WHERE EXISTS (SELECT 1 FROM part2_work w WHERE w.issue_id=i.id
-              AND w.revision=i.revision AND w.created_at < now()-interval '7 days')"""
+              AND w.revision=i.revision AND w.photo IS NOT NULL
+              AND w.created_at < now()-interval '7 days')"""
         )
-        await conn.execute("DELETE FROM part2_work WHERE created_at < now()-interval '7 days'")
+        await conn.execute(
+            "UPDATE part2_work SET photo=NULL,photo_expired=true WHERE photo IS NOT NULL"
+            " AND created_at < now()-interval '7 days'"
+        )
         await conn.execute(
             "UPDATE part2_grades SET status='error' WHERE status='pending' "
             "AND created_at < now() - interval '10 minutes'"
