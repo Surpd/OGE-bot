@@ -137,6 +137,11 @@ async def _has_resumable_session(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> bool:
     mode = await repository.last_training_mode(user_id)
+    if mode == "part2":
+        from app.bot.part2 import store
+
+        bank = store(repository)
+        return bank is not None and await bank.current(user_id) is not None
     if mode == "mixed":
         from app.persistence.mixed_training import MixedTrainingRepository
 
@@ -334,6 +339,11 @@ async def continue_session(
         return True
 
     last = await repository.last_training_mode(user_id)
+    if last == "part2":
+        from app.bot.part2 import resume
+
+        if await resume(message, repository, user_id):
+            return
     if last == "mixed":
         from app.bot.mixed_training import continue_mixed
 
@@ -2640,7 +2650,7 @@ def build_router() -> Router:
     router = Router()
     router.callback_query.register(
         navigation_callback,
-        F.data.startswith("nav:") | F.data.startswith("progress:") | F.data.startswith("replay:"),
+        F.data.startswith(("nav:", "p2:", "progress:", "replay:")),
     )
     router.callback_query.register(mixed_callback, F.data.startswith("mixed:"))
     router.message.register(start, CommandStart())
@@ -2673,6 +2683,9 @@ def build_router() -> Router:
     router.message.register(show_progress_text, Command("progress"))
     router.message.register(show_progress_details, F.text == "📊 Подробнее")
     router.message.register(show_display_options, F.text == "⚙️ Настройки")
+    from app.bot.part2 import collect
+
+    router.message.register(collect, F.text | F.photo)
     router.message.register(mixed_answer, F.text)
     router.message.register(task17_or_scenario_answer)
     router.message.register(menu_section, F.text.in_(MAIN_MENU))

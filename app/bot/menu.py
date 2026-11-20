@@ -25,7 +25,8 @@ def number_menu(
     include_task13: bool = False,
     include_task11: bool = False,
 ) -> InlineKeyboardMarkup:
-    from app.bot.trainings import TRAININGS
+    from app.bot.trainings import PART2_TRAININGS, TRAININGS
+    from app.config import get_settings
 
     release_flags = {7: include_task7, 11: include_task11, 13: include_task13}
     buttons = [
@@ -33,6 +34,10 @@ def number_menu(
         for training in TRAININGS
         if release_flags.get(training.number, training.available)
     ]
+    if get_settings().oge_part2_enabled:
+        buttons.extend(
+            _button(f"№{t.number} · {t.title}", f"p2:menu:{t.number}") for t in PART2_TRAININGS
+        )
     rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
     rows.insert(0, [_button("№1–5 · Практические задания", "nav:oge15")])
     rows.append([_button("↩ В меню", "nav:main")])

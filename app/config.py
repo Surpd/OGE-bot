@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     telegram_bot_token: str | None = None
     telegram_webhook_secret: str | None = None
     webhook_base_url: str | None = None
+    oge_part2_enabled: bool = False
+    oge_grading_max_images: int = 4
     log_level: str = "INFO"
 
 
