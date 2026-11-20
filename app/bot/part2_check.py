@@ -6,10 +6,10 @@ from typing import Any
 
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
-from aiogram.utils.formatting import Bold, Text
 from openai import APIError
 from PIL import UnidentifiedImageError
 
+from app.bot.explicit_math import display_feedback
 from app.bot.part2 import controls, image_bytes
 from app.bot.presentation import send_text
 from app.config import get_settings
@@ -38,12 +38,12 @@ async def check(
             message,
             repo,
             "Автопроверка временно недоступна. Работа сохранена.",
-            reply_markup=controls(issue),
+            reply_markup=controls(row),
         )
         return
     notice, work = await reserve(bank.pool, s, owner, issue, revision)
     if notice:
-        await send_text(message, repo, notice, reply_markup=controls(issue))
+        await send_text(message, repo, notice, reply_markup=controls(row))
         return
     reason = None
     dispatched = False
@@ -67,8 +67,7 @@ async def check(
                 for v in row["card"]["visuals"]
                 if v["role"] == "condition"
             ]
-            text = list(dict.fromkeys(r["body"] for r in work if r["body"]))
-            content = await asyncio.to_thread(inputs, row["card"], refs, text, photos)
+            content = await asyncio.to_thread(inputs, row["card"], refs, [], photos)
             async with open_client(s) as client:
                 await check_size(client, s, content)
                 await mark_dispatched(bank.pool, issue, revision)
@@ -88,25 +87,33 @@ async def check(
             reason = result.assessment.feedback
         await finish(bank.pool, s, issue, revision, result, dispatched=dispatched, reason=reason)
     reply = (
-        Text(reason, " Работа сохранена, балл не выставлен.")
+        f"{reason} Работа сохранена, балл не выставлен."
         if result is None
         else grading_reply(result.assessment, row["card"]["rubric"]["kind"])
     )
-    active = await bank.current(owner, issue)
-    if await repo.user_state(owner) == "part2" and active:
-        await send_text(message, repo, reply, reply_markup=controls(issue), user_id_override=owner)
-    else:
-        await message.answer(**reply.as_kwargs())
+    active = await bank.current(owner)
+    markup = (
+        controls(active)
+        if (await repo.user_state(owner) == "part2" and active and active["id"] == issue)
+        else None
+    )
+    await send_text(
+        message,
+        repo,
+        reply,
+        reply_markup=markup,
+        user_id_override=owner,
+        rich_with_navigation=True,
+    )
 
 
-def grading_reply(assessment: Assessment, rubric_kind: str) -> Text:
+def grading_reply(assessment: Assessment, rubric_kind: str) -> str:
     if assessment.score is None:
-        return Text(
-            Bold("Оценка не выставлена."),
-            "\n\n",
-            assessment.feedback[:800],
-            "\n\nПришлите решение целиком. Если отправляете фото, сделайте более чёткий снимок. "
-            "Затем нажмите «Проверить решение».",
+        return (
+            "Оценка не выставлена.\n\n"
+            + display_feedback(assessment.feedback[:800])
+            + "\n\nПришлите чёткое фото решения целиком. "
+            "Затем нажмите «Проверить решение»."
         )
     score = assessment.score
     evidence = [
@@ -124,8 +131,9 @@ def grading_reply(assessment: Assessment, rubric_kind: str) -> Text:
         if rubric_kind == "fipi_demo_summary"
         else "Учебные критерии карточки"
     )
-    return Text(
-        Bold(f"Оценка: {score} из 2 баллов"),
-        f" (предварительная)\n{rubric}",
-        *(Text("\n\n", Bold(f"{title}:"), " ", body[:650]) for title, body in blocks if body),
+    return "\n\n".join(
+        [
+            f"Оценка: {score} из 2 баллов (предварительная)\n{rubric}",
+            *(f"{title}: {display_feedback(body[:650])}" for title, body in blocks if body),
+        ]
     )

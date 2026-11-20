@@ -146,7 +146,7 @@ async def test_budget_and_revisions_survive_duplicates_and_unknown_provider_cost
     )
     ids = [await bank.open(user, 20) for user in (1, 2)]
     for owner, issue in enumerate(ids, 1):
-        assert await bank.append(owner, issue, 1, 80, "работа", None) == "saved"
+        assert await bank.append(owner, issue, 1, 80, "работа", "photo") == "saved"
     reservations = await asyncio.gather(
         *(reserve(bank_pool, s, owner, issue, 1) for owner, issue in enumerate(ids, 1))
     )
@@ -155,7 +155,7 @@ async def test_budget_and_revisions_survive_duplicates_and_unknown_provider_cost
     issue, owner = ids[winner], winner + 1
     assert not (await reserve(bank_pool, s, owner, issue, 1))[1]
     await finish(bank_pool, s, issue, 1, None, dispatched=True)
-    assert await bank.append(owner, issue, 2, 81, "исправление", None) == "saved"
+    assert await bank.append(owner, issue, 2, 81, "исправление", "photo") == "saved"
     assert not (await reserve(bank_pool, s, owner, issue, 2))[1]
     assert (await reserve(bank_pool, s, owner, issue, 2))[0].startswith("Между")
     await bank_pool.execute("UPDATE part2_grades SET created_at=now()-interval '21 seconds'")
@@ -196,7 +196,7 @@ async def test_daily_limit_and_unreadable_grade(bank_pool):
         bank_pool, s, issue, 1, Grade(result, 10, 10, "demo", Decimal("0.00012")), dispatched=True
     )
     assert await bank.append(1, issue, 2, 302, None, "late photo", "album") == "stale"
-    assert await bank.append(1, issue, 2, 303, "новая версия", None) == "saved"
+    assert await bank.append(1, issue, 2, 303, "новая версия", "photo") == "saved"
     assert (await reserve(bank_pool, s, 1, issue, 2))[0].startswith("Дневной")
     row = await bank_pool.fetchrow("SELECT status,score FROM part2_grades")
     assert tuple(row.values()) == ("unreadable", None)
@@ -241,7 +241,7 @@ async def test_api_test_and_student_share_atomic_limit(bank_pool):
     s = Settings(oge_grading_monthly_budget_usd=Decimal("0.10"))
     bank = Part2Training(bank_pool)
     issue = await bank.open(1, 20)
-    await bank.append(1, issue, 1, 22, "решение", None)
+    await bank.append(1, issue, 1, 22, None, "photo")
     test_notice, (notice, _) = await asyncio.gather(
         reserve_test(bank_pool, s, 2, 14), reserve(bank_pool, s, 1, issue, 1)
     )
@@ -261,7 +261,7 @@ async def test_student_and_diagnostic_share_inflight_and_monthly_limits(bank_poo
     bank = Part2Training(bank_pool)
     s = Settings()
     issue = await bank.open(1, 20)
-    assert await bank.append(1, issue, 1, 200, "решение", None) == "saved"
+    assert await bank.append(1, issue, 1, 200, None, "photo") == "saved"
     assert await reserve_test(bank_pool, s, 1, 199) == ""
     assert (await reserve(bank_pool, s, 1, issue, 1))[0].startswith("Одна проверка")
     await bank_pool.execute(
@@ -283,3 +283,15 @@ async def test_student_and_diagnostic_share_inflight_and_monthly_limits(bank_poo
     usage = await budget_usage(bank_pool, 1)
     assert usage["monthly"] >= 150
     assert (await reserve_test(bank_pool, s, 1, 201)).startswith("Месячный")
+
+
+async def test_legacy_text_draft_requires_photo_before_reservation(bank_pool):
+    bank = Part2Training(bank_pool)
+    issue = await bank.open(1, 20)
+    await bank.append(1, issue, 1, 601, "Старое письменное решение", None)
+    notice, work = await reserve(bank_pool, Settings(), 1, issue, 1)
+    assert "фото" in notice and not work
+    assert await bank_pool.fetchval("SELECT count(*) FROM part2_grades") == 0
+    assert await bank_pool.fetchval("SELECT body FROM part2_work") == "Старое письменное решение"
+    await bank.append(1, issue, 1, 602, None, "new-photo")
+    assert (await reserve(bank_pool, Settings(), 1, issue, 1))[1]

@@ -1,10 +1,13 @@
 """Presentation of owned training headings; never changes formula tokens."""
 
+from app.bot.explicit_math import formulas
 from app.bot.math_notation import math_spans
 
 
 def action_prefix(line: str) -> str | None:
     action, separator, _ = line.partition(":")
+    if separator and any(start <= len(action) < end for start, end, _ in formulas(line)):
+        return None
     description = action
     if len(action) > 2 and action[0].isdigit() and action[1] in ".)":
         description = action[2:]

@@ -51,7 +51,7 @@ def test_empty_and_insufficient_samples_are_neutral_and_render_on_phone() -> Non
             assert image.format == "PNG"
             assert image.width == WIDTH
             assert image.height < 1300
-            for width in (360, 375, 390):
+            for width in (360, 375, 390, 430):
                 mobile = image.resize((width, round(image.height * width / image.width)))
                 assert mobile.width == width
                 assert mobile.height < 600

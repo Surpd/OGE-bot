@@ -38,6 +38,7 @@ async def test_import_is_atomic_and_replay_keeps_the_original_version(tmp_path):
                 "0023_part2_grading.sql",
                 "0024_part2_release.sql",
                 "0025_part2_terra.sql",
+                "0026_part2_rotation.sql",
             ):
                 if name.startswith("0022"):
                     await conn.execute("CREATE TABLE users(telegram_user_id bigint PRIMARY KEY)")

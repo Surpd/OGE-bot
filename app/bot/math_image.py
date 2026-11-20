@@ -6,6 +6,7 @@ from functools import lru_cache
 
 from PIL import Image, ImageDraw, ImageFont
 
+from app.bot.explicit_math import block_parts, flatten_math_lines, local_tex, plain_tex
 from app.bot.math_fragments import MathFragment, System
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import Span, math_spans, parse_formula
@@ -17,7 +18,7 @@ _FONT_SIZE = 36
 
 
 @lru_cache(maxsize=256)
-def _formula(latex: str) -> Image.Image:
+def _formula(latex: str, size: int = 20) -> Image.Image:
     from matplotlib.font_manager import FontProperties
     from matplotlib.mathtext import math_to_image
 
@@ -25,12 +26,68 @@ def _formula(latex: str) -> Image.Image:
     math_to_image(
         "$" + latex + "$",
         output,
-        prop=FontProperties(size=20),
+        prop=FontProperties(size=size),
         dpi=160,
         format="png",
         color="#17212b",
     )
     image = Image.open(output).convert("RGBA")
+    return image
+
+
+@lru_cache(maxsize=128)
+def _explicit_formula(latex: str) -> Image.Image:
+    cases = block_parts(latex)
+    if cases is None:
+        return _formula(local_tex(latex), 24)
+    from matplotlib import get_data_path
+
+    left, rows, right, with_brace = cases
+    cells = [
+        [_formula(local_tex(cell), 24) if cell else Image.new("RGBA", (1, 1)) for cell in row]
+        for row in rows
+    ]
+    columns = max(map(len, cells))
+    widths = [
+        max((row[index].width for row in cells if index < len(row)), default=0)
+        for index in range(columns)
+    ]
+    heights = [max(cell.height for cell in row) + 12 for row in cells]
+    prefix = _formula(local_tex(left), 24) if left else None
+    suffix = _formula(local_tex(right), 24) if right else None
+    start = prefix.width + 10 if prefix else 0
+    indent = 32 if with_brace else 0
+    body_width = sum(widths) + 28 * (columns - 1)
+    height = sum(heights)
+    image = Image.new(
+        "RGBA",
+        (start + indent + body_width + (suffix.width + 8 if suffix else 0), height),
+        (255, 255, 255, 255),
+    )
+    if prefix:
+        image.paste(prefix, (0, (height - prefix.height) // 2))
+    if suffix:
+        y_suffix = (
+            height - suffix.height - 4
+            if right in (".", ",", ";", ":")
+            else ((height - suffix.height) // 2)
+        )
+        image.paste(suffix, (start + indent + 8 + body_width, y_suffix))
+    if with_brace:
+        brace = Image.new("RGBA", (height, height * 2))
+        font = ImageFont.truetype(get_data_path() + "/fonts/ttf/DejaVuSans.ttf", height)
+        ImageDraw.Draw(brace).text((0, 0), "{", font=font, fill="#17212b")
+        bounds = brace.getbbox()
+        if bounds:
+            brace = brace.crop(bounds).resize((27, height - 4), Image.Resampling.LANCZOS)
+            image.paste(brace, (start, 2), brace)
+    y = 0
+    for row, row_height in zip(cells, heights, strict=True):
+        x = start + indent
+        for index, cell in enumerate(row):
+            image.paste(cell, (x, y + (row_height - cell.height) // 2))
+            x += widths[index] + 28
+        y += row_height
     return image
 
 
@@ -47,7 +104,7 @@ def render_math_image(
     """
     with _RENDER_LOCK:
         if isinstance(source, str):
-            laid_out = layout_text(source)
+            laid_out = layout_text(flatten_math_lines(source))
             system_range = None
             lines = laid_out.split("\n")
             if system_rows and all(parse_formula(row) is not None for row in system_rows):
@@ -81,8 +138,9 @@ def _render(
     if len(source) > 8000:
         raise ValueError("Mathematical message exceeds image budget")
     font_root = get_data_path() + "/fonts/ttf/DejaVuSans"
-    regular = ImageFont.truetype(font_root + ".ttf", _FONT_SIZE)
-    bold = ImageFont.truetype(font_root + "-Bold.ttf", _FONT_SIZE)
+    size = 43 if any(span.explicit for span in math_spans(source)) else _FONT_SIZE
+    regular = ImageFont.truetype(font_root + ".ttf", size)
+    bold = ImageFont.truetype(font_root + "-Bold.ttf", size)
     measuring = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     rows: list[list[tuple[Image.Image, int]]] = []
     row: list[tuple[Image.Image, int]] = []
@@ -92,14 +150,20 @@ def _render(
         nonlocal row, row_width
         if span.latex is not None:
             try:
-                tile = _formula(span.latex).copy()
-            except ValueError:
+                tile = (
+                    _explicit_formula(span.latex) if span.explicit else _formula(span.latex)
+                ).copy()
+            except (ValueError, RecursionError):
+                if span.explicit:
+                    for word in plain_tex(span.latex).split():
+                        add(Span(word + " "), font)
+                    return
                 tile = text_tile(span.source, font)
         else:
             tile = text_tile(span.source, font)
         available = _WIDTH - 2 * _PADDING
         if tile.width > available:
-            if span.latex is not None and tile.width <= available * 1.6:
+            if span.latex is not None and (span.explicit or tile.width <= available * 1.6):
                 tile.thumbnail((available, tile.height))
             elif len(span.source) > 1:
                 # Preserve every source character if one expression cannot fit.
@@ -116,7 +180,7 @@ def _render(
 
     def text_tile(text: str, font: ImageFont.FreeTypeFont) -> Image.Image:
         width = max(1, int(measuring.textlength(text, font=font)) + 1)
-        image = Image.new("RGBA", (width, 48), (255, 255, 255, 0))
+        image = Image.new("RGBA", (width, size + 14), (255, 255, 255, 0))
         ImageDraw.Draw(image).text((0, 0), text, font=font, fill="#17212b")
         return image
 
@@ -126,7 +190,10 @@ def _render(
     line_row_starts = []
     for line_index, line in enumerate(source_lines):
         line_row_starts.append(len(rows))
-        heading = line.startswith(("Задание №", "Подсказка", "Разбор", "Ответ:", "Правильный"))
+        heading = line.startswith(
+            ("Задание №", "Подсказка", "Разбор", "Ответ:", "Правильный", "Оценка")
+            or (line.startswith("№") and " · " in line)
+        )
         font = bold if heading else regular
         prefix = None if heading else action_prefix(line)
         spans = (
@@ -139,9 +206,27 @@ def _render(
         if prefix is not None:
             add(Span(prefix), bold)
             spans = math_spans(line[len(prefix) :])
-        for span in spans:
+        for index, span in enumerate(spans):
+            block = span.explicit and span.latex is not None and block_parts(span.latex) is not None
+            if span.source and not span.source[-1].isspace() and index + 1 < len(spans):
+                following = spans[index + 1]
+                if following.latex is None and following.source[:1] in (".", ",", ";", ":"):
+                    punctuation = following.source[0]
+                    span = Span(
+                        span.source + punctuation,
+                        span.latex + punctuation if span.latex is not None else None,
+                        span.explicit,
+                    )
+                    tail = following.source[1:]
+                    spans[index + 1] = Span(tail.lstrip() if block else tail)
             if span.latex is not None:
+                if block and row:
+                    rows.append(row)
+                    row, row_width = [], 0
                 add(span, font)
+                if block:
+                    rows.append(row)
+                    row, row_width = [], 0
             else:
                 # Words (and their original spaces) can wrap independently.
                 for word_index, word in enumerate(span.source.split(" ")):

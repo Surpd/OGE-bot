@@ -20,6 +20,7 @@ from aiogram.types import (
 )
 from aiogram.utils.formatting import Text
 
+from app.bot.explicit_math import flatten_math_lines, plain_text
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import (
@@ -32,7 +33,9 @@ from app.persistence.repository import Repository
 
 _HEADING = re.compile(
     r"^((?:.+ · )?Задание №[^\n]+|Мой прогресс[^\n]*|Подробнее о номере|"
-    r"Практика №[^\n]*|История(?: · №\d+)?|Мои ошибки(?: · №\d+)?|"
+    r"Практика №[^\n]*|Оценка:[^\n]*|Что правильно:|Где ошибка:|Как исправить:|"
+    r"Почему именно [^:]+:|Оценка не выставлена\.|Письменные работы|"
+    r"История(?: · №\d+)?|Мои ошибки(?: · №\d+)?|"
     r"№\d+ · [^\n]+|Исходное условие:|Результат:|Попытки:|По семействам:|"
     r"Разбор(?: \(самостоятельное решение не засчитывается\))?:|"
     r"Подсказка(?: №\d+)?:|Ответ:|Правильный ответ:|Правильный вариант:)"
@@ -49,6 +52,7 @@ def format_math_message(text: str | MathFragment) -> str:
     source = text if isinstance(text, str) else text.unicode()
     if source.startswith(("Разбор:", "Вторая попытка неверна.")):
         source = layout_text(source)
+    source = plain_text(source)
     lines = []
     for line in source.split("\n"):
         match = _HEADING.match(line)
@@ -91,7 +95,7 @@ def format_rich_message(
         return "<tg-math-block>" + escape(source.latex()) + "</tg-math-block>"
     lines = []
     solution = False
-    source_lines = layout_text(source).split("\n")
+    source_lines = layout_text(flatten_math_lines(source)).split("\n")
     skipped = 0
     for index, line in enumerate(source_lines):
         if skipped:
@@ -123,11 +127,7 @@ def format_rich_message(
             lines.append(f"<p>{body}</p>")
         else:
             spans = math_spans(line.strip())
-            if (
-                len(spans) == 1
-                and spans[0].latex is not None
-                and "∞" not in spans[0].source
-            ):
+            if len(spans) == 1 and spans[0].latex is not None and "∞" not in spans[0].source:
                 lines.append("<tg-math-block>" + escape(spans[0].latex) + "</tg-math-block>")
             else:
                 lines.append("<p>" + rich_inline(line) + "</p>")
@@ -205,8 +205,10 @@ async def _send_math_image(
         raise RuntimeError("Mathematical transport needs a mounted bot")
     if standalone is not None:
         await bot.send_photo(
-            chat_id=message.chat.id, message_thread_id=message.message_thread_id,
-            photo=standalone, caption=diagram_caption,
+            chat_id=message.chat.id,
+            message_thread_id=message.message_thread_id,
+            photo=standalone,
+            caption=diagram_caption,
         )
     return await bot.send_photo(
         chat_id=message.chat.id,
@@ -286,7 +288,9 @@ async def send_photo(
 
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
-    if _has_telegram_transport(message) and _has_math(caption):
+    if _has_telegram_transport(message) and (
+        _has_math(caption) or isinstance(caption, str) and len(caption) > 950
+    ):
         sent = await _send_mathematics(
             message,
             caption,
