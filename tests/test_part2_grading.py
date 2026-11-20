@@ -118,7 +118,7 @@ async def test_budget_and_revisions_survive_duplicates_and_unknown_provider_cost
     assert await bank_pool.fetchval("SELECT count(*) FROM part2_grades") == 2
     await bank_pool.execute("UPDATE part2_work SET created_at=now()-interval '8 days'")
     await expire_work(bank_pool)
-    assert await bank_pool.fetchval("SELECT count(*) FROM part2_work") == 0
+    assert await bank_pool.fetchval("SELECT count(body) FROM part2_work") == 3
     assert await bank_pool.fetchval("SELECT score FROM part2_grades WHERE revision=2") == 2
 
 
@@ -137,3 +137,12 @@ async def test_daily_limit_and_unreadable_grade(bank_pool):
     assert (await reserve(bank_pool, s, 1, issue, 2))[0].startswith("Дневной")
     row = await bank_pool.fetchrow("SELECT status,score FROM part2_grades")
     assert tuple(row.values()) == ("unreadable", None)
+
+    await bank_pool.execute("UPDATE part2_work SET created_at=now()-interval '8 days'")
+    await expire_work(bank_pool)
+    expired = await bank_pool.fetchrow("SELECT * FROM part2_work WHERE message_id=301")
+    assert expired["photo"] is None and expired["photo_expired"]
+    assert (
+        await bank_pool.fetchval("SELECT body FROM part2_work WHERE message_id=303")
+        == "новая версия"
+    )
