@@ -58,7 +58,7 @@ def hex_rgb(color: str) -> tuple[int, int, int]:
 def mix(a: str, b: str, portion_b: float) -> str:
     x, y = hex_rgb(a), hex_rgb(b)
     t = max(0, min(1, portion_b))
-    return "#" + "".join(f"{round(u * (1-t) + v*t):02x}" for u, v in zip(x, y))
+    return "#" + "".join(f"{round(u * (1-t) + v*t):02x}" for u, v in zip(x, y, strict=True))
 
 
 def accuracy_color(accuracy: float) -> str:
