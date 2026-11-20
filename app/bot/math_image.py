@@ -207,15 +207,19 @@ def _render(
             add(Span(prefix), bold)
             spans = math_spans(line[len(prefix) :])
         for index, span in enumerate(spans):
+            block = span.explicit and span.latex is not None and block_parts(span.latex) is not None
+            if span.source and not span.source[-1].isspace() and index + 1 < len(spans):
+                following = spans[index + 1]
+                if following.latex is None and following.source[:1] in (".", ",", ";", ":"):
+                    punctuation = following.source[0]
+                    span = Span(
+                        span.source + punctuation,
+                        span.latex + punctuation if span.latex is not None else None,
+                        span.explicit,
+                    )
+                    tail = following.source[1:]
+                    spans[index + 1] = Span(tail.lstrip() if block else tail)
             if span.latex is not None:
-                block = span.explicit and block_parts(span.latex) is not None
-                if span.explicit and index + 1 < len(spans):
-                    following = spans[index + 1]
-                    if following.latex is None and following.source[:1] in (".", ",", ";", ":"):
-                        punctuation = following.source[0]
-                        span = Span(span.source + punctuation, span.latex + punctuation, True)
-                        tail = following.source[1:]
-                        spans[index + 1] = Span(tail.lstrip() if block else tail)
                 if block and row:
                     rows.append(row)
                     row, row_width = [], 0
