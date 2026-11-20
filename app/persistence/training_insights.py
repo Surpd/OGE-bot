@@ -67,6 +67,12 @@ def family_names() -> dict[str, str]:
     for path in (atlas / "atlas.json", *sorted(atlas.glob("oge*_reference_structures.json"))):
         visit(json.loads(path.read_text(encoding="utf-8")))
     names.update({
+        "OGE08-R02": "Степень степени",
+        "OGE08-R03": "Составное основание степени",
+        "OGE08-R01": "Действия со степенями",
+        "OGE08-R05": "Частное квадратных корней",
+        "OGE08-R09": "Деление на квадрат корня с коэффициентом",
+        "OGE08-R06": "Разность квадратов",
         "OGE08-R04": "Произведение квадратных корней",
         "OGE08-R08": "Квадрат суммы с квадратным корнем",
     })

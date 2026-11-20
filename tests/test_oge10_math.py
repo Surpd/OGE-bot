@@ -113,7 +113,7 @@ def test_answer_distribution_is_bounded_exact_and_reportable() -> None:
     ]
     values = [problem.answer for problem in generated]
     places = Counter(values)
-    assert len(values) == 1500
+    assert len(values) == 250 * len(ENABLED_FAMILIES)
     assert all(isinstance(value, Fraction) and 0 <= value <= 1 for value in places)
     assert all(
         ANSWER_POLICY.parse(problem.correct_answer) == problem.answer for problem in generated
@@ -162,3 +162,56 @@ def test_source_registry_maps_every_enabled_family_to_concrete_examples() -> Non
         assert enabled[family_id]["examples"]
         assert enabled[family_id]["structure"]
         assert enabled[family_id]["generator"]
+
+
+@pytest.mark.parametrize("family", [f for f in ENABLED_FAMILIES if f.startswith("OGE10-F005-")])
+def test_graphical_task_ordinary_mixed_and_history_share_verified_original(family: str) -> None:
+    from app.bot.mixed_training import _render_image
+    from app.bot.task_view import verified_photo
+    from app.math.probability_diagram import render_snapshot
+
+    problem = generate(family, 42)
+    snapshot = json.loads(json.dumps(problem.to_snapshot()))
+    image = render_snapshot(snapshot)
+    assert image.startswith(b"\x89PNG")
+    assert _render_image(10, snapshot) == verified_photo(10, snapshot) == image
+    snapshot["diagram"][0] += 1
+    with pytest.raises(ValueError, match="Inconsistent"):
+        render_snapshot(snapshot)
+
+
+def test_equiprobable_outcomes_in_final_png_match_saved_areas() -> None:
+    from io import BytesIO
+
+    from PIL import Image, ImageDraw
+
+    from app.math.probability import EQUAL_POINTS
+    from app.math.probability_diagram import render_snapshot
+
+    # Exercise every possible population (1..7) in each region.
+    observed: set[tuple[int, int]] = set()
+    for seed in range(4000):
+        problem = generate(EQUAL_POINTS, seed)
+        coverage = set(enumerate(problem.diagram))
+        if coverage <= observed:
+            continue
+        observed |= coverage
+        image = Image.open(BytesIO(render_snapshot(problem.to_snapshot()))).convert("RGB")
+        counts = [0, 0, 0, 0]
+        # The points have a solid circular core. Read their actual pixels
+        # independently of the renderer's position table and region assignment.
+        ink = (24, 43, 54)
+        for y in range(image.height):
+            for x in range(image.width):
+                if image.getpixel((x, y)) != ink:
+                    continue
+                center_x, center_y = x + 2, y + 7
+                in_a, in_b = (
+                    ((center_x - cx) / 188) ** 2 + ((center_y - 175.5) / 97.5) ** 2 < 1
+                    for cx in (260, 459)
+                )
+                region = {(True, False): 0, (True, True): 1, (False, True): 2, (False, False): 3}
+                counts[region[in_a, in_b]] += 1
+                ImageDraw.floodfill(image, (x, y), (255, 255, 255))
+        assert tuple(counts) == problem.diagram
+    assert len(observed) == 28

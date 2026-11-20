@@ -1,7 +1,4 @@
 """Exact, deterministic generators and an independent visible-text oracle for OGE task 8.
-
-Only R04 and R08 are enabled. Their displayed structures were checked against
-the linked task cards 137285 (2024 early wave) and 400942 (2025 trial exam).
 """
 
 from __future__ import annotations
@@ -19,14 +16,24 @@ from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
 GENERATOR_VERSION = "0.1.0"
 MAX_CANDIDATES = 32
-SEEDS_PER_FAMILY = 6
+SEEDS_PER_FAMILY = 4
 MAX_GENERATION_ATTEMPTS = 64
 
+R02 = "OGE08-R02"
+R03 = "OGE08-R03"
+R01 = "OGE08-R01"
+R05 = "OGE08-R05"
+R06 = "OGE08-R06"
 R04 = "OGE08-R04"
 R08 = "OGE08-R08"
-ENABLED_FAMILIES = (R04, R08)
+R09 = "OGE08-R09"
+ENABLED_FAMILIES = (R01, R02, R03, R04, R05, R06, R08, R09)
 ALL_FAMILIES = tuple(f"OGE08-R{i:02d}" for i in range(1, 18))
-REFERENCE_IDS = {R04: ("137285",), R08: ("400942",)}
+REFERENCE_IDS = {
+    R02: ("355406",), R03: ("FIPI-2027-8",),
+    R01: ("460990",), R04: ("137285",), R05: ("406280",),
+    R06: ("369495",), R08: ("400942",), R09: ("474136",),
+}
 
 POLICY = AnswerPolicy(
     "oge8.numeric-short", "1", AnswerFormat.SINGLE_NUMBER,
@@ -247,6 +254,89 @@ def generate(family_id: str, seed: int, generator_version: str = GENERATOR_VERSI
     if generator_version != GENERATOR_VERSION:
         raise ValueError(f"Unsupported OGE-8 generator version: {generator_version}")
     rng = random.Random(f"oge8:{family_id}:{seed}")
+    if family_id == R01:
+        base = rng.randint(2, 9)
+        negative = rng.randint(1, 5)
+        denominator = rng.randint(1, 5)
+        exponent = rng.randint(1, min(4, 12 - negative - denominator))
+        positive = exponent + negative + denominator
+        return _build(
+            R01, seed, f"{base}**(-{negative})*{base}**{positive}/{base}**{denominator}",
+            (base, negative, positive, denominator),
+            ("В числителе сложите показатели степеней с одинаковым основанием.",
+             "При делении вычтите из полученного показателя показатель знаменателя."),
+            (f"Показатель произведения: −{negative} + {positive} = {positive - negative}.",
+             f"При делении: {positive - negative} − {denominator} = {exponent}.",
+             f"Получаем {base}^{exponent} = {base**exponent}."),
+            "multiply_and_divide_powers", Fraction(base**exponent),
+        )
+    if family_id == R02:
+        base = rng.randint(2, 8)
+        inner, outer = rng.randint(2, 4), rng.randint(2, 4)
+        exponent = rng.randint(max(1, inner * outer - 12), min(4, inner * outer - 1))
+        negative = inner * outer - exponent
+        return _build(
+            R02, seed, f"{base}**(-{negative})*({base}**{inner})**{outer}",
+            (base, negative, inner, outer),
+            ("При возведении степени в степень перемножьте показатели.",
+             "При умножении степеней одного основания сложите их показатели."),
+            (f"Показатель второй степени: {inner} · {outer} = {inner*outer}.",
+             f"Общий показатель: −{negative} + {inner*outer} = {exponent}.",
+             f"Ответ: {base}^{exponent} = {base**exponent}."),
+            "nested_power_product", Fraction(base**exponent),
+        )
+    if family_id == R03:
+        a, b = rng.sample(range(2, 11), 2)
+        common, extra = rng.randint(2, 7), rng.randint(1, 3)
+        return _build(
+            R03, seed, f"{a}**{common+extra}*{b}**{common}/{a*b}**{common}",
+            (a, b, common, extra),
+            ("Разложите основание степени в знаменателе на множители.",
+             "Сократите степени каждого основания отдельно."),
+            (f"Знаменатель: ({a}·{b})^{common} = {a}^{common}·{b}^{common}.",
+             f"Сокращаем {b}^{common}; остаётся {a}^({common+extra} − {common}).",
+             f"Получаем {a}^{extra} = {a**extra}."),
+            "composite_denominator", Fraction(a**extra),
+        )
+    if family_id == R05:
+        factor = rng.randint(2, 12)
+        left, right = sorted(rng.sample(range(2, 10), 2))
+        a, b, c = left * factor, right * factor, left * right
+        return _build(
+            R05, seed, f"sqrt({a})*sqrt({b})/sqrt({c})", (a, b, c),
+            ("Произведение положительных корней можно записать под одним корнем.",
+             "Внесите знаменатель под корень и сократите дробь."),
+            (f"Получаем √(({a}·{b})/{c}).",
+             f"Под корнем {a*b}/{c} = {factor**2}.",
+             f"Квадратный корень из {factor**2} равен {factor}."),
+            "radical_product_over_root", Fraction(factor),
+        )
+    if family_id == R06:
+        n = rng.choice([x for x in range(2, 81) if isqrt(x)**2 != x])
+        k = rng.randint(1, 8)
+        return _build(
+            R06, seed, f"(sqrt({n})-{k})*(sqrt({n})+{k})", (n, k),
+            ("У множителей одинаковые слагаемые, но разные знаки.",
+             "Примените формулу (a − b)(a + b) = a² − b²."),
+            (f"Получаем (√{n})² − {k}².",
+             f"Вычитаем квадраты: {n} − {k*k} = {n-k*k}."),
+            "conjugate_radicals", Fraction(n-k*k),
+        )
+    if family_id == R09:
+        coefficient = rng.randint(2, 8)
+        radicand = rng.choice((2, 3, 5, 6, 7, 10, 11, 13))
+        quotient = rng.randint(2, 9)
+        denominator = coefficient**2 * radicand
+        numerator = denominator * quotient
+        return _build(
+            R09, seed, f"{numerator}/({coefficient}*sqrt({radicand}))**2",
+            (numerator, coefficient, radicand),
+            ("Возведите каждый множитель в знаменателе в квадрат.",
+             "Квадрат корня из положительного числа равен этому числу."),
+            (f"Знаменатель: {coefficient}² · {radicand} = {denominator}.",
+             f"Делим: {numerator}/{denominator} = {quotient}."),
+            "quotient_by_squared_radical", Fraction(quotient),
+        )
     if family_id == R04:
         left_rad = rng.randint(2, 12)
         right_rad = rng.randint(2, min(12, 100 // left_rad))
