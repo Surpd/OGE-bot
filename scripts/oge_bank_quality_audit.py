@@ -118,6 +118,7 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE12-R010": 3,
         "OGE12-R011": 2,
         "OGE12-R012": 3,
+        "OGE12-R014": 2,
     },
     13: {
         "OGE13-L01": 2,

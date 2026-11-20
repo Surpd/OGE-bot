@@ -41,7 +41,8 @@ def test_all_formula_families_generate_deterministic_exact_rendered_problems(
     second = generate(family_id, 71)
     assert first == second
     assert first.family_id == family_id
-    assert first.generator_version == GENERATOR_VERSION
+    assert first.generator_version == ("oge12-well-1" if family_id == "OGE12-R014"
+                                       else GENERATOR_VERSION)
     assert first.problem_id == second.problem_id
     assert first.reference_ids
     assert first.fingerprint
@@ -100,11 +101,12 @@ def test_enabled_family_passes_250_case_oracle_and_200_unique_acceptance(family_
     )
     seen = {problem.fingerprint for problem in sample}
     attempts = len(sample)
-    while len(seen) < 200 and attempts < 1200:
+    target = 16 if family_id == "OGE12-R014" else 200
+    while len(seen) < target and attempts < 1200:
         problem = generate(family_id, rng.randrange(2**63))
         attempts += 1
         seen.add(problem.fingerprint)
-    assert len(seen) >= 200
+    assert len(seen) >= target
     assert attempts <= 1200
 
 
@@ -380,6 +382,7 @@ def test_enabled_solution_steps_reject_wrong_rearrangements_and_substitutions() 
         "OGE12-R010": (1, "2E/m", "E/m"),
         "OGE12-R011": (1, "P/(g·h)", "P/h"),
         "OGE12-R012": (1, "1000·9,8", "21000·9,8"),
+        "OGE12-R014": (1, "6000 + 4100", "6000 − 4100"),
     }
     assert set(solution_mutations) == set(ENABLED_FAMILIES)
     for family_id, (index, original, mutated) in solution_mutations.items():
@@ -416,3 +419,15 @@ def test_r005_answer_diversity_uses_exact_geometric_sine_values_not_angle_table(
             )
             is None
         )
+
+def test_complete_well_bank_and_exhaustion() -> None:
+    family = "OGE12-R014"
+    bank = {p.fingerprint: p for p in (generate(family, seed) for seed in range(250))}
+    assert {int(p.variables["n"]) for p in bank.values()} == set(range(5, 21))
+    for problem in bank.values():
+        assert problem.exact_value == 6000 + 4100 * int(problem.variables["n"])
+    candidates = build_task12_candidate_batch(
+        {"family_queue": [family, R004], "recent_fingerprints": list(bank)}, 19
+    )
+    assert candidates and all(c["family_id"] == R004 for c in candidates)
+    assert generate(family, 45, "0.3.0").generator_version == "0.3.0"

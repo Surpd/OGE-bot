@@ -15,6 +15,8 @@ from uuid import NAMESPACE_URL, uuid5
 from app.math.answer_policy import AnswerFormat, AnswerPolicy, decimal_places, format_decimal
 
 GENERATOR_VERSION = "0.3.0"
+WELL_VERSION = "oge12-well-1"
+WELL_RING_COUNTS = range(5, 21)
 MAX_GENERATION_ATTEMPTS = 64
 MAX_CANDIDATES = 54
 SEEDS_PER_FAMILY = 6
@@ -39,7 +41,7 @@ R017 = "OGE12-R017"
 
 # These are the only structures whose task-12 source, target operation and
 # answer shape are confirmed well enough for the first release.
-ENABLED_FAMILIES = (R001, R002, R003, R004, R005, R010, R011, R012)
+ENABLED_FAMILIES = (R001, R002, R003, R004, R005, R010, R011, R012, R014)
 ALL_FAMILIES = tuple(f"OGE12-R{i:03d}" for i in range(1, 18))
 
 POLICY = AnswerPolicy(
@@ -150,7 +152,7 @@ def _round_tenths(value: Fraction) -> Fraction:
 
 
 def _sample(
-    family: str, rng: random.Random
+    family: str, rng: random.Random, *, well_rings: int | None = None
 ) -> tuple[dict[str, Fraction], str, str, str, tuple[str, ...], tuple[str, ...]]:
     if family == R001:
         current = Fraction(rng.randint(1, 400), 20)
@@ -410,7 +412,8 @@ def _sample(
             ),
         )
     if family == R014:
-        count, fixed, per_ring = rng.randint(1, 100), Fraction(6000), Fraction(4100)
+        count = rng.randint(1, 100) if well_rings is None else well_rings
+        fixed, per_ring = Fraction(6000), Fraction(4100)
         cost = fixed + per_ring * count
         return (
             {"a": fixed, "b": per_ring, "n": Fraction(count)},
@@ -954,9 +957,13 @@ _GENERATORS: dict[str, Generator] = {family: _make_generator(family) for family 
 
 
 def generate(
-    family_id: str, seed: int, generator_version: str = GENERATOR_VERSION
+    family_id: str, seed: int, generator_version: str | None = None
 ) -> FormulaProblem:
-    if generator_version != GENERATOR_VERSION:
+    if generator_version is None:
+        generator_version = WELL_VERSION if family_id == R014 else GENERATOR_VERSION
+    if generator_version != GENERATOR_VERSION and (
+        family_id != R014 or generator_version != WELL_VERSION
+    ):
         raise ValueError(f"Unsupported OGE-12 generator version: {generator_version}")
     if family_id not in _GENERATORS:
         raise ValueError(f"Unknown OGE-12 family: {family_id}")
@@ -965,7 +972,11 @@ def generate(
     generator = _GENERATORS[family_id]
     for attempt in range(MAX_GENERATION_ATTEMPTS):
         rng = random.Random(f"oge12:{generator_version}:{family_id}:{seed + attempt}")
-        variables, formula, target, condition, hints, solution = generator(rng)
+        sample = (
+            _sample(R014, rng, well_rings=rng.choice(WELL_RING_COUNTS))
+            if generator_version == WELL_VERSION else generator(rng)
+        )
+        variables, formula, target, condition, hints, solution = sample
         displayed = _displayed_parameters(family_id, condition)
         if displayed is None:
             continue
