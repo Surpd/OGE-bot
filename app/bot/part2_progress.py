@@ -5,8 +5,8 @@ import json
 
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import BufferedInputFile, Message
-from aiogram.utils.formatting import Text
 
+from app.bot.explicit_math import display_feedback, plain_text
 from app.bot.part2 import image_bytes, keyboard, store
 from app.bot.presentation import send_text
 from app.persistence.part2_insights import history, revision, summary
@@ -31,7 +31,8 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
 
             message_text = (
                 f"№{number} · предварительные оценки GPT\n\n"
-                f"Выдано: {g('issued')}. Без оценки: {g('unchecked')}. Подсказок: {g('hints')}.\n"
+                f"Выдано: {g('issued')}. Пропущено: {g('skipped')}. "
+                f"Повторных задач: {g('repeated')}. Подсказок: {g('hints')}.\n"
                 f"Первая работа: полных баллов {g('first_full')}/{g('first_graded')}, "
                 f"сумма баллов {g('first_points')}.\n"
                 f"Все проверки с баллом: {g('checked')}. Повторных отправок: {g('revisions')}.\n"
@@ -50,7 +51,11 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
             issues = await history(bank.pool, owner, offset)
             lines = ["Письменные работы"]
             for idx, r in enumerate(issues[:6], offset + 1):
-                lines.append(f"{idx}. №{r['number']} · {r['title']} · {r['issued_at']:%d.%m.%Y}")
+                repetition = " · повтор" if r["repeat_kind"] else ""
+                lines.append(
+                    f"{idx}. №{r['number']} · {r['title']}\n"
+                    f"{r['issued_at']:%d.%m.%Y} · {r['outcome']}{repetition}"
+                )
             if not issues:
                 lines.append("Здесь появятся ваши задания №20–25.")
             for ix in range(0, min(len(issues), 6), 3):
@@ -73,7 +78,12 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
             record = await revision(bank.pool, owner, issue, attempt)
             if record:
                 r, work = record
-                lines = [f"№{r['number']} · работа {attempt}", r["statement"]]
+                from app.bot.part2_check import grading_reply
+                from app.part2_grading import Assessment
+
+                lines = [f"№{r['number']} · Работа {attempt}", r["statement"]]
+                if r["repeat_kind"]:
+                    lines.append("Повторная тренировка.")
                 for visual in json.loads(r["visuals"]):
                     if visual["role"] != "condition":
                         continue
@@ -86,7 +96,11 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
                         lines.append("Исходный рисунок сейчас недоступен.")
                 for piece in work:
                     if piece["body"]:
-                        lines.append(piece["body"])
+                        await send_text(
+                            message,
+                            repo,
+                            "Ваше решение\n\n" + plain_text(display_feedback(piece["body"])),
+                        )
                     if piece["expired"]:
                         lines.append("Срок хранения фотографии истёк.")
                     if piece["photo"]:
@@ -98,29 +112,33 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
                     lines.append("Материалов этой версии нет или срок хранения истёк.")
                 if r["result"]:
                     report = json.loads(r["result"])
-                    if r["score"] is not None:
-                        lines.append(f"Предварительная оценка GPT: {r['score']}/2")
-                    lines.extend(
-                        [
-                            report["feedback"],
-                            *report["correct_steps"],
-                            *report["errors"],
-                            report["next_step"],
-                        ]
-                    )
+                    report = dict(report)
+                    for key in ("model_id", "prompt_version", "rubric_version"):
+                        report.pop(key, None)
+                    if "criterion_evidence" in report:
+                        lines.append(
+                            grading_reply(
+                                Assessment.model_validate(report),
+                                r["rubric_kind"] or "",
+                            )
+                        )
+                    else:
+                        if r["score"] is not None:
+                            lines.append(f"Оценка: {r['score']} из 2 баллов (предварительная)")
+                        lines.extend(
+                            display_feedback(report[key]) for key in ("feedback", "next_step")
+                        )
                 elif r["status"]:
                     lines.append("Проверка не завершена. Балл не выставлен.")
+                elif r["skipped_at"]:
+                    lines.append("Задача пропущена.")
+                elif r["solution_viewed_at"]:
+                    lines.append("Разбор открыт.")
+                elif r["closed"]:
+                    lines.append("Работа завершена.")
                 else:
                     lines.append("Черновик.")
-                # Telegram limits plain messages to 4096 characters. Keep the final
-                # piece and its navigation together, including for multipage handwriting.
-                combined = "\n\n".join(line for line in lines if line)
-                while len(combined) > 3500:
-                    cut = combined.rfind("\n", 0, 3500)
-                    cut = cut if cut > 0 else 3500
-                    await message.answer(combined[:cut], parse_mode=None)
-                    combined = combined[cut:].lstrip()
-                message_text = combined
+                message_text = "\n\n".join(line for line in lines if line)
                 arrows = []
                 if attempt > 1:
                     arrows.append(
@@ -135,5 +153,10 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
             rows.append([("К письменным работам", f"progress:works:{offset}")])
     rows.append([("Мой прогресс", "progress:summary")])
     await send_text(
-        message, repo, Text(message_text), reply_markup=keyboard(rows), user_id_override=owner
+        message,
+        repo,
+        message_text,
+        reply_markup=keyboard(rows),
+        user_id_override=owner,
+        rich_with_navigation=True,
     )

@@ -10,71 +10,160 @@ class Part2Training:
     def __init__(self, pool: asyncpg.Pool) -> None:
         self.pool = pool
 
-    async def choices(self, number: int) -> list[asyncpg.Record]:
+    async def choices(self, number: int, owner: int) -> list[asyncpg.Record]:
         return list(
             await self.pool.fetch(
-                """SELECT DISTINCT s.subtype_id,s.title FROM part2_subtypes s
-            JOIN part2_cards c USING(subtype_id) JOIN part2_versions v USING(task_id)
-            JOIN part2_families f USING(family_id) WHERE f.number=$1 AND v.available
-            ORDER BY s.title""",
+                """SELECT s.subtype_id,s.title,count(*) total,
+                count(*) FILTER(WHERE NOT EXISTS(
+                    SELECT 1 FROM part2_issues i WHERE i.owner=$2 AND i.task_id=v.task_id
+                )) unseen
+                FROM part2_subtypes s JOIN part2_cards c USING(subtype_id)
+                JOIN part2_versions v USING(task_id) JOIN part2_families f USING(family_id)
+                WHERE f.number=$1 AND v.available GROUP BY s.subtype_id,s.title
+                ORDER BY s.title,s.subtype_id""",
                 number,
+                owner,
+            )
+        )
+
+    async def unfinished(self, owner: int, number: int) -> list[asyncpg.Record]:
+        return list(
+            await self.pool.fetch(
+                """SELECT i.id,s.title,i.solution_viewed_at,i.touched_at,
+                v.payload->>'statement' AS statement,
+                EXISTS(SELECT FROM part2_work w WHERE w.issue_id=i.id
+                    AND w.revision=i.revision AND NOT superseded) AS draft
+            FROM part2_issues i JOIN part2_subtypes s USING(subtype_id)
+            JOIN part2_versions v USING(task_id,version)
+            WHERE owner=$1 AND number=$2 AND NOT closed
+            ORDER BY touched_at DESC,id DESC""",
+                owner,
+                number,
+            )
+        )
+
+    async def show_intro(self, owner: int) -> bool:
+        return bool(
+            await self.pool.fetchval(
+                """UPDATE users SET part2_intro_seen=true WHERE telegram_user_id=$1
+            AND NOT part2_intro_seen RETURNING true""",
+                owner,
             )
         )
 
     async def open(
-        self, owner: int, number: int, subtype: str | None = None, *, replace: int | None = None
+        self,
+        owner: int,
+        number: int,
+        subtype: str | None = None,
+        *,
+        repeat: Literal["errors", "skipped", "all"] | None = None,
     ) -> int | None:
         async with self.pool.acquire() as conn, conn.transaction():
             await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
-            current = await conn.fetchrow(
-                "SELECT * FROM part2_issues WHERE owner=$1 AND number=$2 AND NOT closed FOR UPDATE",
-                owner,
-                number,
-            )
-            if replace is not None and (not current or current["id"] != replace):
-                return None
-            if current and replace is None and (not subtype or current["subtype_id"] == subtype):
-                await conn.execute(
-                    "UPDATE part2_issues SET touched_at=now() WHERE id=$1", current["id"]
-                )
-                return int(current["id"])
             card = await conn.fetchrow(
-                """WITH history AS (SELECT * FROM part2_issues WHERE owner=$1 AND number=$2)
-                SELECT task_id,version,subtype_id FROM part2_versions v
-                JOIN part2_cards c USING(task_id) JOIN part2_subtypes s USING(subtype_id)
-                JOIN part2_families f USING(family_id) WHERE v.available AND f.number=$2
-                AND ($3::text IS NULL OR subtype_id=$3)
+                """WITH history AS MATERIALIZED (
+                    SELECT * FROM part2_issues WHERE owner=$1 AND number=$2
+                ), candidates AS (
+                    SELECT task_id,v.version,subtype_id FROM part2_versions v
+                    JOIN part2_cards c USING(task_id) JOIN part2_subtypes s USING(subtype_id)
+                    JOIN part2_families f USING(family_id)
+                    WHERE v.available AND f.number=$2 AND ($3::text IS NULL OR subtype_id=$3)
+                ), unseen AS (
+                    SELECT * FROM candidates c WHERE NOT EXISTS(
+                        SELECT 1 FROM history h WHERE h.task_id=c.task_id
+                    )
+                )
+                SELECT c.task_id,c.version,c.subtype_id
+                FROM candidates c WHERE
+                  ($4::text IS NULL AND EXISTS(SELECT FROM unseen u WHERE u.task_id=c.task_id))
+                  OR ($4 IS NOT NULL AND NOT EXISTS(SELECT FROM unseen) AND EXISTS(
+                    SELECT FROM history h WHERE h.task_id=c.task_id AND
+                    ($4='all' OR $4='skipped' AND h.skipped_at IS NOT NULL OR $4='errors'
+                      AND EXISTS(SELECT FROM part2_grades g WHERE g.issue_id=h.id AND g.score<2))
+                  ) AND NOT EXISTS(
+                    SELECT FROM history h WHERE h.task_id=c.task_id AND NOT h.closed
+                  ))
                 ORDER BY (SELECT max(issued_at) FROM history h WHERE h.subtype_id=c.subtype_id)
-                  NULLS FIRST, (SELECT max(issued_at) FROM history h WHERE h.task_id=v.task_id)
-                  NULLS FIRST, random() LIMIT 1""",
+                  NULLS FIRST, (SELECT max(issued_at) FROM history h WHERE h.task_id=c.task_id)
+                  NULLS FIRST, md5(c.task_id || $1::bigint::text),c.task_id
+                LIMIT 1""",
                 owner,
                 number,
                 subtype,
+                repeat,
             )
             if card is None:
                 return None
-            if current:
-                await conn.execute("UPDATE part2_issues SET closed=true WHERE id=$1", current["id"])
             return int(
                 await conn.fetchval(
-                    """INSERT INTO part2_issues(owner,number,task_id,version,subtype_id)
-                VALUES ($1,$2,$3,$4,$5) RETURNING id""",
+                    """INSERT INTO part2_issues(owner,number,task_id,version,subtype_id,repeat_kind)
+                VALUES ($1,$2,$3,$4,$5,$6) RETURNING id""",
                     owner,
                     number,
                     *card.values(),
+                    repeat,
                 )
             )
 
-    async def current(self, owner: int, issue: int | None = None) -> dict[str, Any] | None:
-        row = await self.pool.fetchrow(
-            """SELECT i.*,v.payload,v.reviewed FROM part2_issues i
-            JOIN part2_versions v USING(task_id,version)
-            WHERE owner=$1 AND NOT closed ORDER BY touched_at DESC,id DESC LIMIT 1""",
-            owner,
-        )
-        if not row or issue is not None and issue != row["id"]:
-            return None
-        return {**row, "card": json.loads(row["payload"])}
+    async def skip(self, owner: int, issue: int, revision: int) -> bool:
+        async with self.pool.acquire() as conn, conn.transaction():
+            await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
+            return bool(
+                await conn.fetchval(
+                    """UPDATE part2_issues SET closed=true,skipped_at=now()
+                WHERE owner=$1 AND id=$2 AND NOT closed AND revision=$3
+                AND solution_viewed_at IS NULL AND NOT EXISTS(
+                    SELECT FROM part2_grades g WHERE g.issue_id=$2
+                    AND (g.score IS NOT NULL OR g.status='pending')
+                ) RETURNING true""",
+                    owner,
+                    issue,
+                    revision,
+                )
+            )
+
+    async def finish(self, owner: int, issue: int) -> bool:
+        async with self.pool.acquire() as conn, conn.transaction():
+            await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
+            return bool(
+                await conn.fetchval(
+                    """UPDATE part2_issues i SET closed=true
+                WHERE i.owner=$1 AND i.id=$2 AND NOT i.closed
+                AND (i.solution_viewed_at IS NOT NULL OR EXISTS(
+                    SELECT FROM part2_grades g WHERE g.issue_id=i.id AND g.score IS NOT NULL
+                )) RETURNING true""",
+                    owner,
+                    issue,
+                )
+            )
+
+    async def current(
+        self, owner: int, issue: int | None = None, *, activate: bool = False
+    ) -> dict[str, Any] | None:
+        async with self.pool.acquire() as conn, conn.transaction():
+            if activate:
+                await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
+                await conn.execute(
+                    """UPDATE part2_issues SET touched_at=clock_timestamp()
+                    WHERE owner=$1 AND id=$2 AND NOT closed""",
+                    owner,
+                    issue,
+                )
+            row = await conn.fetchrow(
+                """SELECT i.*,v.payload,v.reviewed,s.title,
+                EXISTS(SELECT FROM part2_work w WHERE w.issue_id=i.id AND w.revision=i.revision
+                    AND NOT superseded) AS draft,
+                EXISTS(SELECT FROM part2_grades g WHERE g.issue_id=i.id AND g.score IS NOT NULL)
+                    AS scored
+                FROM part2_issues i JOIN part2_versions v USING(task_id,version)
+                JOIN part2_subtypes s ON s.subtype_id=i.subtype_id
+                WHERE owner=$1 AND NOT closed AND ($2::bigint IS NULL OR i.id=$2)
+                ORDER BY touched_at DESC,id DESC LIMIT 1""",
+                owner,
+                issue,
+            )
+        return {**row, "card": json.loads(row["payload"])} if row else None
 
     async def append(
         self,
@@ -94,7 +183,9 @@ class Part2Training:
             await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
             row = await conn.fetchval(
                 """SELECT id FROM part2_issues WHERE owner=$1 AND id=$2 AND NOT closed
-                AND revision=$3 AND solution_viewed_at IS NULL FOR UPDATE""",
+                AND revision=$3 AND solution_viewed_at IS NULL
+                AND id=(SELECT id FROM part2_issues WHERE owner=$1 AND NOT closed
+                        ORDER BY touched_at DESC,id DESC LIMIT 1) FOR UPDATE""",
                 owner,
                 issue,
                 revision,

@@ -52,8 +52,10 @@ def navigation_screen(markup: object) -> str | None:
     }
     if any(c and c.startswith("p2:apitest:") for c in callbacks):
         return "api_test"
-    if "nav:numbers" in callbacks and any(c and c.startswith(("p2:open:", "p2:menu:"))
-                                          for c in callbacks):
+    if "nav:numbers" in callbacks and any(
+        c and c.startswith(("p2:open:", "p2:menu:", "p2:drafts:", "p2:r:", "p2:intro:"))
+        for c in callbacks
+    ):
         return "part2_menu"
     if "nav:task:6" not in callbacks and any(c and c.startswith("p2:") for c in callbacks):
         return "part2"

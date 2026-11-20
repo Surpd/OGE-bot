@@ -8,17 +8,18 @@ import asyncpg
 async def summary(pool: asyncpg.Pool, owner: int) -> dict[int, dict[str, Any]]:
     rows = await pool.fetch(
         """WITH by_issue AS (
-            SELECT i.id,i.number,i.hints,s.title,
+            SELECT i.id,i.number,i.hints,s.title,i.skipped_at,i.repeat_kind,
               count(g.score) checked, count(g.revision) FILTER(WHERE g.revision>1) revisions,
               count(*) FILTER(WHERE g.status IN ('uncertain','unreadable')) unclear,
               count(*) FILTER(WHERE g.status IN ('pending','error')) unavailable,
-              max(g.score) FILTER(WHERE g.revision=1) initial,
+              max(g.score) FILTER(WHERE g.revision=1 AND i.repeat_kind IS NULL) initial,
               count(*) FILTER(WHERE g.score=0) zeros,count(*) FILTER(WHERE g.score=1) ones,
               count(*) FILTER(WHERE g.score=2) twos, coalesce(sum(g.score),0) points
             FROM part2_issues i JOIN part2_subtypes s USING(subtype_id)
             LEFT JOIN part2_grades g ON g.issue_id=i.id WHERE i.owner=$1
             GROUP BY i.id,s.title)
             SELECT number,title,count(*) issued,sum(hints) hints,sum(checked) checked,
+              count(skipped_at) skipped,count(repeat_kind) repeated,
               sum(revisions) revisions,sum(unclear) unclear,sum(unavailable) unavailable,
               count(*) FILTER(WHERE checked=0) unchecked,count(initial) first_graded,
               count(*) FILTER(WHERE initial=2) first_full,sum(initial) first_points,
@@ -39,8 +40,18 @@ async def summary(pool: asyncpg.Pool, owner: int) -> dict[int, dict[str, Any]]:
 async def history(pool: asyncpg.Pool, owner: int, offset: int) -> list[asyncpg.Record]:
     return list(
         await pool.fetch(
-            """SELECT i.id,i.number,s.title,i.issued_at FROM part2_issues i
-        JOIN part2_subtypes s USING(subtype_id) WHERE i.owner=$1 ORDER BY i.id DESC
+            """SELECT i.id,i.number,s.title,i.issued_at,i.repeat_kind,
+        CASE WHEN i.skipped_at IS NOT NULL THEN 'Пропущено'
+             WHEN g.score IS NOT NULL THEN g.score || '/2'
+             WHEN i.solution_viewed_at IS NOT NULL THEN 'Разбор открыт'
+             WHEN g.status='pending' THEN 'Проверяется'
+             WHEN g.status IS NOT NULL THEN 'Без оценки'
+             WHEN i.closed THEN 'Завершено'
+             ELSE 'В работе' END AS outcome
+        FROM part2_issues i JOIN part2_subtypes s USING(subtype_id)
+        LEFT JOIN LATERAL (SELECT score,status FROM part2_grades g WHERE g.issue_id=i.id
+                           ORDER BY g.revision DESC LIMIT 1) g ON true
+        WHERE i.owner=$1 ORDER BY i.id DESC
         LIMIT 7 OFFSET $2""",
             owner,
             offset,
@@ -53,6 +64,8 @@ async def revision(
 ) -> tuple[asyncpg.Record, list[asyncpg.Record]] | None:
     row = await pool.fetchrow(
         """SELECT v.payload->>'statement' statement, v.payload->'visuals' visuals, i.number,
+        i.skipped_at,i.repeat_kind,i.solution_viewed_at,i.closed,
+        v.payload #>> '{rubric,kind}' rubric_kind,
         (SELECT max(n) FROM (SELECT revision AS n FROM part2_grades WHERE issue_id=i.id
           UNION ALL SELECT revision FROM part2_work WHERE issue_id=i.id
           ) revisions) last_work, g.result,g.status,g.score,

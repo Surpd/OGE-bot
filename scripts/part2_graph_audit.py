@@ -91,6 +91,71 @@ def intersection_cells(card):
     return cells
 
 
+def plotted_branches(card):
+    for branch in card["visuals"][0]["construction"]["branches"]:
+        d = branch["domain"]
+        lo = sp.Rational(d["lower"]) if d["lower"] is not None else -sp.oo
+        hi = sp.Rational(d["upper"]) if d["upper"] is not None else sp.oo
+        yield (
+            sp.sympify(branch["expression"].replace("^", "**"), locals={"x": X}),
+            sp.Interval(lo, hi, not d["lower_inclusive"], not d["upper_inclusive"]),
+        )
+
+
+def condition_branches(card):
+    source = formulas(card["statement"])[0].removeprefix("y=")
+    if not source.startswith(r"\begin{cases}"):
+        expr = expression(source.replace(r"\left", "").replace(r"\right", ""))
+        return [(expr, sp.calculus.util.continuous_domain(expr, X, sp.S.Reals))]
+    rows = source.removeprefix(r"\begin{cases}").removesuffix(r"\end{cases}").split(r"\\")
+    branches = []
+    for row in rows:
+        formula, predicate = row.split("&")
+        relation = re.split(r"(\\leq?|\\geq?|<|>)", predicate.rstrip("., "))
+        domain = sp.S.Reals
+        for left, op, right in zip(relation[::2], relation[1::2], relation[2::2], strict=False):
+            a, b = expression(left), expression(right)
+            operators = {
+                r"\le": sp.Le,
+                r"\leq": sp.Le,
+                r"\ge": sp.Ge,
+                r"\geq": sp.Ge,
+                "<": sp.Lt,
+                ">": sp.Gt,
+            }
+            domain &= sp.solve_univariate_inequality(operators[op](a, b), X, relational=False)
+        branches.append((expression(formula.rstrip("., ")), domain))
+    return branches
+
+
+def verify_statement_graph(card):
+    """Compare the piecewise function in the statement with the plotted branch model."""
+    expected = condition_branches(card)
+    actual = list(plotted_branches(card))
+    if sp.Union(*(domain for _, domain in expected)) != sp.Union(*(d for _, d in actual)):
+        raise ValueError(f"{card['task_id']}: plotted domain differs from statement")
+    for expr, domain in expected:
+        for shown, shown_domain in actual:
+            both = domain & shown_domain
+            if both is sp.S.EmptySet or sp.simplify(expr - shown) == 0:
+                continue
+            if not expr.has(sp.Abs):
+                raise ValueError(f"{card['task_id']}: branch differs from statement on {both}")
+            # Establish the sign of each absolute-value argument independently on
+            # the overlap, then simplify the resulting rational expression.
+            replacement = {}
+            for term in expr.atoms(sp.Abs):
+                arg = term.args[0]
+                nonneg = sp.solve_univariate_inequality(arg >= 0, X, relational=False)
+                nonpos = sp.solve_univariate_inequality(arg <= 0, X, relational=False)
+                if both.is_subset(nonneg):
+                    replacement[term] = arg
+                elif both.is_subset(nonpos):
+                    replacement[term] = -arg
+            if sp.simplify(expr.xreplace(replacement) - shown) != 0:
+                raise ValueError(f"{card['task_id']}: absolute-value branch differs on {both}")
+
+
 def compare(card):
     cells = intersection_cells(card)
     wanted = targets(card["statement"])
@@ -110,5 +175,6 @@ if __name__ == "__main__":
         c for line in ATLAS.read_text().splitlines() if (c := json.loads(line))["number"] == 22
     ]
     for card in cards:
+        verify_statement_graph(card)
         compare(card)
-    print(f"Verified parameter answers from plotted branches for {len(cards)} graph cards")
+    print(f"Verified domains, plotted branches and parameter answers for {len(cards)} graph cards")

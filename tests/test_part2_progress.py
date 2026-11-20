@@ -184,7 +184,10 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         assert await repo.user_state(42) == "part2"
         current = await Part2Training(bank_pool).current(42)
         issue = current["id"]
-        assert any(call.__api_method__ == "sendPhoto" for call in telegram.calls)
+        assert any(
+            call.__api_method__ == "sendRichMessage" and call.rich_message.media
+            for call in telegram.calls
+        )
         await text("Моё решение.")
         assert (
             await bank_pool.fetchval("SELECT count(*) FROM part2_work WHERE issue_id=$1", issue)
@@ -320,7 +323,12 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
             len([v for v in requests[0]["input"][0]["content"] if v["type"] == "input_image"]) == 1
         )
         assert any(
-            "Почему именно 1 балл" in (getattr(call, "text", None) or "") for call in telegram.calls
+            "Почему именно 1 балл"
+            in (
+                getattr(call, "text", None)
+                or getattr(getattr(call, "rich_message", None), "html", "")
+            )
+            for call in telegram.calls
         )
         await tap(f"p2:check:{issue}")
         assert len(requests) == 1
@@ -337,9 +345,13 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
             ("graded", 2),
             ("error", None),
         ]
+        await tap("p2:menu:23")
+        await tap("nav:numbers")
         await tap("nav:main")
         await tap("nav:resume")
         assert (await Part2Training(bank_pool).current(42))["id"] == issue
+        await tap("p2:menu:23")
+        await tap("nav:numbers")
         await tap("nav:main")
         await tap("nav:progress")
         await tap("progress:works:0")
@@ -382,6 +394,43 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         assert (diag["score"], diag["input_tokens"], diag["output_tokens"]) == (2, 400, 120)
         assert diag["cost_usd"] == Decimal("0.001")
         assert await bank_pool.fetchval("SELECT count(*) FROM part2_grades") == 3
+
+        # A paged type menu issues one card even when Telegram redelivers the callback.
+        await tap("nav:numbers")
+        await tap("p2:menu:22")
+        await tap("p2:menu:22:1")
+        await tap("p2:menu:22:0")
+        replay = await tap("p2:open:22")
+        await post(callback_query=replay)
+        bank = Part2Training(bank_pool)
+        other = await bank.current(42)
+        assert other["number"] == 22
+        assert await bank_pool.fetchval("SELECT count(*) FROM part2_issues WHERE number=22") == 1
+        await text("Черновик графика.")
+        await tap("p2:menu:22")
+        await tap("nav:numbers")
+        await tap("p2:menu:23")
+        await tap(f"p2:resume:{issue}")
+        assert (await bank.current(42))["id"] == issue
+        await tap("p2:menu:23")
+        await tap("nav:numbers")
+        await tap("p2:menu:22")
+        await tap(f"p2:resume:{other['id']}")
+        assert (await bank.current(42))["draft"]
+        await tap(f"p2:solution:{other['id']}")
+        assert (await bank.current(42))["solution_viewed_at"] is None
+        await tap(f"p2:reveal:{other['id']}")
+        assert (await bank.current(42))["solution_viewed_at"] is not None
+        await tap(f"p2:finish:{other['id']}")
+        assert await bank.current(42, other["id"]) is None
+        assert len(requests) == 4
+        assert all(
+            len(button.callback_data.encode()) <= 64
+            for m in telegram.messages.values()
+            if m.reply_markup
+            for row in m.reply_markup.inline_keyboard
+            for button in row
+        )
 
     finally:
         await bot.session.close()

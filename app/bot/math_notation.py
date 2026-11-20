@@ -8,6 +8,8 @@ import re
 from dataclasses import dataclass
 from html import escape
 
+from app.bot.explicit_math import case_parts, formulas
+
 _SUPER = dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺", "0123456789-+", strict=True))
 _SUB = dict(zip("₀₁₂₃₄₅₆₇₈₉ₙ", "0123456789n", strict=True))
 _SIGNS = {
@@ -37,6 +39,7 @@ _RICH_UNSAFE_DENOMINATOR_PRODUCT = re.compile(
 class Span:
     source: str
     latex: str | None = None
+    explicit: bool = False
 
 
 class _Parser:
@@ -73,7 +76,7 @@ class _Parser:
                     pos += 2
                     while pos < len(source) and source[pos].isascii() and source[pos].isdigit():
                         pos += 1
-            elif source[pos:pos + 2] in {"<=", ">=", "!="}:
+            elif source[pos : pos + 2] in {"<=", ">=", "!="}:
                 pos += 2
             elif source.startswith("sin", pos) or source.startswith("cos", pos):
                 pos += 3
@@ -98,7 +101,20 @@ class _Parser:
             raise ValueError("Expression too deep")
         left = self.product(depth + 1)
         while self.peek() in {
-            "+", "-", "−", "=", "<", ">", "<=", ">=", "!=", "≤", "≥", "≠", "∈", "∪"
+            "+",
+            "-",
+            "−",
+            "=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            "!=",
+            "≤",
+            "≥",
+            "≠",
+            "∈",
+            "∪",
         }:
             sign = self.pop()
             left += " " + _SIGNS.get(sign, sign) + " " + self.product(depth + 1)
@@ -126,7 +142,9 @@ class _Parser:
                             first = first[1:]
                         if (
                             len(first) == 3
-                            and first[0].isdigit() and first[1] == "/" and first[2].isdigit()
+                            and first[0].isdigit()
+                            and first[1] == "/"
+                            and first[2].isdigit()
                             and right.lstrip("+-").isdigit()
                             and self.index + 1 < len(self.tokens)
                             and self.tokens[self.index + 1].isdigit()
@@ -237,12 +255,32 @@ def rich_needs_png_fallback(source: str | object) -> bool:
     if not isinstance(source, str):
         return False
     return any(
-        span.latex is not None and _RICH_UNSAFE_DENOMINATOR_PRODUCT.search(span.source)
+        span.latex is not None
+        and (
+            _RICH_UNSAFE_DENOMINATOR_PRODUCT.search(span.source)
+            or span.explicit
+            and (
+                case_parts(span.latex)
+                or any(cmd in span.latex for cmd in (r"\infty", r"\cup", r"\left"))
+                or re.search(r"\\(?:d?frac)\{[^{}]+\}\{(?:\d+\s*[a-z]|[^{}]+[+\-])", span.latex)
+            )
+        )
         for span in math_spans(source)
     )
 
 
 def math_spans(source: str) -> list[Span]:
+    spans = []
+    previous = 0
+    for start, end, latex in formulas(source):
+        spans.extend(_inferred_spans(source[previous:start]))
+        spans.append(Span(source[start:end], latex, explicit=True))
+        previous = end
+    spans.extend(_inferred_spans(source[previous:]))
+    return spans
+
+
+def _inferred_spans(source: str) -> list[Span]:
     """Partition text exactly; accept only complete bounded grammar candidates."""
     spans: list[Span] = []
     pos = 0
