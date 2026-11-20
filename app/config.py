@@ -1,8 +1,12 @@
 from decimal import Decimal
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+GRADING_MODEL = "gpt-6.1-terra"
+GRADING_REASONING: Literal["low"] = "low"
 
 
 class Settings(BaseSettings):
@@ -14,16 +18,17 @@ class Settings(BaseSettings):
     telegram_webhook_secret: str | None = None
     webhook_base_url: str | None = None
     oge_part2_enabled: bool = False
-    oge_grading_max_images: int = Field(default=3, ge=1, le=3)
+    oge_grading_max_images: int = Field(default=1, ge=1, le=1)
     oge_grading_enabled: bool = False
-    oge_grading_model: str = "gpt-6.2-sol"
+    oge_grading_model: str = GRADING_MODEL
     openai_api_key: SecretStr | None = None
-    oge_grading_daily_user_limit: int = Field(default=10, ge=0, le=10)
+    oge_grading_daily_user_limit: int = Field(default=25, ge=0, le=25)
+    oge_grading_monthly_user_limit: int = Field(default=150, ge=0, le=150)
     oge_grading_monthly_budget_usd: Decimal = Field(default=Decimal(5), ge=0, le=5)
     oge_grading_timeout_seconds: int = Field(default=45, ge=1, le=120)
-    oge_grading_context_tokens: int = Field(default=32000, ge=1, le=40000)
+    oge_grading_context_tokens: int = Field(default=30000, ge=1, le=30000)
     oge_grading_request_budget_usd: Decimal = Field(
-        default=Decimal("0.25"), ge=0, le=Decimal("0.25")
+        default=Decimal("0.10"), ge=0, le=Decimal("0.10")
     )
     log_level: str = "INFO"
 

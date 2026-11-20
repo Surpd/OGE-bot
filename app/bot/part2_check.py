@@ -6,13 +6,15 @@ from typing import Any
 
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
-from openai import APIError, APIStatusError
+from aiogram.utils.formatting import Bold, Text
+from openai import APIError
 from PIL import UnidentifiedImageError
 
 from app.bot.part2 import controls, image_bytes
 from app.bot.presentation import send_text
 from app.config import get_settings
 from app.part2_grading import (
+    Assessment,
     assess,
     available,
     check_size,
@@ -21,7 +23,7 @@ from app.part2_grading import (
     inputs,
     open_client,
 )
-from app.persistence.part2_grades import finish, reserve
+from app.persistence.part2_grades import finish, mark_dispatched, reserve
 from app.persistence.part2_training import Part2Training
 from app.persistence.repository import Repository
 
@@ -60,14 +62,18 @@ async def check(
                     buf = io.BytesIO()
                     await message.bot.download_file(file.file_path, destination=buf)
                     photos.append(await asyncio.to_thread(clean_photo, buf.getvalue()))
-            refs = [await asyncio.to_thread(image_bytes, v) for v in row["card"]["visuals"]]
-            content = await asyncio.to_thread(
-                inputs, row["card"], refs, [r["body"] for r in work if r["body"]], photos
-            )
+            refs = [
+                await asyncio.to_thread(image_bytes, v)
+                for v in row["card"]["visuals"]
+                if v["role"] == "condition"
+            ]
+            text = list(dict.fromkeys(r["body"] for r in work if r["body"]))
+            content = await asyncio.to_thread(inputs, row["card"], refs, text, photos)
             async with open_client(s) as client:
                 await check_size(client, s, content)
+                await mark_dispatched(bank.pool, issue, revision)
                 dispatched = True
-                result = await assess(client, s.oge_grading_model, content)
+                result = await assess(client, s, row["card"], content)
     except (
         APIError,
         TelegramAPIError,
@@ -77,34 +83,49 @@ async def check(
         UnidentifiedImageError,
     ) as exc:
         reason = failure_reason(exc)
-        if isinstance(exc, APIStatusError) and exc.status_code in (400, 401, 403, 404, 429):
-            dispatched = False
     finally:
+        if result and result.assessment.status == "error":
+            reason = result.assessment.feedback
         await finish(bank.pool, s, issue, revision, result, dispatched=dispatched, reason=reason)
-    if result is None:
-        reply = f"{reason} Работа сохранена, балл не выставлен."
-    else:
-        assessment = result[0]
-        label = (
-            f"Предварительная оценка: {assessment.score}/2"
-            if assessment.status == "graded"
-            else "Балл не выставлен"
-        )
-        reply = "\n\n".join(
-            filter(
-                None,
-                [
-                    label,
-                    assessment.feedback,
-                    "\n".join(assessment.correct_steps),
-                    "\n".join(assessment.errors),
-                    assessment.next_step,
-                    "Чтобы исправить работу, пришлите новое решение целиком.",
-                ],
-            )
-        )
+    reply = (
+        Text(reason, " Работа сохранена, балл не выставлен.")
+        if result is None
+        else grading_reply(result.assessment, row["card"]["rubric"]["kind"])
+    )
     active = await bank.current(owner, issue)
     if await repo.user_state(owner) == "part2" and active:
-        await send_text(message, repo, reply[:3200], reply_markup=controls(issue))
+        await send_text(message, repo, reply, reply_markup=controls(issue), user_id_override=owner)
     else:
-        await message.answer(reply[:3200], parse_mode=None)
+        await message.answer(**reply.as_kwargs())
+
+
+def grading_reply(assessment: Assessment, rubric_kind: str) -> Text:
+    if assessment.score is None:
+        return Text(
+            Bold("Оценка не выставлена."),
+            "\n\n",
+            assessment.feedback[:800],
+            "\n\nПришлите решение целиком. Если отправляете фото, сделайте более чёткий снимок. "
+            "Затем нажмите «Проверить решение».",
+        )
+    score = assessment.score
+    evidence = [
+        f"{item.criterion} — {item.student_evidence}" for item in assessment.criterion_evidence
+    ]
+    points = ("0 баллов", "1 балл", "2 балла")[score]
+    blocks = [
+        ("Что правильно", "\n".join(assessment.correct_steps)),
+        ("Где ошибка", "\n".join(assessment.errors)),
+        (f"Почему именно {points}", "\n".join([assessment.feedback, *evidence])),
+        ("Как исправить", assessment.next_step),
+    ]
+    rubric = (
+        "Критерии демоверсии ФИПИ"
+        if rubric_kind == "fipi_demo_summary"
+        else "Учебные критерии карточки"
+    )
+    return Text(
+        Bold(f"Оценка: {score} из 2 баллов"),
+        f" (предварительная)\n{rubric}",
+        *(Text("\n\n", Bold(f"{title}:"), " ", body[:650]) for title, body in blocks if body),
+    )

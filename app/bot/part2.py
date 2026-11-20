@@ -68,7 +68,9 @@ async def render(message: Message, repo: Repository, owner: int, row: dict[str, 
         message,
         repo,
         f"Задание №{row['number']}{label}\n\n{card['statement']}\n\n"
-        "Пришлите решение текстом или фотографиями, затем нажмите «Проверить решение»." + privacy,
+        "Пришлите решение текстом или одной фотографией. Если на листе много записей, "
+        "постарайтесь уместить их на одном чётком снимке. Затем нажмите «Проверить решение»."
+        + privacy,
         reply_markup=controls(row["id"]),
         user_id_override=owner,
         rich_with_navigation=True,
@@ -192,18 +194,24 @@ async def collect(message: Message, repository: Repository) -> None:
     ):
         await message.answer("Пришлите до 4000 знаков или фотографию до 4 МБ.")
         return
-    saved = await bank.append(
+    reply = message.reply_to_message
+    result = await bank.append(
         actor.id,
         row["id"],
         row["revision"],
         message.message_id,
         body,
         photo.file_id if photo else None,
-        get_settings().oge_grading_max_images,
         message.media_group_id,
+        replace_photo=reply.message_id if reply and reply.photo else None,
     )
-    await message.answer(
-        "Добавлено к решению."
-        if saved
-        else "Фото или текст не добавлены. Проверьте текущее задание и лимит."
-    )
+    if result == "photo_limit":
+        await message.answer(
+            "Для одной работы можно прикрепить только одну фотографию. "
+            "Можете заменить предыдущий снимок. Для этого отправьте новый снимок ответом "
+            "на предыдущее фото."
+        )
+    elif result == "saved":
+        await message.answer("Добавлено к решению.")
+    elif result == "stale":
+        await message.answer("Фото или текст не добавлены. Проверьте текущее задание и лимит.")

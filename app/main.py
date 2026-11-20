@@ -14,7 +14,7 @@ from aiogram.types import Update
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 
 from app.bot.router import build_router
-from app.config import get_settings
+from app.config import GRADING_REASONING, get_settings
 from app.persistence.repository import PostgresRepository, Repository, read_migration
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
@@ -177,11 +177,13 @@ def create_app(
                                 settings.oge_grading_monthly_budget_usd,
                             )
                         logging.getLogger("uvicorn.error").info(
-                            "part2_api_status model=%s metadata=%s daily=%d photos=%d "
-                            "per_request_usd=%s input_limit=%d",
+                            "part2_api_status model=%s reasoning=%s metadata=%s daily=%d "
+                            "monthly=%d photos=%d per_request_usd=%s input_limit=%d",
                             settings.oge_grading_model,
+                            GRADING_REASONING,
                             await model_status(settings),
                             settings.oge_grading_daily_user_limit,
+                            settings.oge_grading_monthly_user_limit,
                             settings.oge_grading_max_images,
                             settings.oge_grading_request_budget_usd,
                             settings.oge_grading_context_tokens,

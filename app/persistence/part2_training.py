@@ -1,7 +1,7 @@
 """Owner-scoped, version-pinned bank issuance and append-only student work."""
 
 import json
-from typing import Any
+from typing import Any, Literal
 
 import asyncpg
 
@@ -84,46 +84,84 @@ class Part2Training:
         message: int,
         body: str | None,
         photo: str | None,
-        limit: int,
         media_group: str | None = None,
-    ) -> bool:
+        *,
+        replace_photo: int | None = None,
+    ) -> Literal["saved", "duplicate", "photo_limit", "stale"]:
+        if not body and not photo:
+            return "stale"
         async with self.pool.acquire() as conn, conn.transaction():
             await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
-            row = await conn.fetchrow(
+            row = await conn.fetchval(
                 """SELECT id FROM part2_issues WHERE owner=$1 AND id=$2 AND NOT closed
-                AND revision=$3 FOR UPDATE""",
+                AND revision=$3 AND solution_viewed_at IS NULL FOR UPDATE""",
                 owner,
                 issue,
                 revision,
             )
             if not row:
-                return False
-            if media_group and await conn.fetchval(
+                return "stale"
+            if await conn.fetchval(
                 """SELECT EXISTS(SELECT 1 FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
-                   WHERE w.media_group=$1 AND i.owner=$2 AND (w.issue_id,w.revision)<>($3,$4))""",
-                media_group,
+                   WHERE i.owner=$1 AND w.message_id=$2)""",
                 owner,
-                issue,
-                revision,
+                message,
             ):
-                return False
-            count = await conn.fetchrow(
-                """SELECT count(*) entries,count(photo) photos FROM part2_work
-                WHERE issue_id=$1 AND revision=$2""",
+                return "duplicate"
+            if media_group:
+                album = await conn.fetchrow(
+                    """SELECT w.issue_id,w.revision FROM part2_work w
+                    JOIN part2_issues i ON i.id=w.issue_id
+                    WHERE w.media_group=$1 AND i.owner=$2 LIMIT 1""",
+                    media_group,
+                    owner,
+                )
+                if album:
+                    if (album["issue_id"], album["revision"]) != (issue, revision):
+                        return "stale"
+                    return "photo_limit"
+            work = await conn.fetch(
+                """SELECT message_id,photo FROM part2_work
+                WHERE issue_id=$1 AND revision=$2 AND NOT superseded""",
                 issue,
                 revision,
             )
-            if count["entries"] >= 12 or photo and count["photos"] >= limit:
-                return False
-            return bool(
-                await conn.fetchval(
-                    """INSERT INTO part2_work(issue_id,revision,message_id,body,photo,media_group)
-                VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING RETURNING true""",
+            replacing = bool(
+                photo
+                and any(item["photo"] and item["message_id"] == replace_photo for item in work)
+            )
+            if photo and replace_photo is not None and not replacing:
+                return "stale"
+            if photo and not replacing and any(item["photo"] for item in work):
+                # Remember the rejected message without retaining student content.
+                # A delayed redelivery must not become the first photo of the next draft.
+                await conn.execute(
+                    """INSERT INTO part2_work(issue_id,revision,message_id,media_group,superseded)
+                    VALUES ($1,$2,$3,$4,true)""",
                     issue,
                     revision,
                     message,
-                    body,
-                    photo,
                     media_group,
                 )
+                return "photo_limit"
+            if len(work) >= 12 and not replacing:
+                return "stale"
+            if replacing:
+                # Only this open draft is changed. Standalone text and past revisions survive.
+                await conn.execute(
+                    """UPDATE part2_work SET superseded=true, photo=NULL, body=NULL
+                    WHERE issue_id=$1 AND revision=$2 AND photo IS NOT NULL""",
+                    issue,
+                    revision,
+                )
+            await conn.execute(
+                """INSERT INTO part2_work(issue_id,revision,message_id,body,photo,media_group)
+                VALUES ($1,$2,$3,$4,$5,$6)""",
+                issue,
+                revision,
+                message,
+                body,
+                photo,
+                media_group,
             )
+            return "saved"
