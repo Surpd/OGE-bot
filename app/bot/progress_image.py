@@ -106,6 +106,12 @@ def dashboard_tile_values(
         raise ValueError("Unsupported dashboard size")
     for number in range(1, task_count + 1):
         values = numbers.get(number, {})
+        if number > 19:
+            written = insights.get("written", {}).get(number, {})
+            values = {
+                "correct": written.get("first_full", 0),
+                "answered_tasks": written.get("first_graded", 0),
+            }
         answered = max(0, int(values.get("answered_tasks", 0)))
         correct = min(answered, max(0, int(values.get("correct", 0))))
         rate = success_label({"answered_tasks": answered, "correct": correct})
@@ -286,7 +292,7 @@ def render_progress_image(
 ) -> bytes:
     """Render the one-page, all-numbers dashboard; other screens are text."""
     del page
-    image = render_overview(insights, task_count)
+    image = render_overview(insights, 25 if "written" in insights else task_count)
     output = io.BytesIO()
     image.save(output, format="PNG", optimize=True, compress_level=9)
     data = output.getvalue()
@@ -305,7 +311,14 @@ async def load_progress_page(
     repository: Any, user_id: int, page: str = "summary"
 ) -> dict[str, Any]:
     del page
-    return await training_insights(repository, user_id, "summary")
+    insights = await training_insights(repository, user_id, "summary")
+    from app.bot.part2 import store
+    from app.persistence.part2_insights import summary
+
+    bank = store(repository)
+    if bank:
+        insights["written"] = await summary(bank.pool, user_id)
+    return insights
 
 
 async def send_progress_image(

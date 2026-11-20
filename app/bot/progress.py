@@ -145,6 +145,8 @@ def progress_keyboard(
     parts = page.split(":")
     section = parts[0]
     rows: list[list[InlineKeyboardButton]] = []
+    from app.config import get_settings
+
     if section == "summary":
         action = _summary_action(insights) if insights is not None else None
         if action is not None:
@@ -162,8 +164,12 @@ def progress_keyboard(
                 _button("↩ В меню", "nav:main"),
             ]
         )
+        if get_settings().oge_part2_enabled:
+            rows.insert(-1, [_button("Письменные работы", "progress:works:0")])
     elif section == "details":
         buttons = [_button(f"№{n}", f"progress:number:{n}") for n in range(1, 20)]
+        if get_settings().oge_part2_enabled:
+            buttons.extend(_button(f"№{n}", f"progress:written:{n}") for n in range(20,26))
         rows.extend(buttons[i : i + 4] for i in range(0, len(buttons), 4))
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     elif section == "number" and number is not None:
@@ -514,6 +520,11 @@ async def progress_navigation(
     await repository.save_user_state(user_id, "progress")
     parts = page.split(":")
     section = parts[0]
+    if section in {"written", "works", "work"}:
+        from app.bot.part2_progress import page as written_page
+
+        await written_page(message, repository, user_id, parts)
+        return
     old_message = getattr(message, "_message", message)
     was_photo = bool(getattr(old_message, "photo", None))
     reply = getattr(old_message, "reply_to_message", None)
