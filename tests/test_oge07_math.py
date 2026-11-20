@@ -206,9 +206,7 @@ def test_c03_c04_seed_samples_are_strict_plausible_and_unambiguous() -> None:
             if index != c03.correct_option_index - 1
         )
         wrong_radicands = [
-            value
-            for index, value in enumerate(radicands)
-            if index != c03.correct_option_index - 1
+            value for index, value in enumerate(radicands) if index != c03.correct_option_index - 1
         ]
         assert any(value < lower * lower for value in wrong_radicands)
         assert any(value > upper * upper for value in wrong_radicands)
@@ -247,9 +245,7 @@ def test_c03_c04_seed_samples_are_strict_plausible_and_unambiguous() -> None:
 
 def test_c03_oracle_counts_closed_interval_endpoints_as_correct() -> None:
     problem = generate("OGE07-C03", 6)
-    wrong_position = next(
-        index for index in range(1, 5) if index != problem.correct_option_index
-    )
+    wrong_position = next(index for index in range(1, 5) if index != problem.correct_option_index)
     options = list(problem.options)
     lower = int(re.search(r"\[(\d+);", problem.condition)[1])
     options[wrong_position - 1] = f"√{lower * lower}"
@@ -469,7 +465,7 @@ def test_png_pixel_oracle_rejects_shifted_point_with_unchanged_model(family: str
         assert raw[row] == 0
         pixels.extend(raw[row + 1 : row + stride + 1])
     center = projection(problem.graph_model)[str(problem.graph_model["points"][0]["id"])]
-    point_y, radius = 121, 8
+    point_y, radius = 145, 8
     white, blue = (255, 255, 255), (35, 105, 190)
     for y in range(point_y - radius, point_y + radius + 1):
         for x in range(center - radius, center + radius + 1):
@@ -484,3 +480,25 @@ def test_png_pixel_oracle_rejects_shifted_point_with_unchanged_model(family: str
                 pixels[offset : offset + 3] = bytes(blue)
     mutated_png = _replace_png_pixels(data, pixels, width, height)
     assert not audit_png(problem.graph_model, mutated_png)
+
+
+def test_pre_axis_fix_snapshot_restores_original_point_pixels() -> None:
+    problem = generate_graph_problem("OGE07-N01", 104, "1.1.0")
+    assert problem.png_sha256 == "5e071c6247902510c42fe2e85e43309daaadb0fd0553f8c46db7eb3d5dbb1785"
+    assert validate_task7_snapshot(problem.to_snapshot())
+
+
+def test_saved_task7_queue_rotates_all_families_across_cycle_boundaries():
+    state = {}
+    issued = []
+    for seed in range(21):
+        first = build_task7_candidate_batch(state, seed, limit=1)[0]
+        issued.append(first["family_id"])
+        state = {
+            "last_family_id": first["family_id"],
+            "family_queue": first["_family_queue_after"],
+            "recent_fingerprints": [*state.get("recent_fingerprints", []), first["fingerprint"]],
+        }
+    assert all(a != b for a, b in zip(issued, issued[1:], strict=False))
+    for start in (0, 7, 14):
+        assert set(issued[start : start + 7]) == set(ENABLED_FAMILIES)

@@ -265,12 +265,17 @@ def grade_band_tier(grade_band: str) -> int:
     return 1 if upper_grade <= 7 else 2 if upper_grade == 8 else 3
 
 
+class NoCompatibleTriple(ValueError):
+    """The current history and anchor leave no eligible three claims."""
+
+
 def generate(
     seed: int,
     *,
     generator_version: str = GENERATOR_VERSION,
     theme: str | None = None,
     recent_proposition_ids: tuple[str, ...] = (),
+    excluded_fingerprints: frozenset[str] = frozenset(),
     correct_position_counts: tuple[int, int, int] = (0, 0, 0),
 ) -> Triple:
     """Build a deterministic exam-format triple with bounded learner history."""
@@ -335,6 +340,11 @@ def generate(
         # they were independently sampled assertions.
         if len({item.source_task_id for item in selected}) != 3:
             continue
+        if (
+            excluded_fingerprints
+            and ":".join(sorted(item.proposition_id for item in selected)) in excluded_fingerprints
+        ):
+            continue
         distinct_topics = len({item.topic for item in selected}) == 3
         lengths = [len(item.statement) for item in selected]
         spread = max(lengths) - min(lengths)
@@ -348,7 +358,7 @@ def generate(
         elif score == candidate_sets[0][0]:
             candidate_sets.append((score, selected))
     if not candidate_sets:
-        raise ValueError("Selected OGE19 theme has no compatible statement triple")
+        raise NoCompatibleTriple("Selected OGE19 theme has no compatible statement triple")
     _, selected = rng.choice(candidate_sets)
     true_statements = [item for item in selected if item.is_true]
     false_statements = [item for item in selected if not item.is_true]

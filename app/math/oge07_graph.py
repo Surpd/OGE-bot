@@ -17,8 +17,10 @@ from uuid import NAMESPACE_URL, uuid5
 
 WIDTH = 960
 HEIGHT = 260
-SPEC_VERSION = "oge07-line-v2"
-GENERATOR_VERSION = "1.1.0"
+LEGACY_SPEC = "oge07-line-v2"
+SPEC_VERSION = "oge07-line-v3"
+LEGACY_VERSION = "1.1.0"
+GENERATOR_VERSION = "1.2.0"
 _AXIS_Y = 145
 _AXIS_LEFT = 72
 _AXIS_RIGHT = WIDTH - 72
@@ -81,7 +83,10 @@ class GraphProblem:
             "problem_id": self.problem_id,
             "family_id": self.family_id,
             "seed": self.seed,
-            "generator_version": GENERATOR_VERSION,
+            "generator_version": (
+                LEGACY_VERSION if self.graph_model["render_spec_version"] == LEGACY_SPEC
+                else GENERATOR_VERSION
+            ),
             "reference_ids": list(self.reference_ids),
             "content_provenance": "generated_analogue",
             "condition": self.condition,
@@ -231,7 +236,7 @@ def _project_value(value: object, axis_min: Fraction, axis_max: Fraction) -> int
 
 
 def render_png(model: GraphModel) -> tuple[bytes, dict[str, int]]:
-    if model["render_spec_version"] != SPEC_VERSION or model["width"] != WIDTH:
+    if model["render_spec_version"] not in (LEGACY_SPEC, SPEC_VERSION) or model["width"] != WIDTH:
         raise ValueError("Unsupported graph rendering specification")
     pixels = bytearray(bytes(_WHITE) * WIDTH * HEIGHT)
     axis_y, left, right = _AXIS_Y, _AXIS_LEFT, _AXIS_RIGHT
@@ -243,18 +248,20 @@ def render_png(model: GraphModel) -> tuple[bytes, dict[str, int]]:
         value = _coord(tick["value"])
         x = left + round((value - lo) / (hi - lo) * (right - left))
         for dx in (-1, 0, 1):
-            _line(pixels, x + dx, axis_y - 8, x + dx, axis_y + 8, _BLACK)
+            height = 8 if model["render_spec_version"] == LEGACY_SPEC else 12
+            _line(pixels, x + dx, axis_y - height, x + dx, axis_y + height, _BLACK)
         label = str(tick["label"])
         _text(pixels, x - len(label) * 14, axis_y + 20, label, _BLACK)
+    point_y = axis_y - 24 if model["render_spec_version"] == LEGACY_SPEC else axis_y
     positions = projection(model)
     for point in model["points"]:
         x = positions[str(point["id"])]
         for dy in range(-8, 9):
             for dx in range(-8, 9):
                 if dx * dx + dy * dy <= 64:
-                    _pixel(pixels, x + dx, axis_y - 24 + dy, _BLUE)
+                    _pixel(pixels, x + dx, point_y + dy, _BLUE)
         label = str(point["label"])
-        _text(pixels, x - len(label) * 14, axis_y - 63, label, _BLACK)
+        _text(pixels, x - len(label) * 14, _AXIS_Y - 63, label, _BLACK)
     rows = b"".join(b"\x00" + pixels[y * WIDTH * 3 : (y + 1) * WIDTH * 3] for y in range(HEIGHT))
 
     def chunk(kind: bytes, data: bytes) -> bytes:
@@ -294,14 +301,20 @@ def audit_png(model: GraphModel, png: bytes) -> bool:
             value.denominator != 1 for value in tick_values
         ):
             return False
-        axis_pixels = [x for x in range(WIDTH) if _raster_pixel(pixels, x, _AXIS_Y) == _BLACK]
+        legacy = model["render_spec_version"] == LEGACY_SPEC
+        if not legacy and model["render_spec_version"] != SPEC_VERSION:
+            return False
+        point_y = _AXIS_Y - 24 if legacy else _AXIS_Y
+        axis_colors = (_BLACK,) if legacy else (_BLACK, _BLUE)
+        axis_pixels = [x for x in range(WIDTH) if _raster_pixel(pixels, x, _AXIS_Y) in axis_colors]
+        tick_rows = range(_AXIS_Y - 8, _AXIS_Y + 9) if legacy else range(_AXIS_Y - 12, _AXIS_Y - 8)
         if axis_pixels != list(range(_AXIS_LEFT - 1, _AXIS_RIGHT + 2)):
             return False
         raster_tick_columns = [
             x
             for x in range(_AXIS_LEFT - 1, _AXIS_RIGHT + 2)
-            if sum(_raster_pixel(pixels, x, y) == _BLACK for y in range(_AXIS_Y - 8, _AXIS_Y + 9))
-            >= 16
+            if sum(_raster_pixel(pixels, x, y) == _BLACK for y in tick_rows)
+            >= (16 if legacy else 4)
         ]
         raster_tick_x: list[int] = []
         if raster_tick_columns:
@@ -331,7 +344,7 @@ def audit_png(model: GraphModel, png: bytes) -> bool:
             if not _raster_text_matches(pixels, label, x - len(label) * 14, _AXIS_Y + 20):
                 return False
 
-        point_centers = _blue_centers_on_row(pixels, _AXIS_Y - 24)
+        point_centers = _blue_centers_on_row(pixels, point_y)
         if len(point_centers) != len(points):
             return False
         expected_centers: list[int] = []
@@ -360,11 +373,11 @@ def audit_png(model: GraphModel, png: bytes) -> bool:
                 pixels, str(point["label"]), x - len(str(point["label"])) * 14, _AXIS_Y - 63
             ):
                 return False
-            for y in range(_AXIS_Y - 26, _AXIS_Y - 15):
+            for y in range(point_y - 8, point_y + 9):
                 for dx in range(-8, 9):
-                    inside = dx * dx + (y - (_AXIS_Y - 24)) ** 2 <= 64
-                    expected = _BLUE if inside else _WHITE
-                    if _raster_pixel(pixels, x + dx, y) != expected:
+                    inside = dx * dx + (y - point_y) ** 2 <= 64
+                    pixel = _raster_pixel(pixels, x + dx, y)
+                    if inside != (pixel == _BLUE) or (legacy and not inside and pixel != _WHITE):
                         return False
         if point_centers != expected_centers:
             return False
@@ -501,12 +514,18 @@ def _fmt_decimal(value: Fraction) -> str:
     return f"{sign}{whole}" + (f",{digits}" if digits else "")
 
 
-def generate_graph_problem(family_id: str, seed: int) -> GraphProblem:
+def generate_graph_problem(
+    family_id: str, seed: int, version: str = GENERATOR_VERSION,
+) -> GraphProblem:
     """Create a deterministic point/number task, exact model and original PNG."""
-    return _build_graph_problem(family_id, seed)
+    return _build_graph_problem(family_id, seed, version=version)
 
 
-def _build_graph_problem(family_id: str, seed: int, png: bytes | None = None) -> GraphProblem:
+def _build_graph_problem(
+    family_id: str, seed: int, png: bytes | None = None, version: str = GENERATOR_VERSION,
+) -> GraphProblem:
+    if version not in (LEGACY_VERSION, GENERATOR_VERSION):
+        raise ValueError("Unknown graph generator version")
     if family_id not in GRAPH_SOURCES:
         raise ValueError("Unsupported OGE07 graph family")
     rng = random.Random(f"oge07-graph:{family_id}:{seed}:1")
@@ -606,6 +625,8 @@ def _build_graph_problem(family_id: str, seed: int, png: bytes | None = None) ->
         correct_index,
         list(GRAPH_SOURCES[family_id]),
     )
+    if version == LEGACY_VERSION:
+        model["render_spec_version"] = LEGACY_SPEC
     if png is None:
         png, _ = render_png(model)
     return GraphProblem(

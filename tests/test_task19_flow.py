@@ -240,3 +240,22 @@ async def test_public_theme_selection_issues_reviewed_task(family):
     if family != "OGE19-MIXED":
         assert all(row["topic"] in THEME_TOPICS[FAMILY_THEMES[family]]
                    for row in task["statements"])
+
+
+@pytest.mark.asyncio
+async def test_rejected_duplicate_does_not_skip_original_task19():
+    repo = MemoryRepository()
+    user = 419
+    await repo.ensure_task19_session(user)
+    first = oge19_scheduler.build_task19_candidate_batch({}, 2027)
+    saved = await repo.advance_task19_problem(user, None, first)
+    pid = saved["problem_id"]
+    with pytest.raises(RuntimeError, match="recent fingerprint"):
+        await repo.advance_task19_problem(user, pid, first, skip_active=True)
+    assert repo.outcomes19[user][pid] == "issued"
+    current = await repo.task19_state(user)
+    assert current["state"]["status"] == "active"
+    next_batch = oge19_scheduler.build_task19_candidate_batch(current["state"], 2027)
+    issued = await repo.advance_task19_problem(user, pid, next_batch, skip_active=True)
+    assert issued["_transitioned"] and issued["fingerprint"] != saved["fingerprint"]
+    assert repo.outcomes19[user][pid] == "skipped"
