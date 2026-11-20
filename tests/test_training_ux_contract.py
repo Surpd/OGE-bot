@@ -337,6 +337,7 @@ def _callback(
     callback.message = AsyncMock()
     callback.message.message_id = control_id
     callback.message.answer.return_value.message_id = control_id + 1
+    callback.message.answer_photo.return_value = callback.message.answer.return_value
     return callback
 
 
