@@ -38,3 +38,13 @@ TRAININGS = (
     Training(19, "Геометрические утверждения", "app.math.oge19_scheduler"),
 )
 BY_NUMBER = {item.number: item for item in TRAININGS}
+
+# Open-response tasks have a different answer contract from the first-part mixed queue.
+PART2_TRAININGS = (
+    Training(20, "Уравнения и неравенства"),
+    Training(21, "Текстовые задачи"),
+    Training(22, "Графики"),
+    Training(23, "Геометрические вычисления"),
+    Training(24, "Доказательства"),
+    Training(25, "Сложная геометрия"),
+)

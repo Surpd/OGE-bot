@@ -50,6 +50,11 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
+    if "nav:numbers" in callbacks and any(c and c.startswith(("p2:open:", "p2:menu:"))
+                                          for c in callbacks):
+        return "part2_menu"
+    if "nav:task:6" not in callbacks and any(c and c.startswith("p2:") for c in callbacks):
+        return "part2"
     for value in callbacks:
         if value and value.startswith("nav:math:"):
             return "display_settings"
@@ -225,7 +230,7 @@ async def navigation_callback(
     if (
         target is None and progress_page is None and family_action is None
         and display_mode is None and training_action is None
-        and not data.startswith("replay:")
+        and not data.startswith(("replay:", "p2:"))
     ):
         await answer_callback(callback, "Этот раздел недоступен.")
         return
@@ -241,11 +246,16 @@ async def navigation_callback(
             "nav:details", "nav:display",
             "nav:settings",
         }
-        or data.startswith("nav:task:")
+        or data.startswith(("nav:task:", "p2:"))
         or data.startswith("nav:tr:")
     ):
         await oge15_repository.pause_foreground(callback.from_user.id)
     message = cast(Message, NavigationMessage(callback.message, callback, repository))
+    if data.startswith("p2:"):
+        from app.bot.part2 import action as part2_action
+        await answer_callback(callback)
+        await part2_action(message, repository, callback.from_user.id, data)
+        return
     if display_mode is not None:
         await repository.set_math_display(callback.from_user.id, display_mode)
         await show_display_options(message, repository)

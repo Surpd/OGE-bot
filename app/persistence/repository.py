@@ -6087,8 +6087,8 @@ class PostgresRepository(
     async def save_user_state(self, telegram_user_id: int, screen: str) -> None:
         await self._pool.execute(
             """UPDATE users SET current_state = CASE
-                 WHEN $2 IN ('mixed', 'task6', 'task9', 'task10', 'task12', 'task14', 'task15',
-                             'task16', 'task17', 'task18', 'task19',
+                 WHEN $2 IN ('part2', 'mixed', 'task6', 'task9', 'task10', 'task12', 'task14',
+                             'task15', 'task16', 'task17', 'task18', 'task19',
                              'task11', 'task8',
                              'task13', 'task7', 'oge15')
                    THEN jsonb_build_object(
@@ -7349,6 +7349,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         self.navigation_messages.pop(telegram_user_id, None)
         self.states[telegram_user_id] = screen
         if screen in {
+            "part2",
             "mixed",
             "oge15",
             "task6",

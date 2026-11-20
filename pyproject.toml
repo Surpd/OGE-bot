@@ -16,6 +16,7 @@ dependencies = [
   "Pillow==12.3.0",
   "matplotlib==3.11.2",
   "uvicorn[standard]==0.35.0",
+  "openai==3.57.0",
 ]
 
 [project.optional-dependencies]
