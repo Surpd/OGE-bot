@@ -76,6 +76,8 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE06-F004-DEC-ADD": 2,
         "OGE06-F004-DEC-SUB": 2,
         "OGE06-F004-DEC-MUL": 2,
+        "OGE06-F003-UNIT-SUM": 3,
+        "OGE06-F004-DEC-DIV": 2,
         "OGE06-F006-MIXED-MINUS-DECIMAL": 3,
         "OGE06-F008-REDUCED-NUMERATOR": 3,
         "OGE06-F009-PRESCRIBED-NUMERATOR": 3,

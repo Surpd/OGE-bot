@@ -12,9 +12,12 @@ from scripts.oge6_quality_report import analyze_family
 
 def test_all_enabled_task6_families_pass_250_sample_exam_shape_gate() -> None:
     reports = [analyze_family(spec) for spec in GENERATOR_SPECS]
-    assert len(reports) == 10
+    assert len(reports) == 12
     assert all(report["sample_count"] == 250 for report in reports)
-    assert all(report["acceptance_unique_count"] >= 200 for report in reports)
+    assert all(
+        report["acceptance_unique_count"] >= report["acceptance_unique_target"]
+        for report in reports
+    )
     assert all(report["reference_structure_match"] for report in reports)
 
 
@@ -74,7 +77,7 @@ def test_consecutive_issuances_rotate_even_across_skip_and_old_queue() -> None:
     previous = "OGE06-F004-DEC-SUB"
     state = {"family_queue": [previous] * 4, "last_family_id": previous}
     issued = []
-    for seed in range(100):
+    for seed in range(120):
         chosen = build_candidate_batch(state, seed)[0]
         family = chosen["family_id"]
         assert family != previous
@@ -82,3 +85,19 @@ def test_consecutive_issuances_rotate_even_across_skip_and_old_queue() -> None:
         previous = family
         state = {"family_queue": chosen["_family_queue_after"], "last_family_id": previous}
     assert all(issued.count(spec.family_id) == 10 for spec in GENERATOR_SPECS)
+
+
+@pytest.mark.parametrize(
+    "family,capacity", [("OGE06-F004-DEC-DIV", 35), ("OGE06-F003-UNIT-SUM", 8)]
+)
+def test_finite_bank_is_exhaustive_and_scheduler_falls_through(family: str, capacity: int) -> None:
+    fingerprints = {generate(family, seed).fingerprint for seed in range(350)}
+    assert len(fingerprints) == capacity
+    batch = build_candidate_batch(
+        {"family_queue": [family, "OGE06-F001-ADD"], "recent_fingerprints": list(fingerprints)}, 12
+    )
+    assert batch and all(p["family_id"] == "OGE06-F001-ADD" for p in batch)
+    tail = build_candidate_batch(
+        {"family_queue": [family], "recent_fingerprints": list(fingerprints)}, 12
+    )
+    assert tail and all(p["family_id"] != family for p in tail)

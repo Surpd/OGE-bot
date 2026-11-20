@@ -127,6 +127,7 @@ def _validate_reference_visible_shape(problem: Problem) -> None:
         "OGE06-F004-DEC-ADD",
         "OGE06-F004-DEC-SUB",
         "OGE06-F004-DEC-MUL",
+        "OGE06-F004-DEC-DIV",
         "OGE06-F006-MIXED-MINUS-DECIMAL",
     }:
         return

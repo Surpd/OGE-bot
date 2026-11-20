@@ -44,6 +44,18 @@ def build_candidate_batch(state: dict[str, object], seed: int) -> list[dict[str,
     else:
         family_queue = build_family_deck(seed, state.get("last_family_id"))
 
+    candidates = _candidates_from_queue(state, seed, family_queue)
+    if candidates:
+        return candidates
+    # The tail of an old deck can contain only an exhausted finite family.
+    fresh = [family for family in build_family_deck(seed, state.get("last_family_id"))
+             if family not in family_queue]
+    return _candidates_from_queue(state, seed, fresh)
+
+
+def _candidates_from_queue(
+    state: dict[str, object], seed: int, family_queue: list[str],
+) -> list[dict[str, object]]:
     stored_recent = state.get("recent_fingerprints", [])
     recent = (
         {item for item in stored_recent if isinstance(item, str)}
