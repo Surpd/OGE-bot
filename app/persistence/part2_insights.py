@@ -70,7 +70,7 @@ async def revision(
         """SELECT w.body,CASE WHEN w.created_at>now()-interval '7 days' THEN w.photo END photo,
         w.photo_expired OR (w.photo IS NOT NULL AND w.created_at<=now()-interval '7 days') expired
         FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
-        WHERE i.owner=$1 AND i.id=$2 AND w.revision=$3
+        WHERE i.owner=$1 AND i.id=$2 AND w.revision=$3 AND NOT w.superseded
         ORDER BY message_id""",
         owner,
         issue,

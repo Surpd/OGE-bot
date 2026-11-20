@@ -6,11 +6,11 @@ from time import monotonic
 
 import asyncpg
 from aiogram.types import Message
-from openai import APIError, APIStatusError
+from openai import APIError
 
 from app.bot.part2 import keyboard
 from app.bot.presentation import send_text
-from app.config import Settings, get_settings
+from app.config import GRADING_REASONING, Settings, get_settings
 from app.part2_grading import (
     MODEL,
     assess,
@@ -21,7 +21,7 @@ from app.part2_grading import (
     inputs,
     open_client,
 )
-from app.persistence.part2_grades import budget_notice, budget_usage, reserve_test
+from app.persistence.part2_grades import budget_notice, budget_usage, mark_dispatched, reserve_test
 from app.persistence.repository import PostgresRepository, Repository
 
 TEST_ID = "oge-part2-reshu-438301"
@@ -52,7 +52,7 @@ async def api_status(message: Message, repository: Repository) -> None:
     meta = await model_status(s)
     lines = [
         f"Ключ OpenAI: {'есть' if s.openai_api_key else 'нет'}",
-        f"Модель: {s.oge_grading_model} · {meta}",
+        f"Модель: {s.oge_grading_model} · reasoning {GRADING_REASONING} · {meta}",
         f"GPT-проверка: {'включена' if s.oge_grading_enabled else 'выключена'}",
         f"Месячный бюджет бота: ${s.oge_grading_monthly_budget_usd}",
     ]
@@ -67,11 +67,26 @@ async def api_status(message: Message, repository: Repository) -> None:
                ORDER BY created_at DESC LIMIT 1""",
             owner,
         )
+        costs = await pool.fetch(
+            """WITH metered AS (
+              SELECT created_at,cost_usd,input_tokens,output_tokens FROM part2_grades
+              JOIN part2_issues ON issue_id=id
+              WHERE owner=$1 AND input_tokens IS NOT NULL AND cost_usd IS NOT NULL
+              UNION ALL
+              SELECT created_at,cost_usd,input_tokens,output_tokens FROM part2_api_tests
+              WHERE owner=$1 AND input_tokens IS NOT NULL AND cost_usd IS NOT NULL
+            ) SELECT *, avg(cost_usd) OVER () AS average
+              FROM metered ORDER BY created_at DESC LIMIT 10""",
+            owner,
+        )
         lines.extend(
             [
                 f"Учтено: ${u['spent']:.6f} · в резерве: ${u['held']:.6f}",
                 f"Остаток бюджета бота: ${remaining:.6f}",
-                f"Сегодня: {u['daily']}/{s.oge_grading_daily_user_limit}",
+                f"Сегодня: {u['daily']}/{s.oge_grading_daily_user_limit} · "
+                f"Месяц: {u['monthly']}/{s.oge_grading_monthly_user_limit} (UTC)",
+                f"Максимум за запрос: ${s.oge_grading_request_budget_usd} · "
+                f"резерв: ${ceiling(s):.5f} · одно фото · интервал 20 с",
                 "Последняя проверка: "
                 + (
                     f"{last['created_at']:%d.%m %H:%M} UTC · "
@@ -81,6 +96,15 @@ async def api_status(message: Message, repository: Repository) -> None:
                 ),
             ]
         )
+        if costs:
+            lines.append(f"Средняя стоимость учтённых проверок: ${costs[0]['average']:.7f}")
+            total = sum(cost["cost_usd"] for cost in costs)
+            lines.append(f"Последние {len(costs)} проверок: ${total:.7f} (вход / выход)")
+            lines.extend(
+                f"• ${cost['cost_usd']:.7f} · {cost['input_tokens']} / "
+                f"{cost['output_tokens']} токенов"
+                for cost in costs
+            )
         notice = budget_notice(s, u)
         if notice:
             lines.append(notice)
@@ -138,15 +162,17 @@ async def confirmed_test(
     start = monotonic()
     try:
         async with asyncio.timeout(s.oge_grading_timeout_seconds), open_client(s) as client:
-            work = inputs(json.loads(payload), [], [TEST_WORK], [])
+            card = json.loads(payload)
+            work = inputs(card, [], [TEST_WORK], [])
             await check_size(client, s, work)
+            await mark_dispatched(pool, owner, confirmation, diagnostic=True)
             sent = True
-            result = await assess(client, MODEL, work)
+            result = await assess(client, s, card, work)
     except (APIError, TimeoutError, ValueError) as exc:
         reason = failure_reason(exc)
-        if isinstance(exc, APIStatusError) and exc.status_code in (400, 401, 403, 404, 429):
-            sent = False
     finally:
+        if result and result.assessment.status == "error":
+            reason = result.assessment.feedback
         elapsed = round((monotonic() - start) * 1000)
         await pool.execute(
             """UPDATE part2_api_tests SET status=$3,cost_usd=$4,input_tokens=$5,

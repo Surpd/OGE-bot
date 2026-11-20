@@ -15,12 +15,17 @@ async def test_first_scores_revisions_hints_and_private_history(bank_pool):
     for attempt, (status, score) in enumerate(
         [("graded", 1), ("uncertain", None), ("graded", 2)], 1
     ):
-        assert await bank.append(1, issue, attempt, attempt, f"Решение {attempt}", None, 4)
+        assert await bank.append(1, issue, attempt, attempt, f"Решение {attempt}", None) == "saved"
         assert (await reserve(bank_pool, s, 1, issue, attempt))[1]
         report = Assessment(
             status=status,
             score=score,
             max_score=2,
+            criterion_evidence=(
+                [{"criterion": "Обоснование", "student_evidence": "Проверка"}]
+                if score is not None
+                else []
+            ),
             correct_steps=[],
             errors=[],
             feedback="По критерию.",
@@ -36,6 +41,7 @@ async def test_first_scores_revisions_hints_and_private_history(bank_pool):
             Grade(report, 20, 10, "offline", Decimal("0.00014")),
             dispatched=True,
         )
+        await bank_pool.execute("UPDATE part2_grades SET created_at=now()-interval '21 seconds'")
     await bank_pool.execute("UPDATE part2_issues SET hints=2 WHERE id=$1", issue)
     data = await summary(bank_pool, 1)
     assert {
@@ -210,6 +216,7 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
             if len(requests) == 3:
                 return httpx.Response(429, json={"error": {"message": "synthetic quota"}})
             score = min(2, len(requests))
+            context = json.loads(payload["input"][0]["content"][0]["text"])
             assessment = dict(
                 status="graded",
                 score=score,
@@ -219,7 +226,13 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
                 feedback="Баллы по критерию.",
                 next_step="Обоснуйте вывод.",
                 errors=[],
-                correct_steps=[],
+                criterion_evidence=[
+                    {
+                        "criterion": context["rubric"]["levels"][str(score)]["rule"],
+                        "student_evidence": "Корень проверен.",
+                    }
+                ],
+                correct_steps=["Корень проверен."],
             )
             return httpx.Response(
                 200,
@@ -260,35 +273,61 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
             )
 
         monkeypatch.setattr(part2_check, "open_client", client)
-        for page_id in ("a", "b"):
-            await post(
-                message=Message(
-                    message_id=seq,
-                    date=datetime.now(UTC),
-                    chat=chat,
-                    from_user=user,
-                    media_group_id="demo-album",
-                    photo=[
-                        PhotoSize(
-                            file_id=page_id,
-                            file_unique_id=page_id,
-                            width=100,
-                            height=80,
-                            file_size=len(page_bytes),
-                        )
-                    ],
-                )
+
+        def photo_message(page_id, *, album=None, reply=None, caption=None):
+            return Message(
+                message_id=seq,
+                date=datetime.now(UTC),
+                chat=chat,
+                from_user=user,
+                media_group_id=album,
+                reply_to_message=reply,
+                caption=caption,
+                photo=[
+                    PhotoSize(
+                        file_id=page_id,
+                        file_unique_id=page_id,
+                        width=100,
+                        height=80,
+                        file_size=len(page_bytes),
+                    )
+                ],
             )
+
+        first_photo = photo_message("a", album="demo-album", caption="Старый снимок.")
+        await post(message=first_photo)
+        await post(message=photo_message("b", album="demo-album"))
+        assert any(
+            "только одну фотографию" in (getattr(call, "text", None) or "")
+            for call in telegram.calls
+        )
+        replacement = photo_message("c", reply=first_photo, caption="Моё решение.")
+        await post(message=replacement)
+        await post(message=replacement)
+        saved = await bank_pool.fetch(
+            "SELECT photo FROM part2_work WHERE issue_id=$1 AND photo IS NOT NULL", issue
+        )
+        assert [r["photo"] for r in saved] == ["c"]
         assert requests == []
         await tap(f"p2:check:{issue}")
         assert len(requests) == 1
         assert (
-            len([v for v in requests[0]["input"][1]["content"] if v["type"] == "input_image"]) == 2
+            len([v for v in requests[0]["input"][1]["content"] if v["type"] == "input_image"]) == 1
+        )
+        assert requests[0]["input"][1]["content"][0]["text"].count("Моё решение.") == 1
+        assert "Старый снимок." not in str(requests[0]["input"])
+        assert (
+            len([v for v in requests[0]["input"][0]["content"] if v["type"] == "input_image"]) == 1
+        )
+        assert any(
+            "Почему именно 1 балл" in (getattr(call, "text", None) or "") for call in telegram.calls
         )
         await tap(f"p2:check:{issue}")
         assert len(requests) == 1
+        await bank_pool.execute("UPDATE part2_grades SET dispatched_at=now()-interval '21 seconds'")
         await text("Исправленная работа.")
         await tap(f"p2:check:{issue}")
+        await bank_pool.execute("UPDATE part2_grades SET dispatched_at=now()-interval '21 seconds'")
         await text("Ещё один вариант.")
         await tap(f"p2:check:{issue}")
         assert len(requests) == 3
@@ -309,8 +348,8 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         from app.bot import api_diagnostics
 
         def diagnostic_api(req):
-            if req.url.path.endswith("/models/gpt-6.2-sol"):
-                return httpx.Response(200, json={"id": "gpt-6.2-sol", "object": "model"})
+            if req.url.path.endswith("/models/gpt-6.1-terra"):
+                return httpx.Response(200, json={"id": "gpt-6.1-terra", "object": "model"})
             return respond(req)
 
         def diagnostic_client(_settings):
@@ -322,9 +361,17 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
 
         monkeypatch.setattr(api_diagnostics, "open_client", diagnostic_client)
         await text("/api_status")
-        assert any(
-            "Баланс API-кредитов" in (getattr(c, "text", None) or "") for c in telegram.calls
+        status = next(
+            call.text
+            for call in reversed(telegram.calls)
+            if "Баланс API-кредитов" in (getattr(call, "text", None) or "")
         )
+        assert "gpt-6.1-terra · reasoning low · доступна" in status
+        assert "Сегодня: 3/25 · Месяц: 3/150" in status
+        assert "Учтено: $0.002000 · в резерве: $0.060480" in status
+        assert "Средняя стоимость учтённых проверок: $0.0010000" in status
+        assert status.count("400 / 120 токенов") == 2
+        await bank_pool.execute("UPDATE part2_grades SET dispatched_at=now()-interval '21 seconds'")
         confirm = seq
         await text("/api_test")
         assert len(requests) == 3
@@ -333,7 +380,7 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         assert len(requests) == 4
         diag = await bank_pool.fetchrow("SELECT * FROM part2_api_tests")
         assert (diag["score"], diag["input_tokens"], diag["output_tokens"]) == (2, 400, 120)
-        assert diag["cost_usd"] == Decimal("0.002")
+        assert diag["cost_usd"] == Decimal("0.001")
         assert await bank_pool.fetchval("SELECT count(*) FROM part2_grades") == 3
 
     finally:
