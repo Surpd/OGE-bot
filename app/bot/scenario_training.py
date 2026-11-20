@@ -405,10 +405,9 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
         context = "\n".join(
             line for line in context.splitlines()
             if not line.startswith((
-                "На графике сплошная", "Минуты по месяцам:", "Мобильный интернет по месяцам:",
+                "Минуты по месяцам:", "Мобильный интернет по месяцам:",
             ))
         )
-        context += "\nМинуты и гигабайты показаны на отдельных графиках."
     elif snapshot.story_code == "GARDEN" and snapshot.generator_version in {
         "garden-sosnovka-1.0", "garden-sosnovka-1.1",
     }:
@@ -1096,11 +1095,6 @@ async def handle_callback(
         if action == "hint":
             q = next(q for q in updated.snapshot.questions if q.position == action_position)
             hint = q.hints[min(updated.hints_used - 1, len(q.hints) - 1)]
-            if updated.snapshot.story_code == "TARIFF":
-                hint = hint.replace("На графике выберите сплошную линию и левую шкалу минут.",
-                                    "Откройте верхний график «Звонки, мин».")
-                hint = hint.replace("Используйте сплошную линию и левую шкалу.",
-                                    "Используйте верхний график «Звонки, мин».")
             await callback.message.answer(hint)
         elif action == "solution":
             q = next(q for q in updated.snapshot.questions if q.position == action_position)

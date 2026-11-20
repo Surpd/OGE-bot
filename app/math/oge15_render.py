@@ -9,6 +9,7 @@ from typing import Any
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 VERSION = "oge15-pillow-1"
+VERSION_V2 = "oge15-pillow-2"
 SIZE = (720, 520)
 
 
@@ -80,20 +81,24 @@ def marks(
 
 
 def label_boxes(
-    scene: dict[str, Any], coords: dict[str, tuple[float, float]]
+    scene: dict[str, Any], coords: dict[str, tuple[float, float]], version: str = VERSION
 ) -> dict[str, tuple[float, float]]:
     cx = sum(coords[n][0] for n in "ABC") / 3
     cy = sum(coords[n][1] for n in "ABC") / 3
     result = {}
     for name in scene["labels"]:
         x, y = coords[name]
+        # The extension at C and the altitude foot H both lie on the baseline.
+        if version == VERSION_V2 and name == ("C" if "X" in coords else "H"):
+            result[name] = (x, y + 32)
+            continue
         dx, dy = x - cx, y - cy
         length = max(1, hypot(dx, dy))
         result[name] = (x + dx / length * 30, y + dy / length * 30)
     return result
 
 
-def render(scene: dict[str, Any]) -> bytes:
+def render(scene: dict[str, Any], version: str = VERSION) -> bytes:
     scale = 2
     image = Image.new("RGB", (SIZE[0] * scale, SIZE[1] * scale), "white")
     draw = ImageDraw.Draw(image)
@@ -116,7 +121,7 @@ def render(scene: dict[str, Any]) -> bytes:
     for points in marks(scene, coords):
         path(points, "#202020", 2)
     font = ImageFont.truetype("DejaVuSans.ttf", 32 * scale)
-    for name, (x, y) in label_boxes(scene, coords).items():
+    for name, (x, y) in label_boxes(scene, coords, version).items():
         draw.text(
             (round(x * scale), round(y * scale)), name, font=font, fill="#202020", anchor="mm"
         )
@@ -135,7 +140,9 @@ def render(scene: dict[str, Any]) -> bytes:
     return out.getvalue()
 
 
-def audit(png: bytes, scene: dict[str, Any], *, expected_png: bytes | None = None) -> None:
+def audit(
+    png: bytes, scene: dict[str, Any], *, expected_png: bytes | None = None, version: str = VERSION
+) -> None:
     image = Image.open(BytesIO(png))
     image.load()
     if image.format != "PNG" or image.size != SIZE or image.mode != "RGB":
@@ -151,7 +158,7 @@ def audit(png: bytes, scene: dict[str, Any], *, expected_png: bytes | None = Non
                 if min(small.convert("L").crop((px - 2, py - 2, px + 3, py + 3)).tobytes()) > 220:
                     raise ValueError("Missing triangle line at mobile width")
     gray = image.convert("L")
-    for x, y in label_boxes(scene, coords).values():
+    for x, y in label_boxes(scene, coords, version).values():
         box = gray.crop((round(x - 18), round(y - 23), round(x + 18), round(y + 23)))
         if sum(value < 100 for value in list(box.tobytes())) < 30:
             raise ValueError("Missing vertex label")
@@ -175,7 +182,7 @@ def audit(png: bytes, scene: dict[str, Any], *, expected_png: bytes | None = Non
         draw.line(path, fill=255, width=10)
         for x, y in path:
             draw.ellipse((x - 5, y - 5, x + 5, y + 5), fill=255)
-    for x, y in label_boxes(scene, coords).values():
+    for x, y in label_boxes(scene, coords, version).values():
         draw.rectangle((x - 18, y - 23, x + 18, y + 23), fill=255)
     if scene.get("exterior_label"):
         x, y = coords["C"]
@@ -186,7 +193,7 @@ def audit(png: bytes, scene: dict[str, Any], *, expected_png: bytes | None = Non
     if (
         image.tobytes()
         != Image.open(
-            BytesIO(expected_png if expected_png is not None else render(scene))
+            BytesIO(expected_png if expected_png is not None else render(scene, version))
         ).tobytes()
     ):
         raise ValueError("Corrupted triangle raster")

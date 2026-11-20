@@ -13,6 +13,8 @@ from fractions import Fraction
 from typing import cast
 from uuid import NAMESPACE_URL, uuid5
 
+from PIL import Image, ImageDraw, ImageFont
+
 from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
 GENERATOR_VERSION = "0.2.0"
@@ -1004,36 +1006,11 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
                 elif d <= 144 and not filled:
                     dot(cx + dx, cy + dy, (255, 255, 255))
 
-    # Numeric ticks use a compact deterministic 3×5 bitmap font.
-    glyphs = {
-        "0": (7, 5, 5, 5, 7),
-        "1": (2, 6, 2, 2, 7),
-        "2": (7, 1, 7, 4, 7),
-        "3": (7, 1, 7, 1, 7),
-        "4": (5, 5, 7, 1, 1),
-        "5": (7, 4, 7, 1, 7),
-        "6": (7, 4, 7, 5, 7),
-        "7": (7, 1, 2, 2, 2),
-        "8": (7, 5, 7, 5, 7),
-        "9": (7, 5, 7, 1, 7),
-        "-": (0, 0, 7, 0, 0),
-        ",": (0, 0, 0, 2, 4),
-    }
+    face = ImageFont.truetype("DejaVuSans.ttf", 40)
+    labels: list[tuple[str, int, int]] = []
 
-    def label(value: str, x: int, y: int) -> None:
-        cell = 8
-        start = x - len(value) * (3 * cell + cell) // 2
-        for ci, char in enumerate(value):
-            for row, bits in enumerate(glyphs.get(char, ())):
-                for col in range(3):
-                    if bits & (1 << (2 - col)):
-                        for sy in range(cell):
-                            for sx in range(cell):
-                                dot(
-                                    start + ci * (4 * cell) + col * cell + sx,
-                                    y + row * cell + sy,
-                                    gray,
-                                )
+    def label(value: str, x: int, top: int) -> None:
+        labels.append((value, x, top))
 
     for index, option in enumerate(options):
         cy = 185 + index * 250
@@ -1081,7 +1058,7 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
         # separate lanes above the same number line.
         lane_right_edges: list[int] = []
         for endpoint_x, endpoint_label, _ in sorted(endpoints):
-            label_width = len(endpoint_label) * 32
+            label_width = round(face.getlength(endpoint_label)) + 2
             left_edge = endpoint_x - label_width // 2
             lane = next(
                 (
@@ -1095,9 +1072,14 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
                 lane_right_edges.append(endpoint_x + label_width // 2)
             else:
                 lane_right_edges[lane] = endpoint_x + label_width // 2
-            label(endpoint_label, endpoint_x, cy - 44 - lane * 40)
+            label(endpoint_label, endpoint_x, cy - 62 - lane * 48)
+    image = Image.frombytes("RGB", (width, height), bytes(pixels))
+    draw = ImageDraw.Draw(image)
+    for value, x, top in labels:
+        draw.text((x, top), value, font=face, fill=ink, anchor="mt")
+    rgb = image.tobytes()
     raw = b"".join(
-        b"\0" + bytes(pixels[row * width * 3 : (row + 1) * width * 3]) for row in range(height)
+        b"\0" + rgb[row * width * 3 : (row + 1) * width * 3] for row in range(height)
     )
 
     def chunk(kind: bytes, data: bytes) -> bytes:

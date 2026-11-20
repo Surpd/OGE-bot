@@ -46,8 +46,8 @@ def table(title: str, rows: list[list[str]], widths: tuple[int, ...]) -> bytes:
         for value, span in zip(row, widths, strict=True):
             draw.rectangle(
                 (x, y, x + span, y + height),
-                fill=("#e0ebf7" if not index else ("#f1f6fb" if index % 2 else "white")),
-                outline="#adbed0",
+                fill=("#edf0f2" if not index else "white"),
+                outline="#8c969e",
                 width=2,
             )
             size = 36
@@ -67,45 +67,73 @@ def table(title: str, rows: list[list[str]], widths: tuple[int, ...]) -> bytes:
 
 
 def tariff_chart(context: Mapping[str, object]) -> bytes:
-    image = Image.new("RGB", (960, 660), "white")
+    image = Image.new("RGB", (960, 659), "white")
     draw = ImageDraw.Draw(image)
-    for key, title, top, divisor in (
-        ("minutes", "Звонки, мин", 20, 1),
-        ("gb_quarters", "Интернет, ГБ", 340, 4),
-    ):
-        values = cast(tuple[int, ...], context[key])
-        scale = 135 / max(1, max(values))
-        points = [(61 + i * 76, top + 222 - round(value * scale)) for i, value in enumerate(values)]
-        draw.text((24, top), title, font=font(39), fill=INK)
-        draw.line((27, top + 222, 930, top + 222), fill=INK, width=3)
-        draw.line(points, fill=BLUE, width=6)
-        for i, ((x, y), value) in enumerate(zip(points, values, strict=True)):
-            label = f"{value / divisor:g}".replace(".", ",")
-            draw.ellipse((x - 6, y - 6, x + 6, y + 6), fill=BLUE)
-            draw.text(
-                (x, y - 10),
-                label,
-                font=font(29),
-                fill=INK,
-                anchor="mb",
-                stroke_width=3,
-                stroke_fill="white",
+    minutes_color, internet_color = "#ad430e", "#14568a"
+    left, right, top, bottom, step = 104, 856, 84, 564, 30
+    months = ("янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек")
+    month_x = [128 + i * 64 for i in range(len(months))]
+    axis_font = font(34)
+
+    # A grid step represents 25 minutes on the left and 0.25 GB on the right.
+    for quarter in range(17):
+        y = bottom - step * quarter
+        major = quarter % 2 == 0
+        draw.line((left, y, right, y), fill="#b0bac3" if major else "#d8dfe5", width=2)
+        if major:
+            draw.text((left - 12, y), str(25 * quarter), font=axis_font, fill=INK, anchor="rm")
+            label = f"{quarter / 4:g}".replace(".", ",")
+            draw.text((right + 12, y), label, font=axis_font, fill=INK, anchor="lm")
+
+    for index, (x, month) in enumerate(zip(month_x, months, strict=True), 1):
+        draw.line((x, top, x, bottom), fill="#d8dfe5", width=2)
+        draw.text((x, bottom + 12), str(index), font=axis_font, fill=INK, anchor="mt")
+        draw.text((x, bottom + 52), month, font=font(26), fill=INK, anchor="mt")
+
+    draw.line(((left, top), (left, bottom), (right, bottom), (right, top)), fill=INK, width=3)
+    for x in (left, right):
+        draw.polygon(((x, top - 10), (x - 6, top + 5), (x + 6, top + 5)), fill=INK)
+
+    minute_points = list(
+        zip(
+            month_x,
+            (bottom - step * (v // 25) for v in cast(tuple[int, ...], context["minutes"])),
+            strict=True,
+        )
+    )
+    internet_points = list(
+        zip(
+            month_x,
+            (bottom - step * v for v in cast(tuple[int, ...], context["gb_quarters"])),
+            strict=True,
+        )
+    )
+    draw.line(minute_points, fill=minutes_color, width=6)
+    for (x1, y1), (x2, y2) in zip(internet_points[:-1], internet_points[1:], strict=True):
+        dx, dy = x2 - x1, y2 - y1
+        length = hypot(dx, dy)
+        for offset in range(0, round(length), 30):
+            start, end = offset / length, min(offset + 17, length) / length
+            draw.line(
+                (x1 + start * dx, y1 + start * dy, x1 + end * dx, y1 + end * dy),
+                fill=internet_color,
+                width=6,
             )
-            month = (
-                "янв",
-                "фев",
-                "мар",
-                "апр",
-                "май",
-                "июн",
-                "июл",
-                "авг",
-                "сен",
-                "окт",
-                "ноя",
-                "дек",
-            )[i]
-            draw.text((x, top + 248), month, font=font(30), fill=INK, anchor="mt")
+    for x, y in minute_points:
+        draw.ellipse((x - 6, y - 6, x + 6, y + 6), fill=minutes_color)
+    # A hollow diamond leaves the minutes dot visible when both series coincide.
+    for x, y in internet_points:
+        draw.polygon(
+            ((x, y - 13), (x + 13, y), (x, y + 13), (x - 13, y)),
+            outline=internet_color,
+            width=4,
+        )
+
+    draw.line((23, 39, 85, 39), fill=minutes_color, width=6)
+    draw.text((97, 39), "Минуты", font=axis_font, fill=INK, anchor="lm")
+    for x in (600, 623, 646):
+        draw.line((x, 39, x + 13, 39), fill=internet_color, width=6)
+    draw.text((674, 39), "Интернет, ГБ", font=axis_font, fill=INK, anchor="lm")
     return png(image)
 
 
@@ -164,16 +192,17 @@ def _garden_source_plan(snapshot: ScenarioSnapshot) -> bytes:
     def xy(x: int, y: int) -> tuple[int, int]:
         return 30 + (x - 20) * 3, 85 + (y - 20) * 3
 
-    for x in range(20, 321, 20):
-        draw.line((*xy(x, 20), *xy(x, 220)), fill="#849486", width=1)
-    for y in range(20, 221, 20):
-        draw.line((*xy(20, y), *xy(320, y)), fill="#849486", width=1)
+    surfaces = {
+        "paving": "#e5bf85", "pad": "#eed5ac", "garden": "#f6f7f1",
+        "greenhouse": "#e2e9e6", "orchard": "#546351",
+    }
     for node in root.findall(".//*[@data-role]"):
+        fill = surfaces.get(node.attrib["data-role"], "#e4d4bf")
         if node.tag.endswith("rect"):
             x, y, width, height = (int(node.attrib[key]) for key in ("x", "y", "width", "height"))
             draw.rectangle(
                 (*xy(x, y), *xy(x + width, y + height)),
-                fill=node.attrib["fill"],
+                fill=fill,
                 outline=INK,
                 width=2,
             )
@@ -181,7 +210,7 @@ def _garden_source_plan(snapshot: ScenarioSnapshot) -> bytes:
             points = [tuple(map(int, point.split(","))) for point in node.attrib["points"].split()]
             draw.polygon(
                 [xy(x, y) for x, y in points],
-                fill=node.attrib["fill"],
+                fill=fill,
                 outline=INK,
                 width=4,
             )
@@ -192,8 +221,14 @@ def _garden_source_plan(snapshot: ScenarioSnapshot) -> bytes:
                 scaled = radius * 3
                 draw.ellipse(
                     (cx - scaled, cy - scaled, cx + scaled, cy + scaled),
-                    fill=node.attrib["fill"],
+                    fill=fill,
                 )
+    # The cell scale must also be readable inside the house and paved area.
+    grid = ImageDraw.Draw(image, "RGBA")
+    for x in range(20, 321, 20):
+        grid.line((*xy(x, 20), *xy(x, 220)), fill=(45, 53, 57, 68), width=2)
+    for y in range(20, 221, 20):
+        grid.line((*xy(20, y), *xy(320, y)), fill=(45, 53, 57, 68), width=2)
     draw.line([xy(20, 20), xy(320, 20), xy(320, 120)], fill=INK, width=5)
     draw.line([xy(320, 140), xy(320, 220), xy(20, 220), xy(20, 20)], fill=INK, width=5)
     for label in root.findall(".//*[@data-label]"):
@@ -336,18 +371,25 @@ def flat_plan(snapshot: ScenarioSnapshot) -> bytes:
 
 
 def paper_diagram() -> bytes:
-    image = Image.new("RGB", (940, 475), "white")
+    image = Image.new("RGB", (900, 714), "white")
     draw = ImageDraw.Draw(image)
-    draw.text((30, 22), "Форматы бумаги серии A", font=font(44), fill=INK)
-    x = 36
-    for i in range(6):
-        short = 205 / sqrt(2) ** i
-        long = short * sqrt(2)
-        width, height = (short, long) if i % 2 == 0 else (long, short)
-        top = 410 - height
-        draw.rectangle((x, top, x + width, 410), fill="#e5eff9", outline=INK, width=4)
-        draw.text((x + width / 2, 420), f"A{i}", font=font(35), fill=INK, anchor="mt")
-        x += round(width) + 24
+    draw.text((32, 16), "Деление листа A0", font=font(44), fill=INK)
+    left, top = 34, 90
+    right = image.width - left
+    bottom = top + round((right - left) / sqrt(2))
+    draw.rectangle((left, top, right, bottom), outline=INK, width=4)
+    for index in range(1, 6):
+        if right - left > bottom - top:
+            middle = (left + right) // 2
+            draw.line((middle, top, middle, bottom), fill=INK, width=3)
+            center = ((right + middle) // 2, (top + bottom) // 2)
+            right = middle
+        else:
+            middle = (top + bottom) // 2
+            draw.line((left, middle, right, middle), fill=INK, width=3)
+            center = ((left + right) // 2, (middle + bottom) // 2)
+            bottom = middle
+        draw.text(center, f"A{index}", font=font(40), fill=INK, anchor="mm")
     return png(image)
 
 
@@ -357,27 +399,35 @@ def tyre_diagram() -> bytes:
     draw.text((32, 20), "Размеры шины и колеса", font=font(44), fill=INK)
     draw.text((215, 90), "Профиль шины", font=font(36), fill=INK, anchor="mt")
     draw.text((690, 90), "Вид сбоку", font=font(36), fill=INK, anchor="mt")
-    draw.rounded_rectangle((100, 166, 330, 385), radius=50, fill="#94b7d5", outline=INK, width=5)
+    draw.rounded_rectangle((100, 166, 330, 385), radius=50, fill="#e3e5e7", outline=INK, width=5)
     draw.rounded_rectangle((138, 205, 292, 352), radius=40, fill="white", outline=INK, width=4)
-    for radius, color in ((170, "#94b7d5"), (109, "#eaf2fa")):
+    for radius, color in ((170, "#e3e5e7"), (109, "white")):
         draw.ellipse(
             (690 - radius, 320 - radius, 690 + radius, 320 + radius),
             fill=color,
             outline=INK,
             width=5,
         )
+    # Extension lines project the actual diameters onto the dimension lines.
+    for y, left in ((150, 438), (211, 501), (429, 501), (490, 438)):
+        draw.line((left, y, 690, y), fill="#78818a", width=2)
+    for x in (100, 330):
+        draw.line((x, 338, x, 433), fill="#78818a", width=2)
     for line, label, position in (
-        ((100, 423, 330, 423), "B", (215, 443)),
-        ((356, 166, 356, 205), "H", (389, 165)),
-        ((690, 211, 690, 429), "d", (722, 290)),
-        ((500, 150, 500, 490), "D", (470, 290)),
+        ((100, 423, 330, 423), "B", (215, 440)),
+        ((510, 150, 510, 211), "H", (486, 163)),
+        ((510, 211, 510, 429), "d", (486, 299)),
+        ((448, 150, 448, 490), "D", (418, 299)),
     ):
-        draw.line(line, fill=INK, width=4)
         x1, y1, x2, y2 = line
-        for x, y in ((x1, y1), (x2, y2)):
-            dx, dy = (0, 10) if y1 == y2 else (10, 0)
-            draw.line((x - dx, y - dy, x + dx, y + dy), fill=INK, width=4)
-        draw.text(position, label, font=font(37), fill=INK, anchor="mt")
+        draw.line(line, fill=INK, width=3)
+        for x, y, direction in ((x1, y1, 1), (x2, y2, -1)):
+            if y1 == y2:
+                tip = [(x, y), (x + direction * 12, y - 5), (x + direction * 12, y + 5)]
+            else:
+                tip = [(x, y), (x - 5, y + direction * 12), (x + 5, y + direction * 12)]
+            draw.polygon(tip, fill=INK)
+        draw.text(position, label, font=font(36), fill=INK, anchor="mt")
     return png(image)
 
 

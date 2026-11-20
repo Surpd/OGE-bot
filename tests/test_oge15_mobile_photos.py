@@ -146,3 +146,44 @@ async def test_public_card_sends_only_materials_needed_for_current_question(stor
         upload = call.args[0]
         assert upload.filename.endswith(".png")
         assert upload.data.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def test_paper_photo_bisects_the_remaining_sheet_along_its_long_side():
+    with Image.open(BytesIO(mobile_photos.paper_diagram())) as image:
+        # A1 occupies the whole right half. The A2 cut ends at the first fold.
+        assert image.getpixel((450, 600)) != (255, 255, 255)
+        assert image.getpixel((360, 384)) != (255, 255, 255)
+        assert image.getpixel((570, 384)) == (255, 255, 255)
+        # The A3 cut ends at A2 and never divides the right half.
+        assert image.getpixel((242, 352)) != (255, 255, 255)
+        assert image.getpixel((242, 415)) == (255, 255, 255)
+
+
+def test_tariff_png_uses_shared_months_and_both_axes_at_the_saved_scale():
+    # Include 0, 400 min / 4 GB, quarter units and a pair of coincident points.
+    minutes = (400, 0, 25, 225) * 3
+    quarters = (0, 16, 1, 15) * 3
+    payload = mobile_photos.tariff_chart({"minutes": minutes, "gb_quarters": quarters})
+    orange, blue = (173, 67, 14), (20, 86, 138)
+    with Image.open(BytesIO(payload)) as image:
+        for month, (duration, traffic) in enumerate(zip(minutes, quarters, strict=True)):
+            x = 128 + 64 * month
+            assert image.getpixel((x, 564 - duration * 480 // 400)) == orange
+            assert image.getpixel((x, 564 - traffic * 480 // 16 - 11)) == blue
+
+    payload = mobile_photos.tariff_chart({"minutes": (200,) * 12, "gb_quarters": (8,) * 12})
+    with Image.open(BytesIO(payload)) as image:
+        assert image.getpixel((128, 324)) == orange
+        assert image.getpixel((128, 313)) == blue
+        assert image.getpixel((144, 324)) == blue  # Dash over the coincident solid line.
+        assert image.getpixel((151, 324)) == orange  # Gap in the dashed series.
+
+
+def test_garden_cells_continue_inside_the_house_footprint():
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 42, "GARDEN"), public_registry()
+    ).snapshot
+    with Image.open(BytesIO(mobile_photos.garden_plan(snapshot))) as image:
+        # Inside the upper wing, adjoining square cells are 60 image pixels wide.
+        for x in (510, 570, 630):
+            assert image.getpixel((x, 170)) != image.getpixel((x + 8, 170))

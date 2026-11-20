@@ -165,20 +165,25 @@ def _generate_v1(
 
 
 def generate(
-    family_id: str, seed: int, generator_version: str = GENERATOR_VERSION
+    family_id: str, seed: int, generator_version: str = GENERATOR_VERSION,
+    *, renderer_version: str | None = None,
 ) -> TriangleProblem:
     if generator_version == GENERATOR_VERSION:
+        if renderer_version is not None:
+            raise ValueError("Text-only triangle has no renderer")
         return _generate_v1(family_id, seed, generator_version)
     from app.math.oge15_complete import SOURCE_IDS, VERSION, content_key, number, parameters
     from app.math.oge15_complete import content as complete_content
     from app.math.oge15_coordinate_oracle import validate
     from app.math.oge15_geometry import construct
     from app.math.oge15_render import VERSION as RENDERER_VERSION
-    from app.math.oge15_render import render
+    from app.math.oge15_render import VERSION_V2, render
 
     if generator_version != VERSION or type(seed) is not int or not 0 <= seed < 2**63:
         raise ValueError("Unknown generator contract or invalid seed")
     n = number(family_id)
+    if n == 1 and renderer_version is not None:
+        raise ValueError("Text-only triangle has no renderer")
     p = parameters(n, seed)
     text, hints, solution, value = complete_content(n, p)
     scene = construct(n, p)
@@ -221,9 +226,13 @@ def generate(
     if n != 1:
         import base64
 
-        png = render(scene)
+        current = VERSION_V2 if n in (3, 5, 9) else RENDERER_VERSION
+        selected = current if renderer_version is None else renderer_version
+        if selected not in (RENDERER_VERSION, current):
+            raise ValueError("Unsupported triangle renderer")
+        png = render(scene, selected)
         snapshot.update(
-            renderer_version=RENDERER_VERSION,
+            renderer_version=selected,
             png_base64=base64.b64encode(png).decode(),
             image_sha256=hashlib.sha256(png).hexdigest(),
         )
@@ -239,7 +248,10 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Tri
             for key in ("png_base64", "image_sha256", "renderer_version", "geometry")
         ):
             raise ValueError("Legacy snapshot contains unversioned geometry")
-        expected = generate(snapshot["family_id"], snapshot["seed"], snapshot["generator_version"])
+        expected = generate(
+            snapshot["family_id"], snapshot["seed"], snapshot["generator_version"],
+            renderer_version=snapshot.get("renderer_version"),
+        )
         # Queue metadata is transport-only; every mathematical field is immutable.
         if any(snapshot.get(key) != value for key, value in expected.to_snapshot().items()):
             raise ValueError("Corrupted triangle snapshot")
@@ -263,6 +275,7 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Tri
                     base64.b64decode(snapshot["png_base64"], validate=True),
                     snapshot["geometry"],
                     expected_png=expected.png_bytes,
+                    version=snapshot["renderer_version"],
                 )
         return expected
     except (KeyError, TypeError, OverflowError) as exc:

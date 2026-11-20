@@ -164,7 +164,12 @@ def restore_graphic_snapshot(snapshot: dict[str, object]) -> dict[str, object] |
             version = snapshot.get("generator_version")
             if not isinstance(version, str):
                 return None
-            expected = generate_task15(family_id, seed, version).to_snapshot()
+            renderer = snapshot.get("renderer_version")
+            if not isinstance(renderer, str):
+                return None
+            expected = generate_task15(
+                family_id, seed, version, renderer_version=renderer
+            ).to_snapshot()
             if _generator_content(compacted) != _generator_content(expected):
                 return None
             restored = deepcopy(snapshot)
