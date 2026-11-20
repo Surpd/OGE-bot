@@ -6,13 +6,21 @@ from typing import Any
 
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
-from openai import APIError, AsyncOpenAI, AuthenticationError, PermissionDeniedError, RateLimitError
+from openai import APIError, APIStatusError
 from PIL import UnidentifiedImageError
 
 from app.bot.part2 import controls, image_bytes
 from app.bot.presentation import send_text
 from app.config import get_settings
-from app.part2_grading import assess, available, clean_photo, inputs
+from app.part2_grading import (
+    assess,
+    available,
+    check_size,
+    clean_photo,
+    failure_reason,
+    inputs,
+    open_client,
+)
 from app.persistence.part2_grades import finish, reserve
 from app.persistence.part2_training import Part2Training
 from app.persistence.repository import Repository
@@ -35,7 +43,7 @@ async def check(
     if notice:
         await send_text(message, repo, notice, reply_markup=controls(issue))
         return
-    provider_unavailable = False
+    reason = None
     dispatched = False
     result = None
     try:
@@ -56,24 +64,25 @@ async def check(
             content = await asyncio.to_thread(
                 inputs, row["card"], refs, [r["body"] for r in work if r["body"]], photos
             )
-            async with AsyncOpenAI(
-                api_key=s.openai_api_key.get_secret_value(),
-                base_url="https://api.openai.com/v1",
-                max_retries=0,
-                timeout=s.oge_grading_timeout_seconds,
-            ) as client:
+            async with open_client(s) as client:
+                await check_size(client, s, content)
                 dispatched = True
                 result = await assess(client, s.oge_grading_model, content)
-    except (RateLimitError, AuthenticationError, PermissionDeniedError):
-        provider_unavailable = True
-    except (APIError, TelegramAPIError, ValueError, TimeoutError, OSError, UnidentifiedImageError):
-        pass
+    except (
+        APIError,
+        TelegramAPIError,
+        ValueError,
+        TimeoutError,
+        OSError,
+        UnidentifiedImageError,
+    ) as exc:
+        reason = failure_reason(exc)
+        if isinstance(exc, APIStatusError) and exc.status_code in (400, 401, 403, 404, 429):
+            dispatched = False
     finally:
-        await finish(bank.pool, s, issue, revision, result, dispatched=dispatched)
-    if provider_unavailable:
-        reply = "Автопроверка временно недоступна. Работа сохранена, балл не выставлен."
-    elif result is None:
-        reply = "Проверка не завершилась. Балл не выставлен. Можно прислать работу ещё раз."
+        await finish(bank.pool, s, issue, revision, result, dispatched=dispatched, reason=reason)
+    if result is None:
+        reply = f"{reason} Работа сохранена, балл не выставлен."
     else:
         assessment = result[0]
         label = (

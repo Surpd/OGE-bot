@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from app.bot.progress_image import dashboard_tile_values
 from app.config import Settings
-from app.part2_grading import Assessment
+from app.part2_grading import Assessment, Grade
 from app.persistence.part2_grades import finish, reserve
 from app.persistence.part2_insights import history, revision, summary
 from app.persistence.part2_training import Part2Training
@@ -11,7 +11,7 @@ from app.persistence.part2_training import Part2Training
 async def test_first_scores_revisions_hints_and_private_history(bank_pool):
     bank = Part2Training(bank_pool)
     issue = await bank.open(1, 25)
-    s = Settings(oge_grading_daily_user_limit=10, oge_grading_monthly_budget_usd=100)
+    s = Settings(oge_grading_daily_user_limit=10, oge_grading_monthly_budget_usd=5)
     for attempt, (status, score) in enumerate(
         [("graded", 1), ("uncertain", None), ("graded", 2)], 1
     ):
@@ -28,7 +28,14 @@ async def test_first_scores_revisions_hints_and_private_history(bank_pool):
             needs_review=score is None,
             confidence=0.7,
         )
-        await finish(bank_pool, s, issue, attempt, (report, 20, 10, "offline"), dispatched=True)
+        await finish(
+            bank_pool,
+            s,
+            issue,
+            attempt,
+            Grade(report, 20, 10, "offline", Decimal("0.00014")),
+            dispatched=True,
+        )
     await bank_pool.execute("UPDATE part2_issues SET hints=2 WHERE id=$1", issue)
     data = await summary(bank_pool, 1)
     assert {
@@ -155,17 +162,18 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
             for b in row
             if b.callback_data.partition("~")[0] == action
         )
-        await post(
-            callback_query=CallbackQuery(
-                id=str(seq), from_user=user, chat_instance="42", message=msg, data=cb
-            )
-        )
+        query = CallbackQuery(id=str(seq), from_user=user, chat_instance="42", message=msg, data=cb)
+        await post(callback_query=query)
+        return query
 
     try:
         await text("/start", entities=[MessageEntity(type="bot_command", offset=0, length=6)])
         await tap("nav:numbers")
         await tap("p2:menu:23")
         assert await repo.user_state(42) == "part2_menu"
+        # Freeze the random choice to an actual card with a condition figure.
+        await bank_pool.execute("""UPDATE part2_versions SET available=false
+            WHERE (payload->>'number')='23' AND task_id<>'oge-part2-reshu-315053'""")
         await tap("p2:open:23")
         assert await repo.user_state(42) == "part2"
         current = await Part2Training(bank_pool).current(42)
@@ -186,9 +194,6 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         for key, value in {
             "oge_grading_enabled": True,
             "openai_api_key": SecretStr("mock"),
-            "oge_grading_tariff_model": settings.oge_grading_model,
-            "oge_grading_input_usd_per_million": Decimal(1),
-            "oge_grading_output_usd_per_million": Decimal(2),
             "oge_grading_context_tokens": 16000,
             "oge_grading_monthly_budget_usd": Decimal(1),
         }.items():
@@ -197,10 +202,14 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
 
         def respond(req):
             payload = json.loads(req.content)
+            if req.url.path.endswith("/input_tokens"):
+                return httpx.Response(
+                    200, json={"object": "response.input_tokens", "input_tokens": 400}
+                )
             requests.append(payload)
             if len(requests) == 3:
                 return httpx.Response(429, json={"error": {"message": "synthetic quota"}})
-            score = len(requests)
+            score = min(2, len(requests))
             assessment = dict(
                 status="graded",
                 score=score,
@@ -234,16 +243,23 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
                             ],
                         }
                     ],
-                    "usage": {"input_tokens": 400, "output_tokens": 120, "total_tokens": 520},
+                    "usage": {
+                        "input_tokens_details": {"cached_tokens": 0, "cache_write_tokens": 0},
+                        "input_tokens": 400,
+                        "output_tokens": 120,
+                        "total_tokens": 520,
+                    },
                 },
             )
 
-        def client(**kwargs):
+        def client(_settings):
             return AsyncOpenAI(
-                **kwargs, http_client=httpx.AsyncClient(transport=httpx.MockTransport(respond))
+                api_key="mock",
+                max_retries=0,
+                http_client=httpx.AsyncClient(transport=httpx.MockTransport(respond)),
             )
 
-        monkeypatch.setattr(part2_check, "AsyncOpenAI", client)
+        monkeypatch.setattr(part2_check, "open_client", client)
         for page_id in ("a", "b"):
             await post(
                 message=Message(
@@ -290,5 +306,35 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         await tap("progress:works:0")
         await tap(f"progress:work:{issue}:1:0")
         assert any("Моё решение." in (getattr(c, "text", None) or "") for c in telegram.calls)
+        from app.bot import api_diagnostics
+
+        def diagnostic_api(req):
+            if req.url.path.endswith("/models/gpt-6.2-sol"):
+                return httpx.Response(200, json={"id": "gpt-6.2-sol", "object": "model"})
+            return respond(req)
+
+        def diagnostic_client(_settings):
+            return AsyncOpenAI(
+                api_key="mock",
+                max_retries=0,
+                http_client=httpx.AsyncClient(transport=httpx.MockTransport(diagnostic_api)),
+            )
+
+        monkeypatch.setattr(api_diagnostics, "open_client", diagnostic_client)
+        await text("/api_status")
+        assert any(
+            "Баланс API-кредитов" in (getattr(c, "text", None) or "") for c in telegram.calls
+        )
+        confirm = seq
+        await text("/api_test")
+        assert len(requests) == 3
+        previous = await tap(f"p2:apitest:{confirm}")
+        await post(callback_query=previous)
+        assert len(requests) == 4
+        diag = await bank_pool.fetchrow("SELECT * FROM part2_api_tests")
+        assert (diag["score"], diag["input_tokens"], diag["output_tokens"]) == (2, 400, 120)
+        assert diag["cost_usd"] == Decimal("0.002")
+        assert await bank_pool.fetchval("SELECT count(*) FROM part2_grades") == 3
+
     finally:
         await bot.session.close()

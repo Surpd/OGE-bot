@@ -64,9 +64,7 @@ def _migration_files() -> list[Path]:
     return migrations
 
 
-async def _assert_no_duplicate_active_sessions(
-    connection: asyncpg.Connection, mode: str
-) -> None:
+async def _assert_no_duplicate_active_sessions(connection: asyncpg.Connection, mode: str) -> None:
     duplicate = await connection.fetchrow(
         """SELECT mode, user_id, count(*) AS session_count
            FROM sessions
@@ -158,6 +156,36 @@ def create_app(
             if run_schema_migrations:
                 try:
                     await _run_schema_migrations(pool)
+                    if settings.oge_part2_enabled:
+                        from app.bot.api_diagnostics import model_status
+                        from app.persistence.part2_bank import import_bank
+
+                        async with pool.acquire() as conn:
+                            await import_bank(conn)
+                            counts = await conn.fetchrow(
+                                "SELECT count(*) cards,count(DISTINCT subtype_id) subtypes,"
+                                "count(*) FILTER(WHERE reviewed) reviewed FROM part2_versions "
+                                "JOIN part2_cards USING(task_id) WHERE available"
+                            )
+                            logging.getLogger("uvicorn.error").info(
+                                "part2_bank_ready cards=%d subtypes=%d reviewed=%d "
+                                "key_configured=%s "
+                                "grading_enabled=%s monthly_usd=%s",
+                                *counts.values(),
+                                bool(settings.openai_api_key),
+                                settings.oge_grading_enabled,
+                                settings.oge_grading_monthly_budget_usd,
+                            )
+                        logging.getLogger("uvicorn.error").info(
+                            "part2_api_status model=%s metadata=%s daily=%d photos=%d "
+                            "per_request_usd=%s input_limit=%d",
+                            settings.oge_grading_model,
+                            await model_status(settings),
+                            settings.oge_grading_daily_user_limit,
+                            settings.oge_grading_max_images,
+                            settings.oge_grading_request_budget_usd,
+                            settings.oge_grading_context_tokens,
+                        )
                 except BaseException:
                     await pool.close()
                     raise

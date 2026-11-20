@@ -33,7 +33,11 @@ def controls(issue: int) -> InlineKeyboardMarkup:
     return keyboard(
         [
             [("Проверить решение", f"p2:check:{issue}"), ("Подсказка", f"p2:hint:{issue}")],
-            [("Следующее", f"p2:next:{issue}"), ("В меню", "nav:main")],
+            [
+                ("Разбор", f"p2:solution:{issue}"),
+                ("Следующее", f"p2:next:{issue}"),
+                ("В меню", "nav:main"),
+            ],
         ]
     )
 
@@ -52,9 +56,12 @@ async def render(message: Message, repo: Repository, owner: int, row: dict[str, 
             data = await asyncio.to_thread(image_bytes, v)
             await message.answer_photo(BufferedInputFile(data, filename="condition.png"))
     label = " · авторская тренировка" if card["bank_scope"] == "training_only" else ""
+    if not row["reviewed"]:
+        label += " · полная сверка впереди"
     privacy = (
         " При проверке OpenAI получит текст и фото. Присылайте только решение без имени."
-        if get_settings().oge_grading_enabled else ""
+        if get_settings().oge_grading_enabled
+        else ""
     )
     await repo.save_user_state(owner, "part2")
     await send_text(
@@ -89,6 +96,14 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
     if len(parts) not in (3, 4) or not parts[2].isascii() or not parts[2].isdigit():
         return
     command, value = parts[1], int(parts[2])
+    if command == "apitest":
+        from app.bot.api_diagnostics import confirmed_test
+        from app.bot.router import return_to_menu
+
+        await confirmed_test(message, bank.pool, owner, value)
+        if await repo.user_state(owner) == "api_test":
+            await return_to_menu(message, repo, user_id_override=owner)
+        return
     if command in {"menu", "open"} and value in range(20, 26):
         choices = await bank.choices(value)
         if command == "menu":
@@ -104,9 +119,7 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
             await send_text(
                 message,
                 repo,
-                f"Задание №{value}. Выберите тип."
-                if choices
-                else "Проверенные карточки пока недоступны.",
+                f"Задание №{value}. Выберите тип." if choices else "Карточки пока недоступны.",
                 reply_markup=keyboard(rows),
             )
             return
@@ -123,6 +136,24 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
     if command == "next":
         if await bank.open(owner, row["number"], replace=value):
             await resume(message, repo, owner)
+    elif command == "solution":
+        await bank.pool.execute(
+            "UPDATE part2_issues SET solution_viewed_at=coalesce(solution_viewed_at,now())"
+            " WHERE id=$1 AND owner=$2",
+            value,
+            owner,
+        )
+        for visual in row["card"]["visuals"]:
+            if visual["role"] == "solution":
+                data_png = await asyncio.to_thread(image_bytes, visual)
+                await message.answer_photo(BufferedInputFile(data_png, filename="solution.png"))
+        await send_text(
+            message,
+            repo,
+            "Разбор\n\n" + row["card"]["reference_solution"],
+            reply_markup=controls(value),
+            rich_with_navigation=True,
+        )
     elif command == "hint":
         used = await bank.pool.fetchval(
             "UPDATE part2_issues SET hints=least(2,hints+1) WHERE owner=$1 AND id=$2"

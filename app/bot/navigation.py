@@ -50,6 +50,8 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
+    if any(c and c.startswith("p2:apitest:") for c in callbacks):
+        return "api_test"
     if "nav:numbers" in callbacks and any(c and c.startswith(("p2:open:", "p2:menu:"))
                                           for c in callbacks):
         return "part2_menu"
@@ -236,6 +238,13 @@ async def navigation_callback(
     ):
         await answer_callback(callback, "Этот раздел недоступен.")
         return
+    if data.startswith("p2:apitest:"):
+        markup = callback.message.reply_markup
+        if (callback.message.chat.type != "private" or markup is None or
+            not any(b.callback_data == callback.data for row in markup.inline_keyboard for b in row)
+            or await repository.user_state(callback.from_user.id) != "api_test"):
+            await answer_callback(callback, "Откройте /api_test для подтверждения.")
+            return
     if not await repository.claim_navigation_message(
         callback.from_user.id, callback.message.message_id, revision or None
     ):

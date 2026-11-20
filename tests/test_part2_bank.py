@@ -33,10 +33,24 @@ async def test_import_is_atomic_and_replay_keeps_the_original_version(tmp_path):
                 .removeprefix("BEGIN;")
                 .removesuffix("COMMIT;\n")
             )
+            for name in (
+                "0022_part2_training.sql",
+                "0023_part2_grading.sql",
+                "0024_part2_release.sql",
+            ):
+                if name.startswith("0022"):
+                    await conn.execute("CREATE TABLE users(telegram_user_id bigint PRIMARY KEY)")
+                await conn.execute(
+                    (Path("migrations") / name)
+                    .read_text()
+                    .removeprefix("BEGIN;")
+                    .removesuffix("COMMIT;\n")
+                )
             for _ in range(2):
                 assert await import_bank(conn) == 486
             assert await conn.fetchval("SELECT count(*) FROM part2_versions") == 486
-            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 12
+            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 486
+            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE reviewed") == 12
             for name in ("figures", "taxonomy.json", "reviewed_versions.json"):
                 (tmp_path / name).symlink_to(ATLAS / name)
             first, remaining = (ATLAS / "tasks.jsonl").read_text().split("\n", 1)
@@ -47,7 +61,7 @@ async def test_import_is_atomic_and_replay_keeps_the_original_version(tmp_path):
             path.write_text(first)
             with pytest.raises(ValueError, match="Incomplete atlas"):
                 await import_bank(conn, tmp_path)
-            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 12
+            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 486
             path.write_text(json.dumps(card) + "\n" + remaining)
             with pytest.raises(ValueError, match="without a new version"):
                 await import_bank(conn, tmp_path)

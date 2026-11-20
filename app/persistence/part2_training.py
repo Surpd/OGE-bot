@@ -67,7 +67,8 @@ class Part2Training:
 
     async def current(self, owner: int, issue: int | None = None) -> dict[str, Any] | None:
         row = await self.pool.fetchrow(
-            """SELECT i.*,v.payload FROM part2_issues i JOIN part2_versions v USING(task_id,version)
+            """SELECT i.*,v.payload,v.reviewed FROM part2_issues i
+            JOIN part2_versions v USING(task_id,version)
             WHERE owner=$1 AND NOT closed ORDER BY touched_at DESC,id DESC LIMIT 1""",
             owner,
         )

@@ -2658,6 +2658,10 @@ def build_router() -> Router:
     )
     router.callback_query.register(mixed_callback, F.data.startswith("mixed:"))
     router.message.register(start, CommandStart())
+    from app.bot.api_diagnostics import api_status, api_test
+
+    router.message.register(api_status, Command("api_status"))
+    router.message.register(api_test, Command("api_test"))
     router.message.register(cancel, Command("cancel"))
     router.message.register(continue_session, F.text == "▶ Продолжить")
     router.message.register(choose_number, F.text == "🧮 По номеру")

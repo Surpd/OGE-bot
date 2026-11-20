@@ -80,26 +80,28 @@ async def import_bank(connection: asyncpg.Connection, root: Path = ATLAS) -> int
             if hashlib.sha256(figure(row["path"], root)).hexdigest() != row["sha"]:
                 raise ValueError(f"Historical image changed: {row['path']}")
         await connection.execute("UPDATE part2_versions SET available=false WHERE available")
-        for task_id, version, payload, digest in cards:
-            subtype = json.loads(payload)["subtype_id"]
-            stored = await connection.fetchval(
-                """INSERT INTO part2_cards VALUES ($1,$2) ON CONFLICT (task_id)
-                DO UPDATE SET task_id=excluded.task_id RETURNING subtype_id""",
-                task_id,
-                subtype,
+        await connection.executemany(
+            "INSERT INTO part2_cards VALUES ($1,$2) ON CONFLICT DO NOTHING",
+            [(tid, json.loads(payload)["subtype_id"]) for tid, _, payload, _ in cards],
+        )
+        await connection.executemany(
+            """INSERT INTO part2_versions(task_id,version,payload,digest,available,reviewed)
+               VALUES ($1,$2,$3,$4,true,$5) ON CONFLICT(task_id,version)
+               DO UPDATE SET available=true,reviewed=excluded.reviewed""",
+            [
+                (tid, version, payload, digest, approved.get(tid) == digest)
+                for tid, version, payload, digest in cards
+            ],
+        )
+        imported = {
+            r["task_id"]: (r["subtype_id"], r["digest"])
+            for r in await connection.fetch(
+                "SELECT task_id,subtype_id,digest FROM part2_versions"
+                " JOIN part2_cards USING(task_id)"
+                " WHERE available"
             )
-            if stored != subtype:
-                raise ValueError(f"Card subtype changed: {task_id}")
-            stored = await connection.fetchval(
-                """INSERT INTO part2_versions VALUES ($1,$2,$3,$4,$5)
-                ON CONFLICT (task_id,version) DO UPDATE SET available=excluded.available
-                RETURNING digest""",
-                task_id,
-                version,
-                payload,
-                digest,
-                approved.get(task_id) == digest,
-            )
-            if stored != digest:
-                raise ValueError(f"Content changed without a new version: {task_id}")
+        }
+        for tid, _, payload, digest in cards:
+            if imported[tid] != (json.loads(payload)["subtype_id"], digest):
+                raise ValueError(f"Content or identity changed without a new version: {tid}")
     return len(cards)
