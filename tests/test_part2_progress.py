@@ -15,7 +15,9 @@ async def test_first_scores_revisions_hints_and_private_history(bank_pool):
     for attempt, (status, score) in enumerate(
         [("graded", 1), ("uncertain", None), ("graded", 2)], 1
     ):
-        assert await bank.append(1, issue, attempt, attempt, f"Решение {attempt}", None) == "saved"
+        assert (
+            await bank.append(1, issue, attempt, attempt, f"Решение {attempt}", "photo") == "saved"
+        )
         assert (await reserve(bank_pool, s, 1, issue, attempt))[1]
         report = Assessment(
             status=status,
@@ -187,7 +189,7 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         await text("Моё решение.")
         assert (
             await bank_pool.fetchval("SELECT count(*) FROM part2_work WHERE issue_id=$1", issue)
-            == 1
+            == 0
         )
         await tap(f"p2:hint:{issue}")
         await tap(f"p2:check:{issue}")
@@ -313,7 +315,7 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         assert (
             len([v for v in requests[0]["input"][1]["content"] if v["type"] == "input_image"]) == 1
         )
-        assert requests[0]["input"][1]["content"][0]["text"].count("Моё решение.") == 1
+        assert requests[0]["input"][1]["content"][0]["text"].count("Моё решение.") == 0
         assert "Старый снимок." not in str(requests[0]["input"])
         assert (
             len([v for v in requests[0]["input"][0]["content"] if v["type"] == "input_image"]) == 1
@@ -329,10 +331,10 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         await tap(f"p2:check:{issue}")
         assert len(requests) == 1
         await bank_pool.execute("UPDATE part2_grades SET dispatched_at=now()-interval '21 seconds'")
-        await text("Исправленная работа.")
+        await post(message=photo_message("d"))
         await tap(f"p2:check:{issue}")
         await bank_pool.execute("UPDATE part2_grades SET dispatched_at=now()-interval '21 seconds'")
-        await text("Ещё один вариант.")
+        await post(message=photo_message("e"))
         await tap(f"p2:check:{issue}")
         assert len(requests) == 3
         scores = await bank_pool.fetch("SELECT status,score FROM part2_grades ORDER BY revision")
@@ -402,7 +404,7 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         other = await bank.current(42)
         assert other["number"] == 22
         assert await bank_pool.fetchval("SELECT count(*) FROM part2_issues WHERE number=22") == 1
-        await text("Черновик графика.")
+        await post(message=photo_message("graph", caption="Черновик графика."))
         await tap("p2:menu:22")
         await tap("nav:numbers")
         await tap("p2:menu:23")

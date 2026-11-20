@@ -104,10 +104,11 @@ async def reserve(
             issue,
             revision,
         )
-        if sum(bool(item["photo"]) for item in work) > 1:
+        photo_count = sum(bool(item["photo"]) for item in work)
+        if photo_count > 1:
             return "В черновике несколько фото. Ответьте на одно из них новым общим снимком.", []
-        if not work:
-            return "Пришлите текст или фото решения.", []
+        if not photo_count:
+            return "Для проверки пришлите одно фото с ходом решения.", []
         notice = budget_notice(s, await budget_usage(conn, owner))
         if notice:
             return notice + " Работа сохранена.", []

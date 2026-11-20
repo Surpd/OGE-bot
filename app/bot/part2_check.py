@@ -67,8 +67,7 @@ async def check(
                 for v in row["card"]["visuals"]
                 if v["role"] == "condition"
             ]
-            text = list(dict.fromkeys(r["body"] for r in work if r["body"]))
-            content = await asyncio.to_thread(inputs, row["card"], refs, text, photos)
+            content = await asyncio.to_thread(inputs, row["card"], refs, [], photos)
             async with open_client(s) as client:
                 await check_size(client, s, content)
                 await mark_dispatched(bank.pool, issue, revision)
@@ -113,7 +112,7 @@ def grading_reply(assessment: Assessment, rubric_kind: str) -> str:
         return (
             "Оценка не выставлена.\n\n"
             + display_feedback(assessment.feedback[:800])
-            + "\n\nПришлите решение целиком. Если отправляете фото, сделайте более чёткий снимок. "
+            + "\n\nПришлите чёткое фото решения целиком. "
             "Затем нажмите «Проверить решение»."
         )
     score = assessment.score

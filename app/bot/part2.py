@@ -41,9 +41,10 @@ TITLES = {
 PAGE_SIZE = 5
 INTRO = (
     "Письменная тренировка\n\n"
-    "Пришлите решение текстом или одним чётким фото. Чтобы заменить фото, ответьте на него "
+    "Запишите ход решения на бумаге и пришлите одно чёткое фото. Чтобы заменить фото, "
+    "ответьте на него "
     "новым снимком. Нажмите «Проверить решение» для предварительной оценки.\n\n"
-    "Только при проверке текст и фото передаются OpenAI. Не указывайте имя на работе."
+    "Только при проверке снимок передаётся OpenAI. Не указывайте имя на работе."
 )
 
 
@@ -113,7 +114,7 @@ async def card_message(
         )
 
 
-def statement_text(card: dict[str, Any], status: str = "Решение: текстом или одним фото.") -> str:
+def statement_text(card: dict[str, Any], status: str = "Пришлите решение одним фото.") -> str:
     number = card["number"]
     label = "\nУчебная задача" if card["bank_scope"] == "training_only" else ""
     return f"№{number} · {TITLES[number]}{label}\n\n{card['statement']}\n\n{status}"
@@ -132,7 +133,7 @@ async def render(message: Message, repo: Repository, owner: int, row: dict[str, 
     elif row["draft"]:
         status = "Черновик сохранён."
     else:
-        status = "Решение: текстом или одним фото."
+        status = "Пришлите решение одним фото."
     await repo.save_user_state(owner, "part2")
     await card_message(
         message,
@@ -426,11 +427,11 @@ async def collect(message: Message, repository: Repository) -> None:
     if row is None:
         raise SkipHandler
     photo = message.photo[-1] if message.photo else None
-    body = message.caption if photo else message.text
-    if (photo and (photo.file_size is None or photo.file_size > 4_000_000)) or (
-        body and len(body) > 4000
-    ):
-        await message.answer("Пришлите до 4000 знаков или фотографию до 4 МБ.")
+    if photo is None:
+        await message.answer("Запишите решение на бумаге и пришлите его одним фото.")
+        return
+    if photo.file_size is None or photo.file_size > 4_000_000:
+        await message.answer("Пришлите фотографию решения до 4 МБ.")
         return
     reply = message.reply_to_message
     result = await bank.append(
@@ -438,8 +439,8 @@ async def collect(message: Message, repository: Repository) -> None:
         row["id"],
         row["revision"],
         message.message_id,
-        body,
-        photo.file_id if photo else None,
+        message.caption,
+        photo.file_id,
         message.media_group_id,
         replace_photo=reply.message_id if reply and reply.photo else None,
     )
@@ -452,4 +453,4 @@ async def collect(message: Message, repository: Repository) -> None:
     elif result == "saved":
         await message.answer("Добавлено к решению.")
     elif result == "stale":
-        await message.answer("Фото или текст не добавлены. Проверьте текущее задание и лимит.")
+        await message.answer("Фото не добавлено. Проверьте текущее задание и лимит.")

@@ -15,7 +15,7 @@
   },
   {
     "task_id": "oge-part2-reshu-311589",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-factor",
     "automatic_check": "passed",
@@ -25,11 +25,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 473
+    "max_formula_width_px": 604
   },
   {
     "task_id": "oge-part2-reshu-338079",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-factor",
     "automatic_check": "passed",
@@ -43,7 +43,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338348",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-factor",
     "automatic_check": "passed",
@@ -57,7 +57,7 @@
   },
   {
     "task_id": "oge-part2-reshu-311586",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-factor",
     "automatic_check": "passed",
@@ -71,7 +71,7 @@
   },
   {
     "task_id": "oge-part2-reshu-311594",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-factor",
     "automatic_check": "passed",
@@ -99,7 +99,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338498",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-quadratic",
     "automatic_check": "passed",
@@ -113,7 +113,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338632",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-quadratic",
     "automatic_check": "passed",
@@ -127,7 +127,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338506",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-quadratic",
     "automatic_check": "passed",
@@ -141,7 +141,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338645",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-quadratic",
     "automatic_check": "passed",
@@ -155,7 +155,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338662",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-quadratic",
     "automatic_check": "passed",
@@ -183,7 +183,7 @@
   },
   {
     "task_id": "oge-part2-reshu-348808",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-substitution",
     "automatic_check": "passed",
@@ -197,7 +197,7 @@
   },
   {
     "task_id": "oge-part2-reshu-352292",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-substitution",
     "automatic_check": "passed",
@@ -211,7 +211,7 @@
   },
   {
     "task_id": "oge-part2-reshu-357246",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-substitution",
     "automatic_check": "passed",
@@ -225,7 +225,7 @@
   },
   {
     "task_id": "oge-part2-reshu-357247",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-substitution",
     "automatic_check": "passed",
@@ -239,7 +239,7 @@
   },
   {
     "task_id": "oge-part2-reshu-406321",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-poly-substitution",
     "automatic_check": "passed",
@@ -435,7 +435,7 @@
   },
   {
     "task_id": "oge-part2-reshu-349122",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-rational-clear",
     "automatic_check": "passed",
@@ -445,11 +445,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 591
   },
   {
     "task_id": "oge-part2-reshu-350263",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-rational-clear",
     "automatic_check": "passed",
@@ -459,11 +459,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 624
   },
   {
     "task_id": "oge-part2-reshu-351135",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-rational-clear",
     "automatic_check": "passed",
@@ -473,11 +473,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 591
   },
   {
     "task_id": "oge-part2-reshu-351788",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-rational-clear",
     "automatic_check": "passed",
@@ -487,11 +487,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 591
   },
   {
     "task_id": "oge-part2-reshu-352739",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-rational-clear",
     "automatic_check": "passed",
@@ -501,7 +501,7 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 591
   },
   {
     "task_id": "oge-part2-reshu-338757",
@@ -589,7 +589,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338086",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-radical-cancel",
     "automatic_check": "passed",
@@ -603,7 +603,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338167",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-radical-cancel",
     "automatic_check": "passed",
@@ -617,7 +617,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338210",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-radical-cancel",
     "automatic_check": "passed",
@@ -631,7 +631,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338230",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-radical-cancel",
     "automatic_check": "passed",
@@ -645,7 +645,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338287",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-radical-cancel",
     "automatic_check": "passed",
@@ -659,7 +659,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338334",
-    "version": 1,
+    "version": 2,
     "number": 20,
     "subtype": "OGE20-radical-cancel",
     "automatic_check": "passed",
@@ -1251,7 +1251,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341367",
-    "version": 1,
+    "version": 2,
     "number": 21,
     "subtype": "OGE21-mass-invariant",
     "automatic_check": "passed",
@@ -1261,11 +1261,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 340
+    "max_formula_width_px": 386
   },
   {
     "task_id": "oge-part2-reshu-339013",
-    "version": 1,
+    "version": 2,
     "number": 21,
     "subtype": "OGE21-mass-invariant",
     "automatic_check": "passed",
@@ -1275,11 +1275,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 340
+    "max_formula_width_px": 362
   },
   {
     "task_id": "oge-part2-reshu-341508",
-    "version": 1,
+    "version": 2,
     "number": 21,
     "subtype": "OGE21-mass-invariant",
     "automatic_check": "passed",
@@ -1289,11 +1289,11 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 340
+    "max_formula_width_px": 362
   },
   {
     "task_id": "oge-part2-reshu-353507",
-    "version": 1,
+    "version": 2,
     "number": 21,
     "subtype": "OGE21-mass-invariant",
     "automatic_check": "passed",
@@ -1307,7 +1307,7 @@
   },
   {
     "task_id": "oge-part2-reshu-353545",
-    "version": 1,
+    "version": 2,
     "number": 21,
     "subtype": "OGE21-mass-invariant",
     "automatic_check": "passed",
@@ -1317,7 +1317,7 @@
     "assets": [],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 340
+    "max_formula_width_px": 362
   },
   {
     "task_id": "oge-part2-fipi-demo-2027-21",
@@ -2432,7 +2432,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338288",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-level",
     "automatic_check": "passed",
@@ -2447,11 +2447,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 661
+    "max_formula_width_px": 797
   },
   {
     "task_id": "oge-part2-reshu-340600",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-level",
     "automatic_check": "passed",
@@ -2466,11 +2466,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 764
   },
   {
     "task_id": "oge-part2-reshu-341129",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-level",
     "automatic_check": "passed",
@@ -2485,11 +2485,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 661
+    "max_formula_width_px": 1164
   },
   {
     "task_id": "oge-part2-reshu-341159",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-level",
     "automatic_check": "passed",
@@ -2504,11 +2504,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 661
+    "max_formula_width_px": 1164
   },
   {
     "task_id": "oge-part2-reshu-341535",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-level",
     "automatic_check": "passed",
@@ -2523,7 +2523,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 697
+    "max_formula_width_px": 511
   },
   {
     "task_id": "oge-part2-reshu-338408",
@@ -2546,7 +2546,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341686",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-slope",
     "automatic_check": "passed",
@@ -2561,11 +2561,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 529
+    "max_formula_width_px": 435
   },
   {
     "task_id": "oge-part2-reshu-348483",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-slope",
     "automatic_check": "passed",
@@ -2580,11 +2580,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 529
+    "max_formula_width_px": 433
   },
   {
     "task_id": "oge-part2-reshu-348845",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-slope",
     "automatic_check": "passed",
@@ -2599,11 +2599,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 611
+    "max_formula_width_px": 406
   },
   {
     "task_id": "oge-part2-reshu-348865",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-slope",
     "automatic_check": "passed",
@@ -2618,11 +2618,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 611
+    "max_formula_width_px": 402
   },
   {
     "task_id": "oge-part2-reshu-349984",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-parabola-slope",
     "automatic_check": "passed",
@@ -2637,7 +2637,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 526
+    "max_formula_width_px": 433
   },
   {
     "task_id": "oge-part2-reshu-314799",
@@ -2660,7 +2660,7 @@
   },
   {
     "task_id": "oge-part2-reshu-153",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-slope",
     "automatic_check": "passed",
@@ -2675,11 +2675,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 802
+    "max_formula_width_px": 495
   },
   {
     "task_id": "oge-part2-reshu-314804",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-slope",
     "automatic_check": "passed",
@@ -2694,11 +2694,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 691
+    "max_formula_width_px": 495
   },
   {
     "task_id": "oge-part2-reshu-338300",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-slope",
     "automatic_check": "passed",
@@ -2713,11 +2713,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 802
+    "max_formula_width_px": 528
   },
   {
     "task_id": "oge-part2-reshu-314796",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-slope",
     "automatic_check": "passed",
@@ -2732,11 +2732,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 460
   },
   {
     "task_id": "oge-part2-reshu-349016",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-slope",
     "automatic_check": "passed",
@@ -2751,7 +2751,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 691
+    "max_formula_width_px": 528
   },
   {
     "task_id": "oge-part2-reshu-340933",
@@ -2774,7 +2774,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341420",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-level",
     "automatic_check": "passed",
@@ -2789,11 +2789,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 460
   },
   {
     "task_id": "oge-part2-reshu-338224",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-level",
     "automatic_check": "passed",
@@ -2808,11 +2808,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 426
   },
   {
     "task_id": "oge-part2-reshu-341509",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-level",
     "automatic_check": "passed",
@@ -2827,11 +2827,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 460
   },
   {
     "task_id": "oge-part2-reshu-353123",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-level",
     "automatic_check": "passed",
@@ -2846,11 +2846,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 808
+    "max_formula_width_px": 460
   },
   {
     "task_id": "oge-part2-reshu-392855",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-hyperbola-level",
     "automatic_check": "passed",
@@ -2865,7 +2865,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 697
+    "max_formula_width_px": 460
   },
   {
     "task_id": "oge-part2-reshu-338420",
@@ -2888,7 +2888,7 @@
   },
   {
     "task_id": "oge-part2-reshu-311662",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-modulus",
     "automatic_check": "passed",
@@ -2903,11 +2903,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 1006
+    "max_formula_width_px": 411
   },
   {
     "task_id": "oge-part2-reshu-338162",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-modulus",
     "automatic_check": "passed",
@@ -2922,11 +2922,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 993
+    "max_formula_width_px": 371
   },
   {
     "task_id": "oge-part2-reshu-338435",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-modulus",
     "automatic_check": "passed",
@@ -2941,11 +2941,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 531
+    "max_formula_width_px": 502
   },
   {
     "task_id": "oge-part2-reshu-341342",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-modulus",
     "automatic_check": "passed",
@@ -2960,11 +2960,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 520
+    "max_formula_width_px": 508
   },
   {
     "task_id": "oge-part2-reshu-353416",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-hole-modulus",
     "automatic_check": "passed",
@@ -2979,7 +2979,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 542
+    "max_formula_width_px": 546
   },
   {
     "task_id": "oge-part2-reshu-311619",
@@ -3002,7 +3002,7 @@
   },
   {
     "task_id": "oge-part2-reshu-339148",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-lines",
     "automatic_check": "passed",
@@ -3021,7 +3021,7 @@
   },
   {
     "task_id": "oge-part2-reshu-340993",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-lines",
     "automatic_check": "passed",
@@ -3040,7 +3040,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341025",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-lines",
     "automatic_check": "passed",
@@ -3059,7 +3059,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341057",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-lines",
     "automatic_check": "passed",
@@ -3078,7 +3078,7 @@
   },
   {
     "task_id": "oge-part2-reshu-349086",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-lines",
     "automatic_check": "passed",
@@ -3116,7 +3116,7 @@
   },
   {
     "task_id": "oge-part2-reshu-333129",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-line",
     "automatic_check": "passed",
@@ -3135,7 +3135,7 @@
   },
   {
     "task_id": "oge-part2-reshu-333024",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-line",
     "automatic_check": "passed",
@@ -3154,7 +3154,7 @@
   },
   {
     "task_id": "oge-part2-reshu-333103",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-line",
     "automatic_check": "passed",
@@ -3173,7 +3173,7 @@
   },
   {
     "task_id": "oge-part2-reshu-333156",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-line",
     "automatic_check": "passed",
@@ -3192,7 +3192,7 @@
   },
   {
     "task_id": "oge-part2-reshu-339278",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-line",
     "automatic_check": "passed",
@@ -3230,7 +3230,7 @@
   },
   {
     "task_id": "oge-part2-reshu-333346",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-hyperbola",
     "automatic_check": "passed",
@@ -3249,7 +3249,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341394",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-hyperbola",
     "automatic_check": "passed",
@@ -3268,7 +3268,7 @@
   },
   {
     "task_id": "oge-part2-reshu-370480",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-hyperbola",
     "automatic_check": "passed",
@@ -3287,7 +3287,7 @@
   },
   {
     "task_id": "oge-part2-reshu-392124",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-hyperbola",
     "automatic_check": "passed",
@@ -3306,7 +3306,7 @@
   },
   {
     "task_id": "oge-part2-reshu-392674",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-piecewise-parabola-hyperbola",
     "automatic_check": "passed",
@@ -3344,7 +3344,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338160",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-inside",
     "automatic_check": "passed",
@@ -3359,11 +3359,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 560
+    "max_formula_width_px": 777
   },
   {
     "task_id": "oge-part2-reshu-338253",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-inside",
     "automatic_check": "passed",
@@ -3378,11 +3378,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 677
+    "max_formula_width_px": 793
   },
   {
     "task_id": "oge-part2-reshu-341230",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-inside",
     "automatic_check": "passed",
@@ -3397,11 +3397,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 750
+    "max_formula_width_px": 713
   },
   {
     "task_id": "oge-part2-reshu-316358",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-inside",
     "automatic_check": "passed",
@@ -3416,11 +3416,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 677
+    "max_formula_width_px": 942
   },
   {
     "task_id": "oge-part2-reshu-316384",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-inside",
     "automatic_check": "passed",
@@ -3435,7 +3435,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 615
+    "max_formula_width_px": 504
   },
   {
     "task_id": "oge-part2-reshu-353274",
@@ -3458,7 +3458,7 @@
   },
   {
     "task_id": "oge-part2-reshu-338455",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-outside",
     "automatic_check": "passed",
@@ -3473,11 +3473,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 770
+    "max_formula_width_px": 715
   },
   {
     "task_id": "oge-part2-reshu-348457",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-outside",
     "automatic_check": "passed",
@@ -3492,11 +3492,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 849
+    "max_formula_width_px": 784
   },
   {
     "task_id": "oge-part2-reshu-349264",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-outside",
     "automatic_check": "passed",
@@ -3511,11 +3511,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 760
+    "max_formula_width_px": 784
   },
   {
     "task_id": "oge-part2-reshu-349717",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-outside",
     "automatic_check": "passed",
@@ -3530,11 +3530,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 804
+    "max_formula_width_px": 784
   },
   {
     "task_id": "oge-part2-reshu-349723",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-modulus-outside",
     "automatic_check": "passed",
@@ -3549,11 +3549,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 849
+    "max_formula_width_px": 784
   },
   {
     "task_id": "oge-part2-reshu-338314",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-max-form",
     "automatic_check": "passed",
@@ -3568,11 +3568,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 773
+    "max_formula_width_px": 766
   },
   {
     "task_id": "oge-part2-reshu-341284",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-max-form",
     "automatic_check": "passed",
@@ -3587,11 +3587,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 773
+    "max_formula_width_px": 613
   },
   {
     "task_id": "oge-part2-reshu-341289",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-max-form",
     "automatic_check": "passed",
@@ -3606,11 +3606,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 773
+    "max_formula_width_px": 611
   },
   {
     "task_id": "oge-part2-reshu-401321",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-max-form",
     "automatic_check": "passed",
@@ -3625,11 +3625,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 773
+    "max_formula_width_px": 768
   },
   {
     "task_id": "oge-part2-reshu-401477",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-max-form",
     "automatic_check": "passed",
@@ -3648,7 +3648,7 @@
   },
   {
     "task_id": "oge-part2-reshu-402035",
-    "version": 1,
+    "version": 2,
     "number": 22,
     "subtype": "OGE22-max-form",
     "automatic_check": "passed",
@@ -3663,7 +3663,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 773
+    "max_formula_width_px": 611
   },
   {
     "task_id": "oge-part2-reshu-315053",
@@ -5037,7 +5037,7 @@
   },
   {
     "task_id": "oge-part2-reshu-351992",
-    "version": 1,
+    "version": 2,
     "number": 23,
     "subtype": "OGE23-trapezoid-trig",
     "automatic_check": "passed",
@@ -5052,11 +5052,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 895
+    "max_formula_width_px": 542
   },
   {
     "task_id": "oge-part2-reshu-339432",
-    "version": 1,
+    "version": 2,
     "number": 23,
     "subtype": "OGE23-trapezoid-trig",
     "automatic_check": "passed",
@@ -5071,11 +5071,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 895
+    "max_formula_width_px": 542
   },
   {
     "task_id": "oge-part2-reshu-339454",
-    "version": 1,
+    "version": 2,
     "number": 23,
     "subtype": "OGE23-trapezoid-trig",
     "automatic_check": "passed",
@@ -5090,11 +5090,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 895
+    "max_formula_width_px": 542
   },
   {
     "task_id": "oge-part2-reshu-348741",
-    "version": 1,
+    "version": 2,
     "number": 23,
     "subtype": "OGE23-trapezoid-trig",
     "automatic_check": "passed",
@@ -5109,11 +5109,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 895
+    "max_formula_width_px": 542
   },
   {
     "task_id": "oge-part2-reshu-349618",
-    "version": 1,
+    "version": 2,
     "number": 23,
     "subtype": "OGE23-trapezoid-trig",
     "automatic_check": "passed",
@@ -5128,11 +5128,11 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 895
+    "max_formula_width_px": 542
   },
   {
     "task_id": "oge-part2-reshu-349709",
-    "version": 1,
+    "version": 2,
     "number": 23,
     "subtype": "OGE23-trapezoid-trig",
     "automatic_check": "passed",
@@ -5147,7 +5147,7 @@
     ],
     "editorial_findings": [],
     "editorial_revision": null,
-    "max_formula_width_px": 895
+    "max_formula_width_px": 542
   },
   {
     "task_id": "oge-part2-reshu-311650",
@@ -5607,7 +5607,7 @@
   },
   {
     "task_id": "oge-part2-reshu-340995",
-    "version": 1,
+    "version": 2,
     "number": 24,
     "subtype": "OGE24-similar-parallels",
     "automatic_check": "passed",
@@ -5626,7 +5626,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341131",
-    "version": 1,
+    "version": 2,
     "number": 24,
     "subtype": "OGE24-similar-parallels",
     "automatic_check": "passed",
@@ -5645,7 +5645,7 @@
   },
   {
     "task_id": "oge-part2-reshu-348542",
-    "version": 1,
+    "version": 2,
     "number": 24,
     "subtype": "OGE24-similar-parallels",
     "automatic_check": "passed",
@@ -6861,7 +6861,7 @@
   },
   {
     "task_id": "oge-part2-reshu-353565",
-    "version": 1,
+    "version": 2,
     "number": 25,
     "subtype": "OGE25-trapezoid-midpoint-segments",
     "automatic_check": "passed",
@@ -6880,7 +6880,7 @@
   },
   {
     "task_id": "oge-part2-reshu-339730",
-    "version": 1,
+    "version": 2,
     "number": 25,
     "subtype": "OGE25-trapezoid-midpoint-segments",
     "automatic_check": "passed",
@@ -6899,7 +6899,7 @@
   },
   {
     "task_id": "oge-part2-reshu-341060",
-    "version": 1,
+    "version": 2,
     "number": 25,
     "subtype": "OGE25-trapezoid-midpoint-segments",
     "automatic_check": "passed",
@@ -6918,7 +6918,7 @@
   },
   {
     "task_id": "oge-part2-reshu-348839",
-    "version": 1,
+    "version": 2,
     "number": 25,
     "subtype": "OGE25-trapezoid-midpoint-segments",
     "automatic_check": "passed",
@@ -6937,7 +6937,7 @@
   },
   {
     "task_id": "oge-part2-reshu-349860",
-    "version": 1,
+    "version": 2,
     "number": 25,
     "subtype": "OGE25-trapezoid-midpoint-segments",
     "automatic_check": "passed",
@@ -6956,7 +6956,7 @@
   },
   {
     "task_id": "oge-part2-reshu-349968",
-    "version": 1,
+    "version": 2,
     "number": 25,
     "subtype": "OGE25-trapezoid-midpoint-segments",
     "automatic_check": "passed",
