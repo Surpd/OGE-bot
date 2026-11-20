@@ -82,7 +82,7 @@ def generate() -> list[Path]:
             path.write_bytes(png)
             output.append(path)
         with Image.open(BytesIO(png)) as image:
-            for width in (360, 390):
+            for width in (360, 390, 430):
                 resized = image.resize(
                     (width, round(image.height * width / image.width)),
                     Image.Resampling.LANCZOS,
