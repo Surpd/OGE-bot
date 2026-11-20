@@ -6859,6 +6859,7 @@ class PostgresRepository(
                     "hints_used": 0,
                     "used_hint": False,
                     "family_queue": queue_after,
+                    "last_family_id": problem["family_id"],
                     "recent_fingerprints": ordered_recent,
                     "selection_dedupe_rejections": (
                         _state_int(state, "selection_dedupe_rejections") + rejected
@@ -7606,6 +7607,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "hints_used": 0,
                 "used_hint": False,
                 "family_queue": queue_after,
+                "last_family_id": problem["family_id"],
                 "recent_fingerprints": next_recent,
                 "selection_dedupe_rejections": (
                     _state_int(session_state, "selection_dedupe_rejections") + rejected

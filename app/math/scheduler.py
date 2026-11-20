@@ -5,7 +5,7 @@ from typing import cast
 from uuid import uuid4
 
 from app.math.generator import generate
-from app.math.registry import GENERATOR_SPECS, SPEC_BY_ID
+from app.math.registry import SPEC_BY_ID
 
 FINGERPRINT_HISTORY_LIMIT = 30
 MAX_FAMILY_QUEUE_CANDIDATES = 60
@@ -21,19 +21,12 @@ def _weighted_unique_order(seed: int) -> list[str]:
     )
 
 
-def build_family_deck(seed: int) -> list[str]:
-    """Put every enabled family once before catalog-weighted extra cards."""
-    core = _weighted_unique_order(seed)
-    extras = [spec.family_id for spec in GENERATOR_SPECS for _ in range(spec.selection_weight - 1)]
-    random.Random(f"oge6-family-extras:{seed}").shuffle(extras)
-    if extras and extras[0] == core[-1]:
-        different = next(
-            (index for index, family_id in enumerate(extras) if family_id != core[-1]),
-            None,
-        )
-        if different is not None:
-            extras[0], extras[different] = extras[different], extras[0]
-    return [*core, *extras]
+def build_family_deck(seed: int, previous: object = None) -> list[str]:
+    """Rotate all distinct constructions once; weights only influence their order."""
+    deck = _weighted_unique_order(seed)
+    if len(deck) > 1 and deck[0] == previous:
+        deck[0], deck[1] = deck[1], deck[0]
+    return deck
 
 
 def build_candidate_batch(state: dict[str, object], seed: int) -> list[dict[str, object]]:
@@ -43,9 +36,13 @@ def build_candidate_batch(state: dict[str, object], seed: int) -> list[dict[str,
         and stored_queue
         and all(isinstance(item, str) and item in SPEC_BY_ID for item in stored_queue)
     ):
-        family_queue = cast(list[str], stored_queue)
+        family_queue = list(dict.fromkeys(cast(list[str], stored_queue)))
+        if family_queue[0] == state.get("last_family_id"):
+            family_queue = family_queue[1:]
+        if not family_queue:
+            family_queue = build_family_deck(seed, state.get("last_family_id"))
     else:
-        family_queue = build_family_deck(seed)
+        family_queue = build_family_deck(seed, state.get("last_family_id"))
 
     stored_recent = state.get("recent_fingerprints", [])
     recent = (

@@ -68,3 +68,17 @@ def test_scheduler_filters_recent_fingerprints() -> None:
     filtered = build_candidate_batch({"recent_fingerprints": [first_fingerprint]}, 209)
     assert filtered
     assert all(item["fingerprint"] != first_fingerprint for item in filtered)
+
+
+def test_consecutive_issuances_rotate_even_across_skip_and_old_queue() -> None:
+    previous = "OGE06-F004-DEC-SUB"
+    state = {"family_queue": [previous] * 4, "last_family_id": previous}
+    issued = []
+    for seed in range(100):
+        chosen = build_candidate_batch(state, seed)[0]
+        family = chosen["family_id"]
+        assert family != previous
+        issued.append(family)
+        previous = family
+        state = {"family_queue": chosen["_family_queue_after"], "last_family_id": previous}
+    assert all(issued.count(spec.family_id) == 10 for spec in GENERATOR_SPECS)
