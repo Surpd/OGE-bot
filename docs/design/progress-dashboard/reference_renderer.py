@@ -14,9 +14,9 @@ The grid always uses ONE identical tile layout, including empty results.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from io import BytesIO
 from pathlib import Path
-from typing import Mapping
 
 from PIL import Image, ImageDraw, ImageFont
 

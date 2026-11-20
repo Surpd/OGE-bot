@@ -33,3 +33,9 @@ SVG-файлы здесь нужны **только для просмотра р
 Команда создаёт PNG с 19 и с 25 номерами рядом с исходником. Функция render_progress_png(display_name, username, per_task, skipped, task_count) возвращает байты без временных файлов. Pillow уже есть в pyproject.toml; Dockerfile содержит fonts-dejavu-core.
 
 **Не копировать прототип целиком в production.** Его данные демонстрационные. Реальный способ интеграции со штатными training_insights, progress_keyboard, image transport и тестами описан в [IMPLEMENTATION.md](IMPLEMENTATION.md).
+Ветка подключает утверждённый макет к Telegram. Актуальные PNG в мобильном размере:
+[пустой](../../../reports/previews/progress-empty-360.png),
+[частичный](../../../reports/previews/progress-partial-360.png),
+[полный](../../../reports/previews/progress-full-390.png).
+Кнопки подробностей сохраняют исходное фото как в #77. Эта реализация заменяет
+альтернативный рисунок #75. Включать обе версии рендера последовательно не требуется.

@@ -520,7 +520,7 @@ async def progress_navigation(
     overview = reply if isinstance(reply, Message) and reply.photo else None
     if section in {"summary", "refresh"}:
         if overview is not None and await send_progress_image(
-            overview, repository, user_id, "summary", edit_existing=True
+            overview, repository, user_id, "summary", edit_existing=True, viewer=message.from_user
         ):
             try:
                 await old_message.delete()
