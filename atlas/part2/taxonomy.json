@@ -1,0 +1,2837 @@
+{
+  "schema_version": 1,
+  "research_version": "0.2",
+  "checked_at": "2026-11-20",
+  "exam_year": 2027,
+  "lines": [
+    {
+      "number": 20,
+      "title": "Алгебраические уравнения, неравенства и системы",
+      "level": "повышенный",
+      "max_points": 2,
+      "reshu_catalog_prototypes": 31,
+      "reshu_catalog_total_with_clones": 199
+    },
+    {
+      "number": 21,
+      "title": "Текстовые задачи с математической моделью",
+      "level": "повышенный",
+      "max_points": 2,
+      "reshu_catalog_prototypes": 36,
+      "reshu_catalog_total_with_clones": 140
+    },
+    {
+      "number": 22,
+      "title": "Функции и построение графика",
+      "level": "высокий",
+      "max_points": 2,
+      "reshu_catalog_prototypes": 22,
+      "reshu_catalog_total_with_clones": 158
+    },
+    {
+      "number": 23,
+      "title": "Геометрическое вычисление",
+      "level": "повышенный",
+      "max_points": 2,
+      "reshu_catalog_prototypes": 26,
+      "reshu_catalog_total_with_clones": 110
+    },
+    {
+      "number": 24,
+      "title": "Геометрическое доказательство",
+      "level": "повышенный",
+      "max_points": 2,
+      "reshu_catalog_prototypes": 29,
+      "reshu_catalog_total_with_clones": 74
+    },
+    {
+      "number": 25,
+      "title": "Многошаговое геометрическое вычисление",
+      "level": "высокий",
+      "max_points": 2,
+      "reshu_catalog_prototypes": 22,
+      "reshu_catalog_total_with_clones": 185
+    }
+  ],
+  "family_count": 27,
+  "subtype_count": 81,
+  "observations_count": 177,
+  "curated_task_count": 486,
+  "subtypes": [
+    {
+      "number": 20,
+      "family_id": "OGE20-F01",
+      "family_title": "Целые уравнения",
+      "subtype_id": "OGE20-poly-factor",
+      "title": "Многочлен и разложение",
+      "key_method": "Группировка или общий множитель с отдельным учётом нулей каждого множителя",
+      "priority": "core",
+      "observations": 4,
+      "distinct_after_known_duplicates": 4,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311589",
+        "338079",
+        "338348",
+        "438301"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-438301",
+        "oge-part2-reshu-311589",
+        "oge-part2-reshu-338079",
+        "oge-part2-reshu-338348",
+        "oge-part2-reshu-311586",
+        "oge-part2-reshu-311594"
+      ],
+      "bank_observation_ids": [
+        "438301",
+        "311589",
+        "338079",
+        "338348",
+        "311586",
+        "311594"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F01",
+      "family_title": "Целые уравнения",
+      "subtype_id": "OGE20-poly-quadratic",
+      "title": "Приведение к квадратному",
+      "key_method": "Раскрыть скобки и привести к стандартному виду или разложить разность квадратов",
+      "priority": "standard",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311591",
+        "338498",
+        "338632"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311591",
+        "oge-part2-reshu-338498",
+        "oge-part2-reshu-338632",
+        "oge-part2-reshu-338506",
+        "oge-part2-reshu-338645",
+        "oge-part2-reshu-338662"
+      ],
+      "bank_observation_ids": [
+        "311591",
+        "338498",
+        "338632",
+        "338506",
+        "338645",
+        "338662"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F01",
+      "family_title": "Целые уравнения",
+      "subtype_id": "OGE20-poly-substitution",
+      "title": "Замена переменной",
+      "key_method": "Биквадратное или квадрат от выражения, затем обратная подстановка с ограничением",
+      "priority": "core",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338951"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338951",
+        "oge-part2-reshu-348808",
+        "oge-part2-reshu-352292",
+        "oge-part2-reshu-357246",
+        "oge-part2-reshu-357247",
+        "oge-part2-reshu-406321"
+      ],
+      "bank_observation_ids": [
+        "338951",
+        "348808",
+        "352292",
+        "357246",
+        "357247",
+        "406321"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F01",
+      "family_title": "Целые уравнения",
+      "subtype_id": "OGE20-power-sums",
+      "title": "Сумма неотрицательных степеней",
+      "key_method": "Нуль суммы квадратов требует одновременного нуля каждого слагаемого",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311618"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311618",
+        "oge-part2-reshu-338137",
+        "oge-part2-reshu-338228",
+        "oge-part2-reshu-338236",
+        "oge-part2-reshu-338237",
+        "oge-part2-reshu-338250"
+      ],
+      "bank_observation_ids": [
+        "311618",
+        "338137",
+        "338228",
+        "338236",
+        "338237",
+        "338250"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F01",
+      "family_title": "Целые уравнения",
+      "subtype_id": "OGE20-power-equality",
+      "title": "Равенство степеней",
+      "key_method": "Чётная степень даёт две ветви, нечётная позволяет однозначно снять степень",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338860",
+        "357583"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338860",
+        "oge-part2-reshu-357583",
+        "oge-part2-reshu-338991",
+        "oge-part2-reshu-348378",
+        "oge-part2-reshu-351751",
+        "oge-part2-reshu-480521"
+      ],
+      "bank_observation_ids": [
+        "338860",
+        "357583",
+        "338991",
+        "348378",
+        "351751",
+        "480521"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F02",
+      "family_title": "Уравнения с ограничением области",
+      "subtype_id": "OGE20-rational-clear",
+      "title": "Дробно-рациональное уравнение",
+      "key_method": "ОДЗ до умножения на знаменатель, проверка исключённых кандидатов",
+      "priority": "core",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "339026"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-339026",
+        "oge-part2-reshu-349122",
+        "oge-part2-reshu-350263",
+        "oge-part2-reshu-351135",
+        "oge-part2-reshu-351788",
+        "oge-part2-reshu-352739"
+      ],
+      "bank_observation_ids": [
+        "339026",
+        "349122",
+        "350263",
+        "351135",
+        "351788",
+        "352739"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F02",
+      "family_title": "Уравнения с ограничением области",
+      "subtype_id": "OGE20-rational-substitution",
+      "title": "Дробная замена",
+      "key_method": "Замена обратной величиной и восстановление x без нарушения ОДЗ",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338757"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338757",
+        "oge-part2-reshu-338713",
+        "oge-part2-fipi-mirror-da1518",
+        "oge-part2-fipi-mirror-74f954",
+        "oge-part2-fipi-mirror-7033ca",
+        "oge-part2-fipi-mirror-c0319f"
+      ],
+      "bank_observation_ids": [
+        "338757",
+        "338713",
+        "DA1518",
+        "74F954",
+        "7033CA",
+        "C0319F"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F02",
+      "family_title": "Уравнения с ограничением области",
+      "subtype_id": "OGE20-radical-cancel",
+      "title": "Сокращение одинаковых радикалов",
+      "key_method": "Радикал исчезает из равенства, но ограничение его области остаётся",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338086"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338086",
+        "oge-part2-reshu-338167",
+        "oge-part2-reshu-338210",
+        "oge-part2-reshu-338230",
+        "oge-part2-reshu-338287",
+        "oge-part2-reshu-338334"
+      ],
+      "bank_observation_ids": [
+        "338086",
+        "338167",
+        "338210",
+        "338230",
+        "338287",
+        "338334"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F03",
+      "family_title": "Неравенства",
+      "subtype_id": "OGE20-poly-inequality",
+      "title": "Целое квадратное или факторизуемое",
+      "key_method": "Разложение на множители и метод интервалов, отдельно кратные корни и строгие границы",
+      "priority": "core",
+      "observations": 5,
+      "distinct_after_known_duplicates": 5,
+      "complete_cards": 6,
+      "observation_ids": [
+        "314563",
+        "338566",
+        "472395",
+        "472398",
+        "472412"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-314563",
+        "oge-part2-reshu-338566",
+        "oge-part2-reshu-472395",
+        "oge-part2-reshu-472398",
+        "oge-part2-reshu-472412",
+        "oge-part2-reshu-151"
+      ],
+      "bank_observation_ids": [
+        "314563",
+        "338566",
+        "472395",
+        "472398",
+        "472412",
+        "151"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F03",
+      "family_title": "Неравенства",
+      "subtype_id": "OGE20-rational-inequality",
+      "title": "Рациональная дробь",
+      "key_method": "Привести к дроби, отметить нули числителя и запрещённые точки, включая сократившиеся",
+      "priority": "core",
+      "observations": 7,
+      "distinct_after_known_duplicates": 6,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338512",
+        "472401",
+        "472402",
+        "472406",
+        "472409",
+        "472415",
+        "D20-2027"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-fipi-demo-2027-20",
+        "oge-part2-reshu-472402",
+        "oge-part2-reshu-338512",
+        "oge-part2-reshu-472401",
+        "oge-part2-reshu-472406",
+        "oge-part2-reshu-472409"
+      ],
+      "bank_observation_ids": [
+        "D20-2027",
+        "472402",
+        "338512",
+        "472401",
+        "472406",
+        "472409"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F04",
+      "family_title": "Системы",
+      "subtype_id": "OGE20-system-elimination",
+      "title": "Исключение переменной или квадрата",
+      "key_method": "Сложение или вычитание уравнений, затем восстановление всех пар",
+      "priority": "standard",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338545",
+        "338577",
+        "341340"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338577",
+        "oge-part2-reshu-338545",
+        "oge-part2-reshu-341340",
+        "oge-part2-reshu-338594",
+        "oge-part2-reshu-338617",
+        "oge-part2-reshu-338664"
+      ],
+      "bank_observation_ids": [
+        "338577",
+        "338545",
+        "341340",
+        "338594",
+        "338617",
+        "338664"
+      ]
+    },
+    {
+      "number": 20,
+      "family_id": "OGE20-F04",
+      "family_title": "Системы",
+      "subtype_id": "OGE20-system-substitution",
+      "title": "Два выражения для одной переменной",
+      "key_method": "Приравнять правые части и вернуть каждую найденную абсциссу в одно из уравнений",
+      "priority": "standard",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338650",
+        "338690",
+        "338732"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338650",
+        "oge-part2-reshu-338690",
+        "oge-part2-reshu-338732",
+        "oge-part2-reshu-338779",
+        "oge-part2-reshu-338821",
+        "oge-part2-reshu-338923"
+      ],
+      "bank_observation_ids": [
+        "338650",
+        "338690",
+        "338732",
+        "338779",
+        "338821",
+        "338923"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F01",
+      "family_title": "Концентрации и проценты",
+      "subtype_id": "OGE21-mix-ratio",
+      "title": "Смесь двух известных составов",
+      "key_method": "Взвешенная доля вещества, искомое отношение масс",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "314457",
+        "314431"
+      ],
+      "source_cards": 4,
+      "training_only_cards": 2,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-314457",
+        "oge-part2-reshu-314431",
+        "oge-part2-reshu-314469",
+        "oge-part2-reshu-314480",
+        "oge-part2-atlas-a21-mix-ratio-01",
+        "oge-part2-atlas-a21-mix-ratio-02"
+      ],
+      "bank_observation_ids": [
+        "314457",
+        "314431",
+        "314469",
+        "314480"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F01",
+      "family_title": "Концентрации и проценты",
+      "subtype_id": "OGE21-mix-two-experiments",
+      "title": "Два режима смешивания",
+      "key_method": "Два баланса вещества для двух неизвестных концентраций",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "348438",
+        "349691"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-348438",
+        "oge-part2-reshu-349691",
+        "oge-part2-reshu-349497",
+        "oge-part2-reshu-349700",
+        "oge-part2-reshu-349844",
+        "oge-part2-reshu-350150"
+      ],
+      "bank_observation_ids": [
+        "348438",
+        "349691",
+        "349497",
+        "349700",
+        "349844",
+        "350150"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F01",
+      "family_title": "Концентрации и проценты",
+      "subtype_id": "OGE21-mass-invariant",
+      "title": "Сушка и сохранение сухого вещества",
+      "key_method": "При изменении доли воды меняется общая масса, масса сухого вещества сохраняется",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338773",
+        "341367"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338773",
+        "oge-part2-reshu-341367",
+        "oge-part2-reshu-339013",
+        "oge-part2-reshu-341508",
+        "oge-part2-reshu-353507",
+        "oge-part2-reshu-353545"
+      ],
+      "bank_observation_ids": [
+        "338773",
+        "341367",
+        "339013",
+        "341508",
+        "353507",
+        "353545"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-finish-gap",
+      "title": "Два участника на одной дистанции",
+      "key_method": "Разность времён при известной разности скоростей",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338510",
+        "353551",
+        "D21-2027"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-fipi-demo-2027-21",
+        "oge-part2-reshu-338510",
+        "oge-part2-reshu-353551",
+        "oge-part2-reshu-338972",
+        "oge-part2-reshu-348749",
+        "oge-part2-reshu-349549"
+      ],
+      "bank_observation_ids": [
+        "D21-2027",
+        "338510",
+        "353551",
+        "338972",
+        "348749",
+        "349549"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-meeting-pause",
+      "title": "Встреча с остановкой",
+      "key_method": "Сумма пройденных путей и разный учёт времени движения",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "314507",
+        "333319"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-314507",
+        "oge-part2-reshu-333319",
+        "oge-part2-reshu-314516",
+        "oge-part2-reshu-314561",
+        "oge-part2-reshu-314566",
+        "oge-part2-reshu-314593"
+      ],
+      "bank_observation_ids": [
+        "314507",
+        "333319",
+        "314516",
+        "314561",
+        "314566",
+        "314593"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-meeting-arrivals",
+      "title": "Встреча и разница прибытия",
+      "key_method": "До встречи действует сумма скоростей, полные времена каждого связаны отдельно",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338584"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338584",
+        "oge-part2-reshu-338669",
+        "oge-part2-reshu-338691",
+        "oge-part2-reshu-338716",
+        "oge-part2-reshu-338928",
+        "oge-part2-reshu-352780"
+      ],
+      "bank_observation_ids": [
+        "338584",
+        "338669",
+        "338691",
+        "338716",
+        "338928",
+        "352780"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-out-back-pause",
+      "title": "Туда и обратно с остановкой",
+      "key_method": "Одинаковая дистанция в оба направления, в одном времени есть добавка стоянки",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338992",
+        "352782"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338992",
+        "oge-part2-reshu-352782",
+        "oge-part2-reshu-392935",
+        "oge-part2-reshu-392961",
+        "oge-part2-reshu-392987",
+        "oge-part2-reshu-406322"
+      ],
+      "bank_observation_ids": [
+        "338992",
+        "352782",
+        "392935",
+        "392961",
+        "392987",
+        "406322"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-split-equal-time",
+      "title": "Участки пути и одинаковое время",
+      "key_method": "Сумму времён на половинах приравнять времени равномерного движения",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338561",
+        "351543"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338561",
+        "oge-part2-reshu-351543",
+        "oge-part2-reshu-341128",
+        "oge-part2-reshu-352425",
+        "oge-part2-reshu-352863",
+        "oge-part2-fipi-mirror-4cd6f9"
+      ],
+      "bank_observation_ids": [
+        "338561",
+        "351543",
+        "341128",
+        "352425",
+        "352863",
+        "4CD6F9"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-average-speed",
+      "title": "Средняя скорость",
+      "key_method": "Весь путь делится на всё время, исходные веса задаются отрезками или часами",
+      "priority": "standard",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338603",
+        "338919",
+        "338961"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338603",
+        "oge-part2-reshu-338919",
+        "oge-part2-reshu-338961",
+        "oge-part2-reshu-350219",
+        "oge-part2-reshu-352009",
+        "oge-part2-reshu-353200"
+      ],
+      "bank_observation_ids": [
+        "338603",
+        "338919",
+        "338961",
+        "350219",
+        "352009",
+        "353200"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-relative-motion",
+      "title": "Обгон и движение с задержкой",
+      "key_method": "Скорость сближения, расстояние при задержанном старте, отдельные события обгона",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "333023",
+        "353302"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-333023",
+        "oge-part2-reshu-333102",
+        "oge-part2-reshu-338854",
+        "oge-part2-reshu-341283",
+        "oge-part2-reshu-341288",
+        "oge-part2-reshu-353306"
+      ],
+      "bank_observation_ids": [
+        "333023",
+        "333102",
+        "338854",
+        "341283",
+        "341288",
+        "353306"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F02",
+      "family_title": "Движение по суше",
+      "subtype_id": "OGE21-loop",
+      "title": "Один круг и разное время",
+      "key_method": "Выразить одну длину круга по двум участникам, учесть остаток пути",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "353530"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-353530",
+        "oge-part2-reshu-338904",
+        "oge-part2-reshu-341393",
+        "oge-part2-fipi-mirror-1cac40",
+        "oge-part2-fipi-mirror-5f5c4e",
+        "oge-part2-fipi-mirror-07e91e"
+      ],
+      "bank_observation_ids": [
+        "353530",
+        "338904",
+        "341393",
+        "1CAC40",
+        "5F5C4E",
+        "07E91E"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F03",
+      "family_title": "Движение по воде",
+      "subtype_id": "OGE21-river-total",
+      "title": "Суммарное время двух плеч",
+      "key_method": "Скорости v±u, из полного времени вычесть стоянку, v>u",
+      "priority": "core",
+      "observations": 6,
+      "distinct_after_known_duplicates": 6,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311621",
+        "338582",
+        "341534",
+        "352844",
+        "353102",
+        "353294"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311621",
+        "oge-part2-reshu-338582",
+        "oge-part2-reshu-341534",
+        "oge-part2-reshu-352844",
+        "oge-part2-reshu-353102",
+        "oge-part2-reshu-353294"
+      ],
+      "bank_observation_ids": [
+        "311621",
+        "338582",
+        "341534",
+        "352844",
+        "353102",
+        "353294"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F03",
+      "family_title": "Движение по воде",
+      "subtype_id": "OGE21-river-gap",
+      "title": "Разность времён против и по течению",
+      "key_method": "Составить разность двух дробей и учесть v>u",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338893"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338893",
+        "oge-part2-reshu-353575",
+        "oge-part2-reshu-406653",
+        "oge-part2-reshu-406672",
+        "oge-part2-fipi-mirror-40ee48",
+        "oge-part2-fipi-mirror-d36026"
+      ],
+      "bank_observation_ids": [
+        "338893",
+        "353575",
+        "406653",
+        "406672",
+        "40EE48",
+        "D36026"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F03",
+      "family_title": "Движение по воде",
+      "subtype_id": "OGE21-river-raft",
+      "title": "Плот и лодка с задержанным выходом",
+      "key_method": "Скорость плота равна скорости течения, из его времени вычесть задержку",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311564",
+        "341158"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311564",
+        "oge-part2-reshu-341158",
+        "oge-part2-reshu-311570",
+        "oge-part2-reshu-341227",
+        "oge-part2-reshu-341341",
+        "oge-part2-reshu-341419"
+      ],
+      "bank_observation_ids": [
+        "311564",
+        "341158",
+        "311570",
+        "341227",
+        "341341",
+        "341419"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F04",
+      "family_title": "Работа и производительность",
+      "subtype_id": "OGE21-rate-compare",
+      "title": "Сравнение двух производительностей",
+      "key_method": "Время = объём / скорость работы, объёмы могут различаться",
+      "priority": "core",
+      "observations": 6,
+      "distinct_after_known_duplicates": 6,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311966",
+        "338660",
+        "338706",
+        "340966",
+        "341685",
+        "348479"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311966",
+        "oge-part2-reshu-338660",
+        "oge-part2-reshu-338706",
+        "oge-part2-reshu-340966",
+        "oge-part2-reshu-341685",
+        "oge-part2-reshu-348479"
+      ],
+      "bank_observation_ids": [
+        "311966",
+        "338660",
+        "338706",
+        "340966",
+        "341685",
+        "348479"
+      ]
+    },
+    {
+      "number": 21,
+      "family_id": "OGE21-F04",
+      "family_title": "Работа и производительность",
+      "subtype_id": "OGE21-joint-sum",
+      "title": "Совместная работа, даны времена пар",
+      "key_method": "Сумма трёх парных скоростей вдвое больше общей скорости",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "M26-21.2",
+        "M26-21.3"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-fipi-rpk-2026-21-2",
+        "oge-part2-reshu-338847",
+        "oge-part2-reshu-348599",
+        "oge-part2-reshu-349058",
+        "oge-part2-reshu-349279",
+        "oge-part2-reshu-349452"
+      ],
+      "bank_observation_ids": [
+        "M26-21.2",
+        "338847",
+        "348599",
+        "349058",
+        "349279",
+        "349452"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F01",
+      "family_title": "Сокращение и выколотые точки",
+      "subtype_id": "OGE22-hole-parabola-level",
+      "title": "Парабола и горизонталь y=m",
+      "key_method": "Отдельно посчитать вершину и уровни каждой выколотой точки",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338288",
+        "338295"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338295",
+        "oge-part2-reshu-338288",
+        "oge-part2-reshu-340600",
+        "oge-part2-reshu-341129",
+        "oge-part2-reshu-341159",
+        "oge-part2-reshu-341535"
+      ],
+      "bank_observation_ids": [
+        "338295",
+        "338288",
+        "340600",
+        "341129",
+        "341159",
+        "341535"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F01",
+      "family_title": "Сокращение и выколотые точки",
+      "subtype_id": "OGE22-hole-parabola-slope",
+      "title": "Парабола и пучок y=kx",
+      "key_method": "Касание по дискриминанту и потеря одного допустимого корня на выколотой точке",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338408",
+        "341686",
+        "348483"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338408",
+        "oge-part2-reshu-341686",
+        "oge-part2-reshu-348483",
+        "oge-part2-reshu-348845",
+        "oge-part2-reshu-348865",
+        "oge-part2-reshu-349984"
+      ],
+      "bank_observation_ids": [
+        "338408",
+        "341686",
+        "348483",
+        "348845",
+        "348865",
+        "349984"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F01",
+      "family_title": "Сокращение и выколотые точки",
+      "subtype_id": "OGE22-hole-hyperbola-slope",
+      "title": "Гипербола и пучок y=kx",
+      "key_method": "Уравнение kx²=c, затем фильтр отверстия по исходному знаменателю",
+      "priority": "core",
+      "observations": 4,
+      "distinct_after_known_duplicates": 4,
+      "complete_cards": 6,
+      "observation_ids": [
+        "153",
+        "314799",
+        "314804",
+        "338300"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-314799",
+        "oge-part2-reshu-153",
+        "oge-part2-reshu-314804",
+        "oge-part2-reshu-338300",
+        "oge-part2-reshu-314796",
+        "oge-part2-reshu-349016"
+      ],
+      "bank_observation_ids": [
+        "314799",
+        "153",
+        "314804",
+        "338300",
+        "314796",
+        "349016"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F01",
+      "family_title": "Сокращение и выколотые точки",
+      "subtype_id": "OGE22-hole-hyperbola-level",
+      "title": "Сдвинутая гипербола и горизонталь",
+      "key_method": "Горизонтальная асимптота и потеря единственной точки на выколотом уровне",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340933",
+        "341420"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340933",
+        "oge-part2-reshu-341420",
+        "oge-part2-reshu-338224",
+        "oge-part2-reshu-341509",
+        "oge-part2-reshu-353123",
+        "oge-part2-reshu-392855"
+      ],
+      "bank_observation_ids": [
+        "340933",
+        "341420",
+        "338224",
+        "341509",
+        "353123",
+        "392855"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F01",
+      "family_title": "Сокращение и выколотые точки",
+      "subtype_id": "OGE22-hole-modulus",
+      "title": "Сокращение вместе с модулем",
+      "key_method": "Учитывать исходные запреты и раскрытие модуля; монотонные половины или неодинаковый знак наклона",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311662",
+        "338420"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338420",
+        "oge-part2-reshu-311662",
+        "oge-part2-reshu-338162",
+        "oge-part2-reshu-338435",
+        "oge-part2-reshu-341342",
+        "oge-part2-reshu-353416"
+      ],
+      "bank_observation_ids": [
+        "338420",
+        "311662",
+        "338162",
+        "338435",
+        "341342",
+        "353416"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F02",
+      "family_title": "Кусочно заданные функции",
+      "subtype_id": "OGE22-piecewise-lines",
+      "title": "Ломаная из кусочно-линейных ветвей",
+      "key_method": "Сложить количества пересечений по диапазонам ветвей, не задвоить общий конец",
+      "priority": "core",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311619"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311619",
+        "oge-part2-reshu-339148",
+        "oge-part2-reshu-340993",
+        "oge-part2-reshu-341025",
+        "oge-part2-reshu-341057",
+        "oge-part2-reshu-349086"
+      ],
+      "bank_observation_ids": [
+        "311619",
+        "339148",
+        "340993",
+        "341025",
+        "341057",
+        "349086"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F02",
+      "family_title": "Кусочно заданные функции",
+      "subtype_id": "OGE22-piecewise-parabola-line",
+      "title": "Парабола и прямая",
+      "key_method": "Вершина, уровень ветви на стыке и предел другой ветви; отмечать начало и конец раздельно",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "333129",
+        "D22-2027"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-fipi-demo-2027-22",
+        "oge-part2-reshu-333129",
+        "oge-part2-reshu-333024",
+        "oge-part2-reshu-333103",
+        "oge-part2-reshu-333156",
+        "oge-part2-reshu-339278"
+      ],
+      "bank_observation_ids": [
+        "D22-2027",
+        "333129",
+        "333024",
+        "333103",
+        "333156",
+        "339278"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F02",
+      "family_title": "Кусочно заданные функции",
+      "subtype_id": "OGE22-piecewise-parabola-hyperbola",
+      "title": "Парабола и гипербола",
+      "key_method": "Сравнить диапазоны ветвей, уровень стыка и горизонтальную асимптоту",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338465",
+        "M26-22.2"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338465",
+        "oge-part2-reshu-333346",
+        "oge-part2-reshu-341394",
+        "oge-part2-reshu-370480",
+        "oge-part2-reshu-392124",
+        "oge-part2-reshu-392674"
+      ],
+      "bank_observation_ids": [
+        "338465",
+        "333346",
+        "341394",
+        "370480",
+        "392124",
+        "392674"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F03",
+      "family_title": "Построение через модуль",
+      "subtype_id": "OGE22-modulus-inside",
+      "title": "Модуль линейного выражения в формуле",
+      "key_method": "Раскрыть модуль по знаку, учесть вершины обеих парабол и стык",
+      "priority": "core",
+      "observations": 5,
+      "distinct_after_known_duplicates": 5,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338160",
+        "338253",
+        "338409",
+        "341230",
+        "M26-22.4"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338409",
+        "oge-part2-reshu-338160",
+        "oge-part2-reshu-338253",
+        "oge-part2-reshu-341230",
+        "oge-part2-reshu-316358",
+        "oge-part2-reshu-316384"
+      ],
+      "bank_observation_ids": [
+        "338409",
+        "338160",
+        "338253",
+        "341230",
+        "316358",
+        "316384"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F03",
+      "family_title": "Построение через модуль",
+      "subtype_id": "OGE22-modulus-outside",
+      "title": "Внешний модуль квадратной функции",
+      "key_method": "Отразить отрицательную часть параболы; сверить экстремумы и кратные пересечения",
+      "priority": "core",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "353274"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-353274",
+        "oge-part2-reshu-338455",
+        "oge-part2-reshu-348457",
+        "oge-part2-reshu-349264",
+        "oge-part2-reshu-349717",
+        "oge-part2-reshu-349723"
+      ],
+      "bank_observation_ids": [
+        "353274",
+        "338455",
+        "348457",
+        "349264",
+        "349717",
+        "349723"
+      ]
+    },
+    {
+      "number": 22,
+      "family_id": "OGE22-F03",
+      "family_title": "Построение через модуль",
+      "subtype_id": "OGE22-max-form",
+      "title": "Полусумма с модулем разности",
+      "key_method": "Распознать max(a,b) и разметить смену доминирующей ветви на всей ОДЗ",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "338314"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-338314",
+        "oge-part2-reshu-341284",
+        "oge-part2-reshu-341289",
+        "oge-part2-reshu-401321",
+        "oge-part2-reshu-401477",
+        "oge-part2-reshu-402035"
+      ],
+      "bank_observation_ids": [
+        "338314",
+        "341284",
+        "341289",
+        "401321",
+        "401477",
+        "402035"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F01",
+      "family_title": "Углы",
+      "subtype_id": "OGE23-angle-height-bisector",
+      "title": "Высота и биссектриса в треугольнике",
+      "key_method": "Сопоставить направления лучей через углы при основании и половину угла вершины",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "315053",
+        "154"
+      ],
+      "source_cards": 4,
+      "training_only_cards": 2,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-315053",
+        "oge-part2-reshu-154",
+        "oge-part2-reshu-315025",
+        "oge-part2-reshu-315125",
+        "oge-part2-atlas-a23-angle-height-bisector-01",
+        "oge-part2-atlas-a23-angle-height-bisector-02"
+      ],
+      "bank_observation_ids": [
+        "315053",
+        "154",
+        "315025",
+        "315125"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F01",
+      "family_title": "Углы",
+      "subtype_id": "OGE23-angle-tangent-arc",
+      "title": "Касательная, радиус и дуга",
+      "key_method": "Восстановить центральный угол и применить перпендикулярность радиуса касательной",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "76"
+      ],
+      "source_cards": 4,
+      "training_only_cards": 2,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-76",
+        "oge-part2-reshu-206",
+        "oge-part2-reshu-315034",
+        "oge-part2-reshu-315059",
+        "oge-part2-atlas-a23-angle-tangent-arc-01",
+        "oge-part2-atlas-a23-angle-tangent-arc-02"
+      ],
+      "bank_observation_ids": [
+        "76",
+        "206",
+        "315034",
+        "315059"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F02",
+      "family_title": "Прямоугольная конфигурация",
+      "subtype_id": "OGE23-right-median",
+      "title": "Медиана к гипотенузе",
+      "key_method": "Пифагор вычисляет гипотенузу, медиана равна её половине",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "50",
+        "340601"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-50",
+        "oge-part2-atlas-a23-right-median-01",
+        "oge-part2-atlas-a23-right-median-02",
+        "oge-part2-atlas-a23-right-median-03",
+        "oge-part2-atlas-a23-right-median-04",
+        "oge-part2-atlas-a23-right-median-05"
+      ],
+      "bank_observation_ids": [
+        "50"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F02",
+      "family_title": "Прямоугольная конфигурация",
+      "subtype_id": "OGE23-right-projection",
+      "title": "Катет и его проекция",
+      "key_method": "Подобие малого и исходного треугольников даёт квадрат катета",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "324708",
+        "353514"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-324708",
+        "oge-part2-reshu-353514",
+        "oge-part2-reshu-352999",
+        "oge-part2-fipi-mirror-6380f3",
+        "oge-part2-fipi-mirror-c3f608",
+        "oge-part2-fipi-mirror-d35e73"
+      ],
+      "bank_observation_ids": [
+        "324708",
+        "353514",
+        "352999",
+        "6380F3",
+        "C3F608",
+        "D35E73"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F02",
+      "family_title": "Прямоугольная конфигурация",
+      "subtype_id": "OGE23-right-bisectors",
+      "title": "Две биссектрисы при боковой стороне",
+      "key_method": "Половины дополнительных углов дают прямой угол, затем Пифагор",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "324798",
+        "352568",
+        "D23-2027"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-fipi-demo-2027-23",
+        "oge-part2-reshu-324798",
+        "oge-part2-reshu-352568",
+        "oge-part2-reshu-333130",
+        "oge-part2-reshu-333157",
+        "oge-part2-reshu-424983"
+      ],
+      "bank_observation_ids": [
+        "D23-2027",
+        "324798",
+        "352568",
+        "333130",
+        "333157",
+        "424983"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F02",
+      "family_title": "Прямоугольная конфигурация",
+      "subtype_id": "OGE23-right-circle-rectangle",
+      "title": "Окружность на высоте как диаметре",
+      "key_method": "Два прямых вписанных угла дают прямоугольник с равными диагоналями",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "324878",
+        "353441"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-324878",
+        "oge-part2-reshu-353441",
+        "oge-part2-reshu-339395",
+        "oge-part2-reshu-339512",
+        "oge-part2-reshu-339570",
+        "oge-part2-reshu-339729"
+      ],
+      "bank_observation_ids": [
+        "324878",
+        "353441",
+        "339395",
+        "339512",
+        "339570",
+        "339729"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F03",
+      "family_title": "Подобие при параллельных прямых",
+      "subtype_id": "OGE23-parallel-segment",
+      "title": "Сечение треугольника",
+      "key_method": "Вычислить коэффициент подобия по параллельным сторонам и выразить искомый отрезок",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "322806"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-322806",
+        "oge-part2-reshu-339505",
+        "oge-part2-reshu-339656",
+        "oge-part2-reshu-350157",
+        "oge-part2-reshu-350726",
+        "oge-part2-reshu-351460"
+      ],
+      "bank_observation_ids": [
+        "322806",
+        "339505",
+        "339656",
+        "350157",
+        "350726",
+        "351460"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F03",
+      "family_title": "Подобие при параллельных прямых",
+      "subtype_id": "OGE23-parallel-diagonals",
+      "title": "Пересекающиеся диагонали между параллелями",
+      "key_method": "Разделить всю диагональ по отношению параллельных отрезков",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "324748",
+        "339400",
+        "352582"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-324748",
+        "oge-part2-reshu-352582",
+        "oge-part2-reshu-333321",
+        "oge-part2-reshu-339501",
+        "oge-part2-reshu-339567",
+        "oge-part2-reshu-339593"
+      ],
+      "bank_observation_ids": [
+        "324748",
+        "352582",
+        "333321",
+        "339501",
+        "339567",
+        "339593"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F04",
+      "family_title": "Четырёхугольники",
+      "subtype_id": "OGE23-trapezoid-area",
+      "title": "Площадь равнобедренной трапеции",
+      "key_method": "Из периметра получить боковую сторону, из полуразности оснований и Пифагора — высоту",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311249"
+      ],
+      "source_cards": 2,
+      "training_only_cards": 4,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311249",
+        "oge-part2-reshu-311560",
+        "oge-part2-atlas-a23-trapezoid-area-01",
+        "oge-part2-atlas-a23-trapezoid-area-02",
+        "oge-part2-atlas-a23-trapezoid-area-03",
+        "oge-part2-atlas-a23-trapezoid-area-04"
+      ],
+      "bank_observation_ids": [
+        "311249",
+        "311560"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F04",
+      "family_title": "Четырёхугольники",
+      "subtype_id": "OGE23-trapezoid-midpoints",
+      "title": "Отрезок между серединами диагоналей",
+      "key_method": "Две средние линии дают половину разности оснований",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311828",
+        "311860"
+      ],
+      "source_cards": 3,
+      "training_only_cards": 3,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311828",
+        "oge-part2-reshu-311860",
+        "oge-part2-reshu-316296",
+        "oge-part2-atlas-a23-trapezoid-midpoints-01",
+        "oge-part2-atlas-a23-trapezoid-midpoints-02",
+        "oge-part2-atlas-a23-trapezoid-midpoints-03"
+      ],
+      "bank_observation_ids": [
+        "311828",
+        "311860",
+        "316296"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F04",
+      "family_title": "Четырёхугольники",
+      "subtype_id": "OGE23-rhombus",
+      "title": "Ромб и прямоугольный вспомогательный треугольник",
+      "key_method": "Диагональ-биссектриса и расстояние до стороны или разложение стороны/высота",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "324778",
+        "324788"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-324778",
+        "oge-part2-reshu-324788",
+        "oge-part2-reshu-324779",
+        "oge-part2-reshu-324787",
+        "oge-part2-reshu-339549",
+        "oge-part2-reshu-339641"
+      ],
+      "bank_observation_ids": [
+        "324778",
+        "324788",
+        "324779",
+        "324787",
+        "339549",
+        "339641"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F04",
+      "family_title": "Четырёхугольники",
+      "subtype_id": "OGE23-parallelogram-bisectors",
+      "title": "Вычисление с биссектрисой параллелограмма",
+      "key_method": "Равнобедренный треугольник на параллельной стороне или равные расстояния от точки пересечения",
+      "priority": "standard",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "316359",
+        "339709",
+        "352796"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-316359",
+        "oge-part2-reshu-339709",
+        "oge-part2-reshu-352796",
+        "oge-part2-reshu-316385",
+        "oge-part2-reshu-339430",
+        "oge-part2-reshu-350064"
+      ],
+      "bank_observation_ids": [
+        "316359",
+        "339709",
+        "352796",
+        "316385",
+        "339430",
+        "350064"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F04",
+      "family_title": "Четырёхугольники",
+      "subtype_id": "OGE23-trapezoid-trig",
+      "title": "Боковая сторона трапеции через общую высоту",
+      "key_method": "Приравнять две формулы для высоты, взять синус острого или дополнительного угла",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "351992"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-351992",
+        "oge-part2-reshu-339432",
+        "oge-part2-reshu-339454",
+        "oge-part2-reshu-348741",
+        "oge-part2-reshu-349618",
+        "oge-part2-reshu-349709"
+      ],
+      "bank_observation_ids": [
+        "351992",
+        "339432",
+        "339454",
+        "348741",
+        "349618",
+        "349709"
+      ]
+    },
+    {
+      "number": 23,
+      "family_id": "OGE23-F05",
+      "family_title": "Описанная окружность",
+      "subtype_id": "OGE23-sine-rule",
+      "title": "Вычисление хорды или радиуса по теореме синусов",
+      "key_method": "Сначала найти угол напротив заданной стороны, затем применить a=2R sin α",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311650",
+        "448904"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311650",
+        "oge-part2-reshu-448904",
+        "oge-part2-reshu-311651",
+        "oge-part2-fipi-mirror-ae3b14",
+        "oge-part2-fipi-mirror-cf802a",
+        "oge-part2-fipi-mirror-6afb28"
+      ],
+      "bank_observation_ids": [
+        "311650",
+        "448904",
+        "311651",
+        "AE3B14",
+        "CF802A",
+        "6AFB28"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F01",
+      "family_title": "Доказательства через вписанность",
+      "subtype_id": "OGE24-cyclic-external",
+      "title": "Подобие у внешней точки двух секущих",
+      "key_method": "Получить соответствие по углам или использовать степень внешней точки и общий угол",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "333348",
+        "333322",
+        "D24-2027"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-fipi-demo-2027-24",
+        "oge-part2-atlas-a24-cyclic-external-01",
+        "oge-part2-atlas-a24-cyclic-external-02",
+        "oge-part2-atlas-a24-cyclic-external-03",
+        "oge-part2-atlas-a24-cyclic-external-04",
+        "oge-part2-atlas-a24-cyclic-external-05"
+      ],
+      "bank_observation_ids": [
+        "D24-2027"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F01",
+      "family_title": "Доказательства через вписанность",
+      "subtype_id": "OGE24-cyclic-converse",
+      "title": "Равные углы → вписанность → новые равные углы",
+      "key_method": "Сначала обратная теорема из углов, опирающихся на одну хорду, затем прямая",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340880",
+        "339625"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340880",
+        "oge-part2-atlas-a24-cyclic-converse-01",
+        "oge-part2-atlas-a24-cyclic-converse-02",
+        "oge-part2-atlas-a24-cyclic-converse-03",
+        "oge-part2-atlas-a24-cyclic-converse-04",
+        "oge-part2-atlas-a24-cyclic-converse-05"
+      ],
+      "bank_observation_ids": [
+        "340880"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F01",
+      "family_title": "Доказательства через вписанность",
+      "subtype_id": "OGE24-cyclic-altitudes",
+      "title": "Окружность через основания высот",
+      "key_method": "Построить окружность через пары прямых углов; разобрать дуги и порядок лучей",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340341",
+        "353162",
+        "340854"
+      ],
+      "source_cards": 2,
+      "training_only_cards": 4,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340341",
+        "oge-part2-reshu-340854",
+        "oge-part2-atlas-a24-cyclic-altitudes-01",
+        "oge-part2-atlas-a24-cyclic-altitudes-02",
+        "oge-part2-atlas-a24-cyclic-altitudes-03",
+        "oge-part2-atlas-a24-cyclic-altitudes-04"
+      ],
+      "bank_observation_ids": [
+        "340341",
+        "340854"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F02",
+      "family_title": "Подобие и равенство",
+      "subtype_id": "OGE24-similar-parallels",
+      "title": "Подобие через параллельность / известные стороны",
+      "key_method": "По двум углам или по пропорциональным сторонам и углу между ними",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311573",
+        "339506"
+      ],
+      "source_cards": 4,
+      "training_only_cards": 2,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340995",
+        "oge-part2-reshu-341131",
+        "oge-part2-reshu-348542",
+        "oge-part2-reshu-311573",
+        "oge-part2-atlas-a24-similar-parallels-01",
+        "oge-part2-atlas-a24-similar-parallels-02"
+      ],
+      "bank_observation_ids": [
+        "340995",
+        "341131",
+        "348542",
+        "311573"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F02",
+      "family_title": "Подобие и равенство",
+      "subtype_id": "OGE24-rigid-motion",
+      "title": "Равенство отрезков через равенство треугольников или симметрию",
+      "key_method": "Найти соответствие по повороту, осевой/центральной симметрии или признаку равенства",
+      "priority": "core",
+      "observations": 4,
+      "distinct_after_known_duplicates": 4,
+      "complete_cards": 6,
+      "observation_ids": [
+        "311561",
+        "311605",
+        "311604",
+        "340104"
+      ],
+      "source_cards": 4,
+      "training_only_cards": 2,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-311561",
+        "oge-part2-reshu-311605",
+        "oge-part2-reshu-311604",
+        "oge-part2-reshu-340104",
+        "oge-part2-atlas-a24-rigid-motion-01",
+        "oge-part2-atlas-a24-rigid-motion-02"
+      ],
+      "bank_observation_ids": [
+        "311561",
+        "311605",
+        "311604",
+        "340104"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F02",
+      "family_title": "Подобие и равенство",
+      "subtype_id": "OGE24-midline-proof",
+      "title": "Средними линиями доказать равносторонность",
+      "key_method": "Выразить три стороны через половины равных сторон исходного треугольника",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "129"
+      ],
+      "source_cards": 2,
+      "training_only_cards": 4,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-129",
+        "oge-part2-reshu-315008",
+        "oge-part2-atlas-a24-midline-proof-01",
+        "oge-part2-atlas-a24-midline-proof-02",
+        "oge-part2-atlas-a24-midline-proof-03",
+        "oge-part2-atlas-a24-midline-proof-04"
+      ],
+      "bank_observation_ids": [
+        "129",
+        "315008"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F03",
+      "family_title": "Свойства четырёхугольников",
+      "subtype_id": "OGE24-quadrilateral-test",
+      "title": "Обоснование вида четырёхугольника",
+      "key_method": "Доказать признак параллелограмма или прямоугольника через диагонали, симметрию или равнобедренность",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "155",
+        "439915"
+      ],
+      "source_cards": 3,
+      "training_only_cards": 3,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-315030",
+        "oge-part2-reshu-155",
+        "oge-part2-reshu-439915",
+        "oge-part2-atlas-a24-quadrilateral-test-01",
+        "oge-part2-atlas-a24-quadrilateral-test-02",
+        "oge-part2-atlas-a24-quadrilateral-test-03"
+      ],
+      "bank_observation_ids": [
+        "315030",
+        "155",
+        "439915"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F04",
+      "family_title": "Биссектрисы",
+      "subtype_id": "OGE24-bisector-distance",
+      "title": "Равноудалённость от трёх прямых",
+      "key_method": "Применить свойство двух биссектрис и транзитивность равенства расстояний",
+      "priority": "standard",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "341344",
+        "339609"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-341344",
+        "oge-part2-atlas-a24-bisector-distance-01",
+        "oge-part2-atlas-a24-bisector-distance-02",
+        "oge-part2-atlas-a24-bisector-distance-03",
+        "oge-part2-atlas-a24-bisector-distance-04",
+        "oge-part2-atlas-a24-bisector-distance-05"
+      ],
+      "bank_observation_ids": [
+        "341344"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F04",
+      "family_title": "Биссектрисы",
+      "subtype_id": "OGE24-bisector-isosceles",
+      "title": "Биссектриса и равнобедренный треугольник при параллельных сторонах",
+      "key_method": "Связать углы с параллельностью, доказать середину или обратное свойство биссектрисы",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340387",
+        "348892"
+      ],
+      "source_cards": 2,
+      "training_only_cards": 4,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-348892",
+        "oge-part2-reshu-340387",
+        "oge-part2-atlas-a24-bisector-isosceles-01",
+        "oge-part2-atlas-a24-bisector-isosceles-02",
+        "oge-part2-atlas-a24-bisector-isosceles-03",
+        "oge-part2-atlas-a24-bisector-isosceles-04"
+      ],
+      "bank_observation_ids": [
+        "348892",
+        "340387"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F05",
+      "family_title": "Площади",
+      "subtype_id": "OGE24-area-proof",
+      "title": "Доказательство равенства или отношения площадей",
+      "key_method": "Общие основания и высоты, сложение или вычитание общей части",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "333026",
+        "333131",
+        "340055"
+      ],
+      "source_cards": 4,
+      "training_only_cards": 2,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340055",
+        "oge-part2-reshu-333026",
+        "oge-part2-reshu-333131",
+        "oge-part2-reshu-348716",
+        "oge-part2-atlas-a24-area-proof-01",
+        "oge-part2-atlas-a24-area-proof-02"
+      ],
+      "bank_observation_ids": [
+        "340055",
+        "333026",
+        "333131",
+        "348716"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F06",
+      "family_title": "Две окружности",
+      "subtype_id": "OGE24-common-chord",
+      "title": "Линия центров перпендикулярна общей хорде",
+      "key_method": "Оба центра лежат на серединном перпендикуляре к одной хорде",
+      "priority": "standard",
+      "observations": 4,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340906",
+        "341422",
+        "340297",
+        "352846"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340906",
+        "oge-part2-atlas-a24-common-chord-01",
+        "oge-part2-atlas-a24-common-chord-02",
+        "oge-part2-atlas-a24-common-chord-03",
+        "oge-part2-atlas-a24-common-chord-04",
+        "oge-part2-atlas-a24-common-chord-05"
+      ],
+      "bank_observation_ids": [
+        "340906"
+      ]
+    },
+    {
+      "number": 24,
+      "family_id": "OGE24-F06",
+      "family_title": "Две окружности",
+      "subtype_id": "OGE24-common-tangent-ratio",
+      "title": "Отношение радиусов через внутреннюю касательную",
+      "key_method": "Радиусы перпендикулярны касательной; два прямоугольных треугольника подобны",
+      "priority": "rare",
+      "observations": 2,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340324",
+        "349626"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340324",
+        "oge-part2-atlas-a24-common-tangent-ratio-01",
+        "oge-part2-atlas-a24-common-tangent-ratio-02",
+        "oge-part2-atlas-a24-common-tangent-ratio-03",
+        "oge-part2-atlas-a24-common-tangent-ratio-04",
+        "oge-part2-atlas-a24-common-tangent-ratio-05"
+      ],
+      "bank_observation_ids": [
+        "340324"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F01",
+      "family_title": "Трапеции и параллелограммы",
+      "subtype_id": "OGE25-trapezoid-bisector-area",
+      "title": "Биссектриса через середину боковой стороны",
+      "key_method": "Продлить биссектрису, получить равенство отрезков, затем вычислить высоту и площадь",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "339398",
+        "D25-2027"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-fipi-demo-2027-25",
+        "oge-part2-reshu-339398",
+        "oge-part2-reshu-339408",
+        "oge-part2-reshu-339455",
+        "oge-part2-reshu-339631",
+        "oge-part2-reshu-339632"
+      ],
+      "bank_observation_ids": [
+        "D25-2027",
+        "339398",
+        "339408",
+        "339455",
+        "339631",
+        "339632"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F01",
+      "family_title": "Трапеции и параллелограммы",
+      "subtype_id": "OGE25-trapezoid-parallel-section",
+      "title": "Сечение, параллельное основаниям",
+      "key_method": "Линейное изменение длины сечения; для площади нужно ещё найти уровни диагоналей",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "324718",
+        "340359"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-324718",
+        "oge-part2-reshu-340359",
+        "oge-part2-reshu-341292",
+        "oge-part2-reshu-349617",
+        "oge-part2-reshu-349893",
+        "oge-part2-reshu-350682"
+      ],
+      "bank_observation_ids": [
+        "324718",
+        "340359",
+        "341292",
+        "349617",
+        "349893",
+        "350682"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F01",
+      "family_title": "Трапеции и параллелограммы",
+      "subtype_id": "OGE25-trapezoid-midpoint-segments",
+      "title": "Восстановить основания через середины сторон",
+      "key_method": "Использовать перпендикулярность боковых сторон и отношения средних линий",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "353565"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-353565",
+        "oge-part2-reshu-339730",
+        "oge-part2-reshu-341060",
+        "oge-part2-reshu-348839",
+        "oge-part2-reshu-349860",
+        "oge-part2-reshu-349968"
+      ],
+      "bank_observation_ids": [
+        "353565",
+        "339730",
+        "341060",
+        "348839",
+        "349860",
+        "349968"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F01",
+      "family_title": "Трапеции и параллелограммы",
+      "subtype_id": "OGE25-parallelogram-bisectors",
+      "title": "Площадь параллелограмма с биссектрисами",
+      "key_method": "Два равных расстояния до параллелей, высота и площадь; может встречаться и под №23",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "457286"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-457286",
+        "oge-part2-reshu-457314",
+        "oge-part2-fipi-mirror-e097f7",
+        "oge-part2-fipi-mirror-569075",
+        "oge-part2-fipi-mirror-97c87b",
+        "oge-part2-fipi-mirror-b435d4"
+      ],
+      "bank_observation_ids": [
+        "457286",
+        "457314",
+        "E097F7",
+        "569075",
+        "97C87B",
+        "B435D4"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F02",
+      "family_title": "Вписанные и вневписанные окружности",
+      "subtype_id": "OGE25-tangent-trapezoid",
+      "title": "Трапеция, описанная около окружности",
+      "key_method": "Суммы противоположных сторон, высота из площади и подобие у пересечения диагоналей",
+      "priority": "core",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340054"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340054",
+        "oge-part2-reshu-352987",
+        "oge-part2-fipi-mirror-51a343",
+        "oge-part2-fipi-mirror-aa39fe",
+        "oge-part2-fipi-mirror-1ee527",
+        "oge-part2-fipi-mirror-f311d0"
+      ],
+      "bank_observation_ids": [
+        "340054",
+        "352987",
+        "51A343",
+        "AA39FE",
+        "1EE527",
+        "F311D0"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F02",
+      "family_title": "Вписанные и вневписанные окружности",
+      "subtype_id": "OGE25-incircle-excircle",
+      "title": "Вписанная и вневписанная окружности",
+      "key_method": "Связать касания, высоты и полупериметр; положение центра снаружи фиксирует вневписанную окружность",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "439916"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-439916",
+        "oge-part2-atlas-a25-incircle-excircle-01",
+        "oge-part2-atlas-a25-incircle-excircle-02",
+        "oge-part2-atlas-a25-incircle-excircle-03",
+        "oge-part2-atlas-a25-incircle-excircle-04",
+        "oge-part2-atlas-a25-incircle-excircle-05"
+      ],
+      "bank_observation_ids": [
+        "439916"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F02",
+      "family_title": "Вписанные и вневписанные окружности",
+      "subtype_id": "OGE25-incircle-similarity",
+      "title": "Радиусы вписанных окружностей подобных треугольников",
+      "key_method": "Доказать подобие и перенести масштаб на радиус, получить коэффициент из тригонометрии",
+      "priority": "core",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "341397"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-341397",
+        "oge-part2-atlas-a25-incircle-similarity-01",
+        "oge-part2-atlas-a25-incircle-similarity-02",
+        "oge-part2-atlas-a25-incircle-similarity-03",
+        "oge-part2-atlas-a25-incircle-similarity-04",
+        "oge-part2-atlas-a25-incircle-similarity-05"
+      ],
+      "bank_observation_ids": [
+        "341397"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F02",
+      "family_title": "Вписанные и вневписанные окружности",
+      "subtype_id": "OGE25-incenter-distance",
+      "title": "Инцентр, расстояния и высота",
+      "key_method": "Равные расстояния до сторон исходного треугольника в связке с параллелями",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "339825"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-339825",
+        "oge-part2-reshu-350304",
+        "oge-part2-reshu-350839",
+        "oge-part2-reshu-351109",
+        "oge-part2-reshu-351158",
+        "oge-part2-reshu-352193"
+      ],
+      "bank_observation_ids": [
+        "339825",
+        "350304",
+        "350839",
+        "351109",
+        "351158",
+        "352193"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F03",
+      "family_title": "Вписанные фигуры и описанные окружности",
+      "subtype_id": "OGE25-cyclic-diagonals",
+      "title": "Диагонали вписанного четырёхугольника",
+      "key_method": "Подобие и произведения отрезков или теорема косинусов для хорд",
+      "priority": "core",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "339675",
+        "341371"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-339675",
+        "oge-part2-reshu-341371",
+        "oge-part2-reshu-348801",
+        "oge-part2-reshu-348869",
+        "oge-part2-reshu-349161",
+        "oge-part2-reshu-349370"
+      ],
+      "bank_observation_ids": [
+        "339675",
+        "341371",
+        "348801",
+        "348869",
+        "349161",
+        "349370"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F03",
+      "family_title": "Вписанные фигуры и описанные окружности",
+      "subtype_id": "OGE25-circumradius-hidden",
+      "title": "Восстановление хорды или радиуса через углы",
+      "key_method": "Восстановить угол из геометрии фигуры или из отношения биссектрисы и высоты, затем теорема синусов",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340107",
+        "348521",
+        "M26-25-P42"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340107",
+        "oge-part2-reshu-348521",
+        "oge-part2-reshu-311713",
+        "oge-part2-reshu-311715",
+        "oge-part2-reshu-340344",
+        "oge-part2-reshu-348736"
+      ],
+      "bank_observation_ids": [
+        "340107",
+        "348521",
+        "311713",
+        "311715",
+        "340344",
+        "348736"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F03",
+      "family_title": "Вписанные фигуры и описанные окружности",
+      "subtype_id": "OGE25-circumcenter-chord",
+      "title": "Центр описанной окружности и дополнительный перпендикуляр",
+      "key_method": "Связать перпендикуляр к радиусу с касательной и углами; доказать подобие",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340133"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340133",
+        "oge-part2-reshu-341162",
+        "oge-part2-reshu-349275",
+        "oge-part2-reshu-349590",
+        "oge-part2-reshu-351184",
+        "oge-part2-reshu-351826"
+      ],
+      "bank_observation_ids": [
+        "340133",
+        "341162",
+        "349275",
+        "349590",
+        "351184",
+        "351826"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F04",
+      "family_title": "Касание, секущие и две окружности",
+      "subtype_id": "OGE25-secant-tangent",
+      "title": "Касательная и секущая / хорда",
+      "key_method": "Степень точки, подобие или сравнение расстояний до касательной и хорды",
+      "priority": "core",
+      "observations": 3,
+      "distinct_after_known_duplicates": 3,
+      "complete_cards": 6,
+      "observation_ids": [
+        "340855",
+        "339665",
+        "340376"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-340855",
+        "oge-part2-reshu-340907",
+        "oge-part2-reshu-340936",
+        "oge-part2-reshu-341132",
+        "oge-part2-reshu-348471",
+        "oge-part2-reshu-350018"
+      ],
+      "bank_observation_ids": [
+        "340855",
+        "340907",
+        "340936",
+        "341132",
+        "348471",
+        "350018"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F04",
+      "family_title": "Касание, секущие и две окружности",
+      "subtype_id": "OGE25-two-circle-tangents",
+      "title": "Две касающиеся окружности и общие касательные",
+      "key_method": "Внешний центр подобия задаёт точки касания и расстояние между параллельными хордами",
+      "priority": "rare",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "333132"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-333132",
+        "oge-part2-reshu-333159",
+        "oge-part2-reshu-340323",
+        "oge-part2-reshu-348722",
+        "oge-part2-reshu-349805",
+        "oge-part2-reshu-350396"
+      ],
+      "bank_observation_ids": [
+        "333132",
+        "333159",
+        "340323",
+        "348722",
+        "349805",
+        "350396"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F05",
+      "family_title": "Комбинированные конструкции в треугольнике",
+      "subtype_id": "OGE25-orthocenter-semicircle",
+      "title": "Ортоцентр и полуокружность на стороне",
+      "key_method": "Полуокружность даёт произведение проекций, подобие высот даёт второе равенство; исключить вырождение",
+      "priority": "core",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "339402"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-339402",
+        "oge-part2-reshu-339426",
+        "oge-part2-reshu-339457",
+        "oge-part2-reshu-339719",
+        "oge-part2-reshu-339746",
+        "oge-part2-reshu-349858"
+      ],
+      "bank_observation_ids": [
+        "339402",
+        "339426",
+        "339457",
+        "339719",
+        "339746",
+        "349858"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F05",
+      "family_title": "Комбинированные конструкции в треугольнике",
+      "subtype_id": "OGE25-median-bisector",
+      "title": "Медиана и биссектриса перпендикулярны",
+      "key_method": "Использовать симметрию относительно биссектрисы и восстановить стороны треугольника",
+      "priority": "rare",
+      "observations": 2,
+      "distinct_after_known_duplicates": 2,
+      "complete_cards": 6,
+      "observation_ids": [
+        "333323",
+        "353380"
+      ],
+      "source_cards": 6,
+      "training_only_cards": 0,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-333323",
+        "oge-part2-reshu-353380",
+        "oge-part2-reshu-333349",
+        "oge-part2-reshu-339435",
+        "oge-part2-reshu-339458",
+        "oge-part2-reshu-339507"
+      ],
+      "bank_observation_ids": [
+        "333323",
+        "353380",
+        "333349",
+        "339435",
+        "339458",
+        "339507"
+      ]
+    },
+    {
+      "number": 25,
+      "family_id": "OGE25-F05",
+      "family_title": "Комбинированные конструкции в треугольнике",
+      "subtype_id": "OGE25-median-area",
+      "title": "Медиана, деление отрезка и отношение площадей",
+      "key_method": "Составить отношения площадей через высоты и основания или выбрать аффинные координаты",
+      "priority": "standard",
+      "observations": 1,
+      "distinct_after_known_duplicates": 1,
+      "complete_cards": 6,
+      "observation_ids": [
+        "341345"
+      ],
+      "source_cards": 1,
+      "training_only_cards": 5,
+      "target_count": 6,
+      "card_ids": [
+        "oge-part2-reshu-341345",
+        "oge-part2-atlas-a25-median-area-01",
+        "oge-part2-atlas-a25-median-area-02",
+        "oge-part2-atlas-a25-median-area-03",
+        "oge-part2-atlas-a25-median-area-04",
+        "oge-part2-atlas-a25-median-area-05"
+      ],
+      "bank_observation_ids": [
+        "341345"
+      ]
+    }
+  ],
+  "source_card_count": 407,
+  "authored_training_card_count": 79,
+  "target_count_per_subtype": 6,
+  "coverage_rows": 506
+}
