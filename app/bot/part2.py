@@ -52,12 +52,16 @@ async def render(message: Message, repo: Repository, owner: int, row: dict[str, 
             data = await asyncio.to_thread(image_bytes, v)
             await message.answer_photo(BufferedInputFile(data, filename="condition.png"))
     label = " · авторская тренировка" if card["bank_scope"] == "training_only" else ""
+    privacy = (
+        " При проверке OpenAI получит текст и фото. Присылайте только решение без имени."
+        if get_settings().oge_grading_enabled else ""
+    )
     await repo.save_user_state(owner, "part2")
     await send_text(
         message,
         repo,
         f"Задание №{row['number']}{label}\n\n{card['statement']}\n\n"
-        "Пришлите решение текстом или фотографиями, затем нажмите «Проверить решение».",
+        "Пришлите решение текстом или фотографиями, затем нажмите «Проверить решение»." + privacy,
         reply_markup=controls(row["id"]),
         user_id_override=owner,
         rich_with_navigation=True,

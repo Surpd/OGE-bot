@@ -1,11 +1,13 @@
 """Read-only score details and private, revision-specific written work."""
 
+import asyncio
 import json
 
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import Message
+from aiogram.types import BufferedInputFile, Message
+from aiogram.utils.formatting import Text
 
-from app.bot.part2 import keyboard, store
+from app.bot.part2 import image_bytes, keyboard, store
 from app.bot.presentation import send_text
 from app.persistence.part2_insights import history, revision, summary
 from app.persistence.repository import Repository
@@ -20,11 +22,13 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
         and message.chat.type == "private"
         and all(x.isascii() and x.isdigit() and len(x) <= 18 for x in parts[1:])
     ):
-        if parts[0] == "written" and len(parts) == 2:
+        if parts[0] == "written" and len(parts) == 2 and int(parts[1]) in range(20, 26):
             number = int(parts[1])
             values = (await summary(bank.pool, owner)).get(number, {})
+
             def g(key: str) -> int:
                 return int(values.get(key, 0))
+
             message_text = (
                 f"№{number} · предварительные оценки GPT\n\n"
                 f"Выдано: {g('issued')}. Без оценки: {g('unchecked')}. Подсказок: {g('hints')}.\n"
@@ -70,6 +74,16 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
             if record:
                 r, work = record
                 lines = [f"№{r['number']} · работа {attempt}", r["statement"]]
+                for visual in json.loads(r["visuals"]):
+                    if visual["role"] != "condition":
+                        continue
+                    try:
+                        data = await asyncio.to_thread(image_bytes, visual)
+                        await message.answer_photo(
+                            BufferedInputFile(data, filename="condition.png")
+                        )
+                    except (OSError, ValueError, TelegramBadRequest):
+                        lines.append("Исходный рисунок сейчас недоступен.")
                 for piece in work:
                     if piece["body"]:
                         lines.append(piece["body"])
@@ -84,21 +98,33 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
                     report = json.loads(r["result"])
                     if r["score"] is not None:
                         lines.append(f"Предварительная оценка GPT: {r['score']}/2")
-                    lines.extend([report["feedback"], *report["errors"], report["next_step"]])
+                    lines.extend(
+                        [
+                            report["feedback"],
+                            *report["correct_steps"],
+                            *report["errors"],
+                            report["next_step"],
+                        ]
+                    )
                 elif r["status"]:
                     lines.append("Проверка не завершена. Балл не выставлен.")
                 else:
                     lines.append("Черновик.")
-                for line in lines[:-1]:
-                    if line:
-                        await message.answer(line, parse_mode=None)
-                message_text = lines[-1] or "Конец работы."
+                # Telegram limits plain messages to 4096 characters. Keep the final
+                # piece and its navigation together, including for multipage handwriting.
+                combined = "\n\n".join(line for line in lines if line)
+                while len(combined) > 3500:
+                    cut = combined.rfind("\n", 0, 3500)
+                    cut = cut if cut > 0 else 3500
+                    await message.answer(combined[:cut], parse_mode=None)
+                    combined = combined[cut:].lstrip()
+                message_text = combined
                 arrows = []
                 if attempt > 1:
                     arrows.append(
                         ("Предыдущая версия", f"progress:work:{issue}:{attempt - 1}:{offset}")
                     )
-                if attempt < r["revision"]:
+                if attempt < (r["last_work"] or 0):
                     arrows.append(
                         ("Следующая версия", f"progress:work:{issue}:{attempt + 1}:{offset}")
                     )
@@ -107,5 +133,5 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
             rows.append([("К письменным работам", f"progress:works:{offset}")])
     rows.append([("Мой прогресс", "progress:summary")])
     await send_text(
-        message, repo, message_text, reply_markup=keyboard(rows), user_id_override=owner
+        message, repo, Text(message_text), reply_markup=keyboard(rows), user_id_override=owner
     )

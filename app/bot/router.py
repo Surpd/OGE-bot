@@ -266,6 +266,8 @@ async def start(
 ) -> None:
     from aiogram.types import ReplyKeyboardRemove
 
+    from app.config import get_settings
+
     if message.from_user is None:
         return
     await repository.register_user(message.from_user.id)
@@ -276,7 +278,9 @@ async def start(
     await send_text(
         message,
         repository,
-        "Привет! Это OGE Trainer — тренажёр первой части ОГЭ по математике.",
+        ("Привет! Здесь можно тренировать задания ОГЭ по математике №1–25."
+         if get_settings().oge_part2_enabled
+         else "Привет! Это OGE Trainer — тренажёр первой части ОГЭ по математике."),
         reply_markup=ReplyKeyboardRemove(),
     )
     await send_text(
