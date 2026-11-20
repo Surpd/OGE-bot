@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
@@ -67,12 +68,20 @@ def demo_insights(kind: str) -> dict[str, Any]:
 def generate() -> list[Path]:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     output: list[Path] = []
-    for kind in ("empty", "partial", "full"):
-        png = render_progress_image(demo_insights(kind))
-        path = OUTPUT / f"progress-{kind}.png"
-        path.write_bytes(png)
-        output.append(path)
-        with Image.open(path) as image:
+    for kind in ("empty", "partial", "full", "25-demo"):
+        insights = demo_insights("full" if kind == "25-demo" else kind)
+        if kind == "25-demo":
+            insights["written"] = {
+                number: {"first_full": correct, "first_graded": graded}
+                for number, correct, graded in ((20, 1, 4), (22, 3, 5), (23, 5, 6), (25, 2, 7))
+            }
+        insights.update(display_identity="Вася", display_handle="@vasya")
+        png = render_progress_image(insights)
+        if kind != "25-demo":
+            path = OUTPUT / f"progress-{kind}.png"
+            path.write_bytes(png)
+            output.append(path)
+        with Image.open(BytesIO(png)) as image:
             for width in (360, 390):
                 resized = image.resize(
                     (width, round(image.height * width / image.width)),

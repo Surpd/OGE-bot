@@ -226,3 +226,25 @@ def test_uniform_grid_supports_the_extended_bank():
     with Image.open(io.BytesIO(render_progress_image(insights, task_count=25))) as extended:
         with Image.open(io.BytesIO(render_progress_image(insights))) as first:
             assert extended.height > first.height
+
+
+def test_profile_accent_and_score_panels_survive_the_mobile_layout():
+    from PIL import ImageColor
+
+    from app.bot.progress_image import GRID_TOP, PAD, TILE_GAP_X, TILE_WIDTH, render_overview
+
+    sample = demo_insights("empty")
+    sample.update(display_identity="Вася", display_handle="@vasya")
+    for number, correct, answered in ((2, 1, 1), (3, 5, 5), (4, 0, 5)):
+        sample["numbers"][number].update(correct=correct, answered_tasks=answered)
+    image = render_overview(sample)
+    assert image.getpixel((PAD + 29, 49)) == ImageColor.getrgb(PALETTE["ink"])
+    assert image.getpixel((PAD + 60, 200)) == ImageColor.getrgb("#F15E45")
+    panels = [
+        image.getpixel((PAD + col * (TILE_WIDTH + TILE_GAP_X) + 120, GRID_TOP + 20))
+        for col in range(4)
+    ]
+    assert len(set(panels)) == 4
+    assert panels[2][1] > panels[2][0] and panels[3][0] > panels[3][1]
+    del sample["display_identity"], sample["display_handle"]
+    assert render_overview(sample).height < image.height
