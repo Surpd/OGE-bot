@@ -6,7 +6,7 @@ from typing import Any
 
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
-from openai import APIError, AsyncOpenAI
+from openai import APIError, AsyncOpenAI, AuthenticationError, PermissionDeniedError, RateLimitError
 from PIL import UnidentifiedImageError
 
 from app.bot.part2 import controls, image_bytes
@@ -35,6 +35,7 @@ async def check(
     if notice:
         await send_text(message, repo, notice, reply_markup=controls(issue))
         return
+    provider_unavailable = False
     dispatched = False
     result = None
     try:
@@ -63,11 +64,15 @@ async def check(
             ) as client:
                 dispatched = True
                 result = await assess(client, s.oge_grading_model, content)
+    except (RateLimitError, AuthenticationError, PermissionDeniedError):
+        provider_unavailable = True
     except (APIError, TelegramAPIError, ValueError, TimeoutError, OSError, UnidentifiedImageError):
         pass
     finally:
         await finish(bank.pool, s, issue, revision, result, dispatched=dispatched)
-    if result is None:
+    if provider_unavailable:
+        reply = "Автопроверка временно недоступна. Работа сохранена, балл не выставлен."
+    elif result is None:
         reply = "Проверка не завершилась. Балл не выставлен. Можно прислать работу ещё раз."
     else:
         assessment = result[0]

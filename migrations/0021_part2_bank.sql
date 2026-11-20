@@ -19,4 +19,16 @@ ALTER TABLE part2_families ENABLE ROW LEVEL SECURITY;
 ALTER TABLE part2_subtypes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE part2_cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE part2_versions ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON part2_versions, part2_cards, part2_families, part2_subtypes FROM PUBLIC;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        REVOKE ALL ON part2_versions, part2_cards, part2_families, part2_subtypes FROM anon;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+        REVOKE ALL ON part2_versions, part2_cards, part2_families, part2_subtypes FROM authenticated;
+    END IF;
+END $$;
+
 COMMIT;

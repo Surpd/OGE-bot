@@ -19,4 +19,16 @@ CREATE TABLE IF NOT EXISTS part2_work (
 CREATE INDEX IF NOT EXISTS part2_work_album ON part2_work(media_group) WHERE media_group IS NOT NULL;
 ALTER TABLE part2_issues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE part2_work ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON part2_issues, part2_work FROM PUBLIC;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        REVOKE ALL ON part2_issues, part2_work FROM anon;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+        REVOKE ALL ON part2_issues, part2_work FROM authenticated;
+    END IF;
+END $$;
+
 COMMIT;
