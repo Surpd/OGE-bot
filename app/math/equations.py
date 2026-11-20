@@ -130,6 +130,7 @@ _SOURCES: dict[str, tuple[str, ...]] = {
     "OGE09-L4B": ("338495",),
     "OGE09-K2": ("357568",),
     "OGE09-K3": ("357133", "357135"),
+    "OGE09-K5": ("369496",),
     "OGE09-K6": ("357173",),
 }
 ENABLED_FAMILIES = tuple(_SOURCES)
@@ -520,9 +521,11 @@ def _build_quadratic(family: str, rng: random.Random) -> Equation:
     if family == "OGE09-K4":
         return Equation(_op("+", _x2(), _op("*", _n(-(low + high)), _x())), _n(-low * high))
     if family == "OGE09-K5":
-        first_slope, second_slope = rng.randint(1, 5), rng.randint(1, 5)
-        first = _op("+", _op("*", _n(first_slope), _x()), _n(-first_slope * low))
-        second = _op("+", _op("*", _n(second_slope), _x()), _n(-second_slope * high))
+        denominator = rng.choice((2, 5))
+        numerator = rng.choice([n for n in range(-12, 13) if n % denominator])
+        integer = rng.choice([v for v in range(-9, 10) if v])
+        first = _op("+", _op("*", _n(-denominator), _x()), _n(numerator))
+        second = _op("+", _op("*", _n(-1), _x()), _n(integer))
         return Equation(_op("*", Group(first), Group(second)), _n(0))
     # K6: no linear term; preserve the observed ax²-c form, including simple
     # fractional leading coefficients such as the catalog's 4/3 x² - 48 = 0.
@@ -568,7 +571,16 @@ def generate_equation(
     solution: tuple[str, ...]
     if a:
         root_text = " и ".join(_format_root(root) for root in roots)
-        if b == 0 and c < 0:
+        if family_id == "OGE09-K5" and isinstance(equation.left, Operation):
+            steps_for_factors = []
+            for factor in (equation.left.left, equation.left.right):
+                constant, slope, _ = _poly(factor)
+                root = _format_root(-constant / slope)
+                steps_for_factors.append(f"{render_expr(factor)} = 0, откуда x = {root}.")
+            solution = (*steps_for_factors, f"Меньший из корней: {answer}.")
+            hints = ("Когда произведение равно нулю, хотя бы один множитель равен нулю.",
+                     "Решите два линейных уравнения и сравните корни.")
+        elif b == 0 and c < 0:
             square = -c / a
             quadratic_term = _polynomial_text(Fraction(0), Fraction(0), a)
             squared_form = _polynomial_text(Fraction(0), Fraction(0), Fraction(1))
@@ -610,13 +622,6 @@ def generate_equation(
             if square_root is None:
                 raise ValueError("Equation has no exact square root for the displayed solution")
             steps: list[str] = []
-            if family_id == "OGE09-K5":
-                left = _poly(equation.left)
-                right = _poly(equation.right)
-                steps.append(
-                    "Раскроем скобки и приведём подобные: "
-                    f"{_polynomial_text(*left)} = {_polynomial_text(*right)}."
-                )
             steps.extend(
                 [
                     f"Перенесём всё в левую часть: {_polynomial_text(c, b, a)} = 0.",
@@ -841,6 +846,10 @@ def _validate_visible_shape(family_id: str, equation_text: str) -> None:
         raise ValueError("L4A must show one left group and an ungrouped variable on the right")
     if family_id == "OGE09-L4B" and (left.count("(") < 1 or right.count("(") < 1):
         raise ValueError("L4B must visibly show groups on both sides")
+    if family_id == "OGE09-K5" and (
+        ")·(" not in left or variable_count(left) != 2 or right.strip() != "0"
+    ):
+        raise ValueError("K5 requires two visible linear factors and zero on the right")
     if family_id == "OGE09-K2" and (
         not left.startswith("x²") or variable_count(left) != 1 or right.strip() != "0"
     ):
