@@ -29,38 +29,52 @@ def render_snapshot(snapshot: Mapping[str, object]) -> bytes:
     font = ImageFont.truetype("DejaVuSans.ttf", 35)
 
     def label(x: int, y: int, text: str) -> None:
-        draw.text((x, y), text, anchor="mm", font=font, fill="#152637",
-                  stroke_width=2, stroke_fill="white")
+        draw.text(
+            (x, y),
+            text,
+            anchor="mm",
+            font=font,
+            fill="#152637",
+            stroke_width=2,
+            stroke_fill="white",
+        )
 
     if family == PROBABILITY_TREE:
         a, left, right = problem.diagram
+
         def branch(x: int, y: int, dx: int, probability: int, text: str) -> None:
             draw.line((x, y, x + dx, y + 145), fill="#314758", width=3)
             label(x + dx // 2, y + 72, f"0,{probability}")
             label(x + dx, y + 145, text)
 
-        for dx, probability, name, conditional in ((-175, a, "A", left),
-                                                   (175, 10-a, "A̅", right)):
+        for dx, probability, name, conditional in ((-175, a, "A", left), (175, 10 - a, "A̅", right)):
             branch(360, 45, dx, probability, name)
             branch(360 + dx, 190, -90, conditional, "B")
-            branch(360 + dx, 190, 90, 10-conditional, "B̅")
+            branch(360 + dx, 190, 90, 10 - conditional, "B̅")
             label(360 + dx, 190, name)
         label(360, 45, "S")
     else:
         draw.rectangle((8, 8, 712, 312), outline="#44586b", width=3)
         for x in (72, 271):
-            draw.ellipse((x, 78, x+376, 273), outline="#254968", width=4)
+            draw.ellipse((x, 78, x + 376, 273), outline="#254968", width=4)
         label(95, 61, "A")
         label(625, 61, "B")
         positions: tuple[tuple[int, int], ...] = ((186, 178), (360, 178), (537, 178), (180, 45))
         if family == WEIGHTED_POINTS:
-            positions = ((178, 136), (178, 213), (360, 145), (360, 213),
-                         (539, 136), (539, 213), (360, 40), (505, 290))
-        for (x, y), value in zip(positions,
-                                 problem.diagram, strict=True):
+            positions = (
+                (178, 136),
+                (178, 213),
+                (360, 145),
+                (360, 213),
+                (539, 136),
+                (539, 213),
+                (360, 40),
+                (505, 290),
+            )
+        for (x, y), value in zip(positions, problem.diagram, strict=True):
             text = str(value) if family == EULER_COUNTS else problem_decimal(value)
             if family == WEIGHTED_POINTS:
-                draw.ellipse((x-43, y-5, x-33, y+5), fill="#152637")
+                draw.ellipse((x - 43, y - 5, x - 33, y + 5), fill="#152637")
                 x += 10
             label(x, y, text)
     output = BytesIO()

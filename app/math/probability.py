@@ -475,28 +475,39 @@ def _diagram_problem(family: str, seed: int) -> ProbabilityProblem:
         values = (a, left, right)
         space = tuple(
             frozenset({"B"}) if y < (left if x < a else right) else frozenset()
-            for x in range(10) for y in range(10)
+            for x in range(10)
+            for y in range(10)
         )
         event: dict[str, object] = {"kind": "has", "label": "B"}
         text = "На рисунке изображено дерево случайного опыта. Найдите вероятность события B."
-        hints = ("Найдите все пути от начала дерева к исходу B.",
-                 "Для каждого пути перемножьте вероятности ветвей, затем сложите произведения.")
+        hints = (
+            "Найдите все пути от начала дерева к исходу B.",
+            "Для каждого пути перемножьте вероятности ветвей, затем сложите произведения.",
+        )
         favorable = a * left + (10 - a) * right
-        solution = (f"Через A: {a}/10 · {left}/10 = {a*left}/100.",
-                    f"Через противоположное событие: {10-a}/10 · {right}/10 = {(10-a)*right}/100.",
-                    f"Пути несовместны. Складываем: {favorable}/100 = "
-                    f"{_exact_answer(Fraction(favorable, 100))}.")
+        solution = (
+            f"Через A: {a}/10 · {left}/10 = {a * left}/100.",
+            f"Через противоположное событие: {10 - a}/10 · {right}/10 = {(10 - a) * right}/100.",
+            f"Пути несовместны. Складываем: {favorable}/100 = "
+            f"{_exact_answer(Fraction(favorable, 100))}.",
+        )
         signature = values
     elif family == WEIGHTED_POINTS:
         cuts = sorted(rng.sample(range(1, 100), 7))
         values = tuple(b - a for a, b in zip([0, *cuts], [*cuts, 100], strict=True))
         regions = ("A", "A", "AB", "AB", "B", "B", "", "")
-        space = tuple(frozenset(region) for region, mass in zip(regions, values, strict=True)
-                      for _ in range(mass))
+        space = tuple(
+            frozenset(region)
+            for region, mass in zip(regions, values, strict=True)
+            for _ in range(mass)
+        )
         a_event: dict[str, object] = {"kind": "has", "label": "A"}
         b_event = {"kind": "has", "label": "B"}
         complement = rng.randrange(2)
-        union: dict[str, object] = {"kind": "or", "events": [{"kind": "not", "event": a_event}, b_event]}
+        union: dict[str, object] = {
+            "kind": "or",
+            "events": [{"kind": "not", "event": a_event}, b_event],
+        }
         if complement:
             event, target, terms = union, "A̅ ∪ B", values[2:]
             reason = "Берём все точки, кроме тех, которые лежат только в A."
@@ -504,20 +515,35 @@ def _diagram_problem(family: str, seed: int) -> ProbabilityProblem:
             event, target, terms = {"kind": "not", "event": union}, "A ∩ B̅", values[:2]
             reason = "Берём точки внутри A, лежащие вне B."
         signature = (*values, complement)
-        text = ("На диаграмме показаны все исходы опыта. У каждой точки указана её вероятность. "
-                f"Найдите вероятность события {target}.")
-        hints = ("Выберите точки, принадлежащие указанному событию.",
-                 "Вероятности исходов различны. Сложите вероятности выбранных точек.")
-        solution = (reason, "Складываем вероятности: "
-                    + " + ".join(_exact_answer(Fraction(n, 100)) for n in terms)
-                    + " = " + _exact_answer(Fraction(sum(terms), 100)) + ".")
+        text = (
+            "На диаграмме показаны все исходы опыта. У каждой точки указана её вероятность. "
+            f"Найдите вероятность события {target}."
+        )
+        hints = (
+            "Выберите точки, принадлежащие указанному событию.",
+            "Вероятности исходов различны. Сложите вероятности выбранных точек.",
+        )
+        solution = (
+            reason,
+            "Складываем вероятности: "
+            + " + ".join(_exact_answer(Fraction(n, 100)) for n in terms)
+            + " = "
+            + _exact_answer(Fraction(sum(terms), 100))
+            + ".",
+        )
     else:
         total = 100 if family == EULER_MASSES else rng.choice((20, 25, 40, 50, 100))
         cuts = sorted(rng.sample(range(1, total), 3))
         values = tuple(b - a for a, b in zip([0, *cuts], [*cuts, total], strict=True))
-        labels: tuple[frozenset[str], ...] = (frozenset("A"), frozenset("AB"), frozenset("B"), frozenset())
-        space = tuple(label for label, count in zip(labels, values, strict=True)
-                      for _ in range(count))
+        labels: tuple[frozenset[str], ...] = (
+            frozenset("A"),
+            frozenset("AB"),
+            frozenset("B"),
+            frozenset(),
+        )
+        space = tuple(
+            label for label, count in zip(labels, values, strict=True) for _ in range(count)
+        )
         complement = rng.randrange(2)
         a_event = {"kind": "has", "label": "A"}
         b_event = {"kind": "has", "label": "B"}
@@ -539,21 +565,32 @@ def _diagram_problem(family: str, seed: int) -> ProbabilityProblem:
         favorable = sum(terms)
         if family == EULER_COUNTS:
             description = "В областях диаграммы указаны количества равновозможных исходов."
-            solution = (reason, "Благоприятных исходов: " + " + ".join(map(str, terms))
-                        + f" = {favorable}.", "Всего: " + " + ".join(map(str, values))
-                        + f" = {total}. Вероятность: {favorable}/{total} = "
-                        + _exact_answer(Fraction(favorable, total)) + ".")
+            solution = (
+                reason,
+                "Благоприятных исходов: " + " + ".join(map(str, terms)) + f" = {favorable}.",
+                "Всего: "
+                + " + ".join(map(str, values))
+                + f" = {total}. Вероятность: {favorable}/{total} = "
+                + _exact_answer(Fraction(favorable, total))
+                + ".",
+            )
             method = "Разделите число благоприятных исходов на общее число исходов."
         else:
             description = "В каждой области диаграммы указана её вероятность."
-            solution = (reason, "Складываем вероятности: "
-                        + " + ".join(_exact_answer(Fraction(n, 100)) for n in terms)
-                        + " = " + _exact_answer(Fraction(favorable, 100)) + ".")
+            solution = (
+                reason,
+                "Складываем вероятности: "
+                + " + ".join(_exact_answer(Fraction(n, 100)) for n in terms)
+                + " = "
+                + _exact_answer(Fraction(favorable, 100))
+                + ".",
+            )
             method = "Сложите вероятности выбранных непересекающихся областей."
         text = f"{description} Найдите вероятность события {target}."
         hints = ("Определите, какие области удовлетворяют условию события.", method)
-    return replace(_problem(family, seed, text, space, event, signature, hints, solution),
-                   diagram=values)
+    return replace(
+        _problem(family, seed, text, space, event, signature, hints, solution), diagram=values
+    )
 
 
 _GENERATORS = {
