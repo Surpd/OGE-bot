@@ -178,3 +178,40 @@ def test_graphical_task_ordinary_mixed_and_history_share_verified_original(famil
     snapshot["diagram"][0] += 1
     with pytest.raises(ValueError, match="Inconsistent"):
         render_snapshot(snapshot)
+
+
+def test_equiprobable_outcomes_in_final_png_match_saved_areas() -> None:
+    from io import BytesIO
+
+    from PIL import Image, ImageDraw
+
+    from app.math.probability import EQUAL_POINTS
+    from app.math.probability_diagram import render_snapshot
+
+    # Exercise every possible population (1..7) in each region.
+    observed: set[tuple[int, int]] = set()
+    for seed in range(4000):
+        problem = generate(EQUAL_POINTS, seed)
+        coverage = set(enumerate(problem.diagram))
+        if coverage <= observed:
+            continue
+        observed |= coverage
+        image = Image.open(BytesIO(render_snapshot(problem.to_snapshot()))).convert("RGB")
+        counts = [0, 0, 0, 0]
+        # The points have a solid circular core. Read their actual pixels
+        # independently of the renderer's position table and region assignment.
+        ink = (24, 43, 54)
+        for y in range(image.height):
+            for x in range(image.width):
+                if image.getpixel((x, y)) != ink:
+                    continue
+                center_x, center_y = x + 2, y + 7
+                in_a, in_b = (
+                    ((center_x - cx) / 188) ** 2 + ((center_y - 175.5) / 97.5) ** 2 < 1
+                    for cx in (260, 459)
+                )
+                region = {(True, False): 0, (True, True): 1, (False, True): 2, (False, False): 3}
+                counts[region[in_a, in_b]] += 1
+                ImageDraw.floodfill(image, (x, y), (255, 255, 255))
+        assert tuple(counts) == problem.diagram
+    assert len(observed) == 28

@@ -833,11 +833,82 @@
         }
       ],
       "acceptance": "passed"
+    },
+    {
+      "family_id": "OGE10-F005-EQUAL-POINTS",
+      "source_ids": [
+        "472222",
+        "472238",
+        "472239"
+      ],
+      "sample_count": 250,
+      "acceptance_attempts": 426,
+      "unique_fingerprints": 200,
+      "duplicate_rejections": 226,
+      "distinct_structures": 1,
+      "math_oracle_failures": 0,
+      "rendered_oracle_failures": 0,
+      "answer_policy_failures": 0,
+      "visible_integer_range": [
+        1,
+        7
+      ],
+      "operations_or_cues_in_250_sample": {
+        "subtractions": 0,
+        "additions": 0,
+        "disjoint_union_cue": 0,
+        "overlap_cue": 0
+      },
+      "denominator_counts": {
+        "2": 32,
+        "10": 111,
+        "5": 107
+      },
+      "answer_decimal_places": {
+        "1": 250
+      },
+      "source_answer_examples": [],
+      "source_answer_decimal_places": {},
+      "generated_answers_contain_source_examples": true,
+      "answer_signs": {
+        "negative": 0,
+        "zero": 0,
+        "positive": 250
+      },
+      "answer_magnitude": {
+        "min": "1/5",
+        "max": "9/10",
+        "mean": 0.6612
+      },
+      "examples": [
+        {
+          "problem_id": "e9c33d61-81c1-5526-a423-89cf753ebdbe",
+          "seed": 4082891770303147274,
+          "condition": "Точками показаны все равновозможные исходы опыта. Найдите вероятность события A ∪ B̅.",
+          "answer": "0,5",
+          "fingerprint": "24716e2bbabc22af52b2fddab645237d024bde0a14167e8185aa4db0fe9f0445"
+        },
+        {
+          "problem_id": "0d52dc7a-0d8a-572c-bfb2-3ab2e2e98c44",
+          "seed": 8235942095268807855,
+          "condition": "Точками показаны все равновозможные исходы опыта. Найдите вероятность события A ∪ B̅.",
+          "answer": "0,9",
+          "fingerprint": "d778e68eb274f93f49fee4a47ccb72569c0fc13592281689882a45d4ac16f627"
+        },
+        {
+          "problem_id": "2c95be89-5aba-5e76-ba92-437fd26695a0",
+          "seed": 3346640996886355682,
+          "condition": "Точками показаны все равновозможные исходы опыта. Найдите вероятность события A̅ ∪ B.",
+          "answer": "0,9",
+          "fingerprint": "4488726b2b7710ba38a68d2e6ddade1ac52975994de42487544be9a1c6bf862c"
+        }
+      ],
+      "acceptance": "passed"
     }
   ],
   "overall": {
-    "families_enabled": 10,
-    "families_total": 10,
-    "unique_task_instances_in_samples": 2500
+    "families_enabled": 11,
+    "families_total": 11,
+    "unique_task_instances_in_samples": 2750
   }
 }

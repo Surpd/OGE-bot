@@ -34,7 +34,8 @@ EULER_COUNTS = "OGE10-F005-EULER-COUNTS"
 EULER_MASSES = "OGE10-F005-EULER-MASSES"
 PROBABILITY_TREE = "OGE10-F005-TREE"
 WEIGHTED_POINTS = "OGE10-F005-WEIGHTED-POINTS"
-GRAPH_FAMILIES = (EULER_COUNTS, EULER_MASSES, PROBABILITY_TREE, WEIGHTED_POINTS)
+EQUAL_POINTS = "OGE10-F005-EQUAL-POINTS"
+GRAPH_FAMILIES = (EULER_COUNTS, EULER_MASSES, PROBABILITY_TREE, WEIGHTED_POINTS, EQUAL_POINTS)
 
 ENABLED_FAMILIES = (
     DRAW_CATEGORY,
@@ -47,6 +48,7 @@ ENABLED_FAMILIES = (
 )
 
 SOURCE_IDS: dict[str, tuple[str, ...]] = {
+    EQUAL_POINTS: ("472222", "472238", "472239"),
     WEIGHTED_POINTS: ("472255", "472259"),
     EULER_COUNTS: ("472228", "472237"),
     EULER_MASSES: ("472253", "472258"),
@@ -492,6 +494,43 @@ def _diagram_problem(family: str, seed: int) -> ProbabilityProblem:
             f"{_exact_answer(Fraction(favorable, 100))}.",
         )
         signature = values
+    elif family == EQUAL_POINTS:
+        cuts = sorted(rng.sample(range(1, 10), 3))
+        values = tuple(b - a for a, b in zip([0, *cuts], [*cuts, 10], strict=True))
+        space = tuple(
+            frozenset(region)
+            for region, count in zip(("A", "AB", "B", ""), values, strict=True)
+            for _ in range(count)
+        )
+        a_event: dict[str, object] = {"kind": "has", "label": "A"}
+        b_event: dict[str, object] = {"kind": "has", "label": "B"}
+        question = rng.randrange(3)
+        if question == 0:
+            target, favorable = "B", values[1] + values[2]
+            event = b_event
+            reason = "Считаем все точки внутри B, включая пересечение с A."
+        elif question == 1:
+            target, favorable = "A ∪ B̅", 10 - values[2]
+            event = {"kind": "or", "events": [a_event, {"kind": "not", "event": b_event}]}
+            reason = "Учитываем все точки, кроме лежащих в B вне A."
+        else:
+            target, favorable = "A̅ ∪ B", 10 - values[0]
+            event = {"kind": "or", "events": [{"kind": "not", "event": a_event}, b_event]}
+            reason = "Учитываем все точки, кроме лежащих в A вне B."
+        text = (
+            "Точками показаны все равновозможные исходы опыта. "
+            f"Найдите вероятность события {target}."
+        )
+        hints = (
+            "Определите, какие точки входят в событие.",
+            "Разделите число подходящих точек на общее число точек.",
+        )
+        solution = (
+            reason,
+            f"Подходящих точек: {favorable}, всего точек: 10. "
+            f"Вероятность равна {favorable}/10 = {_exact_answer(Fraction(favorable, 10))}.",
+        )
+        signature = (*values, question)
     elif family == WEIGHTED_POINTS:
         cuts = sorted(rng.sample(range(1, 100), 7))
         values = tuple(b - a for a, b in zip([0, *cuts], [*cuts, 100], strict=True))
@@ -501,7 +540,7 @@ def _diagram_problem(family: str, seed: int) -> ProbabilityProblem:
             for region, mass in zip(regions, values, strict=True)
             for _ in range(mass)
         )
-        a_event: dict[str, object] = {"kind": "has", "label": "A"}
+        a_event = {"kind": "has", "label": "A"}
         b_event = {"kind": "has", "label": "B"}
         complement = rng.randrange(2)
         union: dict[str, object] = {
@@ -641,6 +680,21 @@ def generate(
 
 def solve_rendered_condition(problem: ProbabilityProblem) -> Fraction | None:
     """Reconstruct the probability from the student-facing Russian text alone."""
+    if problem.family_id == EQUAL_POINTS:
+        if len(problem.diagram) != 4 or min(problem.diagram) < 1 or sum(problem.diagram) != 10:
+            return None
+        only_a_points, both, only_b_points, outside = problem.diagram
+        for query, favorable in (
+            ("B", both + only_b_points),
+            ("A ∪ B̅", only_a_points + both + outside),
+            ("A̅ ∪ B", both + only_b_points + outside),
+        ):
+            if problem.condition == (
+                "Точками показаны все равновозможные исходы опыта. "
+                f"Найдите вероятность события {query}."
+            ):
+                return Fraction(favorable, 10)
+        return None
     if problem.family_id == WEIGHTED_POINTS:
         if len(problem.diagram) != 8 or min(problem.diagram) <= 0 or sum(problem.diagram) != 100:
             return None

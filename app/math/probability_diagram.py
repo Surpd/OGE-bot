@@ -7,6 +7,7 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
 from app.math.probability import (
+    EQUAL_POINTS,
     EULER_COUNTS,
     GRAPH_FAMILIES,
     PROBABILITY_TREE,
@@ -59,24 +60,59 @@ def render_snapshot(snapshot: Mapping[str, object]) -> bytes:
             draw.ellipse((x, 78, x + 376, 273), outline="#254968", width=4)
         label(95, 61, "A")
         label(625, 61, "B")
-        positions: tuple[tuple[int, int], ...] = ((186, 178), (360, 178), (537, 178), (180, 45))
-        if family == WEIGHTED_POINTS:
-            positions = (
-                (178, 136),
-                (178, 213),
-                (360, 145),
-                (360, 213),
-                (539, 136),
-                (539, 213),
-                (360, 40),
-                (505, 290),
+        if family == EQUAL_POINTS:
+            regions = (
+                (
+                    (150, 145),
+                    (220, 198),
+                    (135, 189),
+                    (200, 126),
+                    (242, 160),
+                    (180, 170),
+                    (188, 221),
+                ),
+                (
+                    (360, 153),
+                    (335, 190),
+                    (390, 174),
+                    (367, 212),
+                    (328, 159),
+                    (380, 134),
+                    (355, 183),
+                ),
+                (
+                    (516, 158),
+                    (558, 196),
+                    (485, 130),
+                    (488, 197),
+                    (570, 149),
+                    (535, 221),
+                    (540, 173),
+                ),
+                ((360, 42), (148, 286), (550, 55), (655, 278), (230, 48), (56, 135), (433, 289)),
             )
-        for (x, y), value in zip(positions, problem.diagram, strict=True):
-            text = str(value) if family == EULER_COUNTS else problem_decimal(value)
+            for points, count in zip(regions, problem.diagram, strict=True):
+                for x, y in points[:count]:
+                    draw.ellipse((x - 7, y - 7, x + 7, y + 7), fill="#182b36")
+        else:
+            positions: tuple[tuple[int, int], ...] = ((186, 178), (360, 178), (537, 178), (180, 45))
             if family == WEIGHTED_POINTS:
-                draw.ellipse((x - 43, y - 5, x - 33, y + 5), fill="#152637")
-                x += 10
-            label(x, y, text)
+                positions = (
+                    (178, 136),
+                    (178, 213),
+                    (360, 145),
+                    (360, 213),
+                    (539, 136),
+                    (539, 213),
+                    (360, 40),
+                    (505, 290),
+                )
+            for (x, y), value in zip(positions, problem.diagram, strict=True):
+                text = str(value) if family == EULER_COUNTS else problem_decimal(value)
+                if family == WEIGHTED_POINTS:
+                    draw.ellipse((x - 43, y - 5, x - 33, y + 5), fill="#152637")
+                    x += 10
+                label(x, y, text)
     output = BytesIO()
     image.save(output, "PNG")
     return output.getvalue()
