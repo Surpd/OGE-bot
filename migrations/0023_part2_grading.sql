@@ -1,4 +1,5 @@
 BEGIN;
+ALTER TABLE part2_work ADD COLUMN IF NOT EXISTS photo_expired boolean NOT NULL DEFAULT false;
 CREATE TABLE IF NOT EXISTS part2_grades (
     issue_id bigint REFERENCES part2_issues, revision integer NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(), model text NOT NULL,
