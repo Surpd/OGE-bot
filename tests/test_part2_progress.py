@@ -66,6 +66,9 @@ async def test_first_scores_revisions_hints_and_private_history(bank_pool):
     for attempt in (1, 2, 3):
         _, work = await revision(bank_pool, 1, issue, attempt)
         assert [r["body"] for r in work] == [f"Решение {attempt}"]
+    await bank_pool.execute("UPDATE part2_work SET created_at=now()-interval '8 days'")
+    _, old_work = await revision(bank_pool, 1, issue, 1)
+    assert old_work[0]["body"] == "Решение 1"
     assert await summary(bank_pool, 1) == data
 
 

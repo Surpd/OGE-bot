@@ -55,7 +55,7 @@ async def revision(
         """SELECT v.payload->>'statement' statement, v.payload->'visuals' visuals, i.number,
         (SELECT max(n) FROM (SELECT revision AS n FROM part2_grades WHERE issue_id=i.id
           UNION ALL SELECT revision FROM part2_work WHERE issue_id=i.id
-          AND created_at>now()-interval '7 days') revisions) last_work, g.result,g.status,g.score,
+          ) revisions) last_work, g.result,g.status,g.score,
         g.created_at,g.model,g.prompt_version,g.rubric_version FROM part2_issues i
         JOIN part2_versions v USING(task_id,version)
         LEFT JOIN part2_grades g ON g.issue_id=i.id AND g.revision=$3
@@ -67,9 +67,11 @@ async def revision(
     if not row:
         return None
     work = await pool.fetch(
-        """SELECT w.body,w.photo FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
+        """SELECT w.body,CASE WHEN w.created_at>now()-interval '7 days' THEN w.photo END photo,
+        w.photo_expired OR (w.photo IS NOT NULL AND w.created_at<=now()-interval '7 days') expired
+        FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
         WHERE i.owner=$1 AND i.id=$2 AND w.revision=$3
-        AND created_at>now()-interval '7 days' ORDER BY message_id""",
+        ORDER BY message_id""",
         owner,
         issue,
         attempt,

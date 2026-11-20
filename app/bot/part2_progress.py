@@ -87,6 +87,8 @@ async def page(message: Message, repo: Repository, owner: int, parts: list[str])
                 for piece in work:
                     if piece["body"]:
                         lines.append(piece["body"])
+                    if piece["expired"]:
+                        lines.append("Срок хранения фотографии истёк.")
                     if piece["photo"]:
                         try:
                             await message.answer_photo(piece["photo"])
