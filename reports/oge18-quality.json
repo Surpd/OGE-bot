@@ -367,10 +367,73 @@
         "full_pixel_audit_smoke": 34.847
       },
       "hold_reason": "Finite implemented parameter model has exactly 6 normalized shapes; no synthetic novelty added."
+    },
+    "OGE18-L01": {
+      "qa_status": "verified_finite",
+      "source_status": "catalog_visual_verified",
+      "public_enabled": true,
+      "source_id": "348446",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=348446",
+      "generator_version": "oge18-grid-2",
+      "renderer_version": "oge18-pillow-3",
+      "learner_content_version": 2,
+      "smoke_seed_count": 50,
+      "candidate_count": 300,
+      "seed_attempts_for_novelty": 300,
+      "unique_content_fingerprints": 6,
+      "known_model_capacity_note": "Finite implemented parameter model has exactly 6 normalized shapes; no synthetic novelty added.",
+      "answers": {
+        "6": 38,
+        "8": 101,
+        "10": 161
+      },
+      "independent_oracle_failures": 0,
+      "versioned_png_restore_failures": 0,
+      "full_pixel_audit_count": 50,
+      "contact_sheet_distinct_variants": 6,
+      "performance_ms_median": {
+        "generation_and_png_hash": 11.788,
+        "repeat_restore_sha_and_renderer_bytes": 11.566,
+        "full_pixel_audit_smoke": 36.503
+      },
+      "hold_reason": null
+    },
+    "OGE18-H01": {
+      "qa_status": "verified_finite",
+      "source_status": "catalog_visual_verified",
+      "public_enabled": true,
+      "source_id": "311958",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=311958",
+      "generator_version": "oge18-grid-2",
+      "renderer_version": "oge18-pillow-3",
+      "learner_content_version": 2,
+      "smoke_seed_count": 50,
+      "candidate_count": 300,
+      "seed_attempts_for_novelty": 300,
+      "unique_content_fingerprints": 5,
+      "known_model_capacity_note": "Finite implemented parameter model has exactly 5 normalized shapes; no synthetic novelty added.",
+      "answers": {
+        "2.5": 60,
+        "5": 53,
+        "6.5": 51,
+        "7.5": 58,
+        "8.5": 78
+      },
+      "independent_oracle_failures": 0,
+      "versioned_png_restore_failures": 0,
+      "full_pixel_audit_count": 50,
+      "contact_sheet_distinct_variants": 5,
+      "performance_ms_median": {
+        "generation_and_png_hash": 17.964,
+        "repeat_restore_sha_and_renderer_bytes": 15.007,
+        "full_pixel_audit_smoke": 43.329
+      },
+      "hold_reason": null
     }
   },
   "status_taxonomy": [
     "implemented_closed",
+    "verified_finite",
     "source_hold",
     "math_hold",
     "visual_hold",
@@ -381,7 +444,8 @@
     "source_hold": 0,
     "math_hold": 5,
     "visual_hold": 0,
-    "public_enabled": 8
+    "public_enabled": 10,
+    "verified_finite": 2
   },
   "smoke_samples_per_family": 50,
   "main_candidate_target": 300,
@@ -391,7 +455,7 @@
     390,
     430
   ],
-  "visual_review": "Compact v3 360px contact sheets for all eight families were manually inspected, with 20 distinct variants per family where available, 3 for D05, and 6 for A05. The pixel audit also verifies 360px and 390px resizing and equal grid-cell dimensions.",
+  "visual_review": "The original eight compact v3 sheets were inspected at 360px, with 20 distinct variants per family where available, 3 for D05, and 6 for A05. All six L01 and five H01 normalized shapes were inspected at 360px. The pixel audit also verifies 360px and 390px resizing and equal grid-cell dimensions.",
   "manual_contact_sheet_review": {
     "compact_v3_families_reviewed": [
       "OGE18-M01",
@@ -401,7 +465,9 @@
       "OGE18-A01",
       "OGE18-A03",
       "OGE18-A04",
-      "OGE18-A05"
+      "OGE18-A05",
+      "OGE18-L01",
+      "OGE18-H01"
     ],
     "compact_v3_widths": [
       360
@@ -424,7 +490,9 @@
       "OGE18-A01": 20,
       "OGE18-A03": 20,
       "OGE18-A04": 20,
-      "OGE18-A05": 6
+      "OGE18-A05": 6,
+      "OGE18-L01": 6,
+      "OGE18-H01": 5
     }
   },
   "live_telegram_mobile_smoke": "not_performed; no public release claim",
@@ -436,7 +504,9 @@
     "OGE18-A01",
     "OGE18-A03",
     "OGE18-A04",
-    "OGE18-A05"
+    "OGE18-A05",
+    "OGE18-L01",
+    "OGE18-H01"
   ],
   "source_originals_embedded": false,
   "preview_policy": "Maximum 20 distinct generated PNG per family in compact v3 360px contact sheets; one compact v3 seed0 PNG retained per family; existing previews retained."
