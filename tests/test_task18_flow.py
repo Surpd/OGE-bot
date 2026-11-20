@@ -87,7 +87,7 @@ def test_default_task18_scheduler_cycles_all_families_and_skips_exhausted_family
     assert fallback[0]["family_id"] == "OGE18-M01"
 
 
-async def test_default_telegram_route_answers_and_advances_all_eight_families():
+async def test_default_telegram_route_answers_and_advances_all_enabled_families():
     repo = MemoryRepository()
     opened = message()
     await router.choose_task18(opened, repo)

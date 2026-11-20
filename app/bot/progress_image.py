@@ -17,7 +17,7 @@ from aiogram.types import (
     InputMediaPhoto,
     Message,
 )
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 from app.persistence.training_insights import (
     MIN_ANSWERED_SAMPLE,
@@ -30,31 +30,30 @@ from app.persistence.training_insights import (
 
 logger = logging.getLogger(__name__)
 
-WIDTH = 900
+WIDTH = 1200
 PHOTO_LIMIT = 10 * 1024 * 1024
-GRID_COLUMNS = 3
-GRID_ROWS = 7
-PAD = 36
-TILE_WIDTH = (WIDTH - 2 * PAD - 2 * 12) // GRID_COLUMNS
-TILE_HEIGHT = 106
-TILE_GAP_X = 12
-TILE_GAP_Y = 12
-GRID_TOP = 280
-GRID_LEFT = (WIDTH - (GRID_COLUMNS * TILE_WIDTH + (GRID_COLUMNS - 1) * TILE_GAP_X)) // 2
+GRID_COLUMNS = 5
+GRID_ROWS = 4
+PAD = 44
+TILE_GAP_X = 9
+TILE_GAP_Y = 9
+TILE_WIDTH = (WIDTH - 2 * PAD - (GRID_COLUMNS - 1) * TILE_GAP_X) // GRID_COLUMNS
+TILE_HEIGHT = 126
+GRID_TOP = 407
 
 PALETTE = {
-    "background": "#F4F6F9",
+    "background": "#F7F7F1",
     "card": "#FFFFFF",
-    "ink": "#26344A",
-    "muted": "#758198",
-    "line": "#E7EBF1",
+    "ink": "#1F3531",
+    "muted": "#53665D",
+    "line": "#CBD5CB",
     "blue": "#527FE3",
     "blue_light": "#EAF0FF",
-    "neutral": "#536479",
+    "neutral": "#1F3531",
     "neutral_light": "#F1F3F6",
-    "red": "#AC3545",
-    "yellow": "#895707",
-    "green": "#176F4C",
+    "red": "#AD3732",
+    "yellow": "#916A15",
+    "green": "#256D49",
 }
 
 
@@ -90,40 +89,29 @@ def draw_fitted_text(
     while font_size > minimum_size and _measure(draw, text, font) > max_width:
         font_size -= 1
         font = _font(font_size, bold)
+    if _measure(draw, text, font) > max_width:
+        while text and _measure(draw, text + "…", font) > max_width:
+            text = text[:-1]
+        text += "…"
     draw.text(xy, text, font=font, fill=fill, anchor=anchor)
 
 
-def _canvas(height: int) -> Image.Image:
-    return Image.new("RGBA", (WIDTH, height), PALETTE["background"])
-
-
-def _card(
-    image: Image.Image,
-    box: tuple[int, int, int, int],
-    *,
-    radius: int = 22,
-    fill: str = PALETTE["card"],
-) -> None:
-    x1, y1, x2, y2 = box
-    shadow_pad = 12
-    shadow = Image.new("RGBA", (x2 - x1 + shadow_pad * 2, y2 - y1 + shadow_pad * 2))
-    ImageDraw.Draw(shadow).rounded_rectangle(
-        (shadow_pad, shadow_pad, shadow.width - shadow_pad, shadow.height - shadow_pad),
-        radius=radius,
-        fill=(38, 52, 74, 16),
-    )
-    image.alpha_composite(
-        shadow.filter(ImageFilter.GaussianBlur(8)), (x1 - shadow_pad, y1 - shadow_pad + 3)
-    )
-    ImageDraw.Draw(image).rounded_rectangle(box, radius=radius, fill=fill)
-
-
-def dashboard_tile_values(insights: dict[str, Any]) -> list[tuple[int, int, int, str, bool]]:
+def dashboard_tile_values(
+    insights: dict[str, Any], task_count: int = 19
+) -> list[tuple[int, int, int, str, bool]]:
     """Return number, correct, answered, rate label, and sample sufficiency."""
     tiles = []
     numbers = insights.get("numbers", {})
-    for number in range(1, 20):
+    if task_count not in (19, 25):
+        raise ValueError("Unsupported dashboard size")
+    for number in range(1, task_count + 1):
         values = numbers.get(number, {})
+        if number > 19:
+            written = insights.get("written", {}).get(number, {})
+            values = {
+                "correct": written.get("first_full", 0),
+                "answered_tasks": written.get("first_graded", 0),
+            }
         answered = max(0, int(values.get("answered_tasks", 0)))
         correct = min(answered, max(0, int(values.get("correct", 0))))
         rate = success_label({"answered_tasks": answered, "correct": correct})
@@ -131,16 +119,18 @@ def dashboard_tile_values(insights: dict[str, Any]) -> list[tuple[int, int, int,
     return tiles
 
 
+def _rate_color(correct: int, answered: int) -> str:
+    if not answered:
+        return PALETTE["muted"]
+    scaled = 2 * min(1, max(0, correct / answered))
+    left, right = ("red", "yellow") if scaled <= 1 else ("yellow", "green")
+    weight = scaled if scaled <= 1 else scaled - 1
+    channels = zip(ImageColor.getrgb(PALETTE[left]), ImageColor.getrgb(PALETTE[right]), strict=True)
+    return "#" + "".join(f"{round(a + (b - a) * weight):02X}" for a, b in channels)
+
+
 def dashboard_tile_accent(correct: int, answered: int) -> str:
-    """Neutral under five answers; otherwise red <50, amber <80, green >=80."""
-    if answered < MIN_ANSWERED_SAMPLE:
-        return PALETTE["neutral"]
-    rate = round(100 * min(answered, max(0, correct)) / answered)
-    if rate < 50:
-        return PALETTE["red"]
-    if rate < 80:
-        return PALETTE["yellow"]
-    return PALETTE["green"]
+    return _rate_color(correct, answered) if answered >= MIN_ANSWERED_SAMPLE else PALETTE["neutral"]
 
 
 def _recommendation(insights: dict[str, Any]) -> str:
@@ -155,82 +145,154 @@ def _recommendation(insights: dict[str, Any]) -> str:
     return "По изученным номерам явной слабой темы нет."
 
 
-def render_overview(insights: dict[str, Any]) -> Image.Image:
+def render_overview(insights: dict[str, Any], task_count: int = 19) -> Image.Image:
     total = insights["total"]
-    image = _canvas(1240)
+    tiles = dashboard_tile_values(insights, task_count)
+    row_count = (len(tiles) + GRID_COLUMNS - 1) // GRID_COLUMNS
+    grid_bottom = GRID_TOP + row_count * TILE_HEIGHT + (row_count - 1) * TILE_GAP_Y
+    right = WIDTH - PAD
+    name = " ".join(insights.get("display_identity", "").split())
+    handle = insights.get("display_handle", "")
+    shift = 0 if name or handle else 56
+    image = Image.new("RGB", (WIDTH, grid_bottom + 113 - shift), PALETTE["background"])
     draw = ImageDraw.Draw(image)
-    draw.text((PAD, 24), "Мой прогресс", font=_font(42, True), fill=PALETTE["ink"])
-    draw.text((PAD, 76), "ОГЭ по математике · задания №1–19", font=_font(23), fill=PALETTE["muted"])
+    ink, muted, line = PALETTE["ink"], PALETTE["muted"], PALETTE["line"]
 
-    metric_y, metric_h, metric_gap = 122, 112, 12
-    metric_width = (WIDTH - 2 * PAD - 2 * metric_gap) // 3
-    metrics = (
-        ("Верно", str(max(0, int(total.get("correct", 0))))),
-        ("Успешность", success_label(total)),
-        ("Пропущено", str(max(0, int(total.get("skipped", 0))))),
-    )
-    for index, (label, value) in enumerate(metrics):
-        x = PAD + index * (metric_width + metric_gap)
-        _card(image, (x, metric_y, x + metric_width, metric_y + metric_h), radius=20)
-        draw = ImageDraw.Draw(image)
+    if name or handle:
+        account = name or handle
+        draw.ellipse((PAD, 42, PAD + 58, 100), fill=ink)
+        draw.text(
+            (PAD + 29, 70),
+            account.lstrip("@")[:1].upper(),
+            font=_font(34, True),
+            fill=PALETTE["background"],
+            anchor="mm",
+        )
         draw_fitted_text(
             draw,
-            (x + 18, metric_y + 12),
-            value,
-            max_width=metric_width - 36,
-            size=46,
-            minimum_size=24,
-            fill=PALETTE["blue"],
+            (PAD + 78, 38 if name and handle else 55),
+            account,
+            max_width=right - PAD - 78,
+            size=34,
             bold=True,
         )
-        draw.text((x + 18, metric_y + 73), label, font=_font(22), fill=PALETTE["muted"])
-
-    draw = ImageDraw.Draw(image)
-    draw.text((PAD, 252), "Результаты по номерам", font=_font(24, True), fill=PALETTE["ink"])
-    for number, correct, answered, rate, sufficient in dashboard_tile_values(insights):
-        index = number - 1
-        row, column = divmod(index, GRID_COLUMNS)
-        x = GRID_LEFT + column * (TILE_WIDTH + TILE_GAP_X)
-        y = GRID_TOP + row * (TILE_HEIGHT + TILE_GAP_Y)
-        _card(image, (x, y, x + TILE_WIDTH, y + TILE_HEIGHT), radius=18)
-        draw = ImageDraw.Draw(image)
-        accent = dashboard_tile_accent(correct, answered)
-        stripe = accent if sufficient else PALETTE["line"]
-        draw.rounded_rectangle(
-            (x + 12, y + 15, x + 18, y + TILE_HEIGHT - 15), radius=4, fill=stripe
-        )
+        if name and handle:
+            draw_fitted_text(
+                draw, (PAD + 78, 80), handle, max_width=right - PAD - 78, size=25, fill=muted
+            )
+    title_y = 123 - shift
+    draw.text((PAD - 3, title_y), "Твой прогресс", font=_font(69, True), fill=ink, anchor="lt")
+    draw.rounded_rectangle((PAD, title_y + 73, PAD + 148, title_y + 81), radius=4, fill="#F15E45")
+    for y in (231, 347):
+        draw.line((PAD, y - shift, right, y - shift), fill=line, width=2)
+    metrics = (
+        (
+            "УСПЕШНОСТЬ",
+            success_label(total),
+            _rate_color(total["correct"], total["answered_tasks"]),
+        ),
+        ("ВЕРНО", str(total["correct"]), ink),
+        ("ПРОПУЩЕНО", str(total["skipped"]), ink),
+    )
+    if task_count == 25:
         draw.text(
-            (x + 28, y + 14),
+            (right, title_y + 81), "СВОДКА №1–19", font=_font(24, True), fill=muted, anchor="rb"
+        )
+    for index, (label, value, color) in enumerate(metrics):
+        x = (PAD, 471, 840)[index]
+        if index:
+            draw.line((x - 32, 248 - shift, x - 32, 331 - shift), fill=line, width=2)
+        draw_fitted_text(
+            draw,
+            (x, 247 - shift),
+            value,
+            max_width=right - x if index == 2 else 335,
+            size=68,
+            bold=True,
+            fill=color,
+        )
+        draw.text((x, 314 - shift), label, font=_font(25, True), fill=muted, anchor="lt")
+    draw.text((PAD, 366 - shift), "По номерам", font=_font(38, True), fill=ink, anchor="lt")
+    draw.text(
+        (right, 395 - shift), f"{task_count} ЗАДАНИЙ", font=_font(24, True), fill=muted, anchor="rb"
+    )
+
+    for number, correct, answered, rate, sufficient in tiles:
+        row, col = divmod(number - 1, GRID_COLUMNS)
+        x = PAD + col * (TILE_WIDTH + TILE_GAP_X)
+        y = GRID_TOP + row * (TILE_HEIGHT + TILE_GAP_Y) - shift
+        draw.rounded_rectangle(
+            (x, y, x + TILE_WIDTH, y + TILE_HEIGHT),
+            radius=13,
+            fill="#EAEEE6",
+            outline="#D8DED5",
+            width=2,
+        )
+        accent = _rate_color(correct, answered)
+        panel = "#E1E7E0"
+        if answered:
+            tint = 0.14 if sufficient else 0.085
+            rgb = ImageColor.getrgb(accent)
+            paper = ImageColor.getrgb(PALETTE["background"])
+            panel = "#" + "".join(
+                f"{round(base * (1 - tint) + channel * tint):02x}"
+                for base, channel in zip(paper, rgb, strict=True)
+            )
+        panel_left, panel_right = x + 102, x + TILE_WIDTH - 10
+        draw.rounded_rectangle(
+            (panel_left, y + 13, panel_right, y + TILE_HEIGHT - 13), radius=9, fill=panel
+        )
+        draw_fitted_text(
+            draw,
+            (x + 12, y + 19),
             f"№{number}",
-            font=_font(22, True),
-            fill=PALETTE["ink"] if sufficient else PALETTE["muted"],
+            max_width=86,
+            size=34,
+            bold=True,
+            fill=dashboard_tile_accent(correct, answered),
         )
+        draw_fitted_text(draw, (x + 12, y + 81), f"{correct}/{answered}", max_width=86, size=30)
         draw_fitted_text(
-            draw, (x + TILE_WIDTH - 16, y + 12), rate,
-            max_width=128, size=37, minimum_size=28, fill=accent, bold=True, anchor="rt",
+            draw,
+            ((panel_left + panel_right) // 2, y + TILE_HEIGHT // 2),
+            rate,
+            max_width=panel_right - panel_left - 9,
+            size=36,
+            bold=True,
+            fill=accent,
+            anchor="mm",
         )
-        draw_fitted_text(
-            draw, (x + 28, y + 64), f"{correct}/{answered}",
-            max_width=TILE_WIDTH - 44, size=25, minimum_size=13, fill=PALETTE["ink"],
-        )
 
-    rec_y = GRID_TOP + GRID_ROWS * (TILE_HEIGHT + TILE_GAP_Y) - TILE_GAP_Y + 18
-    _card(image, (PAD, rec_y, WIDTH - PAD, rec_y + 88), radius=18, fill=PALETTE["blue_light"])
-    draw = ImageDraw.Draw(image)
+    footer = grid_bottom - shift
+    draw.line((PAD, footer + 19, right, footer + 19), fill=line, width=2)
     draw.text(
-        (PAD + 20, rec_y + 12), _recommendation(insights), font=_font(22, True), fill=PALETTE["ink"]
+        (PAD, footer + 34),
+        "До 5 ответов процент предварительный.",
+        font=_font(26),
+        fill=muted,
+        anchor="lt",
     )
-    draw.text(
-        (PAD + 20, rec_y + 49), "Цвет номера появляется после пяти ответов.",
-        font=_font(19), fill=PALETTE["muted"]
+    legend_width = 200
+    for i in range(legend_width):
+        gx = right - legend_width + i
+        draw.line((gx, footer + 38, gx, footer + 47), fill=_rate_color(i, legend_width - 1))
+    for x, label, anchor in ((right - legend_width, "0%", "lt"), (right, "100%", "rt")):
+        draw.text((x, footer + 56), label, font=_font(22), fill=muted, anchor=anchor)
+    note = (
+        "№20–25 · Первые работы с 2 баллами из оценённых GPT."
+        if task_count == 25
+        else _recommendation(insights)
     )
-    return image.crop((0, 0, WIDTH, rec_y + 102)).convert("RGB")
+    draw_fitted_text(draw, (PAD, footer + 73), note, max_width=right - PAD, size=26, fill=ink)
+    return image
 
 
-def render_progress_image(insights: dict[str, Any], page: str = "summary") -> bytes:
+def render_progress_image(
+    insights: dict[str, Any], page: str = "summary", *, task_count: int = 19
+) -> bytes:
     """Render the one-page, all-numbers dashboard; other screens are text."""
     del page
-    image = render_overview(insights)
+    image = render_overview(insights, 25 if "written" in insights else task_count)
     output = io.BytesIO()
     image.save(output, format="PNG", optimize=True, compress_level=9)
     data = output.getvalue()
@@ -249,7 +311,14 @@ async def load_progress_page(
     repository: Any, user_id: int, page: str = "summary"
 ) -> dict[str, Any]:
     del page
-    return await training_insights(repository, user_id, "summary")
+    insights = await training_insights(repository, user_id, "summary")
+    from app.bot.part2 import store
+    from app.persistence.part2_insights import summary
+
+    bank = store(repository)
+    if bank:
+        insights["written"] = await summary(bank.pool, user_id)
+    return insights
 
 
 async def send_progress_image(
@@ -259,6 +328,7 @@ async def send_progress_image(
     page: str = "summary",
     *,
     edit_existing: bool = False,
+    viewer: Any = None,
 ) -> bool:
     """Render off-loop and send/edit one revision-guarded dashboard photo."""
     from app.bot.navigation import (
@@ -268,6 +338,10 @@ async def send_progress_image(
     )
 
     insights = await load_progress_page(repository, user_id, page)
+    viewer = viewer or getattr(message, "from_user", None)
+    if viewer and viewer.id == user_id and not viewer.is_bot:
+        handle = f"@{viewer.username}" if viewer.username else ""
+        insights = {**insights, "display_identity": viewer.full_name, "display_handle": handle}
     try:
         image = await asyncio.to_thread(render_progress_image, insights)
     except (OSError, RuntimeError, ValueError):

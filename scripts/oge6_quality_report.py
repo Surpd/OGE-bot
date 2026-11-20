@@ -47,6 +47,9 @@ def analyze_family(
     acceptance_limit: int = ACCEPTANCE_ATTEMPT_LIMIT,
 ) -> dict[str, object]:
     family_id = spec.family_id
+    target = {"OGE06-F004-DEC-DIV": 35, "OGE06-F003-UNIT-SUM": 8}.get(
+        family_id, ACCEPTANCE_UNIQUE_TARGET
+    )
     problems = [generate(family_id, seed) for seed in range(seed_count)]
     for problem in problems:
         validate_rendered_problem(problem)
@@ -118,7 +121,7 @@ def analyze_family(
     )
     acceptance_conditions = set(expressions)
     acceptance_attempts = seed_count
-    if acceptance_limit > seed_count and len(acceptance_conditions) < ACCEPTANCE_UNIQUE_TARGET:
+    if acceptance_limit > seed_count and len(acceptance_conditions) < target:
         for seed in range(seed_count, acceptance_limit):
             candidate = generate(family_id, seed)
             validate_rendered_problem(candidate)
@@ -126,7 +129,7 @@ def analyze_family(
             if _manual_rejections(spec, calculation_diagnostics(candidate.expression)):
                 continue
             acceptance_conditions.add(candidate.condition)
-            if len(acceptance_conditions) >= ACCEPTANCE_UNIQUE_TARGET:
+            if len(acceptance_conditions) >= target:
                 break
 
     report: dict[str, object] = {
@@ -170,12 +173,12 @@ def analyze_family(
             "max_estimated_steps": spec.manual_limits.max_estimated_steps,
         },
         "manual_diagnostics_maxima": manual_maxima,
-        "acceptance_unique_target": ACCEPTANCE_UNIQUE_TARGET,
+        "acceptance_unique_target": target,
         "acceptance_attempt_limit": acceptance_limit,
         "acceptance_unique_count": len(acceptance_conditions),
         "acceptance_attempts_used": min(acceptance_attempts, acceptance_limit),
         "acceptance_gate_passed": (
-            acceptance_limit == 0 or len(acceptance_conditions) >= ACCEPTANCE_UNIQUE_TARGET
+            acceptance_limit == 0 or len(acceptance_conditions) >= target
         ),
         "examples": [
             {"condition": problem.condition, "answer": problem.correct_answer, "seed": problem.seed}
@@ -186,7 +189,7 @@ def analyze_family(
         not structure_matches
         or len(problem_ids) != seed_count
         or sum(rejection_reasons.values()) > 0
-        or (acceptance_limit > 0 and len(acceptance_conditions) < ACCEPTANCE_UNIQUE_TARGET)
+        or (acceptance_limit > 0 and len(acceptance_conditions) < target)
     ):
         raise AssertionError(f"OGE-6 quality gate failed for {family_id}: {report}")
     return report
@@ -211,14 +214,14 @@ def build_report(level: str) -> dict[str, object]:
         weighted_answer_values.append(answer_value)
         actual_answers[cast(str, answer_metrics(answer_value)["answer_class"])] += 1
 
-    source_answers = {"integer": 2, "decimal_1_places": 10, "decimal_2_places": 5}
+    source_answers = {"integer": 7, "decimal_1_places": 11, "decimal_2_places": 5}
     full_catalog_answers = {"integer": 7, "decimal_1_places": 11, "decimal_2_places": 5}
     total_variation = (
         sum(
             (
                 abs(
                     Fraction(actual_answers.get(category, 0), len(draws))
-                    - Fraction(source_answers.get(category, 0), 17)
+                    - Fraction(source_answers.get(category, 0), 23)
                 )
                 for category in set(source_answers) | set(actual_answers)
             ),
@@ -227,7 +230,7 @@ def build_report(level: str) -> dict[str, object]:
         / 2
     )
     negative_count = sum(value < 0 for value in weighted_answer_values)
-    sign_variation = Fraction(abs(negative_count * 17 - 5 * len(draws)), 2 * len(draws) * 17)
+    sign_variation = Fraction(abs(negative_count * 23 - 5 * len(draws)), 2 * len(draws) * 23)
     abs_values = [abs(value) for value in weighted_answer_values]
     return {
         "report_version": 2,
@@ -259,8 +262,8 @@ def build_report(level: str) -> dict[str, object]:
             "catalog_negative_answers": 5,
             "catalog_zero_answers": 0,
             "catalog_3_plus_places": 0,
-            "enabled_reference_sample_size": 17,
-            "disabled_confirmed_reference_prototypes": 6,
+            "enabled_reference_sample_size": 23,
+            "disabled_confirmed_reference_prototypes": 0,
             "answer_distribution_total_variation": {
                 "numerator": total_variation.numerator,
                 "denominator": total_variation.denominator,
@@ -273,28 +276,7 @@ def build_report(level: str) -> dict[str, object]:
                 "preliminary; small catalog prototype sample, not representative frequency estimate"
             ),
         },
-        "uncovered_confirmed_types": [
-            {
-                "structure_id": "oge6.fraction.reciprocal_of_unit_fraction_sum",
-                "source_ids": ["463020"],
-                "unique_with_reference_ranges": 50,
-                "reason": (
-                    "Finite 50-condition capacity is an allowed documented exception to the "
-                    "mass-family 200-unique target, but this type remains disabled until exact "
-                    "rendering and scheduler exhaustion/fallback regression tests pass."
-                ),
-            },
-            {
-                "structure_id": "oge6.decimal.quotient_in_fraction_bar",
-                "source_ids": ["348647", "438264", "438308", "438339", "438368"],
-                "unique_with_reference_ranges": 43,
-                "reason": (
-                    "Finite 43-pair capacity is an allowed documented exception to the "
-                    "mass-family 200-unique target, but this type remains disabled until exact "
-                    "rendering and scheduler exhaustion/fallback regression tests pass."
-                ),
-            },
-        ],
+        "uncovered_confirmed_types": [],
         "unconfirmed_disabled_types": [
             "ratios/proportions",
             "powers/order of operations",

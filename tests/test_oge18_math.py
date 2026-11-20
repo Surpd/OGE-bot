@@ -2,6 +2,7 @@ import base64
 import hashlib
 import re
 from copy import deepcopy
+from fractions import Fraction
 from io import BytesIO
 
 import pytest
@@ -13,6 +14,7 @@ from app.math.oge18 import (
     FAMILIES,
     GENERATOR_VERSION_V2,
     NEW_FAMILIES,
+    ORIGINAL_V2_FAMILIES,
     POLICY,
     SOURCES,
     decimal,
@@ -394,7 +396,7 @@ def test_new_family_snapshot_mutations_fail_closed(family, field):
         from_snapshot(damaged)
 
 
-@pytest.mark.parametrize("family", NEW_FAMILIES)
+@pytest.mark.parametrize("family", ORIGINAL_V2_FAMILIES)
 def test_old_new_family_snapshot_content_remains_restorable(family):
     from app.math.oge18 import SOURCES_V1
     from app.math.oge18_oracle import answer_family
@@ -492,9 +494,15 @@ def test_exam_conditions_are_source_short_and_unitless():
         "OGE18-A03": "348403",
         "OGE18-A04": "348499",
         "OGE18-A05": "356974",
+        "OGE18-L01": "348446",
+        "OGE18-H01": "311958",
     }
     assert {family: SOURCES[family] for family in NEW_FAMILIES} == expected
     expected_conditions = {
+        "OGE18-L01": "На клетчатой бумаге с размером клетки 1 × 1 изображён ромб. "
+        "Найдите длину его большей диагонали.",
+        "OGE18-H01": "На клетчатой бумаге с размером клетки 1 × 1 изображён прямоугольный "
+        "треугольник. Найдите длину медианы, проведённой из вершины прямого угла.",
         "OGE18-D05": (
             "На клетчатой бумаге с размером клетки 1 × 1 изображены две точки. "
             "Найдите расстояние между ними."
@@ -564,6 +572,17 @@ def test_teaching_mass_seed_dimensions_match_generated_coordinates():
                     solution[-1]
                     == f"По теореме Пифагора: d = √({dx}² + {dy}²) = {isqrt(dx * dx + dy * dy)}."
                 )
+            elif family == "OGE18-H01":
+                a, b, c = points
+                hyp = isqrt((a[0] - c[0]) ** 2 + (a[1] - c[1]) ** 2)
+                assert (
+                    solution[-1]
+                    == f"Медиана равна {hyp} : 2 = {decimal(Fraction(hyp, 2)).replace('.', ',')}."
+                )
+            elif family == "OGE18-L01":
+                a, b, c, d = points
+                expected = max(abs(a[0] - c[0]), abs(b[1] - d[1]))
+                assert solution[-1] == f"Длина большей диагонали равна {expected}."
             elif family == "OGE18-L02":
                 legs = []
                 for i in range(3):
@@ -694,3 +713,16 @@ def test_finite_distance_and_axis_leg_models_have_expected_shape_capacity():
     }
     assert len(triangle_fingerprints) == 130
     assert fingerprint("OGE18-D05", ((2, 2), (5, 6))) == fingerprint("OGE18-D05", ((2, 2), (6, 5)))
+
+
+def test_verified_rhombus_diagonal_and_median_source_examples():
+    from app.math.oge18_oracle import answer_family
+
+    rhombus = ((2, 7), (7, 9), (12, 7), (7, 5))
+    triangle = ((3, 3), (3, 7), (6, 7))
+    assert answer_family("OGE18-L01", rhombus) == 10
+    assert answer_family("OGE18-H01", triangle) == Fraction(5, 2)
+    with pytest.raises(ValueError):
+        answer_family("OGE18-L01", ((3, 6), (6, 9), (9, 6), (6, 3)))
+    with pytest.raises(ValueError):
+        answer_family("OGE18-H01", ((3, 3), (4, 7), (6, 7)))

@@ -76,6 +76,19 @@ _MIXED_SUBTRACTION_CASES = tuple(
 )
 
 
+# Non-integral operands in the observed range 6.5..9.6 over 1.2..4.1.
+DECIMAL_QUOTIENT_PAIRS = tuple(
+    (a, b) for a in range(65, 97) for b in range(12, 42)
+    if a % 10 and b % 10 and a % b == 0 and 2 <= a // b <= 8
+)
+# Reversing the summands is the same construction. Include the source pair 30,42.
+UNIT_SUM_PAIRS = tuple(
+    (a, b) for a in range(2, 42) for b in range(a + 1, 43)
+    if Fraction(a * b, a + b).denominator == 2
+    and Fraction(5, 2) <= Fraction(a * b, a + b) <= Fraction(39, 2)
+)
+
+
 def _rng(family_id: str, seed: int) -> random.Random:
     return random.Random(f"{GENERATOR_VERSION}:{family_id}:{seed}")
 
@@ -284,19 +297,8 @@ def _fraction_divide(seed: int, rng: random.Random, spec: GeneratorSpec) -> Prob
 
 
 def _reciprocal_sum(seed: int, rng: random.Random, spec: GeneratorSpec) -> Problem:
-    half_units = rng.choice(tuple(range(5, 40, 2)))
-    target = Fraction(half_units, 2)
-    candidates: list[tuple[int, int]] = []
-    for a in range(target.numerator // target.denominator + 1, 81):
-        remainder = Fraction(1, 1) / target - Fraction(1, a)
-        if remainder <= 0:
-            continue
-        candidate_b = Fraction(1, 1) / remainder
-        if candidate_b.denominator == 1 and 2 <= candidate_b.numerator <= 80:
-            candidates.append((a, candidate_b.numerator))
-    if not candidates:
-        raise RuntimeError("No integer denominators satisfy the nested-fraction policy")
-    a, denominator_b = rng.choice(candidates)
+    a, denominator_b = rng.choice(UNIT_SUM_PAIRS)
+    target = Fraction(a * denominator_b, a + denominator_b)
     inner = Binary("+", FractionLiteral(1, a), FractionLiteral(1, denominator_b))
     expression = Binary("/", Integer(1), Group(inner))
     product = a * denominator_b
@@ -513,14 +515,8 @@ def _prescribed_denominator_numerator(
 
 
 def _decimal_quotient_bar(seed: int, rng: random.Random, spec: GeneratorSpec) -> Problem:
-    for _ in range(128):
-        denominator_units = rng.randint(11, 49)
-        quotient = rng.randint(2, 9)
-        numerator_units = denominator_units * quotient
-        if numerator_units <= 990 and numerator_units % 10 != 0:
-            break
-    else:
-        raise RuntimeError("Could not construct a decimal fraction-bar quotient")
+    numerator_units, denominator_units = rng.choice(DECIMAL_QUOTIENT_PAIRS)
+    quotient = numerator_units // denominator_units
     numerator = Fraction(numerator_units, 10)
     denominator = Fraction(denominator_units, 10)
     expression = FractionBar(_decimal_atom(numerator, 1), _decimal_atom(denominator, 1))
@@ -543,6 +539,8 @@ def _decimal_quotient_bar(seed: int, rng: random.Random, spec: GeneratorSpec) ->
 
 
 _BUILDERS = {
+    "OGE06-F003-UNIT-SUM": _reciprocal_sum,
+    "OGE06-F004-DEC-DIV": _decimal_quotient_bar,
     "OGE06-F001-ADD": _fraction_add,
     "OGE06-F001-SUB": _fraction_subtract,
     "OGE06-F002-MUL": _fraction_multiply,

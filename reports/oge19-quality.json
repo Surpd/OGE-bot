@@ -1,57 +1,96 @@
 {
   "task_number": 19,
-  "exam_format": "single_true_statement",
+  "exam_format": "one_or_multiple_true_statements",
+  "fipi_demo_2027_task_19": {
+    "true_statements": 1,
+    "answer": "1"
+  },
+  "theme_samples": {
+    "triangles": {
+      "statements_in_bank": 75,
+      "statements_seen": 75,
+      "distinct_unordered_triples": 161,
+      "seeds": 500
+    },
+    "quadrilaterals": {
+      "statements_in_bank": 41,
+      "statements_seen": 41,
+      "distinct_unordered_triples": 95,
+      "seeds": 500
+    },
+    "circles": {
+      "statements_in_bank": 22,
+      "statements_seen": 22,
+      "distinct_unordered_triples": 29,
+      "seeds": 500
+    },
+    "lines_angles": {
+      "statements_in_bank": 15,
+      "statements_seen": 15,
+      "distinct_unordered_triples": 23,
+      "seeds": 500
+    },
+    "areas_metrics": {
+      "statements_in_bank": 36,
+      "statements_seen": 36,
+      "distinct_unordered_triples": 53,
+      "seeds": 500
+    }
+  },
   "fipi_format_source": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
-  "fipi_checked_on": "2026-11-17",
-  "generator_version": "oge19-triples-3",
-  "answer_policy_id": "oge19.answer-single-true",
-  "answer_policy_version": "1",
-  "bank_version": "oge19-claims-4",
+  "fipi_checked_on": "2026-11-20",
+  "generator_version": "oge19-triples-4",
+  "answer_policy_id": "oge19.answer-statement-set",
+  "answer_policy_version": "2",
+  "bank_version": "oge19-claims-6",
   "source_prototypes": 39,
   "statement_count": 172,
   "true_statements": 92,
   "false_statements": 80,
   "topic_count": 13,
   "distinct_propositions_sampled": 172,
-  "distinct_proposition_pairs_sampled": 390,
+  "distinct_proposition_pairs_sampled": 475,
   "statements_sampled": 172,
   "unused_statement_ids": [],
   "min_statement_appearances": 3,
-  "max_statement_appearances": 30,
-  "mean_statement_length_spread": 1.62,
+  "max_statement_appearances": 22,
+  "mean_statement_length_spread": 1.87,
   "max_statement_length_spread": 23,
   "samples": 500,
-  "unique_triples": 211,
+  "unique_triples": 262,
   "unique_target": 200,
   "answer_mask_counts": {
-    "1": 167,
-    "2": 167,
-    "3": 166
+    "1": 84,
+    "12": 83,
+    "13": 84,
+    "2": 83,
+    "23": 83,
+    "3": 83
   },
   "correct_position_counts": {
-    "1": 167,
-    "2": 167,
-    "3": 166
+    "1": 251,
+    "2": 249,
+    "3": 250
   },
   "topic_appearances": {
-    "angles_lines": 130,
-    "areas": 151,
-    "circles": 124,
-    "isosceles_triangle": 63,
-    "quadrilaterals": 221,
-    "right_triangle": 92,
-    "tangency": 70,
-    "trapezoids": 117,
-    "triangle_angles": 106,
-    "triangle_centers": 154,
-    "triangle_congruence": 105,
-    "triangle_inequality": 72,
-    "triangle_similarity": 95
+    "angles_lines": 129,
+    "areas": 137,
+    "circles": 148,
+    "isosceles_triangle": 70,
+    "quadrilaterals": 222,
+    "right_triangle": 84,
+    "tangency": 98,
+    "trapezoids": 103,
+    "triangle_angles": 113,
+    "triangle_centers": 152,
+    "triangle_congruence": 94,
+    "triangle_inequality": 74,
+    "triangle_similarity": 76
   },
   "difficulty_band_appearances": {
-    "core": 703,
-    "extension": 446,
-    "introductory": 351
+    "core": 623,
+    "extension": 511,
+    "introductory": 366
   },
   "answer_errors": 0,
   "snapshot_checks": 500,

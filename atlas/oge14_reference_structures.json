@@ -196,7 +196,7 @@
         ]
       },
       "priority": "P1",
-      "implementation_status": "disabled_pending_oracle_and_tests",
+      "implementation_status": "enabled_bounded_42",
       "admission_note": "Семейство по существующему источнику; новые числа допустимы только при сохранении сюжета/матмодели/типа вопроса",
       "no_new_storylines": true,
       "no_llm_generation": true

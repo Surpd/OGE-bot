@@ -9,7 +9,7 @@ from typing import Any
 from uuid import UUID
 
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, ReplyParameters
 from aiogram.utils.formatting import Bold, Text, as_list
 
 from app.persistence.training_insights import (
@@ -145,6 +145,8 @@ def progress_keyboard(
     parts = page.split(":")
     section = parts[0]
     rows: list[list[InlineKeyboardButton]] = []
+    from app.config import get_settings
+
     if section == "summary":
         action = _summary_action(insights) if insights is not None else None
         if action is not None:
@@ -162,8 +164,12 @@ def progress_keyboard(
                 _button("↩ В меню", "nav:main"),
             ]
         )
+        if get_settings().oge_part2_enabled:
+            rows.insert(-1, [_button("Письменные работы", "progress:works:0")])
     elif section == "details":
         buttons = [_button(f"№{n}", f"progress:number:{n}") for n in range(1, 20)]
+        if get_settings().oge_part2_enabled:
+            buttons.extend(_button(f"№{n}", f"progress:written:{n}") for n in range(20,26))
         rows.extend(buttons[i : i + 4] for i in range(0, len(buttons), 4))
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     elif section == "number" and number is not None:
@@ -514,9 +520,24 @@ async def progress_navigation(
     await repository.save_user_state(user_id, "progress")
     parts = page.split(":")
     section = parts[0]
+    if section in {"written", "works", "work"}:
+        from app.bot.part2_progress import page as written_page
+
+        await written_page(message, repository, user_id, parts)
+        return
+    old_message = getattr(message, "_message", message)
+    was_photo = bool(getattr(old_message, "photo", None))
+    reply = getattr(old_message, "reply_to_message", None)
+    overview = reply if isinstance(reply, Message) and reply.photo else None
     if section in {"summary", "refresh"}:
-        old_message = getattr(message, "_message", message)
-        was_photo = bool(getattr(old_message, "photo", None))
+        if overview is not None and await send_progress_image(
+            overview, repository, user_id, "summary", edit_existing=True, viewer=message.from_user
+        ):
+            try:
+                await old_message.delete()
+            except (TelegramBadRequest, TelegramNotFound):
+                pass
+            return
         if await send_progress_image(
             message, repository, user_id, "summary", edit_existing=was_photo
         ):
@@ -673,8 +694,21 @@ async def progress_navigation(
     else:
         return await progress_navigation(message, repository, user_id, "summary")
 
+    open_below_overview = section == "details" and was_photo
+    reply_options = {}
+    if open_below_overview:
+        overview = old_message
+        try:
+            await old_message.edit_reply_markup(reply_markup=None)
+        except (TelegramBadRequest, TelegramNotFound):
+            pass
+    if overview is not None:
+        # Telegram carries this anchor on subsequent callbacks and text edits.
+        reply_options["reply_parameters"] = ReplyParameters(
+            message_id=overview.message_id, allow_sending_without_reply=True
+        )
     sent = await send_text(
-        message,
+        old_message if open_below_overview else message,
         repository,
         (_record_list(insights, output_page) if section in {"history", "errors", "numerr"}
          else render_progress(insights, output_page)),
@@ -685,9 +719,9 @@ async def progress_navigation(
         rich_with_navigation=(section == "item"),
         math_system_rows=math_system_rows,
         user_id_override=user_id,
+        **reply_options,
     )
-    old_message = getattr(message, "_message", message)
-    if sent.message_id != old_message.message_id:
+    if not open_below_overview and sent.message_id != old_message.message_id:
         try:
             await old_message.delete()
         except (TelegramBadRequest, TelegramNotFound):

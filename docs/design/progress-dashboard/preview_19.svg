@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1019" viewBox="0 0 1200 1019" role="img" aria-label="Пример визуального оформления прогресса ОГЭ по заданиям 1–19">
+<defs><linearGradient id="score" x1="0" x2="1"><stop offset="0%" stop-color="#CB5B50"/><stop offset="50%" stop-color="#B88C2F"/><stop offset="100%" stop-color="#268455"/></linearGradient></defs>
+<rect width="1200" height="1019" fill="#F7F7F1"/>
+<g font-family="DejaVu Sans,Arial,sans-serif" fill="#1F3531">
+<circle cx="70" cy="69" r="26" fill="#1F3531"/>
+<text x="70" y="79" text-anchor="middle" fill="#F7F7F1" font-size="28" font-weight="700">В</text>
+<text x="116" y="78" font-size="30" font-weight="700">Вася</text>
+<text x="116" y="105" font-size="20" fill="#6D7B75">@vasya</text>
+<text x="41" y="175" font-size="67" font-weight="700">Твой прогресс</text>
+<rect x="44" y="190" width="148" height="8" rx="4" fill="#F15E45"/>
+<g stroke="#CDD6CC" stroke-width="2"><line x1="44" x2="1156" y1="229" y2="229"/><line x1="44" x2="1156" y1="345" y2="345"/><line x1="438" x2="438" y1="245" y2="330"/><line x1="808" x2="808" y1="245" y2="330"/></g>
+<text x="44" y="308" font-size="68" font-weight="700" fill="#50864a">86%</text>
+<text x="44" y="340" font-size="19" font-weight="700" fill="#6D7B75">УСПЕШНОСТЬ</text>
+<text x="471" y="308" font-size="65" font-weight="700">12</text>
+<text x="473" y="340" font-size="19" font-weight="700" fill="#6D7B75">ВЕРНО</text>
+<text x="840" y="308" font-size="65" font-weight="700">126</text>
+<text x="841" y="340" font-size="19" font-weight="700" fill="#6D7B75">ПРОПУЩЕНО</text>
+<text x="44" y="393" font-size="34" font-weight="700">По номерам</text>
+<text x="1156" y="395" font-size="20" font-weight="700" text-anchor="end" fill="#6D7B75">19 ЗАДАНИЙ</text>
+<g><rect x="44" y="407" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="152" y="420" width="95" height="100" rx="9" fill="#dbe7dc"/>
+<text x="58" y="452" font-size="30" font-weight="700" fill="#1F3531">№1</text>
+<text x="58" y="511" font-size="24" fill="#263A36">1/1</text>
+<text x="199.5" y="482" font-size="34" font-weight="700" text-anchor="middle" fill="#268455">100%</text></g>
+<g><rect x="268" y="407" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="376" y="420" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="282" y="452" font-size="30" font-weight="700" fill="#1F3531">№2</text>
+<text x="282" y="511" font-size="24" fill="#263A36">0/0</text>
+<text x="423.5" y="482" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="492" y="407" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="600" y="420" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="506" y="452" font-size="30" font-weight="700" fill="#1F3531">№3</text>
+<text x="506" y="511" font-size="24" fill="#263A36">0/0</text>
+<text x="647.5" y="482" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="716" y="407" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="824" y="420" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="730" y="452" font-size="30" font-weight="700" fill="#1F3531">№4</text>
+<text x="730" y="511" font-size="24" fill="#263A36">0/0</text>
+<text x="871.5" y="482" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="940" y="407" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="1048" y="420" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="954" y="452" font-size="30" font-weight="700" fill="#1F3531">№5</text>
+<text x="954" y="511" font-size="24" fill="#263A36">0/0</text>
+<text x="1095.5" y="482" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="44" y="542" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="152" y="555" width="95" height="100" rx="9" fill="#eee9d7"/>
+<text x="58" y="587" font-size="30" font-weight="700" fill="#1F3531">№6</text>
+<text x="58" y="646" font-size="24" fill="#263A36">1/2</text>
+<text x="199.5" y="617" font-size="34" font-weight="700" text-anchor="middle" fill="#b88c2f">50%</text></g>
+<g><rect x="268" y="542" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="376" y="555" width="95" height="100" rx="9" fill="#dbe7dc"/>
+<text x="282" y="587" font-size="30" font-weight="700" fill="#1F3531">№7</text>
+<text x="282" y="646" font-size="24" fill="#263A36">4/4</text>
+<text x="423.5" y="617" font-size="34" font-weight="700" text-anchor="middle" fill="#268455">100%</text></g>
+<g><rect x="492" y="542" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="600" y="555" width="95" height="100" rx="9" fill="#dbe7dc"/>
+<text x="506" y="587" font-size="30" font-weight="700" fill="#1F3531">№8</text>
+<text x="506" y="646" font-size="24" fill="#263A36">1/1</text>
+<text x="647.5" y="617" font-size="34" font-weight="700" text-anchor="middle" fill="#268455">100%</text></g>
+<g><rect x="716" y="542" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="824" y="555" width="95" height="100" rx="9" fill="#dbe7dc"/>
+<text x="730" y="587" font-size="30" font-weight="700" fill="#1F3531">№9</text>
+<text x="730" y="646" font-size="24" fill="#263A36">1/1</text>
+<text x="871.5" y="617" font-size="34" font-weight="700" text-anchor="middle" fill="#268455">100%</text></g>
+<g><rect x="940" y="542" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="1048" y="555" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="954" y="587" font-size="30" font-weight="700" fill="#1F3531">№10</text>
+<text x="954" y="646" font-size="24" fill="#263A36">0/0</text>
+<text x="1095.5" y="617" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="44" y="677" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="152" y="690" width="95" height="100" rx="9" fill="#dbe7dc"/>
+<text x="58" y="722" font-size="30" font-weight="700" fill="#1F3531">№11</text>
+<text x="58" y="781" font-size="24" fill="#263A36">1/1</text>
+<text x="199.5" y="752" font-size="34" font-weight="700" text-anchor="middle" fill="#268455">100%</text></g>
+<g><rect x="268" y="677" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="376" y="690" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="282" y="722" font-size="30" font-weight="700" fill="#1F3531">№12</text>
+<text x="282" y="781" font-size="24" fill="#263A36">0/0</text>
+<text x="423.5" y="752" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="492" y="677" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="600" y="690" width="95" height="100" rx="9" fill="#e8e8d9"/>
+<text x="506" y="722" font-size="30" font-weight="700" fill="#1F3531">№13</text>
+<text x="506" y="781" font-size="24" fill="#263A36">2/3</text>
+<text x="647.5" y="752" font-size="34" font-weight="700" text-anchor="middle" fill="#87893c">67%</text></g>
+<g><rect x="716" y="677" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="824" y="690" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="730" y="722" font-size="30" font-weight="700" fill="#1F3531">№14</text>
+<text x="730" y="781" font-size="24" fill="#263A36">0/0</text>
+<text x="871.5" y="752" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="940" y="677" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="1048" y="690" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="954" y="722" font-size="30" font-weight="700" fill="#1F3531">№15</text>
+<text x="954" y="781" font-size="24" fill="#263A36">0/0</text>
+<text x="1095.5" y="752" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="44" y="812" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="152" y="825" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="58" y="857" font-size="30" font-weight="700" fill="#1F3531">№16</text>
+<text x="58" y="916" font-size="24" fill="#263A36">0/0</text>
+<text x="199.5" y="887" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="268" y="812" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="376" y="825" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="282" y="857" font-size="30" font-weight="700" fill="#1F3531">№17</text>
+<text x="282" y="916" font-size="24" fill="#263A36">0/0</text>
+<text x="423.5" y="887" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="492" y="812" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="600" y="825" width="95" height="100" rx="9" fill="#E1E7E0"/>
+<text x="506" y="857" font-size="30" font-weight="700" fill="#1F3531">№18</text>
+<text x="506" y="916" font-size="24" fill="#263A36">0/0</text>
+<text x="647.5" y="887" font-size="34" font-weight="700" text-anchor="middle" fill="#6D7B75">—</text></g>
+<g><rect x="716" y="812" width="215" height="126" rx="13" fill="#EAEEE6" stroke="#D8DED5" stroke-width="2"/>
+<rect x="824" y="825" width="95" height="100" rx="9" fill="#dbe7dc"/>
+<text x="730" y="857" font-size="30" font-weight="700" fill="#1F3531">№19</text>
+<text x="730" y="916" font-size="24" fill="#263A36">1/1</text>
+<text x="871.5" y="887" font-size="34" font-weight="700" text-anchor="middle" fill="#268455">100%</text></g>
+<line x1="44" x2="1156" y1="957" y2="957" stroke="#CDD6CC" stroke-width="2"/>
+<text x="44" y="990" font-size="20" fill="#6D7B75">До 5 ответов процент предварительный</text>
+<rect x="916" y="978" width="240" height="10" fill="url(#score)"/>
+<text x="916" y="1016" font-size="15" fill="#6D7B75">0%</text>
+<text x="1156" y="1016" font-size="15" text-anchor="end" fill="#6D7B75">100%</text>
+</g></svg>

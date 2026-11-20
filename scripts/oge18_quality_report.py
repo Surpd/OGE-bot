@@ -24,6 +24,7 @@ from app.math.oge18 import (  # noqa: E402
     GENERATOR_VERSION_V2,
     LEARNER_CONTENT_VERSION,
     NEW_FAMILIES,
+    ORIGINAL_V2_FAMILIES,
     SOURCES,
     from_snapshot,
     generate,
@@ -40,6 +41,8 @@ PUBLIC_ENABLED: tuple[str, ...] = ENABLED_FAMILIES
 LOW_CAPACITY = {
     "OGE18-D05": 3,
     "OGE18-L02": 21,
+    "OGE18-L01": 6,
+    "OGE18-H01": 5,
     "OGE18-A03": 130,
     "OGE18-A04": 75,
     "OGE18-A05": 6,
@@ -122,7 +125,11 @@ def run() -> dict[str, object]:
             _contact_sheet(family, previews, width, directory)
         (directory / f"{family}-compact-v3-seed0.png").write_bytes(previews[0][1])
         if new and family in LOW_CAPACITY:
-            quality_status = "math_hold"
+            quality_status = (
+                "verified_finite" if family in {"OGE18-L01", "OGE18-H01"} else "math_hold"
+            )
+            if quality_status == "verified_finite" and len(seen) != LOW_CAPACITY[family]:
+                raise AssertionError(f"Incomplete finite bank: {family}")
             capacity_note = (
                 f"Finite implemented parameter model has exactly {LOW_CAPACITY[family]} "
                 "normalized shapes; no synthetic novelty added."
@@ -182,6 +189,7 @@ def run() -> dict[str, object]:
         "families": records,
         "status_taxonomy": [
             "implemented_closed",
+            "verified_finite",
             "source_hold",
             "math_hold",
             "visual_hold",
@@ -191,6 +199,7 @@ def run() -> dict[str, object]:
             "implemented_closed": sum(
                 record["qa_status"] == "implemented_closed" for record in records.values()
             ),
+            "verified_finite": sum(r["qa_status"] == "verified_finite" for r in records.values()),
             "source_hold": sum(record["qa_status"] == "source_hold" for record in records.values()),
             "math_hold": sum(record["qa_status"] == "math_hold" for record in records.values()),
             "visual_hold": sum(record["qa_status"] == "visual_hold" for record in records.values()),
@@ -201,14 +210,15 @@ def run() -> dict[str, object]:
         "uniqueness_seed_budget": 1200,
         "phone_widths": [360, 390, 430],
         "visual_review": (
-            "Compact v3 360px contact sheets for all eight families were manually inspected, "
+            "The original eight compact v3 sheets were inspected at 360px, "
             "with 20 distinct variants per family where available, 3 for D05, and 6 for A05. "
+            "All six L01 and five H01 normalized shapes were inspected at 360px. "
             "The pixel audit also verifies 360px and 390px resizing and equal grid-cell dimensions."
         ),
         "manual_contact_sheet_review": {
             "compact_v3_families_reviewed": list(all_families),
             "compact_v3_widths": [360],
-            "new_families_reviewed": list(NEW_FAMILIES),
+            "new_families_reviewed": list(ORIGINAL_V2_FAMILIES),
             "widths": [360, 720],
             "distinct_variants_seen": {
                 "OGE18-D05": 3,
@@ -217,6 +227,8 @@ def run() -> dict[str, object]:
                 "OGE18-A03": 20,
                 "OGE18-A04": 20,
                 "OGE18-A05": 6,
+                "OGE18-L01": 6,
+                "OGE18-H01": 5,
             },
         },
         "live_telegram_mobile_smoke": "not_performed; no public release claim",

@@ -63,3 +63,31 @@ FIPI-DEMO-2027-11,11,https://pro-schools.ru/fipi/oge/demo/2027/ma-9-oge-2027-dem
 317074,7,https://math-oge.sdamgia.ru/problem?id=317074,рациональная координата точки A,OGE07-N05,hold,"Оригинальная картинка просмотрена: деления подписаны десятыми; текущая модель отображает только целые деления"
 348480,18,https://math-oge.sdamgia.ru/problem?id=348480,средняя линия треугольника на сетке,OGE18-M01,closed_implementation,"ENABLE_IMPL по handoff; публично выключено; AC=8 => 4"
 348638,18,https://math-oge.sdamgia.ru/problem?id=348638,средняя линия трапеции на сетке,OGE18-M02,closed_implementation,"ENABLE_IMPL по handoff; публично выключено; основания 9 и 3 => 6"
+348647,6,https://math-oge.sdamgia.ru/problem?id=348647,десятичное деление,OGE06-F004-DEC-DIV,verified_source,Реализация и границы параметров: PR #79
+463020,6,https://math-oge.sdamgia.ru/problem?id=463020,обратная сумма единичных дробей,OGE06-F003-UNIT-SUM,verified_source,Реализация и границы параметров: PR #79
+460990,8,https://math-oge.sdamgia.ru/problem?id=460990,степени одного основания,OGE08-R01,verified_source,Реализация и границы параметров: PR #78
+355406,8,https://math-oge.sdamgia.ru/problem?id=355406,степень степени,OGE08-R02,verified_source,Реализация и границы параметров: PR #78
+406280,8,https://math-oge.sdamgia.ru/problem?id=406280,частное корней,OGE08-R05,verified_source,Реализация и границы параметров: PR #78
+369495,8,https://math-oge.sdamgia.ru/problem?id=369495,сопряжённые множители,OGE08-R06,verified_source,Реализация и границы параметров: PR #78
+474136,8,https://math-oge.sdamgia.ru/problem?id=474136,квадрат радикала в знаменателе,OGE08-R09,verified_source,Реализация и границы параметров: PR #78
+369496,9,https://math-oge.sdamgia.ru/problem?id=369496,меньший корень произведения,OGE09-K5,verified_source,Реализация и границы параметров: PR #83
+472222,10,https://math-oge.sdamgia.ru/problem?id=472222,равновозможные точки,OGE10-F005-EQUAL-POINTS,verified_source,Реализация и границы параметров: PR #80
+472238,10,https://math-oge.sdamgia.ru/problem?id=472238,равновозможные точки,OGE10-F005-EQUAL-POINTS,verified_source,Реализация и границы параметров: PR #80
+472239,10,https://math-oge.sdamgia.ru/problem?id=472239,равновозможные точки,OGE10-F005-EQUAL-POINTS,verified_source,Реализация и границы параметров: PR #80
+472255,10,https://math-oge.sdamgia.ru/problem?id=472255,взвешенные точки,OGE10-F005-WEIGHTED-POINTS,verified_source,Реализация и границы параметров: PR #80
+472259,10,https://math-oge.sdamgia.ru/problem?id=472259,взвешенные точки,OGE10-F005-WEIGHTED-POINTS,verified_source,Реализация и границы параметров: PR #80
+472228,10,https://math-oge.sdamgia.ru/problem?id=472228,количества в областях,OGE10-F005-EULER-COUNTS,verified_source,Реализация и границы параметров: PR #80
+472237,10,https://math-oge.sdamgia.ru/problem?id=472237,количества в областях,OGE10-F005-EULER-COUNTS,verified_source,Реализация и границы параметров: PR #80
+472253,10,https://math-oge.sdamgia.ru/problem?id=472253,вероятности областей,OGE10-F005-EULER-MASSES,verified_source,Реализация и границы параметров: PR #80
+472258,10,https://math-oge.sdamgia.ru/problem?id=472258,вероятности областей,OGE10-F005-EULER-MASSES,verified_source,Реализация и границы параметров: PR #80
+472226,10,https://math-oge.sdamgia.ru/problem?id=472226,дерево событий,OGE10-F005-TREE,verified_source,Реализация и границы параметров: PR #80
+472232,10,https://math-oge.sdamgia.ru/problem?id=472232,дерево событий,OGE10-F005-TREE,verified_source,Реализация и границы параметров: PR #80
+472234,10,https://math-oge.sdamgia.ru/problem?id=472234,дерево событий,OGE10-F005-TREE,verified_source,Реализация и границы параметров: PR #80
+124,12,https://math-oge.sdamgia.ru/problem?id=124,стоимость колодца,OGE12-R014,verified_source,Реализация и границы параметров: PR #84
+314118,12,https://math-oge.sdamgia.ru/problem?id=314118,стоимость колодца,OGE12-R014,verified_source,Реализация и границы параметров: PR #84
+314142,12,https://math-oge.sdamgia.ru/problem?id=314142,стоимость колодца,OGE12-R014,verified_source,Реализация и границы параметров: PR #84
+459977,14,https://math-oge.sdamgia.ru/problem?id=459977,путь до остановки,OGE14-A06,verified_source,Реализация и границы параметров: PR #86
+311958,18,https://math-oge.sdamgia.ru/problem?id=311958,медиана к гипотенузе,OGE18-H01,verified_source,#88
+348446,18,https://math-oge.sdamgia.ru/problem?id=348446,большая диагональ ромба,OGE18-L01,verified_source,#88
+323750,18,https://math-oge.sdamgia.ru/problem?id=323750,площадь составного многоугольника,,confirmed_missing,"Площадь 20,5 проверена"
+356077,13,https://math-oge.sdamgia.ru/problem?id=356077,ограниченный квадрат,OGE13-Q06,confirmed_missing,"Закрытый отрезок [-8;8], вариант 4"

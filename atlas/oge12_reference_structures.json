@@ -154,9 +154,9 @@
       ],
       "source_status": "каталог; 311543 приписан досрочному ОГЭ-2024",
       "wording": "Пользуясь этой формулой, найдите длину диагонали",
-    "note": "Постановки sinα и диагональ — разные операции на одной формуле. Источник 311543 подтверждает задачу на восстановление sin(α) и ответ 0,4. Генератор выбирает точные десятые в геометрическом диапазоне (0; 1]; распределение ответов предварительное, так как отдельно сверено одно опубликованное числовое значение. Это не табличное вычисление sin заданного угла.",
-    "answer_distribution_status": "preliminary_single_exact_source_answer",
-    "generated_sine_domain": "exact tenths 0.1..1.0 inclusive; derived from S = d1*d2*sin(alpha)/2 and 0 < sin(alpha) <= 1",
+      "note": "Постановки sinα и диагональ — разные операции на одной формуле. Источник 311543 подтверждает задачу на восстановление sin(α) и ответ 0,4. Генератор выбирает точные десятые в геометрическом диапазоне (0; 1]; распределение ответов предварительное, так как отдельно сверено одно опубликованное числовое значение. Это не табличное вычисление sin заданного угла.",
+      "answer_distribution_status": "preliminary_single_exact_source_answer",
+      "generated_sine_domain": "exact tenths 0.1..1.0 inclusive; derived from S = d1*d2*sin(alpha)/2 and 0 < sin(alpha) <= 1",
       "ship_eligible": false,
       "implementation_status": "enabled",
       "implementation_reason": "Генератор, политика ответа, oracle отображённого условия и quality acceptance пройдены; структура включена в ограниченный планировщик №12."
@@ -388,12 +388,12 @@
         "b > 0",
         "рубли"
       ],
-      "source_status": "порталом приписана ОГЭ-2023 и ГИА-2013",
+      "source_status": "Карточки 124, 314118, 314142 проверены индивидуально.",
       "wording": "рассчитайте стоимость колодца",
       "note": "Формула с параметрами тарифов — отдельная конструкция R015.",
-      "ship_eligible": false,
-      "implementation_status": "disabled_research_only",
-      "implementation_reason": "Не включена: исторический источник; современная применимость не подтверждена."
+      "ship_eligible": true,
+      "implementation_status": "enabled",
+      "implementation_reason": "Тип 12 №124. Ограниченный банк: 5–20 колец, фиксированная цена 6000 и 4100 за кольцо; 16 разных задач."
     },
     {
       "id": "OGE12-R015",
@@ -981,10 +981,11 @@
       "OGE12-R005",
       "OGE12-R010",
       "OGE12-R011",
-      "OGE12-R012"
+      "OGE12-R012",
+      "OGE12-R014"
     ],
-    "disabled_family_count": 9,
-    "generator_version": "0.2.0",
+    "disabled_family_count": 8,
+    "generator_version": "0.3.0, oge12-well-1",
     "quality_report": "reports/oge12-quality.json",
     "telegram_training": "implemented_on_feature_branch"
   }

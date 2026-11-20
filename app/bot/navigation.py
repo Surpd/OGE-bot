@@ -50,6 +50,13 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
+    if any(c and c.startswith("p2:apitest:") for c in callbacks):
+        return "api_test"
+    if "nav:numbers" in callbacks and any(c and c.startswith(("p2:open:", "p2:menu:"))
+                                          for c in callbacks):
+        return "part2_menu"
+    if "nav:task:6" not in callbacks and any(c and c.startswith("p2:") for c in callbacks):
+        return "part2"
     for value in callbacks:
         if value and value.startswith("nav:math:"):
             return "display_settings"
@@ -109,7 +116,9 @@ class NavigationMessage:
         screen = navigation_screen(kwargs.get("reply_markup"))
         if screen is not None:
             try:
-                edited = await self._message.edit_text(text, **kwargs)
+                edit_kwargs = kwargs.copy()
+                edit_kwargs.pop("reply_parameters", None)
+                edited = await self._message.edit_text(text, **edit_kwargs)
                 sent = edited if isinstance(edited, Message) else self._message
             except TelegramBadRequest:
                 # Expired/deleted menus may no longer be editable. Create one
@@ -225,10 +234,17 @@ async def navigation_callback(
     if (
         target is None and progress_page is None and family_action is None
         and display_mode is None and training_action is None
-        and not data.startswith("replay:")
+        and not data.startswith(("replay:", "p2:"))
     ):
         await answer_callback(callback, "Этот раздел недоступен.")
         return
+    if data.startswith("p2:apitest:"):
+        markup = callback.message.reply_markup
+        if (callback.message.chat.type != "private" or markup is None or
+            not any(b.callback_data == callback.data for row in markup.inline_keyboard for b in row)
+            or await repository.user_state(callback.from_user.id) != "api_test"):
+            await answer_callback(callback, "Откройте /api_test для подтверждения.")
+            return
     if not await repository.claim_navigation_message(
         callback.from_user.id, callback.message.message_id, revision or None
     ):
@@ -241,11 +257,16 @@ async def navigation_callback(
             "nav:details", "nav:display",
             "nav:settings",
         }
-        or data.startswith("nav:task:")
+        or data.startswith(("nav:task:", "p2:"))
         or data.startswith("nav:tr:")
     ):
         await oge15_repository.pause_foreground(callback.from_user.id)
     message = cast(Message, NavigationMessage(callback.message, callback, repository))
+    if data.startswith("p2:"):
+        from app.bot.part2 import action as part2_action
+        await answer_callback(callback)
+        await part2_action(message, repository, callback.from_user.id, data)
+        return
     if display_mode is not None:
         await repository.set_math_display(callback.from_user.id, display_mode)
         await show_display_options(message, repository)

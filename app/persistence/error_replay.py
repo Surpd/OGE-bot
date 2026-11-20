@@ -404,7 +404,7 @@ def _assert_regenerated(snapshot: dict[str, object], problem_id: str) -> None:
     elif family_id.startswith("OGE07-N"):
         from app.math.oge07_graph import generate_graph_problem
 
-        expected = generate_graph_problem(family_id, seed).to_snapshot()
+        expected = generate_graph_problem(family_id, seed, version).to_snapshot()
     elif family_id.startswith("OGE07-"):
         from app.math.numbers import generate as generate_task7
 

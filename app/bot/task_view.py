@@ -5,6 +5,9 @@ from __future__ import annotations
 import base64
 from collections.abc import Mapping
 
+from app.math.probability import GRAPH_FAMILIES
+from app.math.probability_diagram import render_snapshot as render_probability_diagram
+
 
 def task13_choice_text(snapshot: Mapping[str, object]) -> str:
     choices = snapshot.get("option_texts")
@@ -52,6 +55,8 @@ def system_rows(number: int, snapshot: Mapping[str, object]) -> tuple[str, ...] 
 
 def verified_photo(number: int, snapshot: Mapping[str, object]) -> bytes | None:
     """Read material after the source loader has verified the snapshot and original hash."""
+    if number == 10 and snapshot.get("family_id") in GRAPH_FAMILIES:
+        return render_probability_diagram(snapshot)
     if number == 13 and task13_is_graph_choice(snapshot):
         from app.math.inequalities import render_option_sheet_snapshot_png
 

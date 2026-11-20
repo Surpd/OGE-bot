@@ -64,13 +64,9 @@ def test_progress_tile_color_thresholds_and_small_sample_are_explicit() -> None:
     assert dashboard_tile_accent(4, 4) == PALETTE["neutral"]
     assert dashboard_tile_accent(0, 0) == PALETTE["neutral"]
 
-    # Colors classify the percentage that is displayed to the student.
     assert dashboard_tile_accent(0, 5) == PALETTE["red"]
-    assert dashboard_tile_accent(2, 5) == PALETTE["red"]  # 40%
-    assert dashboard_tile_accent(49, 100) == PALETTE["red"]
-    assert dashboard_tile_accent(5, 10) == PALETTE["yellow"]  # 50%
-    assert dashboard_tile_accent(79, 100) == PALETTE["yellow"]
-    assert dashboard_tile_accent(4, 5) == PALETTE["green"]  # 80%
+    assert dashboard_tile_accent(5, 10) == PALETTE["yellow"]
+    assert len({dashboard_tile_accent(i, 100) for i in range(101)}) == 101
     assert dashboard_tile_accent(5, 5) == PALETTE["green"]
     assert dashboard_tile_accent(100, 5) == PALETTE["green"]  # defensive clamp
 
@@ -220,3 +216,35 @@ def test_dashboard_action_uses_existing_recommendation_route(monkeypatch) -> Non
     monkeypatch.setattr(progress, "recommended_number", lambda *_: None)
     first = progress_image_keyboard(insights).inline_keyboard[0][0]
     assert first.callback_data == "progress:details"
+
+
+def test_uniform_grid_supports_the_extended_bank():
+    insights = demo_insights("empty")
+    insights["display_identity"] = "Очень длинное имя " * 24
+    assert GRID_COLUMNS == 5
+    assert len(dashboard_tile_values(insights, 25)) == 25
+    with Image.open(io.BytesIO(render_progress_image(insights, task_count=25))) as extended:
+        with Image.open(io.BytesIO(render_progress_image(insights))) as first:
+            assert extended.height > first.height
+
+
+def test_profile_accent_and_score_panels_survive_the_mobile_layout():
+    from PIL import ImageColor
+
+    from app.bot.progress_image import GRID_TOP, PAD, TILE_GAP_X, TILE_WIDTH, render_overview
+
+    sample = demo_insights("empty")
+    sample.update(display_identity="Вася", display_handle="@vasya")
+    for number, correct, answered in ((2, 1, 1), (3, 5, 5), (4, 0, 5)):
+        sample["numbers"][number].update(correct=correct, answered_tasks=answered)
+    image = render_overview(sample)
+    assert image.getpixel((PAD + 29, 49)) == ImageColor.getrgb(PALETTE["ink"])
+    assert image.getpixel((PAD + 60, 200)) == ImageColor.getrgb("#F15E45")
+    panels = [
+        image.getpixel((PAD + col * (TILE_WIDTH + TILE_GAP_X) + 120, GRID_TOP + 20))
+        for col in range(4)
+    ]
+    assert len(set(panels)) == 4
+    assert panels[2][1] > panels[2][0] and panels[3][0] > panels[3][1]
+    del sample["display_identity"], sample["display_handle"]
+    assert render_overview(sample).height < image.height

@@ -14,6 +14,7 @@ from app.math.oge19 import (
     EXAM_FORMAT,
     GENERATOR_VERSION,
     STATEMENTS,
+    THEME_TOPICS,
     check_answer,
     generate,
     grade_band_tier,
@@ -41,7 +42,8 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         snapshot = triple.snapshot()
         validate_snapshot(snapshot)
         masks[triple.answer_mask] += 1
-        positions[triple.answer_mask] += 1
+        # Record each true position once, including both positions of e.g. "13".
+        positions.update(triple.answer_mask)
         topics.update(item.topic for item in triple.statements)
         difficulty_bands.update(
             {1: "introductory", 2: "core", 3: "extension"}[grade_band_tier(item.grade_band)]
@@ -61,7 +63,10 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         )
         statement_lengths = [len(item.statement) for item in triple.statements]
         length_spreads.append(max(statement_lengths) - min(statement_lengths))
-        if not check_answer(snapshot, triple.answer_mask):
+        expected = "".join(str(i) for i, claim in enumerate(triple.statements, 1) if claim.is_true)
+        if triple.answer_mask != expected or not all(
+            check_answer(snapshot, answer) for answer in {expected, expected[::-1]}
+        ):
             failed_answers += 1
     if failed_answers or len(fingerprints) < unique_target:
         raise RuntimeError(
@@ -76,13 +81,33 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
             f"{', '.join(unused_statement_ids)}"
         )
     matrix = json.loads((ROOT / "specs/research/oge19/SOURCE_MATRIX.json").read_text())
+    themes = {}
+    for theme, allowed_topics in THEME_TOPICS.items():
+        pool = {item.id for item in STATEMENTS if item.topic in allowed_topics}
+        observed: set[str] = set()
+        triples: set[tuple[str, ...]] = set()
+        for seed in range(samples):
+            task = generate(seed, theme=theme)
+            ids = tuple(sorted(item.id for item in task.statements))
+            if not set(ids) <= pool:
+                raise RuntimeError(f"Out-of-theme statement in {theme} at seed {seed}")
+            observed.update(ids)
+            triples.add(ids)
+        themes[theme] = {
+            "statements_in_bank": len(pool),
+            "statements_seen": len(observed),
+            "distinct_unordered_triples": len(triples),
+            "seeds": samples,
+        }
     return {
         "task_number": 19,
         "exam_format": EXAM_FORMAT,
+        "fipi_demo_2027_task_19": {"true_statements": 1, "answer": "1"},
+        "theme_samples": themes,
         "fipi_format_source": (
             "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip"
         ),
-        "fipi_checked_on": "2026-11-17",
+        "fipi_checked_on": "2026-11-20",
         "generator_version": GENERATOR_VERSION,
         "answer_policy_id": ANSWER_POLICY_ID,
         "answer_policy_version": ANSWER_POLICY_VERSION,

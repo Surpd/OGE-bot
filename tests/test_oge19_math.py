@@ -334,3 +334,50 @@ def test_current_snapshot_rejects_a_rehashed_claim_outside_the_reviewed_bank() -
     refresh_snapshot_digest(snapshot)
     with pytest.raises(ValueError, match="reviewed bank"):
         validate_snapshot(snapshot)
+
+
+def test_published_quality_report_matches_active_bank_and_counts_positions() -> None:
+    from app.math import oge19
+
+    report = json.loads(Path("reports/oge19-quality.json").read_text())
+    assert report["generator_version"] == oge19.GENERATOR_VERSION
+    assert report["bank_version"] == oge19.BANK_VERSION
+    assert report["answer_policy_version"] == oge19.ANSWER_POLICY_VERSION
+    assert report["statement_count"] == len(oge19.STATEMENTS)
+    counts = report["answer_mask_counts"]
+    assert sum(counts.values()) == report["samples"]
+    assert report["correct_position_counts"] == {
+        digit: sum(count for mask, count in counts.items() if digit in mask) for digit in "123"
+    }
+    assert set(report["theme_samples"]) == set(oge19.THEME_TOPICS)
+
+
+def test_scheduler_retries_a_recent_triple_with_replayable_seed() -> None:
+    from app.math.oge19_scheduler import build_task19_candidate_batch
+
+    first = build_task19_candidate_batch({}, 2027)[0]
+    state = {"recent_fingerprints": [first["fingerprint"]]}
+    second = build_task19_candidate_batch(state, 2027)[0]
+    assert second["fingerprint"] != first["fingerprint"]
+    assert second["selection_attempts"] > 1
+    replay = build_task19_candidate_batch(state, 2027)[0]
+    assert second["seed"] == replay["seed"]
+    assert second["statements"] == replay["statements"]
+    assert second["problem_id"] != replay["problem_id"]
+    assert restore(second).answer_mask == second["correct_answer"]
+
+
+def test_circles_queue_continues_when_fresh_claims_cannot_form_a_triple():
+    from app.math.oge19_scheduler import build_task19_candidate_batch
+
+    state = {}
+    recent = []
+    for seed in range(50):
+        item = build_task19_candidate_batch(state, seed, enabled_families=("OGE19-CIRCLES",))[0]
+        assert item["fingerprint"] not in recent[-30:]
+        recent.append(item["fingerprint"])
+        state = {
+            "recent_fingerprints": recent[-30:],
+            "recent_proposition_ids": item["_recent_proposition_ids_after"],
+            "correct_position_counts": item["_correct_position_counts_after"],
+        }

@@ -116,7 +116,8 @@ def restore_graphic_snapshot(snapshot: dict[str, object]) -> dict[str, object] |
         if family_id.startswith("OGE07-N"):
             from app.math.oge07_graph import generate_graph_problem as generate_task7_graph
 
-            expected = generate_task7_graph(family_id, seed).to_snapshot()
+            graph_version = str(snapshot.get("generator_version"))
+            expected = generate_task7_graph(family_id, seed, graph_version).to_snapshot()
             if _generator_content(compacted) != _generator_content(expected):
                 return None
             restored = deepcopy(snapshot)

@@ -24,7 +24,8 @@ def _deck(
         linear = rng.sample(linear, k=4)
     # Four equally represented group slots per deck. Type probabilities inside
     # each group remain uniform; there are no hand-tuned weights per family.
-    quadratic.append(rng.choice(quadratic))
+    if len(quadratic) < 4:
+        quadratic.append(rng.choice(quadratic))
     rng.shuffle(linear)
     rng.shuffle(quadratic)
     cards = linear + quadratic

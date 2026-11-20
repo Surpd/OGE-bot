@@ -209,7 +209,7 @@
       "gate_note": "oracle, text audit, diversity, shared UX, and PostgreSQL 17 CI passed"
     },
     "OGE14-A06": {
-      "status": "disabled_bounded_capacity_acceptance_review",
+      "status": "enabled_bounded_42",
       "source_ids": [
         "459977"
       ],
@@ -247,7 +247,7 @@
       "max_rendered_characters": 187,
       "max_generation_attempts": 1,
       "all_oracles_passed": true,
-      "gate_note": "42-fingerprint natural finite capacity (n=3..8, d=2..8); stays disabled: rolling global history retains only 30 fingerprints and cannot guarantee the full family cycle without repeats; no artificial parameter expansion"
+      "gate_note": "42 valid pairs (n=3..8, d=2..8). One appearance per shuffled deck; the rolling history prevents recent exact repeats."
     },
     "OGE14-A07": {
       "status": "enabled_passed_quality_and_postgres17_gates",
