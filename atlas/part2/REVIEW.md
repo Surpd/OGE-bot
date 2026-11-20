@@ -38,9 +38,12 @@ solution относятся к разбору и не выдаются вмес�
 в вычислениях не используются. Тест проверяет ответ относительно описания ветвей;
 соответствие всех исходных рисунков этому описанию требует отдельной сверки.
 
+По числам и условиям из текста независимо пересчитаны все 84 ответа №23 и 96 ответов №25. Проверка использует свойства соответствующей фигуры и точную арифметику. Корректность каждого шага эталонного доказательства и соответствие рисунка требуют отдельной сверки.
+
 Воспроизведение из корня проекта:
 
     uv run --isolated --no-project --with sympy==1.14.0 --with antlr4-python3-runtime==4.11.1 python scripts/part2_algebra_audit.py
     uv run --isolated --no-project --with sympy==1.14.0 --with antlr4-python3-runtime==4.11.1 python scripts/part2_graph_audit.py
+    uv run --isolated --no-project --with sympy==1.14.0 --with antlr4-python3-runtime==4.11.1 python scripts/part2_geometry_audit.py
 
 Эти инструменты не входят в образ runtime и не участвуют в платной проверке работ.
