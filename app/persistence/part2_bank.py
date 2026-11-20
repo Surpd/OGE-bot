@@ -26,8 +26,10 @@ def load_bank(root: Path = ATLAS) -> tuple[list[dict[str, Any]], list[tuple[str,
         task = json.loads(line)
         tid = task["task_id"]
         subtype = expected.get(tid)
-        if tid in seen or not subtype or any(
-            task[key] != subtype[key] for key in ("number", "family_id", "subtype_id")
+        if (
+            tid in seen
+            or not subtype
+            or any(task[key] != subtype[key] for key in ("number", "family_id", "subtype_id"))
         ):
             raise ValueError(f"Card does not match taxonomy: {tid}")
         seen.add(tid)
@@ -43,6 +45,7 @@ def load_bank(root: Path = ATLAS) -> tuple[list[dict[str, Any]], list[tuple[str,
 
 async def import_bank(connection: asyncpg.Connection, root: Path = ATLAS) -> int:
     subtypes, cards = load_bank(root)
+    taxonomy = {item["subtype_id"]: item for item in subtypes}
     approved = json.loads((root / "reviewed_versions.json").read_text())
     async with connection.transaction():
         await connection.execute("SELECT pg_advisory_xact_lock(202725)")
@@ -59,6 +62,16 @@ async def import_bank(connection: asyncpg.Connection, root: Path = ATLAS) -> int
                 item["family_id"],
                 item["title"],
             )
+        for subtype in await connection.fetch(
+            "SELECT s.subtype_id, s.family_id, f.number FROM part2_subtypes s"
+            " JOIN part2_families f USING(family_id)"
+        ):
+            current = taxonomy.get(subtype["subtype_id"])
+            if current and (current["family_id"], current["number"]) != (
+                subtype["family_id"],
+                subtype["number"],
+            ):
+                raise ValueError(f"Existing subtype changed identity: {subtype['subtype_id']}")
         # Even superseded cards must still be able to read their original images.
         for row in await connection.fetch(
             "SELECT DISTINCT v->>'path' path, v->>'sha256' sha FROM part2_versions,"
