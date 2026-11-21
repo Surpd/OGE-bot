@@ -41,7 +41,19 @@ def previews(dest):
         if c["source_id"] == "315053"
     )
     drawing = next(v for v in example["visuals"] if v["role"] == "condition")
+    family_dir = dest.parent / "family-contracts"
+    family_dir.mkdir(exist_ok=True)
+    family_text = "\n\n".join(typeset_family_text(text, family) for family, text in [
+        ("OGE06-F006-MIXED-MINUS-DECIMAL", "Вычислите: 11 1/2 − 9,3."),
+        ("OGE16-D04", "R = 48√2/(2 · sin 45°)"),
+        ("OGE15-F15", "sin B = AC / AB = 3 / 5."),
+        ("OGE09-K3", "x₁,₂ = (−(8) ± 4)/(2·2) = −3 и −1"),
+        ("OGE11-F05", "1) y=1/2x+0"),
+        ("OGE24-common-tangent-ratio", "O₂T₂/ O₁T₁ = PO₂/PO₁ = r₂/r₁"),
+        ("OGE13-L01", r"\(a\ne b\), \(a\in A\), \(x\le 3\)"),
+    ])
     for width in (360, 390):
+        mobile(width, family_text).save(family_dir / f"fractions-{width}.png")
         mobile(width).save(dest / f"formulas-{width}.png")
         mobile(width, statement_text(example), figure(drawing["path"])).save(
             dest / f"geometry-{width}.png"

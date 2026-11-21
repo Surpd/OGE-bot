@@ -1,10 +1,11 @@
 """Check generated variants and summarize template risks without contacting Telegram."""
 
 import json
+import re
 from collections import Counter, defaultdict
 
 from app.bot.family_display import typeset_family_text
-from app.bot.math_notation import rich_needs_png_fallback
+from app.bot.math_notation import math_spans, rich_needs_png_fallback
 from app.bot.part2 import solution_text, statement_text
 from app.bot.scenario_training import PUBLIC_FAMILIES, public_registry
 from app.bot.task_view import question_text
@@ -15,7 +16,20 @@ from scripts.oge_bank_quality_audit import _oracle, _ordinary_generator
 
 
 def check_layout(family, texts):
-    return any(rich_needs_png_fallback(typeset_family_text(text, family)) for text in texts)
+    unsafe = False
+    for text in texts:
+        normalized = typeset_family_text(text, family)
+        unsafe |= rich_needs_png_fallback(normalized)
+        for span in math_spans(normalized):
+            if span.latex or "/" not in span.source:
+                continue
+            # Ordinary text can contain tyre markings and file-format names.
+            prose = span.source.replace("SVG/PNG", "")
+            if family.startswith("TYRES-"):
+                prose = re.sub(r"\b\d{3}/\d{2,3}\s*R\d{2}\b", "", prose)
+            if re.search(r"[a-zA-Z\d₀-₉²³)]\s*/\s*[(a-zA-Z\d]", prose):
+                raise ValueError(("unformatted quotient", family, prose))
+    return unsafe
 
 
 def story_samples():

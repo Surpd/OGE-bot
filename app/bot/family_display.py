@@ -69,7 +69,7 @@ def typeset_family_text(text: str, source: object) -> str:
     parts = []
     # Segment labels contain two capital letters. Do not reinterpret units, tyre codes,
     # slash-separated words, or an unparenthesized algebraic denominator such as a/bc.
-    operand = r"(?:[A-Z]{2}[²³]?|\d+(?:[,.]\d+)?(?:\^\d+|[²³])?|[xy])"
+    operand = r"(?:(?:[A-Z][₀-₉]?){2}[²³]?|r[₀-₉]|\d+(?:[,.]\d+)?(?:\^\d+|[²³])?|[xy])"
     quotient = rf"(?<![\w/√])({operand})\s*/\s*({operand})(?![\w/^(²³])"
     for span in math_spans(text):
         value = span.source

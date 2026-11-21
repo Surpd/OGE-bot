@@ -111,6 +111,9 @@ def test_exhausted_tail_and_cycle_boundary_do_not_force_repeat():
     [
         ("OGE24-similar-parallels", "(AB−AM)/AM = (AC−AN)/AN",
          (r"\frac{AB-AM}{AM}", r"\frac{AC-AN}{AN}")),
+        ("OGE24-common-tangent-ratio", "O₂T₂/ O₁T₁ = PO₂/PO₁ = r₂/r₁",
+         (r"\frac{O_{2}T_{2}}{O_{1}T_{1}}", r"\frac{PO_{2}}{PO_{1}}", r"\frac{r_{2}}{r_{1}}")),
+        ("OGE24-cyclic-altitudes", "A₁B₁/AB = cos ∠C", (r"\frac{A_{1}B_{1}}{AB}",)),
         ("OGE24-midline-proof", "S(AMK) = S(ABC)/4", (r"\frac{S(ABC)}{4}",)),
     ],
 )
