@@ -8,10 +8,17 @@ as a different message, preventing duplicate problem delivery.
 import asyncio
 import logging
 import re
+from collections.abc import Awaitable
 from html import escape
 from typing import Any
 
-from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
+from aiogram.exceptions import (
+    ClientDecodeError,
+    TelegramBadRequest,
+    TelegramNetworkError,
+    TelegramNotFound,
+    TelegramServerError,
+)
 from aiogram.types import (
     BufferedInputFile,
     InputMediaPhoto,
@@ -160,6 +167,17 @@ async def _prefer_png(
     return user_id is not None and await repository.math_display(user_id) == "png"
 
 
+class MathDeliveryUncertain(Exception):
+    """Telegram may have created the message before its response was lost."""
+
+
+async def _deliver_math(request: Awaitable[Message]) -> Message:
+    try:
+        return await request
+    except (TelegramNetworkError, TelegramServerError, ClientDecodeError, TimeoutError) as error:
+        raise MathDeliveryUncertain from error
+
+
 def _rich_incompatible(error: TelegramBadRequest | TelegramNotFound) -> bool:
     # The method rejected the content or explicitly does not implement Rich.
     # A missing chat, invalid keyboard, missing attachment or generic 404
@@ -205,12 +223,12 @@ async def _send_mathematics(
         bot = message.bot
         if bot is None:
             raise RuntimeError("Mathematical transport needs a mounted bot")
-        return await bot.send_rich_message(
+        return await _deliver_math(bot.send_rich_message(
             chat_id=message.chat.id,
             message_thread_id=message.message_thread_id,
             rich_message=InputRichMessage(html=rich, media=media),
             **kwargs,
-        )
+        ))
     except (TelegramBadRequest, TelegramNotFound) as error:
         if not _rich_incompatible(error):
             raise
@@ -243,18 +261,18 @@ async def _send_math_image(
     if bot is None:
         raise RuntimeError("Mathematical transport needs a mounted bot")
     if standalone is not None:
-        await bot.send_photo(
+        await _deliver_math(bot.send_photo(
             chat_id=message.chat.id,
             message_thread_id=message.message_thread_id,
             photo=standalone,
             caption=diagram_caption,
-        )
-    return await bot.send_photo(
+        ))
+    return await _deliver_math(bot.send_photo(
         chat_id=message.chat.id,
         message_thread_id=message.message_thread_id,
         photo=BufferedInputFile(image, filename="mathematics.png"),
         **kwargs,
-    )
+    ))
 
 
 async def _bind_navigation(

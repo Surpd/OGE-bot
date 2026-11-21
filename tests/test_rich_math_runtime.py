@@ -12,7 +12,7 @@ from PIL import Image
 from app.bot.math_fragments import Comparison, Fraction, MathToken, System
 from app.bot.math_image import _formula, render_math_image
 from app.bot.math_notation import math_spans, parse_formula, rich_needs_png_fallback
-from app.bot.presentation import format_rich_message, send_photo, send_text
+from app.bot.presentation import MathDeliveryUncertain, format_rich_message, send_photo, send_text
 
 
 @pytest.mark.parametrize(
@@ -410,8 +410,9 @@ async def test_only_definite_rich_rejection_falls_back_without_rescoring(error, 
         assert photo.data.startswith(b"\x89PNG")
         bot.send_photo.assert_awaited_once()
     else:
-        with pytest.raises(TelegramNetworkError):
+        with pytest.raises(MathDeliveryUncertain) as uncertain:
             await send_text(incoming(bot), repository, "Ответ: 1/2")
+        assert isinstance(uncertain.value.__cause__, TelegramNetworkError)
         bot.send_photo.assert_not_awaited()
     repository.task6_answer.assert_not_awaited()
     await bot.session.close()
@@ -484,8 +485,11 @@ async def test_unrelated_or_ambiguous_error_never_pins_or_resends(kind, reason):
     repository = MemoryRepository()
     try:
         family = "OGE13-L01"
-        with pytest.raises(type(error)):
+        expected_error = MathDeliveryUncertain if kind in {"network", "server"} else type(error)
+        with pytest.raises(expected_error) as raised:
             await send_text(message, repository, "x ≤ 3", math_family=family)
+        assert (raised.value.__cause__ if expected_error is MathDeliveryUncertain
+                else raised.value) is error
         assert bot.send_rich_message.await_count == 1
         bot.send_photo.assert_not_awaited()
         assert await repository.math_display(42, family) == "auto"
@@ -513,8 +517,9 @@ async def test_method_rejection_is_remembered_even_if_png_delivery_times_out():
         TelegramNetworkError(method=method, message="connection reset"), message,
     ])
     try:
-        with pytest.raises(TelegramNetworkError):
+        with pytest.raises(MathDeliveryUncertain) as uncertain:
             await send_text(message, repo, "x ≤ 2", math_family=family)
+        assert isinstance(uncertain.value.__cause__, TelegramNetworkError)
         bot.send_rich_message.assert_awaited_once()
         bot.send_photo.assert_awaited_once()
         # A separate subsequent request uses the saved decision.

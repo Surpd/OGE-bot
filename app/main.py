@@ -13,6 +13,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 
+from app.bot.presentation import MathDeliveryUncertain
 from app.bot.router import build_router
 from app.config import GRADING_REASONING, get_settings
 from app.persistence.repository import PostgresRepository, Repository, read_migration
@@ -288,6 +289,11 @@ def create_app(
                 repository=repo,
                 oge15_repository=request.app.state.oge15_repository,
             )
+            await repo.finish_update(update_id)
+        except MathDeliveryUncertain as exc:
+            # Telegram can redeliver a failed webhook. Replaying the same update
+            # after a lost send response could show the committed task twice.
+            logger.warning("math_delivery_uncertain cause=%s", type(exc.__cause__).__name__)
             await repo.finish_update(update_id)
         except Exception as exc:
             logger.error(
