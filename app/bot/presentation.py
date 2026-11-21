@@ -6,6 +6,7 @@ as a different message, preventing duplicate problem delivery.
 """
 
 import asyncio
+import logging
 import re
 from html import escape
 from typing import Any
@@ -21,6 +22,7 @@ from aiogram.types import (
 from aiogram.utils.formatting import Text
 
 from app.bot.explicit_math import flatten_math_lines, formulas, plain_text
+from app.bot.family_display import template_format, typeset_family_text
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import (
@@ -160,10 +162,15 @@ async def _send_mathematics(
     photo: BufferedInputFile | None,
     kwargs: dict[str, Any],
     force_png: bool = False,
+    template: str | None = None,
     system_rows: tuple[str, ...] | None = None,
     diagram_caption: str | None = None,
 ) -> Message:
-    if force_png or rich_needs_png_fallback(text):
+    fallback = template == "png" if template else rich_needs_png_fallback(text)
+    if force_png or fallback:
+        logging.getLogger(__name__).debug(
+            "math_image_reason=%s", "user_preference" if force_png else "template_or_notation"
+        )
         return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
     rich = format_rich_message(text, system_rows=system_rows)
     media = None
@@ -181,6 +188,7 @@ async def _send_mathematics(
             **kwargs,
         )
     except (TelegramBadRequest, TelegramNotFound):
+        logging.getLogger(__name__).info("math_image_reason=telegram_rejection")
         # Only a definite rejection means no message was created. Timeouts,
         # transport failures, rate limits and server errors must propagate.
         return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
@@ -245,6 +253,7 @@ async def send_text(
     text: str | MathFragment | Text,
     *,
     user_id_override: int | None = None,
+    math_family: object = None,
     math_system_rows: tuple[str, ...] | None = None,
     rich_with_navigation: bool = False,
     **kwargs: Any,
@@ -252,6 +261,7 @@ async def send_text(
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
 
     has_navigation = navigation_screen(kwargs.get("reply_markup")) is not None
+    template = template_format(math_family)
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
     if isinstance(text, Text):
@@ -259,20 +269,22 @@ async def send_text(
     elif (
         _has_telegram_transport(message)
         and (
-            not has_navigation
+            template is not None
+            or not has_navigation
             or rich_with_navigation
             or isinstance(text, str)
             and next(formulas(text), None) is not None
         )
-        and has_mathematics(text)
+        and (template is not None or has_mathematics(text))
     ):
         sent = await _send_mathematics(
             message,
-            text,
+            typeset_family_text(text, math_family) if isinstance(text, str) else text,
             None,
             kwargs,
             force_png=await _prefer_png(message, repository, user_id_override),
             system_rows=math_system_rows,
+            template=template,
         )
     else:
         sent = await message.answer(format_math_message(text), parse_mode="HTML", **kwargs)
@@ -287,24 +299,30 @@ async def send_photo(
     *,
     caption: str | MathFragment,
     user_id_override: int | None = None,
+    math_family: object = None,
     math_system_rows: tuple[str, ...] | None = None,
     diagram_caption: str | None = None,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import prepare_navigation_markup
 
+    template = template_format(math_family)
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
     if _has_telegram_transport(message) and (
-        has_mathematics(caption) or isinstance(caption, str) and len(caption) > 950
+        template is not None
+        or has_mathematics(caption)
+        or isinstance(caption, str)
+        and len(caption) > 950
     ):
         sent = await _send_mathematics(
             message,
-            caption,
+            typeset_family_text(caption, math_family) if isinstance(caption, str) else caption,
             photo,
             kwargs,
             force_png=await _prefer_png(message, repository, user_id_override),
             system_rows=math_system_rows,
+            template=template,
             diagram_caption=diagram_caption,
         )
     else:

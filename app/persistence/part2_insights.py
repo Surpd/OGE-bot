@@ -63,7 +63,8 @@ async def revision(
     pool: asyncpg.Pool, owner: int, issue: int, attempt: int
 ) -> tuple[asyncpg.Record, list[asyncpg.Record]] | None:
     row = await pool.fetchrow(
-        """SELECT v.payload->>'statement' statement, v.payload->'visuals' visuals, i.number,
+        """SELECT v.payload->>'statement' statement, v.payload->'visuals' visuals,
+        i.number, i.subtype_id,
         i.skipped_at,i.repeat_kind,i.solution_viewed_at,i.closed,
         v.payload #>> '{rubric,kind}' rubric_kind,
         (SELECT max(n) FROM (SELECT revision AS n FROM part2_grades WHERE issue_id=i.id

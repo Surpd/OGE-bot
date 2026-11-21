@@ -707,14 +707,15 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
             ),
         )
         await _feed(dispatcher, bot, repository, scenario_repository, hint_update)
+        outgoing_methods = {"sendMessage", "sendRichMessage", "sendPhoto", "sendDocument"}
         sends_after_hint = sum(
-            call.__api_method__ in {"sendMessage", "sendPhoto", "sendDocument"}
+            call.__api_method__ in outgoing_methods
             for call in transport.calls
         )
         await _feed(dispatcher, bot, repository, scenario_repository, hint_update)
         assert (
             sum(
-                call.__api_method__ in {"sendMessage", "sendPhoto", "sendDocument"}
+                call.__api_method__ in outgoing_methods
                 for call in transport.calls
             )
             == sends_after_hint
@@ -982,6 +983,12 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
     oge15_navigation_pool, story_code, monkeypatch,
 
 ) -> None:
+    def sent_text(calls):
+        return [
+            call.rich_message.html if call.__api_method__ == "sendRichMessage" else call.text
+            for call in calls if call.__api_method__ in {"sendMessage", "sendRichMessage"}
+        ]
+
     baseline = os.getenv("OGE15_BASELINE_MEASUREMENT") == "1"
     monkeypatch.setattr(scenario_training.secrets, "randbelow", lambda _: 42)
     transport = TelegramSession()
@@ -1071,9 +1078,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 calls_before_data = len(transport.calls)
                 await tap(full_control, "📷 Схема / данные")
                 data_calls = transport.calls[calls_before_data:]
-                text_payloads = [
-                    call.text for call in data_calls if call.__api_method__ == "sendMessage"
-                ]
+                text_payloads = sent_text(data_calls)
                 assert text_payloads
                 assert all("Таблица размеров" not in text for text in text_payloads)
                 assert all("A0:" not in text and "1189" not in text and "841" not in text
@@ -1195,9 +1200,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 calls_before_single_data = len(transport.calls)
                 await single_tap(single_control, "📷 Схема / данные")
                 single_calls = transport.calls[calls_before_single_data:]
-                single_texts = [
-                    call.text for call in single_calls if call.__api_method__ == "sendMessage"
-                ]
+                single_texts = sent_text(single_calls)
                 assert single_texts and all(
                     "Таблица размеров" not in text
                     and "A0:" not in text

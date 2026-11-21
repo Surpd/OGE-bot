@@ -8,11 +8,11 @@ from pathlib import Path
 from PIL import Image, ImageChops
 
 from app.bot.explicit_math import plain_text
+from app.bot.family_display import template_format, typeset_family_text
 from app.bot.math_image import _explicit_formula, _formula, render_math_image
-from app.bot.math_notation import math_spans, rich_needs_png_fallback
+from app.bot.math_notation import math_spans
 from app.bot.mixed_training import _render_image
 from app.bot.part2 import solution_text, statement_text
-from app.bot.presentation import has_mathematics
 from app.bot.scenario_training import PUBLIC_FAMILIES, public_registry
 from app.bot.task_view import question_text, system_rows
 from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
@@ -41,7 +41,19 @@ def previews(dest):
         if c["source_id"] == "315053"
     )
     drawing = next(v for v in example["visuals"] if v["role"] == "condition")
+    family_dir = dest.parent / "family-contracts"
+    family_dir.mkdir(exist_ok=True)
+    family_text = "\n\n".join(typeset_family_text(text, family) for family, text in [
+        ("OGE06-F006-MIXED-MINUS-DECIMAL", "Вычислите: 11 1/2 − 9,3."),
+        ("OGE16-D04", "R = 48√2/(2 · sin 45°)"),
+        ("OGE15-F15", "sin B = AC / AB = 3 / 5."),
+        ("OGE09-K3", "x₁,₂ = (−(8) ± 4)/(2·2) = −3 и −1"),
+        ("OGE11-F05", "1) y=1/2x+0"),
+        ("OGE24-common-tangent-ratio", "O₂T₂/ O₁T₁ = PO₂/PO₁ = r₂/r₁"),
+        ("OGE13-L01", r"\(a\ne b\), \(a\in A\), \(x\le 3\)"),
+    ])
     for width in (360, 390):
+        mobile(width, family_text).save(family_dir / f"fractions-{width}.png")
         mobile(width).save(dest / f"formulas-{width}.png")
         mobile(width, statement_text(example), figure(drawing["path"])).save(
             dest / f"geometry-{width}.png"
@@ -95,7 +107,7 @@ def fields():
     for card in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines()):
         yield (
             "written",
-            card["task_id"],
+            card["subtype_id"],
             {
                 0 if v["role"] == "condition" else len(card["hints"]) + 1: figure(v["path"])
                 for v in card["visuals"]
@@ -111,20 +123,18 @@ def main():
     tallest = 0
     for origin, identity, drawings, rows, texts in fields():
         counts[origin] += 1
+        template = template_format(identity)
+        if template is None:
+            raise ValueError(("unregistered template", identity))
         for index, text in enumerate(texts):
+            text = typeset_family_text(text, identity)
             spans = [s for s in math_spans(text) if s.latex]
-            counts[
-                "plain"
-                if not has_mathematics(text)
-                else "png"
-                if rich_needs_png_fallback(text)
-                else "rich"
-            ] += 1
+            counts[template] += 1
             for span in spans:
                 image = _explicit_formula(span.latex) if span.explicit else _formula(span.latex)
                 if image.getbbox() is None:
                     raise ValueError((origin, span.source))
-            if spans or drawings.get(index):
+            if template == "png" or spans or drawings.get(index):
                 png = render_math_image(text, drawings.get(index), rows if index == 0 else None)
                 with Image.open(io.BytesIO(png)) as scene:
                     tallest = max(tallest, scene.height)

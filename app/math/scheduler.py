@@ -4,7 +4,7 @@ import random
 from typing import cast
 from uuid import uuid4
 
-from app.math.generator import generate
+from app.math.generator import generate, training_rejection
 from app.math.registry import SPEC_BY_ID
 
 FINGERPRINT_HISTORY_LIMIT = 30
@@ -78,7 +78,7 @@ def _candidates_from_queue(
                 # A family that exhausts its own bounded construction retries is
                 # skipped for this issuance; later families can still produce a task.
                 continue
-            if problem.fingerprint in fingerprints:
+            if problem.fingerprint in fingerprints or training_rejection(problem):
                 continue
             fingerprints.add(problem.fingerprint)
             snapshot = problem.to_snapshot()

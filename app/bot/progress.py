@@ -562,6 +562,7 @@ async def progress_navigation(
                 pass
         return
 
+    math_family: object = None
     math_system_rows: tuple[str, ...] | None = None
     if section in {"item"} and len(parts) == 3:
         from aiogram.types import BufferedInputFile
@@ -591,6 +592,7 @@ async def progress_navigation(
                     if has_error:
                         detail["replay_status"] = "unavailable"
                 else:
+                    math_family = source.snapshot
                     detail["condition"] = question_text(source.number, source.snapshot)
                     detail["drawing_unavailable"] = False
                     math_system_rows = system_rows(source.number, source.snapshot)
@@ -713,6 +715,7 @@ async def progress_navigation(
         (_record_list(insights, output_page) if section in {"history", "errors", "numerr"}
          else render_progress(insights, output_page)),
         reply_markup=markup,
+        math_family=math_family,
         # Only a record detail may include an original mathematical condition.
         # Keep navigation and list pages as ordinary Telegram text so their
         # keyboards and copy remain available to clients without Rich Messages.
