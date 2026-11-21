@@ -13,6 +13,7 @@ from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu, training_menu
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.training_ux import TERMINAL_RESULTS, matches_current_condition, resumed_result
+from app.math.family_cycle import ordinary_candidates
 from app.math.formulas import POLICY as FORMULA_POLICY
 from app.math.oge8 import POLICY as POWERS_POLICY
 from app.math.oge8_scheduler import build_task8_candidate_batch
@@ -39,7 +40,7 @@ from app.math.probability import GRAPH_FAMILIES
 from app.math.probability_diagram import render_snapshot as render_probability_diagram
 from app.math.progressions import POLICY as PROGRESSION_POLICY
 from app.persistence.repository import Repository
-from app.persistence.rotation_history import candidate_state as rotation_state
+from app.persistence.rotation_history import ordinary_state as rotation_state
 
 
 class NumericPolicy(Protocol):
@@ -197,7 +198,10 @@ async def send_problem(
                 candidate_state["selected_family_id"] = selected
             try:
                 candidates = await asyncio.to_thread(
-                    adapter.candidates, candidate_state, secrets.randbelow(2**63)
+                    ordinary_candidates,
+                    adapter.candidates,
+                    candidate_state,
+                    secrets.randbelow(2**63),
                 )
             except ValueError:
                 if adapter.number != 19:
@@ -263,6 +267,7 @@ async def send_problem(
             caption=f"Задание №15\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             user_id_override=user_id,
+            math_family=problem,
         )
     elif adapter.number == 10 and problem.get("family_id") in GRAPH_FAMILIES:
         try:
@@ -274,6 +279,7 @@ async def send_problem(
             message, repository, BufferedInputFile(picture, filename="oge10.png"),
             caption=f"Задание №10\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup, user_id_override=user_id,
+            math_family=problem,
         )
     elif adapter.number == 16:
         try:
@@ -288,6 +294,7 @@ async def send_problem(
             caption=f"Задание №16 · Окружности\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             user_id_override=user_id,
+            math_family=problem,
         )
     elif adapter.number == 17:
         from app.math.oge17_generator import from_snapshot
@@ -312,6 +319,7 @@ async def send_problem(
             caption=f"Задание №17\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             user_id_override=user_id,
+            math_family=problem,
         )
     elif adapter.number == 18:
         try:
@@ -326,6 +334,7 @@ async def send_problem(
             caption=f"Задание №18\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             user_id_override=user_id,
+            math_family=problem,
         )
     elif adapter.number == 19:
         try:
@@ -338,6 +347,7 @@ async def send_problem(
             repository,
             f"Задание №19 · Геометрические утверждения\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
+            math_family=problem,
         )
     else:
         sent = await send_text(
@@ -346,6 +356,7 @@ async def send_problem(
             f"Задание №{adapter.number} · {adapter.title}\n\n{problem['condition']}"
             + (result_suffix if terminal else "\n\n" + adapter.invalid_answer),
             reply_markup=markup,
+            math_family=problem,
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
@@ -476,6 +487,7 @@ async def training_callback(
             hint_message(hint, problem, numbered=adapter.number != 19)
             if hint
             else "Подсказок больше нет.",
+            math_family=problem,
         )
     elif action == "solution":
         revealed = await adapter.operation(repository, "reveal_solution")(
@@ -493,6 +505,7 @@ async def training_callback(
             + "\n".join(str(step) for step in steps)
             + f"\n\nОтвет: {snapshot['correct_answer']}",
             reply_markup=adapter.menu(expected_id, completed=True),
+            math_family=problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
@@ -625,7 +638,8 @@ async def training_answer(
         return
     completed = status != "active"
     sent = await send_text(
-        message, repository, text, reply_markup=adapter.menu(problem_id, completed=completed)
+        message, repository, text, reply_markup=adapter.menu(problem_id, completed=completed),
+        math_family=problem,
     )
     result_id = getattr(sent, "message_id", None)
     if type(result_id) is int:

@@ -1,0 +1,1139 @@
+{
+  "FLAT-01-ROOM-MATCH": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-02-PARQUET-PACK": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-02-TILE-PACK": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-03-RECT-AREA": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-04-RECT-PERCENT": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-05-INTERNET-MIN": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-05-WASHER-MIN": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-01-IDENTIFY": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-02-TILES-PACKS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-04-PERIMETER-POLYGON": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-07-PERCENT-BUILDINGS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-09-HEAT-BREAKEVEN": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F001-ADD": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F001-SUB": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F002-DIV": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F002-MUL": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F003-UNIT-SUM": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-ADD": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-DIV": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-MUL": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-SUB": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F006-MIXED-MINUS-DECIMAL": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F008-REDUCED-NUMERATOR": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F009-PRESCRIBED-NUMERATOR": {
+    "same_denominator": 9,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-N01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-N04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R08": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R09": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-K2": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-K3": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-K5": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-K6": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L1": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L2": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L3": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L4A": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L4B": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F001-DRAW-CATEGORY": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F002-COMPLEMENT": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-EQUAL-POINTS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-EULER-COUNTS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-EULER-MASSES": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-TREE": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-WEIGHTED-POINTS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F006-EMPIRICAL-FREQUENCY": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F007-DISJOINT-UNION-RESIDUAL": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F008-REMAINDER-CATEGORY": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F009-OVERLAPPING-GROUPS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F07": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F08": {
+    "unsafe_variants": 28,
+    "variants": 32
+  },
+  "OGE12-R001": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R002": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R003": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R004": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R005": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R010": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R011": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R012": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R014": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-L01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-L02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-S01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-S02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-S03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A07": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A08": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A09": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A10": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F07": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F08": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F09": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F10": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F11": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F12": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F13": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F14": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F15": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F16": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F17": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F18": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F19": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F20": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F21": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F22": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D04": {
+    "unsafe_variants": 32,
+    "variants": 32
+  },
+  "OGE16-D05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-E01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-E02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-E03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P07": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-R02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-R03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-R04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T07": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T08": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-D05": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-H01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-L01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-L02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-M01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-M02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-AREAS-METRICS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-CIRCLES": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-LINES-ANGLES": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-MIXED": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-QUADRILATERALS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-TRIANGLES": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE20-poly-factor": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE20-poly-inequality": {
+    "unsafe_variants": 3,
+    "variants": 6
+  },
+  "OGE20-poly-quadratic": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE20-poly-substitution": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-power-equality": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-power-sums": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-radical-cancel": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-rational-clear": {
+    "unsafe_variants": 2,
+    "variants": 7
+  },
+  "OGE20-rational-inequality": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE20-rational-substitution": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE20-system-elimination": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE20-system-substitution": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE21-average-speed": {
+    "unsafe_variants": 2,
+    "variants": 6
+  },
+  "OGE21-finish-gap": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE21-joint-sum": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE21-loop": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE21-mass-invariant": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE21-meeting-arrivals": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE21-meeting-pause": {
+    "unsafe_variants": 5,
+    "variants": 6
+  },
+  "OGE21-mix-ratio": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE21-mix-two-experiments": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE21-out-back-pause": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE21-rate-compare": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE21-relative-motion": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE21-river-gap": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE21-river-raft": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE21-river-total": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE21-split-equal-time": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE22-hole-hyperbola-level": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-hole-hyperbola-slope": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-hole-modulus": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE22-hole-parabola-level": {
+    "unsafe_variants": 5,
+    "variants": 6
+  },
+  "OGE22-hole-parabola-slope": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE22-max-form": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-modulus-inside": {
+    "unsafe_variants": 5,
+    "variants": 6
+  },
+  "OGE22-modulus-outside": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE22-piecewise-lines": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-piecewise-parabola-hyperbola": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE22-piecewise-parabola-line": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE23-angle-height-bisector": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-angle-tangent-arc": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-parallel-diagonals": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-parallel-segment": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-parallelogram-bisectors": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-rhombus": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-right-bisectors": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-right-circle-rectangle": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-right-median": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-right-projection": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-sine-rule": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-trapezoid-area": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-trapezoid-midpoints": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-trapezoid-trig": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE24-area-proof": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-bisector-distance": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-bisector-isosceles": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-common-chord": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-common-tangent-ratio": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-cyclic-altitudes": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-cyclic-converse": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-cyclic-external": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-midline-proof": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-quadrilateral-test": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-rigid-motion": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-similar-parallels": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-circumcenter-chord": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-circumradius-hidden": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-cyclic-diagonals": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-incenter-distance": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-incircle-excircle": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-incircle-similarity": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-median-area": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-median-bisector": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-orthocenter-semicircle": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-parallelogram-bisectors": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-secant-tangent": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-tangent-trapezoid": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-trapezoid-bisector-area": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-trapezoid-midpoint-segments": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-trapezoid-parallel-section": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-two-circle-tangents": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "PAPER-F01": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F02": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F03": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F04": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F06": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F07": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F01-CAPACITY-LIMITS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F02-ATTRIBUTE-MATCH": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F03-VOLUME": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F04-FLOOR-AREA": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F05-WALL-AREA-NET": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F06-PURCHASE-EXTRA-COSTS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F07-FIT-WOOD-DELIVERY": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F08-COST-COMPARISON": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F09-DIRECT-DISCOUNT": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F10-REVERSE-DISCOUNT": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F12-ARCH-RADIUS": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F01-MONTHS-MINUTES": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F04-MONTHLY-BILL": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F05-EXTREMUM": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F09-PERCENT-FEE": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F12-HOME-ISP": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-DIAMETER": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-PERCENT-ROTATION": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-RADIUS-DELTA": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-SIDEWALL": {
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-TABLE-EXTREME": {
+    "unsafe_variants": 0,
+    "variants": 32
+  }
+}

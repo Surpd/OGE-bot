@@ -120,10 +120,20 @@ async def candidate_state(
     return result
 
 
+async def ordinary_state(
+    repository: Any, user_id: int, number: int, state: dict[str, object]
+) -> dict[str, object]:
+    result = await candidate_state(repository, user_id, number, state)
+    result["cycle_families"] = enabled(number)
+    result["cycle_tail"] = state.get("family_queue")
+    result["cycle_last"] = state.get("last_family_id")
+    return result
+
+
 async def specialist_state(
     repository: Any, user_id: int, number: int, state: dict[str, object]
 ) -> dict[str, object]:
-    prepared = await candidate_state(repository, user_id, number, state)
+    prepared = await ordinary_state(repository, user_id, number, state)
     selected = await repository.training_family(user_id, number)
     if selected is not None:
         prepared["selected_family_id"] = selected

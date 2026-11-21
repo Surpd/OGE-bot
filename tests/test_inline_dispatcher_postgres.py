@@ -118,7 +118,8 @@ class TelegramSession(BaseSession):
 
 
 async def exercise_navigation(
-    repository, *, expired_stale_ack=False, expire_all_acks=False, webhook=False, graphics=False
+    repository, *, expired_stale_ack=False, expire_all_acks=False, webhook=False, graphics=False,
+    cycle_number=None
 ):
     session = TelegramSession()
     session.expired_acks = expire_all_acks
@@ -193,6 +194,37 @@ async def exercise_navigation(
         original_menu = list(session.messages.values())[-1]
         await click("nav:numbers")
         assert await repository.user_state(42) == "number_selection"
+        if cycle_number is not None:
+            from app.persistence.rotation_history import enabled
+
+            n = cycle_number
+            for page in range(1, (n - 5) // 6 + 1):
+                await click(f"nav:numbers:{page}")
+            await click(f"nav:task:{n}")
+            await click(f"nav:family:{n}:random")
+            await click(f"nav:begin:{n}")
+            families = enabled(n)
+            for _ in range(2):
+                seen = []
+                for pos in range(len(families)):
+                    # Read from a fresh repository and recreate the dispatcher halfway.
+                    if pos == len(families) // 2:
+                        repository = PostgresRepository(repository._pool)
+                        dispatcher = Dispatcher()
+                        dispatcher.include_router(build_router())
+                    state = await getattr(repository, f"task{n}_state")(42)
+                    problem = state["problem"]
+                    seen.append(problem["family_id"])
+                    original = list(session.messages.values())[-1]
+                    skip = f"t{n}:skip:{problem['problem_id']}"
+                    await click(skip, original)
+                    if pos == 0:
+                        after = await getattr(repository, f"task{n}_state")(42)
+                        await click(skip, original)
+                        again = await getattr(repository, f"task{n}_state")(42)
+                        assert again["problem"]["problem_id"] == after["problem"]["problem_id"]
+                assert set(seen) == set(families)
+            return
         # Same message ID, previous keyboard revision: must not change the screen.
         session.expired_acks = expired_stale_ack or expire_all_acks
         await click("nav:progress", original_menu, repeat=webhook)
@@ -434,7 +466,14 @@ async def exercise_navigation(
                 if number >= 11:
                     await click("nav:numbers:1")
                 await click(f"nav:task:{number}")
-                await click(f"nav:family:{number}:random")
+                from app.persistence.rotation_history import enabled
+
+                index = next(
+                    i for i, f in enumerate(enabled(number)) if f.startswith(family_prefix)
+                )
+                if index >= 6:
+                    await click(f"nav:families:{number}:{index // 6}")
+                await click(f"nav:family:{number}:{index}")
                 await click(f"nav:begin:{number}")
                 photos = [c for c in session.calls[call_count:] if c.__api_method__ == "sendPhoto"]
                 assert len(photos) == (1 if number == 7 else 2)
@@ -591,3 +630,7 @@ async def test_dispatcher_postgres_with_production_container_assets(
         await exercise_navigation(PostgresRepository(navigation_pool))
     finally:
         training_insights.family_names.cache_clear()
+
+@pytest.mark.parametrize("number", range(6, 20))
+async def test_ordinary_random_menu_commits_two_cycles(navigation_pool, number):
+    await exercise_navigation(PostgresRepository(navigation_pool), cycle_number=number)

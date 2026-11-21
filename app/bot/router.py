@@ -50,6 +50,7 @@ from app.bot.training_engine import (
 from app.bot.training_ux import TERMINAL_RESULTS, matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
+from app.math.family_cycle import ordinary_candidates
 from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
 from app.math.inequalities import POLICY as TASK13_ANSWER_POLICY
 from app.math.inequalities import render_option_sheet_snapshot_png
@@ -199,7 +200,9 @@ async def _send_problem(
         ):
             expected_problem_id = str(current_problem.get("problem_id", ""))
         state_value = await rotation_state(repository, user_id, 6, state_value)
-        candidates = build_candidate_batch(state_value, secrets.randbelow(2**63))
+        candidates = ordinary_candidates(
+            build_candidate_batch, state_value, secrets.randbelow(2**63)
+        )
         if selected := state_value.get("selected_family_id"):
             candidates = [item for item in candidates if item["family_id"] == selected]
         try:
@@ -238,6 +241,7 @@ async def _send_problem(
         repository,
         body,
         reply_markup=task6_menu(str(saved_problem["problem_id"]), completed=terminal),
+        math_family=saved_problem,
     )
     prompt_message_id = getattr(sent, "message_id", None)
     if type(prompt_message_id) is int:
@@ -558,6 +562,7 @@ async def _send_task9_problem(
                     f"Задание №9 · уравнения\n\n{saved_problem['condition']}\n\n"
                     "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
                     reply_markup=task9_menu(str(saved_problem["problem_id"])),
+                    math_family=saved_problem,
                 )
                 prompt_id = getattr(sent, "message_id", None)
                 if type(prompt_id) is int:
@@ -581,7 +586,9 @@ async def _send_task9_problem(
         ):
             expected_problem_id = str(current_problem.get("problem_id", ""))
         state_value = await rotation_state(repository, user_id, 9, state_value)
-        candidates = build_task9_candidate_batch(state_value, secrets.randbelow(2**63))
+        candidates = ordinary_candidates(
+            build_task9_candidate_batch, state_value, secrets.randbelow(2**63)
+        )
         if selected := state_value.get("selected_family_id"):
             candidates = [item for item in candidates if item["family_id"] == selected]
         try:
@@ -609,6 +616,7 @@ async def _send_task9_problem(
         repository,
         body,
         reply_markup=task9_menu(str(saved_problem["problem_id"]), completed=terminal),
+        math_family=saved_problem,
     )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
@@ -730,7 +738,7 @@ async def _send_task11_problem(
             expected_problem_id = str(current.get("problem_id", ""))
         state_value = await rotation_state(repository, user_id, 11, state_value)
         candidates = await asyncio.to_thread(
-            build_task11_candidate_batch,
+            ordinary_candidates, build_task11_candidate_batch,
             state_value,
             secrets.randbelow(2**63),
             enabled_families=TASK11_ENABLED_FAMILIES,
@@ -788,6 +796,7 @@ async def _send_task11_problem(
         caption=caption,
         diagram_caption="Графики к заданию №11",
         reply_markup=task11_menu(restored.problem_id, completed=terminal),
+        math_family=problem,
     )
     condition_id = getattr(sent, "message_id", None)
     if type(condition_id) is int:
@@ -876,7 +885,8 @@ async def task11_callback(callback: CallbackQuery, repository: Repository) -> No
     if action == "hint":
         hint = await repository.task11_hint(user_id, expected_id, condition_id)
         await send_text(
-            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет.",
+            math_family=problem,
         )
     elif action == "solution":
         revealed = await repository.task11_reveal_solution(user_id, expected_id, condition_id)
@@ -896,6 +906,7 @@ async def task11_callback(callback: CallbackQuery, repository: Repository) -> No
             + "\n".join(restored.solution)
             + f"\n\nОтвет: {restored.correct_answer}",
             reply_markup=task11_menu(expected_id, completed=True),
+            math_family=problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
@@ -976,6 +987,7 @@ async def task11_answer(message: Message, repository: Repository) -> None:
         repository,
         text,
         reply_markup=task11_menu(problem_id, completed=status != "active"),
+        math_family=problem,
     )
     result_id = getattr(sent, "message_id", None)
     if type(result_id) is int:
@@ -1402,7 +1414,11 @@ async def _send_task7_problem(
                 expected_problem_id = str(current.get("problem_id", ""))
             state_value = await rotation_state(repository, user_id, 7, state_value)
             candidates = await asyncio.to_thread(
-                build_task7_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
+                ordinary_candidates,
+                build_task7_candidate_batch,
+                state_value,
+                secrets.randbelow(2**63),
+                limit=1,
             )
             if selected := state_value.get("selected_family_id"):
                 candidates = [item for item in candidates if item["family_id"] == selected]
@@ -1452,11 +1468,13 @@ async def _send_task7_problem(
             photo,
             caption=caption,
             reply_markup=task7_menu(str(problem["problem_id"]), completed=terminal),
+            math_family=problem,
         )
     else:
         sent = await send_text(
             message, repository, caption,
             reply_markup=task7_menu(str(problem["problem_id"]), completed=terminal),
+            math_family=problem,
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
@@ -1560,7 +1578,8 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
     if action == "hint":
         hint = await repository.task7_hint(user_id, expected_id, prompt_id)
         await send_text(
-            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет.",
+            math_family=problem,
         )
     elif action == "solution":
         revealed = await repository.task7_reveal_solution(user_id, expected_id, prompt_id)
@@ -1576,6 +1595,7 @@ async def task7_callback(callback: CallbackQuery, repository: Repository) -> Non
             + "\n".join(str(step) for step in steps)
             + f"\n\nОтвет: {snapshot['correct_answer']}",
             reply_markup=task7_menu(expected_id, completed=True),
+            math_family=problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
@@ -1670,7 +1690,8 @@ async def task7_answer(message: Message, repository: Repository) -> None:
         return
     completed = status != "active"
     sent = await send_text(
-        message, repository, text, reply_markup=task7_menu(problem_id, completed=completed)
+        message, repository, text, reply_markup=task7_menu(problem_id, completed=completed),
+        math_family=problem,
     )
     result_id = getattr(sent, "message_id", None)
     if type(result_id) is int:
@@ -1721,7 +1742,11 @@ async def _send_task13_problem(
                 expected_problem_id = str(current.get("problem_id", ""))
             state_value = await rotation_state(repository, user_id, 13, state_value)
             candidates = await asyncio.to_thread(
-                build_task13_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
+                ordinary_candidates,
+                build_task13_candidate_batch,
+                state_value,
+                secrets.randbelow(2**63),
+                limit=1,
             )
             if selected := state_value.get("selected_family_id"):
                 candidates = [item for item in candidates if item["family_id"] == selected]
@@ -1789,10 +1814,12 @@ async def _send_task13_problem(
             diagram_caption="Варианты ответа к заданию №13",
             reply_markup=markup,
             math_system_rows=math_system_rows,
+            math_family=problem,
         )
     else:
         sent = await send_text(
-            message, repository, caption, reply_markup=markup, math_system_rows=math_system_rows
+            message, repository, caption, reply_markup=markup, math_system_rows=math_system_rows,
+            math_family=problem,
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
@@ -1907,7 +1934,8 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
     if action == "hint":
         hint = await repository.task13_hint(user_id, expected_id, prompt_id)
         await send_text(
-            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет.",
+            math_family=problem,
         )
     elif action == "solution":
         revealed = await repository.task13_reveal_solution(user_id, expected_id, prompt_id)
@@ -1923,6 +1951,7 @@ async def task13_callback(callback: CallbackQuery, repository: Repository) -> No
             + "\n".join(str(step) for step in steps)
             + f"\n\nОтвет: вариант {snapshot['correct_answer']}",
             reply_markup=task13_menu(expected_id, completed=True),
+            math_family=problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
@@ -2000,6 +2029,7 @@ async def _task13_record_answer(
             completed=completed,
             choices=not completed,
         ),
+        math_family=problem,
     )
     result_id = getattr(sent, "message_id", None)
     if type(result_id) is int:
@@ -2132,7 +2162,8 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id, expected_problem_id, expected_prompt_message_id=control_message_id
         )
         await send_text(
-            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет.",
+            math_family=problem,
         )
     elif action == "solution":
         revealed = await repository.task6_reveal_solution(
@@ -2150,6 +2181,7 @@ async def task6_callback(callback: CallbackQuery, repository: Repository) -> Non
             "Разбор (самостоятельное решение не засчитывается):\n"
             f"{steps}\n\nОтвет: {saved_problem['correct_answer']}",
             reply_markup=task6_menu(expected_problem_id, completed=True),
+            math_family=problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
@@ -2183,6 +2215,7 @@ async def task6_hint(message: Message, repository: Repository) -> None:
         message,
         repository,
         hint_message(hint, problem) if hint else "Сначала откройте активное задание.",
+        math_family=problem,
     )
 
 
@@ -2213,6 +2246,7 @@ async def task6_solution(message: Message, repository: Repository) -> None:
         message,
         repository,
         f"Разбор (самостоятельное решение не засчитывается):\n{text}\n\nОтвет: {answer}",
+        math_family=saved_problem,
         reply_markup=task6_menu(problem_id, completed=True),
     )
     result_id = getattr(sent, "message_id", None)
@@ -2315,6 +2349,7 @@ async def task6_answer(message: Message, repository: Repository) -> None:
             f"Вторая попытка неверна. Правильный ответ: {saved_problem['correct_answer']}.\n\n"
             f"Разбор:\n{steps}",
             reply_markup=task6_menu(expected_problem_id, completed=True),
+            math_family=saved_problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
@@ -2387,7 +2422,8 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             user_id, expected_problem_id, expected_prompt_message_id=control_message_id
         )
         await send_text(
-            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет."
+            message, repository, hint_message(hint, problem) if hint else "Подсказок больше нет.",
+            math_family=problem,
         )
     elif action == "solution":
         revealed = await repository.task9_reveal_solution(
@@ -2405,6 +2441,7 @@ async def task9_callback(callback: CallbackQuery, repository: Repository) -> Non
             "Разбор (самостоятельное решение не засчитывается):\n"
             f"{rendered_steps}\n\nОтвет: {snapshot['correct_answer']}",
             reply_markup=task9_menu(expected_problem_id, completed=True),
+            math_family=problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:
@@ -2510,6 +2547,7 @@ async def task9_answer(message: Message, repository: Repository) -> None:
             f"Вторая попытка неверна. Правильный ответ: {snapshot['correct_answer']}.\n\n"
             f"Разбор:\n{rendered_steps}",
             reply_markup=task9_menu(problem_id, completed=True),
+            math_family=problem,
         )
         result_id = getattr(sent, "message_id", None)
         if type(result_id) is int:

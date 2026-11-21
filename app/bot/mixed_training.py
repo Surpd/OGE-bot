@@ -425,7 +425,9 @@ async def _send_problem(
         if previous_position is None or context != scenario_context_for_question(
             scenario, previous_position,
         ):
-            await send_text(message, repository, context, user_id_override=user_id)
+            await send_text(
+                message, repository, context, user_id_override=user_id, math_family=problem
+            )
     result = resumed_result(problem.get("outcome"), problem)
     condition += "\n\n" + (result or answer_instruction(number, problem))
     photos = (
@@ -469,6 +471,7 @@ async def _send_problem(
             diagram_caption=(
                 f"Данные задачи №{number}" if number in {11, 13} else None
             ),
+            math_family=problem,
         )
     else:
         sent = await send_text(
@@ -478,6 +481,7 @@ async def _send_problem(
             reply_markup=markup,
             user_id_override=user_id,
             math_system_rows=math_system_rows,
+            math_family=problem,
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
@@ -602,6 +606,7 @@ async def mixed_answer(message: Message, repository: Repository) -> None:
             else (4 if int(problem["number"]) == 13 else 0),
         ),
         user_id_override=user_id,
+        math_family=problem,
     )
     prompt = getattr(sent, "message_id", None)
     if type(prompt) is int:
@@ -684,6 +689,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
                 ),
             ),
             user_id_override=user_id,
+            math_family=problem,
         )
         await answer_callback(callback)
         return
@@ -708,7 +714,9 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         used = used_value if isinstance(used_value, int) else 0
         hint = hints[used - 1] if ok and isinstance(hints, list) and used else None
         if hint:
-            await send_text(message, repository, hint_message(str(hint), problem))
+            await send_text(
+                message, repository, hint_message(str(hint), problem), math_family=problem
+            )
         else:
             await send_text(message, repository, "Подсказок больше нет.")
         await answer_callback(callback)
@@ -726,6 +734,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             text,
             reply_markup=_mixed_menu(problem_id, completed=True),
             user_id_override=user_id,
+            math_family=problem,
         )
         await answer_callback(callback)
         return

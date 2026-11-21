@@ -169,7 +169,9 @@ async def _render(
     body += f"\n\nПопытка {attempt_count + 1} из 2. Повтор учитывается отдельно."
     context, photos = materials
     if context:
-        await send_text(message, repository, context, user_id_override=user_id)
+        await send_text(
+            message, repository, context, user_id_override=user_id, math_family=source.snapshot
+        )
         for data in photos:
             await send_photo(
                 message, repository, BufferedInputFile(data, filename="scenario.png"),
@@ -186,11 +188,13 @@ async def _render(
             diagram_caption=(
                 f"Данные задачи №{source.number}" if source.number in {11, 13} else None
             ),
+            math_family=source.snapshot,
         )
     else:
         sent = await send_text(
             message, repository, body, reply_markup=markup, user_id_override=user_id,
             rich_with_navigation=True, math_system_rows=math_system_rows,
+            math_family=source.snapshot,
         )
     await store.set_prompt(user_id, UUID(str(replay["id"])), sent.message_id)
 
@@ -246,7 +250,7 @@ async def start_from_progress(
 
 async def _feedback(
     message: Message, repository: Repository, user_id: int,
-    replay: dict[str, object], text: str,
+    replay: dict[str, object], text: str, math_family: object = None,
 ) -> None:
     # Send feedback separately. Replies to the original condition stay valid.
     await send_text(
@@ -254,7 +258,7 @@ async def _feedback(
         reply_markup=_keyboard(
             replay_token(UUID(str(replay["id"]))), completed=replay["status"] != "active",
         ),
-        user_id_override=user_id, rich_with_navigation=True,
+        user_id_override=user_id, rich_with_navigation=True, math_family=math_family,
     )
 
 
@@ -305,7 +309,10 @@ async def answer(message: Message, repository: Repository) -> None:
         solution = source.snapshot.get("solution_steps", source.snapshot.get("solution"))
         if isinstance(solution, list) and solution:
             text += "\n\nРазбор\n" + "\n".join(map(str, solution))
-    await _feedback(message, repository, user_id, result, text)
+    await _feedback(
+        message, repository, user_id, result, text,
+        source.snapshot if result.get("status") == "failed" else None,
+    )
 
 
 async def callback(callback: CallbackQuery, repository: Repository) -> None:
@@ -337,6 +344,7 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
             await _feedback(
                 callback.message, repository, callback.from_user.id, replay,
                 "Подсказка:\n" + text if text is not None else "Подсказок больше нет.",
+                source.snapshot if text is not None else None,
             )
         return
     if parts[2] == "s":
@@ -350,7 +358,7 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
         if isinstance(callback.message, Message):
             await _feedback(
                 callback.message, repository, callback.from_user.id, replay,
-                "Разбор\n" + solution,
+                "Разбор\n" + solution, source.snapshot,
             )
         return
     await answer_callback(callback, "Действие повтора недоступно.")
