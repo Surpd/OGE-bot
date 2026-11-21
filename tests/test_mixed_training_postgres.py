@@ -15,6 +15,7 @@ from PIL import Image
 
 from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.repository import PostgresRepository, read_migration
+from app.persistence.rotation_history import candidate_state
 from app.persistence.training_insights import training_insights
 
 
@@ -230,6 +231,15 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
         ordinary_state = await story_store.state(story_user_id)
         assert ordinary_state is not None
         assert ordinary_state["state"]["scenario_snapshot"] is None
+
+        # A fresh ordinary handler sees only this learner's mixed issues.
+        reopened = PostgresRepository(pool)
+        history = await candidate_state(reopened, story_user_id, 6, {})
+        assert ordinary_candidate["fingerprint"] in history["recent_fingerprints"]
+        assert await candidate_state(reopened, user_id + 10000, 6, {}) == {}
+        assert await story_store.story_families(story_user_id) == [
+            question["family_id"] for question in reversed(scenario["questions"])
+        ]
 
         # Two competing advances cannot issue two next problems.
         candidates = [

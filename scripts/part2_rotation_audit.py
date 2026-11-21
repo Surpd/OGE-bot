@@ -134,7 +134,7 @@ def report():
         ]
     )
     for n in range(20, 26):
-        seq = sequence(cards, catalog, n, [None] * 15)
+        seq = sequence(cards, catalog, n, [None] * 30)
         out.extend([f"**№{n}, свободный выбор** — " + " → ".join(sources[i] for i in seq), ""])
     Path("reports/part2-rotation.md").write_text("\n".join(out))
 

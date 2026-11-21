@@ -8,6 +8,8 @@ from hashlib import sha256
 from typing import Any, cast
 from uuid import UUID, uuid4
 
+from app.persistence.rotation_history import candidate_state, recent_story_families
+
 
 def _object(value: object) -> dict[str, object]:
     if isinstance(value, str):
@@ -50,6 +52,9 @@ def _capture_scheduler_state(
     for source, target in _AFTER_FIELDS.items():
         if source in snapshot:
             current[target] = snapshot[source]
+    family = snapshot.get("family_id")
+    if isinstance(family, str):
+        current["last_family_id"] = family
     fingerprint = snapshot.get("fingerprint")
     if isinstance(fingerprint, str):
         recent = current.get("recent_fingerprints", [])
@@ -58,13 +63,16 @@ def _capture_scheduler_state(
             if isinstance(recent, list)
             else []
         )
+        cycle = snapshot.get("_finite_cycle_fingerprints")
+        if isinstance(cycle, list) and set(cycle) <= set(recent_values):
+            recent_values = [item for item in recent_values if item not in cycle]
         current["recent_fingerprints"] = [*recent_values, fingerprint][-30:]
     generators[str(number)] = current
     state["generator_states"] = generators
     return {
         key: value
         for key, value in snapshot.items()
-        if key not in _AFTER_FIELDS
+        if key not in _AFTER_FIELDS and key != "_finite_cycle_fingerprints"
     }
 
 
@@ -91,6 +99,16 @@ class MixedTrainingRepository:
                 repository._mixed_training_sessions = {}
             if not hasattr(repository, "_mixed_training_records"):
                 repository._mixed_training_records = {}
+
+    async def story_families(self, user_id: int) -> list[str]:
+        return await recent_story_families(self._repository, user_id)
+
+    async def candidate_state(
+        self, user_id: int, number: int, local: object,
+    ) -> dict[str, object]:
+        return await candidate_state(
+            self._repository, user_id, number, _object(local), for_mix=True,
+        )
 
     async def start(self, user_id: int, available_numbers: list[int]) -> dict[str, object]:
         if self._pool is None:

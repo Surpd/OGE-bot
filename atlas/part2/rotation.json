@@ -143,6 +143,15 @@
         "oge-part2-reshu-480521"
       ],
       "method": "Чётная степень даёт две ветви, нечётная позволяет однозначно снять степень"
+    },
+    {
+      "id": "OGE20-power-equality/3",
+      "construction": "Объединить корни двух ветвей с общей нулевой точкой",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge20-power-equality-extension"
+      ],
+      "method": "Равенство модулей"
     }
   ],
   "OGE20-rational-clear": [

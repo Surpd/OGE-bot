@@ -54,6 +54,9 @@ def build_task16_candidate_batch(
     choices = available or list(pool)
     if cycle and len(choices) > 1 and isinstance(recent_value, list) and recent_value:
         choices = [(fp, s) for fp, s in choices if fp != recent_value[-1]]
+    other = state.get("other_mode_fingerprints")
+    if isinstance(other, list):
+        choices = [pair for pair in choices if pair[0] not in other] or choices
     chosen_fp, base_seed = rng.choice(choices)
     period = 10 * len(SOURCE_VARIANTS[family[6:]])
     actual_seed = base_seed + period * rng.randrange((2**63 - period) // period)

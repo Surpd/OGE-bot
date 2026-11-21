@@ -12,6 +12,7 @@ from app.bot.math_image import _explicit_formula, _formula, render_math_image
 from app.bot.math_notation import math_spans, rich_needs_png_fallback
 from app.bot.mixed_training import _render_image
 from app.bot.part2 import solution_text, statement_text
+from app.bot.presentation import has_mathematics
 from app.bot.scenario_training import PUBLIC_FAMILIES, public_registry
 from app.bot.task_view import question_text, system_rows
 from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
@@ -113,7 +114,11 @@ def main():
         for index, text in enumerate(texts):
             spans = [s for s in math_spans(text) if s.latex]
             counts[
-                "plain" if not spans else "png" if rich_needs_png_fallback(text) else "rich"
+                "plain"
+                if not has_mathematics(text)
+                else "png"
+                if rich_needs_png_fallback(text)
+                else "rich"
             ] += 1
             for span in spans:
                 image = _explicit_formula(span.latex) if span.explicit else _formula(span.latex)

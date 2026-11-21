@@ -140,7 +140,7 @@ jobs:
           from app.math.scenarios.mobile_photos import font, scenario_photos
           # The deployment image has its own atlas allowlist in .dockerignore.
           subtypes, cards = load_bank()
-          assert len(subtypes) == 81 and len(cards) == 522
+          assert len(subtypes) == 81 and len(cards) == 523
           assert find_spec("scripts.import_part2") is not None
           assert Path(font(32).path).name == "DejaVuSans.ttf"
           registry = public_registry()

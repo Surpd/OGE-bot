@@ -99,7 +99,7 @@ async def test_rich_math_transport_keeps_revision_bound_navigation_markup(monkey
     repository = AsyncMock()
     rich_send = AsyncMock(return_value=sent)
     monkeypatch.setattr(presentation, "_has_telegram_transport", lambda _: True)
-    monkeypatch.setattr(presentation, "_has_math", lambda _: True)
+    monkeypatch.setattr(presentation, "has_mathematics", lambda _: True)
     monkeypatch.setattr(presentation, "_send_mathematics", rich_send)
 
     await send_text(
@@ -127,3 +127,11 @@ def test_text_solution_keeps_feedback_steps_and_final_answer_in_reading_order():
         "Вторая попытка неверна.", "", "<b>Разбор:</b>", "1. Сложим 2 и 2.",
         "", "<b>Ответ:</b> 4",
     ]
+
+
+def test_plain_integer_with_unit_keeps_prose_and_explicit_math_uses_transport():
+    from app.bot.presentation import has_mathematics
+
+    assert not has_mathematics("Площадь A0 принята равной 1 м².")
+    assert has_mathematics(r"Подставим \(1\).")
+    assert has_mathematics("Найдите 1/(2x).")

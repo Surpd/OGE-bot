@@ -134,8 +134,11 @@ def format_rich_message(
     return "".join(lines)
 
 
-def _has_math(text: str | MathFragment) -> bool:
-    return not isinstance(text, str) or any(span.latex is not None for span in math_spans(text))
+def has_mathematics(text: str | MathFragment) -> bool:
+    return not isinstance(text, str) or any(
+        span.latex is not None and (span.explicit or not span.source.isdecimal())
+        for span in math_spans(text)
+    )
 
 
 def _has_telegram_transport(message: object) -> bool:
@@ -261,7 +264,7 @@ async def send_text(
             or isinstance(text, str)
             and next(formulas(text), None) is not None
         )
-        and _has_math(text)
+        and has_mathematics(text)
     ):
         sent = await _send_mathematics(
             message,
@@ -293,7 +296,7 @@ async def send_photo(
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
     if _has_telegram_transport(message) and (
-        _has_math(caption) or isinstance(caption, str) and len(caption) > 950
+        has_mathematics(caption) or isinstance(caption, str) and len(caption) > 950
     ):
         sent = await _send_mathematics(
             message,

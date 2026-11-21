@@ -9075,5 +9075,19 @@
     "editorial_findings": [],
     "editorial_revision": null,
     "max_formula_width_px": 795
+  },
+  {
+    "task_id": "oge-part2-atlas-oge20-power-equality-extension",
+    "version": 1,
+    "number": 20,
+    "subtype": "OGE20-power-equality",
+    "automatic_check": "passed",
+    "issues": [],
+    "independent_check": "solution_set_from_statement",
+    "review": "expert_review_needed",
+    "assets": [],
+    "editorial_findings": [],
+    "editorial_revision": null,
+    "max_formula_width_px": 386
   }
 ]

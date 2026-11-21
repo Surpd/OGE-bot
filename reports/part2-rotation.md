@@ -57,10 +57,11 @@
 
 1. Извлечь кубический корень (1 шт., обычная цепочка). Метод — Чётная степень даёт две ветви, нечётная позволяет однозначно снять степень.
 2. Рассмотреть два знака при равенстве квадратов (5 шт., обычная цепочка). Метод — Чётная степень даёт две ветви, нечётная позволяет однозначно снять степень.
+3. Объединить корни двух ветвей с общей нулевой точкой (1 шт., с дополнительным шагом). Метод — Равенство модулей.
 
 Раньше — 2 → 2 → 1 → 2 → 2 → 2 (357583, 351751, 338860, 480521, 338991, 348378).
 
-Теперь — 2 → 1 → 2 → 2 → 2 → 2 (357583, 338860, 351751, 480521, 338991, 348378).
+Теперь — 2 → 3 → 2 → 1 → 2 → 2 → 2 (357583, A20-power-equality-extension, 351751, 338860, 480521, 338991, 348378).
 
 ## OGE20-rational-clear · Дробно-рациональное уравнение
 
@@ -942,14 +943,14 @@ OGE20-poly-substitution, OGE20-power-sums, OGE20-power-equality, OGE20-rational-
 
 В каждом из этих наборов пять или шесть карточек принадлежат одной группе. После исчерпания альтернатив возвращается знакомый шаблон. Для расширения нужны новые условия и проверенные решения в границах подтипа.
 
-**№20, свободный выбор** — 338577 → 472412 → 338086 → 352292 → 338650 → 338512 → 352739 → 338079 → C0319F → 338632 → 338237 → 357583 → 338545 → 314563 → A20-radical-cancel-extension
+**№20, свободный выбор** — 338577 → 472412 → 338086 → A20-power-equality-extension → 338650 → 338512 → 352739 → 352292 → C0319F → 338079 → 338632 → 338237 → 338545 → 314563 → A20-radical-cancel-extension → 357583 → 338779 → D20-2027 → A20-rational-clear-extension → A20-poly-substitution-extension → 338713 → 311589 → 311591 → A20-power-sums-extension → 341340 → 338566 → 338167 → 338860 → 338732 → 472409
 
-**№21, свободный выбор** — 340966 → A21-mix-ratio-02 → 348749 → 352844 → 349452 → 349700 → 314507 → 338893 → 353545 → 406322 → 341158 → 338584 → 1CAC40 → 353306 → 352009
+**№21, свободный выбор** — 340966 → A21-mix-ratio-02 → 348749 → 352844 → 349452 → 349700 → 314507 → 338893 → 353545 → 406322 → 341158 → 338584 → 1CAC40 → 353306 → 352009 → 351543 → A21-rate-compare-extension → 314431 → A21-finish-gap-extension → 353294 → A21-joint-sum-extension → A21-mix-two-experiments-extension → 333319 → A21-river-gap-extension → 341508 → A21-out-back-pause-extension → A21-river-raft-extension → A21-meeting-arrivals-extension → A21-loop-extension → 341283
 
-**№22, свободный выбор** — 353416 → A22-modulus-outside-extension → 341057 → 341159 → 316384 → 392124 → A22-hole-hyperbola-slope-extension → 401321 → 333129 → 340933 → 341686 → 338162 → 349717 → A22-piecewise-lines-extension → 341535
+**№22, свободный выбор** — 353416 → A22-modulus-outside-extension → 341057 → 341159 → 316384 → 392124 → A22-hole-hyperbola-slope-extension → 401321 → 333129 → 340933 → 341686 → 338162 → 349717 → A22-piecewise-lines-extension → 341535 → 341230 → 333346 → 314799 → A22-max-form-extension → A22-piecewise-parabola-line-extension → A22-hole-hyperbola-level-extension → A22-hole-parabola-slope-extension → 338435 → 353274 → 341025 → 338288 → 338409 → 370480 → 338300 → 338314
 
-**№23, свободный выбор** — 339656 → A23-trapezoid-trig-extension → 333157 → A23-angle-height-bisector-02 → CF802A → 352582 → A23-trapezoid-area-04 → 353514 → 315059 → A23-trapezoid-midpoints-01 → A23-right-median-05 → 339430 → A23-right-circle-rectangle-extension → 324778 → A23-parallel-segment-extension
+**№23, свободный выбор** — 339656 → A23-trapezoid-trig-extension → 333157 → A23-angle-height-bisector-02 → CF802A → 352582 → A23-trapezoid-area-04 → 353514 → 315059 → A23-trapezoid-midpoints-01 → A23-right-median-05 → 339430 → A23-right-circle-rectangle-extension → 324778 → A23-parallel-segment-extension → 351992 → A23-right-bisectors-extension → 315025 → 311651 → A23-parallel-diagonals-extension → A23-trapezoid-area-01 → A23-right-projection-extension → A23-angle-tangent-arc-02 → A23-trapezoid-midpoints-03 → A23-right-median-04 → 316359 → 353441 → 339549 → 350726 → 349618
 
-**№24, свободный выбор** — 333026 → A24-cyclic-external-05 → A24-bisector-distance-03 → A24-midline-proof-01 → A24-quadrilateral-test-01 → A24-common-chord-04 → A24-cyclic-converse-01 → A24-bisector-isosceles-01 → 311604 → A24-common-tangent-ratio-05 → 340341 → 340995 → 340055 → D24-2027 → A24-bisector-distance-01
+**№24, свободный выбор** — 333026 → A24-cyclic-external-05 → A24-bisector-distance-03 → A24-midline-proof-01 → A24-quadrilateral-test-01 → A24-common-chord-04 → A24-cyclic-converse-01 → A24-bisector-isosceles-01 → 311604 → A24-common-tangent-ratio-05 → 340341 → 340995 → 340055 → D24-2027 → A24-bisector-distance-01 → A24-midline-proof-04 → 155 → A24-common-chord-02 → A24-cyclic-converse-03 → A24-bisector-isosceles-03 → 311561 → A24-common-tangent-ratio-02 → 340854 → A24-similar-parallels-01 → 348716 → A24-cyclic-external-02 → 341344 → A24-midline-proof-02 → A24-quadrilateral-test-02 → A24-common-chord-03
 
-**№25, свободный выбор** — 340054 → A25-secant-tangent-extension → 339426 → A25-trapezoid-midpoint-segments-extension → 340344 → A25-incenter-distance-extension → 333132 → A25-median-bisector-extension → 339631 → A25-circumcenter-chord-extension → A25-incircle-similarity-04 → A25-median-area-01 → A25-parallelogram-bisectors-extension → 348801 → A25-incircle-excircle-05
+**№25, свободный выбор** — 340054 → A25-secant-tangent-extension → 339426 → A25-trapezoid-midpoint-segments-extension → 340344 → A25-incenter-distance-extension → 333132 → A25-median-bisector-extension → 339631 → A25-circumcenter-chord-extension → A25-incircle-similarity-04 → A25-median-area-01 → A25-parallelogram-bisectors-extension → 348801 → A25-incircle-excircle-05 → 350682 → A25-tangent-trapezoid-extension → 350018 → A25-orthocenter-semicircle-extension → 341060 → 348736 → 350839 → A25-two-circle-tangents-extension → 333323 → A25-trapezoid-bisector-area-extension → 351184 → A25-incircle-similarity-03 → A25-median-area-04 → 457314 → 341371

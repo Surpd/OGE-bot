@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 import secrets
 from dataclasses import replace
@@ -22,7 +23,7 @@ from aiogram.types import (
 
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
-from app.bot.presentation import send_text
+from app.bot.presentation import has_mathematics, send_text
 from app.bot.training_ux import matches_current_condition, resumed_result
 from app.math.scenario_engine import (
     FamilyRegistry,
@@ -30,12 +31,12 @@ from app.math.scenario_engine import (
     PracticeRequest,
     ScenarioSnapshot,
     ScenarioUnavailable,
-    build_practice_plan,
     discover_story_registry,
 )
 from app.math.scenarios.mobile_photos import scenario_photos_for_question
-from app.math.scenarios.recent_questions import is_recent_fixed_single, prefer_unseen
+from app.math.scenarios.recent_questions import is_recent_fixed_single, rotated_plan
 from app.persistence.repository import Repository
+from app.persistence.rotation_history import recent_story_families
 from app.persistence.scenario_repository import (
     AttemptResult,
     ScenarioPostgresRepository,
@@ -428,12 +429,17 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
 
 
 async def _show_data(
-    message: Message, session: ScenarioSession, *, shared: bool, current: bool
+    message: Message, session: ScenarioSession, *, shared: bool, current: bool,
+    repository: Repository | None = None, user_id: int | None = None,
 ) -> None:
     snapshot = session.snapshot
     story = STORY_NAMES[snapshot.story_code]
     if shared:
-        await message.answer(scenario_context_for_question(snapshot, session.current_position))
+        context = scenario_context_for_question(snapshot, session.current_position)
+        if repository is None:
+            await message.answer(context)
+        else:
+            await send_text(message, repository, context, user_id_override=user_id)
     if shared or current:
         photos = scenario_photos_for_question(snapshot, session.current_position)
     else:
@@ -476,7 +482,8 @@ async def render_session(
     )
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
     if show_assets or show_current_asset:
-        await _show_data(message, session, shared=show_assets, current=True)
+        await _show_data(message, session, shared=show_assets, current=True,
+                         repository=repository, user_id=telegram_user_id)
     progress = (
         f"Задание №{session.current_position} из 5"
         if session.mode is PracticeMode.FULL
@@ -546,7 +553,8 @@ async def render_session(
         body += f"\n\n{result_text}"
     markup = _keyboard(rows)
     controls = None
-    if edit_current and message.message_id == session.control_message_id:
+    if (edit_current and message.message_id == session.control_message_id
+            and (repository is None or not has_mathematics(body))):
         try:
             edited = await message.edit_text(body, reply_markup=markup)
             if isinstance(edited, Message):
@@ -554,7 +562,7 @@ async def render_session(
         except TelegramBadRequest:
             pass
     if controls is None:
-        if repository is not None and not edit_current:
+        if repository is not None:
             controls = await send_text(
                 message,
                 repository,
@@ -638,12 +646,9 @@ async def _start_session(
     story_code = None if code == "RANDOM" else code
     recent = await store.recent_questions(user_id)
     try:
-        plan = prefer_unseen(
-            lambda: build_practice_plan(
-                PracticeRequest(mode, secrets.randbelow(2**63), story_code, position),
-                public_registry(),
-            ),
-            recent,
+        plan = await asyncio.to_thread(
+            rotated_plan, PracticeRequest(mode, secrets.randbelow(2**63), story_code, position),
+            public_registry(), await recent_story_families(store, user_id), recent,
         )
     except (ScenarioUnavailable, ValueError):
         await answer_callback(callback, "Для этого сюжета сейчас нет доступного набора.")
@@ -1022,7 +1027,8 @@ async def handle_callback(
             return
         await answer_callback(callback)
         if action == "data":
-            await _show_data(callback.message, session, shared=True, current=True)
+            await _show_data(callback.message, session, shared=True, current=True,
+                             repository=repository, user_id=callback.from_user.id)
             return
         updated = await oge15_repository.resume_session(callback.from_user.id, session_id)
         if action == "finish_request" and updated is not None:
@@ -1095,7 +1101,11 @@ async def handle_callback(
         if action == "hint":
             q = next(q for q in updated.snapshot.questions if q.position == action_position)
             hint = q.hints[min(updated.hints_used - 1, len(q.hints) - 1)]
-            await callback.message.answer(hint)
+            if repository is None:
+                await callback.message.answer(hint)
+            else:
+                await send_text(callback.message, repository, hint,
+                                user_id_override=callback.from_user.id)
         elif action == "solution":
             q = next(q for q in updated.snapshot.questions if q.position == action_position)
             result_text = "Разбор:\n" + "\n".join(q.solution_steps)

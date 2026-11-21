@@ -69,6 +69,7 @@ from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.registry import ANSWER_POLICY_BY_SNAPSHOT
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import Repository
+from app.persistence.rotation_history import candidate_state as rotation_state
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 logger = logging.getLogger(__name__)
@@ -197,6 +198,7 @@ async def _send_problem(
             and isinstance(current_problem, dict)
         ):
             expected_problem_id = str(current_problem.get("problem_id", ""))
+        state_value = await rotation_state(repository, user_id, 6, state_value)
         candidates = build_candidate_batch(state_value, secrets.randbelow(2**63))
         try:
             saved_problem = await repository.advance_task6_problem(
@@ -578,6 +580,7 @@ async def _send_task9_problem(
             and isinstance(current_problem, dict)
         ):
             expected_problem_id = str(current_problem.get("problem_id", ""))
+        state_value = await rotation_state(repository, user_id, 9, state_value)
         candidates = build_task9_candidate_batch(state_value, secrets.randbelow(2**63))
         try:
             saved_problem = await repository.advance_task9_problem(
@@ -723,6 +726,7 @@ async def _send_task11_problem(
             action = "advance"
         if action == "advance" and expected_problem_id is None and isinstance(current, dict):
             expected_problem_id = str(current.get("problem_id", ""))
+        state_value = await rotation_state(repository, user_id, 11, state_value)
         candidates = await asyncio.to_thread(
             build_task11_candidate_batch,
             state_value,
@@ -1391,6 +1395,7 @@ async def _send_task7_problem(
                 action = "advance"
             if action == "advance" and expected_problem_id is None and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
+            state_value = await rotation_state(repository, user_id, 7, state_value)
             candidates = await asyncio.to_thread(
                 build_task7_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
             )
@@ -1707,6 +1712,7 @@ async def _send_task13_problem(
                 action = "advance"
             if action == "advance" and expected_problem_id is None and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
+            state_value = await rotation_state(repository, user_id, 13, state_value)
             candidates = await asyncio.to_thread(
                 build_task13_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
             )

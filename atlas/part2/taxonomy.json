@@ -56,7 +56,7 @@
   "family_count": 27,
   "subtype_count": 81,
   "observations_count": 177,
-  "curated_task_count": 522,
+  "curated_task_count": 523,
   "subtypes": [
     {
       "number": 20,
@@ -211,13 +211,13 @@
       "priority": "standard",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338860",
         "357583"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338860",
@@ -225,7 +225,8 @@
         "oge-part2-reshu-338991",
         "oge-part2-reshu-348378",
         "oge-part2-reshu-351751",
-        "oge-part2-reshu-480521"
+        "oge-part2-reshu-480521",
+        "oge-part2-atlas-oge20-power-equality-extension"
       ],
       "bank_observation_ids": [
         "338860",
@@ -2867,7 +2868,7 @@
     }
   ],
   "source_card_count": 407,
-  "authored_training_card_count": 115,
+  "authored_training_card_count": 116,
   "target_count_per_subtype": 6,
-  "coverage_rows": 542
+  "coverage_rows": 543
 }

@@ -7,6 +7,7 @@ import base64
 import hashlib
 import secrets
 from collections.abc import Callable
+from functools import partial
 from typing import Any, cast
 
 from aiogram.dispatcher.event.bases import SkipHandler
@@ -31,9 +32,9 @@ from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
     ScenarioSnapshot,
-    build_practice_plan,
 )
 from app.math.scenarios.mobile_photos import scenario_photos_for_question
+from app.math.scenarios.recent_questions import rotated_plan
 from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.repository import Repository
 
@@ -99,13 +100,13 @@ def _builders() -> dict[int, Callable[[dict[str, object], int], list[dict[str, o
 
     return {
         6: build_candidate_batch,
-        7: build_task7_candidate_batch,
+        7: partial(build_task7_candidate_batch, limit=1),
         8: build_task8_candidate_batch,
         9: build_task9_candidate_batch,
         10: build_task10_candidate_batch,
-        11: build_task11_candidate_batch,
+        11: partial(build_task11_candidate_batch, limit=1),
         12: build_task12_candidate_batch,
-        13: build_task13_candidate_batch,
+        13: partial(build_task13_candidate_batch, limit=1),
         14: build_task14_candidate_batch,
         15: build_task15_candidate_batch,
         16: build_task16_candidate_batch,
@@ -132,9 +133,10 @@ def _candidate(number: int, state: dict[str, object] | None = None) -> dict[str,
     return candidates[0]
 
 
-def _scenario(seed: int | None = None) -> dict[str, object]:
+def _scenario(seed: int | None = None, *, history: list[str] | None = None) -> dict[str, object]:
     actual_seed = seed if seed is not None else secrets.randbelow(2**63)
-    plan = build_practice_plan(PracticeRequest(PracticeMode.FULL, actual_seed), public_registry())
+    plan = rotated_plan(PracticeRequest(PracticeMode.FULL, actual_seed), public_registry(),
+                        history or [])
     return plan.snapshot.to_snapshot()
 
 
@@ -330,7 +332,9 @@ async def _issue(store: MixedTrainingRepository, user_id: int) -> dict[str, obje
             scenario = saved_scenario
         elif number == 1:
             try:
-                scenario = await asyncio.to_thread(_scenario)
+                scenario = await asyncio.to_thread(
+                    _scenario, history=await store.story_families(user_id)
+                )
             except Exception as exc:
                 raise _CandidateUnavailable("Could not generate OGE 1–5 scenario") from exc
         else:
@@ -350,7 +354,7 @@ async def _issue(store: MixedTrainingRepository, user_id: int) -> dict[str, obje
         snapshot = await asyncio.to_thread(
             _candidate,
             number,
-            cast(dict[str, object], number_state) if isinstance(number_state, dict) else None,
+            await store.candidate_state(user_id, number, number_state),
         )
     except Exception as exc:
         raise _CandidateUnavailable(f"Could not generate OGE {number}") from exc
@@ -747,7 +751,11 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
                 next_numbers[0], next_numbers[1] = next_numbers[1], next_numbers[0]
         next_number = int(next_numbers[0]) if next_numbers else None
         try:
-            scenario = await asyncio.to_thread(_scenario) if next_number == 1 else None
+            scenario = None
+            if next_number == 1:
+                scenario = await asyncio.to_thread(
+                    _scenario, history=await store.story_families(user_id)
+                )
         except Exception:
             await send_text(
                 message,
@@ -772,9 +780,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
                 else await asyncio.to_thread(
                     _candidate,
                     next_number,
-                    cast(dict[str, object], number_state)
-                    if isinstance(number_state, dict)
-                    else None,
+                    await store.candidate_state(user_id, next_number, number_state),
                 )
                 if next_number
                 else None
