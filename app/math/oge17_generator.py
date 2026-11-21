@@ -23,6 +23,22 @@ from app.math.oge17_models import (
 )
 
 
+def _readable_aspect(points: dict[str, tuple[float, float]]) -> bool:
+    xs = [x for x, _ in points.values()]
+    ys = [y for _, y in points.values()]
+    aspect = (max(ys) - min(ys)) / (max(xs) - min(xs))
+    return 0.20 <= aspect <= 4
+
+
+def _p07_parameters(ac: int, bd: int, ab: int) -> dict[str, int]:
+    # Keep the first drawable side, including every previously issued seed.
+    for side in range(ab, min(ac, bd) // 2 + 1):
+        candidate = {"ac": ac, "bd": bd, "ab": side}
+        if _readable_aspect(build("OGE17-P07", candidate)["points"]):
+            return candidate
+    raise ValueError("No readable parallelogram for these diagonals")
+
+
 def parameters(family: str, seed: int) -> dict[str, int]:
     rng = random.Random(f"{GENERATOR_VERSION}:{family}:{seed}")
     from app.math import oge17_additional, oge17_trapezoids
@@ -51,7 +67,7 @@ def parameters(family: str, seed: int) -> dict[str, int]:
         bd = rng.randint(12, 70)
         ac = rng.randint(max(10, bd * 17 // 20), bd * 23 // 20)
         ab = rng.randint(max(abs(ac - bd) // 2 + 2, min(ac, bd) // 3), min(ac, bd) // 2)
-        return {"ac": ac, "bd": bd, "ab": ab}
+        return _p07_parameters(ac, bd, ab)
     if family in FAMILIES[4:6]:
         lower = rng.randint(9, 60)
         upper = rng.randint(max(2, lower // 4), lower - 3)
@@ -274,11 +290,7 @@ def _pack(family: str, seed: int, p: dict[str, int]) -> QuadrilateralProblem:
     result = audit_math(data)
     if POLICY.format(result) != data["correct_answer"]:
         raise ValueError("Numeric answer policy mismatch")
-    points = list(data["points"].values())
-    aspect = (max(v[1] for v in points) - min(v[1] for v in points)) / (
-        max(v[0] for v in points) - min(v[0] for v in points)
-    )
-    if not 0.20 <= aspect <= 4:
+    if not _readable_aspect(data["points"]):
         raise ValueError("Diagram is too flat")
     png = render(data)
     audit_png(png, data)
