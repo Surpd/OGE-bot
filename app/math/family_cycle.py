@@ -38,6 +38,9 @@ def ordinary_candidates(
     families = state.get("cycle_families")
     if not isinstance(families, list):
         return builder(state, seed, **kwargs)
+    allowed = kwargs.get("enabled_families")
+    if allowed is not None:
+        families = [family for family in families if family in allowed]
     previous = str(state.get("cycle_last") or state.get("last_family_id", ""))
     raw = state.get("cycle_tail")
     tail = list(dict.fromkeys(f for f in raw if f in families)) if isinstance(raw, list) else []
