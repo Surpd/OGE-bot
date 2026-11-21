@@ -12,7 +12,7 @@ from tests.test_task18_flow import message
 async def test_public_menu_cycles_all_22_families_with_saved_png_and_answers():
     repo = MemoryRepository()
     menu = message()
-    await router.choose_number(menu, repo)
+    await router.choose_number(menu, repo, page=1)
     keyboard = menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
     assert any("№15" in b.text for row in keyboard for b in row)
     opened = message()
@@ -74,7 +74,11 @@ async def test_existing_family_selection_routes_to_the_selected_graphical_type()
 
     keyboard = family_keyboard(15)
     labels = [button.text for row in keyboard.inline_keyboard for button in row]
-    assert len(labels) == 24  # All types, 22 families, back.
+    assert [label for label in labels if label.isdigit()] == list("123456")
+    last = family_keyboard(15, 3)
+    assert [b.text for row in last.inline_keyboard for b in row if b.text.isdigit()] == [
+        "19", "20", "21", "22"
+    ]
     assert not any(label.startswith("OGE15-") for label in labels)
     repo = MemoryRepository()
     await repo.set_training_family(42, 15, "OGE15-F22")

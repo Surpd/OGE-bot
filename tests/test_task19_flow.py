@@ -35,30 +35,36 @@ async def test_task19_is_publicly_enabled_without_overrides():
     assert BY_NUMBER[19].available
     assert NUMERIC_TRAININGS[19].families == tuple(FAMILY_THEMES)
     menu = incoming()
-    await router.choose_number(menu, MemoryRepository())
+    await router.choose_number(menu, MemoryRepository(), page=2)
     labels = [
         button.text
         for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
-    assert labels.count("№19 · Геометрические утверждения") == 1
+    assert labels.count("№19") == 1
 
 
 @pytest.mark.asyncio
 async def test_task19_is_one_number_entry_with_compact_theme_selector(enabled_task19):
     menu = incoming()
-    await router.choose_number(menu, MemoryRepository())
+    await router.choose_number(menu, MemoryRepository(), page=2)
     labels = [
         button.text
         for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
-    assert labels.count("№19 · Геометрические утверждения") == 1
+    assert labels.count("№19") == 1
     selector = family_keyboard(19)
     theme_labels = [button.text for row in selector.inline_keyboard for button in row]
-    assert len(theme_labels) == 7  # all themes, five topic groups, and back
-    assert theme_labels[0] == "🎲 Все темы"
-    assert "Окружности" in theme_labels
+    assert len(theme_labels) == 8  # free rotation, six explicit modes, and back
+    assert theme_labels[0] == "🎲 Чередовать темы"
+    from app.bot.family_selection import show_families
+
+    await show_families(menu, MemoryRepository(), 19)
+    legend = menu.answer.await_args.args[0]
+    assert "Разные темы в одном задании" in legend
+    assert "Окружности" in legend
+    assert theme_labels[1:-1] == list("123456")
 
 
 @pytest.mark.asyncio
@@ -66,13 +72,13 @@ async def test_closed_public_gate_hides_task19_and_rejects_direct_callback(monke
     monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", ())
     repo = MemoryRepository()
     menu = incoming()
-    await router.choose_number(menu, repo)
+    await router.choose_number(menu, repo, page=2)
     labels = [
         button.text
         for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
-    assert "№19 · Геометрические утверждения" not in labels
+    assert "№19" not in labels
 
     callback = AsyncMock()
     callback.data = "t19:hint:00000000-0000-0000-0000-000000000001"
@@ -91,9 +97,10 @@ async def test_first_task19_entry_offers_the_all_themes_path(enabled_task19):
     await router.choose_task19(chooser, repo)
     assert (await repo.task19_state(419)) is None
     await select_family(incoming(message_id=102), repo, 19, "random")
-    assert await repo.training_family(419, 19) == "OGE19-MIXED"
+    assert await repo.training_family(419, 19) is None
     await router.choose_task19(incoming(message_id=104), repo)
-    assert (await repo.task19_state(419))["problem"]["family_id"] == "OGE19-MIXED"
+    state = await repo.task19_state(419)
+    assert {state["problem"]["family_id"], *state["state"]["family_queue"]} == set(FAMILY_THEMES)
 
 
 @pytest.mark.asyncio
@@ -230,7 +237,7 @@ async def test_public_theme_selection_issues_reviewed_task(family):
     from app.math.oge19 import THEME_TOPICS, validate_snapshot
 
     repo = MemoryRepository()
-    selection = "random" if family == "OGE19-MIXED" else str(tuple(FAMILY_THEMES).index(family))
+    selection = str(tuple(FAMILY_THEMES).index(family))
     await select_family(incoming(), repo, 19, selection)
     assert await repo.training_family(419, 19) == family
     await router.choose_task19(incoming(message_id=104), repo)

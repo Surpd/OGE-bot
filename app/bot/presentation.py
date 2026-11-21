@@ -20,7 +20,7 @@ from aiogram.types import (
 )
 from aiogram.utils.formatting import Text
 
-from app.bot.explicit_math import flatten_math_lines, plain_text
+from app.bot.explicit_math import flatten_math_lines, formulas, plain_text
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import (
@@ -134,8 +134,11 @@ def format_rich_message(
     return "".join(lines)
 
 
-def _has_math(text: str | MathFragment) -> bool:
-    return not isinstance(text, str) or any(span.latex is not None for span in math_spans(text))
+def has_mathematics(text: str | MathFragment) -> bool:
+    return not isinstance(text, str) or any(
+        span.latex is not None and (span.explicit or not span.source.isdecimal())
+        for span in math_spans(text)
+    )
 
 
 def _has_telegram_transport(message: object) -> bool:
@@ -160,7 +163,7 @@ async def _send_mathematics(
     system_rows: tuple[str, ...] | None = None,
     diagram_caption: str | None = None,
 ) -> Message:
-    if force_png:
+    if force_png or rich_needs_png_fallback(text):
         return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
     rich = format_rich_message(text, system_rows=system_rows)
     media = None
@@ -255,16 +258,20 @@ async def send_text(
         sent = await message.answer(**text.as_kwargs(), **kwargs)
     elif (
         _has_telegram_transport(message)
-        and (not has_navigation or rich_with_navigation)
-        and _has_math(text)
+        and (
+            not has_navigation
+            or rich_with_navigation
+            or isinstance(text, str)
+            and next(formulas(text), None) is not None
+        )
+        and has_mathematics(text)
     ):
         sent = await _send_mathematics(
             message,
             text,
             None,
             kwargs,
-            force_png=(await _prefer_png(message, repository, user_id_override))
-            or rich_needs_png_fallback(text),
+            force_png=await _prefer_png(message, repository, user_id_override),
             system_rows=math_system_rows,
         )
     else:
@@ -289,15 +296,14 @@ async def send_photo(
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
     if _has_telegram_transport(message) and (
-        _has_math(caption) or isinstance(caption, str) and len(caption) > 950
+        has_mathematics(caption) or isinstance(caption, str) and len(caption) > 950
     ):
         sent = await _send_mathematics(
             message,
             caption,
             photo,
             kwargs,
-            force_png=(await _prefer_png(message, repository, user_id_override))
-            or rich_needs_png_fallback(caption),
+            force_png=await _prefer_png(message, repository, user_id_override),
             system_rows=math_system_rows,
             diagram_caption=diagram_caption,
         )

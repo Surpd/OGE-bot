@@ -47,6 +47,13 @@ def build_task16_candidate_batch(
         return []
     # Every implemented pool is finite. Restart only after consuming its complete
     # mathematical pool; duplicates across source IDs do not count as novelty.
+    external = state.get("other_mode_fingerprints")
+    if isinstance(external, list) and preference is None:
+        seen = recent.union(external)
+        for index, candidate in enumerate(queue):
+            if any(fp not in seen for fp, _ in finite_pool(candidate)):
+                queue.insert(0, queue.pop(index))
+                break
     family = queue[0]
     pool = finite_pool(family)
     available = [(fp, s) for fp, s in pool if fp not in recent]
@@ -54,6 +61,9 @@ def build_task16_candidate_batch(
     choices = available or list(pool)
     if cycle and len(choices) > 1 and isinstance(recent_value, list) and recent_value:
         choices = [(fp, s) for fp, s in choices if fp != recent_value[-1]]
+    other = state.get("other_mode_fingerprints")
+    if isinstance(other, list):
+        choices = [pair for pair in choices if pair[0] not in other] or choices
     chosen_fp, base_seed = rng.choice(choices)
     period = 10 * len(SOURCE_VARIANTS[family[6:]])
     actual_seed = base_seed + period * rng.randrange((2**63 - period) // period)

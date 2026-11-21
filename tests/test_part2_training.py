@@ -46,7 +46,7 @@ async def test_unseen_before_repeats_and_version_updates_keep_seen_identity(bank
     import asyncio
 
     bank = Part2Training(bank_pool)
-    subtype = (await bank.choices(20, 1))[0]["subtype_id"]
+    subtype = "OGE20-poly-factor"
     first, second = await asyncio.gather(bank.open(1, 20, subtype), bank.open(1, 20, subtype))
     a = await bank.current(1, first, activate=True)
     assert await bank.append(1, first, 1, 100, "Сохранённая работа", None) == "saved"
@@ -77,6 +77,10 @@ async def test_unseen_before_repeats_and_version_updates_keep_seen_identity(bank
     assert rpt["task_id"] == b["task_id"]
     assert rpt["version"] == b["version"] + 1
     assert rpt["repeat_kind"] == "skipped"
+    await bank_pool.execute(
+        "UPDATE part2_issues SET issued_at=issued_at-interval '3 days', "
+        "touched_at=touched_at-interval '3 days' WHERE owner=1"
+    )
     draft = await Part2Training(bank_pool).current(1, first, activate=True)
     assert draft["draft"] and draft["card"] == a["card"]
     assert (await bank.current(1))["id"] == first
@@ -96,3 +100,54 @@ async def test_unseen_before_repeats_and_version_updates_keep_seen_identity(bank
     assert (
         await bank_pool.fetchval("SELECT score FROM part2_grades WHERE issue_id=$1", first)
     ) == 1
+
+
+async def test_subtype_and_number_sequences_match_independent_model(bank_pool):
+    import json
+
+    from app.persistence.part2_bank import ATLAS
+    from scripts.part2_rotation_audit import sequence
+
+    cards = list(map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines()))
+    catalog = json.loads((ATLAS / "rotation.json").read_text())
+    for subtype, groups in catalog.items():
+        number = int(subtype[3:5])
+        listed = [task for g in groups for task in g["cards"]]
+        assert sorted(listed) == sorted(c["task_id"] for c in cards if c["subtype_id"] == subtype)
+        # Separate learners keep the six-card examples independently reproducible.
+        owner = await bank_pool.fetchval("SELECT coalesce(max(telegram_user_id),0)+1 FROM users")
+        await bank_pool.execute("INSERT INTO users(telegram_user_id) VALUES($1)", owner)
+        expected = sequence(cards, catalog, number, [subtype] * len(listed), owner)
+        for task in expected:
+            repo = Part2Training(bank_pool)
+            issue = await repo.open(owner, number, subtype)
+            row = await repo.current(owner, issue)
+            assert row["task_id"] == task
+            assert await repo.skip(owner, issue, 1)
+        assert await repo.open(owner, number, subtype) is None
+
+    repo = Part2Training(bank_pool)
+    for number in range(20, 26):
+        subtypes = [s for s in catalog if s.startswith(f"OGE{number}-")]
+        requests = [None] * 15 + [subtypes[i % len(subtypes)] for i in range(15)]
+        owner = 1000 + number
+        await bank_pool.execute("INSERT INTO users(telegram_user_id) VALUES($1)", owner)
+        expected = sequence(cards, catalog, number, requests, owner)
+        assert len(set(expected)) == 30
+        for subtype, task in zip(requests, expected, strict=True):
+            issue = await repo.open(owner, number, subtype)
+            assert (await repo.current(owner, issue))["task_id"] == task
+            assert await repo.skip(owner, issue, 1)
+
+
+async def test_switching_exam_numbers_avoids_the_shared_bisector_construction(bank_pool):
+    bank = Part2Training(bank_pool)
+    await bank_pool.execute(
+        "UPDATE part2_versions SET available=false WHERE payload->>'number'='23' "
+        "AND task_id<>'oge-part2-reshu-339709'"
+    )
+    first = await bank.open(1, 23)
+    assert await bank.skip(1, first, 1)
+    second = await bank.open(1, 25, "OGE25-parallelogram-bisectors")
+    row = await bank.current(1, second)
+    assert row["card"]["source_id"] == "A25-parallelogram-bisectors-extension"

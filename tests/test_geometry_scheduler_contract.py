@@ -12,7 +12,6 @@ from app.math import oge15_scheduler, oge17_scheduler, oge18_scheduler
     [
         (oge15_scheduler, oge15_scheduler.build_task15_candidate_batch, ("a", "b")),
         (oge17_scheduler, oge17_scheduler.build_task17_candidate_batch, ("a", "b")),
-        (oge18_scheduler, oge18_scheduler.build_task18_candidate_batch, ("a", "b")),
     ],
 )
 def test_scheduler_skips_recent_and_reports_actual_bounded_attempts(
@@ -39,3 +38,27 @@ def test_scheduler_skips_recent_and_reports_actual_bounded_attempts(
 
     assert builder(state, 42, enabled_families=("a",)) == []
     assert len(calls) == 25
+
+
+def test_grid_scheduler_skips_exhausted_shapes_before_rendering(monkeypatch):
+    from unittest.mock import Mock
+
+    from app.math.oge18 import GENERATOR_VERSION_V2, _model_for_seed, fingerprint
+
+    distance, area = "OGE18-D05", "OGE18-A03"
+    seen = {
+        fingerprint(distance, _model_for_seed(distance, seed, GENERATOR_VERSION_V2)[0])
+        for seed in range(100)
+    }
+    assert len(seen) == 3
+    state = {"family_queue": [distance, area], "recent_fingerprints": sorted(seen)}
+    render = Mock(wraps=oge18_scheduler.generate)
+    monkeypatch.setattr(oge18_scheduler, "generate", render)
+    build = oge18_scheduler.build_task18_candidate_batch
+    (result,) = build(state, 42, enabled_families=(distance, area))
+    assert (result["family_id"], result["selection_attempts"]) == (area, 13)
+    assert result["fingerprint"] not in seen
+    assert result["_family_queue_after"] == []
+    assert state["family_queue"] == [distance, area]
+    assert build(state, 42, enabled_families=(distance,)) == []
+    render.assert_called_once()

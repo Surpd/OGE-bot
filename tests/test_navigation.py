@@ -60,7 +60,10 @@ def test_number_menu_is_compact_and_gated():
     assert all(len(row) <= 2 for row in basic.inline_keyboard)
     assert "nav:task:7" not in callbacks(basic)
     full = menu.number_menu(include_task7=True, include_task11=True, include_task13=True)
-    assert {f"nav:task:{n}" for n in range(6, 15)} <= set(callbacks(full))
+    next_page = menu.number_menu(
+        include_task7=True, include_task11=True, include_task13=True, page=1
+    )
+    assert {f"nav:task:{n}" for n in range(6, 15)} <= set(callbacks(full) + callbacks(next_page))
 
 
 @pytest.mark.parametrize("number", range(6, 15))
@@ -69,8 +72,10 @@ def test_legacy_training_menus_preserve_callback_contract(number, completed):
     markup = getattr(menu, f"task{number}_menu")("problem", completed=completed)
     actions = [value.split(":")[1] for value in callbacks(markup)]
     assert actions == (["next", "menu"] if completed else ["hint", "solution", "skip", "menu"])
-    assert all(value.startswith(f"t{number}:") and value.endswith(":problem")
-               for value in callbacks(markup))
+    assert all(
+        value.startswith(f"t{number}:") and value.endswith(":problem")
+        for value in callbacks(markup)
+    )
 
 
 def test_choices_only_available_on_active_task13():
@@ -97,14 +102,12 @@ def test_saved_training_callbacks_fit_telegram_limit_with_revision():
     )
     prepared = [prepare_navigation_markup(markup) for markup in markups]
     values = [
-        value
-        for markup in prepared
-        for value in callbacks(markup)
-        if value.startswith("nav:tr:")
+        value for markup in prepared for value in callbacks(markup) if value.startswith("nav:tr:")
     ]
     assert {value.split(":")[2] for value in values} == {"c", "r", "y", "n"}
     assert all("~" in value for value in values)
     assert all(len(value.encode("utf-8")) <= 64 for value in values)
+
 
 @pytest.mark.asyncio
 async def test_stale_navigation_never_changes_training(monkeypatch):
@@ -119,14 +122,19 @@ async def test_stale_navigation_never_changes_training(monkeypatch):
 
     target = AsyncMock()
     handlers = SimpleNamespace(
-        return_to_menu=AsyncMock(), choose_number=target, continue_session=AsyncMock(),
+        return_to_menu=AsyncMock(),
+        choose_number=target,
+        continue_session=AsyncMock(),
         start_mixed=AsyncMock(),
-        show_progress=AsyncMock(), show_progress_details=AsyncMock(),
+        show_progress=AsyncMock(),
+        show_progress_details=AsyncMock(),
     )
     monkeypatch.setattr(app.bot, "router", handlers, raising=False)
     message = Message(message_id=12, date=datetime.now(), chat=Chat(id=1, type="private"))
     callback = SimpleNamespace(
-        message=message, data="nav:numbers", from_user=User(id=1, is_bot=False, first_name="x"),
+        message=message,
+        data="nav:numbers",
+        from_user=User(id=1, is_bot=False, first_name="x"),
         answer=AsyncMock(),
     )
     repository = SimpleNamespace(claim_navigation_message=AsyncMock(return_value=False))
@@ -148,15 +156,24 @@ async def test_navigation_uses_tapping_user_and_claims_once(monkeypatch):
 
     target = AsyncMock()
     handlers = SimpleNamespace(
-        return_to_menu=AsyncMock(), choose_number=target, continue_session=AsyncMock(),
+        return_to_menu=AsyncMock(),
+        choose_number=target,
+        continue_session=AsyncMock(),
         start_mixed=AsyncMock(),
-        show_progress=AsyncMock(), show_progress_details=AsyncMock(),
+        show_progress=AsyncMock(),
+        show_progress_details=AsyncMock(),
     )
     monkeypatch.setattr(app.bot, "router", handlers, raising=False)
-    message = Message(message_id=12, date=datetime.now(), chat=Chat(id=1, type="private"),
-                      from_user=User(id=99, is_bot=True, first_name="bot"))
+    message = Message(
+        message_id=12,
+        date=datetime.now(),
+        chat=Chat(id=1, type="private"),
+        from_user=User(id=99, is_bot=True, first_name="bot"),
+    )
     callback = SimpleNamespace(
-        message=message, data="nav:numbers", from_user=User(id=1, is_bot=False, first_name="x"),
+        message=message,
+        data="nav:numbers",
+        from_user=User(id=1, is_bot=False, first_name="x"),
         answer=AsyncMock(),
     )
     repository = SimpleNamespace(claim_navigation_message=AsyncMock(side_effect=[True, False]))
@@ -164,6 +181,7 @@ async def test_navigation_uses_tapping_user_and_claims_once(monkeypatch):
     await navigation_callback(callback, repository)
     target.assert_awaited_once()
     assert target.await_args.args[0].from_user.id == 1
+
 
 @pytest.mark.asyncio
 async def test_start_removes_legacy_reply_keyboard_before_bound_inline_menu():
@@ -179,7 +197,8 @@ async def test_start_removes_legacy_reply_keyboard_before_bound_inline_menu():
     message = AsyncMock()
     message.from_user = User(id=123, is_bot=False, first_name="Student")
     message.answer.side_effect = [
-        SimpleNamespace(message_id=200), SimpleNamespace(message_id=201),
+        SimpleNamespace(message_id=200),
+        SimpleNamespace(message_id=201),
     ]
     await start(message, repository)
     first, last = message.answer.await_args_list

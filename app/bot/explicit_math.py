@@ -17,6 +17,7 @@ LOCAL_COMMANDS = {
     r"\ge": r"\geq",
     r"\ne": r"\neq",
     r"\dfrac": r"\frac",
+    r"\tfrac": r"\frac",
     r"\emptyset": r"\varnothing",
 }
 SYMBOLS = {
@@ -32,6 +33,7 @@ SYMBOLS = {
     "circ": "°",
     "triangle": "△",
     "in": "∈",
+    "notin": "∉",
     "sim": "∼",
     "perp": "⊥",
     "parallel": "∥",
@@ -42,8 +44,24 @@ SYMBOLS = {
     "pm": "±",
     "alpha": "α",
     "beta": "β",
+    "gamma": "γ",
+    "delta": "δ",
+    "theta": "θ",
+    "lambda": "λ",
+    "pi": "π",
+    "Delta": "Δ",
+    "rho": "ρ",
+    "omega": "ω",
+    "varphi": "φ",
+    "mu": "μ",
+    "sigma": "σ",
+    "epsilon": "ϵ",
+    "varepsilon": "ε",
+    "phi": "ϕ",
+    "ell": "ℓ",
     "to": "→",
     "Rightarrow": "⇒",
+    "leftrightarrow": "↔",
     "quad": "  ",
     "qquad": "    ",
     "left": "",
@@ -112,6 +130,17 @@ def local_tex(latex: str) -> str:
     return "".join(result)
 
 
+def local_display_tex(latex: str) -> str:
+    """Keep outer fractions legible after Telegram scales a photo to phone width."""
+    latex = re.sub(r"(?<=\d)\^(?:\{\\circ\}|\\circ(?![A-Za-z]))", "°", latex)
+    depth = 0
+    parts = []
+    for token in TOKEN.findall(latex):
+        parts.append(r"\dfrac" if token == r"\frac" and depth == 0 else token)
+        depth += (token == "{") - (token == "}")
+    return "".join(parts)
+
+
 def plain_tex(latex: str) -> str:
     """Readable grouped notation, also used if a provider supplies unsupported TeX."""
     block = block_parts(latex)
@@ -144,6 +173,8 @@ def plain_tex(latex: str) -> str:
             return f"√({argument(depth + 1)})"
         if char in "^_":
             value = argument(depth + 1)
+            if char == "^" and value == "°":
+                return value
             if value and all(c in "0123456789+-" for c in value):
                 return value.translate(SUPERSCRIPT if char == "^" else SUBSCRIPT)
             return f"{char}({value})"
@@ -191,8 +222,11 @@ def plain_text(source: str) -> str:
     return "".join(parts)
 
 
-def display_feedback(source: str) -> str:
+def display_feedback(source: str, limit: int | None = None) -> str:
     """Repair bare TeX from generated feedback using grouped, readable notation."""
+    if limit is not None and len(source) > limit:
+        cut = next((start for start, end, _ in formulas(source) if start < limit < end), limit)
+        source = source[:cut].rstrip() + "…"
     # Delimited math is handled by presentation. A bare command has no reliable
     # formula boundary, so only its own arguments are decoded here.
     result: list[str] = []

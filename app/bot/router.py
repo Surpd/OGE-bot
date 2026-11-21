@@ -12,7 +12,7 @@ from app.bot.callbacks import answer_callback
 from app.bot.menu import (
     MAIN_MENU,
     main_menu,
-    number_menu,
+    number_page,
     saved_training_menu,
     task6_menu,
     task7_menu,
@@ -69,6 +69,7 @@ from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.math.registry import ANSWER_POLICY_BY_SNAPSHOT
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import Repository
+from app.persistence.rotation_history import specialist_state as rotation_state
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 logger = logging.getLogger(__name__)
@@ -197,7 +198,10 @@ async def _send_problem(
             and isinstance(current_problem, dict)
         ):
             expected_problem_id = str(current_problem.get("problem_id", ""))
+        state_value = await rotation_state(repository, user_id, 6, state_value)
         candidates = build_candidate_batch(state_value, secrets.randbelow(2**63))
+        if selected := state_value.get("selected_family_id"):
+            candidates = [item for item in candidates if item["family_id"] == selected]
         try:
             saved_problem = await repository.advance_task6_problem(
                 user_id,
@@ -390,21 +394,19 @@ async def choose_number(
     message: Message,
     repository: Repository,
     oge15_repository: ScenarioPostgresRepository | None = None,
+    *, page: int = 0,
 ) -> None:
     user_id = _user_id(message)
     if user_id is not None:
         await _pause_oge15_foreground(user_id, oge15_repository)
         await repository.save_user_state(user_id, "number_selection")
-    await send_text(
-        message,
-        repository,
-        "Выберите номер задания:",
-        reply_markup=number_menu(
-            include_task7=bool(TASK7_ENABLED_FAMILIES),
-            include_task13=bool(TASK13_ENABLED_FAMILIES),
-            include_task11=bool(TASK11_ENABLED_FAMILIES),
-        ),
+    text, keyboard = number_page(
+        include_task7=bool(TASK7_ENABLED_FAMILIES),
+        include_task13=bool(TASK13_ENABLED_FAMILIES),
+        include_task11=bool(TASK11_ENABLED_FAMILIES),
+        page=page,
     )
+    await send_text(message, repository, text, reply_markup=keyboard)
 
 
 async def _show_saved_training_choice(
@@ -578,7 +580,10 @@ async def _send_task9_problem(
             and isinstance(current_problem, dict)
         ):
             expected_problem_id = str(current_problem.get("problem_id", ""))
+        state_value = await rotation_state(repository, user_id, 9, state_value)
         candidates = build_task9_candidate_batch(state_value, secrets.randbelow(2**63))
+        if selected := state_value.get("selected_family_id"):
+            candidates = [item for item in candidates if item["family_id"] == selected]
         try:
             saved_problem = await repository.advance_task9_problem(
                 user_id,
@@ -723,6 +728,7 @@ async def _send_task11_problem(
             action = "advance"
         if action == "advance" and expected_problem_id is None and isinstance(current, dict):
             expected_problem_id = str(current.get("problem_id", ""))
+        state_value = await rotation_state(repository, user_id, 11, state_value)
         candidates = await asyncio.to_thread(
             build_task11_candidate_batch,
             state_value,
@@ -730,6 +736,8 @@ async def _send_task11_problem(
             enabled_families=TASK11_ENABLED_FAMILIES,
             limit=1,
         )
+        if selected := state_value.get("selected_family_id"):
+            candidates = [item for item in candidates if item["family_id"] == selected]
         if not candidates:
             await send_text(
                 message,
@@ -1238,7 +1246,8 @@ async def choose_task19(message: Message, repository: Repository) -> None:
         return
     if await _show_saved_training_choice(message, repository, 19, user_id):
         return
-    if await repository.training_family(user_id, 19) is None:
+    if (await repository.training_family(user_id, 19) is None
+            and await repository.user_state(user_id) != "family_selection:19"):
         from app.bot.family_selection import show_families
 
         await show_families(message, repository, 19)
@@ -1391,9 +1400,12 @@ async def _send_task7_problem(
                 action = "advance"
             if action == "advance" and expected_problem_id is None and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
+            state_value = await rotation_state(repository, user_id, 7, state_value)
             candidates = await asyncio.to_thread(
                 build_task7_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
             )
+            if selected := state_value.get("selected_family_id"):
+                candidates = [item for item in candidates if item["family_id"] == selected]
             try:
                 problem = await repository.advance_task7_problem(
                     user_id,
@@ -1707,9 +1719,12 @@ async def _send_task13_problem(
                 action = "advance"
             if action == "advance" and expected_problem_id is None and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
+            state_value = await rotation_state(repository, user_id, 13, state_value)
             candidates = await asyncio.to_thread(
                 build_task13_candidate_batch, state_value, secrets.randbelow(2**63), limit=1
             )
+            if selected := state_value.get("selected_family_id"):
+                candidates = [item for item in candidates if item["family_id"] == selected]
             if not candidates:
                 await send_text(
                     message,

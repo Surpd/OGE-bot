@@ -88,17 +88,15 @@ def test_family_keyboard_is_bound_and_only_lists_enabled_families(number, monkey
         from app.math.oge16_circles import FAMILIES
 
         monkeypatch.setattr(oge16_scheduler, "ENABLED_FAMILIES", FAMILIES)
-    keyboard = family_keyboard(number)
-    assert navigation_screen(keyboard) == f"family_selection:{number}"
-    callbacks = [button.callback_data for row in keyboard.inline_keyboard for button in row]
-    assert callbacks == [
-        f"nav:family:{number}:random",
-        *[
-            f"nav:family:{number}:{index}"
-            for index in range(len(NUMERIC_TRAININGS[number].families))
-        ],
-        "nav:numbers",
-    ]
+    families = NUMERIC_TRAININGS[number].families
+    entries = []
+    for page in range((len(families) + 5) // 6):
+        keyboard = family_keyboard(number, page)
+        assert navigation_screen(keyboard) == f"family_selection:{number}"
+        buttons = [button for row in keyboard.inline_keyboard for button in row]
+        assert all(len((b.callback_data + "~0123456789abcdef").encode()) <= 64 for b in buttons)
+        entries.extend((b.text, b.callback_data) for b in buttons if b.text.isdigit())
+    assert entries == [(str(i+1), f"nav:family:{number}:{i}") for i in range(len(families))]
 
 
 @pytest.mark.asyncio

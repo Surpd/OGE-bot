@@ -254,13 +254,18 @@ TRAINING_CASES = pytest.mark.parametrize(
 @pytest.mark.asyncio
 async def test_number_menu_matches_registered_training_adapters() -> None:
     message = _message(910_013, "🧮 По номеру")
-    await router.choose_number(message, MemoryRepository())
-    menu_numbers = {
-        int(match.group(1))
-        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
-        for button in row
-        if (match := re.match(r"№(\d+)", button.text or "")) is not None
-    }
+    buttons = []
+    page = 0
+    while True:
+        await router.choose_number(message, MemoryRepository(), page=page)
+        entries = [b for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
+                   for b in row]
+        buttons.extend(entries)
+        page += 1
+        if not any((b.callback_data or "").partition("~")[0] == f"nav:numbers:{page}"
+                   for b in entries):
+            break
+    menu_numbers = {int(m[1]) for b in buttons if (m := re.match(r"№(\d+)", b.text or ""))}
     from app.bot.trainings import TRAININGS as REGISTERED_TRAININGS
 
     registered_numbers = {training.number for training in TRAININGS}
@@ -269,10 +274,8 @@ async def test_number_menu_matches_registered_training_adapters() -> None:
     assert menu_numbers == enabled_numbers | {1}
     assert registered_numbers <= menu_numbers
     assert any(
-        button.text == "№1–5 · Практические задания"
-        and (button.callback_data or "").startswith("nav:oge15")
-        for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
-        for button in row
+        button.text == "№1–5" and (button.callback_data or "").startswith("nav:oge15")
+        for button in buttons
     )
     assert 7 in menu_numbers
 

@@ -30,6 +30,9 @@ def build_family_deck(seed: int, previous: object = None) -> list[str]:
 
 
 def build_candidate_batch(state: dict[str, object], seed: int) -> list[dict[str, object]]:
+    selected = state.get("selected_family_id")
+    if isinstance(selected, str):
+        return _candidates_from_queue(state, seed, [selected]) if selected in SPEC_BY_ID else []
     stored_queue = state.get("family_queue")
     if (
         isinstance(stored_queue, list)

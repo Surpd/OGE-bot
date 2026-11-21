@@ -98,3 +98,22 @@ def test_source_fixed_paper_rounding_is_not_reissued_as_a_new_single():
     assert question.family_id == "PAPER-F03"
     assert is_recent_fixed_single(single, recent)
     assert not is_recent_fixed_single(replace(single, mode=PracticeMode.FULL), recent)
+
+
+def test_rotated_random_story_visits_each_available_world_before_returning():
+    from app.math.scenarios.recent_questions import rotated_plan
+
+    registry = public_registry()
+    for mode in (PracticeMode.SINGLE, PracticeMode.FULL):
+        stories = registry.available_stories(mode)
+        history = []
+        chosen = []
+        for seed in range(len(stories) + 1):
+            plan = rotated_plan(PracticeRequest(mode, seed), registry, history)
+            chosen.append(plan.snapshot.story_code)
+            questions = [plan.snapshot.questions[p - 1] for p in plan.selected_positions]
+            assert len(questions) == (5 if mode is PracticeMode.FULL else 1)
+            assert all(q.scenario_seed == plan.snapshot.seed for q in questions)
+            history[:0] = [q.family_id for q in questions]
+        assert set(chosen[:-1]) == set(stories)
+        assert chosen[-1] == chosen[0]

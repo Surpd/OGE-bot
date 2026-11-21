@@ -18,17 +18,6 @@ from scripts.oge_bank_quality_audit import _oracle, _ordinary_generator
 
 OUT = Path(__file__).resolve().parents[1] / "atlas/first"
 SEED = 2027
-SEVEN = {
-    "OGE07-C01": "Отрезок, содержащий дробь",
-    "OGE07-C02": "Между какими целыми лежит корень",
-    "OGE07-C03": "Какой корень принадлежит отрезку",
-    "OGE07-C04": "Какая дробь принадлежит отрезку",
-    "OGE07-C06": "Между какими целыми лежит дробь",
-    "OGE07-N01": "Какая точка изображает заданный корень",
-    "OGE07-N04": "Какой корень изображён точкой A",
-}
-
-
 STORY_TITLES = {
     "TYRES-TABLE-EXTREME": "Допустимый размер по таблице",
     "TYRES-SIDEWALL": "Высота боковины",
@@ -134,7 +123,7 @@ def ordinary(training):
         name = (
             arithmetic[q["reference_structure_id"]]
             if n == 6
-            else SEVEN.get(family, family_name(family))
+            else family_name(family)
         )
         index.append(f"- [{name}](#{family.lower()}) · `{family}`")
         blocks.extend(

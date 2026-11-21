@@ -66,6 +66,20 @@ def family_names() -> dict[str, str]:
 
     for path in (atlas / "atlas.json", *sorted(atlas.glob("oge*_reference_structures.json"))):
         visit(json.loads(path.read_text(encoding="utf-8")))
+    from app.math.registry import SPEC_BY_ID
+
+    structures = json.loads((atlas / "oge6_reference_structures.json").read_text())["structures"]
+    labels = {item["id"]: item["label"] for item in structures}
+    names.update({f: labels[spec.reference_structure_id] for f, spec in SPEC_BY_ID.items()})
+    names.update({
+    "OGE07-C01": "Отрезок, содержащий дробь",
+    "OGE07-C02": "Между какими целыми лежит корень",
+    "OGE07-C03": "Какой корень принадлежит отрезку",
+    "OGE07-C04": "Какая дробь принадлежит отрезку",
+    "OGE07-C06": "Между какими целыми лежит дробь",
+    "OGE07-N01": "Какая точка изображает заданный корень",
+    "OGE07-N04": "Какой корень изображён точкой A",
+})
     names.update({
         "OGE08-R02": "Степень степени",
         "OGE08-R03": "Составное основание степени",

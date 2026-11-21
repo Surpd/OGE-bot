@@ -3,9 +3,19 @@
 import json
 import re
 from collections.abc import Callable, Mapping
+from dataclasses import replace
+from random import Random
 from typing import cast
 
-from app.math.scenario_engine import PracticeMode, PracticePlan, QuestionSnapshot, ScenarioSnapshot
+from app.math.scenario_engine import (
+    FamilyRegistry,
+    PracticeMode,
+    PracticePlan,
+    PracticeRequest,
+    QuestionSnapshot,
+    ScenarioSnapshot,
+    build_practice_plan,
+)
 
 QuestionSignature = tuple[str, str, str]
 
@@ -173,3 +183,40 @@ def _repeat_count(plan: PracticePlan, recent: frozenset[tuple[str, str, str]]) -
         question_signature(plan.snapshot, plan.snapshot.questions[position - 1]) in recent
         for position in plan.selected_positions
     )
+
+
+def rotated_plan(
+    request: PracticeRequest, registry: FamilyRegistry, history: list[str],
+    recent: frozenset[QuestionSignature] = frozenset(),
+) -> PracticePlan:
+    """Keep one world for all five positions. Only retry if a real alternative exists."""
+    rng = Random(request.seed)
+    stories = registry.available_stories(request.mode, request.position)
+    if request.story_code is None and stories and history:
+        seen = [family.partition("-")[0] for family in history]
+        age = {story: seen.index(story) if story in seen else len(seen) for story in stories}
+        oldest = max(age.values())
+        request = replace(request, story_code=rng.choice([s for s in stories if age[s] == oldest]))
+    best = build_practice_plan(request, registry)
+    if not recent and not history:
+        return best
+    registrations = registry.adapter(best.snapshot.story_code).family_registry
+
+    def score(plan: PracticePlan) -> tuple[int, int]:
+        repeated = 0
+        for pos in plan.selected_positions:
+            families = {f.family_id for f in registrations if f.available and f.position == pos}
+            last = next((family for family in history if family in families), None)
+            if len(families) > 1 and plan.snapshot.questions[pos - 1].family_id == last:
+                repeated += 1
+        return _repeat_count(plan, recent), repeated
+
+    best_score = score(best)
+    for _ in range(4):
+        if best_score == (0, 0):
+            break
+        trial = build_practice_plan(replace(request, seed=rng.getrandbits(63)), registry)
+        trial_score = score(trial)
+        if trial_score < best_score:
+            best, best_score = trial, trial_score
+    return best

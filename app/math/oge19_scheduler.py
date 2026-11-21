@@ -30,15 +30,12 @@ def build_task19_candidate_batch(
     queue = [family for family in stored if family in families] if isinstance(stored, list) else []
     rng = random.Random(seed)
     if not queue:
-        if "OGE19-MIXED" in families:
-            queue = ["OGE19-MIXED"]
-        else:
-            queue = list(families)
-            rng.shuffle(queue)
+        queue = list(families)
+        rng.shuffle(queue)
+        if len(queue) > 1 and queue[0] == state.get("last_family_id"):
+            queue[0], queue[1] = queue[1], queue[0]
     if not queue:
-        # Internal QA and deterministic builder callers can opt in; ordinary menu stays disabled.
-        queue = ["OGE19-MIXED"]
-        families = tuple(FAMILY_THEMES)
+        return []
     family = queue[0]
     theme = FAMILY_THEMES[family]
     recent = state.get("recent_proposition_ids", [])

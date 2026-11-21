@@ -446,7 +446,7 @@ async def test_telegram_mixed_story_five_questions_then_ordinary_and_resume(monk
     scenario = _scenario(seed=815_019)
     ordinary = _candidate(6)
     monkeypatch.setattr(mixed_training, "available_numbers", lambda: [1, 6])
-    monkeypatch.setattr(mixed_training, "_scenario", lambda: scenario)
+    monkeypatch.setattr(mixed_training, "_scenario", lambda **kwargs: scenario)
     monkeypatch.setattr(mixed_training, "_candidate", lambda number, state=None: ordinary)
     monkeypatch.setattr(mixed_training, "_render_image", lambda number, problem: None)
     outbound = AsyncMock()
@@ -625,3 +625,85 @@ async def test_next_candidate_failure_preserves_completed_problem_for_safe_retry
     assert retried is not None
     assert retried["problem"]["problem_id"] == second["problem_id"]
     assert retried["problem"]["outcome"] == "issued"
+
+
+@pytest.mark.asyncio
+async def test_history_follows_owner_and_number_across_training_modes():
+    from app.persistence.rotation_history import candidate_state
+
+    repo = MemoryRepository()
+    owner = 936
+    issued = _candidate(6)
+    await repo.ensure_task6_session(owner)
+    await repo.advance_task6_problem(owner, None, [issued])
+    store = MixedTrainingRepository(repo)
+    incoming = await store.candidate_state(owner, 6, {})
+    assert incoming["recent_fingerprints"] == [issued["fingerprint"]]
+    assert await store.candidate_state(owner + 1, 6, {}) == {}
+    assert await store.candidate_state(owner, 9, {}) == {}
+    start = await store.start(owner, [6])
+    candidate = _candidate(6, incoming)
+    assert candidate["family_id"] != issued["family_id"]
+    await store.issue_current(owner, start["revision"], 6, candidate)
+    ordinary = await candidate_state(repo, owner, 6, {})
+    assert ordinary["recent_fingerprints"] == [issued["fingerprint"], candidate["fingerprint"]]
+
+
+def test_method_rotation_preserves_every_slot_and_fixed_family():
+    from app.math.first_rotation import rotate_tail, topics
+    from scripts.oge_bank_quality_audit import _ordinary_generator
+
+    registered = {f for n in range(6, 20) for f in _ordinary_generator(n)[0]}
+    assert set(topics()) == registered
+    state = {"last_family_id": "OGE13-L01",
+             "family_queue": ["OGE13-L02", "OGE13-Q01", "OGE13-S01"]}
+    rotate_tail(13, state, None)
+    assert state["family_queue"] == ["OGE13-Q01", "OGE13-S01", "OGE13-L02"]
+    state["family_queue"] = ["OGE13-L02"]
+    rotate_tail(13, state, None)
+    assert state["family_queue"] == ["OGE13-L02"]
+
+
+def test_capture_committed_family_and_circle_cycle_without_storing_deck_in_problem():
+    from app.persistence.mixed_training import _capture_scheduler_state
+
+    state = {}
+    for fp in ["one", "two", "one"]:
+        snap = {"family_id": "F", "fingerprint": fp}
+        if fp == "one" and state:
+            snap["_finite_cycle_fingerprints"] = ["one", "two"]
+        stored = _capture_scheduler_state(state, 16, snap)
+    assert stored == {"family_id": "F", "fingerprint": "one"}
+    assert state["generator_states"]["16"] == {"last_family_id": "F",
+                                               "recent_fingerprints": ["one"]}
+
+
+@pytest.mark.asyncio
+async def test_failed_family_breaks_tie_between_different_topics_skip_does_not():
+    from app.persistence.rotation_history import candidate_state
+
+    repo = MemoryRepository()
+    history = [
+        {"number": 13, "family_id": "OGE13-S01", "fingerprint": "system", "outcome": "failed"},
+        {"number": 13, "family_id": "OGE13-L01", "fingerprint": "linear", "outcome": "skipped"},
+    ]
+    history.extend([dict(history[-1]) for _ in range(5)])
+    repo._mixed_training_records = {49: history}
+    state = {"family_queue": ["OGE13-L02", "OGE13-Q01", "OGE13-S01"]}
+    assert (await candidate_state(repo, 49, 13, state))["family_queue"][0] == "OGE13-S01"
+    history[0]["outcome"] = "skipped"
+    assert (await candidate_state(repo, 49, 13, state))["family_queue"][0] == "OGE13-Q01"
+    assert state["family_queue"][0] == "OGE13-L02"
+
+
+@pytest.mark.parametrize("number", [6, 13])
+async def test_switching_modes_rotates_the_actual_issued_operations(number):
+    from app.math.first_rotation import construction
+    from scripts.random_training_acceptance import run
+
+    issued = await run(number, 20261122, "switch", 30)
+    families = [f for f, *_ in issued]
+    operations = [construction(f) for f in families]
+    assert len(set(families)) > len(set(operations))
+    assert all(a != b for a, b in zip(operations, operations[1:], strict=False))
+    assert len({fp for _, fp, *_ in issued}) == len(issued)

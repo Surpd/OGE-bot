@@ -139,7 +139,7 @@ def test_oge15_public_number_menu_and_story_exclusions() -> None:
 
     buttons = [b for row in number_menu().inline_keyboard for b in row]
     assert any(
-        b.text == "№1–5 · Практические задания" and b.callback_data == "nav:oge15"
+        b.text == "№1–5" and b.callback_data == "nav:oge15"
         for b in buttons
     )
     assert scenario_training._has_user(7)
@@ -1036,11 +1036,11 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
         number_menu = await tap(main, "🧮 По номеру")
         oge15_button = next(
             button for row in number_menu.reply_markup.inline_keyboard
-            for button in row if button.text == "№1–5 · Практические задания"
+            for button in row if button.text == "№1–5"
         )
         assert oge15_button.callback_data is not None
         assert oge15_button.callback_data.startswith("nav:oge15~")
-        selection = await tap(number_menu, "№1–5 · Практические задания", repeat=True)
+        selection = await tap(number_menu, "№1–5", repeat=True)
         assert any(
             "Выберите сюжет" in (message.text or "")
             for message in transport.messages.values()
@@ -1576,7 +1576,11 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         )
         menu = max(transport.messages.values(), key=lambda item: item.message_id)
         menu = await tap(menu, "📂 Незавершённые тренировки")
-        menu = await tap(menu, "▶ Шины · пятёрка · №3")
+        import re
+
+        item = re.search(r"(\d+)\. Шины · пятёрка · №3", menu.text or "")
+        assert item is not None
+        menu = await tap(menu, item[1])
         assert (await store.resume_session(user_id)).session_id == tyres.session_id
         assert (await store.resume_session(user_id, single.session_id)).status == "paused"
 

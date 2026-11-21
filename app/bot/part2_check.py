@@ -111,7 +111,7 @@ def grading_reply(assessment: Assessment, rubric_kind: str) -> str:
     if assessment.score is None:
         return (
             "Оценка не выставлена.\n\n"
-            + display_feedback(assessment.feedback[:800])
+            + display_feedback(assessment.feedback, 800)
             + "\n\nПришлите чёткое фото решения целиком. "
             "Затем нажмите «Проверить решение»."
         )
@@ -134,6 +134,6 @@ def grading_reply(assessment: Assessment, rubric_kind: str) -> str:
     return "\n\n".join(
         [
             f"Оценка: {score} из 2 баллов (предварительная)\n{rubric}",
-            *(f"{title}: {display_feedback(body[:650])}" for title, body in blocks if body),
+            *(f"{title}: {display_feedback(body, 650)}" for title, body in blocks if body),
         ]
     )

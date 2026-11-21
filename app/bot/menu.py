@@ -19,29 +19,58 @@ def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+def number_page(
+    *,
+    include_task7: bool = False,
+    include_task13: bool = False,
+    include_task11: bool = False,
+    page: int = 0,
+) -> tuple[str, InlineKeyboardMarkup]:
+    from app.bot.trainings import PART2_TRAININGS, TRAININGS
+    from app.config import get_settings
+
+    flags = {7: include_task7, 11: include_task11, 13: include_task13}
+    options = [("№1–5", "Практические задания", "nav:oge15")]
+    options.extend(
+        (f"№{t.number}", t.title, f"nav:task:{t.number}")
+        for t in TRAININGS
+        if flags.get(t.number, t.available)
+    )
+    if get_settings().oge_part2_enabled:
+        options.extend((f"№{t.number}", t.title, f"p2:menu:{t.number}") for t in PART2_TRAININGS)
+    pages = (len(options) + 5) // 6
+    page = min(max(0, page), pages - 1)
+    entries = options[page * 6 : (page + 1) * 6]
+    text = "\n".join(f"{label} · {title}" for label, title, _ in entries)
+    buttons = [_button(label, callback) for label, _, callback in entries]
+    rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
+    arrows = []
+    if page:
+        arrows.append(_button("←", f"nav:numbers:{page - 1}"))
+    if page + 1 < pages:
+        arrows.append(_button("→", f"nav:numbers:{page + 1}"))
+    if arrows:
+        rows.append(arrows)
+    rows.append([_button("↩ В меню", "nav:main")])
+    return (
+        f"Выберите номер задания\n\n{text}\n\nСтраница {page + 1} из {pages}",
+        InlineKeyboardMarkup(inline_keyboard=rows),
+    )
+
+
 def number_menu(
     *,
     include_task7: bool = False,
     include_task13: bool = False,
     include_task11: bool = False,
+    page: int = 0,
 ) -> InlineKeyboardMarkup:
-    from app.bot.trainings import PART2_TRAININGS, TRAININGS
-    from app.config import get_settings
-
-    release_flags = {7: include_task7, 11: include_task11, 13: include_task13}
-    buttons = [
-        _button(f"№{training.number} · {training.title}", f"nav:task:{training.number}")
-        for training in TRAININGS
-        if release_flags.get(training.number, training.available)
-    ]
-    if get_settings().oge_part2_enabled:
-        buttons.extend(
-            _button(f"№{t.number} · {t.title}", f"p2:menu:{t.number}") for t in PART2_TRAININGS
-        )
-    rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
-    rows.insert(0, [_button("№1–5 · Практические задания", "nav:oge15")])
-    rows.append([_button("↩ В меню", "nav:main")])
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+    return number_page(
+        include_task7=include_task7,
+        include_task11=include_task11,
+        include_task13=include_task13,
+        page=page,
+    )[1]
 
 
 def progress_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
@@ -86,8 +115,15 @@ def saved_training_menu(
             [_button("▶ Продолжить", f"nav:tr:c:{number}:{problem_id}")],
             [_button("🆕 Начать заново", f"nav:tr:r:{number}:{problem_id}")],
             *(
-                [[_button("Выбрать тему", f"nav:families:{number}")]]
-                if number == 19
+                [
+                    [
+                        _button(
+                            "Выбрать тему" if number == 19 else "Выбрать тип",
+                            f"nav:families:{number}",
+                        )
+                    ]
+                ]
+                if number in range(6, 20)
                 else []
             ),
             [_button("↩ Назад к номерам", "nav:numbers")],

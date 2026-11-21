@@ -38,7 +38,7 @@ def message(text="", mid=100):
 async def test_default_menu_and_entry_offer_task16_with_a_real_png():
     repo = MemoryRepository()
     incoming = message()
-    await router.choose_number(incoming, repo)
+    await router.choose_number(incoming, repo, page=1)
     labels = [
         b.text
         for row in incoming.answer.await_args.kwargs["reply_markup"].inline_keyboard
@@ -281,7 +281,7 @@ async def test_public_gate_hides_task16_and_rejects_direct_entry(monkeypatch):
     monkeypatch.setattr(oge16_scheduler, "ENABLED_FAMILIES", ())
     repo = MemoryRepository()
     outgoing = message()
-    await router.choose_number(outgoing, repo)
+    await router.choose_number(outgoing, repo, page=1)
     labels = [
         b.text
         for row in outgoing.answer.await_args.kwargs["reply_markup"].inline_keyboard

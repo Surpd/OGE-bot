@@ -14,7 +14,63 @@ from sympy import asin, cos, pi, simplify, sin, sqrt
 
 
 def geometric_result(subtype, givens, statement):
+    if subtype == "right-projection" and "площадь треугольника" in statement:
+        segment, hyp = givens
+        return sqrt(segment * hyp) * sqrt((hyp - segment) * hyp) / 2
+    if subtype == "right-bisectors" and "площадь треугольника" in statement:
+        hyp, difference = givens
+        return (hyp**2 - difference**2) / 4
+    if subtype == "right-circle-rectangle" and "BP =" in statement:
+        hyp, projection = givens
+        return sqrt(hyp * projection)
+    if subtype == "parallel-segment" and "четырёхугольника" in statement:
+        small, whole = givens
+        return (whole / small) ** 2 - 1
+    if subtype == "parallel-diagonals" and "площади" in statement:
+        am, mc = givens
+        return (mc / am) ** 2
+    if subtype == "trapezoid-trig" and "разность AD" in statement:
+        B, C, leg = givens
+        h = leg * sin(pi * C / 180)
+        return -leg * cos(pi * C / 180) - h * cos(pi * B / 180) / sin(pi * B / 180)
+    if subtype == "trapezoid-bisector-area" and "Найдите CD" in statement:
+        base, height, area = givens
+        return 2 * area / height
+    if subtype == "trapezoid-midpoint-segments" and "площади" in statement:
+        _, _, half_sum, half_diff = givens
+        ratio = (half_sum - half_diff) / (half_sum + half_diff)
+        return ratio**2 / (1 - ratio**2)
+    if subtype == "parallelogram-bisectors" and "Периметр" in statement:
+        perimeter, ab, area = givens
+        return area / (perimeter - 2 * ab)
+    if subtype == "tangent-trapezoid" and "радиуса" in statement:
+        radius, low, high = givens
+        # For a tangential isosceles trapezoid the product of the bases is h².
+        small = 2 * radius * sqrt(low / high)
+        large = 2 * radius * sqrt(high / low)
+        return radius * (small + large)
+    if subtype == "incenter-distance" and "Найдите AO" in statement:
+        area, d, r = givens
+        tangent = area / (2 * r) - area / (d + r)
+        return sqrt(tangent**2 + r**2)
+    if subtype == "circumcenter-chord" and "Найдите AB" in statement:
+        ac, cd = givens
+        return sqrt(ac * (ac - cd))
+    if subtype == "secant-tangent" and "большего основания" in statement:
+        difference, squared = givens
+        return (difference + sqrt(difference**2 + 4 * squared)) / 2
+    if subtype == "two-circle-tangents" and "меньший радиус" in statement:
+        centers, chords = givens
+        return (centers - sqrt(centers * (centers - chords))) / 2
+    if subtype == "orthocenter-semicircle" and "Найдите MD" in statement:
+        ad, ah = givens
+        return sqrt(ad * (ad - ah))
+    if subtype == "median-bisector" and "Квадрат длины" in statement:
+        (ab_squared,) = givens
+        return 12 * ab_squared / 13
     if subtype == "angle-height-bisector":
+        if "больше угла C" in statement:
+            return givens[0] - 2 * givens[1]
         return abs(givens[0] - givens[1]) / 2
     if subtype == "angle-tangent-arc":
         return abs(90 - givens[0])
@@ -43,6 +99,9 @@ def geometric_result(subtype, givens, statement):
         ab, dc, ac = givens
         return ac * dc / (ab + dc)
     if subtype == "trapezoid-area":
+        if "Проекция боковой стороны" in statement:
+            base, leg, run = givens
+            return (base + run) * sqrt(leg**2 - run**2)
         a, b, P = givens
         leg = (P - a - b) / 2
         return (a + b) / 2 * sqrt(leg * leg - ((a - b) / 2) ** 2)

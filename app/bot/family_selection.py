@@ -3,8 +3,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.presentation import send_text
-from app.bot.training_engine import NUMERIC_TRAININGS
 from app.persistence.repository import Repository
+from app.persistence.rotation_history import enabled
 from app.persistence.training_insights import family_name
 
 
@@ -12,27 +12,51 @@ def _button(text: str, data: str) -> InlineKeyboardButton:
     return InlineKeyboardButton(text=text, callback_data=data)
 
 
-def family_keyboard(number: int) -> InlineKeyboardMarkup:
-    adapter = NUMERIC_TRAININGS[number]
-    all_label = "🎲 Все темы" if number == 19 else "🎲 Все типы"
-    rows = [[_button(all_label, f"nav:family:{number}:random")]]
-    rows.extend(
-        [_button(family_name(family), f"nav:family:{number}:{index}")]
-        for index, family in enumerate(adapter.families)
-        if not (number == 19 and family == "OGE19-MIXED")
-    )
+def _selection_name(number: int, family: str | None) -> str:
+    if number == 19 and family == "OGE19-MIXED":
+        return "Разные темы в одном задании"
+    if family is None:
+        return "Чередовать темы" if number == 19 else "Все типы"
+    return family_name(family)
+
+
+PAGE_SIZE = 6
+
+
+def _page(number: int, page: int) -> tuple[int, list[str], int]:
+    families = enabled(number)
+    pages = max(1, (len(families) + PAGE_SIZE - 1) // PAGE_SIZE)
+    page = max(0, min(page, pages - 1))
+    return page, families[page * PAGE_SIZE : (page + 1) * PAGE_SIZE], pages
+
+
+def family_keyboard(number: int, page: int = 0) -> InlineKeyboardMarkup:
+    page, entries, pages = _page(number, page)
+    start = page * PAGE_SIZE
+    rows = [[_button("🎲 " + _selection_name(number, None), f"nav:family:{number}:random")]]
+    indexes = [
+        _button(str(i + 1), f"nav:family:{number}:{i}") for i in range(start, start + len(entries))
+    ]
+    rows.extend(indexes[i : i + 3] for i in range(0, len(indexes), 3))
+    arrows = []
+    if page:
+        arrows.append(_button("←", f"nav:families:{number}:{page - 1}"))
+    if page + 1 < pages:
+        arrows.append(_button("→", f"nav:families:{number}:{page + 1}"))
+    if arrows:
+        rows.append(arrows)
     rows.append([_button("← К номерам", "nav:numbers")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def selected_keyboard(number: int) -> InlineKeyboardMarkup:
+def selected_keyboard(number: int, page: int = 0) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [_button(f"▶ Открыть №{number}", f"nav:begin:{number}")],
             [
                 _button(
                     "Выбрать тему" if number == 19 else "Выбрать тип",
-                    f"nav:families:{number}",
+                    f"nav:families:{number}:{page}" if page else f"nav:families:{number}",
                 ),
                 _button("В меню", "nav:main"),
             ],
@@ -40,18 +64,24 @@ def selected_keyboard(number: int) -> InlineKeyboardMarkup:
     )
 
 
-async def show_families(message: Message, repository: Repository, number: int) -> None:
+async def show_families(
+    message: Message, repository: Repository, number: int, page: int = 0
+) -> None:
     if message.from_user is None:
         return
     await repository.save_user_state(message.from_user.id, f"family_selection:{number}")
     selected = await repository.training_family(message.from_user.id, number)
-    current = family_name(selected) if selected else ("Все темы" if number == 19 else "Все типы")
+    current = _selection_name(number, selected)
+    page, entries, pages = _page(number, page)
+    catalog = "\n".join(
+        f"{i}. {_selection_name(number, f)}" for i, f in enumerate(entries, page * PAGE_SIZE + 1)
+    )
     await send_text(
         message,
         repository,
         f"Задание №{number} · выберите тип\nСейчас: {current}\n\n"
-        "Выбор применяется к следующим заданиям. Сохранённая задача остаётся прежней.",
-        reply_markup=family_keyboard(number),
+        f"{catalog}\n\nСтраница {page + 1} из {pages}",
+        reply_markup=family_keyboard(number, page),
     )
 
 
@@ -60,9 +90,9 @@ async def select_family(
 ) -> None:
     if message.from_user is None:
         return
-    families = NUMERIC_TRAININGS[number].families
+    families = enabled(number)
     if selection == "random":
-        family = "OGE19-MIXED" if number == 19 else None
+        family = None
     elif selection.isascii() and selection.isdigit() and int(selection) < len(families):
         family = families[int(selection)]
     else:
@@ -70,14 +100,16 @@ async def select_family(
         return
     await repository.save_user_state(message.from_user.id, f"family_selection:{number}")
     await repository.set_training_family(message.from_user.id, number, family)
-    label = family_name(family) if family else "Все типы"
+    label = _selection_name(number, family)
     await send_text(
         message,
         repository,
         f"№{number} · {label}\n\n"
         "Настройка сохранена для следующих заданий. Если есть текущая задача, "
         "она продолжится с прежними попытками и подсказками.",
-        reply_markup=selected_keyboard(number),
+        reply_markup=selected_keyboard(
+            number, families.index(family) // PAGE_SIZE if family else 0
+        ),
     )
 
 
@@ -90,6 +122,6 @@ async def family_exhausted(
         repository,
         "Не удалось подготовить новый вариант выбранного типа. "
         "Текущая задача сохранена. Выберите другой тип или «Все типы».",
-        reply_markup=family_keyboard(number),
+        reply_markup=selected_keyboard(number),
         user_id_override=user_id,
     )

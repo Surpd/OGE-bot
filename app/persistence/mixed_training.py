@@ -8,6 +8,8 @@ from hashlib import sha256
 from typing import Any, cast
 from uuid import UUID, uuid4
 
+from app.persistence.rotation_history import candidate_state, recent_story_families
+
 
 def _object(value: object) -> dict[str, object]:
     if isinstance(value, str):
@@ -50,6 +52,9 @@ def _capture_scheduler_state(
     for source, target in _AFTER_FIELDS.items():
         if source in snapshot:
             current[target] = snapshot[source]
+    family = snapshot.get("family_id")
+    if isinstance(family, str):
+        current["last_family_id"] = family
     fingerprint = snapshot.get("fingerprint")
     if isinstance(fingerprint, str):
         recent = current.get("recent_fingerprints", [])
@@ -58,13 +63,16 @@ def _capture_scheduler_state(
             if isinstance(recent, list)
             else []
         )
+        cycle = snapshot.get("_finite_cycle_fingerprints")
+        if isinstance(cycle, list) and set(cycle) <= set(recent_values):
+            recent_values = [item for item in recent_values if item not in cycle]
         current["recent_fingerprints"] = [*recent_values, fingerprint][-30:]
     generators[str(number)] = current
     state["generator_states"] = generators
     return {
         key: value
         for key, value in snapshot.items()
-        if key not in _AFTER_FIELDS
+        if key not in _AFTER_FIELDS and key != "_finite_cycle_fingerprints"
     }
 
 
@@ -91,6 +99,60 @@ class MixedTrainingRepository:
                 repository._mixed_training_sessions = {}
             if not hasattr(repository, "_mixed_training_records"):
                 repository._mixed_training_records = {}
+
+    async def story_families(self, user_id: int) -> list[str]:
+        return await recent_story_families(self._repository, user_id)
+
+    async def recent_story_questions(self, owner: int) -> frozenset[tuple[str, str, str]]:
+        from app.persistence.scenario_repository import ScenarioPostgresRepository
+
+        mixed = await self.mixed_story_questions(owner)
+        if self._pool is None:
+            return mixed
+        return mixed | await ScenarioPostgresRepository(self._pool).recent_questions(owner)
+
+    async def mixed_story_questions(self, owner: int) -> frozenset[tuple[str, str, str]]:
+        """Read issued positions only; each mixed scenario is stored on its first question."""
+        from app.math.scenario_engine import ScenarioSnapshot
+        from app.math.scenarios.recent_questions import question_signature
+
+        if self._pool is not None:
+            rows = await self._pool.fetch(
+                """SELECT p.number, p.fingerprint,
+                       CASE WHEN p.number=1
+                            THEN p.snapshot->'_original_scenario_snapshot' END AS scene
+                   FROM users u JOIN mixed_training_sessions s ON s.user_id=u.id
+                   JOIN mixed_training_problems p ON p.session_id=s.id
+                   WHERE u.telegram_user_id=$1 AND p.number BETWEEN 1 AND 5
+                   ORDER BY p.issued_at DESC,p.id DESC LIMIT 24""", owner,
+            )
+        else:
+            from itertools import islice
+
+            rows = [
+                {**row, "scene": row["snapshot"].get("_original_scenario_snapshot")}
+                for row in islice((r for r in reversed(
+                    self._repository._mixed_training_records.get(owner, [])
+                ) if 1 <= r["number"] <= 5), 24)
+            ]
+        positions: dict[str, set[int]] = {}
+        recent: set[tuple[str, str, str]] = set()
+        for row in rows:
+            key = row["fingerprint"].rpartition(":")[0]
+            positions.setdefault(key, set()).add(row["number"])
+            if raw := _object(row["scene"]):
+                scene = ScenarioSnapshot.from_snapshot(raw)
+                recent.update(
+                    question_signature(scene, scene.questions[i - 1]) for i in positions[key]
+                )
+        return frozenset(recent)
+
+    async def candidate_state(
+        self, user_id: int, number: int, local: object,
+    ) -> dict[str, object]:
+        return await candidate_state(
+            self._repository, user_id, number, _object(local), for_mix=True,
+        )
 
     async def start(self, user_id: int, available_numbers: list[int]) -> dict[str, object]:
         if self._pool is None:
@@ -273,6 +335,7 @@ class MixedTrainingRepository:
             }
             session["problem"]["_snapshot_sha256"] = _digest(snapshot)
             record_snapshot = _stored_question(state, number, snapshot)
+            self._repository.issue_order[user_id, problem_id] = len(self._repository.issue_order)
             self._repository._mixed_training_records.setdefault(user_id, []).append(
                 {
                     **{key: value for key, value in session["problem"].items()

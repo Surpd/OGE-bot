@@ -39,6 +39,7 @@ from app.math.probability import GRAPH_FAMILIES
 from app.math.probability_diagram import render_snapshot as render_probability_diagram
 from app.math.progressions import POLICY as PROGRESSION_POLICY
 from app.persistence.repository import Repository
+from app.persistence.rotation_history import candidate_state as rotation_state
 
 
 class NumericPolicy(Protocol):
@@ -185,7 +186,7 @@ async def send_problem(
             if action == "advance" and expected_problem_id is None and isinstance(current, dict):
                 expected_problem_id = str(current.get("problem_id", ""))
             selected = await repository.training_family(user_id, adapter.number)
-            candidate_state = dict(state_value)
+            candidate_state = await rotation_state(repository, user_id, adapter.number, state_value)
             if selected is not None:
                 if selected not in adapter.families:
                     from app.bot.family_selection import family_exhausted
@@ -193,8 +194,11 @@ async def send_problem(
                     await family_exhausted(message, repository, user_id, adapter.number)
                     return False
                 candidate_state["family_queue"] = [selected]
+                candidate_state["selected_family_id"] = selected
             try:
-                candidates = adapter.candidates(candidate_state, secrets.randbelow(2**63))
+                candidates = await asyncio.to_thread(
+                    adapter.candidates, candidate_state, secrets.randbelow(2**63)
+                )
             except ValueError:
                 if adapter.number != 19:
                     raise
