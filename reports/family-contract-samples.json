@@ -212,6 +212,7 @@
     "variants": 32
   },
   "OGE08-R05": {
+    "cancelled_radical": 7,
     "distinct_answers": 11,
     "distinct_fingerprints": 30,
     "unsafe_variants": 0,
@@ -1034,38 +1035,62 @@
     "variants": 32
   },
   "OGE19-AREAS-METRICS": {
-    "distinct_answers": 3,
-    "distinct_fingerprints": 27,
+    "distinct_answers": 6,
+    "distinct_fingerprints": 29,
+    "find_false_1": 8,
+    "find_false_2": 8,
+    "find_true_1": 8,
+    "find_true_2": 8,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-CIRCLES": {
-    "distinct_answers": 3,
-    "distinct_fingerprints": 18,
+    "distinct_answers": 6,
+    "distinct_fingerprints": 26,
+    "find_false_1": 8,
+    "find_false_2": 8,
+    "find_true_1": 8,
+    "find_true_2": 8,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-LINES-ANGLES": {
-    "distinct_answers": 3,
-    "distinct_fingerprints": 11,
+    "distinct_answers": 6,
+    "distinct_fingerprints": 18,
+    "find_false_1": 8,
+    "find_false_2": 8,
+    "find_true_1": 8,
+    "find_true_2": 8,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-MIXED": {
-    "distinct_answers": 3,
+    "distinct_answers": 6,
     "distinct_fingerprints": 31,
+    "find_false_1": 8,
+    "find_false_2": 8,
+    "find_true_1": 8,
+    "find_true_2": 8,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-QUADRILATERALS": {
-    "distinct_answers": 3,
-    "distinct_fingerprints": 24,
+    "distinct_answers": 6,
+    "distinct_fingerprints": 29,
+    "find_false_1": 8,
+    "find_false_2": 8,
+    "find_true_1": 8,
+    "find_true_2": 8,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-TRIANGLES": {
-    "distinct_answers": 3,
-    "distinct_fingerprints": 29,
+    "distinct_answers": 6,
+    "distinct_fingerprints": 31,
+    "find_false_1": 8,
+    "find_false_2": 8,
+    "find_true_1": 8,
+    "find_true_2": 8,
     "unsafe_variants": 0,
     "variants": 32
   },

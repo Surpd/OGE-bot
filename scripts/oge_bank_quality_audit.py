@@ -565,7 +565,7 @@ def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, in
 
         def make(family: str, seed: int) -> Any:
             snapshot = build_task19_candidate_batch(
-                {}, seed, enabled_families=(family,)
+                {"question_phase": seed % 4}, seed, enabled_families=(family,)
             )[0]
             return SimpleNamespace(
                 to_snapshot=lambda: snapshot,

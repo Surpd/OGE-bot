@@ -1,10 +1,11 @@
 {
+  "question_sources": {"find_true": "FIPI demonstrations 2025, 2026 and 2027, question 19", "find_false": "training extension", "individual_statements": "app/math/oge19_bank.json"},
   "families": [
-    {"family_id": "OGE19-MIXED", "exam_number": 19, "name": "Все темы", "status": "research_only", "sources": []},
-    {"family_id": "OGE19-TRIANGLES", "exam_number": 19, "name": "Треугольники", "status": "research_only", "sources": []},
-    {"family_id": "OGE19-QUADRILATERALS", "exam_number": 19, "name": "Четырёхугольники", "status": "research_only", "sources": []},
-    {"family_id": "OGE19-CIRCLES", "exam_number": 19, "name": "Окружности", "status": "research_only", "sources": []},
-    {"family_id": "OGE19-LINES-ANGLES", "exam_number": 19, "name": "Прямые и углы", "status": "research_only", "sources": []},
-    {"family_id": "OGE19-AREAS-METRICS", "exam_number": 19, "name": "Площади и метрические свойства", "status": "research_only", "sources": []}
+    {"family_id": "OGE19-MIXED", "exam_number": 19, "name": "Все темы", "status": "public_enabled", "sources": []},
+    {"family_id": "OGE19-TRIANGLES", "exam_number": 19, "name": "Треугольники", "status": "public_enabled", "sources": []},
+    {"family_id": "OGE19-QUADRILATERALS", "exam_number": 19, "name": "Четырёхугольники", "status": "public_enabled", "sources": []},
+    {"family_id": "OGE19-CIRCLES", "exam_number": 19, "name": "Окружности", "status": "public_enabled", "sources": []},
+    {"family_id": "OGE19-LINES-ANGLES", "exam_number": 19, "name": "Прямые и углы", "status": "public_enabled", "sources": []},
+    {"family_id": "OGE19-AREAS-METRICS", "exam_number": 19, "name": "Площади и метрические свойства", "status": "public_enabled", "sources": []}
   ]
 }

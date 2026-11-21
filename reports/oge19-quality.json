@@ -37,6 +37,44 @@
       "seeds": 500
     }
   },
+  "training_series": {
+    "OGE19-MIXED": {
+      "find_true_1": 10,
+      "find_true_2": 10,
+      "find_false_1": 10,
+      "find_false_2": 10
+    },
+    "OGE19-TRIANGLES": {
+      "find_true_1": 10,
+      "find_true_2": 10,
+      "find_false_1": 10,
+      "find_false_2": 10
+    },
+    "OGE19-QUADRILATERALS": {
+      "find_true_1": 10,
+      "find_true_2": 10,
+      "find_false_1": 10,
+      "find_false_2": 10
+    },
+    "OGE19-CIRCLES": {
+      "find_true_1": 10,
+      "find_true_2": 10,
+      "find_false_1": 10,
+      "find_false_2": 10
+    },
+    "OGE19-LINES-ANGLES": {
+      "find_true_1": 10,
+      "find_true_2": 10,
+      "find_false_1": 10,
+      "find_false_2": 10
+    },
+    "OGE19-AREAS-METRICS": {
+      "find_true_1": 10,
+      "find_true_2": 10,
+      "find_false_1": 10,
+      "find_false_2": 10
+    }
+  },
   "fipi_format_source": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
   "fipi_checked_on": "2026-11-20",
   "generator_version": "oge19-triples-5",

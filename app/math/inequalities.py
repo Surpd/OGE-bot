@@ -952,11 +952,13 @@ def validate_snapshot(snapshot: Mapping[str, object]) -> bool:
     return True
 
 
-def render_option_sheet_snapshot_png(snapshot: Mapping[str, object]) -> bytes:
+def render_option_sheet_snapshot_png(
+    snapshot: Mapping[str, object], *, mobile: bool = False
+) -> bytes:
     """Render the four saved options without regenerating a persisted task."""
     return _render_option_sets_png(
         _snapshot_options(snapshot),
-        adaptive=snapshot["generator_version"] != LEGACY_GENERATOR_VERSION,
+        adaptive=mobile or snapshot["generator_version"] != LEGACY_GENERATOR_VERSION,
     )
 
 
@@ -1043,7 +1045,7 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...], *, adaptive: bool 
             if any((b - a) * scale < 90 for a, b in zip(bounds, bounds[1:], strict=False)):
                 center, scale = _axis_window(bounds)
         cy = 185 + index * 250
-        # Draw axis with arrowheads and identical scale in every panel.
+        # Each panel uses a linear axis; a shared scale is preferred.
         line(100, cy, 1180, cy, ink, 1)
         line(100, cy, 115, cy - 8, ink, 1)
         line(100, cy, 115, cy + 8, ink, 1)

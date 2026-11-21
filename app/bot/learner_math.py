@@ -83,7 +83,14 @@ def learner_text(text: str, family: str) -> str:
     if family.startswith("OGE18-"):
         text = re.sub(
             r"\b(\d+) клеток\b",
-            lambda m: counted_phrase(int(m[1]), ("клетка", "клетки", "клеток")),
+            lambda m: counted_phrase(int(m[1]), ("клетку", "клетки", "клеток")),
             text,
+        )
+    if family.startswith("OGE19-"):
+        text = text.replace("но вершины угол другой", "но угол при вершине другой")
+        text = text.replace(
+            "поэтому данные SSA не задают равенство",
+            "поэтому две стороны и угол, который лежит не между ними, "
+            "не определяют треугольник однозначно",
         )
     return text

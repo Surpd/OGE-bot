@@ -274,6 +274,19 @@ INCOMPATIBLE_PROPOSITION_PAIRS = frozenset(
 )
 
 
+# Two different source cards can ask a learner to judge the very same theorem.
+# Keep the published v4 selection intact for historical seed reproduction.
+V5_INCOMPATIBLE_PAIRS = INCOMPATIBLE_PROPOSITION_PAIRS | {
+    frozenset({"triangle.equal_angles_equal_sides", "triangle.isosceles_base_angles_converse"}),
+    frozenset({"triangle.median_bisects_angle", "triangle.any_median_angle_bisector"}),
+    frozenset({"congruence.equal_area", "triangle.congruent_same_area_only"}),
+    frozenset({"circle.tangent_segments_equal", "circle.external_point_tangents_equal"}),
+    frozenset({
+        "triangle.two_equal_angles_equilateral", "triangle.isosceles_equal_sides_all_angles"
+    }),
+}
+
+
 def grade_band_tier(grade_band: str) -> int:
     """Use the upper school grade in the reviewed band as a rough difficulty proxy."""
     try:
@@ -355,6 +368,10 @@ def generate(
     combinations_for_task = (
         (*true_group, *false_group) for true_group in true_groups for false_group in false_groups
     )
+    incompatible = (
+        V5_INCOMPATIBLE_PAIRS if generator_version == GENERATOR_VERSION
+        else INCOMPATIBLE_PROPOSITION_PAIRS
+    )
     for selected in combinations_for_task:
         if anchor not in selected:
             continue
@@ -362,7 +379,7 @@ def generate(
             frozenset((first.proposition_id, second.proposition_id))
             for first, second in combinations(selected, 2)
         )
-        if any(pair in INCOMPATIBLE_PROPOSITION_PAIRS for pair in proposition_pair_keys):
+        if any(pair in incompatible for pair in proposition_pair_keys):
             continue
         # Avoid presenting two claims taken from the same source question as if
         # they were independently sampled assertions.
@@ -458,7 +475,13 @@ def validate_snapshot(snapshot: Mapping[str, Any]) -> None:
         raise ValueError("An OGE19 triple must contain three distinct propositions")
     if schema == 1 and len({item.topic for item in statements}) != 3:
         raise ValueError("An OGE19 legacy triple must mix three topics")
-    kind = snapshot.get("question_kind", "find_true")
+    if version == GENERATOR_VERSION:
+        if (len({s.source_task_id for s in statements}) != 3 or any(
+            frozenset((a.proposition_id, b.proposition_id)) in V5_INCOMPATIBLE_PAIRS
+            for a, b in combinations(statements, 2)
+        )):
+            raise ValueError("Incompatible statements in the same OGE19 task")
+    kind = snapshot.get("question_kind", None if version == GENERATOR_VERSION else "find_true")
     if kind not in {"find_true", "find_false"} or (
         version != GENERATOR_VERSION and kind != "find_true"
     ):

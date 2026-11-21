@@ -341,6 +341,7 @@ def _inferred_spans(source: str) -> list[Span]:
         start = pos
         mathematical = source[pos] in (_CHARS - set(" .,*/·×:^_=<>!≤≥≠]);∈∪"))
         if mathematical:
+            brackets = 0
             while pos < len(source) and source[pos] in _CHARS:
                 # In “Выразим C: C = …” the first variable belongs to the
                 # Russian clause. A colon inside “Вычислите 12 : 3” is division.
@@ -353,6 +354,15 @@ def _inferred_spans(source: str) -> list[Span]:
                     and re.fullmatch(r"[A-Za-zΑ-ω][₀-₉]*", source[start:pos].strip())
                 ):
                     break
+                # A semicolon separates clauses except within an interval or
+                # another bracketed construction such as (−2; 3].
+                char = source[pos]
+                if char == ";" and not brackets:
+                    break
+                if char in "([":
+                    brackets += 1
+                elif char in ")]":
+                    brackets = max(0, brackets - 1)
                 # Sentence punctuation is not a decimal separator.
                 if source[pos] in ".," and not (
                     pos > start

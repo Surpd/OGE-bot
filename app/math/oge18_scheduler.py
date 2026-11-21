@@ -51,6 +51,7 @@ def build_task18_candidate_batch(
             queue.reverse()
     recent = state.get("recent_fingerprints", [])
     attempts = 0
+    deferred = []
     for index, family in enumerate(queue):
         recent_list = recent if isinstance(recent, list) else []
         eligible = None
@@ -60,6 +61,7 @@ def build_task18_candidate_batch(
             eligible = pool.difference(recent_list)
             if not eligible:
                 if index + 1 < len(queue):
+                    deferred.append(family)
                     continue
                 local = state.get("local_fingerprints", recent_list)
                 current = [fp for fp in local if fp in pool] if isinstance(local, list) else []
@@ -84,7 +86,7 @@ def build_task18_candidate_batch(
             ).to_snapshot()
             snapshot.update(
                 {
-                    "_family_queue_after": queue[index + 1 :],
+                    "_family_queue_after": [*queue[index + 1 :], *deferred],
                     "_last_family_after": family,
                     "selection_attempts": attempts,
                 }

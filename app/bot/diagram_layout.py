@@ -12,6 +12,12 @@ from app.math.oge11_render import HEIGHT, PLOT, ROW_HEIGHT, WIDTH
 
 def mobile_diagram(png: bytes, source: dict[str, Any]) -> bytes:
     family = str(source.get("family_id", ""))
+    if family.startswith("OGE13-"):
+        from app.math.inequalities import LEGACY_GENERATOR_VERSION, render_option_sheet_snapshot_png
+
+        if source.get("generator_version") == LEGACY_GENERATOR_VERSION:
+            return render_option_sheet_snapshot_png(source, mobile=True)
+        return png
     graph_model = source.get("graph_model")
     if not (family.startswith(("OGE11-", "OGE16-")) or family.startswith("OGE07-") and graph_model):
         return png

@@ -20,15 +20,21 @@ from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practi
 from app.math.scenarios.mobile_photos import scenario_photos_for_question
 from app.persistence.part2_bank import ATLAS, figure
 from app.persistence.training_insights import family_name
-from scripts.oge_bank_quality_audit import _oracle, _ordinary_generator
+from scripts.oge_bank_quality_audit import (
+    _oracle,
+    _ordinary_generator,
+    _registry_reference_rows,
+    _story_coverage_lines,
+)
 
 
 def examples():
+    registry = public_registry()
     for story, families in PUBLIC_FAMILIES.items():
         remaining = set(families)
         for seed in range(2027, 2527):
             snap = build_practice_plan(
-                PracticeRequest(PracticeMode.FULL, seed, story), public_registry()
+                PracticeRequest(PracticeMode.FULL, seed, story), registry
             ).snapshot
             for q in snap.questions:
                 if q.family_id in remaining:
@@ -37,7 +43,16 @@ def examples():
                         q.position,
                         q.family_id,
                         f"{story} · seed {seed}",
-                        q.family_id,
+                        {
+                            "family_id": q.family_id,
+                            "generator_version": q.generator_version,
+                            "reference_ids": next(
+                                r.source_ids
+                                for r in registry.adapter(story).family_registry
+                                if r.family_id == q.family_id
+                            ),
+                            "story_code": story,
+                        },
                         snap.shared_context + "\n\n" + q.condition,
                         q.hints,
                         q.solution_steps,
@@ -52,8 +67,8 @@ def examples():
             raise ValueError(remaining)
     for number in range(6, 20):
         families, build = _ordinary_generator(number)
-        for family in families:
-            seed = 2027
+        for index, family in enumerate(families):
+            seed = 2028 + index if number == 19 else 2027
             if family in {"OGE06-F001-SUB", "OGE06-F009-PRESCRIBED-NUMERATOR", "OGE08-R05"}:
                 from app.math.oge8_scheduler import build_task8_candidate_batch
                 from app.math.scheduler import build_candidate_batch
@@ -83,10 +98,15 @@ def examples():
                 solution_photo,
                 system_rows(number, data),
             )
+    reviewed_proofs = {
+        "OGE24-cyclic-external": "oge-part2-atlas-a24-cyclic-external-03",
+        "OGE24-cyclic-converse": "oge-part2-atlas-a24-cyclic-converse-01",
+        "OGE24-common-tangent-ratio": "oge-part2-atlas-a24-common-tangent-ratio-05",
+    }
     seen = set()
     for card in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines()):
         family = card["subtype_id"]
-        if family in seen:
+        if family in seen or reviewed_proofs.get(family, card["task_id"]) != card["task_id"]:
             continue
         seen.add(family)
         visuals = card["visuals"]
@@ -145,9 +165,7 @@ def mobile_witnesses(dst):
             scene = mobile_diagram(img, q) if img else None
             if n == 18:
                 scene = polygon_construction(f, tuple(tuple(p) for p in q["points"]))
-            if n == 12:
-                txt = "Разбор:\nВыразим C: C = (F − 32) · 5/9."
-            elif n in (16, 18):
+            if n in (12, 16, 18):
                 txt = "Разбор:\n" + "\n".join(q["solution"])
             else:
                 txt = q["condition"]
@@ -170,6 +188,17 @@ def mobile_witnesses(dst):
 
 def main():
     pages = {}
+    matrix = []
+    reference_rows = _registry_reference_rows()
+    story_records = _story_coverage_lines()
+    samples = json.loads(Path("reports/family-contract-samples.json").read_text())
+    groups = json.loads((ATLAS / "rotation.json").read_text())
+    cards = [json.loads(line) for line in (ATLAS / "tasks.jsonl").read_text().splitlines()]
+    structures = json.loads(Path("app/math/first_rotation_groups.json").read_text())
+    titles = {
+        s["subtype_id"]: s["title"]
+        for s in json.loads((ATLAS / "taxonomy.json").read_text())["subtypes"]
+    }
     for (
         n,
         family,
@@ -192,7 +221,72 @@ def main():
         name = family_name(family)
         if name == "Тип из прежней версии":
             name = family
+        name = titles.get(family, name)
         title = escape(name)
+        registry = Path("atlas") / f"oge{n:02}_reference_structures.json"
+        if not registry.exists():
+            registry = Path("atlas") / f"oge{n}_reference_structures.json"
+        row = {
+            "number": n,
+            "family_id": family,
+            "public_enabled": True,
+            "name": name,
+            "format": template_format(family),
+            "version_in_example": source.get("generator_version"),
+            "sample": ref,
+            "sampling": samples[family],
+            "hint_count_in_example": len(hints),
+            "condition_images_in_example": len(diagrams),
+            "solution_images_in_example": len(extras),
+        }
+        if n < 20:
+            references = list(source.get("reference_ids", []))
+            if isinstance(source.get("provenance"), dict):
+                references.append(source["provenance"]["task_id"])
+            references.extend(x["task_id"] for x in source.get("sources", []))
+            row.update(
+                skill=structures.get(family, name),
+                first_hint=hints[0],
+                reference_ids=references,
+                source_registry=str(registry) if n > 5 else "reports/OGE15_V2_SOURCE_ACCEPTANCE.md",
+                source_review="see individual prototype records",
+            )
+            if n <= 5 and source["story_code"] in story_records:
+                row["source_registry"] = story_records[source["story_code"]][0]
+            if record := reference_rows.get(family):
+                row["source_registry"] = record["reference_file"]
+                row["source_review"] = record.get("source_status", row["source_review"])
+                row["catalogue_evidence"] = {
+                    k: record[k] for k in (
+                        "sources", "source_ids", "source_urls", "source_url", "prototype_ids",
+                        "reference_ids", "parameter_contract", "specific_caution",
+                    ) if k in record
+                }
+            if n == 19:
+                row["reference_ids"] = [s["source"]["task_id"] for s in source["statements"]]
+                row["source_registry"] = "app/math/oge19_bank.json"
+            if family in {"OGE18-A06", "OGE18-A07", "OGE18-C01"}:
+                row["source_review"] = "original diagram and numeric control checked in this audit"
+        else:
+            row.update(
+                version_in_example=source["content_version"],
+                constructions=[g["construction"] for g in groups[family]],
+                methods=sorted({g["method"] for g in groups[family]}),
+                source_registry="atlas/part2/tasks.jsonl",
+                cards=[
+                    {
+                        "task_id": c["task_id"],
+                        "version": c["content_version"],
+                        "source_id": c["source_id"],
+                        "source_kind": c["source_kind"],
+                        "source_url": c["source_url"],
+                        "verified_in_open_bank": c["source_verified_in_open_bank"],
+                    }
+                    for c in cards
+                    if c["subtype_id"] == family
+                ],
+            )
+        matrix.append(row)
         pages.setdefault(n, []).append(
             f'<article id="{escape(family)}"><h3>{title}</h3><small>{escape(family)} · '
             f"{escape(ref)} · {template_format(family)}</small>"
@@ -227,6 +321,7 @@ nav a{display:inline-block;padding:.4rem}</style>"""
     )
     for n in sorted(pages):
         html += f'<section id="n{n}"><h2>Задание №{n}</h2>' + "".join(pages[n]) + "</section>"
+    (out / "families.json").write_text(json.dumps(matrix, ensure_ascii=False, indent=2) + "\n")
     mobile_witnesses(out)
     (out / "index.html").write_text(html, encoding="utf-8")
     print({n: len(p) for n, p in sorted(pages.items())})

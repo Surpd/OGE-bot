@@ -48,6 +48,9 @@ def test_school_notation_preserves_the_operator_and_prose_boundary():
     assert "Площадь треугольника MBN" in typeset_family_text("S_MBN = 25.5", "OGE15-F13")
     assert "25,5" in typeset_family_text("Ответ: 25.5", "OGE15-F13")
     assert "знает" in typeset_family_text("21 знают оба языка", "OGE10-P01")
+    trig = format_rich_message("Стороны равны d · sin α и d · cos α; cos α = 0,8.")
+    assert trig.count(r"\cos \alpha") == 2 and trig.count(r"\sin \alpha") == 1
+    assert trig.count("<tg-math>") == 3
     assert "7² + 24²" in typeset_family_text("sin = 7/25", "OGE16-C06")
 
 
@@ -251,3 +254,66 @@ def test_pedagogical_edits_retain_values_and_physical_assumptions():
     assert step == p["d"] and b + (rows - j) * step == int(q["correct_answer"])
     solution = typeset_family_text("\n".join(q["solution"]), q)
     assert f"{j} до последнего" in solution and str(b) in solution
+
+
+def test_archived_inequality_can_be_zoomed_without_regenerating_the_question():
+    from app.bot.diagram_layout import mobile_diagram
+    from app.math.inequalities import LEGACY_GENERATOR_VERSION, generate, render_option_sheet_png
+
+    old = generate("OGE13-S01", 2701, LEGACY_GENERATOR_VERSION)
+    current = generate("OGE13-S01", 2701)
+    stored = old.to_snapshot()
+    raw = render_option_sheet_png(old)
+    assert current.options == old.options
+    assert current.correct_option_number == old.correct_option_number
+    assert mobile_diagram(raw, stored) == render_option_sheet_png(current)
+    assert old.to_snapshot() == stored
+
+
+def test_written_proof_distinguishes_tangents_from_corresponding_radii():
+    import json
+
+    from app.persistence.part2_bank import ATLAS
+
+    records = {
+        c["task_id"]: c for c in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines())
+    }
+    card = records["oge-part2-atlas-a24-common-tangent-ratio-05"]
+    # The tangent is the x-axis. P=(0,0), O₁=(-6,3), O₂=(10,-5).
+    # Signed heights and the positions of the two feet determine all lengths.
+    lengths = {"PT₁": 6, "PT₂": 10, "O₁T₁": 3, "O₂T₂": 5}
+    a, b, c, d = re.search(r"(PT₁)/(\w+) = (\w+)/(\w+)\.", card["reference_solution"]).groups()
+    assert Fraction(lengths[a], lengths[b]) == Fraction(lengths[c], lengths[d]) == Fraction(3, 5)
+    assert card["content_version"] == 2
+    secants = records["oge-part2-atlas-a24-cyclic-external-03"]
+    assert "MA = MC" in secants["statement"] and secants["content_version"] == 2
+
+
+@pytest.mark.parametrize(
+    ("seed", "same_theorem"),
+    [
+        (39, {"OGE19-A164", "OGE19-A009"}),
+        (72, {"OGE19-A027", "OGE19-A169"}),
+    ],
+)
+def test_source_cards_with_the_same_theorem_cannot_appear_together(seed, same_theorem):
+    old = oge19.generate(seed, theme="triangles", generator_version="oge19-triples-4")
+    assert same_theorem <= {s.id for s in old.statements}
+    assert oge19.restore(old.snapshot()).answer_mask == old.answer_mask
+    forged = old.snapshot()
+    forged.update(generator_version=oge19.GENERATOR_VERSION, question_kind="find_true")
+    oge19.refresh_snapshot_digest(forged)
+    with pytest.raises(ValueError, match="Incompatible statements"):
+        oge19.validate_snapshot(forged)
+    current = oge19.generate(seed, theme="triangles")
+    assert not same_theorem <= {s.id for s in current.statements}
+
+
+def test_counterexamples_are_readable_without_english_congruence_codes():
+    from app.bot.learner_math import learner_text
+
+    bank = {s.id: s for s in oge19.STATEMENTS}
+    for key, visible in (("A165", "угол при вершине"), ("A025", "угол, который лежит не между")):
+        text = learner_text(bank["OGE19-" + key].explanation, "OGE19-TRIANGLES")
+        assert visible in text
+    assert learner_text("Сторона AC занимает 21 клеток.", "OGE18-M01").endswith("21 клетку.")

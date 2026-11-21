@@ -271,7 +271,7 @@ def test_oge19_audit_rejects_self_consistent_but_wrong_truth_values() -> None:
     from scripts.oge_bank_quality_audit import _oracle
 
     _, make = _ordinary_generator(19)
-    snapshot = deepcopy(make("OGE19-MIXED", 42).to_snapshot())
+    snapshot = deepcopy(make("OGE19-MIXED", 40).to_snapshot())
     true_index = next(i for i, row in enumerate(snapshot["statements"]) if row["is_true"])
     false_index = next(i for i, row in enumerate(snapshot["statements"]) if not row["is_true"])
     for index in (true_index, false_index):

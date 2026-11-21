@@ -96,7 +96,7 @@ def fields():
             steps = q["solution"]
             yield (
                 "ordinary",
-                family,
+                q,
                 {0: mobile_diagram(photo, q) if photo else None},
                 system_rows(number, q),
                 [
@@ -109,7 +109,7 @@ def fields():
     for card in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines()):
         yield (
             "written",
-            card["subtype_id"],
+            card,
             {
                 0 if v["role"] == "condition" else len(card["hints"]) + 1: figure(v["path"])
                 for v in card["visuals"]
@@ -137,7 +137,9 @@ def main():
                 if image.getbbox() is None:
                     raise ValueError((origin, span.source))
             if template == "png" or spans or drawings.get(index):
-                png = render_math_image(text, drawings.get(index), rows if index == 0 else None)
+                rendered_rows = (tuple(typeset_family_text(row, identity) for row in rows)
+                                 if index == 0 and rows else None)
+                png = render_math_image(text, drawings.get(index), rendered_rows)
                 with Image.open(io.BytesIO(png)) as scene:
                     tallest = max(tallest, scene.height)
                     for width in min_gutter:

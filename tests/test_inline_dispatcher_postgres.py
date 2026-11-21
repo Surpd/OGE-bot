@@ -223,6 +223,10 @@ async def exercise_navigation(
             assert await repository.user_state(42) == "task17"
             assert (await repository.task17_state(42))["problem"] == saved
             await click(f"t17:menu:{pid}")
+            await click("nav:resume")
+            assert await repository.user_state(42) == "task17"
+            assert (await repository.task17_state(42))["problem"] == saved
+            await click(f"t17:menu:{pid}")
             await click("nav:numbers")
             await numbers_to_17()
             await click("nav:families:17")
@@ -535,10 +539,23 @@ async def exercise_navigation(
                 assert all(call.photo.data.startswith(b"\x89PNG\r\n\x1a\n") for call in photos)
                 if number == 11:
                     import base64
+                    from io import BytesIO
 
-                    assert photos[0].photo.data == base64.b64decode(
-                        issued["problem"]["png_base64"], validate=True
-                    )
+                    from PIL import Image, ImageChops
+
+                    from app.math.oge11_render import PLOT, ROW_HEIGHT
+
+                    raw = base64.b64decode(issued["problem"]["png_base64"], validate=True)
+                    with Image.open(BytesIO(raw)) as source, Image.open(
+                        BytesIO(photos[0].photo.data)
+                    ) as sent:
+                        for i, (x, y) in enumerate(((10, 35), (434, 35), (222, 466))):
+                            offset = i * ROW_HEIGHT
+                            rect = (PLOT[0] - 2, offset + PLOT[1] - 2,
+                                    PLOT[2] + 3, offset + PLOT[3] + 3)
+                            plot = source.convert("RGB").crop(rect)
+                            visible = sent.crop((x, y, x + plot.width, y + plot.height))
+                            assert ImageChops.difference(plot, visible).getbbox() is None
                 if number == 13:
                     from app.math.inequalities import render_option_sheet_snapshot_png
 

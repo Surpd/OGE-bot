@@ -382,7 +382,7 @@ async def send_photo(
     if (
         isinstance(math_family, dict)
         and key
-        and key.startswith(("OGE07-", "OGE11-", "OGE16-"))
+        and key.startswith(("OGE07-", "OGE11-", "OGE13-", "OGE16-"))
         and _has_telegram_transport(message)
     ):
         from app.bot.diagram_layout import mobile_diagram
