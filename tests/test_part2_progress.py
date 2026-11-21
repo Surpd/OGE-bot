@@ -173,6 +173,9 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
     try:
         await text("/start", entities=[MessageEntity(type="bot_command", offset=0, length=6)])
         await tap("nav:numbers")
+        await tap("nav:numbers:1")
+        await tap("nav:numbers:2")
+        await tap("nav:numbers:3")
         await tap("p2:menu:23")
         assert await repo.user_state(42) == "part2_menu"
         # Freeze the random choice to an actual card with a condition figure.
@@ -398,6 +401,8 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
 
         # A paged type menu issues one card even when Telegram redelivers the callback.
         await tap("nav:numbers")
+        await tap("nav:numbers:1")
+        await tap("nav:numbers:2")
         await tap("p2:menu:22")
         await tap("p2:menu:22:1")
         await tap("p2:menu:22:0")
@@ -410,6 +415,9 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         await post(message=photo_message("graph", caption="Черновик графика."))
         await tap("p2:menu:22")
         await tap("nav:numbers")
+        await tap("nav:numbers:1")
+        await tap("nav:numbers:2")
+        await tap("nav:numbers:3")
         await tap("p2:menu:23")
         dp = Dispatcher()
         dp.include_router(build_router())
@@ -418,6 +426,8 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         assert (await bank.current(42))["id"] == issue
         await tap("p2:menu:23")
         await tap("nav:numbers")
+        await tap("nav:numbers:1")
+        await tap("nav:numbers:2")
         await tap("p2:menu:22")
         await tap(f"p2:resume:{other['id']}")
         assert (await bank.current(42))["draft"]

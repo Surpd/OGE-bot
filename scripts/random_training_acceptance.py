@@ -6,18 +6,20 @@ import json
 import random
 import secrets
 import time
+from hashlib import sha256
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from aiogram.types import User
 
 from app.bot import mixed_training, router
+from app.bot.task_view import question_text
 from app.bot.training_engine import NUMERIC_TRAININGS, send_problem
 from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.repository import MemoryRepository
 
 
-async def run(number, seed, route, turns=100):
+async def run(number, seed, route, turns=100, *, visible=False):
     repo = MemoryRepository()
     owner = seed + number
     message = AsyncMock()
@@ -77,6 +79,10 @@ async def run(number, seed, route, turns=100):
                     refusals,
                 ]
             )
+            if visible:
+                text = question_text(number, problem).encode()
+                png = mixed_training._render_image(number, problem) or b""
+                seq[-1].append(sha256(text + b"\x00" + png).hexdigest())
             message.answer.reset_mock()
             message.answer_photo.reset_mock()
     return seq
@@ -87,7 +93,9 @@ async def main(args):
     for number in args.numbers:
         for mode in args.modes:
             for seed in args.seeds:
-                result[f"{number}/{mode}/{seed}"] = await run(number, seed, mode)
+                result[f"{number}/{mode}/{seed}"] = await run(
+                    number, seed, mode, visible=args.visible
+                )
         args.output.write_text(json.dumps(result, ensure_ascii=False))
 
 
@@ -97,4 +105,5 @@ if __name__ == "__main__":
     parser.add_argument("--numbers", nargs="+", type=int, default=list(range(6, 20)))
     parser.add_argument("--modes", nargs="+", default=["ordinary", "mix", "switch"])
     parser.add_argument("--seeds", nargs="+", type=int, default=[20261121, 20261122])
+    parser.add_argument("--visible", action="store_true", help="Hash delivered text and PNG too")
     asyncio.run(main(parser.parse_args()))
