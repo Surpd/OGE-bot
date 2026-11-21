@@ -618,11 +618,6 @@ def training_rejection(problem: Problem) -> str | None:
         if isinstance(expr, Binary) and isinstance(expr.left, FractionLiteral) and isinstance(
             expr.right, FractionLiteral
         ):
-            left = Fraction(expr.left.numerator, expr.left.denominator)
-            right = Fraction(expr.right.numerator, expr.right.denominator)
-            if (
-                expr.left.denominator == expr.right.denominator
-                or left.denominator == right.denominator
-            ):
+            if expr.left.denominator == expr.right.denominator:
                 return "same_denominator"
     return None

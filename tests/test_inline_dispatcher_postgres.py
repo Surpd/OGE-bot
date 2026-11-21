@@ -204,6 +204,7 @@ async def exercise_navigation(
             await click(f"nav:family:{n}:random")
             await click(f"nav:begin:{n}")
             families = enabled(n)
+            previous_last = None
             for _ in range(2):
                 seen = []
                 for pos in range(len(families)):
@@ -224,6 +225,8 @@ async def exercise_navigation(
                         again = await getattr(repository, f"task{n}_state")(42)
                         assert again["problem"]["problem_id"] == after["problem"]["problem_id"]
                 assert set(seen) == set(families)
+                assert seen[0] != previous_last
+                previous_last = seen[-1]
             return
         # Same message ID, previous keyboard revision: must not change the screen.
         session.expired_acks = expired_stale_ack or expire_all_acks

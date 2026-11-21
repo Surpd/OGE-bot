@@ -49,7 +49,8 @@ def typeset_family_text(text: str, source: object) -> str:
     if not source:
         return text
     text = typeset_mixed_number(text, source)
-    family = source.get("family_id") if isinstance(source, dict) else source
+    family = (source.get("subtype_id") or source.get("family_id")
+              if isinstance(source, dict) else source)
     if isinstance(family, str) and family.startswith("TYRES-"):
         return text
     if family == "OGE16-D04":
@@ -75,6 +76,18 @@ def typeset_family_text(text: str, source: object) -> str:
         if span.latex or "/" not in value:
             parts.append(value)
             continue
+        if family == "OGE24-similar-parallels":
+            value = re.sub(
+                r"\(([A-Z]{2})\s*[−-]\s*([A-Z]{2})\)\s*/\s*([A-Z]{2})(?!\w)",
+                r"\\(\\frac{\1-\2}{\3}\\)",
+                value,
+            )
+        if family == "OGE24-midline-proof":
+            value = re.sub(
+                r"S\(([A-Z]{3})\)\s*/\s*(\d+)(?![\w/])",
+                r"\\(\\frac{S(\1)}{\2}\\)",
+                value,
+            )
         if isinstance(family, str) and family.startswith("OGE11-"):
             # Graph.formula emits rational coefficients as p/q followed by x.
             # Its inverse graphs always parenthesize a product in the denominator.

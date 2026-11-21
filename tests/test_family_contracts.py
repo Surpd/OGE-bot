@@ -7,15 +7,23 @@ from aiogram import Bot
 
 from app.bot.family_display import formats, typeset_family_text
 from app.bot.presentation import format_rich_message, send_text
+from app.bot.scenario_training import PUBLIC_FAMILIES
 from app.math.family_cycle import ordinary_candidates
 from app.math.generator import generate, training_rejection
 from app.math.scheduler import build_candidate_batch
+from app.persistence.part2_bank import ATLAS
+from app.persistence.rotation_history import enabled
 from tests.test_rich_math_runtime import incoming
 
 
 def test_matrix_covers_audited_families_and_pins_unsafe_templates():
     audit = json.loads(Path("reports/family-contract-samples.json").read_text())
-    assert set(formats()) == set(audit) | {"written-feedback"}
+    public = {family for families in PUBLIC_FAMILIES.values() for family in families}
+    public.update(family for number in range(6, 20) for family in enabled(number))
+    cards = (ATLAS / "tasks.jsonl").read_text().splitlines()
+    public.update(json.loads(line)["subtype_id"] for line in cards)
+    assert set(audit) == public
+    assert set(formats()) == public | {"written-feedback"}
     for family, stats in audit.items():
         assert stats["variants"] > 0
         if stats["unsafe_variants"]:
@@ -59,7 +67,14 @@ def test_prescribed_fraction_rejects_degenerate_training_but_reproduces_original
     original = generate(family, 1)
     assert "8/9 - 4/9" in original.condition
     assert training_rejection(original) == "same_denominator"
-    assert generate(family, 1).to_snapshot() == original.to_snapshot()
+    assert original.fingerprint == (
+        "64cdcbd67277b4f698cab48140eeb77c8a33ee53bb6074c1e819001eed7a5fd3"
+    )
+    assert original.correct_answer == "8"
+    # Reducing one of two visibly different fractions is itself meaningful work.
+    reducible = generate(family, 64)
+    assert "3/4 - 3/12" in reducible.condition
+    assert training_rejection(reducible) is None
     for seed in range(24):
         batch = ordinary_candidates(
             build_candidate_batch, {"cycle_families": [family], "selected_family_id": family}, seed
@@ -89,3 +104,18 @@ def test_exhausted_tail_and_cycle_boundary_do_not_force_repeat():
         explicit = ordinary_candidates(available, {**state, "selected_family_id": "last"}, seed)
         assert explicit[0]["family_id"] == "last"
         assert explicit[0]["_family_queue_after"] == ["empty1"]
+
+
+@pytest.mark.parametrize(
+    "subtype,text,expected",
+    [
+        ("OGE24-similar-parallels", "(AB−AM)/AM = (AC−AN)/AN",
+         (r"\frac{AB-AM}{AM}", r"\frac{AC-AN}{AN}")),
+        ("OGE24-midline-proof", "S(AMK) = S(ABC)/4", (r"\frac{S(ABC)}{4}",)),
+    ],
+)
+def test_geometry_proofs_typeset_the_whole_numerator(subtype, text, expected):
+    from app.bot.explicit_math import formulas
+
+    formatted = typeset_family_text(text, {"subtype_id": subtype, "family_id": "geometry"})
+    assert tuple(tex for _, _, tex in formulas(formatted)) == expected
