@@ -12,14 +12,21 @@ def _button(text: str, data: str) -> InlineKeyboardButton:
     return InlineKeyboardButton(text=text, callback_data=data)
 
 
+def _selection_name(number: int, family: str | None) -> str:
+    if number == 19 and family == "OGE19-MIXED":
+        return "Разные темы в одном задании"
+    if family is None:
+        return "Чередовать темы" if number == 19 else "Все типы"
+    return family_name(family)
+
+
 def family_keyboard(number: int) -> InlineKeyboardMarkup:
     adapter = NUMERIC_TRAININGS[number]
-    all_label = "🎲 Все темы" if number == 19 else "🎲 Все типы"
+    all_label = "🎲 " + _selection_name(number, None)
     rows = [[_button(all_label, f"nav:family:{number}:random")]]
     rows.extend(
-        [_button(family_name(family), f"nav:family:{number}:{index}")]
+        [_button(_selection_name(number, family), f"nav:family:{number}:{index}")]
         for index, family in enumerate(adapter.families)
-        if not (number == 19 and family == "OGE19-MIXED")
     )
     rows.append([_button("← К номерам", "nav:numbers")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -45,7 +52,7 @@ async def show_families(message: Message, repository: Repository, number: int) -
         return
     await repository.save_user_state(message.from_user.id, f"family_selection:{number}")
     selected = await repository.training_family(message.from_user.id, number)
-    current = family_name(selected) if selected else ("Все темы" if number == 19 else "Все типы")
+    current = _selection_name(number, selected)
     await send_text(
         message,
         repository,
@@ -62,7 +69,7 @@ async def select_family(
         return
     families = NUMERIC_TRAININGS[number].families
     if selection == "random":
-        family = "OGE19-MIXED" if number == 19 else None
+        family = None
     elif selection.isascii() and selection.isdigit() and int(selection) < len(families):
         family = families[int(selection)]
     else:
@@ -70,7 +77,7 @@ async def select_family(
         return
     await repository.save_user_state(message.from_user.id, f"family_selection:{number}")
     await repository.set_training_family(message.from_user.id, number, family)
-    label = family_name(family) if family else "Все типы"
+    label = _selection_name(number, family)
     await send_text(
         message,
         repository,

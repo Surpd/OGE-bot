@@ -1242,7 +1242,8 @@ async def choose_task19(message: Message, repository: Repository) -> None:
         return
     if await _show_saved_training_choice(message, repository, 19, user_id):
         return
-    if await repository.training_family(user_id, 19) is None:
+    if (await repository.training_family(user_id, 19) is None
+            and await repository.user_state(user_id) != "family_selection:19"):
         from app.bot.family_selection import show_families
 
         await show_families(message, repository, 19)
