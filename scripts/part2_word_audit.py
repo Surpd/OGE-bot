@@ -25,8 +25,38 @@ def root(equation, lower=0, upper=None):
 
 def expected(statement: str, subtype: str):
     values = [Rational(v.replace(",", ".")) for v in re.findall(r"\d+(?:[.,]\d+)?", statement)]
+    if "вдвое больше раствора" in statement:
+        equal, weighted = values
+        return 3 * weighted - 2 * equal
+    if "три четверти скорости" in statement:
+        distance, minutes = values
+        return root(distance / (3 * X / 4) - distance / X - minutes / 60)
+    if "После встречи первому осталось" in statement:
+        first, second = values
+        return root(X**2 - first * second)
+    if "в полтора раза быстрее" in statement:
+        distance, outward, total = values
+        return (total - distance / (distance / outward * 3 / 2)) * 60
+    if "обгонит второго на целый круг" in statement:
+        first, second = values
+        return root(X / first - X / second - 1)
+    if "Сколько километров катер прошёл в одну сторону" in statement:
+        own, current, gap = values
+        return root(X / (own - current) - X / (own + current) - gap)
+    if "Катер и плот одновременно" in statement:
+        outward, distance = values
+        return distance / (2 * outward)
+    if "первая труба одна" in statement:
+        volume, minutes = values
+        return volume / (volume / minutes * 2 / 3)
+    if "одна Анна" in statement:
+        ab, bc, ac = values
+        return 2 / (1 / ab + 1 / ac - 1 / bc)
     if subtype == "mix-ratio":
         a, b, mixture = values
+        if "равную ему по массе порцию воды" in statement:
+            # Mix two parts of the diluted first solution per part of original mass.
+            return root((a * X + b) / (2 * X + 1) - mixture)
         if not min(a, b) < mixture < max(a, b):
             raise ValueError("Mixture must lie between component concentrations")
         return (b - mixture) / (mixture - a)

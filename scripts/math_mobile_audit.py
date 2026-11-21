@@ -1,0 +1,104 @@
+"""Inspect the shipped presentation spans and render mobile PNG witnesses offline."""
+
+import io
+import json
+from collections import Counter
+from pathlib import Path
+
+from PIL import Image
+
+from app.bot.explicit_math import plain_text
+from app.bot.math_image import _explicit_formula, _formula, render_math_image
+from app.bot.math_notation import math_spans, rich_needs_png_fallback
+from app.bot.part2 import solution_text, statement_text
+from app.bot.scenario_training import PUBLIC_FAMILIES, public_registry
+from app.bot.task_view import question_text
+from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
+from app.persistence.part2_bank import ATLAS
+from scripts.oge_bank_quality_audit import _ordinary_generator
+
+WITNESS = r"""Сравнения и принадлежность
+\(a\ne x\), \(x\le y\), \(y\ge a\), \(x\in A\), \(x\notin B\).
+\(x_{1,2}=\frac{-b\pm\sqrt{b^2-4ac}}{2a}\)
+Углы \(\alpha\), \(\beta\), \(\gamma\). Прямые \(AB\perp CD\).
+\(y=\begin{cases}\frac{x+1}{2},&x\le 0\\|x-2|,&x>0\end{cases}\)
+\(x\in(-\infty;-1]\cup[3;+\infty)\)"""
+
+
+def mobile(width):
+    with Image.open(io.BytesIO(render_math_image(WITNESS))) as image:
+        return image.resize(
+            (width, round(image.height * width / image.width)), Image.Resampling.LANCZOS
+        )
+
+
+def fields():
+    for story, families in PUBLIC_FAMILIES.items():
+        remaining = set(families)
+        for seed in range(2027, 2527):
+            snap = build_practice_plan(
+                PracticeRequest(PracticeMode.FULL, seed, story), public_registry()
+            ).snapshot
+            for q in snap.questions:
+                if q.family_id in remaining:
+                    remaining.remove(q.family_id)
+                    yield (
+                        "stories",
+                        [
+                            snap.shared_context,
+                            q.condition,
+                            *q.hints,
+                            *q.solution_steps,
+                            str(q.canonical_answer),
+                        ],
+                    )
+            if not remaining:
+                break
+        if remaining:
+            raise ValueError(remaining)
+    for number in range(6, 20):
+        families, build = _ordinary_generator(number)
+        for family in families:
+            q = build(family, 2027).to_snapshot()
+            steps = q["solution"]
+            yield (
+                "ordinary",
+                [
+                    question_text(number, q),
+                    *q["hints"],
+                    *(steps if isinstance(steps, list) else [steps]),
+                    str(q["correct_answer"]),
+                ],
+            )
+    for card in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines()):
+        yield (
+            "written",
+            [statement_text(card), *card["hints"], solution_text(card), card["answer_or_claim"]],
+        )
+
+
+def main():
+    counts = Counter()
+    for origin, texts in fields():
+        counts[origin] += 1
+        for text in texts:
+            spans = [s for s in math_spans(text) if s.latex]
+            counts[
+                "plain" if not spans else "png" if rich_needs_png_fallback(text) else "rich"
+            ] += 1
+            for span in spans:
+                image = _explicit_formula(span.latex) if span.explicit else _formula(span.latex)
+                if image.getbbox() is None:
+                    raise ValueError((origin, span.source))
+            if any(delimiter in plain_text(text) for delimiter in (r"\(", r"\[", r"\frac")):
+                raise ValueError(text)
+    dest = Path("reports/previews/math-mobile")
+    dest.mkdir(parents=True, exist_ok=True)
+    for width in (360, 390):
+        mobile(width).save(dest / f"formulas-{width}.png")
+    (dest / "coverage.json").write_text(json.dumps(dict(counts), indent=2) + "\n")
+    print(counts)
+
+
+if __name__ == "__main__":
+    main()

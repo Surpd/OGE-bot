@@ -178,7 +178,10 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         # Freeze the random choice to an actual card with a condition figure.
         await bank_pool.execute("""UPDATE part2_versions SET available=false
             WHERE (payload->>'number')='23' AND task_id<>'oge-part2-reshu-315053'""")
-        await tap("p2:open:23")
+        open_query = await tap("p2:open:23")
+        # Two separate updates carrying the consumed revision must not issue another card.
+        await post(callback_query=open_query)
+        assert await bank_pool.fetchval("SELECT count(*) FROM part2_issues WHERE owner=42") == 1
         assert await repo.user_state(42) == "part2"
         current = await Part2Training(bank_pool).current(42)
         issue = current["id"]

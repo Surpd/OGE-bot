@@ -56,7 +56,7 @@
   "family_count": 27,
   "subtype_count": 81,
   "observations_count": 177,
-  "curated_task_count": 486,
+  "curated_task_count": 522,
   "subtypes": [
     {
       "number": 20,
@@ -141,12 +141,12 @@
       "priority": "core",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338951"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338951",
@@ -154,7 +154,8 @@
         "oge-part2-reshu-352292",
         "oge-part2-reshu-357246",
         "oge-part2-reshu-357247",
-        "oge-part2-reshu-406321"
+        "oge-part2-reshu-406321",
+        "oge-part2-atlas-oge20-poly-substitution-extension"
       ],
       "bank_observation_ids": [
         "338951",
@@ -175,12 +176,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "311618"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-311618",
@@ -188,7 +189,8 @@
         "oge-part2-reshu-338228",
         "oge-part2-reshu-338236",
         "oge-part2-reshu-338237",
-        "oge-part2-reshu-338250"
+        "oge-part2-reshu-338250",
+        "oge-part2-atlas-oge20-power-sums-extension"
       ],
       "bank_observation_ids": [
         "311618",
@@ -244,12 +246,12 @@
       "priority": "core",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "339026"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-339026",
@@ -257,7 +259,8 @@
         "oge-part2-reshu-350263",
         "oge-part2-reshu-351135",
         "oge-part2-reshu-351788",
-        "oge-part2-reshu-352739"
+        "oge-part2-reshu-352739",
+        "oge-part2-atlas-oge20-rational-clear-extension"
       ],
       "bank_observation_ids": [
         "339026",
@@ -312,12 +315,12 @@
       "priority": "standard",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338086"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338086",
@@ -325,7 +328,8 @@
         "oge-part2-reshu-338210",
         "oge-part2-reshu-338230",
         "oge-part2-reshu-338287",
-        "oge-part2-reshu-338334"
+        "oge-part2-reshu-338334",
+        "oge-part2-atlas-oge20-radical-cancel-extension"
       ],
       "bank_observation_ids": [
         "338086",
@@ -529,13 +533,13 @@
       "priority": "standard",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "348438",
         "349691"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-348438",
@@ -543,7 +547,8 @@
         "oge-part2-reshu-349497",
         "oge-part2-reshu-349700",
         "oge-part2-reshu-349844",
-        "oge-part2-reshu-350150"
+        "oge-part2-reshu-350150",
+        "oge-part2-atlas-oge21-mix-two-experiments-extension"
       ],
       "bank_observation_ids": [
         "348438",
@@ -599,14 +604,14 @@
       "priority": "core",
       "observations": 3,
       "distinct_after_known_duplicates": 3,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338510",
         "353551",
         "D21-2027"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-fipi-demo-2027-21",
@@ -614,7 +619,8 @@
         "oge-part2-reshu-353551",
         "oge-part2-reshu-338972",
         "oge-part2-reshu-348749",
-        "oge-part2-reshu-349549"
+        "oge-part2-reshu-349549",
+        "oge-part2-atlas-oge21-finish-gap-extension"
       ],
       "bank_observation_ids": [
         "D21-2027",
@@ -670,12 +676,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338584"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338584",
@@ -683,7 +689,8 @@
         "oge-part2-reshu-338691",
         "oge-part2-reshu-338716",
         "oge-part2-reshu-338928",
-        "oge-part2-reshu-352780"
+        "oge-part2-reshu-352780",
+        "oge-part2-atlas-oge21-meeting-arrivals-extension"
       ],
       "bank_observation_ids": [
         "338584",
@@ -704,13 +711,13 @@
       "priority": "core",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338992",
         "352782"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338992",
@@ -718,7 +725,8 @@
         "oge-part2-reshu-392935",
         "oge-part2-reshu-392961",
         "oge-part2-reshu-392987",
-        "oge-part2-reshu-406322"
+        "oge-part2-reshu-406322",
+        "oge-part2-atlas-oge21-out-back-pause-extension"
       ],
       "bank_observation_ids": [
         "338992",
@@ -845,12 +853,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "353530"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-353530",
@@ -858,7 +866,8 @@
         "oge-part2-reshu-341393",
         "oge-part2-fipi-mirror-1cac40",
         "oge-part2-fipi-mirror-5f5c4e",
-        "oge-part2-fipi-mirror-07e91e"
+        "oge-part2-fipi-mirror-07e91e",
+        "oge-part2-atlas-oge21-loop-extension"
       ],
       "bank_observation_ids": [
         "353530",
@@ -918,12 +927,12 @@
       "priority": "standard",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338893"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338893",
@@ -931,7 +940,8 @@
         "oge-part2-reshu-406653",
         "oge-part2-reshu-406672",
         "oge-part2-fipi-mirror-40ee48",
-        "oge-part2-fipi-mirror-d36026"
+        "oge-part2-fipi-mirror-d36026",
+        "oge-part2-atlas-oge21-river-gap-extension"
       ],
       "bank_observation_ids": [
         "338893",
@@ -952,13 +962,13 @@
       "priority": "standard",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "311564",
         "341158"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-311564",
@@ -966,7 +976,8 @@
         "oge-part2-reshu-311570",
         "oge-part2-reshu-341227",
         "oge-part2-reshu-341341",
-        "oge-part2-reshu-341419"
+        "oge-part2-reshu-341419",
+        "oge-part2-atlas-oge21-river-raft-extension"
       ],
       "bank_observation_ids": [
         "311564",
@@ -987,7 +998,7 @@
       "priority": "core",
       "observations": 6,
       "distinct_after_known_duplicates": 6,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "311966",
         "338660",
@@ -997,7 +1008,7 @@
         "348479"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-311966",
@@ -1005,7 +1016,8 @@
         "oge-part2-reshu-338706",
         "oge-part2-reshu-340966",
         "oge-part2-reshu-341685",
-        "oge-part2-reshu-348479"
+        "oge-part2-reshu-348479",
+        "oge-part2-atlas-oge21-rate-compare-extension"
       ],
       "bank_observation_ids": [
         "311966",
@@ -1026,13 +1038,13 @@
       "priority": "standard",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "M26-21.2",
         "M26-21.3"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-fipi-rpk-2026-21-2",
@@ -1040,7 +1052,8 @@
         "oge-part2-reshu-348599",
         "oge-part2-reshu-349058",
         "oge-part2-reshu-349279",
-        "oge-part2-reshu-349452"
+        "oge-part2-reshu-349452",
+        "oge-part2-atlas-oge21-joint-sum-extension"
       ],
       "bank_observation_ids": [
         "M26-21.2",
@@ -1096,14 +1109,14 @@
       "priority": "core",
       "observations": 3,
       "distinct_after_known_duplicates": 3,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338408",
         "341686",
         "348483"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338408",
@@ -1111,7 +1124,8 @@
         "oge-part2-reshu-348483",
         "oge-part2-reshu-348845",
         "oge-part2-reshu-348865",
-        "oge-part2-reshu-349984"
+        "oge-part2-reshu-349984",
+        "oge-part2-atlas-oge22-hole-parabola-slope-extension"
       ],
       "bank_observation_ids": [
         "338408",
@@ -1132,7 +1146,7 @@
       "priority": "core",
       "observations": 4,
       "distinct_after_known_duplicates": 4,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "153",
         "314799",
@@ -1140,7 +1154,7 @@
         "338300"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-314799",
@@ -1148,7 +1162,8 @@
         "oge-part2-reshu-314804",
         "oge-part2-reshu-338300",
         "oge-part2-reshu-314796",
-        "oge-part2-reshu-349016"
+        "oge-part2-reshu-349016",
+        "oge-part2-atlas-oge22-hole-hyperbola-slope-extension"
       ],
       "bank_observation_ids": [
         "314799",
@@ -1169,13 +1184,13 @@
       "priority": "standard",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "340933",
         "341420"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-340933",
@@ -1183,7 +1198,8 @@
         "oge-part2-reshu-338224",
         "oge-part2-reshu-341509",
         "oge-part2-reshu-353123",
-        "oge-part2-reshu-392855"
+        "oge-part2-reshu-392855",
+        "oge-part2-atlas-oge22-hole-hyperbola-level-extension"
       ],
       "bank_observation_ids": [
         "340933",
@@ -1239,12 +1255,12 @@
       "priority": "core",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "311619"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-311619",
@@ -1252,7 +1268,8 @@
         "oge-part2-reshu-340993",
         "oge-part2-reshu-341025",
         "oge-part2-reshu-341057",
-        "oge-part2-reshu-349086"
+        "oge-part2-reshu-349086",
+        "oge-part2-atlas-oge22-piecewise-lines-extension"
       ],
       "bank_observation_ids": [
         "311619",
@@ -1273,13 +1290,13 @@
       "priority": "core",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "333129",
         "D22-2027"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-fipi-demo-2027-22",
@@ -1287,7 +1304,8 @@
         "oge-part2-reshu-333024",
         "oge-part2-reshu-333103",
         "oge-part2-reshu-333156",
-        "oge-part2-reshu-339278"
+        "oge-part2-reshu-339278",
+        "oge-part2-atlas-oge22-piecewise-parabola-line-extension"
       ],
       "bank_observation_ids": [
         "D22-2027",
@@ -1381,12 +1399,12 @@
       "priority": "core",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "353274"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-353274",
@@ -1394,7 +1412,8 @@
         "oge-part2-reshu-348457",
         "oge-part2-reshu-349264",
         "oge-part2-reshu-349717",
-        "oge-part2-reshu-349723"
+        "oge-part2-reshu-349723",
+        "oge-part2-atlas-oge22-modulus-outside-extension"
       ],
       "bank_observation_ids": [
         "353274",
@@ -1415,12 +1434,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "338314"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-338314",
@@ -1428,7 +1447,8 @@
         "oge-part2-reshu-341289",
         "oge-part2-reshu-401321",
         "oge-part2-reshu-401477",
-        "oge-part2-reshu-402035"
+        "oge-part2-reshu-402035",
+        "oge-part2-atlas-oge22-max-form-extension"
       ],
       "bank_observation_ids": [
         "338314",
@@ -1544,13 +1564,13 @@
       "priority": "standard",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "324708",
         "353514"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-324708",
@@ -1558,7 +1578,8 @@
         "oge-part2-reshu-352999",
         "oge-part2-fipi-mirror-6380f3",
         "oge-part2-fipi-mirror-c3f608",
-        "oge-part2-fipi-mirror-d35e73"
+        "oge-part2-fipi-mirror-d35e73",
+        "oge-part2-atlas-oge23-right-projection-extension"
       ],
       "bank_observation_ids": [
         "324708",
@@ -1579,14 +1600,14 @@
       "priority": "core",
       "observations": 3,
       "distinct_after_known_duplicates": 3,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "324798",
         "352568",
         "D23-2027"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-fipi-demo-2027-23",
@@ -1594,7 +1615,8 @@
         "oge-part2-reshu-352568",
         "oge-part2-reshu-333130",
         "oge-part2-reshu-333157",
-        "oge-part2-reshu-424983"
+        "oge-part2-reshu-424983",
+        "oge-part2-atlas-oge23-right-bisectors-extension"
       ],
       "bank_observation_ids": [
         "D23-2027",
@@ -1615,13 +1637,13 @@
       "priority": "standard",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "324878",
         "353441"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-324878",
@@ -1629,7 +1651,8 @@
         "oge-part2-reshu-339395",
         "oge-part2-reshu-339512",
         "oge-part2-reshu-339570",
-        "oge-part2-reshu-339729"
+        "oge-part2-reshu-339729",
+        "oge-part2-atlas-oge23-right-circle-rectangle-extension"
       ],
       "bank_observation_ids": [
         "324878",
@@ -1650,12 +1673,12 @@
       "priority": "standard",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "322806"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-322806",
@@ -1663,7 +1686,8 @@
         "oge-part2-reshu-339656",
         "oge-part2-reshu-350157",
         "oge-part2-reshu-350726",
-        "oge-part2-reshu-351460"
+        "oge-part2-reshu-351460",
+        "oge-part2-atlas-oge23-parallel-segment-extension"
       ],
       "bank_observation_ids": [
         "322806",
@@ -1684,14 +1708,14 @@
       "priority": "core",
       "observations": 3,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "324748",
         "339400",
         "352582"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-324748",
@@ -1699,7 +1723,8 @@
         "oge-part2-reshu-333321",
         "oge-part2-reshu-339501",
         "oge-part2-reshu-339567",
-        "oge-part2-reshu-339593"
+        "oge-part2-reshu-339593",
+        "oge-part2-atlas-oge23-parallel-diagonals-extension"
       ],
       "bank_observation_ids": [
         "324748",
@@ -1853,12 +1878,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "351992"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-351992",
@@ -1866,7 +1891,8 @@
         "oge-part2-reshu-339454",
         "oge-part2-reshu-348741",
         "oge-part2-reshu-349618",
-        "oge-part2-reshu-349709"
+        "oge-part2-reshu-349709",
+        "oge-part2-atlas-oge23-trapezoid-trig-extension"
       ],
       "bank_observation_ids": [
         "351992",
@@ -2302,13 +2328,13 @@
       "priority": "core",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "339398",
         "D25-2027"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-fipi-demo-2027-25",
@@ -2316,7 +2342,8 @@
         "oge-part2-reshu-339408",
         "oge-part2-reshu-339455",
         "oge-part2-reshu-339631",
-        "oge-part2-reshu-339632"
+        "oge-part2-reshu-339632",
+        "oge-part2-atlas-oge25-trapezoid-bisector-area-extension"
       ],
       "bank_observation_ids": [
         "D25-2027",
@@ -2372,12 +2399,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "353565"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-353565",
@@ -2385,7 +2412,8 @@
         "oge-part2-reshu-341060",
         "oge-part2-reshu-348839",
         "oge-part2-reshu-349860",
-        "oge-part2-reshu-349968"
+        "oge-part2-reshu-349968",
+        "oge-part2-atlas-oge25-trapezoid-midpoint-segments-extension"
       ],
       "bank_observation_ids": [
         "353565",
@@ -2406,12 +2434,12 @@
       "priority": "standard",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "457286"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-457286",
@@ -2419,7 +2447,8 @@
         "oge-part2-fipi-mirror-e097f7",
         "oge-part2-fipi-mirror-569075",
         "oge-part2-fipi-mirror-97c87b",
-        "oge-part2-fipi-mirror-b435d4"
+        "oge-part2-fipi-mirror-b435d4",
+        "oge-part2-atlas-oge25-parallelogram-bisectors-extension"
       ],
       "bank_observation_ids": [
         "457286",
@@ -2440,12 +2469,12 @@
       "priority": "core",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "340054"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-340054",
@@ -2453,7 +2482,8 @@
         "oge-part2-fipi-mirror-51a343",
         "oge-part2-fipi-mirror-aa39fe",
         "oge-part2-fipi-mirror-1ee527",
-        "oge-part2-fipi-mirror-f311d0"
+        "oge-part2-fipi-mirror-f311d0",
+        "oge-part2-atlas-oge25-tangent-trapezoid-extension"
       ],
       "bank_observation_ids": [
         "340054",
@@ -2532,12 +2562,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "339825"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-339825",
@@ -2545,7 +2575,8 @@
         "oge-part2-reshu-350839",
         "oge-part2-reshu-351109",
         "oge-part2-reshu-351158",
-        "oge-part2-reshu-352193"
+        "oge-part2-reshu-352193",
+        "oge-part2-atlas-oge25-incenter-distance-extension"
       ],
       "bank_observation_ids": [
         "339825",
@@ -2637,12 +2668,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "340133"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-340133",
@@ -2650,7 +2681,8 @@
         "oge-part2-reshu-349275",
         "oge-part2-reshu-349590",
         "oge-part2-reshu-351184",
-        "oge-part2-reshu-351826"
+        "oge-part2-reshu-351826",
+        "oge-part2-atlas-oge25-circumcenter-chord-extension"
       ],
       "bank_observation_ids": [
         "340133",
@@ -2671,14 +2703,14 @@
       "priority": "core",
       "observations": 3,
       "distinct_after_known_duplicates": 3,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "340855",
         "339665",
         "340376"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-340855",
@@ -2686,7 +2718,8 @@
         "oge-part2-reshu-340936",
         "oge-part2-reshu-341132",
         "oge-part2-reshu-348471",
-        "oge-part2-reshu-350018"
+        "oge-part2-reshu-350018",
+        "oge-part2-atlas-oge25-secant-tangent-extension"
       ],
       "bank_observation_ids": [
         "340855",
@@ -2707,12 +2740,12 @@
       "priority": "rare",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "333132"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-333132",
@@ -2720,7 +2753,8 @@
         "oge-part2-reshu-340323",
         "oge-part2-reshu-348722",
         "oge-part2-reshu-349805",
-        "oge-part2-reshu-350396"
+        "oge-part2-reshu-350396",
+        "oge-part2-atlas-oge25-two-circle-tangents-extension"
       ],
       "bank_observation_ids": [
         "333132",
@@ -2741,12 +2775,12 @@
       "priority": "core",
       "observations": 1,
       "distinct_after_known_duplicates": 1,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "339402"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-339402",
@@ -2754,7 +2788,8 @@
         "oge-part2-reshu-339457",
         "oge-part2-reshu-339719",
         "oge-part2-reshu-339746",
-        "oge-part2-reshu-349858"
+        "oge-part2-reshu-349858",
+        "oge-part2-atlas-oge25-orthocenter-semicircle-extension"
       ],
       "bank_observation_ids": [
         "339402",
@@ -2775,13 +2810,13 @@
       "priority": "rare",
       "observations": 2,
       "distinct_after_known_duplicates": 2,
-      "complete_cards": 6,
+      "complete_cards": 7,
       "observation_ids": [
         "333323",
         "353380"
       ],
       "source_cards": 6,
-      "training_only_cards": 0,
+      "training_only_cards": 1,
       "target_count": 6,
       "card_ids": [
         "oge-part2-reshu-333323",
@@ -2789,7 +2824,8 @@
         "oge-part2-reshu-333349",
         "oge-part2-reshu-339435",
         "oge-part2-reshu-339458",
-        "oge-part2-reshu-339507"
+        "oge-part2-reshu-339507",
+        "oge-part2-atlas-oge25-median-bisector-extension"
       ],
       "bank_observation_ids": [
         "333323",
@@ -2831,7 +2867,7 @@
     }
   ],
   "source_card_count": 407,
-  "authored_training_card_count": 79,
+  "authored_training_card_count": 115,
   "target_count_per_subtype": 6,
-  "coverage_rows": 506
+  "coverage_rows": 542
 }

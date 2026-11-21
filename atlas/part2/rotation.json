@@ -1,0 +1,2319 @@
+{
+  "OGE20-poly-factor": [
+    {
+      "id": "OGE20-poly-factor/1",
+      "construction": "Выделить полный квадрат",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-438301"
+      ],
+      "method": "Разложение на множители"
+    },
+    {
+      "id": "OGE20-poly-factor/2",
+      "construction": "Сгруппировать слагаемые кубического уравнения",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311589",
+        "oge-part2-reshu-311586"
+      ],
+      "method": "Группировка"
+    },
+    {
+      "id": "OGE20-poly-factor/3",
+      "construction": "Вынести общие множители обеих частей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338079",
+        "oge-part2-reshu-338348"
+      ],
+      "method": "Разложение на множители"
+    },
+    {
+      "id": "OGE20-poly-factor/4",
+      "construction": "Вынести x",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311594"
+      ],
+      "method": "Разложение на множители"
+    }
+  ],
+  "OGE20-poly-quadratic": [
+    {
+      "id": "OGE20-poly-quadratic/1",
+      "construction": "Разложить разность квадратов",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311591"
+      ],
+      "method": "Разность квадратов"
+    },
+    {
+      "id": "OGE20-poly-quadratic/2",
+      "construction": "Раскрыть квадрат двучлена",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338498",
+        "oge-part2-reshu-338506",
+        "oge-part2-reshu-338645"
+      ],
+      "method": "Приведение к квадратному уравнению"
+    },
+    {
+      "id": "OGE20-poly-quadratic/3",
+      "construction": "Собрать квадратное уравнение",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338632",
+        "oge-part2-reshu-338662"
+      ],
+      "method": "Приведение к квадратному уравнению"
+    }
+  ],
+  "OGE20-poly-substitution": [
+    {
+      "id": "OGE20-poly-substitution/1",
+      "construction": "Замена переменной",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338951",
+        "oge-part2-reshu-348808",
+        "oge-part2-reshu-352292",
+        "oge-part2-reshu-357246",
+        "oge-part2-reshu-357247",
+        "oge-part2-reshu-406321"
+      ],
+      "method": "Биквадратное или квадрат от выражения, затем обратная подстановка с ограничением"
+    },
+    {
+      "id": "OGE20-poly-substitution/2",
+      "construction": "Два положительных значения замены и четыре корня",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge20-poly-substitution-extension"
+      ],
+      "method": "Биквадратное или квадрат от выражения, затем обратная подстановка с ограничением"
+    }
+  ],
+  "OGE20-power-sums": [
+    {
+      "id": "OGE20-power-sums/1",
+      "construction": "Сумма неотрицательных степеней",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311618",
+        "oge-part2-reshu-338137",
+        "oge-part2-reshu-338228",
+        "oge-part2-reshu-338236",
+        "oge-part2-reshu-338237",
+        "oge-part2-reshu-338250"
+      ],
+      "method": "Пересечение множеств нулей"
+    },
+    {
+      "id": "OGE20-power-sums/2",
+      "construction": "Нули квадратов с общим квадратичным множителем",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge20-power-sums-extension"
+      ],
+      "method": "Вынесение общего квадрата или пересечение нулей"
+    }
+  ],
+  "OGE20-power-equality": [
+    {
+      "id": "OGE20-power-equality/1",
+      "construction": "Извлечь кубический корень",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338860"
+      ],
+      "method": "Чётная степень даёт две ветви, нечётная позволяет однозначно снять степень"
+    },
+    {
+      "id": "OGE20-power-equality/2",
+      "construction": "Рассмотреть два знака при равенстве квадратов",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-357583",
+        "oge-part2-reshu-338991",
+        "oge-part2-reshu-348378",
+        "oge-part2-reshu-351751",
+        "oge-part2-reshu-480521"
+      ],
+      "method": "Чётная степень даёт две ветви, нечётная позволяет однозначно снять степень"
+    }
+  ],
+  "OGE20-rational-clear": [
+    {
+      "id": "OGE20-rational-clear/1",
+      "construction": "Дробно-рациональное уравнение",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-339026",
+        "oge-part2-reshu-349122",
+        "oge-part2-reshu-350263",
+        "oge-part2-reshu-351135",
+        "oge-part2-reshu-351788",
+        "oge-part2-reshu-352739"
+      ],
+      "method": "Квадратное уравнение и фильтр ОДЗ"
+    },
+    {
+      "id": "OGE20-rational-clear/2",
+      "construction": "Уравнение тождественно на области определения",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge20-rational-clear-extension"
+      ],
+      "method": "Тождество на ОДЗ"
+    }
+  ],
+  "OGE20-rational-substitution": [
+    {
+      "id": "OGE20-rational-substitution/1",
+      "construction": "Заменить обратную величину со сдвигом",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338757",
+        "oge-part2-fipi-mirror-c0319f"
+      ],
+      "method": "Замена обратной величиной и восстановление x без нарушения ОДЗ"
+    },
+    {
+      "id": "OGE20-rational-substitution/2",
+      "construction": "Заменить обратную величину",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338713",
+        "oge-part2-fipi-mirror-da1518",
+        "oge-part2-fipi-mirror-74f954",
+        "oge-part2-fipi-mirror-7033ca"
+      ],
+      "method": "Замена обратной величиной и восстановление x без нарушения ОДЗ"
+    }
+  ],
+  "OGE20-radical-cancel": [
+    {
+      "id": "OGE20-radical-cancel/1",
+      "construction": "Сокращение одинаковых радикалов",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338086",
+        "oge-part2-reshu-338167",
+        "oge-part2-reshu-338210",
+        "oge-part2-reshu-338230",
+        "oge-part2-reshu-338287",
+        "oge-part2-reshu-338334"
+      ],
+      "method": "Радикал исчезает из равенства, но ограничение его области остаётся"
+    },
+    {
+      "id": "OGE20-radical-cancel/2",
+      "construction": "Радикал на границе области определения",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge20-radical-cancel-extension"
+      ],
+      "method": "Радикал исчезает из равенства, но ограничение его области остаётся"
+    }
+  ],
+  "OGE20-poly-inequality": [
+    {
+      "id": "OGE20-poly-inequality/1",
+      "construction": "Привести к квадратному неравенству",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-314563",
+        "oge-part2-reshu-151"
+      ],
+      "method": "Знаки квадратного трёхчлена"
+    },
+    {
+      "id": "OGE20-poly-inequality/2",
+      "construction": "Вынести общий двучлен с иррациональным коэффициентом",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338566"
+      ],
+      "method": "Знаки двух линейных множителей"
+    },
+    {
+      "id": "OGE20-poly-inequality/3",
+      "construction": "Учесть общий корень двух квадратных множителей",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-reshu-472395"
+      ],
+      "method": "Метод интервалов"
+    },
+    {
+      "id": "OGE20-poly-inequality/4",
+      "construction": "Разложить кубический многочлен и определить знаки",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-reshu-472398",
+        "oge-part2-reshu-472412"
+      ],
+      "method": "Метод интервалов"
+    }
+  ],
+  "OGE20-rational-inequality": [
+    {
+      "id": "OGE20-rational-inequality/1",
+      "construction": "Перенести обратную величину",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-fipi-demo-2027-20"
+      ],
+      "method": "Привести к дроби, отметить нули числителя и запрещённые точки, включая сократившиеся"
+    },
+    {
+      "id": "OGE20-rational-inequality/2",
+      "construction": "Сократить с сохранением выколотой точки",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-472402"
+      ],
+      "method": "Привести к дроби, отметить нули числителя и запрещённые точки, включая сократившиеся"
+    },
+    {
+      "id": "OGE20-rational-inequality/3",
+      "construction": "Определить знак знаменателя",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338512"
+      ],
+      "method": "Привести к дроби, отметить нули числителя и запрещённые точки, включая сократившиеся"
+    },
+    {
+      "id": "OGE20-rational-inequality/4",
+      "construction": "Учесть двойной ноль числителя",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-472401"
+      ],
+      "method": "Привести к дроби, отметить нули числителя и запрещённые точки, включая сократившиеся"
+    },
+    {
+      "id": "OGE20-rational-inequality/5",
+      "construction": "Привести к общей дроби с линейным числителем",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-472406"
+      ],
+      "method": "Привести к дроби, отметить нули числителя и запрещённые точки, включая сократившиеся"
+    },
+    {
+      "id": "OGE20-rational-inequality/6",
+      "construction": "Вычесть две обратные величины",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-472409"
+      ],
+      "method": "Привести к дроби, отметить нули числителя и запрещённые точки, включая сократившиеся"
+    }
+  ],
+  "OGE20-system-elimination": [
+    {
+      "id": "OGE20-system-elimination/1",
+      "construction": "Исключить пропорциональные квадратичные части",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338577",
+        "oge-part2-reshu-341340",
+        "oge-part2-reshu-338617",
+        "oge-part2-reshu-338664"
+      ],
+      "method": "Сложение или вычитание уравнений, затем восстановление всех пар"
+    },
+    {
+      "id": "OGE20-system-elimination/2",
+      "construction": "Сложить уравнения с противоположными линейными членами",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338545",
+        "oge-part2-reshu-338594"
+      ],
+      "method": "Сложение или вычитание уравнений, затем восстановление всех пар"
+    }
+  ],
+  "OGE20-system-substitution": [
+    {
+      "id": "OGE20-system-substitution/1",
+      "construction": "Приравнять параболу и прямую",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338650",
+        "oge-part2-reshu-338690",
+        "oge-part2-reshu-338732",
+        "oge-part2-reshu-338821",
+        "oge-part2-reshu-338923"
+      ],
+      "method": "Приравнять правые части и вернуть каждую найденную абсциссу в одно из уравнений"
+    },
+    {
+      "id": "OGE20-system-substitution/2",
+      "construction": "Приравнять квадраты линейных выражений",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338779"
+      ],
+      "method": "Приравнять правые части и вернуть каждую найденную абсциссу в одно из уравнений"
+    }
+  ],
+  "OGE21-mix-ratio": [
+    {
+      "id": "OGE21-mix-ratio/1",
+      "construction": "Прямой баланс соли",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-314457",
+        "oge-part2-reshu-314431",
+        "oge-part2-reshu-314469",
+        "oge-part2-reshu-314480",
+        "oge-part2-atlas-a21-mix-ratio-01"
+      ],
+      "historical_versions": [
+        "oge-part2-atlas-a21-mix-ratio-02@1"
+      ],
+      "method": "Баланс массы вещества"
+    },
+    {
+      "id": "OGE21-mix-ratio/2",
+      "construction": "Разбавление водой перед смешиванием",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-a21-mix-ratio-02"
+      ],
+      "method": "Баланс массы жидкости и растворённого вещества"
+    }
+  ],
+  "OGE21-mix-two-experiments": [
+    {
+      "id": "OGE21-mix-two-experiments/1",
+      "construction": "Два режима смешивания",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-348438",
+        "oge-part2-reshu-349691",
+        "oge-part2-reshu-349497",
+        "oge-part2-reshu-349700",
+        "oge-part2-reshu-349844",
+        "oge-part2-reshu-350150"
+      ],
+      "method": "Система линейных уравнений"
+    },
+    {
+      "id": "OGE21-mix-two-experiments/2",
+      "construction": "Восстановить долю вещества по двум пробам разного состава",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-mix-two-experiments-extension"
+      ],
+      "method": "Вычитание балансов двух проб"
+    }
+  ],
+  "OGE21-mass-invariant": [
+    {
+      "id": "OGE21-mass-invariant/1",
+      "construction": "Найти массу после сушки",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338773",
+        "oge-part2-reshu-353545"
+      ],
+      "method": "При изменении доли воды меняется общая масса, масса сухого вещества сохраняется"
+    },
+    {
+      "id": "OGE21-mass-invariant/2",
+      "construction": "Восстановить исходную массу",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-341367",
+        "oge-part2-reshu-339013",
+        "oge-part2-reshu-341508",
+        "oge-part2-reshu-353507"
+      ],
+      "method": "При изменении доли воды меняется общая масса, масса сухого вещества сохраняется"
+    }
+  ],
+  "OGE21-finish-gap": [
+    {
+      "id": "OGE21-finish-gap/1",
+      "construction": "Два участника на одной дистанции",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-fipi-demo-2027-21",
+        "oge-part2-reshu-338510",
+        "oge-part2-reshu-353551",
+        "oge-part2-reshu-338972",
+        "oge-part2-reshu-348749",
+        "oge-part2-reshu-349549"
+      ],
+      "method": "Разность обратных скоростей"
+    },
+    {
+      "id": "OGE21-finish-gap/2",
+      "construction": "Разность времён при заданном отношении скоростей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-finish-gap-extension"
+      ],
+      "method": "Обратная пропорциональность времён"
+    }
+  ],
+  "OGE21-meeting-pause": [
+    {
+      "id": "OGE21-meeting-pause/1",
+      "construction": "Известно место встречи, найти скорость",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-314507",
+        "oge-part2-reshu-314516",
+        "oge-part2-reshu-314561",
+        "oge-part2-reshu-314566",
+        "oge-part2-reshu-314593"
+      ],
+      "method": "Сумма пройденных путей и разный учёт времени движения"
+    },
+    {
+      "id": "OGE21-meeting-pause/2",
+      "construction": "Найти пройденное расстояние",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-333319"
+      ],
+      "method": "Сумма пройденных путей и разный учёт времени движения"
+    }
+  ],
+  "OGE21-meeting-arrivals": [
+    {
+      "id": "OGE21-meeting-arrivals/1",
+      "construction": "Встреча и разница прибытия",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338584",
+        "oge-part2-reshu-338669",
+        "oge-part2-reshu-338691",
+        "oge-part2-reshu-338716",
+        "oge-part2-reshu-338928",
+        "oge-part2-reshu-352780"
+      ],
+      "method": "Сумма долей пройденного пути"
+    },
+    {
+      "id": "OGE21-meeting-arrivals/2",
+      "construction": "Время до встречи по двум временам после неё",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-meeting-arrivals-extension"
+      ],
+      "method": "Геометрическое среднее времён"
+    }
+  ],
+  "OGE21-out-back-pause": [
+    {
+      "id": "OGE21-out-back-pause/1",
+      "construction": "Туда и обратно с остановкой",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338992",
+        "oge-part2-reshu-352782",
+        "oge-part2-reshu-392935",
+        "oge-part2-reshu-392961",
+        "oge-part2-reshu-392987",
+        "oge-part2-reshu-406322"
+      ],
+      "method": "Одинаковая дистанция в оба направления, в одном времени есть добавка стоянки"
+    },
+    {
+      "id": "OGE21-out-back-pause/2",
+      "construction": "Длительность остановки по отношению скоростей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-out-back-pause-extension"
+      ],
+      "method": "Одинаковая дистанция в оба направления, в одном времени есть добавка стоянки"
+    }
+  ],
+  "OGE21-split-equal-time": [
+    {
+      "id": "OGE21-split-equal-time/1",
+      "construction": "Выбрать скорость с дополнительным ограничением",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338561",
+        "oge-part2-reshu-341128",
+        "oge-part2-reshu-352863"
+      ],
+      "method": "Сумму времён на половинах приравнять времени равномерного движения"
+    },
+    {
+      "id": "OGE21-split-equal-time/2",
+      "construction": "Найти скорость по равенству времён",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-351543",
+        "oge-part2-reshu-352425",
+        "oge-part2-fipi-mirror-4cd6f9"
+      ],
+      "method": "Сумму времён на половинах приравнять времени равномерного движения"
+    }
+  ],
+  "OGE21-average-speed": [
+    {
+      "id": "OGE21-average-speed/1",
+      "construction": "Заданы времена участков",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338603"
+      ],
+      "method": "Весь путь делится на всё время, исходные веса задаются отрезками или часами"
+    },
+    {
+      "id": "OGE21-average-speed/2",
+      "construction": "Заданы расстояния участков",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338919",
+        "oge-part2-reshu-352009",
+        "oge-part2-reshu-353200"
+      ],
+      "method": "Весь путь делится на всё время, исходные веса задаются отрезками или часами"
+    },
+    {
+      "id": "OGE21-average-speed/3",
+      "construction": "Две равные половины пути",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338961",
+        "oge-part2-reshu-350219"
+      ],
+      "method": "Весь путь делится на всё время, исходные веса задаются отрезками или часами"
+    }
+  ],
+  "OGE21-relative-motion": [
+    {
+      "id": "OGE21-relative-motion/1",
+      "construction": "Скорость сближения вдогонку",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-333023",
+        "oge-part2-reshu-333102",
+        "oge-part2-reshu-341283",
+        "oge-part2-reshu-341288"
+      ],
+      "method": "Скорость сближения, расстояние при задержанном старте, отдельные события обгона"
+    },
+    {
+      "id": "OGE21-relative-motion/2",
+      "construction": "Скорость встречного движения",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338854",
+        "oge-part2-reshu-353306"
+      ],
+      "method": "Скорость сближения, расстояние при задержанном старте, отдельные события обгона"
+    }
+  ],
+  "OGE21-loop": [
+    {
+      "id": "OGE21-loop/1",
+      "construction": "Один круг и разное время",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-353530",
+        "oge-part2-reshu-338904",
+        "oge-part2-reshu-341393",
+        "oge-part2-fipi-mirror-1cac40",
+        "oge-part2-fipi-mirror-5f5c4e",
+        "oge-part2-fipi-mirror-07e91e"
+      ],
+      "method": "Выразить одну длину круга по двум участникам, учесть остаток пути"
+    },
+    {
+      "id": "OGE21-loop/2",
+      "construction": "Обгон на круг по временам двух полных кругов",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-loop-extension"
+      ],
+      "method": "Выразить одну длину круга по двум участникам, учесть остаток пути"
+    }
+  ],
+  "OGE21-river-total": [
+    {
+      "id": "OGE21-river-total/1",
+      "construction": "Одинаковые расстояния, найти скорость судна",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311621",
+        "oge-part2-reshu-338582",
+        "oge-part2-reshu-341534",
+        "oge-part2-reshu-353294"
+      ],
+      "method": "Скорости v±u, из полного времени вычесть стоянку, v>u"
+    },
+    {
+      "id": "OGE21-river-total/2",
+      "construction": "Учесть стоянку и найти скорость течения",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-reshu-352844"
+      ],
+      "method": "Скорости v±u, из полного времени вычесть стоянку, v>u"
+    },
+    {
+      "id": "OGE21-river-total/3",
+      "construction": "Неравные расстояния на участках",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-353102"
+      ],
+      "method": "Скорости v±u, из полного времени вычесть стоянку, v>u"
+    }
+  ],
+  "OGE21-river-gap": [
+    {
+      "id": "OGE21-river-gap/1",
+      "construction": "Разность времён против и по течению",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338893",
+        "oge-part2-reshu-353575",
+        "oge-part2-reshu-406653",
+        "oge-part2-reshu-406672",
+        "oge-part2-fipi-mirror-40ee48",
+        "oge-part2-fipi-mirror-d36026"
+      ],
+      "method": "Составить разность двух дробей и учесть v>u"
+    },
+    {
+      "id": "OGE21-river-gap/2",
+      "construction": "Разность времён определяет длину рейса",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-river-gap-extension"
+      ],
+      "method": "Составить разность двух дробей и учесть v>u"
+    }
+  ],
+  "OGE21-river-raft": [
+    {
+      "id": "OGE21-river-raft/1",
+      "construction": "Плот и лодка с задержанным выходом",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311564",
+        "oge-part2-reshu-341158",
+        "oge-part2-reshu-311570",
+        "oge-part2-reshu-341227",
+        "oge-part2-reshu-341341",
+        "oge-part2-reshu-341419"
+      ],
+      "method": "Баланс времени пути плота и рейса"
+    },
+    {
+      "id": "OGE21-river-raft/2",
+      "construction": "Встреча с плотом в системе отсчёта воды",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-river-raft-extension"
+      ],
+      "method": "Движение в системе отсчёта воды"
+    }
+  ],
+  "OGE21-rate-compare": [
+    {
+      "id": "OGE21-rate-compare/1",
+      "construction": "Сравнение двух производительностей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311966",
+        "oge-part2-reshu-338660",
+        "oge-part2-reshu-338706",
+        "oge-part2-reshu-340966",
+        "oge-part2-reshu-341685",
+        "oge-part2-reshu-348479"
+      ],
+      "method": "Разность времён выполнения работы"
+    },
+    {
+      "id": "OGE21-rate-compare/2",
+      "construction": "Отдельные скорости по совместной работе и отношению",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-rate-compare-extension"
+      ],
+      "method": "Сложение и деление производительностей"
+    }
+  ],
+  "OGE21-joint-sum": [
+    {
+      "id": "OGE21-joint-sum/1",
+      "construction": "Совместная работа, даны времена пар",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-fipi-rpk-2026-21-2",
+        "oge-part2-reshu-338847",
+        "oge-part2-reshu-348599",
+        "oge-part2-reshu-349058",
+        "oge-part2-reshu-349279",
+        "oge-part2-reshu-349452"
+      ],
+      "method": "Сложение трёх парных производительностей"
+    },
+    {
+      "id": "OGE21-joint-sum/2",
+      "construction": "Выделить одного работника из трёх пар",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge21-joint-sum-extension"
+      ],
+      "method": "Исключение неизвестных вычитанием пар"
+    }
+  ],
+  "OGE22-hole-parabola-level": [
+    {
+      "id": "OGE22-hole-parabola-level/1",
+      "construction": "Один прообраз горизонтального уровня",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338295",
+        "oge-part2-reshu-338288",
+        "oge-part2-reshu-340600",
+        "oge-part2-reshu-341129",
+        "oge-part2-reshu-341159"
+      ],
+      "method": "Отдельно посчитать вершину и уровни каждой выколотой точки"
+    },
+    {
+      "id": "OGE22-hole-parabola-level/2",
+      "construction": "Два прообраза с учётом выколотых точек",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-341535"
+      ],
+      "method": "Отдельно посчитать вершину и уровни каждой выколотой точки"
+    }
+  ],
+  "OGE22-hole-parabola-slope": [
+    {
+      "id": "OGE22-hole-parabola-slope/1",
+      "construction": "Парабола и пучок y=kx",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338408",
+        "oge-part2-reshu-341686",
+        "oge-part2-reshu-348483",
+        "oge-part2-reshu-348845",
+        "oge-part2-reshu-348865",
+        "oge-part2-reshu-349984"
+      ],
+      "method": "Касание по дискриминанту и потеря одного допустимого корня на выколотой точке"
+    },
+    {
+      "id": "OGE22-hole-parabola-slope/2",
+      "construction": "Два корня с исключением касания и выколотой точки",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge22-hole-parabola-slope-extension"
+      ],
+      "method": "Касание по дискриминанту и потеря одного допустимого корня на выколотой точке"
+    }
+  ],
+  "OGE22-hole-hyperbola-slope": [
+    {
+      "id": "OGE22-hole-hyperbola-slope/1",
+      "construction": "Гипербола и пучок y=kx",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-314799",
+        "oge-part2-reshu-153",
+        "oge-part2-reshu-314804",
+        "oge-part2-reshu-338300",
+        "oge-part2-reshu-314796",
+        "oge-part2-reshu-349016"
+      ],
+      "method": "Уравнение kx²=c, затем фильтр отверстия по исходному знаменателю"
+    },
+    {
+      "id": "OGE22-hole-hyperbola-slope/2",
+      "construction": "Целый интервал угловых коэффициентов с двумя пересечениями",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge22-hole-hyperbola-slope-extension"
+      ],
+      "method": "Уравнение kx²=c, затем фильтр отверстия по исходному знаменателю"
+    }
+  ],
+  "OGE22-hole-hyperbola-level": [
+    {
+      "id": "OGE22-hole-hyperbola-level/1",
+      "construction": "Сдвинутая гипербола и горизонталь",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340933",
+        "oge-part2-reshu-341420",
+        "oge-part2-reshu-338224",
+        "oge-part2-reshu-341509",
+        "oge-part2-reshu-353123",
+        "oge-part2-reshu-392855"
+      ],
+      "method": "Горизонтальная асимптота и потеря единственной точки на выколотом уровне"
+    },
+    {
+      "id": "OGE22-hole-hyperbola-level/2",
+      "construction": "Множество достижимых значений функции",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge22-hole-hyperbola-level-extension"
+      ],
+      "method": "Горизонтальная асимптота и потеря единственной точки на выколотом уровне"
+    }
+  ],
+  "OGE22-hole-modulus": [
+    {
+      "id": "OGE22-hole-modulus/1",
+      "construction": "Горизонталь и график с модулем",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338420",
+        "oge-part2-reshu-338435",
+        "oge-part2-reshu-341342",
+        "oge-part2-reshu-353416"
+      ],
+      "method": "Учитывать исходные запреты и раскрытие модуля; монотонные половины или неодинаковый знак наклона"
+    },
+    {
+      "id": "OGE22-hole-modulus/2",
+      "construction": "Прямая через начало и обратный модуль",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311662",
+        "oge-part2-reshu-338162"
+      ],
+      "method": "Учитывать исходные запреты и раскрытие модуля; монотонные половины или неодинаковый знак наклона"
+    }
+  ],
+  "OGE22-piecewise-lines": [
+    {
+      "id": "OGE22-piecewise-lines/1",
+      "construction": "Ломаная из кусочно-линейных ветвей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311619",
+        "oge-part2-reshu-339148",
+        "oge-part2-reshu-340993",
+        "oge-part2-reshu-341025",
+        "oge-part2-reshu-341057",
+        "oge-part2-reshu-349086"
+      ],
+      "method": "Сложить количества пересечений по диапазонам ветвей, не задвоить общий конец"
+    },
+    {
+      "id": "OGE22-piecewise-lines/2",
+      "construction": "Пересечение множеств значений трёх линейных ветвей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge22-piecewise-lines-extension"
+      ],
+      "method": "Сложить количества пересечений по диапазонам ветвей, не задвоить общий конец"
+    }
+  ],
+  "OGE22-piecewise-parabola-line": [
+    {
+      "id": "OGE22-piecewise-parabola-line/1",
+      "construction": "Парабола и прямая",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-fipi-demo-2027-22",
+        "oge-part2-reshu-333129",
+        "oge-part2-reshu-333024",
+        "oge-part2-reshu-333103",
+        "oge-part2-reshu-333156",
+        "oge-part2-reshu-339278"
+      ],
+      "method": "Вершина, уровень ветви на стыке и предел другой ветви; отмечать начало и конец раздельно"
+    },
+    {
+      "id": "OGE22-piecewise-parabola-line/2",
+      "construction": "Одновременное пересечение луча и обеих сторон параболы",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge22-piecewise-parabola-line-extension"
+      ],
+      "method": "Вершина, уровень ветви на стыке и предел другой ветви; отмечать начало и конец раздельно"
+    }
+  ],
+  "OGE22-piecewise-parabola-hyperbola": [
+    {
+      "id": "OGE22-piecewise-parabola-hyperbola/1",
+      "construction": "Объединение уровней для одной и двух точек",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338465",
+        "oge-part2-reshu-333346",
+        "oge-part2-reshu-341394"
+      ],
+      "method": "Сравнить диапазоны ветвей, уровень стыка и горизонтальную асимптоту"
+    },
+    {
+      "id": "OGE22-piecewise-parabola-hyperbola/2",
+      "construction": "Уровни для единственной точки",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-370480",
+        "oge-part2-reshu-392124",
+        "oge-part2-reshu-392674"
+      ],
+      "method": "Сравнить диапазоны ветвей, уровень стыка и горизонтальную асимптоту"
+    }
+  ],
+  "OGE22-modulus-inside": [
+    {
+      "id": "OGE22-modulus-inside/1",
+      "construction": "Максимум числа пересечений",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338409"
+      ],
+      "method": "Раскрыть модуль по знаку, учесть вершины обеих парабол и стык"
+    },
+    {
+      "id": "OGE22-modulus-inside/2",
+      "construction": "Два прообраза",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338160"
+      ],
+      "method": "Раскрыть модуль по знаку, учесть вершины обеих парабол и стык"
+    },
+    {
+      "id": "OGE22-modulus-inside/3",
+      "construction": "Три прообраза",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338253",
+        "oge-part2-reshu-341230"
+      ],
+      "method": "Раскрыть модуль по знаку, учесть вершины обеих парабол и стык"
+    },
+    {
+      "id": "OGE22-modulus-inside/4",
+      "construction": "Пересчитать параметр смещенной горизонтали",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-reshu-316358",
+        "oge-part2-reshu-316384"
+      ],
+      "method": "Раскрыть модуль по знаку, учесть вершины обеих парабол и стык"
+    }
+  ],
+  "OGE22-modulus-outside": [
+    {
+      "id": "OGE22-modulus-outside/1",
+      "construction": "Внешний модуль квадратной функции",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-353274",
+        "oge-part2-reshu-338455",
+        "oge-part2-reshu-348457",
+        "oge-part2-reshu-349264",
+        "oge-part2-reshu-349717",
+        "oge-part2-reshu-349723"
+      ],
+      "method": "Отразить отрицательную часть параболы; сверить экстремумы и кратные пересечения"
+    },
+    {
+      "id": "OGE22-modulus-outside/2",
+      "construction": "Граничный уровень с тремя прообразами",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge22-modulus-outside-extension"
+      ],
+      "method": "Отразить отрицательную часть параболы; сверить экстремумы и кратные пересечения"
+    }
+  ],
+  "OGE22-max-form": [
+    {
+      "id": "OGE22-max-form/1",
+      "construction": "Полусумма с модулем разности",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-338314",
+        "oge-part2-reshu-341284",
+        "oge-part2-reshu-341289",
+        "oge-part2-reshu-401321",
+        "oge-part2-reshu-401477",
+        "oge-part2-reshu-402035"
+      ],
+      "method": "Распознать max(a,b) и разметить смену доминирующей ветви на всей ОДЗ"
+    },
+    {
+      "id": "OGE22-max-form/2",
+      "construction": "Промежуток недостижимых значений верхней огибающей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge22-max-form-extension"
+      ],
+      "method": "Распознать max(a,b) и разметить смену доминирующей ветви на всей ОДЗ"
+    }
+  ],
+  "OGE23-angle-height-bisector": [
+    {
+      "id": "OGE23-angle-height-bisector/1",
+      "construction": "Высота и биссектриса в треугольнике",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-315053",
+        "oge-part2-reshu-154",
+        "oge-part2-reshu-315025",
+        "oge-part2-reshu-315125",
+        "oge-part2-atlas-a23-angle-height-bisector-01"
+      ],
+      "historical_versions": [
+        "oge-part2-atlas-a23-angle-height-bisector-02@1"
+      ],
+      "method": "Сопоставить направления лучей через углы при основании и половину угла вершины"
+    },
+    {
+      "id": "OGE23-angle-height-bisector/2",
+      "construction": "Восстановить угол основания по углу между высотой и биссектрисой",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-a23-angle-height-bisector-02"
+      ],
+      "method": "Сопоставить направления лучей через углы при основании и половину угла вершины"
+    }
+  ],
+  "OGE23-angle-tangent-arc": [
+    {
+      "id": "OGE23-angle-tangent-arc/1",
+      "construction": "Дальнее пересечение луча с окружностью",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-76",
+        "oge-part2-reshu-206",
+        "oge-part2-reshu-315034",
+        "oge-part2-reshu-315059",
+        "oge-part2-atlas-a23-angle-tangent-arc-01"
+      ],
+      "method": "Восстановить центральный угол и применить перпендикулярность радиуса касательной"
+    },
+    {
+      "id": "OGE23-angle-tangent-arc/2",
+      "construction": "Ближнее пересечение луча с окружностью",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a23-angle-tangent-arc-02"
+      ],
+      "method": "Восстановить центральный угол и применить перпендикулярность радиуса касательной"
+    }
+  ],
+  "OGE23-right-median": [
+    {
+      "id": "OGE23-right-median/1",
+      "construction": "Гипотенуза по катетам, затем медиана",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-50",
+        "oge-part2-atlas-a23-right-median-01",
+        "oge-part2-atlas-a23-right-median-02"
+      ],
+      "method": "Теорема Пифагора"
+    },
+    {
+      "id": "OGE23-right-median/2",
+      "construction": "Катет по медиане и второму катету",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a23-right-median-03"
+      ],
+      "method": "Обратный расчёт по гипотенузе"
+    },
+    {
+      "id": "OGE23-right-median/3",
+      "construction": "Восстановить катет по площади",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-a23-right-median-04"
+      ],
+      "method": "Площадь и теорема Пифагора"
+    },
+    {
+      "id": "OGE23-right-median/4",
+      "construction": "Масштаб по отношению и периметру",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-a23-right-median-05"
+      ],
+      "method": "Подобие по отношению катетов"
+    }
+  ],
+  "OGE23-right-projection": [
+    {
+      "id": "OGE23-right-projection/1",
+      "construction": "Катет и его проекция",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-324708",
+        "oge-part2-reshu-353514",
+        "oge-part2-reshu-352999",
+        "oge-part2-fipi-mirror-6380f3",
+        "oge-part2-fipi-mirror-c3f608",
+        "oge-part2-fipi-mirror-d35e73"
+      ],
+      "method": "Подобие малого и исходного треугольников даёт квадрат катета"
+    },
+    {
+      "id": "OGE23-right-projection/2",
+      "construction": "Площадь через проекции обоих катетов",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge23-right-projection-extension"
+      ],
+      "method": "Подобие малого и исходного треугольников даёт квадрат катета"
+    }
+  ],
+  "OGE23-right-bisectors": [
+    {
+      "id": "OGE23-right-bisectors/1",
+      "construction": "Две биссектрисы при боковой стороне",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-fipi-demo-2027-23",
+        "oge-part2-reshu-324798",
+        "oge-part2-reshu-352568",
+        "oge-part2-reshu-333130",
+        "oge-part2-reshu-333157",
+        "oge-part2-reshu-424983"
+      ],
+      "method": "Теорема Пифагора"
+    },
+    {
+      "id": "OGE23-right-bisectors/2",
+      "construction": "Площадь по гипотенузе и разности катетов",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge23-right-bisectors-extension"
+      ],
+      "method": "Квадрат разности и площадь"
+    }
+  ],
+  "OGE23-right-circle-rectangle": [
+    {
+      "id": "OGE23-right-circle-rectangle/1",
+      "construction": "Окружность на высоте как диаметре",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-324878",
+        "oge-part2-reshu-353441",
+        "oge-part2-reshu-339395",
+        "oge-part2-reshu-339512",
+        "oge-part2-reshu-339570",
+        "oge-part2-reshu-339729"
+      ],
+      "method": "Два прямых вписанных угла дают прямоугольник с равными диагоналями"
+    },
+    {
+      "id": "OGE23-right-circle-rectangle/2",
+      "construction": "Диагональ через проекцию и подобие",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge23-right-circle-rectangle-extension"
+      ],
+      "method": "Два прямых вписанных угла дают прямоугольник с равными диагоналями"
+    }
+  ],
+  "OGE23-parallel-segment": [
+    {
+      "id": "OGE23-parallel-segment/1",
+      "construction": "Сечение треугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-322806",
+        "oge-part2-reshu-339505",
+        "oge-part2-reshu-339656",
+        "oge-part2-reshu-350157",
+        "oge-part2-reshu-350726",
+        "oge-part2-reshu-351460"
+      ],
+      "method": "Пропорция подобных треугольников"
+    },
+    {
+      "id": "OGE23-parallel-segment/2",
+      "construction": "Площадь остатка после параллельного сечения",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge23-parallel-segment-extension"
+      ],
+      "method": "Квадрат коэффициента подобия и вычитание площадей"
+    }
+  ],
+  "OGE23-parallel-diagonals": [
+    {
+      "id": "OGE23-parallel-diagonals/1",
+      "construction": "Пересекающиеся диагонали между параллелями",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-324748",
+        "oge-part2-reshu-352582",
+        "oge-part2-reshu-333321",
+        "oge-part2-reshu-339501",
+        "oge-part2-reshu-339567",
+        "oge-part2-reshu-339593"
+      ],
+      "method": "Пропорция отрезков диагонали"
+    },
+    {
+      "id": "OGE23-parallel-diagonals/2",
+      "construction": "Отношение площадей по отрезкам диагонали",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge23-parallel-diagonals-extension"
+      ],
+      "method": "Квадрат коэффициента подобия"
+    }
+  ],
+  "OGE23-trapezoid-area": [
+    {
+      "id": "OGE23-trapezoid-area/1",
+      "construction": "Площадь равнобедренной трапеции",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311249",
+        "oge-part2-reshu-311560",
+        "oge-part2-atlas-a23-trapezoid-area-01",
+        "oge-part2-atlas-a23-trapezoid-area-02",
+        "oge-part2-atlas-a23-trapezoid-area-03"
+      ],
+      "historical_versions": [
+        "oge-part2-atlas-a23-trapezoid-area-04@1"
+      ],
+      "method": "Из периметра получить боковую сторону, из полуразности оснований и Пифагора — высоту"
+    },
+    {
+      "id": "OGE23-trapezoid-area/2",
+      "construction": "Высота через проекцию боковой стороны и её длину",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-a23-trapezoid-area-04"
+      ],
+      "method": "Из периметра получить боковую сторону, из полуразности оснований и Пифагора — высоту"
+    }
+  ],
+  "OGE23-trapezoid-midpoints": [
+    {
+      "id": "OGE23-trapezoid-midpoints/1",
+      "construction": "Разность оснований",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311828",
+        "oge-part2-reshu-311860",
+        "oge-part2-reshu-316296",
+        "oge-part2-atlas-a23-trapezoid-midpoints-01",
+        "oge-part2-atlas-a23-trapezoid-midpoints-02"
+      ],
+      "method": "Две средние линии дают половину разности оснований"
+    },
+    {
+      "id": "OGE23-trapezoid-midpoints/2",
+      "construction": "Восстановить основание по отрезку",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a23-trapezoid-midpoints-03"
+      ],
+      "method": "Две средние линии дают половину разности оснований"
+    }
+  ],
+  "OGE23-rhombus": [
+    {
+      "id": "OGE23-rhombus/1",
+      "construction": "Углы через расстояние до стороны и диагональ",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-324778",
+        "oge-part2-reshu-324779",
+        "oge-part2-reshu-324787"
+      ],
+      "method": "Тригонометрия в прямоугольном треугольнике"
+    },
+    {
+      "id": "OGE23-rhombus/2",
+      "construction": "Высота по проекциям на сторону",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-324788",
+        "oge-part2-reshu-339549",
+        "oge-part2-reshu-339641"
+      ],
+      "method": "Теорема Пифагора"
+    }
+  ],
+  "OGE23-parallelogram-bisectors": [
+    {
+      "id": "OGE23-parallelogram-bisectors/1",
+      "construction": "Площадь через сторону и синус",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-316359",
+        "oge-part2-reshu-316385"
+      ],
+      "method": "Равнобедренный треугольник на параллельной стороне или равные расстояния от точки пересечения"
+    },
+    {
+      "id": "OGE23-parallelogram-bisectors/2",
+      "construction": "Площадь через расстояние от пересечения биссектрис",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-339709"
+      ],
+      "method": "Равнобедренный треугольник на параллельной стороне или равные расстояния от точки пересечения"
+    },
+    {
+      "id": "OGE23-parallelogram-bisectors/3",
+      "construction": "Периметр через равнобедренный треугольник",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-352796",
+        "oge-part2-reshu-339430",
+        "oge-part2-reshu-350064"
+      ],
+      "method": "Равнобедренный треугольник на параллельной стороне или равные расстояния от точки пересечения"
+    }
+  ],
+  "OGE23-trapezoid-trig": [
+    {
+      "id": "OGE23-trapezoid-trig/1",
+      "construction": "Боковая сторона трапеции через общую высоту",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-351992",
+        "oge-part2-reshu-339432",
+        "oge-part2-reshu-339454",
+        "oge-part2-reshu-348741",
+        "oge-part2-reshu-349618",
+        "oge-part2-reshu-349709"
+      ],
+      "method": "Приравнять две формулы для высоты, взять синус острого или дополнительного угла"
+    },
+    {
+      "id": "OGE23-trapezoid-trig/2",
+      "construction": "Разность оснований через проекции двух боковых сторон",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge23-trapezoid-trig-extension"
+      ],
+      "method": "Приравнять две формулы для высоты, взять синус острого или дополнительного угла"
+    }
+  ],
+  "OGE23-sine-rule": [
+    {
+      "id": "OGE23-sine-rule/1",
+      "construction": "Найти описанный радиус",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311650",
+        "oge-part2-reshu-311651"
+      ],
+      "method": "Сначала найти угол напротив заданной стороны, затем применить a=2R sin α"
+    },
+    {
+      "id": "OGE23-sine-rule/2",
+      "construction": "Найти сторону по радиусу",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-448904",
+        "oge-part2-fipi-mirror-ae3b14",
+        "oge-part2-fipi-mirror-cf802a",
+        "oge-part2-fipi-mirror-6afb28"
+      ],
+      "method": "Сначала найти угол напротив заданной стороны, затем применить a=2R sin α"
+    }
+  ],
+  "OGE24-cyclic-external": [
+    {
+      "id": "OGE24-cyclic-external/1",
+      "construction": "Подобие по вписанным углам",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-fipi-demo-2027-24"
+      ],
+      "method": "Получить соответствие по углам или использовать степень внешней точки и общий угол"
+    },
+    {
+      "id": "OGE24-cyclic-external/2",
+      "construction": "Обратная теорема о секущих",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-external-01"
+      ],
+      "method": "Получить соответствие по углам или использовать степень внешней точки и общий угол"
+    },
+    {
+      "id": "OGE24-cyclic-external/3",
+      "construction": "Касательная и секущая по Пифагору",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-external-02"
+      ],
+      "method": "Получить соответствие по углам или использовать степень внешней точки и общий угол"
+    },
+    {
+      "id": "OGE24-cyclic-external/4",
+      "construction": "Параллельность хорд",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-external-03"
+      ],
+      "method": "Получить соответствие по углам или использовать степень внешней точки и общий угол"
+    },
+    {
+      "id": "OGE24-cyclic-external/5",
+      "construction": "Равенство хорд по сумме и произведению",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-external-04"
+      ],
+      "method": "Получить соответствие по углам или использовать степень внешней точки и общий угол"
+    },
+    {
+      "id": "OGE24-cyclic-external/6",
+      "construction": "Доказать равенство углов",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-external-05"
+      ],
+      "method": "Получить соответствие по углам или использовать степень внешней точки и общий угол"
+    }
+  ],
+  "OGE24-cyclic-converse": [
+    {
+      "id": "OGE24-cyclic-converse/1",
+      "construction": "Равные углы и общая хорда",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340880"
+      ],
+      "method": "Сначала обратная теорема из углов, опирающихся на одну хорду, затем прямая"
+    },
+    {
+      "id": "OGE24-cyclic-converse/2",
+      "construction": "Сумма углов и общая дуга",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-converse-01"
+      ],
+      "method": "Сначала обратная теорема из углов, опирающихся на одну хорду, затем прямая"
+    },
+    {
+      "id": "OGE24-cyclic-converse/3",
+      "construction": "Равные хорды и биссектриса",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-converse-02"
+      ],
+      "method": "Сначала обратная теорема из углов, опирающихся на одну хорду, затем прямая"
+    },
+    {
+      "id": "OGE24-cyclic-converse/4",
+      "construction": "Окружность с данным диаметром",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-converse-03"
+      ],
+      "method": "Сначала обратная теорема из углов, опирающихся на одну хорду, затем прямая"
+    },
+    {
+      "id": "OGE24-cyclic-converse/5",
+      "construction": "Равные хорды и вписанные углы",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-converse-04"
+      ],
+      "method": "Сначала обратная теорема из углов, опирающихся на одну хорду, затем прямая"
+    },
+    {
+      "id": "OGE24-cyclic-converse/6",
+      "construction": "Обратный признак и сумма углов",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-converse-05"
+      ],
+      "method": "Сначала обратная теорема из углов, опирающихся на одну хорду, затем прямая"
+    }
+  ],
+  "OGE24-cyclic-altitudes": [
+    {
+      "id": "OGE24-cyclic-altitudes/1",
+      "construction": "Вписанные углы",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340341",
+        "oge-part2-atlas-a24-cyclic-altitudes-03"
+      ],
+      "method": "Построить окружность через пары прямых углов; разобрать дуги и порядок лучей"
+    },
+    {
+      "id": "OGE24-cyclic-altitudes/2",
+      "construction": "Подобие треугольников",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340854",
+        "oge-part2-atlas-a24-cyclic-altitudes-04"
+      ],
+      "method": "Построить окружность через пары прямых углов; разобрать дуги и порядок лучей"
+    },
+    {
+      "id": "OGE24-cyclic-altitudes/3",
+      "construction": "Окружность с диаметром",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-altitudes-01"
+      ],
+      "method": "Построить окружность через пары прямых углов; разобрать дуги и порядок лучей"
+    },
+    {
+      "id": "OGE24-cyclic-altitudes/4",
+      "construction": "Отношение проекций",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-cyclic-altitudes-02"
+      ],
+      "method": "Построить окружность через пары прямых углов; разобрать дуги и порядок лучей"
+    }
+  ],
+  "OGE24-similar-parallels": [
+    {
+      "id": "OGE24-similar-parallels/1",
+      "construction": "Пропорциональные стороны и угол",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340995",
+        "oge-part2-reshu-341131",
+        "oge-part2-reshu-348542"
+      ],
+      "method": "По двум углам или по пропорциональным сторонам и углу между ними"
+    },
+    {
+      "id": "OGE24-similar-parallels/2",
+      "construction": "Подобие через параллельные прямые",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311573"
+      ],
+      "method": "По двум углам или по пропорциональным сторонам и углу между ними"
+    },
+    {
+      "id": "OGE24-similar-parallels/3",
+      "construction": "Доли сторон при параллельном сечении",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-similar-parallels-01"
+      ],
+      "method": "По двум углам или по пропорциональным сторонам и углу между ними"
+    },
+    {
+      "id": "OGE24-similar-parallels/4",
+      "construction": "Отношения отрезков диагоналей",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-similar-parallels-02"
+      ],
+      "method": "По двум углам или по пропорциональным сторонам и углу между ними"
+    }
+  ],
+  "OGE24-rigid-motion": [
+    {
+      "id": "OGE24-rigid-motion/1",
+      "construction": "Осевая симметрия",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311561",
+        "oge-part2-atlas-a24-rigid-motion-01"
+      ],
+      "method": "Найти соответствие по повороту, осевой/центральной симметрии или признаку равенства"
+    },
+    {
+      "id": "OGE24-rigid-motion/2",
+      "construction": "Поворот",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-311605",
+        "oge-part2-reshu-311604"
+      ],
+      "method": "Найти соответствие по повороту, осевой/центральной симметрии или признаку равенства"
+    },
+    {
+      "id": "OGE24-rigid-motion/3",
+      "construction": "Центральная симметрия",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340104",
+        "oge-part2-atlas-a24-rigid-motion-02"
+      ],
+      "method": "Найти соответствие по повороту, осевой/центральной симметрии или признаку равенства"
+    }
+  ],
+  "OGE24-midline-proof": [
+    {
+      "id": "OGE24-midline-proof/1",
+      "construction": "Отношение длин через среднюю линию",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-129",
+        "oge-part2-reshu-315008",
+        "oge-part2-atlas-a24-midline-proof-04"
+      ],
+      "method": "Выразить три стороны через половины равных сторон исходного треугольника"
+    },
+    {
+      "id": "OGE24-midline-proof/2",
+      "construction": "Площадь при подобии",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-midline-proof-01"
+      ],
+      "method": "Выразить три стороны через половины равных сторон исходного треугольника"
+    },
+    {
+      "id": "OGE24-midline-proof/3",
+      "construction": "Восстановить углы или стороны исходного треугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-midline-proof-02",
+        "oge-part2-atlas-a24-midline-proof-03"
+      ],
+      "method": "Выразить три стороны через половины равных сторон исходного треугольника"
+    }
+  ],
+  "OGE24-quadrilateral-test": [
+    {
+      "id": "OGE24-quadrilateral-test/1",
+      "construction": "Соединить середины сторон, применить теорему о средней линии",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-315030",
+        "oge-part2-atlas-a24-quadrilateral-test-01"
+      ],
+      "method": "Доказать признак параллелограмма или прямоугольника через диагонали, симметрию или равнобедренность"
+    },
+    {
+      "id": "OGE24-quadrilateral-test/2",
+      "construction": "Симметрия противоположных сторон",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-155"
+      ],
+      "method": "Доказать признак параллелограмма или прямоугольника через диагонали, симметрию или равнобедренность"
+    },
+    {
+      "id": "OGE24-quadrilateral-test/3",
+      "construction": "Прямой угол из равноудалённости",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-439915"
+      ],
+      "method": "Доказать признак параллелограмма или прямоугольника через диагонали, симметрию или равнобедренность"
+    },
+    {
+      "id": "OGE24-quadrilateral-test/4",
+      "construction": "Диагонали и признаки параллелограмма",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-quadrilateral-test-03"
+      ],
+      "method": "Доказать признак параллелограмма или прямоугольника через диагонали, симметрию или равнобедренность"
+    },
+    {
+      "id": "OGE24-quadrilateral-test/5",
+      "construction": "Равные диагонали прямоугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-quadrilateral-test-02"
+      ],
+      "method": "Доказать признак параллелограмма или прямоугольника через диагонали, симметрию или равнобедренность"
+    }
+  ],
+  "OGE24-bisector-distance": [
+    {
+      "id": "OGE24-bisector-distance/1",
+      "construction": "Равноудалённость от сторон",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-341344",
+        "oge-part2-atlas-a24-bisector-distance-04"
+      ],
+      "method": "Применить свойство двух биссектрис и транзитивность равенства расстояний"
+    },
+    {
+      "id": "OGE24-bisector-distance/2",
+      "construction": "Центр вписанной окружности",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-bisector-distance-01",
+        "oge-part2-atlas-a24-bisector-distance-02"
+      ],
+      "method": "Применить свойство двух биссектрис и транзитивность равенства расстояний"
+    },
+    {
+      "id": "OGE24-bisector-distance/3",
+      "construction": "Внешняя биссектриса",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-bisector-distance-03"
+      ],
+      "method": "Применить свойство двух биссектрис и транзитивность равенства расстояний"
+    },
+    {
+      "id": "OGE24-bisector-distance/4",
+      "construction": "Вписанная окружность четырёхугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-bisector-distance-05"
+      ],
+      "method": "Применить свойство двух биссектрис и транзитивность равенства расстояний"
+    }
+  ],
+  "OGE24-bisector-isosceles": [
+    {
+      "id": "OGE24-bisector-isosceles/1",
+      "construction": "Равные углы равнобедренного треугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-348892",
+        "oge-part2-reshu-340387",
+        "oge-part2-atlas-a24-bisector-isosceles-01",
+        "oge-part2-atlas-a24-bisector-isosceles-04"
+      ],
+      "method": "Связать углы с параллельностью, доказать середину или обратное свойство биссектрисы"
+    },
+    {
+      "id": "OGE24-bisector-isosceles/2",
+      "construction": "Доказать соотношение сторон или применить равенство сторон",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-bisector-isosceles-02",
+        "oge-part2-atlas-a24-bisector-isosceles-03"
+      ],
+      "method": "Связать углы с параллельностью, доказать середину или обратное свойство биссектрисы"
+    }
+  ],
+  "OGE24-area-proof": [
+    {
+      "id": "OGE24-area-proof/1",
+      "construction": "Вычесть общую площадь",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340055"
+      ],
+      "method": "Общие основания и высоты, сложение или вычитание общей части"
+    },
+    {
+      "id": "OGE24-area-proof/2",
+      "construction": "Средняя линия и высота",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-333026"
+      ],
+      "method": "Общие основания и высоты, сложение или вычитание общей части"
+    },
+    {
+      "id": "OGE24-area-proof/3",
+      "construction": "Разложение на треугольники с общей высотой или основанием",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-333131",
+        "oge-part2-reshu-348716",
+        "oge-part2-atlas-a24-area-proof-01"
+      ],
+      "method": "Общие основания и высоты, сложение или вычитание общей части"
+    },
+    {
+      "id": "OGE24-area-proof/4",
+      "construction": "Отношение площадей через основания",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-area-proof-02"
+      ],
+      "method": "Общие основания и высоты, сложение или вычитание общей части"
+    }
+  ],
+  "OGE24-common-chord": [
+    {
+      "id": "OGE24-common-chord/1",
+      "construction": "Серединный перпендикуляр к общей хорде",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340906",
+        "oge-part2-atlas-a24-common-chord-01",
+        "oge-part2-atlas-a24-common-chord-02"
+      ],
+      "method": "Оба центра лежат на серединном перпендикуляре к одной хорде"
+    },
+    {
+      "id": "OGE24-common-chord/2",
+      "construction": "Разность квадратов расстояний",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-common-chord-03",
+        "oge-part2-atlas-a24-common-chord-05"
+      ],
+      "method": "Оба центра лежат на серединном перпендикуляре к одной хорде"
+    },
+    {
+      "id": "OGE24-common-chord/3",
+      "construction": "Отражение относительно линии центров",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-common-chord-04"
+      ],
+      "method": "Оба центра лежат на серединном перпендикуляре к одной хорде"
+    }
+  ],
+  "OGE24-common-tangent-ratio": [
+    {
+      "id": "OGE24-common-tangent-ratio/1",
+      "construction": "Отношения в подобных прямоугольных треугольниках",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340324",
+        "oge-part2-atlas-a24-common-tangent-ratio-01",
+        "oge-part2-atlas-a24-common-tangent-ratio-05"
+      ],
+      "method": "Радиусы перпендикулярны касательной; два прямоугольных треугольника подобны"
+    },
+    {
+      "id": "OGE24-common-tangent-ratio/2",
+      "construction": "Обратно доказать касание",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-common-tangent-ratio-02"
+      ],
+      "method": "Радиусы перпендикулярны касательной; два прямоугольных треугольника подобны"
+    },
+    {
+      "id": "OGE24-common-tangent-ratio/3",
+      "construction": "Равенство радиусов через середину",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-common-tangent-ratio-03"
+      ],
+      "method": "Радиусы перпендикулярны касательной; два прямоугольных треугольника подобны"
+    },
+    {
+      "id": "OGE24-common-tangent-ratio/4",
+      "construction": "Параллельность при равных радиусах",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a24-common-tangent-ratio-04"
+      ],
+      "method": "Радиусы перпендикулярны касательной; два прямоугольных треугольника подобны"
+    }
+  ],
+  "OGE25-trapezoid-bisector-area": [
+    {
+      "id": "OGE25-trapezoid-bisector-area/1",
+      "construction": "Биссектриса через середину боковой стороны",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-fipi-demo-2027-25",
+        "oge-part2-reshu-339398",
+        "oge-part2-reshu-339408",
+        "oge-part2-reshu-339455",
+        "oge-part2-reshu-339631",
+        "oge-part2-reshu-339632"
+      ],
+      "method": "Продлить биссектрису, получить равенство отрезков, затем вычислить высоту и площадь"
+    },
+    {
+      "id": "OGE25-trapezoid-bisector-area/2",
+      "construction": "Восстановить основание по биссектрисе и данным площади",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge25-trapezoid-bisector-area-extension"
+      ],
+      "method": "Продлить биссектрису, получить равенство отрезков, затем вычислить высоту и площадь"
+    }
+  ],
+  "OGE25-trapezoid-parallel-section": [
+    {
+      "id": "OGE25-trapezoid-parallel-section/1",
+      "construction": "Длина параллельного сечения",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-324718",
+        "oge-part2-reshu-349617",
+        "oge-part2-reshu-349893",
+        "oge-part2-reshu-350682"
+      ],
+      "method": "Линейное изменение длины сечения; для площади нужно ещё найти уровни диагоналей"
+    },
+    {
+      "id": "OGE25-trapezoid-parallel-section/2",
+      "construction": "Отношение площадей при сечении через диагонали",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340359",
+        "oge-part2-reshu-341292"
+      ],
+      "method": "Линейное изменение длины сечения; для площади нужно ещё найти уровни диагоналей"
+    }
+  ],
+  "OGE25-trapezoid-midpoint-segments": [
+    {
+      "id": "OGE25-trapezoid-midpoint-segments/1",
+      "construction": "Восстановить основания через середины сторон",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-353565",
+        "oge-part2-reshu-339730",
+        "oge-part2-reshu-341060",
+        "oge-part2-reshu-348839",
+        "oge-part2-reshu-349860",
+        "oge-part2-reshu-349968"
+      ],
+      "method": "Использовать перпендикулярность боковых сторон и отношения средних линий"
+    },
+    {
+      "id": "OGE25-trapezoid-midpoint-segments/2",
+      "construction": "Отношение площадей двух подобных прямоугольных треугольников",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge25-trapezoid-midpoint-segments-extension"
+      ],
+      "method": "Использовать перпендикулярность боковых сторон и отношения средних линий"
+    }
+  ],
+  "OGE25-parallelogram-bisectors": [
+    {
+      "id": "OGE25-parallelogram-bisectors/1",
+      "construction": "Площадь параллелограмма с биссектрисами",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-457286",
+        "oge-part2-reshu-457314",
+        "oge-part2-fipi-mirror-e097f7",
+        "oge-part2-fipi-mirror-569075",
+        "oge-part2-fipi-mirror-97c87b",
+        "oge-part2-fipi-mirror-b435d4"
+      ],
+      "method": "Два равных расстояния до параллелей, высота и площадь; может встречаться и под №23"
+    },
+    {
+      "id": "OGE25-parallelogram-bisectors/2",
+      "construction": "Расстояние до биссектрис по площади и периметру",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge25-parallelogram-bisectors-extension"
+      ],
+      "method": "Два равных расстояния до параллелей, высота и площадь; может встречаться и под №23"
+    }
+  ],
+  "OGE25-tangent-trapezoid": [
+    {
+      "id": "OGE25-tangent-trapezoid/1",
+      "construction": "Трапеция, описанная около окружности",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340054",
+        "oge-part2-reshu-352987",
+        "oge-part2-fipi-mirror-51a343",
+        "oge-part2-fipi-mirror-aa39fe",
+        "oge-part2-fipi-mirror-1ee527",
+        "oge-part2-fipi-mirror-f311d0"
+      ],
+      "method": "Суммы противоположных сторон, высота из площади и подобие у пересечения диагоналей"
+    },
+    {
+      "id": "OGE25-tangent-trapezoid/2",
+      "construction": "Радиус и отношение оснований определяют площадь",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge25-tangent-trapezoid-extension"
+      ],
+      "method": "Суммы противоположных сторон, высота из площади и подобие у пересечения диагоналей"
+    }
+  ],
+  "OGE25-incircle-excircle": [
+    {
+      "id": "OGE25-incircle-excircle/1",
+      "construction": "Радиус вписанной окружности",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-439916",
+        "oge-part2-atlas-a25-incircle-excircle-01",
+        "oge-part2-atlas-a25-incircle-excircle-02",
+        "oge-part2-atlas-a25-incircle-excircle-03"
+      ],
+      "method": "Связать касания, высоты и полупериметр; положение центра снаружи фиксирует вневписанную окружность"
+    },
+    {
+      "id": "OGE25-incircle-excircle/2",
+      "construction": "Вневписанный радиус",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a25-incircle-excircle-04"
+      ],
+      "method": "Связать касания, высоты и полупериметр; положение центра снаружи фиксирует вневписанную окружность"
+    },
+    {
+      "id": "OGE25-incircle-excircle/3",
+      "construction": "Основание по двум радиусам",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a25-incircle-excircle-05"
+      ],
+      "method": "Связать касания, высоты и полупериметр; положение центра снаружи фиксирует вневписанную окружность"
+    }
+  ],
+  "OGE25-incircle-similarity": [
+    {
+      "id": "OGE25-incircle-similarity/1",
+      "construction": "Вписанный радиус исходного треугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-341397",
+        "oge-part2-atlas-a25-incircle-similarity-01",
+        "oge-part2-atlas-a25-incircle-similarity-02",
+        "oge-part2-atlas-a25-incircle-similarity-03"
+      ],
+      "method": "Доказать подобие и перенести масштаб на радиус, получить коэффициент из тригонометрии"
+    },
+    {
+      "id": "OGE25-incircle-similarity/2",
+      "construction": "Вписанный радиус малого треугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a25-incircle-similarity-04",
+        "oge-part2-atlas-a25-incircle-similarity-05"
+      ],
+      "method": "Доказать подобие и перенести масштаб на радиус, получить коэффициент из тригонометрии"
+    }
+  ],
+  "OGE25-incenter-distance": [
+    {
+      "id": "OGE25-incenter-distance/1",
+      "construction": "Инцентр, расстояния и высота",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-339825",
+        "oge-part2-reshu-350304",
+        "oge-part2-reshu-350839",
+        "oge-part2-reshu-351109",
+        "oge-part2-reshu-351158",
+        "oge-part2-reshu-352193"
+      ],
+      "method": "Равные расстояния до сторон исходного треугольника в связке с параллелями"
+    },
+    {
+      "id": "OGE25-incenter-distance/2",
+      "construction": "Касательные из вершины по площади параллелограмма",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge25-incenter-distance-extension"
+      ],
+      "method": "Равные расстояния до сторон исходного треугольника в связке с параллелями"
+    }
+  ],
+  "OGE25-cyclic-diagonals": [
+    {
+      "id": "OGE25-cyclic-diagonals/1",
+      "construction": "Радиус по углу между диагоналями",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-339675",
+        "oge-part2-reshu-348801",
+        "oge-part2-reshu-348869",
+        "oge-part2-reshu-349161",
+        "oge-part2-reshu-349370"
+      ],
+      "method": "Подобие и произведения отрезков или теорема косинусов для хорд"
+    },
+    {
+      "id": "OGE25-cyclic-diagonals/2",
+      "construction": "Отрезок диагонали по биссектрисе",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-341371"
+      ],
+      "method": "Подобие и произведения отрезков или теорема косинусов для хорд"
+    }
+  ],
+  "OGE25-circumradius-hidden": [
+    {
+      "id": "OGE25-circumradius-hidden/1",
+      "construction": "Диаметр через равноудалённую середину",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340107",
+        "oge-part2-reshu-348736"
+      ],
+      "method": "Восстановить угол из геометрии фигуры или из отношения биссектрисы и высоты, затем теорема синусов"
+    },
+    {
+      "id": "OGE25-circumradius-hidden/2",
+      "construction": "Описанный радиус через биссектрису и высоту",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-348521",
+        "oge-part2-reshu-311713",
+        "oge-part2-reshu-311715",
+        "oge-part2-reshu-340344"
+      ],
+      "method": "Восстановить угол из геометрии фигуры или из отношения биссектрисы и высоты, затем теорема синусов"
+    }
+  ],
+  "OGE25-circumcenter-chord": [
+    {
+      "id": "OGE25-circumcenter-chord/1",
+      "construction": "Центр описанной окружности и дополнительный перпендикуляр",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340133",
+        "oge-part2-reshu-341162",
+        "oge-part2-reshu-349275",
+        "oge-part2-reshu-349590",
+        "oge-part2-reshu-351184",
+        "oge-part2-reshu-351826"
+      ],
+      "method": "Связать перпендикуляр к радиусу с касательной и углами; доказать подобие"
+    },
+    {
+      "id": "OGE25-circumcenter-chord/2",
+      "construction": "Восстановить хорду через подобие и остаток стороны",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge25-circumcenter-chord-extension"
+      ],
+      "method": "Связать перпендикуляр к радиусу с касательной и углами; доказать подобие"
+    }
+  ],
+  "OGE25-secant-tangent": [
+    {
+      "id": "OGE25-secant-tangent/1",
+      "construction": "Касательная и секущая / хорда",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-340855",
+        "oge-part2-reshu-340907",
+        "oge-part2-reshu-340936",
+        "oge-part2-reshu-341132",
+        "oge-part2-reshu-348471",
+        "oge-part2-reshu-350018"
+      ],
+      "method": "Степень точки, подобие или сравнение расстояний до касательной и хорды"
+    },
+    {
+      "id": "OGE25-secant-tangent/2",
+      "construction": "Восстановить основания через расстояние от касания до хорды",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge25-secant-tangent-extension"
+      ],
+      "method": "Степень точки, подобие или сравнение расстояний до касательной и хорды"
+    }
+  ],
+  "OGE25-two-circle-tangents": [
+    {
+      "id": "OGE25-two-circle-tangents/1",
+      "construction": "Две касающиеся окружности и общие касательные",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-333132",
+        "oge-part2-reshu-333159",
+        "oge-part2-reshu-340323",
+        "oge-part2-reshu-348722",
+        "oge-part2-reshu-349805",
+        "oge-part2-reshu-350396"
+      ],
+      "method": "Внешний центр подобия задаёт точки касания и расстояние между параллельными хордами"
+    },
+    {
+      "id": "OGE25-two-circle-tangents/2",
+      "construction": "Радиусы по двум измеренным расстояниям",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge25-two-circle-tangents-extension"
+      ],
+      "method": "Внешний центр подобия задаёт точки касания и расстояние между параллельными хордами"
+    }
+  ],
+  "OGE25-orthocenter-semicircle": [
+    {
+      "id": "OGE25-orthocenter-semicircle/1",
+      "construction": "Ортоцентр и полуокружность на стороне",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-339402",
+        "oge-part2-reshu-339426",
+        "oge-part2-reshu-339457",
+        "oge-part2-reshu-339719",
+        "oge-part2-reshu-339746",
+        "oge-part2-reshu-349858"
+      ],
+      "method": "Полуокружность даёт произведение проекций, подобие высот даёт второе равенство; исключить вырождение"
+    },
+    {
+      "id": "OGE25-orthocenter-semicircle/2",
+      "construction": "Высота к гипотенузе по положению ортоцентра",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-oge25-orthocenter-semicircle-extension"
+      ],
+      "method": "Полуокружность даёт произведение проекций, подобие высот даёт второе равенство; исключить вырождение"
+    }
+  ],
+  "OGE25-median-bisector": [
+    {
+      "id": "OGE25-median-bisector/1",
+      "construction": "Медиана и биссектриса перпендикулярны",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-333323",
+        "oge-part2-reshu-353380",
+        "oge-part2-reshu-333349",
+        "oge-part2-reshu-339435",
+        "oge-part2-reshu-339458",
+        "oge-part2-reshu-339507"
+      ],
+      "method": "Координаты симметричных точек"
+    },
+    {
+      "id": "OGE25-median-bisector/2",
+      "construction": "Площадь через осевую симметрию и одну заданную сторону",
+      "additional_step": true,
+      "cards": [
+        "oge-part2-atlas-oge25-median-bisector-extension"
+      ],
+      "method": "Координаты и равновеликость при делении медианой"
+    }
+  ],
+  "OGE25-median-area": [
+    {
+      "id": "OGE25-median-area/1",
+      "construction": "Отношение треугольника к четырёхугольнику",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-reshu-341345",
+        "oge-part2-atlas-a25-median-area-01",
+        "oge-part2-atlas-a25-median-area-02",
+        "oge-part2-atlas-a25-median-area-03"
+      ],
+      "method": "Составить отношения площадей через высоты и основания или выбрать аффинные координаты"
+    },
+    {
+      "id": "OGE25-median-area/2",
+      "construction": "Доля площади исходного треугольника",
+      "additional_step": false,
+      "cards": [
+        "oge-part2-atlas-a25-median-area-04",
+        "oge-part2-atlas-a25-median-area-05"
+      ],
+      "method": "Составить отношения площадей через высоты и основания или выбрать аффинные координаты"
+    }
+  ]
+}

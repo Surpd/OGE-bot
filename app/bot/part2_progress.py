@@ -6,7 +6,7 @@ import json
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import BufferedInputFile, Message
 
-from app.bot.explicit_math import display_feedback, plain_text
+from app.bot.explicit_math import display_feedback
 from app.bot.part2 import image_bytes, keyboard, store
 from app.bot.presentation import send_text
 from app.persistence.part2_insights import history, revision, summary
@@ -104,7 +104,7 @@ async def page(
                         await send_text(
                             message,
                             repo,
-                            "Ваше решение\n\n" + plain_text(display_feedback(piece["body"])),
+                            "Ваше решение\n\n" + display_feedback(piece["body"]),
                         )
                     if piece["expired"]:
                         lines.append("Срок хранения фотографии истёк.")

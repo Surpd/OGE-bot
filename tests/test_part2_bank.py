@@ -49,9 +49,9 @@ async def test_import_is_atomic_and_replay_keeps_the_original_version(tmp_path):
                     .removesuffix("COMMIT;\n")
                 )
             for _ in range(2):
-                assert await import_bank(conn) == 486
-            assert await conn.fetchval("SELECT count(*) FROM part2_versions") == 486
-            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 486
+                assert await import_bank(conn) == 522
+            assert await conn.fetchval("SELECT count(*) FROM part2_versions") == 522
+            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 522
             assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE reviewed") == 12
             for name in ("figures", "taxonomy.json", "reviewed_versions.json"):
                 (tmp_path / name).symlink_to(ATLAS / name)
@@ -63,7 +63,7 @@ async def test_import_is_atomic_and_replay_keeps_the_original_version(tmp_path):
             path.write_text(first)
             with pytest.raises(ValueError, match="Incomplete atlas"):
                 await import_bank(conn, tmp_path)
-            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 486
+            assert await conn.fetchval("SELECT count(*) FROM part2_versions WHERE available") == 522
             path.write_text(json.dumps(card) + "\n" + remaining)
             with pytest.raises(ValueError, match="without a new version"):
                 await import_bank(conn, tmp_path)

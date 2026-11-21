@@ -3,10 +3,20 @@
 import io
 import threading
 from functools import lru_cache
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from matplotlib.mathtext import MathTextParser, RasterParse
 
 from PIL import Image, ImageDraw, ImageFont
 
-from app.bot.explicit_math import block_parts, flatten_math_lines, local_tex, plain_tex
+from app.bot.explicit_math import (
+    block_parts,
+    display_fractions,
+    flatten_math_lines,
+    local_tex,
+    plain_tex,
+)
 from app.bot.math_fragments import MathFragment, System
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import Span, math_spans, parse_formula
@@ -14,24 +24,34 @@ from app.bot.math_notation import Span, math_spans, parse_formula
 _RENDER_LOCK = threading.Lock()
 _WIDTH = 1200
 _PADDING = 48
-_FONT_SIZE = 36
+_FONT_SIZE = 43
+
+
+@lru_cache(maxsize=1)
+def _parser() -> "MathTextParser[RasterParse]":
+    from matplotlib.mathtext import MathTextParser
+
+    return MathTextParser("agg")
 
 
 @lru_cache(maxsize=256)
-def _formula(latex: str, size: int = 20) -> Image.Image:
+def _formula(latex: str, size: int = 24) -> Image.Image:
     from matplotlib.font_manager import FontProperties
-    from matplotlib.mathtext import math_to_image
 
-    output = io.BytesIO()
-    math_to_image(
-        "$" + latex + "$",
-        output,
-        prop=FontProperties(size=size),
-        dpi=160,
-        format="png",
-        color="#17212b",
+    parsed = _parser().parse(
+        "$" + display_fractions(latex) + "$", dpi=160, prop=FontProperties(size=size)
     )
-    image = Image.open(output).convert("RGBA")
+    # Mathtext's raster is ink coverage. Preserve descenders and negative bearings
+    # and leave clearance even when two mathematical spans touch in the source.
+    buffer = memoryview(parsed.image)
+    assert buffer.shape is not None
+    height, width = buffer.shape
+    mask = Image.frombytes("L", (width, height), buffer.tobytes())
+    padded = Image.new("L", (mask.width + 4, mask.height + 4))
+    padded.paste(mask, (2, 2))
+    image = Image.new("RGBA", padded.size, "#17212b")
+    image.putalpha(padded)
+    image.info["baseline"] = 2 + round(parsed.height - parsed.depth)
     return image
 
 
@@ -52,7 +72,11 @@ def _explicit_formula(latex: str) -> Image.Image:
         max((row[index].width for row in cells if index < len(row)), default=0)
         for index in range(columns)
     ]
-    heights = [max(cell.height for cell in row) + 12 for row in cells]
+    ascents = [max(cell.info.get("baseline", 0) for cell in row) for row in cells]
+    heights = [
+        ascent + max(cell.height - cell.info.get("baseline", 0) for cell in row) + 12
+        for ascent, row in zip(ascents, cells, strict=True)
+    ]
     prefix = _formula(local_tex(left), 24) if left else None
     suffix = _formula(local_tex(right), 24) if right else None
     start = prefix.width + 10 if prefix else 0
@@ -82,10 +106,10 @@ def _explicit_formula(latex: str) -> Image.Image:
             brace = brace.crop(bounds).resize((27, height - 4), Image.Resampling.LANCZOS)
             image.paste(brace, (start, 2), brace)
     y = 0
-    for row, row_height in zip(cells, heights, strict=True):
+    for row, ascent, row_height in zip(cells, ascents, heights, strict=True):
         x = start + indent
         for index, cell in enumerate(row):
-            image.paste(cell, (x, y + (row_height - cell.height) // 2))
+            image.paste(cell, (x, y + 6 + ascent - cell.info.get("baseline", 0)))
             x += widths[index] + 28
         y += row_height
     return image
@@ -138,7 +162,7 @@ def _render(
     if len(source) > 8000:
         raise ValueError("Mathematical message exceeds image budget")
     font_root = get_data_path() + "/fonts/ttf/DejaVuSans"
-    size = 43 if any(span.explicit for span in math_spans(source)) else _FONT_SIZE
+    size = _FONT_SIZE
     regular = ImageFont.truetype(font_root + ".ttf", size)
     bold = ImageFont.truetype(font_root + "-Bold.ttf", size)
     measuring = ImageDraw.Draw(Image.new("RGB", (1, 1)))
@@ -163,8 +187,11 @@ def _render(
             tile = text_tile(span.source, font)
         available = _WIDTH - 2 * _PADDING
         if tile.width > available:
-            if span.latex is not None and (span.explicit or tile.width <= available * 1.6):
-                tile.thumbnail((available, tile.height))
+            if span.latex is not None:
+                original_height = tile.height
+                original_baseline = baseline(tile)
+                tile.thumbnail((available, tile.height), Image.Resampling.LANCZOS)
+                tile.info["baseline"] = round(original_baseline * tile.height / original_height)
             elif len(span.source) > 1:
                 # Preserve every source character if one expression cannot fit.
                 for char in span.source:
@@ -179,10 +206,17 @@ def _render(
         row_width += tile.width
 
     def text_tile(text: str, font: ImageFont.FreeTypeFont) -> Image.Image:
-        width = max(1, int(measuring.textlength(text, font=font)) + 1)
-        image = Image.new("RGBA", (width, size + 14), (255, 255, 255, 0))
-        ImageDraw.Draw(image).text((0, 0), text, font=font, fill="#17212b")
+        left, top, right, bottom = font.getbbox(text, anchor="ls")
+        width = max(1, right, round(measuring.textlength(text, font=font))) - min(left, 0)
+        image = Image.new("RGBA", (int(width), max(1, int(bottom - top))), (255, 255, 255, 0))
+        ImageDraw.Draw(image).text(
+            (-min(left, 0), -top), text, anchor="ls", font=font, fill="#17212b"
+        )
+        image.info["baseline"] = round(-top)
         return image
+
+    def baseline(tile: Image.Image) -> int:
+        return int(tile.info.get("baseline", tile.height // 2 + size // 3))
 
     source_lines = source.split("\n")
     if system:
@@ -192,8 +226,7 @@ def _render(
         line_row_starts.append(len(rows))
         heading = line.startswith(
             ("Задание №", "Подсказка", "Разбор", "Ответ:", "Правильный", "Оценка")
-            or (line.startswith("№") and " · " in line)
-        )
+        ) or (line.startswith("№") and " · " in line)
         font = bold if heading else regular
         prefix = None if heading else action_prefix(line)
         spans = (
@@ -237,7 +270,11 @@ def _render(
         rows.append(row)
         row, row_width = [], 0
     line_row_starts.append(len(rows))
-    heights = [max((tile.height for tile, _ in items), default=20) + 14 for items in rows]
+    ascents = [max((baseline(tile) for tile, _ in items), default=20) for items in rows]
+    heights = [
+        ascent + max((tile.height - baseline(tile) for tile, _ in items), default=0) + 14
+        for items, ascent in zip(rows, ascents, strict=True)
+    ]
     graphic = None
     if diagram is not None:
         graphic = Image.open(io.BytesIO(diagram)).convert("RGB")
@@ -247,9 +284,9 @@ def _render(
         raise ValueError("Mathematical message exceeds Telegram photo budget")
     canvas = Image.new("RGB", (_WIDTH, height), "white")
     y = _PADDING
-    for items, row_height in zip(rows, heights, strict=True):
+    for items, ascent, row_height in zip(rows, ascents, heights, strict=True):
         for tile, x in items:
-            canvas.paste(tile, (_PADDING + x, y + (row_height - 14 - tile.height) // 2), tile)
+            canvas.paste(tile, (_PADDING + x, y + ascent - baseline(tile)), tile)
         y += row_height
     if system_range is not None:
         start_row, end_row = (line_row_starts[index] for index in system_range)

@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass
 from html import escape
 
-from app.bot.explicit_math import block_parts, formulas
+from app.bot.explicit_math import block_parts, formulas, local_tex
 
 _SUPER = dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺", "0123456789-+", strict=True))
 _SUB = dict(zip("₀₁₂₃₄₅₆₇₈₉ₙ", "0123456789n", strict=True))
@@ -22,14 +22,21 @@ _SIGNS = {
     "≠": r"\neq",
     "∞": r"\infty",
     "∈": r"\in",
+    "∉": r"\notin",
+    "⊥": r"\perp",
+    "∥": r"\parallel",
+    "±": r"\pm",
     "∪": r"\cup",
     "<=": r"\leq",
     ">=": r"\geq",
     "!=": r"\neq",
 }
 _GREEK = {"α": r"\alpha", "β": r"\beta", "ρ": r"\rho", "ω": r"\omega", "π": r"\pi", "φ": r"\varphi"}
+_GREEK.update({"γ": r"\gamma", "δ": r"\delta", "θ": r"\theta", "λ": r"\lambda", "Δ": r"\Delta"})
 _LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" + "".join(_GREEK)
-_CHARS = set(_LETTERS + "0123456789., +-−*/·×:^_=<>!≤≥≠()[];√∞∈∪" + "".join(_SUPER) + "".join(_SUB))
+_CHARS = set(
+    _LETTERS + "0123456789., +-−*/·×:^_=<>!≤≥≠()[];√∞∈∉±∪⊥∥|∠△" + "".join(_SUPER) + "".join(_SUB)
+)
 _RICH_UNSAFE_DENOMINATOR_PRODUCT = re.compile(
     r"/\(\s*[+\-−]?\d+(?:[.,]\d+)?\s*(?:[A-Za-zαβρπωφ]|\()"
 )
@@ -53,6 +60,10 @@ class _Parser:
                 pos += 1
                 continue
             start = pos
+            if char in {"∠", "△"} and re.match(r"[A-Z]{3}(?![A-Za-z])", source[pos + 1 :]):
+                self.tokens.append(source[pos : pos + 4])
+                pos += 4
+                continue
             if char.isascii() and char.isalpha():
                 word_end = pos
                 while (
@@ -114,6 +125,10 @@ class _Parser:
             "≥",
             "≠",
             "∈",
+            "∉",
+            "⊥",
+            "∥",
+            "±",
             "∪",
         }:
             sign = self.pop()
@@ -170,12 +185,15 @@ class _Parser:
                 # School notation uses juxtaposition for algebraic products:
                 # 2x, xy, and 2(x+3). Keep only explicitly written products
                 # (handled above) as a multiplication sign.
-                left += self.unary(depth)
+                right = self.unary(depth)
+                if re.search(r"\\[A-Za-z]+$", left) and right[0].isascii() and right[0].isalpha():
+                    left += " "
+                left += right
             else:
                 return left
 
     def unary(self, depth: int) -> str:
-        if self.peek() in {"+", "-", "−"}:
+        if self.peek() in {"+", "-", "−", "±"}:
             return _SIGNS.get(sign := self.pop(), sign) + self.unary(depth + 1)
         return self.power(depth)
 
@@ -203,6 +221,14 @@ class _Parser:
         if depth > 20:
             raise ValueError("Expression too deep")
         token = self.pop()
+        if len(token) == 4 and token[0] in {"∠", "△"}:
+            command = r"\angle" if token[0] == "∠" else r"\triangle"
+            return command + " " + token[1:]
+        if token == "|":
+            inside = self.expression(depth + 1)
+            if self.pop() != "|":
+                raise ValueError("Unclosed absolute value")
+            return rf"\left|{inside}\right|"
         if token in {"(", "["}:
             content = self.expression(depth + 1)
             if self.peek() == ";":
@@ -245,6 +271,23 @@ def parse_formula(source: str) -> str | None:
         return None
 
 
+def _unsafe_fraction(latex: str) -> bool:
+    if "frac" not in latex:
+        return False
+    normalized = local_tex(latex)
+    for match in re.finditer(r"\\frac\{", normalized):
+        depth = 1
+        pos = match.end()
+        while pos < len(normalized) and depth:
+            depth += (normalized[pos] == "{") - (normalized[pos] == "}")
+            pos += 1
+        denominator = normalized[pos:].removeprefix("{").lstrip()
+        denominator = denominator.removeprefix(r"\left").lstrip("( ")
+        if re.match(r"(?:[+-]\s*)?\d+\s*(?:[A-Za-z]|\\[a-z]+|\()", denominator):
+            return True
+    return False
+
+
 def rich_needs_png_fallback(source: str | object) -> bool:
     """Avoid Telegram Rich Math for rational denominators with implicit products.
 
@@ -261,7 +304,8 @@ def rich_needs_png_fallback(source: str | object) -> bool:
             or span.explicit
             and (
                 block_parts(span.latex)
-                or any(cmd in span.latex for cmd in (r"\infty", r"\cup", r"\left"))
+                or any(cmd in span.latex for cmd in (r"\infty", r"\cup", r"\left|", "∞"))
+                or _unsafe_fraction(span.latex)
                 or re.search(r"\\(?:d?frac)\{[^{}]+\}\{(?:\d+\s*[a-z]|[^{}]+[+\-])", span.latex)
             )
         )
@@ -324,7 +368,7 @@ def rich_inline(source: str) -> str:
         # it receives the LaTeX command. Keep interval text literal so each
         # visible Unicode ∞ is sent exactly once.
         escape(span.source)
-        if "∞" in span.source
+        if "∞" in span.source and not span.explicit
         else "<tg-math>" + escape(span.latex) + "</tg-math>"
         if span.latex is not None
         else escape(span.source)

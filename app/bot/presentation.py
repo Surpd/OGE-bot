@@ -20,7 +20,7 @@ from aiogram.types import (
 )
 from aiogram.utils.formatting import Text
 
-from app.bot.explicit_math import flatten_math_lines, plain_text
+from app.bot.explicit_math import flatten_math_lines, formulas, plain_text
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import (
@@ -160,7 +160,7 @@ async def _send_mathematics(
     system_rows: tuple[str, ...] | None = None,
     diagram_caption: str | None = None,
 ) -> Message:
-    if force_png:
+    if force_png or rich_needs_png_fallback(text):
         return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
     rich = format_rich_message(text, system_rows=system_rows)
     media = None
@@ -255,7 +255,12 @@ async def send_text(
         sent = await message.answer(**text.as_kwargs(), **kwargs)
     elif (
         _has_telegram_transport(message)
-        and (not has_navigation or rich_with_navigation)
+        and (
+            not has_navigation
+            or rich_with_navigation
+            or isinstance(text, str)
+            and next(formulas(text), None) is not None
+        )
         and _has_math(text)
     ):
         sent = await _send_mathematics(
@@ -263,8 +268,7 @@ async def send_text(
             text,
             None,
             kwargs,
-            force_png=(await _prefer_png(message, repository, user_id_override))
-            or rich_needs_png_fallback(text),
+            force_png=await _prefer_png(message, repository, user_id_override),
             system_rows=math_system_rows,
         )
     else:
@@ -296,8 +300,7 @@ async def send_photo(
             caption,
             photo,
             kwargs,
-            force_png=(await _prefer_png(message, repository, user_id_override))
-            or rich_needs_png_fallback(caption),
+            force_png=await _prefer_png(message, repository, user_id_override),
             system_rows=math_system_rows,
             diagram_caption=diagram_caption,
         )
