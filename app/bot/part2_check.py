@@ -104,6 +104,7 @@ async def check(
         reply_markup=markup,
         user_id_override=owner,
         rich_with_navigation=True,
+        text_on_photo_rejection=result is not None,
         math_family="written-feedback" if has_mathematics(reply) else None,
     )
 
