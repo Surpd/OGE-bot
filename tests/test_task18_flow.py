@@ -180,7 +180,8 @@ async def test_real_png_transport_media_fallback_and_ambiguous_timeout(display, 
     bot = Bot("123456:TEST")
     sent = Message(message_id=91, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
     method = SendRichMessage(chat_id=42, rich_message={"html": "test"})
-    effect = error(method=method, message="unavailable") if error else None
+    reason = "Bad Request: can't parse entities: unsupported start tag"
+    effect = error(method=method, message=reason) if error else None
     bot.send_rich_message = AsyncMock(return_value=sent, side_effect=effect)
     bot.send_photo = AsyncMock(return_value=sent)
     repo = MemoryRepository()

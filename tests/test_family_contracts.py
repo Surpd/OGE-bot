@@ -122,3 +122,78 @@ def test_geometry_proofs_typeset_the_whole_numerator(subtype, text, expected):
 
     formatted = typeset_family_text(text, {"subtype_id": subtype, "family_id": "geometry"})
     assert tuple(tex for _, _, tex in formulas(formatted)) == expected
+
+
+async def test_rich_rejection_pins_subtype_across_restarts_and_delivery_paths(bank_pool):
+    from aiogram.exceptions import TelegramBadRequest
+    from aiogram.methods import SendRichMessage
+    from aiogram.types import BufferedInputFile
+
+    from app.bot.math_image import render_math_image
+    from app.bot.presentation import send_photo
+    from app.persistence.repository import PostgresRepository
+
+    repo = PostgresRepository(bank_pool)
+    bot = Bot("123456:TEST")
+    message = incoming(bot)
+    template = "OGE24-common-tangent-ratio"
+    card = {"family_id": "proofs", "subtype_id": template}
+    body = "O₂T₂/ O₁T₁ = PO₂/PO₁ = r₂/r₁"
+    diagram = BufferedInputFile(render_math_image("A ≠ B"), filename="original.png")
+    method = SendRichMessage(chat_id=42, rich_message={"html": "test"})
+    error = TelegramBadRequest(method=method, message="Bad Request: can't parse rich message HTML")
+    bot.send_rich_message = AsyncMock(side_effect=[error, message])
+    bot.send_photo = AsyncMock(return_value=message)
+    try:
+        await send_photo(message, repo, diagram, caption=body, math_family=card)
+        assert bot.send_rich_message.await_count == bot.send_photo.await_count == 1
+        restarted = PostgresRepository(bank_pool)
+        for text in [body, "Подсказка: используйте подобие.", "Разбор: " + body, "Ответ: 1/2"]:
+            await send_text(message, restarted, text, math_family=card, user_id_override=2)
+        await send_photo(message, restarted, diagram, caption=body, math_family=template)
+        assert bot.send_rich_message.await_count == 1
+        assert bot.send_photo.await_count == 6
+        await send_text(message, restarted, "x ≤ 3", math_family="OGE13-L01")
+        assert bot.send_rich_message.await_count == 2
+        assert bot.send_photo.await_count == 6
+        assert await restarted.math_display(2) == "auto"
+        assert await bank_pool.fetchval("SELECT count(*) FROM math_template_png_fallbacks") == 1
+    finally:
+        await bot.session.close()
+
+
+async def test_rejected_candidate_in_ordinary_issue_and_historical_resume(bank_pool, monkeypatch):
+    from uuid import uuid4
+
+    from app.bot import router
+    from app.persistence.repository import PostgresRepository
+
+    family = "OGE06-F009-PRESCRIBED-NUMERATOR"
+    repo = PostgresRepository(bank_pool)
+    outgoing = AsyncMock()
+    outgoing.answer.return_value.message_id = 123
+    monkeypatch.setattr(router.secrets, "randbelow", lambda _: 19)
+    # This queue seed first tries 4/6 - 2/6, then 5/7 - 5/14 in the same slot.
+    assert await router._send_problem(outgoing, repo, action="start", user_id_override=1)
+    session = await repo.task6_state(1)
+    task = session["problem"]
+    assert task["family_id"] == family
+    assert task["seed"] == 5916813525343500657
+    assert "5/7 - 5/14" in task["condition"]
+    assert task["correct_answer"] == "10"
+    assert task["selection_attempts"] == 2
+    assert set(session["state"]["family_queue"]) == set(enabled(6)) - {family}
+    assert await bank_pool.fetchval("SELECT count(*) FROM issued_problems") == 1
+
+    legacy = generate(family, 1).to_snapshot()
+    legacy["problem_id"] = str(uuid4())
+    await repo.ensure_task6_session(2)
+    await repo.advance_task6_problem(2, None, [legacy])
+    restarted = PostgresRepository(bank_pool)
+    assert await router._send_problem(outgoing, restarted, action="resume", user_id_override=2)
+    restored = (await restarted.task6_state(2))["problem"]
+    assert "8/9 - 4/9" in outgoing.answer.await_args.args[0]
+    assert restored["seed"] == 1 and restored["correct_answer"] == "8"
+    assert restored["solution"] == legacy["solution"]
+    assert restored["fingerprint"] == legacy["fingerprint"]
+    assert await bank_pool.fetchval("SELECT count(*) FROM issued_problems") == 2

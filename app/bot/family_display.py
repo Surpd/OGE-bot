@@ -12,12 +12,15 @@ def formats() -> dict[str, str]:
     return data
 
 
-def template_format(source: object) -> str | None:
+def template_key(source: object) -> str | None:
     if isinstance(source, dict):
         source = source.get("subtype_id") or source.get("family_id")
-    if not isinstance(source, str) or not source:
-        return None
-    return formats().get(source)
+    return source if isinstance(source, str) and source in formats() else None
+
+
+def template_format(source: object) -> str | None:
+    key = template_key(source)
+    return formats()[key] if key is not None else None
 
 
 def typeset_mixed_number(text: str, source: object) -> str:
@@ -59,6 +62,9 @@ def typeset_family_text(text: str, source: object) -> str:
             lambda m: rf"\(\frac{{{m[1]}\sqrt{{2}}}}{{2\sin 45^\circ}}\)",
             text,
         )
+    if family == "OGE09-K3":
+        # Historical K3 snapshots substituted a negative b without parentheses.
+        text = re.sub(r"(D = b² − 4ac = )(-\d+)²(?= − 4·)", r"\1(\2)²", text)
     if family == "OGE09-K3" or family == "OGE09-K2":
 
         def root_quotient(match: re.Match[str]) -> str:

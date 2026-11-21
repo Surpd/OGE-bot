@@ -6,11 +6,26 @@ import asyncpg
 class PostgresTrainingPreferences:
     _pool: asyncpg.Pool
 
-    async def math_display(self, user_id: int) -> str:
+    async def math_display(self, user_id: int | None, template_id: str | None = None) -> str:
+        if template_id is not None:
+            pinned_or_requested = await self._pool.fetchval(
+                """SELECT EXISTS (SELECT FROM math_template_png_fallbacks WHERE template_id=$2)
+                       OR EXISTS (SELECT FROM users WHERE telegram_user_id=$1
+                                  AND preferences->>'math_display'='png')""",
+                user_id, template_id,
+            )
+            return "png" if pinned_or_requested else "auto"
         value = await self._pool.fetchval(
             "SELECT preferences->>'math_display' FROM users WHERE telegram_user_id=$1", user_id
         )
         return "png" if value == "png" else "auto"
+
+    async def remember_png_template(self, template_id: str) -> None:
+        await self._pool.execute(
+            "INSERT INTO math_template_png_fallbacks (template_id) VALUES($1) "
+            "ON CONFLICT DO NOTHING",
+            template_id,
+        )
 
     async def set_math_display(self, user_id: int, mode: str) -> None:
         if mode not in {"auto", "png"}:
@@ -44,9 +59,15 @@ class PostgresTrainingPreferences:
 class MemoryTrainingPreferences:
     training_preferences: dict[tuple[int, int], str | None]
     math_preferences: dict[int, str]
+    png_templates: set[str]
 
-    async def math_display(self, user_id: int) -> str:
-        return self.math_preferences.get(user_id, "auto")
+    async def math_display(self, user_id: int | None, template_id: str | None = None) -> str:
+        if template_id in self.png_templates:
+            return "png"
+        return self.math_preferences.get(user_id, "auto") if user_id is not None else "auto"
+
+    async def remember_png_template(self, template_id: str) -> None:
+        self.png_templates.add(template_id)
 
     async def set_math_display(self, user_id: int, mode: str) -> None:
         if mode not in {"auto", "png"}:

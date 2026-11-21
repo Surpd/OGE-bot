@@ -597,7 +597,10 @@ async def progress_navigation(
                     detail["drawing_unavailable"] = False
                     math_system_rows = system_rows(source.number, source.snapshot)
                     if context:
-                        await send_text(message, repository, context, user_id_override=user_id)
+                        await send_text(
+                            message, repository, context, user_id_override=user_id,
+                            math_family=source.snapshot,
+                        )
                     for png in photos:
                         await send_photo(
                             message, repository, BufferedInputFile(png, filename="original.png"),

@@ -179,3 +179,27 @@ def test_factorised_reference_asks_for_lesser_root() -> None:
     problem = generate_equation("OGE09-K5", 58)
     assert problem.target_root == min(problem.roots)
     assert all("= 0" in step for step in problem.solution[:2])
+
+
+def test_negative_coefficient_is_squared_as_a_signed_number_and_legacy_snapshot_replays():
+    import hashlib
+    import json
+
+    from app.bot.family_display import typeset_family_text
+
+    legacy = generate_equation("OGE09-K3", 64, "0.2.0")
+    raw = json.dumps(
+        legacy.to_snapshot(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    assert hashlib.sha256(raw.encode()).hexdigest() == (
+        "109e3c70f06fef6870bc60d701db90874da540f2297d8eb90b7e5cad812e0b70"
+    )
+    corrected = generate_equation("OGE09-K3", 64)
+    assert corrected.generator_version == "0.2.1"
+    assert corrected.equation_text == legacy.equation_text
+    assert corrected.fingerprint == legacy.fingerprint
+    assert corrected.correct_answer == legacy.correct_answer == "2,5"
+    expected = "D = b² − 4ac = (-24)² − 4·4·(35) = 16."
+    assert expected in corrected.solution
+    assert typeset_family_text(legacy.solution[2], legacy.to_snapshot()) == expected
+    assert generate_equation("OGE09-K3", 64, corrected.generator_version) == corrected

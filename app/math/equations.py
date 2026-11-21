@@ -13,6 +13,7 @@ from uuid import NAMESPACE_URL, uuid5
 from app.math.answer_policy import AnswerFormat, AnswerPolicy, format_decimal
 
 GENERATOR_VERSION = "0.2.0"
+K3_SOLUTION_VERSION = "0.2.1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -536,13 +537,18 @@ def _build_quadratic(family: str, rng: random.Random) -> Equation:
 
 
 def generate_equation(
-    family_id: str, seed: int, generator_version: str = GENERATOR_VERSION
+    family_id: str, seed: int, generator_version: str | None = None
 ) -> EquationProblem:
     if family_id not in _SOURCES:
         raise KeyError(f"Equation family {family_id!r} is not enabled")
     if not -(2**63) <= seed < 2**63:
         raise ValueError("Seed must fit a signed 64-bit integer")
-    rng = random.Random(f"{generator_version}:{family_id}:{seed}")
+    if generator_version is None:
+        generator_version = K3_SOLUTION_VERSION if family_id == "OGE09-K3" else GENERATOR_VERSION
+    # Only the written substitution changed. Keep the original mathematical seed stream.
+    revised_k3 = family_id == "OGE09-K3" and generator_version == K3_SOLUTION_VERSION
+    seed_version = GENERATOR_VERSION if revised_k3 else generator_version
+    rng = random.Random(f"{seed_version}:{family_id}:{seed}")
     equation = (
         _build_linear(family_id, rng)
         if FAMILY_GROUP[family_id] == "linear"
@@ -621,12 +627,14 @@ def generate_equation(
             square_root = _sqrt_fraction(disc)
             if square_root is None:
                 raise ValueError("Equation has no exact square root for the displayed solution")
+            squared_b = f"({_fmt(b)})" if revised_k3 and b < 0 else _fmt(b)
             steps: list[str] = []
             steps.extend(
                 [
                     f"Перенесём всё в левую часть: {_polynomial_text(c, b, a)} = 0.",
                     f"Коэффициенты: a = {_fmt(a)}, b = {_fmt(b)}, c = {_fmt(c)}.",
-                    f"D = b² − 4ac = {_fmt(b)}² − 4·{_fmt(a)}·({_fmt(c)}) = {_format_root(disc)}.",
+                    f"D = b² − 4ac = {squared_b}² − 4·{_fmt(a)}·({_fmt(c)})"
+                    f" = {_format_root(disc)}.",
                     "Найдём корни по формуле: "
                     f"x₁,₂ = (−({_fmt(b)}) ± {_format_root(square_root)})/"
                     f"(2·{_fmt(a)}) = {root_text}.",
