@@ -8,6 +8,7 @@ from app.math.oge19 import (
     POLICY,
     NoCompatibleTriple,
     generate,
+    question_heading,
     refresh_snapshot_digest,
 )
 
@@ -52,13 +53,22 @@ def build_task19_candidate_batch(
         if isinstance(fingerprints, list)
         else set()
     )
+    phase = state.get("question_phase", seed % 4 if recent_ids else 0)
+    phase = phase % 4 if isinstance(phase, int) else 0
+    find_false = phase >= 2
     for attempt in range(12):
         candidate_seed = seed if attempt == 0 else rng.getrandbits(63)
         try:
             triple = generate(
                 candidate_seed,
                 theme=theme,
-                recent_proposition_ids=recent_ids if attempt < 4 else recent_ids[-9:],
+                find_false=find_false,
+                target_count=1 + phase % 2,
+                recent_proposition_ids=recent_ids
+                if attempt < 4
+                else recent_ids[-9:]
+                if attempt < 8
+                else (),
                 correct_position_counts=position_counts,
                 excluded_fingerprints=frozenset(seen) if attempt else frozenset(),
             )
@@ -71,7 +81,7 @@ def build_task19_candidate_batch(
     else:
         return []
     snapshot = triple.snapshot()
-    condition = "Какие из следующих утверждений верны? В ответ запишите их номера.\n\n" + "\n".join(
+    condition = question_heading(find_false) + "\n\n" + "\n".join(
         f"{i}. {item.statement}" for i, item in enumerate(triple.statements, 1)
     )
     answer = triple.answer_mask
@@ -105,6 +115,7 @@ def build_task19_candidate_batch(
             "selection_attempts": attempt + 1,
             "atomic_proposition_ids": proposition_ids,
             "_recent_proposition_ids_after": [*recent_ids, *proposition_ids][-30:],
+            "_question_phase_after": (phase + 1) % 4,
             "_correct_position_counts_after": [
                 position_counts[i] + (1 if str(i + 1) in answer else 0) for i in range(3)
             ],

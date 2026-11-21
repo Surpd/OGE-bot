@@ -23,7 +23,7 @@ from app.bot.presentation import MathDeliveryUncertain, format_rich_message, sen
         ("−2/3 × (3/5)", r"\frac{-2}{3} \times \left(\frac{3}{5}\right)"),
         ("m·v²/2", r"\frac{m \cdot {v}^{2}}{2}"),
         ("aₙ = a₁ + (n − 1)d", r"a_{n} = a_{1} + \left(n - 1\right)d"),
-        ("√(49)", r"\sqrt{\left(49\right)}"),
+        ("√(49)", r"\sqrt{49}"),
         ("(−2; 3]", r"\left(-2; 3\right]"),
         ("2^(-3)", r"{2}^{\left(-3\right)}"),
         ("y=1/(2x)", r"y = \frac{1}{\left(2x\right)}"),

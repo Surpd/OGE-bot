@@ -2,6 +2,8 @@ import asyncio
 import base64
 import logging
 import secrets
+from collections.abc import Awaitable, Callable
+from functools import partial
 from typing import cast
 
 from aiogram import F, Router
@@ -232,10 +234,9 @@ async def _send_problem(
             and saved_problem.get("_transitioned") is False
         ):
             return False
-    body = f"Задание №6 · вычисления\n\n{saved_problem['condition']}\n\n"
-    body += (resumed_result(status, saved_problem) or "") if terminal else (
-        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой."
-    )
+    body = f"Задание №6\n\n{saved_problem['condition']}"
+    if terminal:
+        body += "\n\n" + (resumed_result(status, saved_problem) or "")
     sent = await send_text(
         message,
         repository,
@@ -368,11 +369,7 @@ async def continue_session(
         state = await recover_saved_training(repository, user_id, training.mode)
         if state is not None and _has_resumable_task6(state):
             current = cast(dict[str, object], state["problem"])
-            sender = (
-                _send_problem
-                if training.number == 6
-                else globals()[f"_send_task{training.number}_problem"]
-            )
+            sender = _saved_problem_sender(training.number)
             source_screen = await repository.user_state(user_id)
             await _pause_oge15_foreground(user_id, oge15_repository)
             await sender(
@@ -411,6 +408,15 @@ async def choose_number(
         page=page,
     )
     await send_text(message, repository, text, reply_markup=keyboard)
+
+
+def _saved_problem_sender(number: int) -> Callable[..., Awaitable[bool]]:
+    if number in NUMERIC_TRAININGS:
+        return partial(send_problem, NUMERIC_TRAININGS[number])
+    return {
+        6: _send_problem, 7: _send_task7_problem, 9: _send_task9_problem,
+        11: _send_task11_problem, 13: _send_task13_problem,
+    }[number]
 
 
 async def _show_saved_training_choice(
@@ -461,7 +467,7 @@ async def saved_training_navigation(
     if not isinstance(problem, dict) or str(problem.get("problem_id")) != problem_id:
         await send_text(message, repository, "Это сохранённое задание уже изменилось.")
         return
-    sender = _send_problem if number == 6 else globals()[f"_send_task{number}_problem"]
+    sender = _saved_problem_sender(number)
     if action == "restart":
         await send_text(
             message,
@@ -559,8 +565,7 @@ async def _send_task9_problem(
                 sent = await send_text(
                     message,
                     repository,
-                    f"Задание №9 · уравнения\n\n{saved_problem['condition']}\n\n"
-                    "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой.",
+                    f"Задание №9\n\n{saved_problem['condition']}",
                     reply_markup=task9_menu(str(saved_problem["problem_id"])),
                     math_family=saved_problem,
                 )
@@ -607,10 +612,9 @@ async def _send_task9_problem(
             return False
         if action == "advance" and saved_problem.get("_transitioned") is False:
             return False
-    body = f"Задание №9 · уравнения\n\n{saved_problem['condition']}\n\n"
-    body += (resumed_result(status, saved_problem) or "") if terminal else (
-        "Напишите ответ числом в чат. Дробную часть можно отделять запятой или точкой."
-    )
+    body = f"Задание №9\n\n{saved_problem['condition']}"
+    if terminal:
+        body += "\n\n" + (resumed_result(status, saved_problem) or "")
     sent = await send_text(
         message,
         repository,
@@ -782,7 +786,7 @@ async def _send_task11_problem(
         )
         return False
     caption = (
-        "Задание №11 · графики функций\n"
+        "Задание №11\n"
         f"{restored.condition}\n\n"
         + (
             (resumed_result(status, problem) or "") if terminal
@@ -1451,7 +1455,7 @@ async def _send_task7_problem(
         )
         return False
     footer = resumed_result(status, problem) if terminal else answer_instruction(7, problem)
-    caption = f"Задание №7 · числа и координатная прямая\n{question_text(7, problem)}\n\n{footer}"
+    caption = f"Задание №7\n{question_text(7, problem)}\n\n{footer}"
 
     encoded = problem.get("graph_png_base64")
     if isinstance(encoded, str):
@@ -1802,7 +1806,7 @@ async def _send_task13_problem(
     footer = resumed_result(status, problem) if terminal else (
         "Выберите вариант кнопкой или напишите его номер в чат."
     )
-    caption = f"Задание №13 · неравенства\n{question_text(13, problem)}\n\n{footer}"
+    caption = f"Задание №13\n{question_text(13, problem)}\n\n{footer}"
     markup = task13_menu(problem_id, completed=terminal, choices=True)
     math_system_rows = system_rows(13, problem)
     if image is not None:

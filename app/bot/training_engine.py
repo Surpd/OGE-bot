@@ -89,7 +89,7 @@ NUMERIC_TRAININGS = {
         "геометрические утверждения",
         STATEMENT_POLICY,
         build_task19_candidate_batch,
-        "Введите номера верных утверждений подряд, например 13.",
+        "Введите номера выбранных утверждений подряд, например 13.",
     ),
     8: NumericTraining(8, "степени и корни", POWERS_POLICY, build_task8_candidate_batch),
     10: NumericTraining(
@@ -291,7 +291,7 @@ async def send_problem(
             message,
             repository,
             BufferedInputFile(restored_circle.png, filename="oge16.png"),
-            caption=f"Задание №16 · Окружности\n\n{problem['condition']}" + result_suffix,
+            caption=f"Задание №16\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             user_id_override=user_id,
             math_family=problem,
@@ -345,7 +345,7 @@ async def send_problem(
         sent = await send_text(
             message,
             repository,
-            f"Задание №19 · Геометрические утверждения\n\n{problem['condition']}" + result_suffix,
+            f"Задание №19\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             math_family=problem,
         )
@@ -353,8 +353,7 @@ async def send_problem(
         sent = await send_text(
             message,
             repository,
-            f"Задание №{adapter.number} · {adapter.title}\n\n{problem['condition']}"
-            + (result_suffix if terminal else "\n\n" + adapter.invalid_answer),
+            f"Задание №{adapter.number}\n\n{problem['condition']}" + result_suffix,
             reply_markup=markup,
             math_family=problem,
         )

@@ -598,6 +598,124 @@
       "original_diagram": "Только контур прямоугольного треугольника с катетами 3 и 4. Медиана отсутствует на исходном рисунке.",
       "control_answer": "2,5",
       "distinct_shapes": 5
+    },
+    {
+      "family_id": "OGE18-A06",
+      "exam_number": 18,
+      "name": "Площадь вычитанием двух треугольников",
+      "status": "public_enabled",
+      "sources": [
+        {
+          "task_id": "323790",
+          "url": "https://math-oge.sdamgia.ru/problem?id=323790",
+          "provenance": "catalog_verified",
+          "verification_status": "Original grid, polygon vertices and catalog answer checked 2026-11-21",
+          "original_svg_sha256": "82e259581b665c358c4e091140cc091f873a1d475396b361774d559488bc2a21"
+        }
+      ],
+      "control_examples": [
+        {
+          "source_id": "323790",
+          "answer": "8",
+          "vertices": [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ],
+      "learner_content_version": 2,
+      "public_enabled": true
+    },
+    {
+      "family_id": "OGE18-A07",
+      "exam_number": 18,
+      "name": "Площадь фигуры с выемкой",
+      "status": "public_enabled",
+      "sources": [
+        {
+          "task_id": "341675",
+          "url": "https://math-oge.sdamgia.ru/problem?id=341675",
+          "provenance": "catalog_verified",
+          "verification_status": "Original grid, polygon vertices and catalog answer checked 2026-11-21",
+          "original_svg_sha256": "a457633f6bef8564758640069dc2ffdf6f24b5a764b9671b22118f7834e9bc2a"
+        }
+      ],
+      "control_examples": [
+        {
+          "source_id": "341675",
+          "answer": "11",
+          "vertices": [
+            [
+              0,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              3
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ],
+      "learner_content_version": 2,
+      "public_enabled": true
+    },
+    {
+      "family_id": "OGE18-C01",
+      "exam_number": 18,
+      "name": "Отношение площадей двух кругов",
+      "status": "public_enabled",
+      "public_enabled": true,
+      "sources": [
+        {
+          "task_id": "FIPI-2026-DEMO-18",
+          "url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2026/ma_9_2026.zip",
+          "provenance": "official_demo",
+          "verification_status": "original_diagram_and_answer_checked",
+          "locator": "Математика, печатная страница 13/21, №18",
+          "original_zip_sha256": "ebb8523e1d1a01192497e7dbe4bdda0e771d8c37c7ca567ba8b6ab49b07d8913"
+        }
+      ],
+      "original_diagram": "Две непересекающиеся окружности без отмеченных центров. Радиусы 1 и диагональ единичной клетки.",
+      "control_answer": "2",
+      "distinct_shapes": 5
     }
   ]
 }

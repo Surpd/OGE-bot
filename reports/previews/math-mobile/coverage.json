@@ -1,11 +1,12 @@
 {
   "stories": 40,
-  "rich": 2981,
-  "raster_scenes": 2983,
-  "ordinary": 163,
-  "png": 918,
+  "rich": 3040,
+  "raster_scenes": 2994,
+  "ordinary": 166,
   "written": 523,
+  "png": 880,
   "minimum_margin_at_360px": 12,
   "minimum_margin_at_390px": 13,
+  "minimum_margin_at_430px": 14,
   "maximum_scene_height_px": 5332
 }

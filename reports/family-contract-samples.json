@@ -80,6 +80,7 @@
   "OGE06-F001-SUB": {
     "distinct_answers": 5,
     "distinct_fingerprints": 30,
+    "same_denominator": 11,
     "unsafe_variants": 0,
     "variants": 32
   },
@@ -243,7 +244,7 @@
   "OGE09-K3": {
     "distinct_answers": 13,
     "distinct_fingerprints": 32,
-    "unsafe_variants": 32,
+    "unsafe_variants": 0,
     "variants": 32
   },
   "OGE09-K5": {
@@ -399,7 +400,7 @@
   "OGE11-F08": {
     "distinct_answers": 6,
     "distinct_fingerprints": 32,
-    "unsafe_variants": 28,
+    "unsafe_variants": 0,
     "variants": 32
   },
   "OGE12-R001": {
@@ -843,7 +844,7 @@
   "OGE16-D04": {
     "distinct_answers": 10,
     "distinct_fingerprints": 10,
-    "unsafe_variants": 32,
+    "unsafe_variants": 0,
     "variants": 32
   },
   "OGE16-D05": {
@@ -978,6 +979,24 @@
     "unsafe_variants": 0,
     "variants": 32
   },
+  "OGE18-A06": {
+    "distinct_answers": 23,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A07": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-C01": {
+    "distinct_answers": 3,
+    "distinct_fingerprints": 5,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
   "OGE18-D05": {
     "distinct_answers": 3,
     "distinct_fingerprints": 3,
@@ -1015,38 +1034,38 @@
     "variants": 32
   },
   "OGE19-AREAS-METRICS": {
-    "distinct_answers": 6,
-    "distinct_fingerprints": 29,
+    "distinct_answers": 3,
+    "distinct_fingerprints": 27,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-CIRCLES": {
-    "distinct_answers": 6,
-    "distinct_fingerprints": 21,
+    "distinct_answers": 3,
+    "distinct_fingerprints": 18,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-LINES-ANGLES": {
-    "distinct_answers": 6,
-    "distinct_fingerprints": 20,
+    "distinct_answers": 3,
+    "distinct_fingerprints": 11,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-MIXED": {
-    "distinct_answers": 6,
+    "distinct_answers": 3,
     "distinct_fingerprints": 31,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-QUADRILATERALS": {
-    "distinct_answers": 6,
-    "distinct_fingerprints": 28,
+    "distinct_answers": 3,
+    "distinct_fingerprints": 24,
     "unsafe_variants": 0,
     "variants": 32
   },
   "OGE19-TRIANGLES": {
-    "distinct_answers": 6,
-    "distinct_fingerprints": 31,
+    "distinct_answers": 3,
+    "distinct_fingerprints": 29,
     "unsafe_variants": 0,
     "variants": 32
   },

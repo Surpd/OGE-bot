@@ -252,6 +252,10 @@ def compact_layout(points: tuple[Point, ...]) -> tuple[int, int, list[tuple[int,
 
 def render_compact(family: str, points: tuple[Point, ...]) -> bytes:
     """Version 3 scene with a centered tight crop and uniform square cells."""
+    if family == "OGE18-C01":
+        from app.math.oge18_disks import render as render_disks
+
+        return render_disks(points)
     width, height, vertices = compact_layout(points)
     scale = 2
     image = Image.new("RGB", (width * scale, height * scale), "white")
@@ -297,6 +301,11 @@ def render_compact(family: str, points: tuple[Point, ...]) -> bytes:
 
 def audit_compact_family(png: bytes, family: str, points: tuple[Point, ...]) -> None:
     """Verify compact PNG dimensions, grid/edge pixels, marks, and allowed ink."""
+    if family == "OGE18-C01":
+        from app.math.oge18_disks import audit as audit_disks
+
+        audit_disks(png, points)
+        return
     width, height, vertices = compact_layout(points)
     try:
         image = Image.open(BytesIO(png))
@@ -305,7 +314,7 @@ def audit_compact_family(png: bytes, family: str, points: tuple[Point, ...]) -> 
         raise ValueError("Invalid PNG") from exc
     if image.format != "PNG" or image.size != (width, height) or image.mode != "RGB":
         raise ValueError("Invalid compact PNG dimensions or mode")
-    for target_width in (360, 390):
+    for target_width in (360, 390, 430):
         ratio = target_width / width
         small = image.resize(
             (target_width, round(height * ratio)), Image.Resampling.LANCZOS
@@ -384,3 +393,42 @@ def audit_compact_family(png: bytes, family: str, points: tuple[Point, ...]) -> 
     reference = Image.open(BytesIO(render_compact(family, points)))
     if image.tobytes() != reference.tobytes():
         raise ValueError("Unexpected or missing compact scene pixels")
+
+
+def polygon_construction(family: str, points: tuple[Point, ...]) -> bytes:
+    """Show only the auxiliary segments used in the polygon's published solution."""
+    if family == "OGE18-C01":
+        from app.math.oge18_disks import render as render_disks
+
+        return render_disks(points, construction=True)
+    _, _, vertices = compact_layout(points)
+    if family == "OGE18-A06":
+        a, b, c, d = vertices
+        top_right = (c[0], d[1])
+        bottom_right = (c[0], a[1])
+        path = (b, bottom_right, top_right, d)
+    elif family == "OGE18-A07":
+        a, _, _, d, e, _, _, h = vertices
+        path = ((d[0], a[1]), d, e, (e[0], h[1]))
+    else:
+        raise ValueError("No auxiliary construction for this family")
+    with Image.open(BytesIO(render_compact(family, points))) as image:
+        draw = ImageDraw.Draw(image)
+        for index, (start, end) in enumerate(zip(path, path[1:], strict=False)):
+            if family == "OGE18-A07" and index == 1:
+                continue  # The middle segment already belongs to the outline.
+            dx, dy = end[0] - start[0], end[1] - start[1]
+            length = abs(dx) + abs(dy)
+            for offset in range(0, length, 11):
+                stop = min(offset + 7, length)
+                draw.line(
+                    [
+                        (start[0] + dx * t // length, start[1] + dy * t // length)
+                        for t in (offset, stop)
+                    ],
+                    fill=(25, 80, 160),
+                    width=3,
+                )
+        result = BytesIO()
+        image.save(result, "PNG")
+        return result.getvalue()

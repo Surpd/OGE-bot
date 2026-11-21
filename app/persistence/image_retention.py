@@ -19,6 +19,7 @@ _SCHEDULER_METADATA_KEYS = frozenset(
         "_group_run_length_after",
         "_recent_proposition_ids_after",
         "_correct_position_counts_after",
+        "_question_phase_after",
     }
 )
 

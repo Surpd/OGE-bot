@@ -556,7 +556,7 @@ def test_distractors_reject_reversed_and_noncanonical_intervals() -> None:
     "family", ("OGE13-L02", "OGE13-Q04", "OGE13-S01", "OGE13-S02", "OGE13-S03")
 )
 def test_png_pixels_match_each_saved_interval_and_boundary(family: str) -> None:
-    problem = generate(family, 2701)
+    problem = generate(family, 2701, generator_version="0.2.0")
     width, height, pixels = _decode_rgb_png(render_option_sheet_png(problem))
     assert (width, height) == (1280, 1120)
     blue, ink, white = (23, 105, 170), (34, 34, 34), (255, 255, 255)

@@ -644,7 +644,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
     number = number_value
     if action == "pick" and len(parts) == 4:
         if number == 19 and not _task19_button_choices(problem):
-            await answer_callback(callback, "Введите номера верных утверждений сообщением.")
+            await answer_callback(callback, "Введите номера выбранных утверждений сообщением.")
             return
         if parts[3] not in {"1", "2", "3", "4"}:
             await answer_callback(callback, "Этот вариант недоступен.")

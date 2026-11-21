@@ -53,7 +53,7 @@ async def test_default_menu_and_entry_offer_task16_with_a_real_png():
     assert snapshot["family_id"] in FAMILIES
     assert snapshot["figure"]["renderer_version"] == "oge16-pillow-2"
     assert task_message.answer_photo.await_args.kwargs["caption"] == (
-        f"<b>Задание №16 · Окружности</b>\n\n{snapshot['condition']}"
+        f"<b>Задание №16</b>\n\n{snapshot['condition']}"
     )
     assert task_message.answer_photo.await_args.args[0].data == from_snapshot(snapshot).png
 

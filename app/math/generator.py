@@ -613,7 +613,7 @@ def generate_random(seed: int, generator_version: str = GENERATOR_VERSION) -> Pr
 
 def training_rejection(problem: Problem) -> str | None:
     """Filter new issues only. Historical seeds still reproduce their original problems."""
-    if problem.family_id == "OGE06-F009-PRESCRIBED-NUMERATOR":
+    if problem.family_id in {"OGE06-F001-SUB", "OGE06-F009-PRESCRIBED-NUMERATOR"}:
         expr = problem.expression
         if isinstance(expr, Binary) and isinstance(expr.left, FractionLiteral) and isinstance(
             expr.right, FractionLiteral

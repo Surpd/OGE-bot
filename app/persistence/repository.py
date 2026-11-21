@@ -3037,10 +3037,15 @@ class _Task17PostgresMixin:
             rejected = 0
             for candidate in candidates:
                 fingerprint = str(candidate["fingerprint"])
+                cycle = candidate.get("_finite_cycle_fingerprints")
+                if isinstance(cycle, list) and cycle and set(cycle) <= recent:
+                    recent_order = [fp for fp in recent_order if fp not in cycle]
+                    recent = set(recent_order)
                 if fingerprint in recent:
                     rejected += 1
                     continue
                 problem = dict(candidate)
+                problem.pop("_finite_cycle_fingerprints", None)
                 family_queue = problem.pop("_family_queue_after", [])
                 last_family = problem.pop("_last_family_after", None)
                 problem_id = UUID(str(problem["problem_id"]))
@@ -3472,6 +3477,7 @@ class _Task19PostgresMixin:
                 family_queue = problem.pop("_family_queue_after", [])
                 last_family = problem.pop("_last_family_after", None)
                 recent_propositions = problem.pop("_recent_proposition_ids_after", [])
+                phase = problem.pop("_question_phase_after", 0)
                 position_counts = problem.pop("_correct_position_counts_after", [0, 0, 0])
                 problem_id = UUID(str(problem["problem_id"]))
                 await connection.execute(
@@ -3505,6 +3511,7 @@ class _Task19PostgresMixin:
                         if isinstance(recent_propositions, list)
                         else []
                     ),
+                    "question_phase": phase,
                     "correct_position_counts": (
                         position_counts[:3]
                         if isinstance(position_counts, list)
@@ -9419,9 +9426,13 @@ class MemoryRepository(MemoryTrainingPreferences):
         )
         for candidate in candidates:
             fingerprint = str(candidate.get("fingerprint", ""))
+            cycle = candidate.get("_finite_cycle_fingerprints")
+            if isinstance(cycle, list) and cycle and set(cycle) <= set(recent_order):
+                recent_order = [fp for fp in recent_order if fp not in cycle]
             if fingerprint in recent_order:
                 continue
             problem = dict(candidate)
+            problem.pop("_finite_cycle_fingerprints", None)
             queue = problem.pop("_family_queue_after", [])
             last_family = problem.pop("_last_family_after", None)
             problem_id = str(problem["problem_id"])
@@ -9693,6 +9704,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_proposition_ids": cast(
                     list[object], problem.pop("_recent_proposition_ids_after", [])
                 )[-30:],
+                "question_phase": problem.pop("_question_phase_after", 0),
                 "correct_position_counts": cast(
                     list[object], problem.pop("_correct_position_counts_after", [0, 0, 0])
                 )[:3],

@@ -17,8 +17,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 from app.math.answer_policy import AnswerFormat, AnswerPolicy
 
-GENERATOR_VERSION = "0.2.0"
-SUPPORTED_GENERATOR_VERSIONS = frozenset({GENERATOR_VERSION})
+LEGACY_GENERATOR_VERSION = "0.2.0"
+GENERATOR_VERSION = "0.2.1"
+SUPPORTED_GENERATOR_VERSIONS = frozenset({LEGACY_GENERATOR_VERSION, GENERATOR_VERSION})
 ENABLED_FAMILIES: tuple[str, ...] = (
     "OGE13-L01",
     "OGE13-L02",
@@ -760,7 +761,7 @@ def generate(
         raise ValueError(f"Unsupported OGE13 family: {family_id}")
     if generator_version not in SUPPORTED_GENERATOR_VERSIONS:
         raise ValueError(f"Unsupported OGE13 generator version: {generator_version}")
-    rng = random.Random(f"oge13:{family_id}:{seed}:{generator_version}")
+    rng = random.Random(f"oge13:{family_id}:{seed}:{LEGACY_GENERATOR_VERSION}")
     condition, special = _condition(family_id, rng)
     solution = independent_solve(condition, family_id)
     semantic_options = _distractors(solution, rng)
@@ -953,17 +954,31 @@ def validate_snapshot(snapshot: Mapping[str, object]) -> bool:
 
 def render_option_sheet_snapshot_png(snapshot: Mapping[str, object]) -> bytes:
     """Render the four saved options without regenerating a persisted task."""
-    return _render_option_sets_png(_snapshot_options(snapshot))
+    return _render_option_sets_png(
+        _snapshot_options(snapshot),
+        adaptive=snapshot["generator_version"] != LEGACY_GENERATOR_VERSION,
+    )
 
 
 def render_option_sheet_png(problem: InequalityProblem) -> bytes:
     """Render four verified number-line options to a deterministic 1280×1120 RGB PNG."""
     if not validate(problem):
         raise ValueError("Cannot render an invalid OGE13 problem")
-    return _render_option_sets_png(problem.options)
+    return _render_option_sets_png(
+        problem.options, adaptive=problem.generator_version != LEGACY_GENERATOR_VERSION
+    )
 
 
-def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
+def _axis_window(bounds: list[Fraction]) -> tuple[Fraction, Fraction]:
+    """Choose a shared linear scale when possible; never clamp two endpoints together."""
+    if not bounds:
+        return Fraction(0), Fraction(36)
+    middle = (bounds[-1] + bounds[0]) / 2
+    scale = Fraction(840) / (bounds[-1] - bounds[0]) if len(bounds) > 1 else Fraction(80)
+    return middle, scale
+
+
+def _render_option_sets_png(options: tuple[IntervalSet, ...], *, adaptive: bool = True) -> bytes:
     """Render already validated four interval sets to a deterministic PNG."""
     if len(options) != 4 or any(not _is_canonical_interval_set(option) for option in options):
         raise ValueError("PNG renderer needs four canonical interval sets")
@@ -1012,7 +1027,21 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
     def label(value: str, x: int, top: int) -> None:
         labels.append((value, x, top))
 
+    def boundaries(option: IntervalSet) -> set[Fraction]:
+        return {x for interval in option for x in (interval.left, interval.right) if x is not None}
+
+    all_bounds = sorted(set().union(*(boundaries(option) for option in options)))
+    zoom = adaptive and (
+        any(abs(x) > 13 for x in all_bounds)
+        or any(b - a < 2 for a, b in zip(all_bounds, all_bounds[1:], strict=False))
+    )
     for index, option in enumerate(options):
+        center, scale = Fraction(0), Fraction(36)
+        if zoom:
+            center, scale = _axis_window(all_bounds)
+            bounds = sorted(boundaries(option))
+            if any((b - a) * scale < 90 for a, b in zip(bounds, bounds[1:], strict=False)):
+                center, scale = _axis_window(bounds)
         cy = 185 + index * 250
         # Draw axis with arrowheads and identical scale in every panel.
         line(100, cy, 1180, cy, ink, 1)
@@ -1021,7 +1050,7 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
         line(1180, cy, 1165, cy - 8, ink, 1)
         line(1180, cy, 1165, cy + 8, ink, 1)
         label(str(index + 1), 44, cy - 12)
-        for tick in range(-12, 13, 4):
+        for tick in (() if zoom else range(-12, 13, 4)):
             x = 640 + tick * 36
             line(x, cy - 7, x, cy + 7, gray, 1)
             label(str(tick), x, cy + 16)
@@ -1033,12 +1062,12 @@ def _render_option_sets_png(options: tuple[IntervalSet, ...]) -> bytes:
             leftx = (
                 100
                 if interval.left is None
-                else max(100, min(1180, round(640 + float(interval.left) * 36)))
+                else max(100, min(1180, round(640 + (interval.left - center) * scale)))
             )
             rightx = (
                 1180
                 if interval.right is None
-                else max(100, min(1180, round(640 + float(interval.right) * 36)))
+                else max(100, min(1180, round(640 + (interval.right - center) * scale)))
             )
             line(leftx, cy, rightx, cy, blue, 4)
             # Show explicit continuation arrows for unbounded rays.

@@ -5,6 +5,8 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
+from app.bot.learner_math import learner_text
+
 
 @lru_cache(maxsize=1)
 def formats() -> dict[str, str]:
@@ -54,12 +56,51 @@ def typeset_family_text(text: str, source: object) -> str:
     text = typeset_mixed_number(text, source)
     family = (source.get("subtype_id") or source.get("family_id")
               if isinstance(source, dict) else source)
+    if isinstance(family, str):
+        text = learner_text(text, family)
+    if isinstance(family, str) and family.startswith("OGE11-"):
+        if isinstance(source, dict) and source.get("generator_version") == "0.2.0":
+            previous = source.get("solution")
+            if (
+                isinstance(previous, list)
+                and previous
+                and all(isinstance(s, str) for s in previous)
+                and previous[0] in text
+            ):
+                from fractions import Fraction
+
+                from app.math.oge11 import Graph, graph_solution
+
+                graphs = tuple(
+                    Graph(g["kind"], tuple(map(Fraction, g["coefficients"])))
+                    for g in source["graphs"]
+                )
+                updated = graph_solution(
+                    graphs,
+                    tuple(source["letter_graph_ids"]),
+                    tuple(source["digit_graph_ids"]),
+                    source["answer_kind"],
+                )
+                old = "\n".join(previous)
+                text = text.replace(old, "\n".join(updated))
+        text = re.sub(r"/\((\d+)x\)", r"/(\1·x)", text)
     if isinstance(family, str) and family.startswith("TYRES-"):
         return text
+    if family == "OGE14-A02" and isinstance(source, dict) and "aₙ = aⱼ" in text:
+        p = source.get("parameters")
+        if isinstance(p, dict) and all(isinstance(p.get(k), int) for k in ("a1", "j", "d", "rows")):
+            seats = p["a1"] + (p["j"] - 1) * p["d"]
+            text = text.replace(
+                f"aₙ = aⱼ + ({p['rows']}−{p['j']})d",
+                f"От ряда {p['j']} до последнего — ещё "
+                f"{p['rows']} − {p['j']} переходов. "
+                f"aₙ = {seats} + ({p['rows']} − {p['j']}) · {p['d']}",
+            )
     if family == "OGE16-D04":
+        text = text.replace("AB/(2 sin C)", r"\(\frac{AB}{2\cdot\sin C}\)")
         text = re.sub(
             r"(\d+)√2/\(2 · sin 45°\)",
-            lambda m: rf"\(\frac{{{m[1]}\sqrt{{2}}}}{{2\sin 45^\circ}}\)",
+            lambda m: rf"\(\frac{{{m[1]}\sqrt{{2}}}}{{2\cdot\sin 45^\circ}}\)",
             text,
         )
     if family == "OGE09-K3":

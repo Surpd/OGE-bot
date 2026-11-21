@@ -567,6 +567,7 @@ async def progress_navigation(
     if section in {"item"} and len(parts) == 3:
         from aiogram.types import BufferedInputFile
 
+        from app.bot.diagram_layout import mobile_diagram
         from app.bot.error_replay import _materials
         from app.bot.presentation import send_photo
         from app.bot.task_view import question_text, system_rows
@@ -602,6 +603,7 @@ async def progress_navigation(
                             math_family=source.snapshot,
                         )
                     for png in photos:
+                        png = await asyncio.to_thread(mobile_diagram, png, source.snapshot)
                         await send_photo(
                             message, repository, BufferedInputFile(png, filename="original.png"),
                             caption=f"Исходные данные №{source.number}", user_id_override=user_id,

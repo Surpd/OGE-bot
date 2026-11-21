@@ -291,7 +291,11 @@ def test_new_family_source_geometry_and_seed_snapshot_roundtrip(family):
         points = tuple(tuple(point) for point in snapshot["points"])
         assert answer_family(family, points) == POLICY.parse(snapshot["correct_answer"])
         assert from_snapshot(snapshot).png_bytes == problem.png_bytes
-        assert snapshot["renderer_version"] == "oge18-pillow-2"
+        assert snapshot["renderer_version"] == (
+            "oge18-pillow-3"
+            if family in {"OGE18-A06", "OGE18-A07", "OGE18-C01"}
+            else "oge18-pillow-2"
+        )
         assert snapshot["geometry_model"] == "oge18-grid-model-2"
 
 
@@ -324,7 +328,10 @@ def test_legacy_renderer_snapshots_remain_restorable(family):
         else generate(family, 42)
     )
     snapshot = problem.to_snapshot()
-    assert snapshot["renderer_version"] in {"oge18-pillow-1", "oge18-pillow-2"}
+    if family in {"OGE18-A06", "OGE18-A07", "OGE18-C01"}:
+        assert snapshot["renderer_version"] == "oge18-pillow-3"
+    else:
+        assert snapshot["renderer_version"] in {"oge18-pillow-1", "oge18-pillow-2"}
     assert from_snapshot(snapshot).png_bytes == problem.png_bytes
 
 
@@ -496,6 +503,9 @@ def test_exam_conditions_are_source_short_and_unitless():
         "OGE18-A05": "356974",
         "OGE18-L01": "348446",
         "OGE18-H01": "311958",
+        "OGE18-A06": "323790",
+        "OGE18-A07": "341675",
+        "OGE18-C01": "FIPI-2026-DEMO-18",
     }
     assert {family: SOURCES[family] for family in NEW_FAMILIES} == expected
     expected_conditions = {
@@ -527,6 +537,14 @@ def test_exam_conditions_are_source_short_and_unitless():
             "Найдите площадь этого ромба."
         ),
     }
+    expected_conditions["OGE18-C01"] = (
+        "На клетчатой бумаге изображены два круга. Найдите, "
+        "во сколько раз площадь большего круга больше площади меньшего."
+    )
+    for family in ("OGE18-A06", "OGE18-A07"):
+        expected_conditions[family] = (
+            "На клетчатой бумаге с размером клетки 1 × 1 изображена фигура. Найдите её площадь."
+        )
     assert {family: CONDITIONS[family] for family in NEW_FAMILIES} == expected_conditions
     for family in NEW_FAMILIES:
         condition = CONDITIONS[family].lower()
@@ -558,6 +576,8 @@ def test_teaching_fixed_coordinate_fixtures_use_school_formulas():
 def test_teaching_mass_seed_dimensions_match_generated_coordinates():
     from math import isqrt
 
+    from app.math.oge18_oracle import answer_family
+
     for family in NEW_FAMILIES:
         for seed in range(100):
             points = tuple(
@@ -571,6 +591,17 @@ def test_teaching_mass_seed_dimensions_match_generated_coordinates():
                 assert (
                     solution[-1]
                     == f"По теореме Пифагора: d = √({dx}² + {dy}²) = {isqrt(dx * dx + dy * dy)}."
+                )
+            elif family == "OGE18-C01":
+                assert "Пифагора" in solution[1]
+                assert solution[-1].endswith(
+                    f"= {decimal(answer_family(family, points)).replace('.', ',')}."
+                )
+            elif family in {"OGE18-A06", "OGE18-A07"}:
+                # Pick's theorem via exact scan of interior and boundary lattice points
+                # is exercised against the catalog fixtures in the acceptance suite.
+                assert solution[-1].endswith(
+                    f"= {decimal(answer_family(family, points)).replace('.', ',')}."
                 )
             elif family == "OGE18-H01":
                 a, b, c = points

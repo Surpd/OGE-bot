@@ -33,7 +33,7 @@ def test_matrix_covers_audited_families_and_pins_unsafe_templates():
 @pytest.mark.parametrize(
     "family,transport",
     [
-        ("OGE11-F08", "png"),
+        ("written-feedback", "png"),
         ("OGE06-F006-MIXED-MINUS-DECIMAL", "rich"),
     ],
 )

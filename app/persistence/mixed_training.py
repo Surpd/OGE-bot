@@ -40,6 +40,7 @@ _AFTER_FIELDS = {
     "_last_group_after": "last_group",
     "_group_run_length_after": "group_run_length",
     "_recent_proposition_ids_after": "recent_proposition_ids",
+    "_question_phase_after": "question_phase",
     "_correct_position_counts_after": "correct_position_counts",
 }
 

@@ -41,7 +41,9 @@ def layout_text(source: str) -> str:
         elif solution and line.strip():
             step += 1
             already_numbered = len(line) > 1 and line[0].isdigit() and line[1] in ".)"
-            if not already_numbered:
+            spans = math_spans(line.strip().removesuffix("."))
+            formula_line = len(spans) == 1 and spans[0].latex is not None
+            if not already_numbered and not formula_line:
                 line = f"{step}. {line}"
         result.append(line)
     if final_answer is not None:
