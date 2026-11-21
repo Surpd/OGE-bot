@@ -101,9 +101,14 @@ async def candidate_state(
             # Consume larger topic groups while an alternating finish is still possible.
             counts = Counter(topics()[f] for f in deck)
             deck.sort(key=lambda f: -counts[topics()[f]])
-        result["family_queue"] = rank_families(
+        ranked = rank_families(
             deck, history, {f for f in remaining if outcomes.get(f) == "failed"}
         )
+        if number in {16, 18} and len(history) < len(active):
+            # Introduce every graphical family on the first tour. Keep fallback candidates
+            # for finite/exhausted pools, including when continuing across modes.
+            ranked.sort(key=lambda f: f in history)
+        result["family_queue"] = ranked
     local = state.get("recent_fingerprints")
     local_fps = local if isinstance(local, list) else []
     if number == 16:

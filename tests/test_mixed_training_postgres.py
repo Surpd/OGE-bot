@@ -237,6 +237,14 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
         history = await candidate_state(reopened, story_user_id, 6, {})
         assert ordinary_candidate["fingerprint"] in history["recent_fingerprints"]
         assert await candidate_state(reopened, user_id + 10000, 6, {}) == {}
+        from app.math.scenario_engine import ScenarioSnapshot
+        from app.math.scenarios.recent_questions import question_signature
+
+        restored_story = ScenarioSnapshot.from_snapshot(scenario)
+        assert await story_store.recent_story_questions(story_user_id) == frozenset(
+            question_signature(restored_story, q) for q in restored_story.questions
+        )
+        assert not await story_store.mixed_story_questions(user_id + 10000)
         assert await story_store.story_families(story_user_id) == [
             question["family_id"] for question in reversed(scenario["questions"])
         ]

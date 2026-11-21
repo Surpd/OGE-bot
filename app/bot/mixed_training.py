@@ -133,10 +133,11 @@ def _candidate(number: int, state: dict[str, object] | None = None) -> dict[str,
     return candidates[0]
 
 
-def _scenario(seed: int | None = None, *, history: list[str] | None = None) -> dict[str, object]:
+def _scenario(seed: int | None = None, *, history: list[str] | None = None,
+              recent: frozenset[tuple[str, str, str]] = frozenset()) -> dict[str, object]:
     actual_seed = seed if seed is not None else secrets.randbelow(2**63)
     plan = rotated_plan(PracticeRequest(PracticeMode.FULL, actual_seed), public_registry(),
-                        history or [])
+                        history or [], recent)
     return plan.snapshot.to_snapshot()
 
 
@@ -333,7 +334,8 @@ async def _issue(store: MixedTrainingRepository, user_id: int) -> dict[str, obje
         elif number == 1:
             try:
                 scenario = await asyncio.to_thread(
-                    _scenario, history=await store.story_families(user_id)
+                    _scenario, history=await store.story_families(user_id),
+                    recent=await store.recent_story_questions(user_id),
                 )
             except Exception as exc:
                 raise _CandidateUnavailable("Could not generate OGE 1–5 scenario") from exc
@@ -754,7 +756,8 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             scenario = None
             if next_number == 1:
                 scenario = await asyncio.to_thread(
-                    _scenario, history=await store.story_families(user_id)
+                    _scenario, history=await store.story_families(user_id),
+                    recent=await store.recent_story_questions(user_id),
                 )
         except Exception:
             await send_text(

@@ -36,7 +36,7 @@ def message(text="", mid=100):
 async def test_default_menu_and_entry_offer_task18_with_a_real_png():
     repo = MemoryRepository()
     incoming = message()
-    await router.choose_number(incoming, repo)
+    await router.choose_number(incoming, repo, page=2)
     labels = [
         b.text
         for row in incoming.answer.await_args.kwargs["reply_markup"].inline_keyboard

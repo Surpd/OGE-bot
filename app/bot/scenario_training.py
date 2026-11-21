@@ -644,7 +644,11 @@ async def _start_session(
         return
     position = None if position_text is None or position_text == "random" else int(position_text)
     story_code = None if code == "RANDOM" else code
+    from app.persistence.mixed_training import MixedTrainingRepository
+
     recent = await store.recent_questions(user_id)
+    if repository is not None:
+        recent |= await MixedTrainingRepository(repository).mixed_story_questions(user_id)
     try:
         plan = await asyncio.to_thread(
             rotated_plan, PracticeRequest(mode, secrets.randbelow(2**63), story_code, position),

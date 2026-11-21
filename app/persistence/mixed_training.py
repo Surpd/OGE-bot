@@ -103,6 +103,50 @@ class MixedTrainingRepository:
     async def story_families(self, user_id: int) -> list[str]:
         return await recent_story_families(self._repository, user_id)
 
+    async def recent_story_questions(self, owner: int) -> frozenset[tuple[str, str, str]]:
+        from app.persistence.scenario_repository import ScenarioPostgresRepository
+
+        mixed = await self.mixed_story_questions(owner)
+        if self._pool is None:
+            return mixed
+        return mixed | await ScenarioPostgresRepository(self._pool).recent_questions(owner)
+
+    async def mixed_story_questions(self, owner: int) -> frozenset[tuple[str, str, str]]:
+        """Read issued positions only; each mixed scenario is stored on its first question."""
+        from app.math.scenario_engine import ScenarioSnapshot
+        from app.math.scenarios.recent_questions import question_signature
+
+        if self._pool is not None:
+            rows = await self._pool.fetch(
+                """SELECT p.number, p.fingerprint,
+                       CASE WHEN p.number=1
+                            THEN p.snapshot->'_original_scenario_snapshot' END AS scene
+                   FROM users u JOIN mixed_training_sessions s ON s.user_id=u.id
+                   JOIN mixed_training_problems p ON p.session_id=s.id
+                   WHERE u.telegram_user_id=$1 AND p.number BETWEEN 1 AND 5
+                   ORDER BY p.issued_at DESC,p.id DESC LIMIT 24""", owner,
+            )
+        else:
+            from itertools import islice
+
+            rows = [
+                {**row, "scene": row["snapshot"].get("_original_scenario_snapshot")}
+                for row in islice((r for r in reversed(
+                    self._repository._mixed_training_records.get(owner, [])
+                ) if 1 <= r["number"] <= 5), 24)
+            ]
+        positions: dict[str, set[int]] = {}
+        recent: set[tuple[str, str, str]] = set()
+        for row in rows:
+            key = row["fingerprint"].rpartition(":")[0]
+            positions.setdefault(key, set()).add(row["number"])
+            if raw := _object(row["scene"]):
+                scene = ScenarioSnapshot.from_snapshot(raw)
+                recent.update(
+                    question_signature(scene, scene.questions[i - 1]) for i in positions[key]
+                )
+        return frozenset(recent)
+
     async def candidate_state(
         self, user_id: int, number: int, local: object,
     ) -> dict[str, object]:

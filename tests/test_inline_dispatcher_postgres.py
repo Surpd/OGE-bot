@@ -318,6 +318,20 @@ async def exercise_navigation(
         await click("nav:numbers")
         await click("nav:task:8")
         assert await repository.user_state(42) == "family_selection:8"
+        first_page = list(session.messages.values())[-1]
+        await click("nav:families:8:1", first_page, repeat=webhook)
+        second_page = list(session.messages.values())[-1]
+        assert "Страница 2" in (second_page.text or "")
+        await click("nav:family:8:0", first_page)
+        assert await repository.training_family(42, 8) is None
+        await click("nav:family:8:6", second_page, repeat=webhook)
+        from app.persistence.rotation_history import enabled
+        from app.persistence.training_insights import family_name
+
+        assert await repository.training_family(42, 8) == enabled(8)[6]
+        assert family_name(enabled(8)[6]) in (list(session.messages.values())[-1].text or "")
+        await click("nav:families:8:1")
+        assert "Страница 2" in (list(session.messages.values())[-1].text or "")
         await click("nav:numbers")
         await click("nav:main")
         await click("nav:progress")
