@@ -1,16 +1,24 @@
 """Telegram presentation only: never rewrite stored mathematical content.
 
-Rich HTML is sent only through sendRichMessage. Definite API rejection falls
+Rich HTML is sent only through sendRichMessage. Confirmed Rich incompatibility falls
 back to one locally typeset photo. Ambiguous network failures are never retried
 as a different message, preventing duplicate problem delivery.
 """
 
 import asyncio
+import logging
 import re
+from collections.abc import Awaitable
 from html import escape
 from typing import Any
 
-from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
+from aiogram.exceptions import (
+    ClientDecodeError,
+    TelegramBadRequest,
+    TelegramNetworkError,
+    TelegramNotFound,
+    TelegramServerError,
+)
 from aiogram.types import (
     BufferedInputFile,
     InputMediaPhoto,
@@ -21,6 +29,7 @@ from aiogram.types import (
 from aiogram.utils.formatting import Text
 
 from app.bot.explicit_math import flatten_math_lines, formulas, plain_text
+from app.bot.family_display import formats, template_key, typeset_family_text
 from app.bot.math_fragments import MathFragment
 from app.bot.math_layout import action_prefix, layout_text
 from app.bot.math_notation import (
@@ -145,13 +154,46 @@ def _has_telegram_transport(message: object) -> bool:
     return isinstance(message, Message) or isinstance(getattr(message, "_message", None), Message)
 
 
-async def _prefer_png(message: Message, repository: Repository, override: int | None) -> bool:
+async def _prefer_png(
+    message: Message, repository: Repository, override: int | None, key: str | None
+) -> bool:
     user_id = override
     if user_id is None and message.from_user is not None and not message.from_user.is_bot:
         user_id = message.from_user.id
     if user_id is None and message.chat.type == "private":
         user_id = message.chat.id
+    if key is not None:
+        return await repository.math_display(user_id, key) == "png"
     return user_id is not None and await repository.math_display(user_id) == "png"
+
+
+class MathDeliveryUncertain(Exception):
+    """Telegram may have created the message before its response was lost."""
+
+
+async def _deliver_math(request: Awaitable[Message]) -> Message:
+    try:
+        return await request
+    except (TelegramNetworkError, TelegramServerError, ClientDecodeError, TimeoutError) as error:
+        raise MathDeliveryUncertain from error
+
+
+def _rich_incompatible(error: TelegramBadRequest | TelegramNotFound) -> bool:
+    # The method rejected the content or explicitly does not implement Rich.
+    # A missing chat, invalid keyboard, missing attachment or generic 404
+    # describes neither the mathematical template nor its compatibility.
+    reason = error.message.casefold().strip()
+    reason = reason.removeprefix("bad request: ").removeprefix("not found: ")
+    if isinstance(error, TelegramNotFound):
+        return reason in {"method not found", "sendrichmessage not found", "method not available"}
+    return reason.startswith((
+        "can't parse entities", "can't parse rich message html", "can't parse math",
+        "unsupported start tag", "unsupported rich message", "unsupported math",
+        "can't parse rich message: unsupported tag",
+        "can't parse rich message: unsupported start tag",
+        "rich messages are not supported",
+        "method not found",
+    ))
 
 
 async def _send_mathematics(
@@ -159,11 +201,18 @@ async def _send_mathematics(
     text: str | MathFragment,
     photo: BufferedInputFile | None,
     kwargs: dict[str, Any],
-    force_png: bool = False,
+    *,
+    repository: Repository,
+    force_png: bool,
+    key: str | None,
     system_rows: tuple[str, ...] | None = None,
     diagram_caption: str | None = None,
 ) -> Message:
-    if force_png or rich_needs_png_fallback(text):
+    fallback = formats()[key] == "png" if key is not None else rich_needs_png_fallback(text)
+    if force_png or fallback:
+        logging.getLogger(__name__).debug(
+            "math_image_reason=%s", "effective_preference" if force_png else "template_or_notation"
+        )
         return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
     rich = format_rich_message(text, system_rows=system_rows)
     media = None
@@ -174,13 +223,18 @@ async def _send_mathematics(
         bot = message.bot
         if bot is None:
             raise RuntimeError("Mathematical transport needs a mounted bot")
-        return await bot.send_rich_message(
+        return await _deliver_math(bot.send_rich_message(
             chat_id=message.chat.id,
             message_thread_id=message.message_thread_id,
             rich_message=InputRichMessage(html=rich, media=media),
             **kwargs,
-        )
-    except (TelegramBadRequest, TelegramNotFound):
+        ))
+    except (TelegramBadRequest, TelegramNotFound) as error:
+        if not _rich_incompatible(error):
+            raise
+        if key is not None:
+            await repository.remember_png_template(key)
+        logging.getLogger(__name__).info("math_image_reason=rich_incompatible template=%s", key)
         # Only a definite rejection means no message was created. Timeouts,
         # transport failures, rate limits and server errors must propagate.
         return await _send_math_image(message, text, photo, kwargs, system_rows, diagram_caption)
@@ -207,18 +261,18 @@ async def _send_math_image(
     if bot is None:
         raise RuntimeError("Mathematical transport needs a mounted bot")
     if standalone is not None:
-        await bot.send_photo(
+        await _deliver_math(bot.send_photo(
             chat_id=message.chat.id,
             message_thread_id=message.message_thread_id,
             photo=standalone,
             caption=diagram_caption,
-        )
-    return await bot.send_photo(
+        ))
+    return await _deliver_math(bot.send_photo(
         chat_id=message.chat.id,
         message_thread_id=message.message_thread_id,
         photo=BufferedInputFile(image, filename="mathematics.png"),
         **kwargs,
-    )
+    ))
 
 
 async def _bind_navigation(
@@ -245,6 +299,7 @@ async def send_text(
     text: str | MathFragment | Text,
     *,
     user_id_override: int | None = None,
+    math_family: object = None,
     math_system_rows: tuple[str, ...] | None = None,
     rich_with_navigation: bool = False,
     **kwargs: Any,
@@ -252,6 +307,7 @@ async def send_text(
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
 
     has_navigation = navigation_screen(kwargs.get("reply_markup")) is not None
+    key = template_key(math_family)
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
     if isinstance(text, Text):
@@ -259,20 +315,23 @@ async def send_text(
     elif (
         _has_telegram_transport(message)
         and (
-            not has_navigation
+            key is not None
+            or not has_navigation
             or rich_with_navigation
             or isinstance(text, str)
             and next(formulas(text), None) is not None
         )
-        and has_mathematics(text)
+        and (key is not None or has_mathematics(text))
     ):
         sent = await _send_mathematics(
             message,
-            text,
+            typeset_family_text(text, math_family) if isinstance(text, str) else text,
             None,
             kwargs,
-            force_png=await _prefer_png(message, repository, user_id_override),
+            repository=repository,
+            force_png=await _prefer_png(message, repository, user_id_override, key),
             system_rows=math_system_rows,
+            key=key,
         )
     else:
         sent = await message.answer(format_math_message(text), parse_mode="HTML", **kwargs)
@@ -287,24 +346,31 @@ async def send_photo(
     *,
     caption: str | MathFragment,
     user_id_override: int | None = None,
+    math_family: object = None,
     math_system_rows: tuple[str, ...] | None = None,
     diagram_caption: str | None = None,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import prepare_navigation_markup
 
+    key = template_key(math_family)
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
     if _has_telegram_transport(message) and (
-        has_mathematics(caption) or isinstance(caption, str) and len(caption) > 950
+        key is not None
+        or has_mathematics(caption)
+        or isinstance(caption, str)
+        and len(caption) > 950
     ):
         sent = await _send_mathematics(
             message,
-            caption,
+            typeset_family_text(caption, math_family) if isinstance(caption, str) else caption,
             photo,
             kwargs,
-            force_png=await _prefer_png(message, repository, user_id_override),
+            repository=repository,
+            force_png=await _prefer_png(message, repository, user_id_override, key),
             system_rows=math_system_rows,
+            key=key,
             diagram_caption=diagram_caption,
         )
     else:

@@ -11,7 +11,7 @@ from PIL import UnidentifiedImageError
 
 from app.bot.explicit_math import display_feedback
 from app.bot.part2 import controls, image_bytes
-from app.bot.presentation import send_text
+from app.bot.presentation import has_mathematics, send_text
 from app.config import get_settings
 from app.part2_grading import (
     Assessment,
@@ -104,6 +104,7 @@ async def check(
         reply_markup=markup,
         user_id_override=owner,
         rich_with_navigation=True,
+        math_family="written-feedback" if has_mathematics(reply) else None,
     )
 
 

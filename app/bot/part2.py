@@ -102,6 +102,7 @@ async def card_message(
             reply_markup=markup,
             user_id_override=owner,
             diagram_caption="Чертёж к условию" if role == "condition" else "Рисунок к разбору",
+            math_family=card,
         )
     else:
         await send_text(
@@ -111,6 +112,7 @@ async def card_message(
             reply_markup=markup,
             user_id_override=owner,
             rich_with_navigation=True,
+            math_family=card,
         )
 
 
@@ -409,6 +411,7 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
                 hint_message(row["card"]["hints"][used - 1], row["card"]),
                 reply_markup=controls(row),
                 rich_with_navigation=True,
+                math_family=row["card"],
             )
     elif command == "check":
         from app.bot.part2_check import check

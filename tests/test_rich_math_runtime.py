@@ -12,7 +12,7 @@ from PIL import Image
 from app.bot.math_fragments import Comparison, Fraction, MathToken, System
 from app.bot.math_image import _formula, render_math_image
 from app.bot.math_notation import math_spans, parse_formula, rich_needs_png_fallback
-from app.bot.presentation import format_rich_message, send_photo, send_text
+from app.bot.presentation import MathDeliveryUncertain, format_rich_message, send_photo, send_text
 
 
 @pytest.mark.parametrize(
@@ -398,7 +398,8 @@ async def test_native_rich_transport_preserves_message_id_controls_and_media(wit
 async def test_only_definite_rich_rejection_falls_back_without_rescoring(error, fallback):
     bot = Bot("123456:TEST")
     method = SendRichMessage(chat_id=42, rich_message={"html": "test"})
-    bot.send_rich_message = AsyncMock(side_effect=error(method=method, message="unavailable"))
+    reason = "Bad Request: can't parse entities: unsupported start tag"
+    bot.send_rich_message = AsyncMock(side_effect=error(method=method, message=reason))
     sent = Message(message_id=92, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
     bot.send_photo = AsyncMock(return_value=sent)
     repository = AsyncMock()
@@ -409,8 +410,9 @@ async def test_only_definite_rich_rejection_falls_back_without_rescoring(error, 
         assert photo.data.startswith(b"\x89PNG")
         bot.send_photo.assert_awaited_once()
     else:
-        with pytest.raises(TelegramNetworkError):
+        with pytest.raises(MathDeliveryUncertain) as uncertain:
             await send_text(incoming(bot), repository, "Ответ: 1/2")
+        assert isinstance(uncertain.value.__cause__, TelegramNetworkError)
         bot.send_photo.assert_not_awaited()
     repository.task6_answer.assert_not_awaited()
     await bot.session.close()
@@ -457,5 +459,72 @@ async def test_prose_counts_keep_text_font_beside_a_typeset_fraction():
         html = bot.send_rich_message.await_args.kwargs["rich_message"].html
         assert "За 2 часа нашли 3,5 литра" in html
         assert r"<tg-math>\frac{1}{2}</tg-math>" in html
+    finally:
+        await bot.session.close()
+
+
+@pytest.mark.parametrize("kind,reason", [
+    ("network", "request timed out"), ("server", "Bad Gateway"),
+    ("rate", "Too Many Requests"), ("bad", "Bad Request: BUTTON_DATA_INVALID"),
+    ("missing", "Bad Request: chat not found"), ("missing", "Not Found"),
+])
+async def test_unrelated_or_ambiguous_error_never_pins_or_resends(kind, reason):
+    from aiogram.exceptions import TelegramNotFound, TelegramRetryAfter, TelegramServerError
+
+    from app.persistence.repository import MemoryRepository
+
+    errors = {"network": TelegramNetworkError, "server": TelegramServerError,
+              "missing": TelegramNotFound, "bad": TelegramBadRequest}
+    method = SendRichMessage(chat_id=42, rich_message={"html": "test"})
+    error = (TelegramRetryAfter(method=method, message=reason, retry_after=5) if kind == "rate"
+             else errors[kind](method=method, message=reason))
+    bot = Bot("123456:TEST")
+    message = incoming(bot)
+    bot.send_rich_message = AsyncMock(side_effect=[error, message])
+    bot.send_photo = AsyncMock()
+    repository = MemoryRepository()
+    try:
+        family = "OGE13-L01"
+        expected_error = MathDeliveryUncertain if kind in {"network", "server"} else type(error)
+        with pytest.raises(expected_error) as raised:
+            await send_text(message, repository, "x ≤ 3", math_family=family)
+        assert (raised.value.__cause__ if expected_error is MathDeliveryUncertain
+                else raised.value) is error
+        assert bot.send_rich_message.await_count == 1
+        bot.send_photo.assert_not_awaited()
+        assert await repository.math_display(42, family) == "auto"
+        await send_text(message, repository, "x ≥ 5", math_family=family)
+        assert bot.send_rich_message.await_count == 2
+        bot.send_photo.assert_not_awaited()
+    finally:
+        await bot.session.close()
+
+
+async def test_method_rejection_is_remembered_even_if_png_delivery_times_out():
+    from aiogram.exceptions import TelegramNotFound
+
+    from app.persistence.repository import MemoryRepository
+
+    repo = MemoryRepository()
+    family = "OGE13-L01"
+    bot = Bot("123456:TEST")
+    message = incoming(bot)
+    method = SendRichMessage(chat_id=42, rich_message={"html": "test"})
+    bot.send_rich_message = AsyncMock(
+        side_effect=TelegramNotFound(method=method, message="Not Found: method not found")
+    )
+    bot.send_photo = AsyncMock(side_effect=[
+        TelegramNetworkError(method=method, message="connection reset"), message,
+    ])
+    try:
+        with pytest.raises(MathDeliveryUncertain) as uncertain:
+            await send_text(message, repo, "x ≤ 2", math_family=family)
+        assert isinstance(uncertain.value.__cause__, TelegramNetworkError)
+        bot.send_rich_message.assert_awaited_once()
+        bot.send_photo.assert_awaited_once()
+        # A separate subsequent request uses the saved decision.
+        await send_text(message, repo, "x ≥ 3", math_family=family)
+        bot.send_rich_message.assert_awaited_once()
+        assert bot.send_photo.await_count == 2
     finally:
         await bot.session.close()

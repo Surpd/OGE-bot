@@ -23,7 +23,7 @@ from aiogram.types import (
 
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
-from app.bot.presentation import has_mathematics, send_text
+from app.bot.presentation import send_text
 from app.bot.training_ux import matches_current_condition, resumed_result
 from app.math.scenario_engine import (
     FamilyRegistry,
@@ -439,7 +439,11 @@ async def _show_data(
         if repository is None:
             await message.answer(context)
         else:
-            await send_text(message, repository, context, user_id_override=user_id)
+            await send_text(
+                message, repository, context, user_id_override=user_id,
+                math_family=next(q.family_id for q in snapshot.questions
+                                 if q.position == session.current_position),
+            )
     if shared or current:
         photos = scenario_photos_for_question(snapshot, session.current_position)
     else:
@@ -553,8 +557,7 @@ async def render_session(
         body += f"\n\n{result_text}"
     markup = _keyboard(rows)
     controls = None
-    if (edit_current and message.message_id == session.control_message_id
-            and (repository is None or not has_mathematics(body))):
+    if edit_current and message.message_id == session.control_message_id and repository is None:
         try:
             edited = await message.edit_text(body, reply_markup=markup)
             if isinstance(edited, Message):
@@ -569,6 +572,7 @@ async def render_session(
                 body,
                 reply_markup=markup,
                 user_id_override=telegram_user_id,
+                math_family=question.family_id,
             )
         else:
             controls = await message.answer(body, reply_markup=markup)
@@ -1124,7 +1128,7 @@ async def handle_callback(
                 await callback.message.answer(hint)
             else:
                 await send_text(callback.message, repository, hint,
-                                user_id_override=callback.from_user.id)
+                                user_id_override=callback.from_user.id, math_family=q.family_id)
         elif action == "solution":
             q = next(q for q in updated.snapshot.questions if q.position == action_position)
             result_text = "Разбор:\n" + "\n".join(q.solution_steps)

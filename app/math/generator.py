@@ -609,3 +609,15 @@ def choose_family(seed: int) -> str:
 def generate_random(seed: int, generator_version: str = GENERATOR_VERSION) -> Problem:
     family_id = choose_family(seed)
     return generate(family_id, seed, generator_version)
+
+
+def training_rejection(problem: Problem) -> str | None:
+    """Filter new issues only. Historical seeds still reproduce their original problems."""
+    if problem.family_id == "OGE06-F009-PRESCRIBED-NUMERATOR":
+        expr = problem.expression
+        if isinstance(expr, Binary) and isinstance(expr.left, FractionLiteral) and isinstance(
+            expr.right, FractionLiteral
+        ):
+            if expr.left.denominator == expr.right.denominator:
+                return "same_denominator"
+    return None

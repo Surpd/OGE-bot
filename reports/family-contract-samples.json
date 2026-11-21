@@ -1,0 +1,1545 @@
+{
+  "FLAT-01-ROOM-MATCH": {
+    "distinct_answers": 31,
+    "distinct_models": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-02-PARQUET-PACK": {
+    "distinct_answers": 4,
+    "distinct_models": 4,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-02-TILE-PACK": {
+    "distinct_answers": 2,
+    "distinct_models": 5,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-03-RECT-AREA": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-04-RECT-PERCENT": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-05-INTERNET-MIN": {
+    "distinct_answers": 2,
+    "distinct_models": 6,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "FLAT-05-WASHER-MIN": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-01-IDENTIFY": {
+    "distinct_answers": 31,
+    "distinct_models": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-02-TILES-PACKS": {
+    "distinct_answers": 7,
+    "distinct_models": 7,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-04-PERIMETER-POLYGON": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-07-PERCENT-BUILDINGS": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "GARDEN-09-HEAT-BREAKEVEN": {
+    "distinct_answers": 19,
+    "distinct_models": 19,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F001-ADD": {
+    "distinct_answers": 31,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F001-SUB": {
+    "distinct_answers": 5,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F002-DIV": {
+    "distinct_answers": 26,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F002-MUL": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 28,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F003-UNIT-SUM": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 8,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-ADD": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-DIV": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 22,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-MUL": {
+    "distinct_answers": 32,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F004-DEC-SUB": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F006-MIXED-MINUS-DECIMAL": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F008-REDUCED-NUMERATOR": {
+    "distinct_answers": 8,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE06-F009-PRESCRIBED-NUMERATOR": {
+    "distinct_answers": 13,
+    "distinct_fingerprints": 32,
+    "same_denominator": 9,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C01": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C02": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C03": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C04": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-C06": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-N01": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE07-N04": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R01": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R02": {
+    "distinct_answers": 19,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R03": {
+    "distinct_answers": 18,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R04": {
+    "distinct_answers": 29,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R05": {
+    "distinct_answers": 11,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R06": {
+    "distinct_answers": 28,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R08": {
+    "distinct_answers": 26,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE08-R09": {
+    "distinct_answers": 8,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-K2": {
+    "distinct_answers": 16,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-K3": {
+    "distinct_answers": 13,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 32,
+    "variants": 32
+  },
+  "OGE09-K5": {
+    "distinct_answers": 22,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-K6": {
+    "distinct_answers": 12,
+    "distinct_fingerprints": 29,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L1": {
+    "distinct_answers": 16,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L2": {
+    "distinct_answers": 19,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L3": {
+    "distinct_answers": 19,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L4A": {
+    "distinct_answers": 14,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE09-L4B": {
+    "distinct_answers": 17,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F001-DRAW-CATEGORY": {
+    "distinct_answers": 25,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F002-COMPLEMENT": {
+    "distinct_answers": 25,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-EQUAL-POINTS": {
+    "distinct_answers": 7,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-EULER-COUNTS": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-EULER-MASSES": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-TREE": {
+    "distinct_answers": 26,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F005-WEIGHTED-POINTS": {
+    "distinct_answers": 26,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F006-EMPIRICAL-FREQUENCY": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 29,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F007-DISJOINT-UNION-RESIDUAL": {
+    "distinct_answers": 16,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F008-REMAINDER-CATEGORY": {
+    "distinct_answers": 23,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE10-F009-OVERLAPPING-GROUPS": {
+    "distinct_answers": 12,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F01": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F02": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F03": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F04": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F05": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F06": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F07": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE11-F08": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 28,
+    "variants": 32
+  },
+  "OGE12-R001": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R002": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R003": {
+    "distinct_answers": 32,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R004": {
+    "distinct_answers": 32,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R005": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R010": {
+    "distinct_answers": 31,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R011": {
+    "distinct_answers": 22,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R012": {
+    "distinct_answers": 31,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE12-R014": {
+    "distinct_answers": 14,
+    "distinct_fingerprints": 14,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-L01": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-L02": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q01": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q02": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q03": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-Q04": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-S01": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-S02": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE13-S03": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A01": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A02": {
+    "distinct_answers": 29,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A03": {
+    "distinct_answers": 32,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A05": {
+    "distinct_answers": 28,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A06": {
+    "distinct_answers": 20,
+    "distinct_fingerprints": 22,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A07": {
+    "distinct_answers": 28,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A08": {
+    "distinct_answers": 32,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A09": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-A10": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G01": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G02": {
+    "distinct_answers": 22,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G03": {
+    "distinct_answers": 30,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE14-G04": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F01": {
+    "distinct_answers": 25,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F02": {
+    "distinct_answers": 18,
+    "distinct_fingerprints": 18,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F03": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 27,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F04": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 21,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F05": {
+    "distinct_answers": 22,
+    "distinct_fingerprints": 22,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F06": {
+    "distinct_answers": 19,
+    "distinct_fingerprints": 19,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F07": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 21,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F08": {
+    "distinct_answers": 16,
+    "distinct_fingerprints": 16,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F09": {
+    "distinct_answers": 20,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F10": {
+    "distinct_answers": 19,
+    "distinct_fingerprints": 19,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F11": {
+    "distinct_answers": 22,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F12": {
+    "distinct_answers": 25,
+    "distinct_fingerprints": 25,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F13": {
+    "distinct_answers": 16,
+    "distinct_fingerprints": 27,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F14": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 25,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F15": {
+    "distinct_answers": 11,
+    "distinct_fingerprints": 25,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F16": {
+    "distinct_answers": 5,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F17": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 25,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F18": {
+    "distinct_answers": 23,
+    "distinct_fingerprints": 23,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F19": {
+    "distinct_answers": 30,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F20": {
+    "distinct_answers": 29,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F21": {
+    "distinct_answers": 25,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE15-F22": {
+    "distinct_answers": 4,
+    "distinct_fingerprints": 26,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A01": {
+    "distinct_answers": 20,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A02": {
+    "distinct_answers": 20,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A03": {
+    "distinct_answers": 20,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A04": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A05": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 24,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-A06": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B01": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B02": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B03": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B04": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-B05": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C01": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 25,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C02": {
+    "distinct_answers": 18,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C03": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C04": {
+    "distinct_answers": 26,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C05": {
+    "distinct_answers": 20,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-C06": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D01": {
+    "distinct_answers": 11,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D02": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D03": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D04": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 32,
+    "variants": 32
+  },
+  "OGE16-D05": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE16-D06": {
+    "distinct_answers": 10,
+    "distinct_fingerprints": 10,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-E01": {
+    "distinct_answers": 18,
+    "distinct_fingerprints": 24,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-E02": {
+    "distinct_answers": 28,
+    "distinct_fingerprints": 28,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-E03": {
+    "distinct_answers": 22,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P01": {
+    "distinct_answers": 32,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P03": {
+    "distinct_answers": 27,
+    "distinct_fingerprints": 28,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P06": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 24,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-P07": {
+    "distinct_answers": 26,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-R02": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 24,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-R03": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 24,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-R04": {
+    "distinct_answers": 23,
+    "distinct_fingerprints": 23,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T02": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 24,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T04": {
+    "distinct_answers": 24,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T05": {
+    "distinct_answers": 21,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T06": {
+    "distinct_answers": 31,
+    "distinct_fingerprints": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T07": {
+    "distinct_answers": 22,
+    "distinct_fingerprints": 22,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE17-T08": {
+    "distinct_answers": 25,
+    "distinct_fingerprints": 25,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A01": {
+    "distinct_answers": 20,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A03": {
+    "distinct_answers": 18,
+    "distinct_fingerprints": 25,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A04": {
+    "distinct_answers": 16,
+    "distinct_fingerprints": 29,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-A05": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 6,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-D05": {
+    "distinct_answers": 3,
+    "distinct_fingerprints": 3,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-H01": {
+    "distinct_answers": 5,
+    "distinct_fingerprints": 5,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-L01": {
+    "distinct_answers": 3,
+    "distinct_fingerprints": 6,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-L02": {
+    "distinct_answers": 5,
+    "distinct_fingerprints": 18,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-M01": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 30,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE18-M02": {
+    "distinct_answers": 13,
+    "distinct_fingerprints": 28,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-AREAS-METRICS": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 29,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-CIRCLES": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 21,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-LINES-ANGLES": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 20,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-MIXED": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-QUADRILATERALS": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 28,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE19-TRIANGLES": {
+    "distinct_answers": 6,
+    "distinct_fingerprints": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "OGE20-poly-factor": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE20-poly-inequality": {
+    "unsafe_variants": 3,
+    "variants": 6
+  },
+  "OGE20-poly-quadratic": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE20-poly-substitution": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-power-equality": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-power-sums": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-radical-cancel": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE20-rational-clear": {
+    "unsafe_variants": 2,
+    "variants": 7
+  },
+  "OGE20-rational-inequality": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE20-rational-substitution": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE20-system-elimination": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE20-system-substitution": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE21-average-speed": {
+    "unsafe_variants": 2,
+    "variants": 6
+  },
+  "OGE21-finish-gap": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE21-joint-sum": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE21-loop": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE21-mass-invariant": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE21-meeting-arrivals": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE21-meeting-pause": {
+    "unsafe_variants": 5,
+    "variants": 6
+  },
+  "OGE21-mix-ratio": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE21-mix-two-experiments": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE21-out-back-pause": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE21-rate-compare": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE21-relative-motion": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE21-river-gap": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE21-river-raft": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE21-river-total": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE21-split-equal-time": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE22-hole-hyperbola-level": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-hole-hyperbola-slope": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-hole-modulus": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE22-hole-parabola-level": {
+    "unsafe_variants": 5,
+    "variants": 6
+  },
+  "OGE22-hole-parabola-slope": {
+    "unsafe_variants": 6,
+    "variants": 7
+  },
+  "OGE22-max-form": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-modulus-inside": {
+    "unsafe_variants": 5,
+    "variants": 6
+  },
+  "OGE22-modulus-outside": {
+    "unsafe_variants": 5,
+    "variants": 7
+  },
+  "OGE22-piecewise-lines": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE22-piecewise-parabola-hyperbola": {
+    "unsafe_variants": 6,
+    "variants": 6
+  },
+  "OGE22-piecewise-parabola-line": {
+    "unsafe_variants": 7,
+    "variants": 7
+  },
+  "OGE23-angle-height-bisector": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-angle-tangent-arc": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-parallel-diagonals": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-parallel-segment": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-parallelogram-bisectors": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-rhombus": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-right-bisectors": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-right-circle-rectangle": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-right-median": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-right-projection": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE23-sine-rule": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-trapezoid-area": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-trapezoid-midpoints": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE23-trapezoid-trig": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE24-area-proof": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-bisector-distance": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-bisector-isosceles": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-common-chord": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-common-tangent-ratio": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-cyclic-altitudes": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-cyclic-converse": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-cyclic-external": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-midline-proof": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-quadrilateral-test": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-rigid-motion": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE24-similar-parallels": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-circumcenter-chord": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-circumradius-hidden": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-cyclic-diagonals": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-incenter-distance": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-incircle-excircle": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-incircle-similarity": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-median-area": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-median-bisector": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-orthocenter-semicircle": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-parallelogram-bisectors": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-secant-tangent": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-tangent-trapezoid": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-trapezoid-bisector-area": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-trapezoid-midpoint-segments": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "OGE25-trapezoid-parallel-section": {
+    "unsafe_variants": 0,
+    "variants": 6
+  },
+  "OGE25-two-circle-tangents": {
+    "unsafe_variants": 0,
+    "variants": 7
+  },
+  "PAPER-F01": {
+    "distinct_answers": 16,
+    "distinct_models": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F02": {
+    "distinct_answers": 4,
+    "distinct_models": 14,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F03": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F04": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F06": {
+    "distinct_answers": 1,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "PAPER-F07": {
+    "distinct_answers": 2,
+    "distinct_models": 2,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F01-CAPACITY-LIMITS": {
+    "distinct_answers": 6,
+    "distinct_models": 27,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F02-ATTRIBUTE-MATCH": {
+    "distinct_answers": 6,
+    "distinct_models": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F03-VOLUME": {
+    "distinct_answers": 31,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F04-FLOOR-AREA": {
+    "distinct_answers": 29,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F05-WALL-AREA-NET": {
+    "distinct_answers": 32,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F06-PURCHASE-EXTRA-COSTS": {
+    "distinct_answers": 24,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F07-FIT-WOOD-DELIVERY": {
+    "distinct_answers": 28,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F08-COST-COMPARISON": {
+    "distinct_answers": 28,
+    "distinct_models": 2,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F09-DIRECT-DISCOUNT": {
+    "distinct_answers": 29,
+    "distinct_models": 27,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F10-REVERSE-DISCOUNT": {
+    "distinct_answers": 29,
+    "distinct_models": 13,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS": {
+    "distinct_answers": 32,
+    "distinct_models": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "STOVE-F12-ARCH-RADIUS": {
+    "distinct_answers": 20,
+    "distinct_models": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F01-MONTHS-MINUTES": {
+    "distinct_answers": 32,
+    "distinct_models": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F04-MONTHLY-BILL": {
+    "distinct_answers": 9,
+    "distinct_models": 11,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F05-EXTREMUM": {
+    "distinct_answers": 3,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F09-PERCENT-FEE": {
+    "distinct_answers": 4,
+    "distinct_models": 1,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TARIFF-F12-HOME-ISP": {
+    "distinct_answers": 28,
+    "distinct_models": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-DIAMETER": {
+    "distinct_answers": 29,
+    "distinct_models": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-PERCENT-ROTATION": {
+    "distinct_answers": 29,
+    "distinct_models": 32,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-RADIUS-DELTA": {
+    "distinct_answers": 28,
+    "distinct_models": 31,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-SIDEWALL": {
+    "distinct_answers": 20,
+    "distinct_models": 29,
+    "unsafe_variants": 0,
+    "variants": 32
+  },
+  "TYRES-TABLE-EXTREME": {
+    "distinct_answers": 2,
+    "distinct_models": 5,
+    "unsafe_variants": 0,
+    "variants": 32
+  }
+}

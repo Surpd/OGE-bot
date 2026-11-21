@@ -424,3 +424,65 @@ def test_main_menu_contains_the_product_sections() -> None:
     markup = main_menu()
     labels = {button.text for row in markup.inline_keyboard for button in row}
     assert labels == (set(MAIN_MENU) - {"▶ Продолжить"}) | {"🎲 Смешанная тренировка"}
+
+
+@pytest.mark.parametrize("fallback", [False, True])
+def test_lost_math_send_response_is_not_delivered_twice_and_explicit_resume_works(client, fallback):
+    from datetime import UTC, datetime
+
+    from aiogram.exceptions import ClientDecodeError, TelegramBadRequest, TelegramNetworkError
+    from aiogram.methods import SendPhoto, SendRichMessage
+    from aiogram.types import Chat, Message
+
+    from app.math.generator import generate
+
+    http, repository = client
+    bot = http.app.state.bot
+    family = "OGE06-F001-ADD"
+    snapshot = generate(family, 64).to_snapshot()
+
+    async def prepare():
+        await repository.ensure_task6_session(42)
+        await repository.advance_task6_problem(42, None, [snapshot])
+        await repository.save_user_state(42, "task6")
+
+    asyncio.run(prepare())
+    sent = Message(message_id=102, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    calls = []
+
+    async def api(_bot, method, **kwargs):
+        if isinstance(method, SendRichMessage | SendPhoto):
+            calls.append(method.__api_method__)
+            if fallback and isinstance(method, SendRichMessage):
+                raise TelegramBadRequest(method, "Bad Request: can't parse rich message HTML")
+            if len(calls) == (2 if fallback else 1):
+                if fallback:
+                    raise ClientDecodeError("Incomplete response", ValueError(), "")
+                raise TelegramNetworkError(method, "Request timeout error")
+        return sent
+
+    bot.session.make_request = api
+    payload = {
+        "update_id": 601,
+        "message": {
+            "message_id": 90, "date": int(sent.date.timestamp()), "text": "▶ Продолжить",
+            "chat": {"id": 42, "type": "private"},
+            "from": {"id": 42, "is_bot": False, "first_name": "Student"},
+        },
+    }
+    headers = {"X-Telegram-Bot-Api-Secret-Token": "test-webhook-secret"}
+    for _ in range(2):
+        assert http.post("/telegram/webhook", json=payload, headers=headers).status_code == 200
+    expected = ["sendRichMessage", "sendPhoto"] if fallback else ["sendRichMessage"]
+    assert calls == expected
+    assert repository.updates[601] == "processed"
+    assert asyncio.run(repository.math_display(42, family)) == ("png" if fallback else "auto")
+
+    # A new action by the student explicitly reopens the original committed task.
+    payload.update(update_id=602)
+    payload["message"]["message_id"] = 91
+    assert http.post("/telegram/webhook", json=payload, headers=headers).status_code == 200
+    assert calls == [*expected, expected[-1]]
+    saved = asyncio.run(repository.task6_state(42))
+    assert saved["problem"]["problem_id"] == snapshot["problem_id"]
+    assert saved["state"]["status"] == "active"

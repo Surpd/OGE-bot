@@ -9,7 +9,7 @@ from aiogram.methods import SendRichMessage
 from aiogram.types import BufferedInputFile, Chat, Message, User
 
 from app.bot import router
-from app.bot.presentation import send_photo
+from app.bot.presentation import MathDeliveryUncertain, send_photo
 from app.math import oge18_scheduler
 from app.math.oge18 import (
     ENABLED_FAMILIES,
@@ -180,7 +180,8 @@ async def test_real_png_transport_media_fallback_and_ambiguous_timeout(display, 
     bot = Bot("123456:TEST")
     sent = Message(message_id=91, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
     method = SendRichMessage(chat_id=42, rich_message={"html": "test"})
-    effect = error(method=method, message="unavailable") if error else None
+    reason = "Bad Request: can't parse entities: unsupported start tag"
+    effect = error(method=method, message=reason) if error else None
     bot.send_rich_message = AsyncMock(return_value=sent, side_effect=effect)
     bot.send_photo = AsyncMock(return_value=sent)
     repo = MemoryRepository()
@@ -197,8 +198,9 @@ async def test_real_png_transport_media_fallback_and_ambiguous_timeout(display, 
     kwargs = {"caption": "Задание №18\nСторона клетки 1. Найдите m = AC/2."}
     try:
         if error is TelegramNetworkError:
-            with pytest.raises(TelegramNetworkError):
+            with pytest.raises(MathDeliveryUncertain) as uncertain:
                 await send_photo(incoming, repo, photo, **kwargs)
+            assert isinstance(uncertain.value.__cause__, TelegramNetworkError)
             bot.send_photo.assert_not_awaited()
         else:
             result = await send_photo(incoming, repo, photo, **kwargs)

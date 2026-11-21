@@ -9,6 +9,7 @@ from pathlib import Path
 from app.math.equations import (
     ENABLED_FAMILIES,
     GENERATOR_VERSION,
+    K3_SOLUTION_VERSION,
     generate_equation,
     k6_parameter_domain,
     solve_rendered_equation,
@@ -214,6 +215,7 @@ def build_report() -> dict[str, object]:
     return {
         "report_version": 1,
         "generator_version": GENERATOR_VERSION,
+        "generator_version_overrides": {"OGE09-K3": K3_SOLUTION_VERSION},
         "source_snapshot": registry["source_snapshot"],
         "sample_count_per_family": SAMPLE_COUNT,
         "acceptance_unique_target": UNIQUE_TARGET,

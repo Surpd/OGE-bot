@@ -8,7 +8,7 @@ from aiogram.types import BufferedInputFile, Message
 
 from app.bot.explicit_math import display_feedback
 from app.bot.part2 import image_bytes, keyboard, store
-from app.bot.presentation import send_text
+from app.bot.presentation import has_mathematics, send_text
 from app.persistence.part2_insights import history, revision, summary
 from app.persistence.repository import Repository
 
@@ -17,6 +17,7 @@ async def page(
     message: Message, repo: Repository, owner: int, parts: list[str], *, resume_issue: bool = False
 ) -> None:
     bank = store(repo)
+    feedback_template = None
     rows = []
     message_text = "Запись недоступна."
     if (
@@ -97,7 +98,8 @@ async def page(
                     except (OSError, ValueError, TelegramBadRequest):
                         lines.append("Исходный рисунок сейчас недоступен.")
                 await send_text(
-                    message, repo, f"{title}\n\n{r['statement']}", rich_with_navigation=True
+                    message, repo, f"{title}\n\n{r['statement']}", rich_with_navigation=True,
+                    math_family=r["subtype_id"],
                 )
                 for piece in work:
                     if piece["body"]:
@@ -144,6 +146,8 @@ async def page(
                 else:
                     lines.append("Черновик.")
                 message_text = "\n\n".join(line for line in lines if line)
+                if r["result"] and has_mathematics(message_text):
+                    feedback_template = "written-feedback"
                 arrows = []
                 if attempt > 1:
                     arrows.append(
@@ -168,4 +172,5 @@ async def page(
         reply_markup=keyboard(rows),
         user_id_override=owner,
         rich_with_navigation=True,
+        math_family=feedback_template,
     )
