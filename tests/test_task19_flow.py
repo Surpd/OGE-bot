@@ -35,31 +35,36 @@ async def test_task19_is_publicly_enabled_without_overrides():
     assert BY_NUMBER[19].available
     assert NUMERIC_TRAININGS[19].families == tuple(FAMILY_THEMES)
     menu = incoming()
-    await router.choose_number(menu, MemoryRepository())
+    await router.choose_number(menu, MemoryRepository(), page=2)
     labels = [
         button.text
         for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
-    assert labels.count("№19 · Геометрические утверждения") == 1
+    assert labels.count("№19") == 1
 
 
 @pytest.mark.asyncio
 async def test_task19_is_one_number_entry_with_compact_theme_selector(enabled_task19):
     menu = incoming()
-    await router.choose_number(menu, MemoryRepository())
+    await router.choose_number(menu, MemoryRepository(), page=2)
     labels = [
         button.text
         for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
-    assert labels.count("№19 · Геометрические утверждения") == 1
+    assert labels.count("№19") == 1
     selector = family_keyboard(19)
     theme_labels = [button.text for row in selector.inline_keyboard for button in row]
     assert len(theme_labels) == 8  # free rotation, six explicit modes, and back
     assert theme_labels[0] == "🎲 Чередовать темы"
-    assert "Разные темы в одном задании" in theme_labels
-    assert "Окружности" in theme_labels
+    from app.bot.family_selection import show_families
+
+    await show_families(menu, MemoryRepository(), 19)
+    legend = menu.answer.await_args.args[0]
+    assert "Разные темы в одном задании" in legend
+    assert "Окружности" in legend
+    assert theme_labels[1:-1] == list("123456")
 
 
 @pytest.mark.asyncio
@@ -67,13 +72,13 @@ async def test_closed_public_gate_hides_task19_and_rejects_direct_callback(monke
     monkeypatch.setattr(oge19_scheduler, "ENABLED_FAMILIES", ())
     repo = MemoryRepository()
     menu = incoming()
-    await router.choose_number(menu, repo)
+    await router.choose_number(menu, repo, page=2)
     labels = [
         button.text
         for row in menu.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
-    assert "№19 · Геометрические утверждения" not in labels
+    assert "№19" not in labels
 
     callback = AsyncMock()
     callback.data = "t19:hint:00000000-0000-0000-0000-000000000001"

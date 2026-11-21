@@ -291,6 +291,7 @@ class MixedTrainingRepository:
             }
             session["problem"]["_snapshot_sha256"] = _digest(snapshot)
             record_snapshot = _stored_question(state, number, snapshot)
+            self._repository.issue_order[user_id, problem_id] = len(self._repository.issue_order)
             self._repository._mixed_training_records.setdefault(user_id, []).append(
                 {
                     **{key: value for key, value in session["problem"].items()

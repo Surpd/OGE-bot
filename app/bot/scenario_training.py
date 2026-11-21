@@ -833,7 +833,11 @@ async def handle_callback(
                 )
                 await answer_callback(callback)
             return
-    if data == "oge15:unfinished":
+    if data == "oge15:unfinished" or data.startswith("oge15:unfinished:"):
+        raw_page = data.removeprefix("oge15:unfinished:") if data.count(":") == 2 else "0"
+        if not raw_page.isascii() or not raw_page.isdigit() or len(raw_page) > 2:
+            await answer_callback(callback, "Эта страница недоступна.")
+            return
         sessions = await oge15_repository.list_open_sessions(callback.from_user.id)
         if not sessions:
             await _send_selection(
@@ -843,17 +847,28 @@ async def handle_callback(
                 repository,
             )
             return
-        rows = []
-        for saved in sessions:
+        pages = (len(sessions) + 5) // 6
+        page = min(int(raw_page), pages - 1)
+        start = page * 6
+        legend = []
+        buttons = []
+        for index, saved in enumerate(sessions[start:start + 6], start + 1):
             story = STORY_NAMES.get(saved.snapshot.story_code, saved.snapshot.story_code)
             mode = "пятёрка" if saved.mode is PracticeMode.FULL else "одно задание"
-            rows.append([_button(
-                f"▶ {story} · {mode} · №{saved.current_position}",
-                f"oge15:resume:{saved.session_id}",
-            )])
+            legend.append(f"{index}. {story} · {mode} · №{saved.current_position}")
+            buttons.append(_button(str(index), f"oge15:resume:{saved.session_id}"))
+        rows = [buttons[i:i + 3] for i in range(0, len(buttons), 3)]
+        arrows = []
+        if page:
+            arrows.append(_button("←", f"oge15:unfinished:{page - 1}"))
+        if page + 1 < pages:
+            arrows.append(_button("→", f"oge15:unfinished:{page + 1}"))
+        if arrows:
+            rows.append(arrows)
         rows.append([_button("↩ К сюжетам", "oge15:home")])
         await _send_selection(
-            callback, "Ваши незавершённые тренировки:", _keyboard(rows), repository
+            callback, "Ваши незавершённые тренировки\n\n" + "\n".join(legend),
+            _keyboard(rows), repository,
         )
         return
     if data.startswith("oge15:rc:"):

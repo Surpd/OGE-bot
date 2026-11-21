@@ -444,3 +444,18 @@ async def test_png_fallback_sends_original_diagram_and_keeps_controls_under_form
     assert result.message_id == 97
     bot.send_rich_message.assert_not_awaited()
     await bot.session.close()
+
+
+async def test_prose_counts_keep_text_font_beside_a_typeset_fraction():
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=97, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock(return_value=sent)
+    repository = AsyncMock()
+    repository.math_display.return_value = "auto"
+    try:
+        await send_text(incoming(bot), repository, "За 2 часа нашли 3,5 литра. Вычислите 1/2.")
+        html = bot.send_rich_message.await_args.kwargs["rich_message"].html
+        assert "За 2 часа нашли 3,5 литра" in html
+        assert r"<tg-math>\frac{1}{2}</tg-math>" in html
+    finally:
+        await bot.session.close()

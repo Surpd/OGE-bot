@@ -266,6 +266,8 @@ async def exercise_navigation(
         await click("nav:main")
         await click("nav:numbers")
         await click("nav:task:6")
+        await click("nav:family:6:random")
+        await click("nav:begin:6")
         state = await repository.task6_state(42)
         assert state is not None and state["state"]["status"] == "active"
         assert await repository.user_state(42) == "task6"
@@ -415,7 +417,11 @@ async def exercise_navigation(
             for number, family_prefix in ((7, "OGE07-N"), (11, "OGE11-F"), (13, "OGE13-S")):
                 await click("nav:numbers")
                 call_count = len(session.calls)
+                if number >= 11:
+                    await click("nav:numbers:1")
                 await click(f"nav:task:{number}")
+                await click(f"nav:family:{number}:random")
+                await click(f"nav:begin:{number}")
                 photos = [c for c in session.calls[call_count:] if c.__api_method__ == "sendPhoto"]
                 assert len(photos) == (1 if number == 7 else 2)
                 if len(photos) == 2:
@@ -446,11 +452,14 @@ async def exercise_navigation(
         # Switching №9 → №12 and selecting saved №9 restores its exact problem.
         await click("nav:numbers")
         await click("nav:task:9")
+        await click("nav:family:9:random")
+        await click("nav:begin:9")
         task9 = await repository.task9_state(42)
         assert task9 is not None and isinstance(task9["problem"], dict)
         task9_id = str(task9["problem"]["problem_id"])
         await click(f"t9:menu:{task9_id}")
         await click("nav:numbers")
+        await click("nav:numbers:1")
         await click("nav:task:12")
         await click("nav:family:12:random")
         await click("nav:begin:12")

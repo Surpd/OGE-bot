@@ -7232,6 +7232,7 @@ class MemoryRepository(MemoryTrainingPreferences):
     """Small adapter for isolated handler tests; production always uses PostgreSQL."""
 
     def __init__(self) -> None:
+        self.issue_order: dict[tuple[int, str], int] = {}
         self.training_preferences: dict[tuple[int, int], str | None] = {}
         self.math_preferences: dict[int, str] = {}
         self.users: set[int] = set()
@@ -7615,6 +7616,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 ),
             }
             self.issued_history.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-6 candidate repeats a recently issued fingerprint")
@@ -7890,6 +7892,7 @@ class MemoryRepository(MemoryTrainingPreferences):
             }
             saved["problem"], saved["state"] = problem, next_state
             self.issued9.setdefault(telegram_user_id, {})[str(problem["problem_id"])] = problem
+            self.issue_order[telegram_user_id, str(problem["problem_id"])] = len(self.issue_order)
             self.outcomes9.setdefault(telegram_user_id, {})[str(problem["problem_id"])] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("No distinct task-9 problem could be constructed")
@@ -8145,6 +8148,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued10.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes10.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-10 candidate repeats a recent fingerprint")
@@ -8400,6 +8404,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued12.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes12.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-12 candidate repeats a recent fingerprint")
@@ -8655,6 +8660,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued14.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes14.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-14 candidate repeats a recent fingerprint")
@@ -8910,6 +8916,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued15.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes15.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-15 candidate repeats a recent fingerprint")
@@ -9166,6 +9173,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued17.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes17.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-15 candidate repeats a recent fingerprint")
@@ -9425,6 +9433,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued18.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes18.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-18 candidate repeats a recent fingerprint")
@@ -9686,6 +9695,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 )[:3],
             }
             self.issued19.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes19.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-19 candidate repeats a recent fingerprint")
@@ -9945,6 +9955,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued16.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes16.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-16 candidate repeats a recent fingerprint")
@@ -10200,6 +10211,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued11.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes11.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-14 candidate repeats a recent fingerprint")
@@ -10480,6 +10492,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued8.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes8.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-14 candidate repeats a recent fingerprint")
@@ -10733,6 +10746,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued7.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes7.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-7 candidate repeats a recent fingerprint")
@@ -11009,6 +11023,7 @@ class MemoryRepository(MemoryTrainingPreferences):
                 "recent_fingerprints": [*recent_order, fingerprint][-30:],
             }
             self.issued13.setdefault(telegram_user_id, {})[problem_id] = problem
+            self.issue_order[telegram_user_id, problem_id] = len(self.issue_order)
             self.outcomes13.setdefault(telegram_user_id, {})[problem_id] = "issued"
             return {**problem, "_transitioned": True}
         raise RuntimeError("Every task-13 candidate repeats a recent fingerprint")

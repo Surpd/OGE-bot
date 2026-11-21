@@ -5,6 +5,7 @@ from typing import cast
 from uuid import uuid4
 
 from app.math.equations import ENABLED_FAMILIES, generate_equation
+from app.math.first_rotation import rank_families
 
 MAX_CANDIDATES = 48
 SEEDS_PER_FAMILY = 4
@@ -76,6 +77,21 @@ def build_task9_candidate_batch(state: dict[str, object], seed: int) -> list[dic
             _group_run_length(state),
         )
     )
+    history = state.get("construction_history")
+    if isinstance(history, list) and history and not state.get("selected_family_id"):
+        # Keep the group slot unless the other training mode already filled three of them.
+        group = queue[0][:7]
+        if len(history) >= 3 and all(f.startswith(group) for f in history[:3]):
+            group = "OGE09-K" if group == "OGE09-L" else "OGE09-L"
+        slots = [f for f in queue if f.startswith(group)]
+        slots.extend(f for f in ENABLED_FAMILIES if f.startswith(group) and f not in slots)
+        preferred = rank_families(slots, history, set())[0]
+        queue = queue.copy()
+        if preferred in queue:
+            i = queue.index(preferred)
+            queue[0], queue[i] = queue[i], queue[0]
+        else:
+            queue[0] = preferred
     stored_recent = state.get("recent_fingerprints", [])
     recent = (
         {item for item in stored_recent if isinstance(item, str)}

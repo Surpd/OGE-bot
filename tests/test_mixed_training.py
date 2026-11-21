@@ -646,7 +646,7 @@ async def test_history_follows_owner_and_number_across_training_modes():
     assert candidate["family_id"] != issued["family_id"]
     await store.issue_current(owner, start["revision"], 6, candidate)
     ordinary = await candidate_state(repo, owner, 6, {})
-    assert ordinary["recent_fingerprints"] == [candidate["fingerprint"]]
+    assert ordinary["recent_fingerprints"] == [issued["fingerprint"], candidate["fingerprint"]]
 
 
 def test_method_rotation_preserves_every_slot_and_fixed_family():
@@ -658,7 +658,7 @@ def test_method_rotation_preserves_every_slot_and_fixed_family():
     state = {"last_family_id": "OGE13-L01",
              "family_queue": ["OGE13-L02", "OGE13-Q01", "OGE13-S01"]}
     rotate_tail(13, state, None)
-    assert state["family_queue"] == ["OGE13-Q01", "OGE13-L02", "OGE13-S01"]
+    assert state["family_queue"] == ["OGE13-Q01", "OGE13-S01", "OGE13-L02"]
     state["family_queue"] = ["OGE13-L02"]
     rotate_tail(13, state, None)
     assert state["family_queue"] == ["OGE13-L02"]
@@ -687,9 +687,23 @@ async def test_failed_family_breaks_tie_between_different_topics_skip_does_not()
         {"number": 13, "family_id": "OGE13-S01", "fingerprint": "system", "outcome": "failed"},
         {"number": 13, "family_id": "OGE13-L01", "fingerprint": "linear", "outcome": "skipped"},
     ]
+    history.extend([dict(history[-1]) for _ in range(5)])
     repo._mixed_training_records = {49: history}
     state = {"family_queue": ["OGE13-L02", "OGE13-Q01", "OGE13-S01"]}
     assert (await candidate_state(repo, 49, 13, state))["family_queue"][0] == "OGE13-S01"
     history[0]["outcome"] = "skipped"
     assert (await candidate_state(repo, 49, 13, state))["family_queue"][0] == "OGE13-Q01"
     assert state["family_queue"][0] == "OGE13-L02"
+
+
+@pytest.mark.parametrize("number", [6, 13])
+async def test_switching_modes_rotates_the_actual_issued_operations(number):
+    from app.math.first_rotation import construction
+    from scripts.random_training_acceptance import run
+
+    issued = await run(number, 20261122, "switch", 30)
+    families = [f for f, *_ in issued]
+    operations = [construction(f) for f in families]
+    assert len(set(families)) > len(set(operations))
+    assert all(a != b for a, b in zip(operations, operations[1:], strict=False))
+    assert len({fp for _, fp, *_ in issued}) == len(issued)

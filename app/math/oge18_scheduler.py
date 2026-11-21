@@ -2,7 +2,15 @@
 
 import random
 
-from app.math.oge18 import ENABLED_FAMILIES, GENERATOR_VERSION_V2, NEW_FAMILIES, generate
+from app.math.oge18 import (
+    ENABLED_FAMILIES,
+    GENERATOR_VERSION,
+    GENERATOR_VERSION_V2,
+    NEW_FAMILIES,
+    _model_for_seed,
+    fingerprint,
+    generate,
+)
 from app.math.oge18_render import VERSION_V3
 
 
@@ -23,24 +31,14 @@ def build_task18_candidate_batch(
     for index, family in enumerate(queue):
         for _ in range(12):
             attempts += 1
-            version = GENERATOR_VERSION_V2 if family in NEW_FAMILIES else None
-            problem = (
-                generate(
-                    family,
-                    rng.randrange(2**63),
-                    version,
-                    renderer_version=VERSION_V3,
-                )
-                if version is not None
-                else generate(
-                    family,
-                    rng.randrange(2**63),
-                    renderer_version=VERSION_V3,
-                )
-            )
-            if isinstance(recent, list) and problem.fingerprint in recent:
+            version = GENERATOR_VERSION_V2 if family in NEW_FAMILIES else GENERATOR_VERSION
+            candidate_seed = rng.randrange(2**63)
+            points, _ = _model_for_seed(family, candidate_seed, version)
+            if isinstance(recent, list) and fingerprint(family, points) in recent:
                 continue
-            snapshot = problem.to_snapshot()
+            snapshot = generate(
+                family, candidate_seed, version, renderer_version=VERSION_V3
+            ).to_snapshot()
             snapshot.update(
                 {
                     "_family_queue_after": queue[index + 1 :],

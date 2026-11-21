@@ -89,5 +89,12 @@ def test_task17_choice_is_available_with_no_fingerprint_threshold():
 
     assert BY_NUMBER[17].available
     keyboard = family_keyboard(17)
-    assert len(keyboard.inline_keyboard) == len(FAMILIES) + 2
+    choices = [
+        b.text
+        for page in range((len(FAMILIES) + 5) // 6)
+        for row in family_keyboard(17, page).inline_keyboard
+        for b in row
+        if b.text.isdigit()
+    ]
+    assert choices == [str(i + 1) for i in range(len(FAMILIES))]
     assert keyboard.inline_keyboard[0][0].callback_data == "nav:family:17:random"

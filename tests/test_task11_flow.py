@@ -27,7 +27,7 @@ async def test_disabled_task11_is_hidden_from_number_menu(monkeypatch) -> None:
     monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", ())
     message = _message(911_001, "🧮 По номеру")
 
-    await choose_number(message, MemoryRepository())
+    await choose_number(message, MemoryRepository(), page=1)
 
     labels = [
         button.text
@@ -42,14 +42,15 @@ async def test_enabled_task11_is_visible_in_number_menu(monkeypatch) -> None:
     monkeypatch.setattr(router, "TASK11_ENABLED_FAMILIES", FAMILIES)
     message = _message(911_004, "🧮 По номеру")
 
-    await choose_number(message, MemoryRepository())
+    await choose_number(message, MemoryRepository(), page=1)
 
     labels = [
         button.text
         for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
         for button in row
     ]
-    assert "№11 · Графики функций" in labels
+    assert "№11" in labels
+    assert "№11 · Графики функций" in message.answer.await_args.args[0]
 
 
 @pytest.mark.asyncio

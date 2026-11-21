@@ -1,53 +1,75 @@
 """Small read-only inputs for selecting a new task across first-part modes."""
 
-from collections.abc import Iterator
+from collections import Counter
+from importlib import import_module
 from itertools import islice
 from typing import Any
 
-from app.math.first_rotation import rotate_tail
+from app.math.first_rotation import rank_families, topics
 
 
-async def other_mode_recent(
-    repository: Any,
-    user_id: int,
-    number: int,
-    *,
-    for_mix: bool,
-) -> list[tuple[str, str, str]]:
+async def recent_issues(
+    repository: Any, user_id: int, number: int
+) -> list[tuple[str, str, str, bool]]:
+    limit = 128 if number == 18 else 30
     pool = getattr(repository, "_pool", None)
     if pool is None:
-        rows: Iterator[Any]
-        if for_mix:
-            table = getattr(repository, "issued_history" if number == 6 else f"issued{number}", {})
-            outcomes = getattr(repository, "outcomes" if number == 6 else f"outcomes{number}", {})
-            user_outcomes = outcomes.get(user_id, {})
-            return [
-                (row["family_id"], row["fingerprint"], user_outcomes.get(pid, "issued"))
-                for pid, row in islice(reversed(table.get(user_id, {}).items()), 8)
-            ]
-        else:
-            mixed = getattr(repository, "_mixed_training_records", {}).get(user_id, [])
-            rows = (row for row in reversed(mixed) if row["number"] == number)
-        return [(row["family_id"], row["fingerprint"], row["outcome"]) for row in islice(rows, 8)]
-    if for_mix:
-        stored = await pool.fetch(
-            """SELECT p.family_id, p.fingerprint, p.outcome FROM issued_problems p
-               JOIN users u ON u.id=p.user_id JOIN sessions s ON s.id=p.session_id
-               WHERE u.telegram_user_id=$1 AND s.mode=$2
-               ORDER BY p.issued_at DESC,p.id DESC LIMIT 8""",
-            user_id,
-            f"task{number}",
-        )
-    else:
-        stored = await pool.fetch(
-            """SELECT p.family_id, p.fingerprint, p.outcome FROM mixed_training_problems p
-               JOIN mixed_training_sessions s ON s.id=p.session_id JOIN users u ON u.id=s.user_id
-               WHERE u.telegram_user_id=$1 AND p.number=$2
-               ORDER BY p.issued_at DESC,p.id DESC LIMIT 8""",
-            user_id,
-            number,
-        )
-    return [(row["family_id"], row["fingerprint"], row["outcome"]) for row in stored]
+        table = getattr(repository, "issued_history" if number == 6 else f"issued{number}", {})
+        outcomes = getattr(repository, "outcomes" if number == 6 else f"outcomes{number}", {})
+        order = getattr(repository, "issue_order", {})
+        rows = [
+            (
+                order.get((user_id, pid), 0),
+                row["family_id"],
+                row["fingerprint"],
+                outcomes.get(user_id, {}).get(pid, "issued"),
+                False,
+            )
+            for pid, row in islice(reversed(table.get(user_id, {}).items()), limit)
+        ]
+        mixed = getattr(repository, "_mixed_training_records", {}).get(user_id, [])
+        for i, row in enumerate(
+            islice((r for r in reversed(mixed) if r["number"] == number), limit)
+        ):
+            rows.append(
+                (
+                    order.get((user_id, row.get("problem_id", row.get("id"))), -i),
+                    row["family_id"],
+                    row["fingerprint"],
+                    row["outcome"],
+                    True,
+                )
+            )
+        rows.sort(key=lambda r: r[0], reverse=True)
+        return [(f, fp, outcome, mix) for _, f, fp, outcome, mix in rows[:limit]]
+    stored = await pool.fetch(
+        """WITH learner AS (SELECT id FROM users WHERE telegram_user_id=$1),
+        ordinary AS (SELECT p.family_id,p.fingerprint,p.outcome,false AS mix,p.issued_at,p.id
+          FROM learner JOIN issued_problems p ON p.user_id=learner.id
+          JOIN sessions s ON s.id=p.session_id WHERE s.mode=$2
+          ORDER BY p.issued_at DESC,p.id DESC LIMIT $4),
+        mixed AS (SELECT p.family_id,p.fingerprint,p.outcome,true AS mix,p.issued_at,p.id
+          FROM learner JOIN mixed_training_sessions s ON s.user_id=learner.id
+          JOIN mixed_training_problems p ON p.session_id=s.id WHERE p.number=$3
+          ORDER BY p.issued_at DESC,p.id DESC LIMIT $4)
+        SELECT family_id,fingerprint,outcome,mix FROM
+          (SELECT * FROM ordinary UNION ALL SELECT * FROM mixed) h
+          ORDER BY issued_at DESC,id DESC LIMIT $4""",
+        user_id,
+        f"task{number}",
+        number,
+        limit,
+    )
+    return [(r["family_id"], r["fingerprint"], r["outcome"], r["mix"]) for r in stored]
+
+
+def enabled(number: int) -> list[str]:
+    if number == 6:
+        from app.math.registry import SPEC_BY_ID
+
+        return list(SPEC_BY_ID)
+    module = "oge07" if number == 7 else f"oge{number}"
+    return list(import_module(f"app.math.{module}_scheduler").ENABLED_FAMILIES)
 
 
 async def candidate_state(
@@ -58,35 +80,50 @@ async def candidate_state(
     *,
     for_mix: bool = False,
 ) -> dict[str, object]:
-    recent = await other_mode_recent(repository, user_id, number, for_mix=for_mix)
+    recent = await recent_issues(repository, user_id, number)
     result = dict(state)
-    outcomes = {family: outcome for family, _, outcome in reversed(recent)}
-    rotate_tail(
-        number,
-        result,
-        recent[0][0] if recent else None,
-        {family for family, outcome in outcomes.items() if outcome == "failed"},
-    )
     if not recent:
         return result
-    if not result.get("last_family_id"):
-        result["last_family_id"] = recent[0][0]
+    history = [f for f, _, _, _ in recent]
+    outcomes = {f: status for f, _, status, _ in reversed(recent)}
+    result["last_family_id"] = history[0]
+    previous = state.get("family_queue")
+    remaining = list(previous) if isinstance(previous, list) else []
+    if number == 9:
+        result["construction_history"] = history[:5]
+    else:
+        active = enabled(number)
+        deck = list(dict.fromkeys([*(f for f in remaining if f in active), *active]))
+        if number == 15:
+            # The triangle trainer promises a complete tour of its 22 distinct constructions.
+            unseen = [f for f in deck if f not in history[:len(active) - 1]]
+            deck = unseen or deck
+            # Consume larger topic groups while an alternating finish is still possible.
+            counts = Counter(topics()[f] for f in deck)
+            deck.sort(key=lambda f: -counts[topics()[f]])
+        result["family_queue"] = rank_families(
+            deck, history, {f for f in remaining if outcomes.get(f) == "failed"}
+        )
     local = state.get("recent_fingerprints")
     local_fps = local if isinstance(local, list) else []
-    # For finite circle pools the transaction verifies the cycle against its own
-    # history. External fingerprints are preferences, never proof of exhaustion.
     if number == 16:
-        result["other_mode_fingerprints"] = [fp for _, fp, _ in recent]
+        result["other_mode_fingerprints"] = [fp for _, fp, _, mix in recent if mix != for_mix]
     else:
         result["recent_fingerprints"] = list(
-            dict.fromkeys(
-                [
-                    *(fp for _, fp, _ in reversed(recent)),
-                    *local_fps,
-                ]
-            )
+            dict.fromkeys([*local_fps, *(fp for _, fp, _, _ in reversed(recent))])
         )
     return result
+
+
+async def specialist_state(
+    repository: Any, user_id: int, number: int, state: dict[str, object]
+) -> dict[str, object]:
+    prepared = await candidate_state(repository, user_id, number, state)
+    selected = await repository.training_family(user_id, number)
+    if selected is not None:
+        prepared["selected_family_id"] = selected
+        prepared["family_queue"] = [selected]
+    return prepared
 
 
 async def recent_story_families(repository: Any, user_id: int) -> list[str]:

@@ -194,6 +194,7 @@ async def send_problem(
                     await family_exhausted(message, repository, user_id, adapter.number)
                     return False
                 candidate_state["family_queue"] = [selected]
+                candidate_state["selected_family_id"] = selected
             try:
                 candidates = await asyncio.to_thread(
                     adapter.candidates, candidate_state, secrets.randbelow(2**63)

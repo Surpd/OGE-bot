@@ -50,6 +50,12 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
+    if any(c and c.startswith("nav:numbers:") for c in callbacks) or (
+        "nav:oge15" in callbacks and "nav:task:6" in callbacks
+    ):
+        return "number_selection"
+    if any(c and c.startswith("nav:tr:") for c in callbacks):
+        return "number_selection"
     if any(c and c.startswith("p2:apitest:") for c in callbacks):
         return "api_test"
     if "nav:numbers" in callbacks and any(
@@ -64,8 +70,6 @@ def navigation_screen(markup: object) -> str | None:
     for value in callbacks:
         if value and value.startswith("nav:math:"):
             return "display_settings"
-        if value and value.startswith("nav:tr:"):
-            return "number_selection"
         if value and value.startswith(("nav:family:", "nav:families:", "nav:begin:")):
             return f"family_selection:{value.split(':')[2]}"
     if any(value and value.startswith("replay:") for value in callbacks):
@@ -189,6 +193,12 @@ async def navigation_callback(
         "nav:display": show_display_options,
     }
     target = targets.get(data)
+    number_page = None
+    if data.startswith("nav:numbers:"):
+        value = data.removeprefix("nav:numbers:")
+        if value.isascii() and value.isdigit() and len(value) <= 2:
+            number_page = int(value)
+            target = handlers.choose_number
     if data == "nav:oge15":
         target = show_public_oge15
     oge15_number: int | None = None
@@ -218,13 +228,20 @@ async def navigation_callback(
             training_codes[training_parts[2]], int(training_parts[3]), training_parts[4]
         )
     family_parts = data.split(":")
+    family_page = 0
     family_action: tuple[int, str | None] | None = None
     if len(family_parts) in {3, 4} and family_parts[:1] == ["nav"]:
-        from app.bot.training_engine import NUMERIC_TRAININGS
+        from app.persistence.rotation_history import enabled
 
         action, value = family_parts[1:3]
-        if value.isascii() and value.isdigit() and int(value) in NUMERIC_TRAININGS:
-            if action in {"families", "task"}:
+        if value.isascii() and value.isdigit() and 6 <= int(value) <= 19 and enabled(int(value)):
+            if action == "families" or (action == "task" and target is not None):
+                if len(family_parts) == 4:
+                    raw = family_parts[3]
+                    if not raw.isascii() or not raw.isdigit() or len(raw) > 2:
+                        await answer_callback(callback, "Эта страница недоступна.")
+                        return
+                    family_page = int(raw)
                 family_action = (int(value), None)
             elif action == "family" and len(family_parts) == 4:
                 family_action = (int(value), family_parts[3])
@@ -278,10 +295,17 @@ async def navigation_callback(
         from app.bot.family_selection import select_family, show_families
 
         number, selection = family_action
+        if data.startswith("nav:task:") and await handlers._show_saved_training_choice(
+            message, repository, number, callback.from_user.id
+        ):
+            await answer_callback(callback)
+            return
         if selection is None:
-            await show_families(message, repository, number)
+            await show_families(message, repository, number, family_page)
         else:
             await select_family(message, repository, number, selection)
+    elif number_page is not None:
+        await handlers.choose_number(message, repository, oge15_repository, page=number_page)
     elif progress_page is not None:
         from app.bot.progress import progress_navigation
 

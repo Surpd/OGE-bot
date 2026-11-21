@@ -371,7 +371,8 @@ def rich_inline(source: str) -> str:
         # it receives the LaTeX command. Keep interval text literal so each
         # visible Unicode ∞ is sent exactly once.
         escape(span.source)
-        if "∞" in span.source and not span.explicit
+        if ("∞" in span.source or re.fullmatch(r"[0-9]+(?:[,.][0-9]+)?", span.source))
+        and not span.explicit
         else "<tg-math>" + escape(span.latex) + "</tg-math>"
         if span.latex is not None
         else escape(span.source)

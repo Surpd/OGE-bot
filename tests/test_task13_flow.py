@@ -66,7 +66,7 @@ async def test_disabled_task13_is_hidden_from_number_menu(monkeypatch) -> None:
 @pytest.mark.asyncio
 async def test_enabled_task13_is_shown_in_number_menu() -> None:
     message = _message(913_000, "🧮 По номеру")
-    await choose_number(message, MemoryRepository())
+    await choose_number(message, MemoryRepository(), page=1)
     labels = [
         button.text
         for row in message.answer.await_args.kwargs["reply_markup"].inline_keyboard
