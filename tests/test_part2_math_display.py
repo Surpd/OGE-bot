@@ -109,3 +109,18 @@ def test_feedback_length_budget_keeps_formulas_whole():
 def test_nested_numerator_and_scalable_parentheses_use_denominator_policy():
     assert rich_needs_png_fallback(r"\(\frac{\sqrt{x+1}}{\left(2x\right)}\)")
     assert not rich_needs_png_fallback(r"\(\left(x+1\right)^2\)")
+
+
+def test_unrepresentable_provider_operator_is_not_replaced_by_its_argument():
+    # This checks the terminal PNG fallback after a definite Rich rejection.
+    notice = render_math_image("Формула недоступна")
+    assert render_math_image(r"\(\unsupportedoperator{x}\)") == notice
+
+
+def test_numeric_degree_sign_keeps_unit_spacing_in_png_and_text():
+    from app.bot.explicit_math import local_display_tex
+
+    assert local_display_tex(r"60^\circ+30^{\circ}") == "60°+30°"
+    assert local_display_tex(r"f\circ g") == r"f\circ g"
+    assert plain_text(r"\(60^\circ\)") == "60°"
+    assert _explicit_formula(r"60^\circ.").tobytes() == _explicit_formula("60°.").tobytes()

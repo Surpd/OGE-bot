@@ -1365,7 +1365,7 @@
       "method": "Равнобедренный треугольник на параллельной стороне или равные расстояния от точки пересечения"
     },
     {
-      "id": "OGE23-parallelogram-bisectors/2",
+      "id": "parallelogram/area-from-bisector-distance",
       "construction": "Площадь через расстояние от пересечения биссектрис",
       "additional_step": false,
       "cards": [
@@ -1990,7 +1990,7 @@
   ],
   "OGE25-parallelogram-bisectors": [
     {
-      "id": "OGE25-parallelogram-bisectors/1",
+      "id": "parallelogram/area-from-bisector-distance",
       "construction": "Площадь параллелограмма с биссектрисами",
       "additional_step": false,
       "cards": [

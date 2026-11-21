@@ -274,7 +274,10 @@ def parse_formula(source: str) -> str | None:
 def _unsafe_fraction(latex: str) -> bool:
     if "frac" not in latex:
         return False
-    normalized = local_tex(latex)
+    try:
+        normalized = local_tex(latex)
+    except RecursionError:
+        return True
     for match in re.finditer(r"\\frac\{", normalized):
         depth = 1
         pos = match.end()

@@ -130,9 +130,24 @@ async def test_subtype_and_number_sequences_match_independent_model(bank_pool):
     for number in range(20, 26):
         subtypes = [s for s in catalog if s.startswith(f"OGE{number}-")]
         requests = [None] * 15 + [subtypes[i % len(subtypes)] for i in range(15)]
-        expected = sequence(cards, catalog, number, requests)
+        owner = 1000 + number
+        await bank_pool.execute("INSERT INTO users(telegram_user_id) VALUES($1)", owner)
+        expected = sequence(cards, catalog, number, requests, owner)
         assert len(set(expected)) == 30
         for subtype, task in zip(requests, expected, strict=True):
-            issue = await repo.open(1, number, subtype)
-            assert (await repo.current(1, issue))["task_id"] == task
-            assert await repo.skip(1, issue, 1)
+            issue = await repo.open(owner, number, subtype)
+            assert (await repo.current(owner, issue))["task_id"] == task
+            assert await repo.skip(owner, issue, 1)
+
+
+async def test_switching_exam_numbers_avoids_the_shared_bisector_construction(bank_pool):
+    bank = Part2Training(bank_pool)
+    await bank_pool.execute(
+        "UPDATE part2_versions SET available=false WHERE payload->>'number'='23' "
+        "AND task_id<>'oge-part2-reshu-339709'"
+    )
+    first = await bank.open(1, 23)
+    assert await bank.skip(1, first, 1)
+    second = await bank.open(1, 25, "OGE25-parallelogram-bisectors")
+    row = await bank.current(1, second)
+    assert row["card"]["source_id"] == "A25-parallelogram-bisectors-extension"

@@ -12,11 +12,17 @@ from app.persistence.part2_bank import ATLAS
 @cache
 def _rotation_groups(number: int) -> str:
     catalog = json.loads((ATLAS / "rotation.json").read_text())
-    profiles = {
-        task: [group["id"], group["additional_step"], group["method"]]
+    active_groups = {
+        group["id"]
         for subtype, groups in catalog.items()
         if subtype.startswith(f"OGE{number}-")
         for group in groups
+    }
+    profiles = {
+        task: [group["id"], group["additional_step"], group["method"]]
+        for groups in catalog.values()
+        for group in groups
+        if group["id"] in active_groups
         for task in (*group["cards"], *group.get("historical_versions", []))
     }
     return json.dumps(profiles)
@@ -85,6 +91,10 @@ class Part2Training:
                         s.family_id
                     FROM part2_issues i JOIN part2_subtypes s USING(subtype_id)
                     WHERE owner=$1 AND number=$2
+                ), latest AS (
+                    SELECT coalesce($5::jsonb->(i.task_id || '@' || i.version),
+                                    $5::jsonb->i.task_id)->>0 AS construction
+                    FROM part2_issues i WHERE owner=$1 ORDER BY id DESC LIMIT 1
                 ), recency AS MATERIALIZED (
                     SELECT kind, value, max(id) AS last_id FROM history h
                     CROSS JOIN LATERAL (VALUES
@@ -127,7 +137,7 @@ class Part2Training:
                     SELECT FROM history h WHERE h.task_id=c.task_id AND NOT h.closed
                   ))
                 ORDER BY CASE WHEN $4 IS NOT NULL THEN t.last_id END NULLS FIRST,
-                  COALESCE(g.last_id=(SELECT max(id) FROM history),false),
+                  COALESCE(c.profile->>0=(SELECT construction FROM latest),false),
                   s.last_id NULLS FIRST,
                   COALESCE(c.profile->>0 <> (SELECT construction FROM majority),false),
                   g.last_id NULLS FIRST, f.last_id NULLS FIRST,

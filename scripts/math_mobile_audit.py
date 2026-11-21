@@ -5,16 +5,17 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 from app.bot.explicit_math import plain_text
 from app.bot.math_image import _explicit_formula, _formula, render_math_image
 from app.bot.math_notation import math_spans, rich_needs_png_fallback
+from app.bot.mixed_training import _render_image
 from app.bot.part2 import solution_text, statement_text
 from app.bot.scenario_training import PUBLIC_FAMILIES, public_registry
-from app.bot.task_view import question_text
+from app.bot.task_view import question_text, system_rows
 from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
-from app.persistence.part2_bank import ATLAS
+from app.persistence.part2_bank import ATLAS, figure
 from scripts.oge_bank_quality_audit import _ordinary_generator
 
 WITNESS = r"""Сравнения и принадлежность
@@ -25,10 +26,24 @@ WITNESS = r"""Сравнения и принадлежность
 \(x\in(-\infty;-1]\cup[3;+\infty)\)"""
 
 
-def mobile(width):
-    with Image.open(io.BytesIO(render_math_image(WITNESS))) as image:
+def mobile(width, source=WITNESS, diagram=None):
+    with Image.open(io.BytesIO(render_math_image(source, diagram))) as image:
         return image.resize(
             (width, round(image.height * width / image.width)), Image.Resampling.LANCZOS
+        )
+
+
+def previews(dest):
+    example = next(
+        c
+        for c in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines())
+        if c["source_id"] == "315053"
+    )
+    drawing = next(v for v in example["visuals"] if v["role"] == "condition")
+    for width in (360, 390):
+        mobile(width).save(dest / f"formulas-{width}.png")
+        mobile(width, statement_text(example), figure(drawing["path"])).save(
+            dest / f"geometry-{width}.png"
         )
 
 
@@ -44,6 +59,9 @@ def fields():
                     remaining.remove(q.family_id)
                     yield (
                         "stories",
+                        q.family_id,
+                        {},
+                        None,
                         [
                             snap.shared_context,
                             q.condition,
@@ -63,6 +81,9 @@ def fields():
             steps = q["solution"]
             yield (
                 "ordinary",
+                family,
+                {0: _render_image(number, q)},
+                system_rows(number, q),
                 [
                     question_text(number, q),
                     *q["hints"],
@@ -73,15 +94,23 @@ def fields():
     for card in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines()):
         yield (
             "written",
+            card["task_id"],
+            {
+                0 if v["role"] == "condition" else len(card["hints"]) + 1: figure(v["path"])
+                for v in card["visuals"]
+            },
+            None,
             [statement_text(card), *card["hints"], solution_text(card), card["answer_or_claim"]],
         )
 
 
 def main():
     counts = Counter()
-    for origin, texts in fields():
+    min_gutter = {360: 360, 390: 390}
+    tallest = 0
+    for origin, identity, drawings, rows, texts in fields():
         counts[origin] += 1
-        for text in texts:
+        for index, text in enumerate(texts):
             spans = [s for s in math_spans(text) if s.latex]
             counts[
                 "plain" if not spans else "png" if rich_needs_png_fallback(text) else "rich"
@@ -90,12 +119,36 @@ def main():
                 image = _explicit_formula(span.latex) if span.explicit else _formula(span.latex)
                 if image.getbbox() is None:
                     raise ValueError((origin, span.source))
+            if spans or drawings.get(index):
+                png = render_math_image(text, drawings.get(index), rows if index == 0 else None)
+                with Image.open(io.BytesIO(png)) as scene:
+                    tallest = max(tallest, scene.height)
+                    for width in min_gutter:
+                        preview = scene.resize(
+                            (width, round(scene.height * width / scene.width)),
+                            Image.Resampling.LANCZOS,
+                        ).convert("L")
+                        ink = ImageChops.invert(preview).point(
+                            lambda level: 255 if level > 48 else 0
+                        )
+                        bounds = ink.getbbox()
+                        if bounds is None:
+                            raise ValueError(("empty raster", identity, index))
+                        left, top, right, bottom = bounds
+                        gutter = min(left, top, width - right, preview.height - bottom)
+                        if gutter < 3:
+                            raise ValueError(
+                                ("insufficient clearance", identity, index, width, gutter)
+                            )
+                        min_gutter[width] = min(min_gutter[width], gutter)
+                counts["raster_scenes"] += 1
             if any(delimiter in plain_text(text) for delimiter in (r"\(", r"\[", r"\frac")):
                 raise ValueError(text)
+    counts.update({f"minimum_margin_at_{w}px": gap for w, gap in min_gutter.items()})
+    counts["maximum_scene_height_px"] = tallest
     dest = Path("reports/previews/math-mobile")
     dest.mkdir(parents=True, exist_ok=True)
-    for width in (360, 390):
-        mobile(width).save(dest / f"formulas-{width}.png")
+    previews(dest)
     (dest / "coverage.json").write_text(json.dumps(dict(counts), indent=2) + "\n")
     print(counts)
 

@@ -61,6 +61,7 @@ SYMBOLS = {
     "ell": "ℓ",
     "to": "→",
     "Rightarrow": "⇒",
+    "leftrightarrow": "↔",
     "quad": "  ",
     "qquad": "    ",
     "left": "",
@@ -129,8 +130,9 @@ def local_tex(latex: str) -> str:
     return "".join(result)
 
 
-def display_fractions(latex: str) -> str:
+def local_display_tex(latex: str) -> str:
     """Keep outer fractions legible after Telegram scales a photo to phone width."""
+    latex = re.sub(r"(?<=\d)\^(?:\{\\circ\}|\\circ(?![A-Za-z]))", "°", latex)
     depth = 0
     parts = []
     for token in TOKEN.findall(latex):
@@ -171,6 +173,8 @@ def plain_tex(latex: str) -> str:
             return f"√({argument(depth + 1)})"
         if char in "^_":
             value = argument(depth + 1)
+            if char == "^" and value == "°":
+                return value
             if value and all(c in "0123456789+-" for c in value):
                 return value.translate(SUPERSCRIPT if char == "^" else SUBSCRIPT)
             return f"{char}({value})"

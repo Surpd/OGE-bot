@@ -12,10 +12,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 from app.bot.explicit_math import (
     block_parts,
-    display_fractions,
     flatten_math_lines,
+    local_display_tex,
     local_tex,
-    plain_tex,
 )
 from app.bot.math_fragments import MathFragment, System
 from app.bot.math_layout import action_prefix, layout_text
@@ -39,7 +38,7 @@ def _formula(latex: str, size: int = 24) -> Image.Image:
     from matplotlib.font_manager import FontProperties
 
     parsed = _parser().parse(
-        "$" + display_fractions(latex) + "$", dpi=160, prop=FontProperties(size=size)
+        "$" + local_display_tex(latex) + "$", dpi=160, prop=FontProperties(size=size)
     )
     # Mathtext's raster is ink coverage. Preserve descenders and negative bearings
     # and leave clearance even when two mathematical spans touch in the source.
@@ -179,8 +178,9 @@ def _render(
                 ).copy()
             except (ValueError, RecursionError):
                 if span.explicit:
-                    for word in plain_tex(span.latex).split():
-                        add(Span(word + " "), font)
+                    # The provider can return TeX outside Mathtext's grammar. Stripping
+                    # an unknown operator could turn a rejected expression into a new one.
+                    add(Span("Формула недоступна"), font)
                     return
                 tile = text_tile(span.source, font)
         else:
