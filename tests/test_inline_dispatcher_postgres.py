@@ -387,18 +387,24 @@ async def exercise_navigation(
             for button in row
             if (button.callback_data or "").startswith("progress:item:")
         )
+        detail_call_start = len(session.calls)
         await click(item_action)
         error_detail = list(session.messages.values())[-1]
+        assert "Исходное условие:" in (error_detail.text or "")
         assert "Ошибка была: да" in (error_detail.text or "")
         condition = str(restarted["problem"]["condition"])
         delivery = next(
-            call for call in reversed(session.calls)
+            call for call in reversed(session.calls[detail_call_start:])
             if call.__api_method__ in {"sendRichMessage", "sendMessage", "editMessageText"}
         )
         if delivery.__api_method__ == "sendRichMessage":
+            from app.bot.family_display import typeset_family_text
             from app.bot.presentation import format_rich_message
 
-            assert format_rich_message(condition) in delivery.rich_message.html
+            # The history view formats the original snapshot's family before
+            # serializing Rich HTML, including №6's mixed-number fraction.
+            rich_condition = typeset_family_text(condition, restarted["problem"])
+            assert format_rich_message(rich_condition) in delivery.rich_message.html
         else:
             assert condition in (error_detail.text or "")
         return_action = next(
