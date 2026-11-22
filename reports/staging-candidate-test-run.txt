@@ -1,0 +1,29 @@
+Combined staging candidate — local verification, 2026-11-22
+
+Sources, preserved as ancestors:
+#106 b8006c930c4121f6bf2f6b13bdfab3403b7740a1
+#107 6ded991e415bb66a0ac48a3514d4a6e077f40e4d
+
+Resolved CHANGELOG.md by retaining both entries.
+Resolved error_replay.py by retaining send_scenario_materials and optional QA controls;
+ordinary replay still receives the scenario data button.
+All four original snapshots/scenarios exactly equal #107; only STOVE note/digest changed.
+
+Database: isolated local Docker postgres:17, loopback only, synthetic records.
+Telegram: offline aiogram TelegramSession; no real Telegram/model/photo calls.
+
+python -m pytest -q tests/test_staging_qa.py tests/test_staging_materials_candidate.py \
+  tests/test_scenario_required_materials.py tests/test_scenario_telegram.py \
+  tests/test_error_replay.py tests/test_mixed_training.py \
+  tests/test_part2_photo_contract.py tests/test_part2_check_delivery.py --maxfail=2
+Result: 239 passed in 55.08s.
+
+ruff check .
+Result: All checks passed!
+
+mypy app
+Result: Success: no issues found in 131 source files.
+
+Full CI must use workflow_dispatch(profile=full, expected_sha=<candidate HEAD>)
+on staging/qa-materials-candidate. The handoff includes the resulting immutable SHA
+and workflow URL. No production merge/deploy or infrastructure action is part of this run.
