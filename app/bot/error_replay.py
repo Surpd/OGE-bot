@@ -152,6 +152,7 @@ async def _render(
     message: Message, repository: Repository, store: ErrorReplayRepository,
     replay: dict[str, object], source: ReplaySource, *, user_id: int,
     materials: tuple[str, tuple[bytes, ...]], notice: str = "",
+    controls: InlineKeyboardMarkup | None = None,
 ) -> None:
     token = replay_token(UUID(str(replay["id"])))
     completed = replay.get("status") != "active"
@@ -179,7 +180,7 @@ async def _render(
             )
     photo = photos[0] if photos and not context else None
     math_system_rows = system_rows(source.number, source.snapshot)
-    markup = _keyboard(token, completed=completed)
+    markup = controls if controls is not None else _keyboard(token, completed=completed)
     if photo is not None:
         sent = await send_photo(
             message, repository, BufferedInputFile(photo, filename="original-task.png"),

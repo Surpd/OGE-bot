@@ -143,6 +143,9 @@ def create_app(
     run_schema_migrations: bool = True,
 ) -> FastAPI:
     settings = get_settings()
+    from app.staging.safety import validate_database, validate_settings
+
+    validate_settings(settings)
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
@@ -153,6 +156,11 @@ def create_app(
             if not settings.database_url:
                 raise RuntimeError("DATABASE_URL is required")
             pool = await asyncpg.create_pool(settings.database_url, min_size=1, max_size=5)
+            try:
+                await validate_database(pool, settings)
+            except BaseException:
+                await pool.close()
+                raise
             repo = PostgresRepository(pool)
             if run_schema_migrations:
                 try:
@@ -192,6 +200,11 @@ def create_app(
                 except BaseException:
                     await pool.close()
                     raise
+        if settings.app_env == "staging" and pool is None:
+            injected_pool = getattr(repo, "_pool", None)
+            if injected_pool is None:
+                raise RuntimeError("Staging requires a validated PostgreSQL repository")
+            await validate_database(injected_pool, settings)
         oge15_repo = scenario_repository
         if oge15_repo is None and pool is not None:
             oge15_repo = ScenarioPostgresRepository(pool)
@@ -206,6 +219,14 @@ def create_app(
                 "https://"
             ):
                 raise RuntimeError("WEBHOOK_BASE_URL must be an HTTPS origin in production")
+        if settings.app_env == "staging":
+            from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
+
+            await telegram_bot.set_my_commands(
+                commands=[BotCommand(command="start", description="Обычное меню ученика"),
+                          BotCommand(command="qa", description="Проверки · точные карточки")],
+                scope=BotCommandScopeAllPrivateChats(),
+            )
         if settings.webhook_base_url and settings.telegram_webhook_secret:
             await telegram_bot.set_webhook(
                 url=f"{settings.webhook_base_url.rstrip('/')}/telegram/webhook",
@@ -217,6 +238,10 @@ def create_app(
                 ],
             )
         dispatcher = Dispatcher()
+        if settings.app_env == "staging":
+            from app.staging.middleware import StagingMiddleware
+
+            dispatcher.update.outer_middleware(StagingMiddleware(settings))
         dispatcher.include_router(build_router())
         application.state.repository = repo
         application.state.oge15_repository = oge15_repo
@@ -265,6 +290,11 @@ def create_app(
             raise HTTPException(status_code=400, detail="Invalid update") from exc
         if not isinstance(payload, dict):
             raise HTTPException(status_code=400, detail="Invalid update")
+        if settings.app_env == "staging":
+            from app.staging.middleware import allowed_payload
+
+            if not allowed_payload(payload, settings.staging_owner_id):
+                return Response(status_code=200)
         update_id = payload.get("update_id")
         if type(update_id) is not int or update_id < 0:
             raise HTTPException(status_code=400, detail="Invalid update")

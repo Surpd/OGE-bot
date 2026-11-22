@@ -33,6 +33,8 @@ TEST_WORK = (
 
 
 async def model_status(s: Settings) -> str:
+    if s.app_env == "staging":
+        return "отключена в staging"
     if not s.openai_api_key:
         return "ключ отсутствует"
     if s.oge_grading_model != MODEL:

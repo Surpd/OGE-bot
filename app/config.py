@@ -13,6 +13,12 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_env: str = "development"
+    staging_owner_id: int | None = Field(default=None, gt=0)
+    staging_bot_id: int | None = Field(default=None, gt=0)
+    staging_production_bot_id: int | None = Field(default=None, gt=0)
+    staging_hostname: str | None = None
+    staging_production_hostname: str | None = None
+    staging_release_sha: str | None = None
     database_url: str | None = None
     telegram_bot_token: str | None = None
     telegram_webhook_secret: str | None = None

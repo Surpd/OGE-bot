@@ -125,10 +125,13 @@ def ceiling(s: Settings) -> Decimal:
 
 
 def available(s: Settings) -> bool:
-    return bool(s.oge_grading_enabled and s.openai_api_key and s.oge_grading_model == MODEL)
+    return bool(s.app_env != "staging" and s.oge_grading_enabled
+                and s.openai_api_key and s.oge_grading_model == MODEL)
 
 
 def open_client(s: Settings) -> AsyncOpenAI:
+    if s.app_env == "staging":
+        raise RuntimeError("External grading is forbidden in staging")
     if not s.openai_api_key or s.oge_grading_model != MODEL:
         raise ValueError("Нет ключа или выбрана неподдерживаемая модель.")
     return AsyncOpenAI(

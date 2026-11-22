@@ -1,0 +1,29 @@
+Staging QA candidate — offline verification
+Date: 2026-11-22
+Base: 50b192e88686a3ea54a56d28197e275b7f6f2ca8
+
+Runtime: Python 3.12, locked repository dependencies.
+Database: local Docker postgres:17, published on loopback only.
+The staging integration fixture creates and drops a NEW database per test.
+Only generated/synthetic records and offline TelegramSession transport are used.
+No production database, real Telegram, real photograph or model API was accessed.
+
+Command (DATABASE_URL pointed only at the isolated local PostgreSQL):
+python -m pytest -q tests/test_staging_qa.py tests/test_webhook.py \
+  tests/test_migrations_startup.py tests/test_error_replay.py \
+  tests/test_part2_check_delivery.py tests/test_part2_photo_contract.py --maxfail=1
+
+Result: 116 passed, 1 warning in 29.44s.
+Warning: existing Starlette TestClient / anyio BlockingPortal deprecation.
+
+ruff check .
+Result: All checks passed!
+
+mypy app
+Result: Success: no issues found in 130 source files.
+
+git diff --check
+Result: passed.
+
+See the Draft PR checks for the full pytest / PostgreSQL 17 / Docker CI on the
+committed candidate SHA. This local record is not a live-device acceptance report.
