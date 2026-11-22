@@ -39,6 +39,17 @@ async def check(
 ) -> None:
     s = get_settings()
     issue, revision = row["id"], row["revision"]
+    if s.app_env == "staging":
+        from app.staging.photo import simulate
+
+        current = await bank.current(owner)
+        if (not current or current["id"] != issue or current["revision"] != revision
+                or not current.get("photo_message")
+                or current.get("photo_message") != photo_message):
+            await message.answer("Имитация: прикрепите фото к текущему условию.")
+            return
+        await simulate(message, repo, owner, controls(current))
+        return
     if not available(s) or s.openai_api_key is None:
         await send_text(
             message,

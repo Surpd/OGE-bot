@@ -1,0 +1,480 @@
+[
+  {
+    "digest": "a2dc2a939511",
+    "card": {
+      "number": 1,
+      "snapshot": {
+        "position": 1,
+        "scenario_seed": 155,
+        "family_id": "STOVE-F01-CAPACITY-LIMITS",
+        "generator_version": "stove-v1.4",
+        "condition": "Укажите номера печей, соответствующие значениям наибольших границ диапазона объёма, в таком же порядке: 23, 12, 20.",
+        "answer_policy_id": "digit_sequence_exact_3",
+        "answer_policy_version": "1",
+        "canonical_answer": "312",
+        "hints": [
+          "Найдите в таблице столбец диапазона объёма.",
+          "Сопоставьте каждое значение с одной строкой таблицы."
+        ],
+        "solution_steps": [
+          "По столбцу верхней границы найдём номера печей: 312."
+        ],
+        "math_model": {
+          "family_id": "STOVE-F01-CAPACITY-LIMITS",
+          "boundary": "max_m3",
+          "displayed_values": [
+            23,
+            12,
+            20
+          ]
+        },
+        "correct_answer": "312",
+        "solution": [
+          "По столбцу верхней границы найдём номера печей: 312."
+        ],
+        "story_code": "STOVE",
+        "shared_context": "Сюжет: печи для бани. Все пять вопросов относятся к одной парной и одному каталогу печей.\nРазмеры парной: 3,2 × 1,9 × 2,4 м. Дверь: 56 см × 198 см; окон нет.\nПечь | Тип | Объём парной, м³ | Масса, кг | Цена, руб.\n1 | дровяная | 6–12 | 44 | 11 900\n2 | дровяная | 13–20 | 98 | 20 900\n3 | электрическая | 9–23 | 159 | 23 900",
+        "fingerprint": "STOVE:155:1"
+      },
+      "scenario": {
+        "schema_version": 1,
+        "story_code": "STOVE",
+        "seed": 155,
+        "generator_version": "stove-v1.4",
+        "compatibility_matrix_version": "stove-bundle-v1",
+        "context": {
+          "renderer_version": "stove-svg-png-v2",
+          "room": {
+            "length_tenths": 32,
+            "width_tenths": 19,
+            "height_tenths": 24
+          },
+          "arc_width_cm": 72,
+          "arc_height_cm": 27,
+          "door_width_cm": 56,
+          "door_height_cm": 198,
+          "stoves": [
+            {
+              "id": 1,
+              "kind": "дровяная",
+              "min_m3": 6,
+              "max_m3": 12,
+              "mass_kg": 44,
+              "price_rub": 11900
+            },
+            {
+              "id": 2,
+              "kind": "дровяная",
+              "min_m3": 13,
+              "max_m3": 20,
+              "mass_kg": 98,
+              "price_rub": 20900
+            },
+            {
+              "id": 3,
+              "kind": "электрическая",
+              "min_m3": 9,
+              "max_m3": 23,
+              "mass_kg": 159,
+              "price_rub": 23900
+            }
+          ],
+          "installation_rub": 7200,
+          "delivery_rub": 1800,
+          "family_plan": {
+            "1": "STOVE-F01-CAPACITY-LIMITS",
+            "2": "STOVE-F03-VOLUME",
+            "3": "STOVE-F07-FIT-WOOD-DELIVERY",
+            "4": "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS",
+            "5": "STOVE-F12-ARCH-RADIUS"
+          }
+        },
+        "shared_context": "Сюжет: печи для бани. Все пять вопросов относятся к одной парной и одному каталогу печей.\nРазмеры парной: 3,2 × 1,9 × 2,4 м. Дверь: 56 см × 198 см; окон нет.\nПечь | Тип | Объём парной, м³ | Масса, кг | Цена, руб.\n1 | дровяная | 6–12 | 44 | 11 900\n2 | дровяная | 13–20 | 98 | 20 900\n3 | электрическая | 9–23 | 159 | 23 900",
+        "assets": [
+          {
+            "sha256": "01a72ef6b7797bba42ed123c1ce68cd23560a2dbd1c22771c8b292774b99cfb1",
+            "content_type": "image/svg+xml",
+            "storage_key": "sha256/01a72ef6b7797bba42ed123c1ce68cd23560a2dbd1c22771c8b292774b99cfb1.svg"
+          },
+          {
+            "sha256": "883cc9213aaf3401f0efb22c4eaef6e00a2fd0e117bc3b30ae94bc7fe104283e",
+            "content_type": "image/png",
+            "storage_key": "sha256/883cc9213aaf3401f0efb22c4eaef6e00a2fd0e117bc3b30ae94bc7fe104283e.png"
+          },
+          {
+            "sha256": "c023fa5b558b7185fddaee144f3801b44e45ed56b67ef0d3c5e6453412cbe443",
+            "content_type": "image/svg+xml",
+            "storage_key": "sha256/c023fa5b558b7185fddaee144f3801b44e45ed56b67ef0d3c5e6453412cbe443.svg"
+          },
+          {
+            "sha256": "42b626ec658bb99799b99a64dbcbf04d5a463eb315c4cfa703796d3c71194e02",
+            "content_type": "image/png",
+            "storage_key": "sha256/42b626ec658bb99799b99a64dbcbf04d5a463eb315c4cfa703796d3c71194e02.png"
+          }
+        ],
+        "questions": [
+          {
+            "position": 1,
+            "scenario_seed": 155,
+            "family_id": "STOVE-F01-CAPACITY-LIMITS",
+            "generator_version": "stove-v1.4",
+            "condition": "Укажите номера печей, соответствующие значениям наибольших границ диапазона объёма, в таком же порядке: 23, 12, 20.",
+            "answer_policy_id": "digit_sequence_exact_3",
+            "answer_policy_version": "1",
+            "canonical_answer": "312",
+            "hints": [
+              "Найдите в таблице столбец диапазона объёма.",
+              "Сопоставьте каждое значение с одной строкой таблицы."
+            ],
+            "solution_steps": [
+              "По столбцу верхней границы найдём номера печей: 312."
+            ],
+            "math_model": {
+              "family_id": "STOVE-F01-CAPACITY-LIMITS",
+              "boundary": "max_m3",
+              "displayed_values": [
+                23,
+                12,
+                20
+              ]
+            }
+          },
+          {
+            "position": 2,
+            "scenario_seed": 155,
+            "family_id": "STOVE-F03-VOLUME",
+            "generator_version": "stove-v1.4",
+            "condition": "Найдите объём парной. Размеры парной: 3,2 × 1,9 × 2,4 м. Дверь: 56 см × 198 см; окон нет.",
+            "answer_policy_id": "decimal_exact",
+            "answer_policy_version": "1",
+            "canonical_answer": "14,592",
+            "hints": [
+              "Объём прямоугольного помещения равен произведению длины, ширины и высоты.",
+              "Умножьте три размера в метрах."
+            ],
+            "solution_steps": [
+              "V = 3,2 · 1,9 · 2,4 = 14,592 м³."
+            ],
+            "math_model": {
+              "family_id": "STOVE-F03-VOLUME",
+              "operation": "volume"
+            }
+          },
+          {
+            "position": 3,
+            "scenario_seed": 155,
+            "family_id": "STOVE-F07-FIT-WOOD-DELIVERY",
+            "generator_version": "stove-v1.4",
+            "condition": "Для парной из условия выберите подходящую дровяную печь по объёму и найдите её стоимость с доставкой. Доставка стоит 1 800 руб. Размеры парной: 3,2 × 1,9 × 2,4 м. Дверь: 56 см × 198 см; окон нет.",
+            "answer_policy_id": "integer_rubles",
+            "answer_policy_version": "1",
+            "canonical_answer": "22700",
+            "hints": [
+              "Сначала вычислите объём парной.",
+              "Проверьте объём в диапазонах только дровяных печей; границы включаются.",
+              "К цене единственной подходящей печи прибавьте доставку."
+            ],
+            "solution_steps": [
+              "V = 14,592 м³; подходит дровяная печь №2.",
+              "20 900 + 1 800 = 22 700 руб."
+            ],
+            "math_model": {
+              "family_id": "STOVE-F07-FIT-WOOD-DELIVERY",
+              "operation": "wood_fit_delivery"
+            }
+          },
+          {
+            "position": 4,
+            "scenario_seed": 155,
+            "family_id": "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS",
+            "generator_version": "stove-v1.4",
+            "condition": "Если цена покупки дороже 19 900 руб., на печь действует скидка 5%, а на доставку — скидка 20%. Сколько нужно заплатить за печь №2 с доставкой, если доставка стоит 1 800 руб.?",
+            "answer_policy_id": "integer_rubles",
+            "answer_policy_version": "1",
+            "canonical_answer": "21295",
+            "hints": [
+              "Сравните цену покупки с порогом: условие говорит строго «дороже».",
+              "Уменьшите цену печи на её скидку.",
+              "Отдельно уменьшите стоимость доставки на её скидку и сложите."
+            ],
+            "solution_steps": [
+              "Покупка дороже порога: 20 900 > 19 900.",
+              "Печь после скидки: 20 900 · 95/100 = 19 855 руб.",
+              "Доставка после скидки: 1 800 · 80/100 = 1 440 руб.",
+              "Итого: 21 295 руб."
+            ],
+            "math_model": {
+              "family_id": "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS",
+              "operation": "conditional_two_discounts",
+              "stove_id": 2,
+              "threshold_rub": 19900,
+              "item_discount_percent": 5,
+              "delivery_discount_percent": 20,
+              "delivery_rub": 1800
+            }
+          },
+          {
+            "position": 5,
+            "scenario_seed": 155,
+            "family_id": "STOVE-F12-ARCH-RADIUS",
+            "generator_version": "stove-v1.4",
+            "condition": "Найдите радиус дуги арки кожуха печи. Размеры кожуха указаны на рисунке. Центр окружности находится в середине нижнего основания.",
+            "answer_policy_id": "integer_centimeters",
+            "answer_policy_version": "1",
+            "canonical_answer": "45",
+            "hints": [
+              "Соедините центр окружности с точкой примыкания дуги: получится радиус.",
+              "Половина ширины основания и высота образуют катеты прямоугольного треугольника.",
+              "Примените теорему Пифагора."
+            ],
+            "solution_steps": [
+              "Половина ширины: 72/2 = 36 см.",
+              "R² = 36² + 27² = 2025.",
+              "R = 45 см."
+            ],
+            "math_model": {
+              "family_id": "STOVE-F12-ARCH-RADIUS",
+              "operation": "arc_radius",
+              "width_cm": 72,
+              "height_cm": 27
+            }
+          }
+        ],
+        "provenance": [
+          "OGE_1_5_ALL_STORIES_RESEARCH_V1/STORIES/STOVE"
+        ]
+      },
+      "note": "Эквивалент STOVE-F01: границы 23/12/20. Seed исходного скриншота неизвестен. Приёмка материалов заблокирована до интеграции #106 и проверки на телефоне."
+    }
+  },
+  {
+    "digest": "9b52b99d33f6",
+    "card": {
+      "number": 16,
+      "snapshot": {
+        "answer_policy_id": "oge6.numeric-short",
+        "answer_policy_version": "1",
+        "attempt_index": 0,
+        "condition": "Трапеция ABCD с основаниями AD и BC вписана в окружность. Угол A равен 90°. Найдите угол C. Ответ дайте в градусах.",
+        "correct_answer": "90",
+        "family_id": "OGE16-D01",
+        "figure": {
+          "height": 720,
+          "layout": {
+            "font_size": 28,
+            "labels": {
+              "A": [
+                190,
+                74,
+                217,
+                102
+              ],
+              "B": [
+                189,
+                618,
+                216,
+                646
+              ],
+              "C": [
+                503,
+                618,
+                531,
+                646
+              ],
+              "D": [
+                502,
+                74,
+                532,
+                102
+              ]
+            },
+            "origin": [
+              360.0,
+              360.0
+            ],
+            "scale": 284.0,
+            "stroke_width": 3
+          },
+          "png_base64": "iVBORw0KGgoAAAANSUhEUgAAAtAAAALQCAIAAAA2NdDLAAAfv0lEQVR4nO3da4xdVd3A4T21bSqXQLlJKKKpBiOtKMGgiRqCEBGTVwtGo2g0EC5+MdGo8VKtEm6iEr8ZjBaIgBobq6IQDGomsVECIRhtDQQsAZQqabVopbSUzvvh6DjM5cy57P9ee6/1PB+asU7C6szea/9mrXXOTExNTVUAAJGWpB4AAJA/wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEA4wQEAhBMcAEC4pakHAKQ3MTER/Z+YmpqK/k8AbTZhFoCMNVAS9TIjQa5sqRDlD3/4w8R/bdq0KfVwMjexgNTjGlo2/5DWmpycnPW1fdGLXnTkkUeedNJJb3jDGz7ykY9s3LjxH//4R+phkiHBQZRvfetb0x9/+9vfTjiSzEQ8j6fitfBfTc/BgweffvrpJ5544t577/3mN795ySWXnHDCCRdddNHOnTtTD42sCA5C7Nu377bbbquq6rjjjquq6he/+MXjjz+eelCdNOZTtpkaSDUSCTKO9evXT3/Z9+zZ8+c///nuu+/esGHDiSee+Oyzz958881r1qz57W9/m3qY5ENwEOKHP/zh3//+96qqvvvd765YseLgwYM33nhj6kF1w2hP0IQlUa8x/yH6YzSHHnroqlWrzjnnnCuuuOLRRx/9zGc+MzEx8dRTT/3f//3fI488knp0ZEJwEKK3h3L66aefffbZF1xwQVVVN91008GDB1OPq42GfUbmERbDGu1frT9GsHTp0muvvfazn/1sVVW7du36xCc+kXpEZEJwUL/t27dPTk5WVXXZZZdN//n444/ffffdaQfWHoM/BQtsi8EN+8URH4O74oorTjrppKqqbr/99q1bt6YeDjkQHNRv48aNU1NThx122Pvf//6qqs4888yTTz65Kv7o6IBPO3kxjsG/euKjv6VLl1566aW9j++66660gyEPgoOaPf/88zfffHNVVe973/sOP/zw3l/2Zq7bb7+9tHPvgzzVFEacAb+24mNeb37zm3sf/PrXv047EvIgOKjZnXfe+eSTT1b/jYyeD3/4w8uXL9+/f/93vvOddENryLCR0eTYCic+hvKqV72q90HvjoYxCQ5q1ts3OfXUU88444zpvzz22GPf9a53VVW1cePGZCMLJjK6Zaj4aHJg7bFy5creB7t27Uo7EvIgOKjTX//61zvvvLP670HRmXp/88c//jGnV/Yv+tOwyOiERb9NZS57uGipl+CgTjfffPOBAwde/OIXf+ADH5j1f5199tmrV6+usjg6KjIyNnh8NDyw5u3evbv3wdFHH510IGRCcFCn3rt77d27d+XKlRMvtGTJku3bt1dV9YMf/GDPnj2pRzqKATuj4VERp/DyePDBB3sfrFq1Ku1IyIPgoDaTk5MPP/zwop+2Z8+e73//+w2Mpy59nisWMwrR/xuda3lMvzjlLW95S9qRkAfBQW16eyVr166dWth73/veqiNHRwfpjOZHRXKFlMeBAwemdz/PO++8tIMhD4KDeuzevXvz5s1VVfVejbKQdevWVVV1zz33bNu2rZmBDUtnMKC8y+OLX/ziE088UVXVunXrTjnllNTDIQeCg3rcdttte/furRYLjne84x3Lli2rWnl0VGcwmkXLo/khjePAgQPr16+/9tprq6o65phjvva1r6UeEZkQHNSjt0uyatWq17/+9X0+7YgjjjjzzDOrqrrlllv279/f0OD6WuiHUZ3BsBa6Ztq/4LF3794dO3b88pe//NKXvrR69eprrrlmamrqJS95yR133PGKV7wi9ejIhOCgBvfff/8DDzxQVdU73/nORWfV3q7Krl27fvzjH8cPrZ/+SxrNj4dsdGLB4+qrr54uoUMOOeSEE07o/Xr6J554YsWKFRdddNG2bdtmvn0fjElwUIPpQ6D991NmfU6qXRVLGjSjKwseS5YsOfzww1etWnXGGWdcdtllGzdu3LFjx4033ujt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JDjoEvMshXML0F2Cg+4x51Iglz1dJzjoJO+JTjlc7eRBcNBhJmLy5gonJ4KDHFhtJjMuafIjOMiHHwfpOtcwGRMc5MaUTRe5bsme4CBPpm+6wrVKIQQHOVvol7C47EnOxUlpBAf5M7PTKi5IyuS3xVKPycnJifkccsghL3/5y9etW3frrbc+//zzScY29V+z/t7voaVh815yC12fzThw4MCmTZsuueSStWvXHnvsscuXLz/qqKNe85rXXHrppXfcccfBgweTjIosWeGgHpOTk2eddVb/zznttNN+9rOfnXDCCc0MaSF+vqRhrb3kNm/e/MlPfvLRRx9d6BNWr159/fXXr1u3rsFBkS0rHNRs/fr10z+xHTx4cPfu3ZOTk+edd15VVQ888MB73vOe1ANcZMHDmgd1WeiKSrukMe0LX/jCu9/97kcffXT58uWXX375XXfdtWPHjn379v3tb3/bsmXLxz72sZUrV27fvv38889/9tln0w6VPAgOAk1MTBxxxBFnnnnmT37yk9NPP72qqt/85je/+93vUo/rPxaa9GUHY1roEmpDZ/R84xvfuOqqq6qqOvnkk7du3XrDDTece+65xx9//PLly4877rg3velNX//61x966KELL7ww9UjJx9LUA6AIy5YtW7du3f33319V1UMPPfS6170u9Yj+Z/oBMOsJMf0/W/KEoP1au3Uyy2OPPfbxj3+8qqqjjz76V7/61apVq+b9tGOPPfa2225bvXq1/qYWgoOGTM+5Rx11VNqRLKQ3wrlzq/Kgvz7P43ZeM9ddd93+/furqrrqqqsWqo1pV155ZSODIn+CgyY899xzP/3pT6uqWrFixWtf+9rUw+lnoQWPSnnwQp3rjJ6pqalNmzZVVXXooYd+6EMfSj0cCuIMB7H+9a9/bdmy5YILLrjvvvuqqtqwYcNxxx2XelAD6XOyz/HSkvX57rfkNGh/W7du3blzZ1VVZ5xxxiGHHJJ6OBTECgc1u/rqq6+++uq5f//2t7/98ssv7+Lr6wZZ86ja/UMtY+ofl9361m/fvr33wZo1a9KOhNJY4aAhv//97++77759+/alHsjo+v/8atkjP/2/p51Yz5hr165dvQ+OPPLIpAOhOIKDms18H46pqam9e/du3br185///M6dO6+55ppzzjnnn//8Z+oxjmvA8hAfXbTot6+jnTGtuyOn6wQHsVasWLFmzZorr7zyxhtvrKpqy5Ytn/vc51IPqjYz02reTxAfnTB4ZGTwtD7mmGN6H+zevTvpQCiO4KAhF1544YknnlhV1U033dR7SV5mFn0giY9WGeTbkU1kzLR69ereB9u2bUs7EkojOGjIxMTEKaecUlXVM88889BDD6UeTqBBfhoWH0kMFRmZdca0tWvX9hY57r333meeeSb1cCiI4CCBTh8dHcqw8aE/6jXg1zb7yJhpYmKi9yuN/v3vf996662ph0NBBAcNmZqaml7C7e2tlGbAp5r+GMfgX72iImOWT3/608uWLauqav369Tt27Oj/yRs2bCjnJwRCCQ4acsstt/zlL3+pquq00047/vjjUw8nscGfdhNzNDPCThj2i1NyZMz0spe97Prrr6+qaufOnW9961v/9Kc/zftpO3fu/OAHP3jllVcW/uWiLt74i1j79u175JFHvve9733lK1+pqmrJkiXXXXdd6kG1y6zZfNGn5ryfkP0jYbTSyv7LMrKPfvSjTz755Je//OUHH3xwzZo1F1988fnnn3/qqaceddRRu3fvfvjhh3/0ox/ddNNN02/aAeObcENSi8nJybPOOqv/5xx++OE33HCDX3g9lDGXNDp3g5f2701r06ZNn/rUpx577LGFPuGVr3zlV7/61S6+QTAtJDiox0LBsWzZspUrV7761a9+29vedvHFF9tMGV/ErkoD80BHh5295557bvPmzT//+c/vueeep5566umnnz7ssMNe+tKXvvGNbzz//PPPPffcJUvsvFMPwQE5yP5sh5kKuk5wQM46FyJmJMiV4ACa6BJTDRROcAAA4ZwGAgDCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AIJzgAADCCQ4AINz/A6eKLrbNmkW6AAAAAElFTkSuQmCC",
+          "renderer_version": "oge16-pillow-2",
+          "sha256": "0ae18a1b2fcdfc484b166238b43aba774c667866d2d2449a68f611534a3c2d78",
+          "width": 720
+        },
+        "fingerprint": "a7d4e24851db9f75e6898ca31488accd32d81ab2408d5b51314990e1d3ada8c0",
+        "generator_version": "oge16-circles-3",
+        "geometry": {
+          "arc": null,
+          "center": [
+            0.0,
+            0.0
+          ],
+          "points": {
+            "A": [
+              -0.4999999999999998,
+              0.8660254037844387
+            ],
+            "B": [
+              -0.5000000000000004,
+              -0.8660254037844384
+            ],
+            "C": [
+              0.5000000000000001,
+              -0.8660254037844386
+            ],
+            "D": [
+              0.5000000000000001,
+              0.8660254037844386
+            ]
+          },
+          "radius": 1.0,
+          "segments": [
+            [
+              "A",
+              "B"
+            ],
+            [
+              "B",
+              "C"
+            ],
+            [
+              "C",
+              "D"
+            ],
+            [
+              "D",
+              "A"
+            ]
+          ]
+        },
+        "hints": [
+          "Сумма противоположных углов вписанного четырёхугольника равна 180°."
+        ],
+        "parameters": [
+          "1",
+          "10"
+        ],
+        "problem_id": "ddd8d0f3-ecfa-524d-8fbf-efed21442d3b",
+        "provenance": {
+          "kind": "generated_analogue",
+          "task_id": "356448",
+          "url": "https://math-oge.sdamgia.ru/problem?id=356448"
+        },
+        "seed": 19,
+        "snapshot_version": 1,
+        "solution": [
+          "Сумма противоположных углов вписанного четырёхугольника равна 180°.",
+          "∠C = 180 − 90 = 90."
+        ]
+      },
+      "scenario": null,
+      "note": "ИЗВЕСТНЫЙ ДЕФЕКТ: OGE16-D01 seed 19, угол 90°. Историческая регрессия, НЕ зелёная приёмка. Генератор не исправлен."
+    }
+  },
+  {
+    "digest": "84cc3c9bee0f",
+    "card": {
+      "number": 8,
+      "snapshot": {
+        "problem_id": "03f0fd58-312d-5f17-8f72-bc79c2fac60f",
+        "seed": 0,
+        "generator_version": "0.1.0",
+        "family_id": "OGE08-R09",
+        "reference_structure_id": "OGE08-R09",
+        "reference_ids": [
+          "474136"
+        ],
+        "subtype": "quotient_by_squared_radical",
+        "expression": "1280/(4·√(10))^2",
+        "expression_ast": "Expression(body=BinOp(left=Constant(value=1280), op=Div(), right=BinOp(left=BinOp(left=Constant(value=4), op=Mult(), right=Call(func=Name(id='sqrt', ctx=Load()), args=[Constant(value=10)], keywords=[])), op=Pow(), right=Constant(value=2))))",
+        "content_provenance": "generated_analogue",
+        "condition": "Вычислите: 1280/(4·√(10))^2",
+        "answer_policy_id": "oge8.numeric-short",
+        "answer_policy_version": "1",
+        "exact_numerator": 8,
+        "exact_denominator": 1,
+        "correct_answer": "8",
+        "hints": [
+          "Возведите каждый множитель в знаменателе в квадрат.",
+          "Квадрат корня из положительного числа равен этому числу."
+        ],
+        "solution": [
+          "Знаменатель: 4² · 10 = 160.",
+          "Делим: 1280/160 = 8."
+        ],
+        "fingerprint": "ffdeb7aba4dd56f685c97e5a8342fc1615e94cfb1793280ab185295da454f819",
+        "parameters": [
+          1280,
+          4,
+          10
+        ]
+      },
+      "scenario": null,
+      "note": "Формула 1280/(4·√(10))²: проверьте дробь, корень и степень в Rich/авто и PNG. Результат показа на телефоне ещё не подтверждён."
+    }
+  },
+  {
+    "digest": "b93fbc6ec4aa",
+    "card": {
+      "number": 20,
+      "snapshot": {
+        "aligned_exam_year": 2027,
+        "answer_check_scope": "result_only",
+        "answer_or_claim": "\\(x\\in\\{-2,-1,1\\}\\).",
+        "bank_scope": "source_based",
+        "content_version": 2,
+        "exam": "oge_math",
+        "exam_level": "повышенный",
+        "family_id": "OGE20-F01",
+        "hints": [
+          "Сначала собери все слагаемые в одной части. Где можно выделить общий множитель?",
+          "Запиши отдельное уравнение для каждого множителя."
+        ],
+        "number": 20,
+        "observed_at": "2026-11-20",
+        "provenance_stated_by_portal": "Источник: ОГЭ по математике 09.06.2023. Основная волна. Санкт-Петербург. Вариант 2309",
+        "reference_solution": "Заметим, что \\(x^2+2x+1=(x+1)^2\\). После переноса правой части влево получаем \\((x+1)(x(x+1)-2)=0\\). Второй множитель — \\(x^2+x-2=(x+2)(x-1)\\). Каждый из трёх множителей может обратиться в ноль, других корней нет.",
+        "response_kind": "algebra_working",
+        "review_state": "research_card",
+        "rubric": {
+          "allow_equivalent_solutions": true,
+          "basis_locator": "Демоверсия ФИПИ 2027, критерии №20",
+          "basis_url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip",
+          "kind": "atlas_training_rubric",
+          "levels": {
+            "0": {
+              "case_example": "Деление на x+1 без выделения случая x=−1.",
+              "rule": "Решение не удовлетворяет условиям для 1 или 2 баллов."
+            },
+            "1": {
+              "case_example": "Разложение и метод верны, но при завершённом решении допущена ошибка в вычислении одного корня, дальнейшие действия согласованы с ней.",
+              "rule": "Решение завершено, но допущена вычислительная ошибка. Все последующие шаги верны с учётом её результата."
+            },
+            "2": {
+              "case_example": "Получены и обоснованы все три корня.",
+              "rule": "Есть математически обоснованный верный ответ."
+            }
+          },
+          "maximum": 2
+        },
+        "solution_steps": [
+          "Заметим, что \\(x^2+2x+1=(x+1)^2\\).",
+          "После переноса правой части влево получаем \\((x+1)(x(x+1)-2)=0\\).",
+          "Второй множитель — \\(x^2+x-2=(x+2)(x-1)\\).",
+          "Каждый из трёх множителей может обратиться в ноль, других корней нет."
+        ],
+        "source_id": "438301",
+        "source_kind": "reshu_catalog",
+        "source_locator": null,
+        "source_url": "https://math-oge.sdamgia.ru/problem?id=438301",
+        "source_verified_in_open_bank": null,
+        "statement": "Найдите все действительные решения уравнения \\(x(x^2+2x+1)=2(x+1)\\).",
+        "statement_mode": "faithful_rewording",
+        "subtype_id": "OGE20-poly-factor",
+        "task_id": "oge-part2-reshu-438301",
+        "visuals": []
+      },
+      "scenario": null,
+      "note": "Фото: только имитация оценки; точность модели не проверяется."
+    }
+  }
+]

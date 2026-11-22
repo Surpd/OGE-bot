@@ -49,6 +49,17 @@ INTRO = (
 )
 
 
+def intro_text() -> str:
+    if get_settings().app_env == "staging":
+        from app.staging.photo import NOTICE
+
+        return "Письменная тренировка · тестовый бот\n\n" + NOTICE + (
+            "\nПришлите одно тестовое фото ответом на условие. "
+            "Кнопка проверки покажет заранее заданный результат без зачёта."
+        )
+    return INTRO
+
+
 def photo_action(command: str, row: dict[str, Any]) -> str:
     return f"p2:{command}:{row['id']}:{row['revision']}:{row.get('photo_message') or 0}"
 
@@ -175,7 +186,7 @@ async def resume(message: Message, repo: Repository, owner: int, issue: int | No
     if not row:
         return False
     if bank and await bank.show_intro(owner):
-        await message.answer(INTRO)
+        await message.answer(intro_text())
     await render(message, repo, owner, row)
     return True
 
@@ -310,7 +321,7 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
             await send_text(
                 message,
                 repo,
-                INTRO,
+                intro_text(),
                 reply_markup=keyboard(
                     [[("К выбору", f"p2:menu:{value}"), ("К номерам", "nav:numbers")]]
                 ),
