@@ -19,6 +19,7 @@ from aiogram.exceptions import (
     TelegramNotFound,
     TelegramServerError,
 )
+from aiogram.methods import SendPhoto
 from aiogram.types import (
     BufferedInputFile,
     InputMediaPhoto,
@@ -309,6 +310,7 @@ async def send_text(
     math_family: object = None,
     math_system_rows: tuple[str, ...] | None = None,
     rich_with_navigation: bool = False,
+    text_on_photo_rejection: bool = False,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
@@ -342,20 +344,41 @@ async def send_text(
             points = tuple((x, y) for x, y in math_family["points"])
             png = await asyncio.to_thread(polygon_construction, key, points)
             construction = BufferedInputFile(png, filename="construction.png")
-        sent = await _send_mathematics(
-            message,
-            typeset_family_text(text, math_family) if isinstance(text, str) else text,
-            construction,
-            kwargs,
-            repository=repository,
-            force_png=await _prefer_png(message, repository, user_id_override, key),
-            system_rows=(
-                tuple(typeset_family_text(row, math_family) for row in math_system_rows)
-                if math_system_rows
-                else None
-            ),
-            key=key,
-        )
+        try:
+            sent = await _send_mathematics(
+                message,
+                typeset_family_text(text, math_family) if isinstance(text, str) else text,
+                construction,
+                kwargs,
+                repository=repository,
+                force_png=await _prefer_png(message, repository, user_id_override, key),
+                system_rows=(
+                    tuple(typeset_family_text(row, math_family) for row in math_system_rows)
+                    if math_system_rows
+                    else None
+                ),
+                key=key,
+            )
+        except TelegramBadRequest as error:
+            # A rejected generated feedback PNG can fall back once; never
+            # discard an original construction or retry an ambiguous result.
+            if (
+                not text_on_photo_rejection
+                or construction is not None
+                or not isinstance(error.method, SendPhoto)
+            ):
+                raise
+            bot = message.bot
+            if bot is None:
+                raise
+            logging.getLogger(__name__).info("math_image_reason=photo_rejected_text_fallback")
+            sent = await _deliver_math(bot.send_message(
+                chat_id=message.chat.id,
+                message_thread_id=message.message_thread_id,
+                text=format_math_message(text),
+                parse_mode="HTML",
+                **kwargs,
+            ))
     else:
         sent = await message.answer(format_math_message(text), parse_mode="HTML", **kwargs)
     await _bind_navigation(message, repository, sent, kwargs.get("reply_markup"), user_id_override)

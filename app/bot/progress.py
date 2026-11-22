@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 from datetime import date, datetime
-from typing import Any
+from typing import Any, TypedDict
 from uuid import UUID
 
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
@@ -36,6 +36,10 @@ OUTCOMES = {
     "solution_viewed": "открыт разбор",
     "unknown": "результат неизвестен",
 }
+
+
+class _ReplyOptions(TypedDict, total=False):
+    reply_parameters: ReplyParameters
 
 
 def _button(text: str, callback: str) -> InlineKeyboardButton:
@@ -702,7 +706,7 @@ async def progress_navigation(
         return await progress_navigation(message, repository, user_id, "summary")
 
     open_below_overview = section == "details" and was_photo
-    reply_options = {}
+    reply_options: _ReplyOptions = {}
     if open_below_overview:
         overview = old_message
         try:
