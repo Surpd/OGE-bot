@@ -10,7 +10,7 @@ import pytest
 from aiogram.types import CallbackQuery, Chat, Message, User
 from PIL import Image
 
-from app.bot import mixed_training
+from app.bot import mixed_training, scenario_materials
 from app.bot.mixed_training import (
     _candidate,
     _is_correct,
@@ -276,6 +276,8 @@ async def test_telegram_mixed_route_accepts_answer_and_advances(monkeypatch):
     )
     monkeypatch.setattr(mixed_training, "send_text", outbound)
     monkeypatch.setattr(mixed_training, "send_photo", outbound)
+    monkeypatch.setattr(scenario_materials, "send_text", outbound)
+    monkeypatch.setattr(scenario_materials, "send_photo", outbound)
     monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
 
     incoming = AsyncMock()
@@ -459,6 +461,8 @@ async def test_telegram_mixed_story_five_questions_then_ordinary_and_resume(monk
     )
     monkeypatch.setattr(mixed_training, "send_text", outbound)
     monkeypatch.setattr(mixed_training, "send_photo", outbound)
+    monkeypatch.setattr(scenario_materials, "send_text", outbound)
+    monkeypatch.setattr(scenario_materials, "send_photo", outbound)
     monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
     monkeypatch.setattr(
         mixed_training.secrets,

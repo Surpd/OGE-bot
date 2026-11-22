@@ -22,7 +22,8 @@ from aiogram.types import (
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
 from app.bot.presentation import hint_message, send_photo, send_text
-from app.bot.scenario_training import public_registry, scenario_context_for_question
+from app.bot.scenario_materials import send_scenario_materials
+from app.bot.scenario_training import public_registry
 from app.bot.task_view import answer_instruction, question_text, system_rows, task13_is_graph_choice
 from app.bot.training_ux import matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
@@ -33,7 +34,6 @@ from app.math.scenario_engine import (
     PracticeRequest,
     ScenarioSnapshot,
 )
-from app.math.scenarios.mobile_photos import scenario_photos_for_question
 from app.math.scenarios.recent_questions import rotated_plan
 from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.repository import Repository
@@ -44,7 +44,7 @@ class _CandidateUnavailable(RuntimeError):
 
 
 def _mixed_menu(
-    problem_id: str, *, completed: bool = False, choices: int = 0
+    problem_id: str, *, completed: bool = False, choices: int = 0, scenario: bool = False
 ) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
     if choices:
@@ -78,6 +78,10 @@ def _mixed_menu(
                 ],
             ]
         )
+    if scenario:
+        rows.append([InlineKeyboardButton(
+            text="📷 Схема / данные", callback_data=f"mixed:data:{problem_id}",
+        )])
     rows.append([InlineKeyboardButton(text="↩ В меню", callback_data=f"mixed:menu:{problem_id}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
@@ -408,44 +412,17 @@ async def _send_problem(
         await asyncio.to_thread(validate_statement_snapshot, statement_snapshot)
     condition = question_text(number, problem)
     scenario: ScenarioSnapshot | None = None
-    previous_position: int | None = None
     if number <= 5:
         raw_scenario = problem.get("scenario_snapshot")
         if not isinstance(raw_scenario, dict):
             raise ValueError("Mixed scenario snapshot is missing")
         scenario = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
-        if (
-            previous_problem is not None
-            and previous_problem.get("scenario_seed") == scenario.seed
-            and previous_problem.get("story_code") == scenario.story_code
-            and number > 1 and previous_problem.get("number") == number - 1
+        if not await send_scenario_materials(
+            message, repository, scenario, number, user_id=user_id,
         ):
-            previous_position = number - 1
-        context = scenario_context_for_question(scenario, number)
-        if previous_position is None or context != scenario_context_for_question(
-            scenario, previous_position,
-        ):
-            await send_text(
-                message, repository, context, user_id_override=user_id, math_family=problem
-            )
+            return
     result = resumed_result(problem.get("outcome"), problem)
     condition += "\n\n" + (result or answer_instruction(number, problem))
-    photos = (
-        await asyncio.to_thread(
-            scenario_photos_for_question, scenario, number, previous_position=previous_position,
-        )
-        if scenario is not None
-        else ()
-    )
-    if photos:
-        for photo_bytes in photos:
-            await send_photo(
-                message,
-                repository,
-                BufferedInputFile(photo_bytes, filename="scenario.png"),
-                caption=f"Данные задачи №{number}",
-                user_id_override=user_id,
-            )
     image_data = (
         None if number <= 5 else await asyncio.to_thread(_render_image, number, problem)
     )
@@ -453,6 +430,7 @@ async def _send_problem(
     markup = _mixed_menu(
         str(problem["problem_id"]),
         completed=completed,
+        scenario=number <= 5,
         choices=0
         if completed
         else (_task19_button_choices(problem) if number == 19 else (4 if number == 13 else 0)),
@@ -601,6 +579,7 @@ async def mixed_answer(message: Message, repository: Repository) -> None:
         reply_markup=_mixed_menu(
             str(problem["problem_id"]),
             completed=status != "active",
+            scenario=int(problem["number"]) <= 5,
             choices=3
             if int(problem["number"]) == 19
             else (4 if int(problem["number"]) == 13 else 0),
@@ -682,6 +661,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             reply_markup=_mixed_menu(
                 problem_id,
                 completed=status != "active",
+                scenario=int(problem["number"]) <= 5,
                 choices=(
                     _task19_button_choices(problem)
                     if number == 19
@@ -692,6 +672,10 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             math_family=problem,
         )
         await answer_callback(callback)
+        return
+    if action == "data" and number <= 5:
+        await answer_callback(callback)
+        await _send_problem(message, repository, store, problem, user_id=user_id)
         return
     if action == "menu":
         await store.pause(user_id)
@@ -732,7 +716,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             message,
             repository,
             text,
-            reply_markup=_mixed_menu(problem_id, completed=True),
+            reply_markup=_mixed_menu(problem_id, completed=True, scenario=number <= 5),
             user_id_override=user_id,
             math_family=problem,
         )

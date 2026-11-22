@@ -19,7 +19,9 @@ from aiogram.types import (
 
 from app.bot.callbacks import answer_callback
 from app.bot.presentation import send_photo, send_text
+from app.bot.scenario_materials import prepare_scenario_materials, send_scenario_materials
 from app.bot.task_view import answer_instruction, question_text, system_rows, verified_photo
+from app.math.scenario_engine import ScenarioSnapshot
 from app.persistence.error_replay import (
     ErrorReplayRepository,
     ReplayAlreadyActive,
@@ -39,7 +41,9 @@ def replay_uuid(token: str) -> UUID:
     return UUID(bytes=base64.b32decode(token.upper() + "=" * ((8 - len(token) % 8) % 8)))
 
 
-def _keyboard(token: str, *, completed: bool = False) -> InlineKeyboardMarkup:
+def _keyboard(
+    token: str, *, completed: bool = False, scenario: bool = False,
+) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
     if not completed:
         rows.append(
@@ -48,6 +52,10 @@ def _keyboard(token: str, *, completed: bool = False) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="📘 Разбор", callback_data=f"replay:{token}:s"),
             ]
         )
+    if scenario:
+        rows.append([InlineKeyboardButton(
+            text="📷 Схема / данные", callback_data=f"replay:{token}:d",
+        )])
     rows.extend(
         (
             [InlineKeyboardButton(text="↩ К ошибкам", callback_data="progress:errors:0")],
@@ -168,7 +176,13 @@ async def _render(
     attempt_count = int(cast(int, replay.get("attempt_count", 0)))
     body += f"\n\nПопытка {attempt_count + 1} из 2. Повтор учитывается отдельно."
     context, photos = materials
-    if context:
+    if source.scenario_snapshot is not None:
+        if not await send_scenario_materials(
+            message, repository, ScenarioSnapshot.from_snapshot(source.scenario_snapshot),
+            source.number, user_id=user_id,
+        ):
+            return
+    elif context:
         await send_text(
             message, repository, context, user_id_override=user_id, math_family=source.snapshot
         )
@@ -179,7 +193,7 @@ async def _render(
             )
     photo = photos[0] if photos and not context else None
     math_system_rows = system_rows(source.number, source.snapshot)
-    markup = _keyboard(token, completed=completed)
+    markup = _keyboard(token, completed=completed, scenario=source.scenario_snapshot is not None)
     if photo is not None:
         sent = await send_photo(
             message, repository, BufferedInputFile(photo, filename="original-task.png"),
@@ -201,15 +215,8 @@ async def _render(
 
 def _materials(source: ReplaySource) -> tuple[str, tuple[bytes, ...]]:
     if source.scenario_snapshot is not None:
-        from app.bot.scenario_training import scenario_context_for_question
-        from app.math.scenario_engine import ScenarioSnapshot
-        from app.math.scenarios.mobile_photos import scenario_photos_for_question
-
         snapshot = ScenarioSnapshot.from_snapshot(source.scenario_snapshot)
-        return (
-            scenario_context_for_question(snapshot, source.number),
-            scenario_photos_for_question(snapshot, source.number),
-        )
+        return prepare_scenario_materials(snapshot, source.number)
     photo = verified_photo(source.number, source.snapshot)
     return "", (photo,) if photo is not None else ()
 
@@ -238,7 +245,8 @@ async def start_from_progress(
             notice = "Открыт ваш незавершённый повтор."
     except (ValueError, KeyError, TypeError, binascii.Error, RuntimeError):
         await send_text(
-            message, repository, "Не удалось восстановить исходную задачу для повтора.",
+            message, repository, "Не удалось восстановить исходную задачу для повтора. "
+            "Повторите загрузку из списка ошибок.",
             reply_markup=_keyboard("", completed=True), user_id_override=user_id,
         )
         return
@@ -250,13 +258,14 @@ async def start_from_progress(
 
 async def _feedback(
     message: Message, repository: Repository, user_id: int,
-    replay: dict[str, object], text: str, math_family: object = None,
+    replay: dict[str, object], text: str, math_family: object = None, *, scenario: bool = False,
 ) -> None:
     # Send feedback separately. Replies to the original condition stay valid.
     await send_text(
         message, repository, text,
         reply_markup=_keyboard(
             replay_token(UUID(str(replay["id"]))), completed=replay["status"] != "active",
+            scenario=scenario,
         ),
         user_id_override=user_id, rich_with_navigation=True, math_family=math_family,
     )
@@ -312,6 +321,7 @@ async def answer(message: Message, repository: Repository) -> None:
     await _feedback(
         message, repository, user_id, result, text,
         source.snapshot if result.get("status") == "failed" else None,
+        scenario=source.scenario_snapshot is not None,
     )
 
 
@@ -337,6 +347,15 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
             )
         return
     replay, source = active
+    if parts[2] == "d" and source.scenario_snapshot is not None:
+        await answer_callback(callback)
+        if isinstance(callback.message, Message):
+            await send_scenario_materials(
+                callback.message, repository,
+                ScenarioSnapshot.from_snapshot(source.scenario_snapshot), source.number,
+                user_id=callback.from_user.id,
+            )
+        return
     if parts[2] == "h":
         text = await store.action(callback.from_user.id, replay_id, "hint", source.snapshot)
         await answer_callback(callback)
@@ -345,6 +364,7 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
                 callback.message, repository, callback.from_user.id, replay,
                 "Подсказка:\n" + text if text is not None else "Подсказок больше нет.",
                 source.snapshot if text is not None else None,
+                scenario=source.scenario_snapshot is not None,
             )
         return
     if parts[2] == "s":
@@ -359,6 +379,7 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
             await _feedback(
                 callback.message, repository, callback.from_user.id, replay,
                 "Разбор\n" + solution, source.snapshot,
+                scenario=source.scenario_snapshot is not None,
             )
         return
     await answer_callback(callback, "Действие повтора недоступно.")
