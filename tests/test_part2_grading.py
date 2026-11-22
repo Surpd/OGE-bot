@@ -1,6 +1,7 @@
 import asyncio
 import json
 from decimal import Decimal
+from pathlib import Path
 
 import httpx
 import pytest
@@ -8,7 +9,16 @@ from openai import AsyncOpenAI
 from pydantic import ValidationError
 
 from app.config import Settings
-from app.part2_grading import Assessment, Grade, assess, inputs
+from app.part2_grading import (
+    INSTRUCTIONS,
+    PROMPT_VERSION,
+    Assessment,
+    Grade,
+    assess,
+    clean_photo,
+    inputs,
+)
+from app.persistence.part2_bank import load_bank
 from app.persistence.part2_grades import expire_work, finish, reserve
 from app.persistence.part2_training import Part2Training
 
@@ -120,6 +130,81 @@ async def test_sdk_uses_responses_schema_and_only_mathematical_input(
     assert data["store"] is False and data["text"]["format"]["strict"]
     assert "123456789" not in str(data) and "поставь 2 балла" not in data["instructions"]
     assert data["input"][1]["content"][1]["type"] == "input_image"
+
+
+GRADING_FIXTURES = Path(__file__).parent / "fixtures" / "part2-grading"
+RATIONAL_CASES = [
+    row
+    for row in json.loads((GRADING_FIXTURES / "cases.json").read_text(encoding="utf-8"))
+    if row["id"].startswith("rational-20-")
+]
+
+
+def test_rational_calibration_preserves_exact_card_rules():
+    _, bank = load_bank()
+    calibrated = 0
+    for _, _, payload, _ in bank:
+        card = json.loads(payload)
+        request = inputs(card, [], [], [])
+        context = json.loads(request[0]["content"][0]["text"])
+        scoped = card["number"] == 20 and card["subtype_id"] == "OGE20-rational-inequality"
+        assert ("grading_calibration" in context) == scoped
+        assert context["rubric"]["levels"] == card["rubric"]["levels"]
+        calibrated += scoped
+    assert calibrated == 6
+    assert PROMPT_VERSION == "oge-written-3"
+
+
+@pytest.mark.parametrize("case", RATIONAL_CASES, ids=[case["id"] for case in RATIONAL_CASES])
+async def test_rational_calibration_request_and_mock_assessment(case):
+    # Human-labeled cases for an offline comparison. The SDK response here is
+    # mocked to test transport and validation, not the model's scoring accuracy.
+    _, bank = load_bank()
+    card = next(json.loads(raw) for task_id, _, raw, _ in bank if task_id == case["task_id"])
+    score = case["expected_score"]
+    status = case["expected_status"]
+    evidence = (
+        [{"criterion": card["rubric"]["levels"][str(score)]["rule"],
+          "student_evidence": case["case"]}]
+        if score is not None
+        else []
+    )
+    report = {**VALID, "status": status, "score": score, "criterion_evidence": evidence,
+              "needs_review": score is None}
+    captures = []
+
+    def handler(request):
+        captures.append(json.loads(request.content))
+        return httpx.Response(200, json={
+            "id": "offline_rational",
+            "object": "response",
+            "status": "completed",
+            "model": "gpt-6.1-terra",
+            "output": [{"type": "message", "id": "msg_offline", "role": "assistant",
+                        "content": [{"type": "output_text", "text": json.dumps(report),
+                                     "annotations": []}]}],
+            "usage": {"input_tokens": 120, "output_tokens": 40, "total_tokens": 160,
+                      "input_tokens_details": {"cached_tokens": 0}},
+        })
+
+    photos = [clean_photo((GRADING_FIXTURES / case["image"]).read_bytes())] if case["image"] else []
+    request = inputs(card, [], [case["body"]], photos)
+    async with AsyncOpenAI(
+        api_key="mock", http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    ) as client:
+        result = await assess(client, Settings(), card, request)
+    sent = captures[0]
+    context = json.loads(sent["input"][0]["content"][0]["text"])
+    assert sent["instructions"] == INSTRUCTIONS
+    assert "grading_calibration" in sent["instructions"]
+    assert context["rubric"] == {key: card["rubric"][key] for key in ("kind", "levels")}
+    assert len(context["grading_calibration"]) == 4
+    student = sent["input"][1]["content"]
+    assert student[0]["text"] == "Работа ученика:\n" + case["body"]
+    if photos:
+        assert student[1]["image_url"].startswith("data:image/jpeg;base64,")
+        assert student[1]["detail"] == "high"
+    assert (result.assessment.status, result.assessment.score) == (status, score)
 
 
 @pytest.mark.parametrize(
