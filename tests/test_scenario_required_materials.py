@@ -13,7 +13,7 @@ from aiogram.exceptions import TelegramNetworkError
 from aiogram.methods import SendPhoto
 from aiogram.types import Message
 
-from app.bot import error_replay, mixed_training, scenario_materials, scenario_training
+from app.bot import error_replay, mixed_training, progress, scenario_materials, scenario_training
 from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
@@ -70,7 +70,12 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
     for module in (scenario_materials, mixed_training, error_replay):
         monkeypatch.setattr(module, 'send_text', text)
         monkeypatch.setattr(module, 'send_photo', photo)
+    from app.bot import presentation
+
+    monkeypatch.setattr(presentation, 'send_text', text)
     message = AsyncMock(spec=Message)
+    message.message_id = 10
+    message.delete = AsyncMock()
     message.answer.side_effect = text
     message.answer_photo.side_effect = photo
     repository = MemoryRepository()
@@ -83,7 +88,7 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
     )
     store = AsyncMock(spec=ScenarioPostgresRepository)
     store.close_legacy_with_exposed_answer.return_value = False
-    for path in ('single', 'full', 'resume', 'mix', 'mix-adjacent', 'replay'):
+    for path in ('single', 'full', 'resume', 'mix', 'mix-adjacent', 'replay', 'history'):
         events.clear()
         if path in ('single', 'full', 'resume'):
             await scenario_training.render_session(
@@ -97,13 +102,26 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
             await mixed_training._send_problem(
                 message, repository, AsyncMock(), problem, user_id=7, previous_problem=previous,
             )
-        else:
+        elif path == 'replay':
             source = ReplaySource('scenario', uuid4(), position, position, problem,
                                   snapshot.to_snapshot())
             await error_replay._render(
                 message, repository, AsyncMock(), {'id': str(uuid4()), 'status': 'active'},
                 source, user_id=7, materials=error_replay._materials(source),
             )
+        else:
+            from app.persistence import error_replay as replay_persistence
+
+            source = ReplaySource('scenario', uuid4(), position, position, problem,
+                                  snapshot.to_snapshot())
+            monkeypatch.setattr(replay_persistence, 'load_original_source',
+                                AsyncMock(return_value=source))
+            monkeypatch.setattr(progress, 'training_record_detail', AsyncMock(return_value={
+                **problem, 'outcome': 'solved', 'attempt_records': [],
+            }))
+            reference = progress.encode_record_ref(f's:{source.source_id}:{position}')
+            page = f'item:{reference}:{progress.encode_return_page("history:0")}'
+            await progress.progress_navigation(message, repository, 7, page)
         assert [value for kind, value, _ in events if kind == 'photo'] == expected, path
         prompt_indexes = [i for i, (kind, body, _) in enumerate(events)
                           if kind == 'text' and question.condition in body]
@@ -243,6 +261,7 @@ async def test_replay_data_button_preserves_original_attempt_and_snapshot(monkey
     monkeypatch.setattr(error_replay, 'answer_callback', AsyncMock())
     delivery = AsyncMock(return_value=True)
     monkeypatch.setattr(error_replay, 'send_scenario_materials', delivery)
+    monkeypatch.setattr(error_replay, '_feedback', AsyncMock())
     callback = CallbackQuery(
         id='synthetic-replay-data', from_user=User(id=7, is_bot=False, first_name='Synthetic'),
         chat_instance='synthetic',
@@ -256,7 +275,7 @@ async def test_replay_data_button_preserves_original_attempt_and_snapshot(monkey
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('path', ['mix', 'replay'])
+@pytest.mark.parametrize('path', ['mix', 'replay', 'history'])
 async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, monkeypatch):
     snapshot = saved('FLAT', '0')
     problem = mixed_training._scenario_question(snapshot.to_snapshot(), 1)
@@ -274,6 +293,9 @@ async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, monkey
     ))
     for module in (scenario_materials, mixed_training, error_replay):
         monkeypatch.setattr(module, 'send_text', text)
+    from app.bot import presentation
+
+    monkeypatch.setattr(presentation, 'send_text', text)
     monkeypatch.setattr(scenario_materials, 'send_photo', photo)
     store = AsyncMock()
     repository = MemoryRepository()
@@ -281,9 +303,20 @@ async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, monkey
     async def deliver():
         if path == 'mix':
             await mixed_training._send_problem(AsyncMock(), repository, store, problem, user_id=7)
-        else:
+        elif path == 'replay':
             await error_replay._render(AsyncMock(), repository, store, replay, source,
                                        user_id=7, materials=error_replay._materials(source))
+        else:
+            from app.persistence import error_replay as replay_persistence
+
+            monkeypatch.setattr(replay_persistence, 'load_original_source',
+                                AsyncMock(return_value=source))
+            monkeypatch.setattr(progress, 'training_record_detail', AsyncMock(return_value={
+                **problem, 'outcome': 'solved', 'attempt_records': [],
+            }))
+            reference = progress.encode_record_ref(f's:{source.source_id}:1')
+            page = f'item:{reference}:{progress.encode_return_page("history:0")}'
+            await progress.progress_navigation(AsyncMock(), repository, 7, page)
 
     await deliver()
     assert texts[-1] == scenario_materials.MATERIALS_UNAVAILABLE
@@ -294,7 +327,10 @@ async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, monkey
     await deliver()
     assert snapshot.questions[0].condition in texts[-1]
     expected_id = problem['problem_id'] if path == 'mix' else UUID(replay['id'])
-    store.set_prompt.assert_awaited_once_with(7, expected_id, 501)
+    if path == 'history':
+        store.set_prompt.assert_not_awaited()
+    else:
+        store.set_prompt.assert_awaited_once_with(7, expected_id, 501)
     assert replay['attempt_count'] == 1
     assert problem['scenario_snapshot'] == snapshot.to_snapshot()
 
@@ -306,3 +342,44 @@ def test_missing_modern_heating_table_is_not_silently_ignored(monkeypatch):
     monkeypatch.setattr(mobile_photos, 'scenario_photos', lambda s: (b'plan',))
     with pytest.raises(ValueError, match='Required scenario material is missing'):
         mobile_photos.scenario_photos_for_question(snapshot, 5)
+
+
+@pytest.mark.asyncio
+async def test_replay_navigation_allows_two_consecutive_data_requests(monkeypatch):
+    from datetime import UTC, datetime
+
+    from aiogram import Bot
+    from aiogram.types import CallbackQuery, Chat, User
+    from test_inline_dispatcher_postgres import TelegramSession
+
+    from app.bot.navigation import navigation_callback
+
+    repository = MemoryRepository()
+    await repository.save_user_state(7, 'error_replay')
+    transport = TelegramSession()
+    bot = Bot('123456:synthetic_token_for_offline_tests', session=transport)
+    snapshot = saved('STOVE', '155')
+    source = ReplaySource('scenario', uuid4(), 1, 1,
+                          mixed_training._scenario_question(snapshot.to_snapshot(), 1),
+                          snapshot.to_snapshot())
+    replay = {'id': str(uuid4()), 'status': 'active', 'attempt_count': 1}
+    monkeypatch.setattr(error_replay, '_active_replay', AsyncMock(return_value=(replay, source)))
+    incoming = Message(message_id=10, date=datetime.now(UTC),
+                       chat=Chat(id=7, type='private')).as_(bot)
+    try:
+        await error_replay._feedback(incoming, repository, 7, replay, 'Продолжить', scenario=True)
+        for index in range(2):
+            _, menu_id, _ = repository.navigation_messages[7]
+            message = transport.messages[menu_id]
+            button = next(b for row in message.reply_markup.inline_keyboard for b in row
+                          if b.text == '📷 Схема / данные')
+            callback = CallbackQuery(
+                id=f'data-{index}', from_user=User(id=7, is_bot=False, first_name='Synthetic'),
+                chat_instance='synthetic', data=button.callback_data, message=message,
+            ).as_(bot)
+            await navigation_callback(callback, repository)
+            assert repository.navigation_messages[7][1] != menu_id
+        assert replay['attempt_count'] == 1 and replay['status'] == 'active'
+        assert sum(c.__api_method__ == 'sendPhoto' for c in transport.calls) == 2
+    finally:
+        await bot.session.close()

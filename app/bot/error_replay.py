@@ -350,10 +350,15 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
     if parts[2] == "d" and source.scenario_snapshot is not None:
         await answer_callback(callback)
         if isinstance(callback.message, Message):
-            await send_scenario_materials(
+            delivered = await send_scenario_materials(
                 callback.message, repository,
                 ScenarioSnapshot.from_snapshot(source.scenario_snapshot), source.number,
                 user_id=callback.from_user.id,
+            )
+            await _feedback(
+                callback.message, repository, callback.from_user.id, replay,
+                "Данные исходной задачи показаны." if delivered else
+                "Повторите загрузку кнопкой «Схема / данные».", scenario=True,
             )
         return
     if parts[2] == "h":

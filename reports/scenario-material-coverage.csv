@@ -1,41 +1,41 @@
 family,story,seed,position,indexes,required,paths,evidence
-TYRES-TABLE-EXTREME,TYRES,0,1,1 0,Маркировка и определения B/H/d/D; таблица допустимых шин,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TYRES-SIDEWALL,TYRES,0,2,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TYRES-DIAMETER,TYRES,0,3,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TYRES-RADIUS-DELTA,TYRES,0,4,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TYRES-PERCENT-ROTATION,TYRES,0,5,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-PAPER-F01,PAPER,0,1,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-PAPER-F02,PAPER,0,2,1,Правило деления A0; схема; число листов,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-PAPER-F03,PAPER,0,3,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-PAPER-F06,PAPER,0,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-PAPER-F07,PAPER,0,5,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-PAPER-F04,PAPER,1,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F02-ATTRIBUTE-MATCH,STOVE,0,1,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F03-VOLUME,STOVE,0,2,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F04-FLOOR-AREA,STOVE,0,3,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F10-REVERSE-DISCOUNT,STOVE,0,4,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F12-ARCH-RADIUS,STOVE,0,5,1,Размеры парной/двери в контексте; чертёж арки с исходными размерами,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F01-CAPACITY-LIMITS,STOVE,1,1,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F07-FIT-WOOD-DELIVERY,STOVE,1,3,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F08-COST-COMPARISON,STOVE,2,3,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F09-DIRECT-DISCOUNT,STOVE,2,4,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F11-CONDITIONAL-TWO-DISCOUNTS,STOVE,3,4,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F06-PURCHASE-EXTRA-COSTS,STOVE,4,3,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-STOVE-F05-WALL-AREA-NET,STOVE,13,3,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TARIFF-F01-MONTHS-MINUTES,TARIFF,0,1,0,Условия тарифа в контексте; график минут/ГБ по месяцам,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TARIFF-F04-MONTHLY-BILL,TARIFF,0,2,0,Условия тарифа в контексте; график минут/ГБ по месяцам,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TARIFF-F05-EXTREMUM,TARIFF,0,3,0,Условия тарифа в контексте; график минут/ГБ по месяцам,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TARIFF-F09-PERCENT-FEE,TARIFF,0,4,,Условия тарифа в контексте; исходная и новая абонплата в вопросе,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-TARIFF-F12-HOME-ISP,TARIFF,0,5,1,Условия тарифа в контексте; таблица домашнего интернета,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-GARDEN-01-IDENTIFY,GARDEN,0,1,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-GARDEN-02-TILES-PACKS,GARDEN,0,2,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-GARDEN-04-PERIMETER-POLYGON,GARDEN,0,3,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-GARDEN-07-PERCENT-BUILDINGS,GARDEN,0,4,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-GARDEN-09-HEAT-BREAKEVEN,GARDEN,0,5,1,Контекст с масштабом/описанием; таблица отопления с исходными затратами,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-FLAT-01-ROOM-MATCH,FLAT,0,1,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-FLAT-02-PARQUET-PACK,FLAT,0,2,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-FLAT-03-RECT-AREA,FLAT,0,3,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-FLAT-04-RECT-PERCENT,FLAT,0,4,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-FLAT-05-WASHER-MIN,FLAT,0,5,,Контекст; все предложения/цены в вопросе,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-FLAT-05-INTERNET-MIN,FLAT,2,5,,Контекст; все предложения/цены в вопросе,single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
-FLAT-02-TILE-PACK,FLAT,3,2,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay,offline payload/order + immutable snapshot
+TYRES-TABLE-EXTREME,TYRES,0,1,1 0,Маркировка и определения B/H/d/D; таблица допустимых шин,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TYRES-SIDEWALL,TYRES,0,2,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TYRES-DIAMETER,TYRES,0,3,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TYRES-RADIUS-DELTA,TYRES,0,4,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TYRES-PERCENT-ROTATION,TYRES,0,5,1,Маркировка и определения B/H/d/D; размеры в вопросе,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F01,PAPER,0,1,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F02,PAPER,0,2,1,Правило деления A0; схема; число листов,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F03,PAPER,0,3,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F06,PAPER,0,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F07,PAPER,0,5,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F04,PAPER,1,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F02-ATTRIBUTE-MATCH,STOVE,0,1,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F03-VOLUME,STOVE,0,2,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F04-FLOOR-AREA,STOVE,0,3,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F10-REVERSE-DISCOUNT,STOVE,0,4,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F12-ARCH-RADIUS,STOVE,0,5,1,Размеры парной/двери в контексте; чертёж арки с исходными размерами,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F01-CAPACITY-LIMITS,STOVE,1,1,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F07-FIT-WOOD-DELIVERY,STOVE,1,3,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F08-COST-COMPARISON,STOVE,2,3,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F09-DIRECT-DISCOUNT,STOVE,2,4,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F11-CONDITIONAL-TWO-DISCOUNTS,STOVE,3,4,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F06-PURCHASE-EXTRA-COSTS,STOVE,4,3,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+STOVE-F05-WALL-AREA-NET,STOVE,13,3,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TARIFF-F01-MONTHS-MINUTES,TARIFF,0,1,0,Условия тарифа в контексте; график минут/ГБ по месяцам,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TARIFF-F04-MONTHLY-BILL,TARIFF,0,2,0,Условия тарифа в контексте; график минут/ГБ по месяцам,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TARIFF-F05-EXTREMUM,TARIFF,0,3,0,Условия тарифа в контексте; график минут/ГБ по месяцам,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TARIFF-F09-PERCENT-FEE,TARIFF,0,4,,Условия тарифа в контексте; исходная и новая абонплата в вопросе,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+TARIFF-F12-HOME-ISP,TARIFF,0,5,1,Условия тарифа в контексте; таблица домашнего интернета,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+GARDEN-01-IDENTIFY,GARDEN,0,1,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+GARDEN-02-TILES-PACKS,GARDEN,0,2,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+GARDEN-04-PERIMETER-POLYGON,GARDEN,0,3,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+GARDEN-07-PERCENT-BUILDINGS,GARDEN,0,4,0,Контекст с масштабом/описанием; план участка с клетками и метками,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+GARDEN-09-HEAT-BREAKEVEN,GARDEN,0,5,1,Контекст с масштабом/описанием; таблица отопления с исходными затратами,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+FLAT-01-ROOM-MATCH,FLAT,0,1,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+FLAT-02-PARQUET-PACK,FLAT,0,2,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+FLAT-03-RECT-AREA,FLAT,0,3,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+FLAT-04-RECT-PERCENT,FLAT,0,4,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+FLAT-05-WASHER-MIN,FLAT,0,5,,Контекст; все предложения/цены в вопросе,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+FLAT-05-INTERNET-MIN,FLAT,2,5,,Контекст; все предложения/цены в вопросе,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+FLAT-02-TILE-PACK,FLAT,3,2,0,"Контекст; план квартиры, клетка 0,4 м, метки помещений",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
