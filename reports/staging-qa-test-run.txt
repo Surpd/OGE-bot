@@ -27,3 +27,8 @@ Result: passed.
 
 See the Draft PR checks for the full pytest / PostgreSQL 17 / Docker CI on the
 committed candidate SHA. This local record is not a live-device acceptance report.
+
+Follow-up isolation regression (canonical hostname / URL userinfo):
+python -m pytest -q tests/test_staging_qa.py -k 'configuration or model_kill'
+Result: 15 passed, 36 deselected in 3.80s; Ruff passed.
+Production-host comparisons are case-insensitive; URL credentials are rejected.

@@ -54,15 +54,20 @@ def validate_settings(s: Settings) -> None:
     if token_id != str(s.staging_bot_id):
         raise RuntimeError("The token does not identify the approved staging bot")
     url = urlsplit(s.webhook_base_url or "")
+    staging_host = (s.staging_hostname or "").lower().rstrip(".")
+    production_host = (s.staging_production_hostname or "").lower().rstrip(".")
     if (
         url.scheme != "https"
-        or url.netloc != s.staging_hostname
+        or url.hostname != staging_host
+        or url.username is not None
+        or url.password is not None
+        or url.port not in (None, 443)
         or url.path not in ("", "/")
         or url.query
         or url.fragment
         or not s.staging_hostname
         or not s.staging_production_hostname
-        or s.staging_hostname == s.staging_production_hostname
+        or staging_host == production_host
         or not s.telegram_webhook_secret
     ):
         raise RuntimeError("Staging requires its own HTTPS origin and webhook secret")

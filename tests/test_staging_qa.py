@@ -55,6 +55,11 @@ def config(**changes):
         {"telegram_bot_token": "654321:TEST"},
         {"staging_production_bot_id": None},
         {"staging_hostname": "prod.example.invalid"},
+        {
+            "staging_hostname": "PROD.example.invalid",
+            "webhook_base_url": "https://PROD.example.invalid",
+        },
+        {"webhook_base_url": "https://user:password@qa.example.invalid"},
         {"webhook_base_url": "http://qa.example.invalid"},
         {"telegram_webhook_secret": None},
         {"staging_release_sha": "b" * 40},
