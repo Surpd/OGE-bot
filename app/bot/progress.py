@@ -579,6 +579,8 @@ async def progress_navigation(
 
         replay_action = None
         similar_action = None
+        scenario_data_action = None
+        photos: tuple[bytes, ...]
         try:
             record_id = decode_record_ref(parts[1])
             return_page = decode_return_page(parts[2])
@@ -592,7 +594,20 @@ async def progress_navigation(
                 has_error = detail["has_error"] or detail.get("outcome") == "failed"
                 try:
                     source = await load_original_source(repository, user_id, record_id)
-                    context, photos = await asyncio.to_thread(_materials, source)
+                    if source.scenario_snapshot is not None:
+                        from app.bot.scenario_materials import send_scenario_materials
+                        from app.math.scenario_engine import ScenarioSnapshot
+
+                        if not await send_scenario_materials(
+                            message, repository,
+                            ScenarioSnapshot.from_snapshot(source.scenario_snapshot),
+                            source.number, user_id=user_id,
+                        ):
+                            return
+                        context, photos = "", ()
+                        scenario_data_action = f"progress:{page}"
+                    else:
+                        context, photos = await asyncio.to_thread(_materials, source)
                 except (ValueError, KeyError, TypeError, RuntimeError):
                     if has_error:
                         detail["replay_status"] = "unavailable"
@@ -643,6 +658,10 @@ async def progress_navigation(
             output_page, return_page=return_page, replay_action=replay_action,
             similar_action=similar_action
         )
+        if scenario_data_action is not None:
+            markup.inline_keyboard.insert(0, [InlineKeyboardButton(
+                text="📷 Схема / данные", callback_data=scenario_data_action,
+            )])
     elif section == "return" and len(parts) == 2:
         try:
             page = decode_return_page(parts[1])

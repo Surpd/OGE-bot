@@ -10,7 +10,7 @@ import pytest
 from aiogram.types import CallbackQuery, Chat, Message, User
 from PIL import Image
 
-from app.bot import mixed_training
+from app.bot import mixed_training, scenario_materials
 from app.bot.mixed_training import (
     _candidate,
     _is_correct,
@@ -276,6 +276,8 @@ async def test_telegram_mixed_route_accepts_answer_and_advances(monkeypatch):
     )
     monkeypatch.setattr(mixed_training, "send_text", outbound)
     monkeypatch.setattr(mixed_training, "send_photo", outbound)
+    monkeypatch.setattr(scenario_materials, "send_text", outbound)
+    monkeypatch.setattr(scenario_materials, "send_photo", outbound)
     monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
 
     incoming = AsyncMock()
@@ -459,6 +461,8 @@ async def test_telegram_mixed_story_five_questions_then_ordinary_and_resume(monk
     )
     monkeypatch.setattr(mixed_training, "send_text", outbound)
     monkeypatch.setattr(mixed_training, "send_photo", outbound)
+    monkeypatch.setattr(scenario_materials, "send_text", outbound)
+    monkeypatch.setattr(scenario_materials, "send_photo", outbound)
     monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
     monkeypatch.setattr(
         mixed_training.secrets,
@@ -478,6 +482,16 @@ async def test_telegram_mixed_story_five_questions_then_ordinary_and_resume(monk
         assert problem["scenario_snapshot"] == scenario
         assert problem["scenario_seed"] == scenario["seed"]
         assert problem["shared_context"] == scenario["shared_context"]
+        original_prompt = problem["prompt_message_id"]
+        await mixed_training.mixed_callback(CallbackQuery(
+            id=f"mixed-story-data-{position}", from_user=incoming.from_user,
+            chat_instance="mixed-story-e2e",
+            message=Message(message_id=3_500 + position, date=datetime.now(UTC),
+                            chat=Chat(id=81_100, type="private"), text="Схема / данные"),
+            data=f"mixed:data:{problem['problem_id']}",
+        ), repository)
+        after_data = await store.state(81_100)
+        assert after_data["problem"]["prompt_message_id"] == original_prompt
         answer = AsyncMock()
         answer.from_user = incoming.from_user
         answer.message_id = 4_000 + position
@@ -486,6 +500,8 @@ async def test_telegram_mixed_story_five_questions_then_ordinary_and_resume(monk
         )
         answer.text = str(problem["correct_answer"])
         await mixed_training.mixed_answer(answer, repository)
+        after_answer = await store.state(81_100)
+        assert after_answer["problem"]["outcome"] == "solved"
         next_callback = CallbackQuery(
             id=f"mixed-story-next-{position}",
             from_user=incoming.from_user,

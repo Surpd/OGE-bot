@@ -14,7 +14,6 @@ from uuid import UUID
 from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
-    BufferedInputFile,
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -24,16 +23,20 @@ from aiogram.types import (
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
 from app.bot.presentation import send_text
+from app.bot.scenario_materials import (
+    scenario_context_for_question as scenario_context_for_question,
+)
+from app.bot.scenario_materials import (
+    send_scenario_materials,
+)
 from app.bot.training_ux import matches_current_condition, resumed_result
 from app.math.scenario_engine import (
     FamilyRegistry,
     PracticeMode,
     PracticeRequest,
-    ScenarioSnapshot,
     ScenarioUnavailable,
     discover_story_registry,
 )
-from app.math.scenarios.mobile_photos import scenario_photos_for_question
 from app.math.scenarios.recent_questions import is_recent_fixed_single, rotated_plan
 from app.persistence.repository import Repository
 from app.persistence.rotation_history import recent_story_families
@@ -390,67 +393,15 @@ async def _position_step(
     )
 
 
-def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> str:
-    context = snapshot.shared_context
-    question = next(
-        item for item in snapshot.questions if item.position == position
-    )
-    if snapshot.story_code == "TYRES":
-        context = "\n".join(line for line in context.splitlines() if not line.startswith("|"))
-        context = context.replace("**", "")
-    elif snapshot.story_code == "PAPER":
-        context = context.partition("Таблица размеров")[0].rstrip()
-    elif snapshot.story_code == "STOVE":
-        context = context.partition("Печь | Тип |")[0].rstrip()
-    elif snapshot.story_code == "TARIFF":
-        context = "\n".join(
-            line for line in context.splitlines()
-            if not line.startswith((
-                "Минуты по месяцам:", "Мобильный интернет по месяцам:",
-            ))
-        )
-    elif snapshot.story_code == "GARDEN" and snapshot.generator_version in {
-        "garden-sosnovka-1.0", "garden-sosnovka-1.1",
-    }:
-        context += (
-            "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
-            "гараж ниже ворот справа, теплица внутри огорода."
-        )
-    elif snapshot.story_code == "GARDEN" and question.family_id != "GARDEN-09-HEAT-BREAKEVEN":
-        prefix, separator, remainder = context.partition("Отопление одного дома")
-        if separator:
-            _, shared_questions, closing = remainder.partition("Все пять вопросов")
-            context = prefix + ("\nВсе пять вопросов" + closing if shared_questions else "")
-    elif snapshot.story_code == "FLAT":
-        context = context.replace("Это собственная SVG/PNG схема фиксированной топологии.", "")
-        if "первая лоджия" in snapshot.questions[2].condition:
-            context += " На плане первая лоджия расположена слева."
-    return context
-
-
 async def _show_data(
     message: Message, session: ScenarioSession, *, shared: bool, current: bool,
     repository: Repository | None = None, user_id: int | None = None,
-) -> None:
-    snapshot = session.snapshot
-    story = STORY_NAMES[snapshot.story_code]
-    if shared:
-        context = scenario_context_for_question(snapshot, session.current_position)
-        if repository is None:
-            await message.answer(context)
-        else:
-            await send_text(
-                message, repository, context, user_id_override=user_id,
-                math_family=next(q.family_id for q in snapshot.questions
-                                 if q.position == session.current_position),
-            )
-    if shared or current:
-        photos = scenario_photos_for_question(snapshot, session.current_position)
-    else:
-        photos = ()
-    for index, data in enumerate(photos, 1):
-        upload = BufferedInputFile(data, filename=f"scenario-{index}.png")
-        await message.answer_photo(upload, caption=f"Данные задачи · {story}")
+) -> bool:
+    if not (shared or current):
+        return True
+    return await send_scenario_materials(
+        message, repository, session.snapshot, session.current_position, user_id=user_id,
+    )
 
 
 async def _retire_unsafe(
@@ -486,8 +437,9 @@ async def render_session(
     )
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
     if show_assets or show_current_asset:
-        await _show_data(message, session, shared=show_assets, current=True,
-                         repository=repository, user_id=telegram_user_id)
+        if not await _show_data(message, session, shared=show_assets, current=True,
+                                repository=repository, user_id=telegram_user_id):
+            return
     progress = (
         f"Задание №{session.current_position} из 5"
         if session.mode is PracticeMode.FULL
