@@ -8,6 +8,7 @@ import pytest
 from openai import AsyncOpenAI
 from pydantic import ValidationError
 
+from app.bot.part2_check import grading_reply
 from app.config import Settings
 from app.part2_grading import (
     INSTRUCTIONS,
@@ -34,6 +35,40 @@ VALID = dict(
     needs_review=False,
     confidence=0.95,
 )
+
+
+@pytest.mark.parametrize("score", [0, 1, 2])
+def test_grading_reply_only_shows_corrections_below_full_score(score):
+    assessment = Assessment.model_validate(
+        {**VALID, "score": score, "errors": ["Ошибка"], "next_step": "Проверь вычисления"}
+    )
+    reply = grading_reply(assessment, "atlas_training_rubric")
+
+    assert f"Оценка: {score} из 2 баллов (предварительная)" in reply
+    assert "Что правильно" in reply
+    assert "Проверил ОДЗ" in reply
+    assert ("Где ошибка" in reply) == (score < 2)
+    assert ("Как исправить" in reply) == (score < 2)
+    assert ("Проверь вычисления" in reply) == (score < 2)
+
+
+@pytest.mark.parametrize(
+    "status, notice",
+    [
+        ("unreadable", "Не удалось прочитать решение."),
+        ("uncertain", "Не удалось уверенно оценить решение."),
+        ("error", "Проверка не завершилась."),
+    ],
+)
+def test_grading_reply_distinguishes_unscored_outcomes(status, notice):
+    assessment = Assessment.model_validate(
+        {**VALID, "status": status, "score": None, "needs_review": True, "criterion_evidence": []}
+    )
+    reply = grading_reply(assessment, "atlas_training_rubric")
+
+    assert reply.startswith(f"{notice} Балл не выставлен.")
+    assert "из 2 баллов" not in reply
+    assert "Проверить решение" not in reply  # Historical results have no action buttons.
 
 
 @pytest.mark.parametrize(
@@ -266,7 +301,7 @@ async def test_daily_limit_and_unreadable_grade(bank_pool):
     bank = Part2Training(bank_pool)
     s = Settings(oge_grading_daily_user_limit=1, oge_grading_monthly_budget_usd=1)
     issue = await bank.open(1, 20)
-    assert await bank.append(1, issue, 1, 301, None, "photo", "album") == "saved"
+    assert await bank.append(1, issue, 1, 301, None, "photo") == "saved"
     assert (await reserve(bank_pool, s, 1, issue, 1))[1]
     result = Assessment.model_validate(
         {

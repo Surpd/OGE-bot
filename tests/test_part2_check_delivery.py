@@ -19,7 +19,8 @@ from tests.test_inline_dispatcher_postgres import TelegramSession
 
 
 @pytest.mark.parametrize("definite_rejection", [True, False])
-async def test_photo_grade_delivery(monkeypatch, definite_rejection):
+@pytest.mark.parametrize("score", [1, 2])
+async def test_photo_grade_delivery(monkeypatch, definite_rejection, score):
     class RejectGradePhoto(TelegramSession):
         async def make_request(self, bot, method, timeout=None):  # noqa: ASYNC109
             if isinstance(method, SendPhoto):
@@ -48,7 +49,7 @@ async def test_photo_grade_delivery(monkeypatch, definite_rejection):
     monkeypatch.setattr(part2_check, "finish", finish)
     assessment = Assessment(
         status="graded",
-        score=1,
+        score=score,
         max_score=2,
         criterion_evidence=[{"criterion": "Преобразование", "student_evidence": "x=2"}],
         correct_steps=[r"Верно получено \(x=2\)."],
@@ -120,10 +121,12 @@ async def test_photo_grade_delivery(monkeypatch, definite_rejection):
         assert fallback.reply_markup is not None
         assert fallback.reply_markup == initial.reply_markup
         assert fallback.parse_mode == "HTML"
-        assert fallback.text.count("Оценка: 1 из 2 баллов") == 1
+        assert fallback.text.count(f"Оценка: {score} из 2 баллов") == 1
+        assert "Проверка сохранена в «Письменных работах»." in fallback.text
+        assert "«Завершить» закрывает задание." in fallback.text
         assert "Верно получено x=2." in fallback.text
-        assert "Нет проверки корня." in fallback.text
-        assert "Подставьте корень в исходное уравнение." in fallback.text
+        assert ("Нет проверки корня." in fallback.text) == (score < 2)
+        assert ("Подставьте корень в исходное уравнение." in fallback.text) == (score < 2)
         repo.set_navigation_message.assert_awaited_once()
     else:
         repo.set_navigation_message.assert_not_awaited()

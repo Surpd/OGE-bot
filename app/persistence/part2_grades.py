@@ -76,10 +76,23 @@ async def reserve_test(pool: asyncpg.Pool, s: Settings, owner: int, confirmation
 
 
 async def reserve(
-    pool: asyncpg.Pool, s: Settings, owner: int, issue: int, revision: int
+    pool: asyncpg.Pool,
+    s: Settings,
+    owner: int,
+    issue: int,
+    revision: int,
+    *,
+    photo_message: int | None = None,
 ) -> tuple[str, list[asyncpg.Record]]:
     async with pool.acquire() as conn, conn.transaction():
+        await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
         await conn.execute("SELECT pg_advisory_xact_lock(202725, 1)")
+        if photo_message is not None and issue != await conn.fetchval(
+            """SELECT id FROM part2_issues WHERE owner=$1 AND NOT closed
+            ORDER BY touched_at DESC,id DESC LIMIT 1""",
+            owner,
+        ):
+            return "Эта кнопка устарела. Текущее фото не изменено.", []
         version = await conn.fetchval(
             """SELECT version FROM part2_issues WHERE owner=$1 AND id=$2 AND NOT closed
                AND revision=$3 AND solution_viewed_at IS NULL FOR UPDATE""",
@@ -87,6 +100,14 @@ async def reserve(
             issue,
             revision,
         )
+        if photo_message is not None and not await conn.fetchval(
+            """SELECT EXISTS(SELECT 1 FROM part2_work WHERE issue_id=$1 AND revision=$2
+            AND message_id=$3 AND photo IS NOT NULL AND NOT superseded)""",
+            issue,
+            revision,
+            photo_message,
+        ):
+            return "Эта кнопка устарела. Текущее фото не изменено.", []
         if version is None:
             return "Эта работа уже отправлена или открыт разбор.", []
         if await conn.fetchval(
@@ -99,11 +120,13 @@ async def reserve(
             await conn.execute("UPDATE part2_issues SET revision=revision+1 WHERE id=$1", issue)
             return "Срок хранения истёк. Пришлите решение целиком.", []
         work = await conn.fetch(
-            """SELECT body,photo FROM part2_work
+            """SELECT body,photo,media_group FROM part2_work
                WHERE issue_id=$1 AND revision=$2 AND NOT superseded ORDER BY message_id""",
             issue,
             revision,
         )
+        if any(item["media_group"] for item in work):
+            return "Альбом нельзя проверить частично. Уберите фото и пришлите один снимок.", []
         photo_count = sum(bool(item["photo"]) for item in work)
         if photo_count > 1:
             return "В черновике несколько фото. Ответьте на одно из них новым общим снимком.", []
