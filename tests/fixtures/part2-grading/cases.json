@@ -133,5 +133,86 @@
     "expected_score": null,
     "case": "partially unreadable photograph",
     "image": "partial.jpg"
+  },
+  {
+    "id": "rational-20-concise",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "x ≠ 3. x²/(x−3) − x ≤ 0; 3x/(x−3) ≤ 0. На (0;3) дробь отрицательна. При x=0 дробь равна 0. Ответ: [0;3).",
+    "expected_status": "graded",
+    "expected_score": 2,
+    "case": "concise sign justification",
+    "image": null
+  },
+  {
+    "id": "rational-20-explicit",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "x ≠ 3. x²/(x−3) − x ≤ 0; 3x/(x−3) ≤ 0. На (−∞;0), (0;3), (3;+∞) знаки соответственно +, −, +. В точке 0 дробь равна 0; в точке 3 не определена. Ответ: [0;3).",
+    "expected_status": "graded",
+    "expected_score": 2,
+    "case": "explicit interval signs",
+    "image": null
+  },
+  {
+    "id": "rational-20-bare",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "Ответ: [0;3).",
+    "expected_status": "graded",
+    "expected_score": 0,
+    "case": "correct interval with no work",
+    "image": null
+  },
+  {
+    "id": "rational-20-unsafe-multiplication",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "x ≠ 3. x²/(x−3) − x ≤ 0; 3x/(x−3) ≤ 0. Умножаем на x−3: 3x ≤ 0. Ответ: [0;3).",
+    "expected_status": "graded",
+    "expected_score": 0,
+    "case": "invalid equivalence with coincidentally correct answer",
+    "image": null
+  },
+  {
+    "id": "rational-20-wrong-signs",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "x ≠ 3. x²/(x−3) − x ≤ 0; 3x/(x−3) ≤ 0. На (−∞;0), (0;3), (3;+∞) знаки −, +, −. Ответ: (−∞;0] ∪ (3;+∞).",
+    "expected_status": "graded",
+    "expected_score": 0,
+    "case": "wrong sign logic",
+    "image": null
+  },
+  {
+    "id": "rational-20-domain",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "x ≠ 3. x²/(x−3) − x ≤ 0; 3x/(x−3) ≤ 0. Знаки +, −, +. Дробь равна 0 при x=0. Ответ: [0;3].",
+    "expected_status": "graded",
+    "expected_score": 0,
+    "case": "includes forbidden boundary",
+    "image": null
+  },
+  {
+    "id": "rational-20-arithmetic",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "x≠3. Умножаем на (x−3)² > 0: x²(x−3) − x(x−3)² ≤ 0. После раскрытия скобок: x[(6−3)x−9] ≤ 0. 6−3=2, поэтому x(2x−9)≤0. Произведение неположительно на [0;9/2]; исключаю 3. Ответ [0;3)∪(3;9/2].",
+    "expected_status": "graded",
+    "expected_score": 1,
+    "case": "arithmetic mistake with consistent completion",
+    "image": null
+  },
+  {
+    "id": "rational-20-photo-concise",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "",
+    "expected_status": "graded",
+    "expected_score": 2,
+    "case": "synthetic photograph of concise case",
+    "image": "rational-20-concise.jpg"
+  },
+  {
+    "id": "rational-20-photo-blurry",
+    "task_id": "oge-part2-reshu-472406",
+    "body": "",
+    "expected_status": "unreadable",
+    "expected_score": null,
+    "case": "essential algebra and signs unreadable",
+    "image": "rational-20-blurry.jpg"
   }
 ]
