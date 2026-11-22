@@ -11,11 +11,11 @@ async def test_albums_resume_rotation_and_ownership(bank_pool):
         assert await bank.append(2, issue, 1, 1, None, "wrong") == "stale"
         msg = number * 10
         album = f"album-{number}"
-        assert await bank.append(1, issue, 1, msg, "старый кадр", "photo-a", album) == "saved"
-        assert await bank.append(1, issue, 1, msg, "старый кадр", "photo-a", album) == "duplicate"
+        assert await bank.append(1, issue, 1, msg, "старый кадр", "photo-a") == "saved"
+        assert await bank.append(1, issue, 1, msg, "старый кадр", "photo-a") == "duplicate"
         reopened = Part2Training(bank_pool)
         assert (await reopened.current(1, issue, activate=True))["id"] == issue
-        assert await reopened.append(1, issue, 1, msg + 1, None, "photo-b", album) == "photo_limit"
+        assert await reopened.append(1, issue, 1, msg + 1, None, "photo-b", album) == "stale"
         assert await reopened.append(1, issue, 1, msg + 2, None, "photo-c") == "photo_limit"
         assert await reopened.append(1, issue, 1, msg + 3, "отдельный текст", None) == "saved"
         assert (

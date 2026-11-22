@@ -301,7 +301,7 @@ async def test_daily_limit_and_unreadable_grade(bank_pool):
     bank = Part2Training(bank_pool)
     s = Settings(oge_grading_daily_user_limit=1, oge_grading_monthly_budget_usd=1)
     issue = await bank.open(1, 20)
-    assert await bank.append(1, issue, 1, 301, None, "photo", "album") == "saved"
+    assert await bank.append(1, issue, 1, 301, None, "photo") == "saved"
     assert (await reserve(bank_pool, s, 1, issue, 1))[1]
     result = Assessment.model_validate(
         {

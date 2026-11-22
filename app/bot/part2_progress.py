@@ -98,7 +98,10 @@ async def page(
                     except (OSError, ValueError, TelegramBadRequest):
                         lines.append("Исходный рисунок сейчас недоступен.")
                 await send_text(
-                    message, repo, f"{title}\n\n{r['statement']}", rich_with_navigation=True,
+                    message,
+                    repo,
+                    f"{title}\n\n{r['statement']}",
+                    rich_with_navigation=True,
                     math_family=r["subtype_id"],
                 )
                 for piece in work:
@@ -147,6 +150,7 @@ async def page(
                     lines.append("Работа завершена.")
                 else:
                     lines.append("Черновик.")
+                lines.append("Задача закрыта." if r["closed"] else "Задача открыта.")
                 message_text = "\n\n".join(line for line in lines if line)
                 if r["result"] and has_mathematics(message_text):
                     feedback_template = "written-feedback"

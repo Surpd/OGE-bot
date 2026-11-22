@@ -164,7 +164,11 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
             b.callback_data
             for row in msg.reply_markup.inline_keyboard
             for b in row
-            if b.callback_data.partition("~")[0] == action
+            if (
+                b.callback_data.partition("~")[0] == action
+                or action.startswith("p2:check:")
+                and b.callback_data.startswith(action + ":")
+            )
         )
         query = CallbackQuery(id=str(seq), from_user=user, chat_instance="42", message=msg, data=cb)
         await post(callback_query=query)
@@ -288,7 +292,7 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
                 chat=chat,
                 from_user=user,
                 media_group_id=album,
-                reply_to_message=reply,
+                reply_to_message=reply or telegram.messages[current["prompt_message_id"]],
                 caption=caption,
                 photo=[
                     PhotoSize(
@@ -301,12 +305,13 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
                 ],
             )
 
-        first_photo = photo_message("a", album="demo-album", caption="Старый снимок.")
+        current = await Part2Training(bank_pool).current(42)
+        await post(message=photo_message("album-a", album="demo-album"))
+        first_photo = photo_message("a", caption="Старый снимок.")
         await post(message=first_photo)
         await post(message=photo_message("b", album="demo-album"))
         assert any(
-            "только одну фотографию" in (getattr(call, "text", None) or "")
-            for call in telegram.calls
+            "Альбом не принят" in (getattr(call, "text", None) or "") for call in telegram.calls
         )
         replacement = photo_message("c", reply=first_photo, caption="Моё решение.")
         await post(message=replacement)
@@ -412,8 +417,10 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         other = await bank.current(42)
         assert other["number"] == 22
         assert await bank_pool.fetchval("SELECT count(*) FROM part2_issues WHERE number=22") == 1
+        current = other
         await post(message=photo_message("graph", caption="Черновик графика."))
-        await tap("p2:menu:22")
+        # The photo confirmation intentionally has only Check/Remove. /start preserves the draft.
+        await text("/start", entities=[MessageEntity(type="bot_command", offset=0, length=6)])
         await tap("nav:numbers")
         await tap("nav:numbers:1")
         await tap("nav:numbers:2")

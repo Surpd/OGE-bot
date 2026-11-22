@@ -43,9 +43,23 @@ INTRO = (
     "Письменная тренировка\n\n"
     "Запишите ход решения на бумаге и пришлите одно чёткое фото. Чтобы заменить фото, "
     "ответьте на него "
-    "новым снимком. Нажмите «Проверить решение» для предварительной оценки.\n\n"
+    "новым снимком. Первое фото отправляйте ответом на сообщение с заданием. "
+    "Нажмите «Проверить решение» для предварительной оценки.\n\n"
     "Только при проверке снимок передаётся OpenAI. Не указывайте имя на работе."
 )
+
+
+def photo_action(command: str, row: dict[str, Any]) -> str:
+    return f"p2:{command}:{row['id']}:{row['revision']}:{row.get('photo_message') or 0}"
+
+
+def photo_controls(row: dict[str, Any]) -> InlineKeyboardMarkup:
+    return keyboard(
+        [
+            [("Проверить решение", photo_action("check", row))],
+            [("Убрать фото", photo_action("remove", row))],
+        ]
+    )
 
 
 def controls(row: dict[str, Any]) -> InlineKeyboardMarkup:
@@ -54,7 +68,7 @@ def controls(row: dict[str, Any]) -> InlineKeyboardMarkup:
         rows = [[("Разбор", f"p2:solution:{issue}"), ("Завершить", f"p2:finish:{issue}")]]
     else:
         rows = [
-            [("Проверить решение", f"p2:check:{issue}")],
+            [("Проверить решение", photo_action("check", row))],
             [("Подсказка", f"p2:hint:{issue}"), ("Разбор", f"p2:solution:{issue}")],
             [
                 ("Завершить", f"p2:finish:{issue}")
@@ -65,6 +79,8 @@ def controls(row: dict[str, Any]) -> InlineKeyboardMarkup:
         ]
     if row["solution_viewed_at"]:
         rows.append([("К выбору", f"p2:menu:{number}")])
+    if row.get("photo_message") and not row["solution_viewed_at"]:
+        rows.insert(1, [("Убрать фото", photo_action("remove", row))])
     if row["draft"] and not row["solution_viewed_at"]:
         rows.insert(1, [("Моя работа", f"p2:draft:{issue}")])
     return keyboard(rows)
@@ -85,7 +101,7 @@ async def card_message(
     role: str,
     text: str,
     markup: InlineKeyboardMarkup,
-) -> None:
+) -> Message:
     photos = [
         BufferedInputFile(await asyncio.to_thread(image_bytes, visual), filename=f"{role}.png")
         for visual in card["visuals"]
@@ -94,7 +110,7 @@ async def card_message(
     if photos:
         for extra in photos[:-1]:
             await message.answer_photo(extra)
-        await send_photo(
+        return await send_photo(
             message,
             repo,
             photos[-1],
@@ -105,7 +121,7 @@ async def card_message(
             math_family=card,
         )
     else:
-        await send_text(
+        return await send_text(
             message,
             repo,
             text,
@@ -116,7 +132,9 @@ async def card_message(
         )
 
 
-def statement_text(card: dict[str, Any], status: str = "Пришлите решение одним фото.") -> str:
+def statement_text(
+    card: dict[str, Any], status: str = "Пришлите одно фото ответом на это сообщение."
+) -> str:
     number = card["number"]
     label = "\nУчебная задача" if card["bank_scope"] == "training_only" else ""
     return f"№{number} · {TITLES[number]}{label}\n\n{card['statement']}\n\n{status}"
@@ -135,9 +153,9 @@ async def render(message: Message, repo: Repository, owner: int, row: dict[str, 
     elif row["draft"]:
         status = "Черновик сохранён."
     else:
-        status = "Пришлите решение одним фото."
+        status = "Пришлите одно фото ответом на это сообщение."
     await repo.save_user_state(owner, "part2")
-    await card_message(
+    sent = await card_message(
         message,
         repo,
         owner,
@@ -146,6 +164,9 @@ async def render(message: Message, repo: Repository, owner: int, row: dict[str, 
         statement_text(card, repetition + status),
         controls(row),
     )
+    bank = store(repo)
+    if bank:
+        await bank.bind_prompt(owner, row["id"], sent.message_id)
 
 
 async def resume(message: Message, repo: Repository, owner: int, issue: int | None = None) -> bool:
@@ -329,6 +350,37 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
             else:
                 await resume(message, repo, owner, issue)
         return
+    if command in {"check", "remove"}:
+        if len(parts) != 5 or any(
+            not x.isascii() or not x.isdigit() or len(x) > 18 for x in parts[3:]
+        ):
+            await message.answer("Эта кнопка устарела. Откройте задание и прикрепите фото заново.")
+            return
+        row = await bank.current(owner)
+        revision, photo_message = map(int, parts[3:])
+        if (
+            not row
+            or row["id"] != value
+            or row["revision"] != revision
+            or row.get("photo_message") != photo_message
+            or await repo.user_state(owner) != "part2"
+        ):
+            await message.answer("Эта кнопка устарела. Текущее фото не изменено.")
+            return
+        if command == "remove":
+            removed = await bank.remove_photo(owner, value, revision, photo_message)
+            await message.answer(
+                "Фото убрано. Задача остаётся открытой. Предыдущие оценки сохранены."
+                if removed
+                else "Эта кнопка устарела. Текущее фото не изменено."
+            )
+            if removed:
+                await resume(message, repo, owner, value)
+        else:
+            from app.bot.part2_check import check
+
+            await check(message, repo, owner, row, bank, photo_message=photo_message)
+        return
     if len(parts) != 3:
         return
     row = await bank.current(owner, value if value else None)
@@ -413,10 +465,6 @@ async def action(message: Message, repo: Repository, owner: int, data: str) -> N
                 rich_with_navigation=True,
                 math_family=row["card"],
             )
-    elif command == "check":
-        from app.bot.part2_check import check
-
-        await check(message, repo, owner, row, bank)
 
 
 async def collect(message: Message, repository: Repository) -> None:
@@ -429,14 +477,35 @@ async def collect(message: Message, repository: Repository) -> None:
     row = await bank.current(actor.id)
     if row is None:
         raise SkipHandler
+    if message.media_group_id:
+        await message.answer(
+            "Альбом не принят. Пришлите решение целиком одним фото ответом на задание."
+        )
+        return
     photo = message.photo[-1] if message.photo else None
     if photo is None:
-        await message.answer("Запишите решение на бумаге и пришлите его одним фото.")
+        await message.answer(
+            "Запишите решение на бумаге и пришлите одно фото ответом на сообщение с заданием."
+        )
         return
     if photo.file_size is None or photo.file_size > 4_000_000:
         await message.answer("Пришлите фотографию решения до 4 МБ.")
         return
     reply = message.reply_to_message
+    if not reply:
+        await message.answer(
+            "Фото не добавлено. Отправьте его ответом на сообщение с нужным заданием."
+        )
+        return
+    if message.message_id <= reply.message_id:
+        await message.answer("Фото не добавлено: сообщение устарело.")
+        return
+    replacing = bool(reply.photo) and reply.message_id != row.get("prompt_message_id")
+    if not replacing and reply.message_id != row.get("prompt_message_id"):
+        await message.answer(
+            "Фото не добавлено: это другое или устаревшее задание. Откройте нужную работу."
+        )
+        return
     result = await bank.append(
         actor.id,
         row["id"],
@@ -445,7 +514,8 @@ async def collect(message: Message, repository: Repository) -> None:
         message.caption,
         photo.file_id,
         message.media_group_id,
-        replace_photo=reply.message_id if reply and reply.photo else None,
+        replace_photo=reply.message_id if replacing else None,
+        condition_message=None if replacing else reply.message_id,
     )
     if result == "photo_limit":
         await message.answer(
@@ -454,8 +524,13 @@ async def collect(message: Message, repository: Repository) -> None:
             "на предыдущее фото."
         )
     elif result == "saved":
-        await message.answer(
-            "Фото сохранено. Нажмите «Проверить решение», чтобы получить оценку."
-        )
+        active = await bank.current(actor.id)
+        if active and active["id"] == row["id"]:
+            await send_text(
+                message,
+                repository,
+                f"Фото прикреплено к заданию №{row['number']}. Проверка ещё не началась.",
+                reply_markup=photo_controls(active),
+            )
     elif result == "stale":
         await message.answer("Фото не добавлено. Проверьте текущее задание и лимит.")

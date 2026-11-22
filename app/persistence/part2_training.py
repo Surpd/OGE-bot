@@ -212,7 +212,10 @@ class Part2Training:
                 EXISTS(SELECT FROM part2_work w WHERE w.issue_id=i.id AND w.revision=i.revision
                     AND NOT superseded) AS draft,
                 EXISTS(SELECT FROM part2_grades g WHERE g.issue_id=i.id AND g.score IS NOT NULL)
-                    AS scored
+                    AS scored,
+                (SELECT message_id FROM part2_work w WHERE w.issue_id=i.id
+                 AND w.revision=i.revision AND NOT superseded AND w.photo IS NOT NULL
+                 ORDER BY message_id DESC LIMIT 1) AS photo_message
                 FROM part2_issues i JOIN part2_versions v USING(task_id,version)
                 JOIN part2_subtypes s ON s.subtype_id=i.subtype_id
                 WHERE owner=$1 AND NOT closed AND ($2::bigint IS NULL OR i.id=$2)
@@ -221,6 +224,39 @@ class Part2Training:
                 issue,
             )
         return {**row, "card": json.loads(row["payload"])} if row else None
+
+    async def bind_prompt(self, owner: int, issue: int, message: int) -> None:
+        await self.pool.execute(
+            "UPDATE part2_issues SET prompt_message_id=$3 WHERE owner=$1 AND id=$2 AND NOT closed",
+            owner,
+            issue,
+            message,
+        )
+
+    async def remove_photo(self, owner: int, issue: int, revision: int, message: int) -> bool:
+        async with self.pool.acquire() as conn, conn.transaction():
+            await conn.execute("SELECT pg_advisory_xact_lock($1)", owner)
+            current = await conn.fetchval(
+                """SELECT id FROM part2_issues WHERE owner=$1 AND id=$2 AND NOT closed
+                AND revision=$3 AND solution_viewed_at IS NULL
+                AND id=(SELECT id FROM part2_issues WHERE owner=$1 AND NOT closed
+                        ORDER BY touched_at DESC,id DESC LIMIT 1) FOR UPDATE""",
+                owner,
+                issue,
+                revision,
+            )
+            if not current:
+                return False
+            return bool(
+                await conn.fetchval(
+                    """UPDATE part2_work SET superseded=true,photo=NULL,body=NULL
+                WHERE issue_id=$1 AND revision=$2 AND message_id=$3
+                AND NOT superseded AND photo IS NOT NULL RETURNING true""",
+                    issue,
+                    revision,
+                    message,
+                )
+            )
 
     async def append(
         self,
@@ -233,7 +269,10 @@ class Part2Training:
         media_group: str | None = None,
         *,
         replace_photo: int | None = None,
+        condition_message: int | None = None,
     ) -> Literal["saved", "duplicate", "photo_limit", "stale"]:
+        if media_group:
+            return "stale"
         if not body and not photo:
             return "stale"
         async with self.pool.acquire() as conn, conn.transaction():
@@ -241,11 +280,13 @@ class Part2Training:
             row = await conn.fetchval(
                 """SELECT id FROM part2_issues WHERE owner=$1 AND id=$2 AND NOT closed
                 AND revision=$3 AND solution_viewed_at IS NULL
+                AND ($4::bigint IS NULL OR prompt_message_id=$4)
                 AND id=(SELECT id FROM part2_issues WHERE owner=$1 AND NOT closed
                         ORDER BY touched_at DESC,id DESC LIMIT 1) FOR UPDATE""",
                 owner,
                 issue,
                 revision,
+                condition_message,
             )
             if not row:
                 return "stale"
@@ -256,18 +297,6 @@ class Part2Training:
                 message,
             ):
                 return "duplicate"
-            if media_group:
-                album = await conn.fetchrow(
-                    """SELECT w.issue_id,w.revision FROM part2_work w
-                    JOIN part2_issues i ON i.id=w.issue_id
-                    WHERE w.media_group=$1 AND i.owner=$2 LIMIT 1""",
-                    media_group,
-                    owner,
-                )
-                if album:
-                    if (album["issue_id"], album["revision"]) != (issue, revision):
-                        return "stale"
-                    return "photo_limit"
             work = await conn.fetch(
                 """SELECT message_id,photo FROM part2_work
                 WHERE issue_id=$1 AND revision=$2 AND NOT superseded""",
