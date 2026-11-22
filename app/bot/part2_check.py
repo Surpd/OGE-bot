@@ -49,7 +49,7 @@ async def check(
     dispatched = False
     result = None
     try:
-        await message.answer("Проверяю ход решения по критериям задания…")
+        await message.answer("Проверка началась. Балл пока не выставлен.")
         async with asyncio.timeout(s.oge_grading_timeout_seconds):
             photos = []
             for item in work:
@@ -97,6 +97,14 @@ async def check(
         if (await repo.user_state(owner) == "part2" and active and active["id"] == issue)
         else None
     )
+    if markup and active and not active["solution_viewed_at"] and result is not None:
+        if result.assessment.score is not None:
+            reply += "\n\nПроверка сохранена в «Письменных работах». «Завершить» закрывает задание."
+        elif result.assessment.status in ("unreadable", "uncertain"):
+            reply += (
+                "\n\nОтправьте одно чёткое фото решения новым сообщением. "
+                "Затем нажмите «Проверить решение»."
+            )
     await send_text(
         message,
         repo,
@@ -111,12 +119,12 @@ async def check(
 
 def grading_reply(assessment: Assessment, rubric_kind: str) -> str:
     if assessment.score is None:
-        return (
-            "Оценка не выставлена.\n\n"
-            + display_feedback(assessment.feedback, 800)
-            + "\n\nПришлите чёткое фото решения целиком. "
-            "Затем нажмите «Проверить решение»."
-        )
+        status = {
+            "unreadable": "Не удалось прочитать решение.",
+            "uncertain": "Не удалось уверенно оценить решение.",
+            "error": "Проверка не завершилась.",
+        }.get(assessment.status, "Не удалось оценить решение.")
+        return f"{status} Балл не выставлен.\n\n{display_feedback(assessment.feedback, 800)}"
     score = assessment.score
     evidence = [
         f"{item.criterion} — {item.student_evidence}" for item in assessment.criterion_evidence
@@ -124,9 +132,9 @@ def grading_reply(assessment: Assessment, rubric_kind: str) -> str:
     points = ("0 баллов", "1 балл", "2 балла")[score]
     blocks = [
         ("Что правильно", "\n".join(assessment.correct_steps)),
-        ("Где ошибка", "\n".join(assessment.errors)),
+        ("Где ошибка", "\n".join(assessment.errors) if score < 2 else ""),
         (f"Почему именно {points}", "\n".join([assessment.feedback, *evidence])),
-        ("Как исправить", assessment.next_step),
+        ("Как исправить", assessment.next_step if score < 2 else ""),
     ]
     rubric = (
         "Критерии демоверсии ФИПИ"

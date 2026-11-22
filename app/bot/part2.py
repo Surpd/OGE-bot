@@ -454,6 +454,8 @@ async def collect(message: Message, repository: Repository) -> None:
             "на предыдущее фото."
         )
     elif result == "saved":
-        await message.answer("Добавлено к решению.")
+        await message.answer(
+            "Фото сохранено. Нажмите «Проверить решение», чтобы получить оценку."
+        )
     elif result == "stale":
         await message.answer("Фото не добавлено. Проверьте текущее задание и лимит.")
