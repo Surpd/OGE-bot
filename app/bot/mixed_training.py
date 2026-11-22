@@ -675,7 +675,19 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         return
     if action == "data" and number <= 5:
         await answer_callback(callback)
-        await _send_problem(message, repository, store, problem, user_id=user_id)
+        prompt_id = problem.get("prompt_message_id")
+        if type(prompt_id) is int and prompt_id > 0:
+            raw_scenario = problem.get("scenario_snapshot")
+            if not isinstance(raw_scenario, dict):
+                raise ValueError("Mixed scenario snapshot is missing")
+            data_snapshot = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
+            await send_scenario_materials(
+                message, repository, data_snapshot, number, user_id=user_id,
+            )
+        else:
+            # The previous delivery stopped before the condition. Restore that
+            # saved issue; never generate a new one or replace an existing Reply anchor.
+            await _send_problem(message, repository, store, problem, user_id=user_id)
         return
     if action == "menu":
         await store.pause(user_id)

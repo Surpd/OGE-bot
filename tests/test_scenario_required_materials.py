@@ -213,14 +213,18 @@ async def test_screenshot_capacity_limits_23_12_20_gets_catalogue_before_questio
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('stale', [False, True])
-async def test_mixed_data_button_is_bound_to_saved_problem_without_regeneration(stale, monkeypatch):
+@pytest.mark.parametrize('shown', [False, True])
+async def test_mixed_data_button_is_bound_to_saved_problem_without_regeneration(
+    stale, shown, monkeypatch,
+):
     from datetime import UTC, datetime
 
     from aiogram.types import CallbackQuery, Chat, User
 
     snapshot = saved('PAPER', '1')
     problem = mixed_training._scenario_question(snapshot.to_snapshot(), 4)
-    problem.update(problem_id=str(uuid4()), number=4, outcome='issued')
+    problem.update(problem_id=str(uuid4()), number=4, outcome='issued',
+                   prompt_message_id=300 if shown else None)
     repository = MemoryRepository()
     await repository.save_user_state(7, 'mixed')
     store = AsyncMock()
@@ -245,10 +249,21 @@ async def test_mixed_data_button_is_bound_to_saved_problem_without_regeneration(
         assert delivery.await_args.args[3] == 4
     assert problem == before
     store.issue_current.assert_not_awaited()
+    if shown or stale:
+        store.set_prompt.assert_not_awaited()
+        mixed_training.send_text.assert_not_awaited()
+    else:
+        store.set_prompt.assert_awaited_once_with(7, problem['problem_id'], 400)
 
 
 @pytest.mark.asyncio
-async def test_replay_data_button_preserves_original_attempt_and_snapshot(monkeypatch):
+@pytest.mark.parametrize(('status', 'screen'), [
+    ('active', 'error_replay'), ('solved', 'error_replay'), ('failed', 'error_replay'),
+    ('solution_viewed', 'error_replay'), ('active', 'main_menu'), ('active', 'progress'),
+])
+async def test_replay_data_button_preserves_original_attempt_and_snapshot(
+    status, screen, monkeypatch,
+):
     from datetime import UTC, datetime
 
     from aiogram.types import CallbackQuery, Chat, User
@@ -256,7 +271,7 @@ async def test_replay_data_button_preserves_original_attempt_and_snapshot(monkey
     snapshot = saved('STOVE', '155')
     problem = mixed_training._scenario_question(snapshot.to_snapshot(), 1)
     source = ReplaySource('scenario', uuid4(), 1, 1, problem, snapshot.to_snapshot())
-    replay = {'id': str(uuid4()), 'status': 'active', 'attempt_count': 1}
+    replay = {'id': str(uuid4()), 'status': status, 'attempt_count': 1}
     monkeypatch.setattr(error_replay, '_active_replay', AsyncMock(return_value=(replay, source)))
     monkeypatch.setattr(error_replay, 'answer_callback', AsyncMock())
     delivery = AsyncMock(return_value=True)
@@ -269,9 +284,16 @@ async def test_replay_data_button_preserves_original_attempt_and_snapshot(monkey
         message=Message(message_id=200, date=datetime.now(UTC),
                         chat=Chat(id=7, type='private'), text='Схема / данные'),
     )
-    await error_replay.callback(callback, MemoryRepository())
-    assert delivery.await_args.args[2].to_snapshot() == snapshot.to_snapshot()
-    assert replay['attempt_count'] == 1 and replay['status'] == 'active'
+    repository = MemoryRepository()
+    await repository.save_user_state(7, screen)
+    await error_replay.callback(callback, repository)
+    if status == 'active' and screen == 'error_replay':
+        assert delivery.await_args.args[2].to_snapshot() == snapshot.to_snapshot()
+    else:
+        delivery.assert_not_awaited()
+        error_replay._feedback.assert_not_awaited()
+    assert await repository.user_state(7) == screen
+    assert replay['attempt_count'] == 1 and replay['status'] == status
 
 
 @pytest.mark.asyncio
@@ -379,6 +401,8 @@ async def test_replay_navigation_allows_two_consecutive_data_requests(monkeypatc
             ).as_(bot)
             await navigation_callback(callback, repository)
             assert repository.navigation_messages[7][1] != menu_id
+        # The callback from the preceding keyboard revision is now stale.
+        await navigation_callback(callback, repository)
         assert replay['attempt_count'] == 1 and replay['status'] == 'active'
         assert sum(c.__api_method__ == 'sendPhoto' for c in transport.calls) == 2
     finally:

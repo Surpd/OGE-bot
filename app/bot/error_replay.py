@@ -348,6 +348,12 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
         return
     replay, source = active
     if parts[2] == "d" and source.scenario_snapshot is not None:
+        # The navigation router claims the current message/revision first.
+        # Loading by owner + replay_id alone also finds completed/paused replays.
+        if (replay.get("status") != "active"
+                or await repository.user_state(callback.from_user.id) != "error_replay"):
+            await answer_callback(callback, "Этот повтор завершён или уже закрыт на экране.")
+            return
         await answer_callback(callback)
         if isinstance(callback.message, Message):
             delivered = await send_scenario_materials(
