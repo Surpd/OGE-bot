@@ -5322,7 +5322,7 @@
   },
   {
     "task_id": "oge-part2-atlas-a24-cyclic-external-03",
-    "version": 1,
+    "version": 2,
     "number": 24,
     "subtype": "OGE24-cyclic-external",
     "automatic_check": "passed",
@@ -5336,7 +5336,7 @@
       ]
     ],
     "editorial_findings": [],
-    "editorial_revision": null,
+    "editorial_revision": "explicit_equal_secant_distances_from_M",
     "max_formula_width_px": 0
   },
   {
@@ -5398,7 +5398,7 @@
   },
   {
     "task_id": "oge-part2-atlas-a24-cyclic-converse-01",
-    "version": 1,
+    "version": 2,
     "number": 24,
     "subtype": "OGE24-cyclic-converse",
     "automatic_check": "passed",
@@ -5412,7 +5412,7 @@
       ]
     ],
     "editorial_findings": [],
-    "editorial_revision": null,
+    "editorial_revision": "inscribed_angle_and_common_arc",
     "max_formula_width_px": 0
   },
   {
@@ -6614,7 +6614,7 @@
   },
   {
     "task_id": "oge-part2-atlas-a24-common-tangent-ratio-05",
-    "version": 1,
+    "version": 2,
     "number": 24,
     "subtype": "OGE24-common-tangent-ratio",
     "automatic_check": "passed",
@@ -6628,7 +6628,7 @@
       ]
     ],
     "editorial_findings": [],
-    "editorial_revision": null,
+    "editorial_revision": "correct_correspondence_of_tangent_legs",
     "max_formula_width_px": 0
   },
   {

@@ -19,6 +19,7 @@ from aiogram.exceptions import (
     TelegramNotFound,
     TelegramServerError,
 )
+from aiogram.methods import SendPhoto
 from aiogram.types import (
     BufferedInputFile,
     InputMediaPhoto,
@@ -128,6 +129,13 @@ def format_rich_message(
             solution = title.startswith("Разбор")
         elif solution and line.strip():
             # Action names are separated from the checked formula by a colon.
+            parts = math_spans(line.strip().removesuffix("."))
+            if len(parts) == 1 and parts[0].latex:
+                punctuation = "." if line.endswith(".") else ""
+                lines.append(
+                    "<tg-math-block>" + escape(parts[0].latex) + punctuation + "</tg-math-block>"
+                )
+                continue
             prefix = action_prefix(line)
             if prefix is not None:
                 body = "<b>" + escape(prefix) + "</b>" + rich_inline(line[len(prefix) :])
@@ -302,6 +310,7 @@ async def send_text(
     math_family: object = None,
     math_system_rows: tuple[str, ...] | None = None,
     rich_with_navigation: bool = False,
+    text_on_photo_rejection: bool = False,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
@@ -323,16 +332,53 @@ async def send_text(
         )
         and (key is not None or has_mathematics(text))
     ):
-        sent = await _send_mathematics(
-            message,
-            typeset_family_text(text, math_family) if isinstance(text, str) else text,
-            None,
-            kwargs,
-            repository=repository,
-            force_png=await _prefer_png(message, repository, user_id_override, key),
-            system_rows=math_system_rows,
-            key=key,
-        )
+        construction = None
+        if (
+            key in {"OGE18-A06", "OGE18-A07", "OGE18-C01"}
+            and isinstance(math_family, dict)
+            and isinstance(text, str)
+            and any(s.startswith("Разбор") for s in text.splitlines())
+        ):
+            from app.math.oge18_render import polygon_construction
+
+            points = tuple((x, y) for x, y in math_family["points"])
+            png = await asyncio.to_thread(polygon_construction, key, points)
+            construction = BufferedInputFile(png, filename="construction.png")
+        try:
+            sent = await _send_mathematics(
+                message,
+                typeset_family_text(text, math_family) if isinstance(text, str) else text,
+                construction,
+                kwargs,
+                repository=repository,
+                force_png=await _prefer_png(message, repository, user_id_override, key),
+                system_rows=(
+                    tuple(typeset_family_text(row, math_family) for row in math_system_rows)
+                    if math_system_rows
+                    else None
+                ),
+                key=key,
+            )
+        except TelegramBadRequest as error:
+            # A rejected generated feedback PNG can fall back once; never
+            # discard an original construction or retry an ambiguous result.
+            if (
+                not text_on_photo_rejection
+                or construction is not None
+                or not isinstance(error.method, SendPhoto)
+            ):
+                raise
+            bot = message.bot
+            if bot is None:
+                raise
+            logging.getLogger(__name__).info("math_image_reason=photo_rejected_text_fallback")
+            sent = await _deliver_math(bot.send_message(
+                chat_id=message.chat.id,
+                message_thread_id=message.message_thread_id,
+                text=format_math_message(text),
+                parse_mode="HTML",
+                **kwargs,
+            ))
     else:
         sent = await message.answer(format_math_message(text), parse_mode="HTML", **kwargs)
     await _bind_navigation(message, repository, sent, kwargs.get("reply_markup"), user_id_override)
@@ -356,6 +402,18 @@ async def send_photo(
     key = template_key(math_family)
     if "reply_markup" in kwargs:
         kwargs["reply_markup"] = prepare_navigation_markup(kwargs["reply_markup"])
+    if (
+        isinstance(math_family, dict)
+        and key
+        and key.startswith(("OGE07-", "OGE11-", "OGE13-", "OGE16-"))
+        and _has_telegram_transport(message)
+    ):
+        from app.bot.diagram_layout import mobile_diagram
+
+        photo = BufferedInputFile(
+            await asyncio.to_thread(mobile_diagram, photo.data, math_family),
+            filename=photo.filename or "diagram.png",
+        )
     if _has_telegram_transport(message) and (
         key is not None
         or has_mathematics(caption)
@@ -369,7 +427,11 @@ async def send_photo(
             kwargs,
             repository=repository,
             force_png=await _prefer_png(message, repository, user_id_override, key),
-            system_rows=math_system_rows,
+            system_rows=(
+                tuple(typeset_family_text(row, math_family) for row in math_system_rows)
+                if math_system_rows
+                else None
+            ),
             key=key,
             diagram_caption=diagram_caption,
         )

@@ -12,6 +12,7 @@ from math import isqrt
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
+from app.math import oge18_disks
 from app.math.answer_policy import NUMERIC_SHORT_ANSWER
 from app.math.oge18_oracle import answer, answer_family
 from app.math.oge18_render import VERSION as RENDERER_VERSION
@@ -38,7 +39,10 @@ ORIGINAL_V2_FAMILIES = (
     "OGE18-A04",
     "OGE18-A05",
 )
-NEW_FAMILIES = (*ORIGINAL_V2_FAMILIES, "OGE18-L01", "OGE18-H01")
+POLYGON_FAMILIES = ("OGE18-A06", "OGE18-A07")
+NEW_FAMILIES = (
+    *ORIGINAL_V2_FAMILIES, "OGE18-L01", "OGE18-H01", *POLYGON_FAMILIES, oge18_disks.FAMILY,
+)
 GENERATOR_VERSION_V2 = "oge18-grid-2"
 LEARNER_CONTENT_VERSION = 2
 ENABLED_FAMILIES: tuple[str, ...] = (*FAMILIES, *NEW_FAMILIES)
@@ -106,6 +110,24 @@ CONDITIONS_V1.update(
         ),
     }
 )
+SOURCES.update({"OGE18-A06": "323790", "OGE18-A07": "341675"})
+for polygon_family in POLYGON_FAMILIES:
+    CONDITIONS[polygon_family] = (
+        "На клетчатой бумаге с размером клетки 1 × 1 изображена фигура. Найдите её площадь."
+    )
+SOURCES[oge18_disks.FAMILY] = oge18_disks.SOURCE
+CONDITIONS[oge18_disks.FAMILY] = (
+    "На клетчатой бумаге изображены два круга. Найдите, во сколько раз площадь "
+    "большего круга больше площади меньшего."
+)
+
+
+def source_url(source: str) -> str:
+    if source == oge18_disks.SOURCE:
+        return oge18_disks.URL
+    return f"https://math-oge.sdamgia.ru/problem?id={source}"
+
+
 SOURCES_V1 = dict(SOURCES)
 SOURCES_V1["OGE18-A01"] = "311388"
 
@@ -117,7 +139,10 @@ def decimal(value: Fraction) -> str:
 def fingerprint(family: str, points: tuple[Point, ...]) -> str:
     if family in NEW_FAMILIES:
         shape: object
-        if family == "OGE18-D05":
+        if family == oge18_disks.FAMILY:
+            a, b, c, d = points
+            shape = (b[0] - a[0], d[0] - c[0])
+        elif family == "OGE18-D05":
             dx = abs(points[1][0] - points[0][0])
             dy = abs(points[1][1] - points[0][1])
             shape = tuple(sorted((dx, dy)))
@@ -150,10 +175,51 @@ def fingerprint(family: str, points: tuple[Point, ...]) -> str:
     return hashlib.sha256(identity.encode()).hexdigest()
 
 
+def _polygon_teaching(
+    family: str, points: tuple[Point, ...], value: str
+) -> tuple[list[str], list[str]]:
+    if family == "OGE18-A06":
+        a, b, c, d = points
+        width, height = c[0] - a[0], d[1] - a[1]
+        gap, rise = c[0] - b[0], c[1] - a[1]
+        return (
+            [
+                "Достройте фигуру до прямоугольника по линиям сетки.",
+                "Рассмотрите два прямоугольных треугольника за наклонными сторонами.",
+            ],
+            [
+                f"Достроим прямоугольник шириной {width} и высотой {height}.",
+                f"У первого внешнего треугольника катеты {gap} и {rise}, "
+                f"у второго — {width} и {height - rise}.",
+                f"S = {width} · {height} − {gap} · {rise} / 2 "
+                f"− {width} · {height - rise} / 2 = {value}.",
+            ],
+        )
+    else:
+        a, b, c, d, e, f, g, h = points
+        spine, height = d[0] - a[0], h[1] - a[1]
+        bottom, top = b[0] - d[0], g[0] - e[0]
+        low, high = c[1] - a[1], h[1] - e[1]
+        return (
+            [
+                "Продлите вертикальную сторону выемки вверх и вниз.",
+                "Сложите площади прямоугольников с общей стороной без наложения.",
+            ],
+            [
+                f"Слева от выемки получаем прямоугольник {spine} × {height}.",
+                f"Остаются нижний выступ {bottom} × {low} и верхний {top} × {high}.",
+                f"S = {spine} · {height} + {bottom} · {low} + {top} · {high} = {value}.",
+            ],
+        )
+
+
 def teaching(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[str]]:
     if family in NEW_FAMILIES:
         result = answer_family(family, points)
         value = decimal(result).replace(".", ",")
+
+        if family in POLYGON_FAMILIES:
+            return _polygon_teaching(family, points, value)
 
         def length(first: Point, second: Point) -> int:
             square = (second[0] - first[0]) ** 2 + (second[1] - first[1]) ** 2
@@ -162,6 +228,23 @@ def teaching(family: str, points: tuple[Point, ...]) -> tuple[list[str], list[st
                 raise ValueError("The supported teaching model requires integer lengths")
             return exact
 
+        if family == oge18_disks.FAMILY:
+            a, b, c, d = points
+            r, k = b[0] - a[0], d[0] - c[0]
+            return (
+                [
+                    "Найдите центры кругов по симметрии сетки.",
+                    "Сравните квадраты радиусов: общий множитель π сократится.",
+                ],
+                [
+                    f"Горизонтальный радиус малого круга равен {r}.",
+                    f"От центра большого круга до узла на его окружности — "
+                    f"{k} по горизонтали и {k} по вертикали. По теореме Пифагора "
+                    f"квадрат радиуса равен {k}² + {k}² = {2 * k * k}.",
+                    f"Площадь круга равна πr². Отношение площадей равно "
+                    f"{2 * k * k} / {r * r} = {value}.",
+                ],
+            )
         if family == "OGE18-D05":
             dx = abs(points[1][0] - points[0][0])
             dy = abs(points[1][1] - points[0][1])
@@ -387,6 +470,32 @@ def _model_for_seed(
         )
         return points, Fraction(lower + upper, 2)
     if version == GENERATOR_VERSION_V2 and family_id in NEW_FAMILIES:
+        if family_id == oge18_disks.FAMILY:
+            r, k = rng.choice(((1, 1), (1, 2), (2, 2), (2, 3), (3, 3)))
+            cx, cy = x + r, y + r
+            dx, dy = cx + r + k + 1, cy + k + 1
+            return ((cx, cy), (cx + r, cy), (dx, dy), (dx + k, dy + k)), Fraction(2 * k * k, r * r)
+        if family_id == "OGE18-A06":
+            w, h = rng.randint(3, 11), rng.randint(3, 10)
+            u, v = rng.randint(1, w - 1), rng.randint(1, h - 1)
+            points = ((x, y), (x + u, y), (x + w, y + v), (x, y + h))
+            return points, w * h - Fraction((w - u) * v + w * (h - v), 2)
+        if family_id == "OGE18-A07":
+            spine, low, high, gap = (rng.randint(1, 4) for _ in range(4))
+            bottom, top = rng.sample(range(1, 7), 2)
+            mid, h = low + gap, low + gap + high
+            points = (
+                (x, y),
+                (x + spine + bottom, y),
+                (x + spine + bottom, y + low),
+                (x + spine, y + low),
+                (x + spine, y + mid),
+                (x + spine + top, y + mid),
+                (x + spine + top, y + h),
+                (x, y + h),
+            )
+            return points, Fraction(spine * h + bottom * low + top * high)
+
         if family_id == "OGE18-D05":
             triples = ((3, 4, 5), (5, 12, 13), (8, 15, 17))
             dx, dy, _ = rng.choice(triples)
@@ -467,6 +576,8 @@ def generate(
     if oracle != result:
         raise ValueError("Coordinate oracle mismatch")
     legacy_renderer = RENDERER_VERSION if family_id in FAMILIES else VERSION_V2
+    if family_id in (*POLYGON_FAMILIES, oge18_disks.FAMILY):
+        legacy_renderer = VERSION_V3
     supported_renderers = {legacy_renderer, VERSION_V3}
     selected_renderer = renderer_version or legacy_renderer
     if selected_renderer not in supported_renderers:
@@ -495,7 +606,7 @@ def generate(
         "answer_policy_version": POLICY.version,
         "provenance": {
             "task_id": source,
-            "url": f"https://math-oge.sdamgia.ru/problem?id={source}",
+            "url": source_url(source),
             "kind": "generated_analogue",
         },
         "hints": hints,
@@ -521,8 +632,11 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
         is_legacy = family in FAMILIES
         expected_gv = GENERATOR_VERSION if is_legacy else GENERATOR_VERSION_V2
         legacy_renderer = RENDERER_VERSION if is_legacy else VERSION_V2
+        if family in (*POLYGON_FAMILIES, oge18_disks.FAMILY):
+            legacy_renderer = VERSION_V3
         content_version = 1 if is_legacy else snapshot.get("learner_content_version", 1)
-        if family in {"OGE18-L01", "OGE18-H01"} and content_version != LEARNER_CONTENT_VERSION:
+        if (family in {"OGE18-L01", "OGE18-H01", *POLYGON_FAMILIES, oge18_disks.FAMILY}
+                and content_version != LEARNER_CONTENT_VERSION):
             raise ValueError("Unknown learner content version")
         if content_version not in (1, LEARNER_CONTENT_VERSION):
             raise ValueError("Unknown learner content version")
@@ -543,7 +657,9 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
             raise ValueError("Invalid points")
         points = tuple((p[0], p[1]) for p in raw_points)
         if len(points) != (
-            3
+            8
+            if family == "OGE18-A07"
+            else 3
             if family == FAMILIES[0]
             else 4
             if family == FAMILIES[1]
@@ -582,7 +698,7 @@ def from_snapshot(snapshot: dict[str, Any], *, audit_pixels: bool = True) -> Oge
         )
         if snapshot["provenance"] != {
             "task_id": source,
-            "url": f"https://math-oge.sdamgia.ru/problem?id={source}",
+            "url": source_url(source),
             "kind": "generated_analogue",
         }:
             raise ValueError("Invalid provenance")

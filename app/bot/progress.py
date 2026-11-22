@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 from datetime import date, datetime
-from typing import Any
+from typing import Any, TypedDict
 from uuid import UUID
 
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
@@ -36,6 +36,10 @@ OUTCOMES = {
     "solution_viewed": "открыт разбор",
     "unknown": "результат неизвестен",
 }
+
+
+class _ReplyOptions(TypedDict, total=False):
+    reply_parameters: ReplyParameters
 
 
 def _button(text: str, callback: str) -> InlineKeyboardButton:
@@ -567,6 +571,7 @@ async def progress_navigation(
     if section in {"item"} and len(parts) == 3:
         from aiogram.types import BufferedInputFile
 
+        from app.bot.diagram_layout import mobile_diagram
         from app.bot.error_replay import _materials
         from app.bot.presentation import send_photo
         from app.bot.task_view import question_text, system_rows
@@ -602,6 +607,7 @@ async def progress_navigation(
                             math_family=source.snapshot,
                         )
                     for png in photos:
+                        png = await asyncio.to_thread(mobile_diagram, png, source.snapshot)
                         await send_photo(
                             message, repository, BufferedInputFile(png, filename="original.png"),
                             caption=f"Исходные данные №{source.number}", user_id_override=user_id,
@@ -700,7 +706,7 @@ async def progress_navigation(
         return await progress_navigation(message, repository, user_id, "summary")
 
     open_below_overview = section == "details" and was_photo
-    reply_options = {}
+    reply_options: _ReplyOptions = {}
     if open_below_overview:
         overview = old_message
         try:

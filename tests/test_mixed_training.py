@@ -43,7 +43,9 @@ async def test_all_public_numbers_and_linked_scenario_answers_are_reachable():
 async def test_mixed_oge19_multiple_true_answers_use_text_and_ignore_order(monkeypatch):
     from app.math.oge19_scheduler import build_task19_candidate_batch
 
-    candidate = build_task19_candidate_batch({}, 101, enabled_families=("OGE19-MIXED",))[0]
+    candidate = build_task19_candidate_batch(
+        {"question_phase": 1}, 101, enabled_families=("OGE19-MIXED",)
+    )[0]
     expected = str(candidate["correct_answer"])
     assert len(expected) == 2
     monkeypatch.setattr(mixed_training, "available_numbers", lambda: [19])
@@ -92,7 +94,9 @@ def test_mixed_task19_does_not_leak_number_of_true_statements_through_buttons():
     from app.math.oge19_scheduler import build_task19_candidate_batch
 
     single = build_task19_candidate_batch({}, 100)[0]
-    multiple = build_task19_candidate_batch({}, 101)[0]
+    multiple = build_task19_candidate_batch(
+        {"question_phase": single["_question_phase_after"]}, 101
+    )[0]
     assert len(str(single["correct_answer"])) == 1
     assert len(str(multiple["correct_answer"])) == 2
     assert _task19_button_choices(single) == 0

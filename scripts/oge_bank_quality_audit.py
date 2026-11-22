@@ -91,9 +91,16 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE07-N01": 3,
         "OGE07-N04": 3,
     },
-    8: {"OGE08-R02": 2, "OGE08-R03": 3,
-        "OGE08-R01": 2, "OGE08-R04": 2, "OGE08-R05": 2, "OGE08-R06": 2, "OGE08-R08": 3,
-        "OGE08-R09": 2},
+    8: {
+        "OGE08-R02": 2,
+        "OGE08-R03": 3,
+        "OGE08-R01": 2,
+        "OGE08-R04": 2,
+        "OGE08-R05": 2,
+        "OGE08-R06": 2,
+        "OGE08-R08": 3,
+        "OGE08-R09": 2,
+    },
     9: {
         "OGE09-L1": 2,
         "OGE09-L2": 2,
@@ -173,6 +180,9 @@ COMPLEXITY: dict[int, dict[str, int]] = {
         "OGE18-A03": 2,
         "OGE18-A04": 3,
         "OGE18-A05": 3,
+        "OGE18-A06": 4,
+        "OGE18-A07": 3,
+        "OGE18-C01": 3,
     },
     16: {
         **{f"OGE16-A{i:02d}": 2 for i in range(1, 7)},
@@ -438,15 +448,22 @@ def _oracle(number: int, family: str, item: Any) -> bool:
         theme = FAMILY_THEMES[family]
         if theme != "mixed" and any(s["topic"] not in THEME_TOPICS[theme] for s in statements):
             return False
+        find_false = snapshot.get("question_kind") == "find_false"
         correct = [
             str(index)
             for index, reference in enumerate(reviewed, 1)
-            if reference is not None and reference.is_true
+            if reference is not None and reference.is_true != find_false
         ]
         condition = (
-            "Какие из следующих утверждений верны? В ответ запишите их номера.\n\n"
-            + "\n".join(f"{i}. {statement['statement']}"
-                        for i, statement in enumerate(statements, 1))
+            (
+                "Тренировочный вариант. Какие из следующих утверждений неверны?"
+                if find_false
+                else "Какие из следующих утверждений верны?"
+            )
+            + " В ответ запишите их номера.\n\n"
+            + "\n".join(
+                f"{i}. {statement['statement']}" for i, statement in enumerate(statements, 1)
+            )
         )
         solution = [
             f"{i}. {'Верно' if statement['is_true'] else 'Неверно'}: {statement['explanation']}"
@@ -548,7 +565,7 @@ def _ordinary_generator(number: int) -> tuple[tuple[str, ...], Callable[[str, in
 
         def make(family: str, seed: int) -> Any:
             snapshot = build_task19_candidate_batch(
-                {}, seed, enabled_families=(family,)
+                {"question_phase": seed % 4}, seed, enabled_families=(family,)
             )[0]
             return SimpleNamespace(
                 to_snapshot=lambda: snapshot,
@@ -669,7 +686,7 @@ def _complexity(number: int, family: str, examples: list[dict[str, Any]]) -> dic
             "и неизвестные начальные данные требуют дополнительных преобразований."
         ),
         19: (
-            "Выбрать единственное истинное утверждение из трёх; сложность зависит от "
+            "Оценить три утверждения и выбрать все соответствующие вопросу; сложность зависит от "
             "геометрических теорем и необходимости найти контрпример. Оценка предварительная."
         ),
     }

@@ -111,7 +111,12 @@ async def candidate_state(
         result["family_queue"] = ranked
     local = state.get("recent_fingerprints")
     local_fps = local if isinstance(local, list) else []
-    if number == 16:
+    if number == 18:
+        result["local_fingerprints"] = local_fps
+        # Keep the latest occurrence of each shape at the end, including after a finite cycle.
+        merged = [*local_fps, *(fp for _, fp, _, _ in reversed(recent))]
+        result["recent_fingerprints"] = list(reversed(dict.fromkeys(reversed(merged))))
+    elif number == 16:
         result["other_mode_fingerprints"] = [fp for _, fp, _, mix in recent if mix != for_mix]
     else:
         result["recent_fingerprints"] = list(

@@ -5,6 +5,7 @@ import random
 from app.math.oge8 import (
     ENABLED_FAMILIES,
     MAX_CANDIDATES,
+    R05,
     SEEDS_PER_FAMILY,
     generate,
     verify_problem,
@@ -40,6 +41,10 @@ def build_task8_candidate_batch(state: dict[str, object], seed: int) -> list[dic
                 problem = generate(family_id, rng.randrange(2**63))
             except (ArithmeticError, RuntimeError, ValueError):
                 continue
+            if family_id == R05:
+                left, right, denominator = problem.parameters
+                if denominator in (left, right):
+                    continue
             if not verify_problem(problem) or problem.fingerprint in seen:
                 continue
             seen.add(problem.fingerprint)

@@ -119,7 +119,7 @@ class TelegramSession(BaseSession):
 
 async def exercise_navigation(
     repository, *, expired_stale_ack=False, expire_all_acks=False, webhook=False, graphics=False,
-    cycle_number=None
+    saved17=False, cycle_number=None
 ):
     session = TelegramSession()
     session.expired_acks = expire_all_acks
@@ -194,6 +194,50 @@ async def exercise_navigation(
         original_menu = list(session.messages.values())[-1]
         await click("nav:numbers")
         assert await repository.user_state(42) == "number_selection"
+        if saved17:
+
+            async def numbers_to_17():
+                await click("nav:numbers:1")
+                await click("nav:numbers:2")
+                await click("nav:task:17")
+
+            await numbers_to_17()
+            await click("nav:family:17:random")
+            await click("nav:begin:17")
+            state = await repository.task17_state(42)
+            saved = state["problem"]
+            pid = saved["problem_id"]
+            await click(f"t17:menu:{pid}")
+            await click("nav:numbers")
+            await numbers_to_17()
+            old = list(session.messages.values())[-1]
+            await click(f"nav:tr:r:17:{pid}")
+            await click(f"nav:tr:n:17:{pid}")
+            fresh = list(session.messages.values())[-1]
+            repository = PostgresRepository(repository._pool)
+            dispatcher = Dispatcher()
+            dispatcher.include_router(build_router())
+            await click(f"nav:tr:c:17:{pid}", old)
+            assert session.calls[-1].text.startswith("Это меню устарело")
+            await click(f"nav:tr:c:17:{pid}", fresh)
+            assert await repository.user_state(42) == "task17"
+            assert (await repository.task17_state(42))["problem"] == saved
+            await click(f"t17:menu:{pid}")
+            await click("nav:resume")
+            assert await repository.user_state(42) == "task17"
+            assert (await repository.task17_state(42))["problem"] == saved
+            await click(f"t17:menu:{pid}")
+            await click("nav:numbers")
+            await numbers_to_17()
+            await click("nav:families:17")
+            await click("nav:family:17:0")
+            await click("nav:begin:17")
+            await click(f"nav:tr:r:17:{pid}")
+            await click(f"nav:tr:y:17:{pid}")
+            after = (await repository.task17_state(42))["problem"]
+            assert after["problem_id"] != pid
+            assert after["family_id"] == await repository.training_family(42, 17)
+            return
         if cycle_number is not None:
             from app.persistence.rotation_history import enabled
 
@@ -205,6 +249,7 @@ async def exercise_navigation(
             await click(f"nav:begin:{n}")
             families = enabled(n)
             previous_last = None
+            kinds = []
             for _ in range(2):
                 seen = []
                 for pos in range(len(families)):
@@ -216,6 +261,8 @@ async def exercise_navigation(
                     state = await getattr(repository, f"task{n}_state")(42)
                     problem = state["problem"]
                     seen.append(problem["family_id"])
+                    if n == 19:
+                        kinds.append((problem["question_kind"], len(problem["answer_mask"])))
                     original = list(session.messages.values())[-1]
                     skip = f"t{n}:skip:{problem['problem_id']}"
                     await click(skip, original)
@@ -227,6 +274,9 @@ async def exercise_navigation(
                 assert set(seen) == set(families)
                 assert seen[0] != previous_last
                 previous_last = seen[-1]
+            if n == 19:
+                assert kinds == [("find_true", 1), ("find_true", 2),
+                                 ("find_false", 1), ("find_false", 2)] * 3
             return
         # Same message ID, previous keyboard revision: must not change the screen.
         session.expired_acks = expired_stale_ack or expire_all_acks
@@ -387,18 +437,24 @@ async def exercise_navigation(
             for button in row
             if (button.callback_data or "").startswith("progress:item:")
         )
+        detail_call_start = len(session.calls)
         await click(item_action)
         error_detail = list(session.messages.values())[-1]
+        assert "Исходное условие:" in (error_detail.text or "")
         assert "Ошибка была: да" in (error_detail.text or "")
         condition = str(restarted["problem"]["condition"])
         delivery = next(
-            call for call in reversed(session.calls)
+            call for call in reversed(session.calls[detail_call_start:])
             if call.__api_method__ in {"sendRichMessage", "sendMessage", "editMessageText"}
         )
         if delivery.__api_method__ == "sendRichMessage":
+            from app.bot.family_display import typeset_family_text
             from app.bot.presentation import format_rich_message
 
-            assert format_rich_message(condition) in delivery.rich_message.html
+            # The history view formats the original snapshot's family before
+            # serializing Rich HTML, including №6's mixed-number fraction.
+            rich_condition = typeset_family_text(condition, restarted["problem"])
+            assert format_rich_message(rich_condition) in delivery.rich_message.html
         else:
             assert condition in (error_detail.text or "")
         return_action = next(
@@ -489,10 +545,23 @@ async def exercise_navigation(
                 assert all(call.photo.data.startswith(b"\x89PNG\r\n\x1a\n") for call in photos)
                 if number == 11:
                     import base64
+                    from io import BytesIO
 
-                    assert photos[0].photo.data == base64.b64decode(
-                        issued["problem"]["png_base64"], validate=True
-                    )
+                    from PIL import Image, ImageChops
+
+                    from app.math.oge11_render import PLOT, ROW_HEIGHT
+
+                    raw = base64.b64decode(issued["problem"]["png_base64"], validate=True)
+                    with Image.open(BytesIO(raw)) as source, Image.open(
+                        BytesIO(photos[0].photo.data)
+                    ) as sent:
+                        for i, (x, y) in enumerate(((10, 35), (434, 35), (222, 466))):
+                            offset = i * ROW_HEIGHT
+                            rect = (PLOT[0] - 2, offset + PLOT[1] - 2,
+                                    PLOT[2] + 3, offset + PLOT[3] + 3)
+                            plot = source.convert("RGB").crop(rect)
+                            visible = sent.crop((x, y, x + plot.width, y + plot.height))
+                            assert ImageChops.difference(plot, visible).getbbox() is None
                 if number == 13:
                     from app.math.inequalities import render_option_sheet_snapshot_png
 
@@ -637,3 +706,7 @@ async def test_dispatcher_postgres_with_production_container_assets(
 @pytest.mark.parametrize("number", range(6, 20))
 async def test_ordinary_random_menu_commits_two_cycles(navigation_pool, number):
     await exercise_navigation(PostgresRepository(navigation_pool), cycle_number=number)
+
+
+async def test_task17_saved_menu_after_process_restart(navigation_pool):
+    await exercise_navigation(PostgresRepository(navigation_pool), saved17=True)

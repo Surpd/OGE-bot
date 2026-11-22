@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Any, cast
 
 LEGACY_GENERATOR_VERSION = "oge19-triples-1"
-GENERATOR_VERSION = "oge19-triples-4"
+GENERATOR_VERSION = "oge19-triples-5"
 SUPPORTED_GENERATOR_VERSIONS = frozenset(
-    {"oge19-triples-2", "oge19-triples-3", GENERATOR_VERSION}
+    {"oge19-triples-2", "oge19-triples-3", "oge19-triples-4", GENERATOR_VERSION}
 )
 LEGACY_ANSWER_POLICY_ID = "oge19.answer-single-true"
 LEGACY_ANSWER_POLICY_VERSION = "1"
@@ -190,6 +190,8 @@ class Triple:
     answer_policy_id: str = ANSWER_POLICY_ID
     answer_policy_version: str = ANSWER_POLICY_VERSION
 
+    find_false: bool = False
+
     def snapshot(self) -> dict[str, object]:
         body: dict[str, object] = {
             "snapshot_schema_version": SNAPSHOT_SCHEMA_VERSION,
@@ -201,6 +203,8 @@ class Triple:
             "answer_mask": self.answer_mask,
             "statements": [statement.to_dict() for statement in self.statements],
         }
+        if self.generator_version == GENERATOR_VERSION:
+            body["question_kind"] = "find_false" if self.find_false else "find_true"
         body["content_hash"] = _digest(body)
         return body
 
@@ -223,8 +227,22 @@ def refresh_snapshot_digest(snapshot: dict[str, object]) -> None:
     snapshot["content_hash"] = _digest(body)
 
 
-def answer_mask(statements: tuple[Statement, ...] | list[Statement]) -> str:
-    return "".join(str(index) for index, statement in enumerate(statements, 1) if statement.is_true)
+def question_heading(find_false: bool) -> str:
+    if find_false:
+        return (
+            "Тренировочный вариант. Какие из следующих утверждений неверны? "
+            "В ответ запишите их номера."
+        )
+    return "Какие из следующих утверждений верны? В ответ запишите их номера."
+
+
+def answer_mask(
+    statements: tuple[Statement, ...] | list[Statement], *, find_false: bool = False
+) -> str:
+    return "".join(
+        str(index) for index, statement in enumerate(statements, 1)
+        if statement.is_true != find_false
+    )
 
 
 THEME_TOPICS = {
@@ -256,6 +274,19 @@ INCOMPATIBLE_PROPOSITION_PAIRS = frozenset(
 )
 
 
+# Two different source cards can ask a learner to judge the very same theorem.
+# Keep the published v4 selection intact for historical seed reproduction.
+V5_INCOMPATIBLE_PAIRS = INCOMPATIBLE_PROPOSITION_PAIRS | {
+    frozenset({"triangle.equal_angles_equal_sides", "triangle.isosceles_base_angles_converse"}),
+    frozenset({"triangle.median_bisects_angle", "triangle.any_median_angle_bisector"}),
+    frozenset({"congruence.equal_area", "triangle.congruent_same_area_only"}),
+    frozenset({"circle.tangent_segments_equal", "circle.external_point_tangents_equal"}),
+    frozenset({
+        "triangle.two_equal_angles_equilateral", "triangle.isosceles_equal_sides_all_angles"
+    }),
+}
+
+
 def grade_band_tier(grade_band: str) -> int:
     """Use the upper school grade in the reviewed band as a rough difficulty proxy."""
     try:
@@ -274,12 +305,16 @@ def generate(
     *,
     generator_version: str = GENERATOR_VERSION,
     theme: str | None = None,
+    find_false: bool = False,
+    target_count: int | None = None,
     recent_proposition_ids: tuple[str, ...] = (),
     excluded_fingerprints: frozenset[str] = frozenset(),
     correct_position_counts: tuple[int, int, int] = (0, 0, 0),
 ) -> Triple:
     """Build a deterministic exam-format triple with bounded learner history."""
-    if generator_version != GENERATOR_VERSION:
+    if generator_version not in {GENERATOR_VERSION, "oge19-triples-4"} or (
+        generator_version != GENERATOR_VERSION and (find_false or target_count is not None)
+    ):
         raise ValueError(f"Unsupported generator version: {generator_version}")
     rng = random.Random(seed)
     pool = [
@@ -292,7 +327,13 @@ def generate(
     # Prefer unseen atomic ideas; if history exhausts a small theme pool, relax it
     # deterministically and keep generation total rather than spinning.
     fresh = [item for item in pool if item.proposition_id not in set(recent_proposition_ids[-30:])]
-    true_count = 1 + (seed % 2)
+    count = 1 + seed % 2 if target_count is None else target_count
+    if count not in (1, 2):
+        raise ValueError("Expected one or two requested statements")
+    true_count = 3 - count if find_false else count
+    if find_false:
+        a, b, c = correct_position_counts
+        correct_position_counts = (-a, -b, -c)
     if sum(item.is_true for item in fresh) >= true_count and sum(
         not item.is_true for item in fresh
     ) >= 3 - true_count:
@@ -327,6 +368,10 @@ def generate(
     combinations_for_task = (
         (*true_group, *false_group) for true_group in true_groups for false_group in false_groups
     )
+    incompatible = (
+        V5_INCOMPATIBLE_PAIRS if generator_version == GENERATOR_VERSION
+        else INCOMPATIBLE_PROPOSITION_PAIRS
+    )
     for selected in combinations_for_task:
         if anchor not in selected:
             continue
@@ -334,7 +379,7 @@ def generate(
             frozenset((first.proposition_id, second.proposition_id))
             for first, second in combinations(selected, 2)
         )
-        if any(pair in INCOMPATIBLE_PROPOSITION_PAIRS for pair in proposition_pair_keys):
+        if any(pair in incompatible for pair in proposition_pair_keys):
             continue
         # Avoid presenting two claims taken from the same source question as if
         # they were independently sampled assertions.
@@ -384,7 +429,13 @@ def generate(
                 false_statements[0] if index == false_position else true_statements.pop()
             )
     chosen = cast(tuple[Statement, Statement, Statement], tuple(chosen_list))
-    triple = Triple(chosen, answer_mask(chosen), seed, generator_version)
+    triple = Triple(
+        chosen,
+        answer_mask(chosen, find_false=find_false),
+        seed,
+        generator_version,
+        find_false=find_false,
+    )
     validate_snapshot(triple.snapshot())
     return triple
 
@@ -424,7 +475,27 @@ def validate_snapshot(snapshot: Mapping[str, Any]) -> None:
         raise ValueError("An OGE19 triple must contain three distinct propositions")
     if schema == 1 and len({item.topic for item in statements}) != 3:
         raise ValueError("An OGE19 legacy triple must mix three topics")
-    actual_mask = answer_mask(statements)
+    if version == GENERATOR_VERSION:
+        if (len({s.source_task_id for s in statements}) != 3 or any(
+            frozenset((a.proposition_id, b.proposition_id)) in V5_INCOMPATIBLE_PAIRS
+            for a, b in combinations(statements, 2)
+        )):
+            raise ValueError("Incompatible statements in the same OGE19 task")
+    kind = snapshot.get("question_kind", None if version == GENERATOR_VERSION else "find_true")
+    if kind not in {"find_true", "find_false"} or (
+        version != GENERATOR_VERSION and kind != "find_true"
+    ):
+        raise ValueError("Incompatible question kind")
+    find_false = kind == "find_false"
+    actual_mask = answer_mask(statements, find_false=find_false)
+    if version == GENERATOR_VERSION and "condition" in snapshot:
+        expected = (
+            question_heading(find_false)
+            + "\n\n"
+            + "\n".join(f"{i}. {item.statement}" for i, item in enumerate(statements, 1))
+        )
+        if snapshot["condition"] != expected or snapshot.get("correct_answer") != actual_mask:
+            raise ValueError("Question disagrees with statement selection")
     valid_count = (
         len(actual_mask) == 1
         if policy is LEGACY_POLICY
@@ -489,6 +560,7 @@ def restore(snapshot: Mapping[str, Any]) -> Triple:
         restored_version,
         str(snapshot.get("answer_policy_id", LEGACY_ANSWER_POLICY_ID)),
         str(snapshot.get("answer_policy_version", LEGACY_ANSWER_POLICY_VERSION)),
+        snapshot.get("question_kind") == "find_false",
     )
 
 

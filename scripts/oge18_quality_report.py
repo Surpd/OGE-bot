@@ -28,6 +28,7 @@ from app.math.oge18 import (  # noqa: E402
     SOURCES,
     from_snapshot,
     generate,
+    source_url,
 )
 from app.math.oge18_oracle import answer, answer_family  # noqa: E402
 from app.math.oge18_render import (  # noqa: E402
@@ -39,6 +40,7 @@ from app.math.oge18_render import (  # noqa: E402
 
 PUBLIC_ENABLED: tuple[str, ...] = ENABLED_FAMILIES
 LOW_CAPACITY = {
+    "OGE18-C01": 5,
     "OGE18-D05": 3,
     "OGE18-L02": 21,
     "OGE18-L01": 6,
@@ -126,7 +128,9 @@ def run() -> dict[str, object]:
         (directory / f"{family}-compact-v3-seed0.png").write_bytes(previews[0][1])
         if new and family in LOW_CAPACITY:
             quality_status = (
-                "verified_finite" if family in {"OGE18-L01", "OGE18-H01"} else "math_hold"
+                "verified_finite"
+                if family in {"OGE18-L01", "OGE18-H01", "OGE18-C01"}
+                else "math_hold"
             )
             if quality_status == "verified_finite" and len(seen) != LOW_CAPACITY[family]:
                 raise AssertionError(f"Incomplete finite bank: {family}")
@@ -147,12 +151,14 @@ def run() -> dict[str, object]:
             )
         records[family] = {
             "qa_status": quality_status,
-            "source_status": "catalog_visual_verified"
+            "source_status": "official_demo_verified"
+            if family == "OGE18-C01"
+            else "catalog_visual_verified"
             if new
             else "prior_reference_visual_verified",
             "public_enabled": family in PUBLIC_ENABLED,
             "source_id": SOURCES[family],
-            "source_url": f"https://math-oge.sdamgia.ru/problem?id={SOURCES[family]}",
+            "source_url": source_url(SOURCES[family]),
             "generator_version": version,
             "renderer_version": VERSION_V3,
             "learner_content_version": LEARNER_CONTENT_VERSION if new else 1,
@@ -213,6 +219,7 @@ def run() -> dict[str, object]:
             "The original eight compact v3 sheets were inspected at 360px, "
             "with 20 distinct variants per family where available, 3 for D05, and 6 for A05. "
             "All six L01 and five H01 normalized shapes were inspected at 360px. "
+            "The new sheets show 20 A06, 20 A07 and all five C01 shapes. "
             "The pixel audit also verifies 360px and 390px resizing and equal grid-cell dimensions."
         ),
         "manual_contact_sheet_review": {
@@ -220,6 +227,11 @@ def run() -> dict[str, object]:
             "compact_v3_widths": [360],
             "new_families_reviewed": list(ORIGINAL_V2_FAMILIES),
             "widths": [360, 720],
+            "new_compact_sheet_variants_reviewed": {
+                "OGE18-A06": 20,
+                "OGE18-A07": 20,
+                "OGE18-C01": 5,
+            },
             "distinct_variants_seen": {
                 "OGE18-D05": 3,
                 "OGE18-L02": 20,

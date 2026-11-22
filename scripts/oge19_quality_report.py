@@ -14,14 +14,54 @@ from app.math.oge19 import (
     EXAM_FORMAT,
     GENERATOR_VERSION,
     STATEMENTS,
+    STATEMENTS_BY_ID,
     THEME_TOPICS,
     check_answer,
     generate,
     grade_band_tier,
     validate_snapshot,
 )
+from app.math.oge19_scheduler import ENABLED_FAMILIES, build_task19_candidate_batch
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def training_series(length: int = 40) -> dict[str, object]:
+    """Use the issued snapshot and bounded history for each explicit theme."""
+    report = {}
+    for family in ENABLED_FAMILIES:
+        state: dict[str, object] = {}
+        recent: list[str] = []
+        forms: Counter[str] = Counter()
+        for index in range(length):
+            batch = build_task19_candidate_batch(state, 202700 + index, enabled_families=(family,))
+            if not batch:
+                raise AssertionError((family, index, "empty issue"))
+            q = batch[0]
+            false = index % 4 >= 2
+            selected = "".join(
+                str(position)
+                for position, claim in enumerate(q["statements"], 1)
+                if STATEMENTS_BY_ID[claim["id"]].is_true != false
+            )
+            if (
+                q["question_kind"] != ("find_false" if false else "find_true")
+                or q["answer_mask"] != selected
+                or len(selected) != 1 + index % 2
+                or q["fingerprint"] in recent
+                or not check_answer(q, selected[::-1])
+            ):
+                raise AssertionError((family, index, "invalid issued form"))
+            forms[f"{q['question_kind']}_{len(selected)}"] += 1
+            recent = [*recent, q["fingerprint"]][-30:]
+            state = {
+                "question_phase": q["_question_phase_after"],
+                "recent_proposition_ids": q["_recent_proposition_ids_after"],
+                "correct_position_counts": q["_correct_position_counts_after"],
+                "recent_fingerprints": recent,
+            }
+        report[family] = dict(forms)
+    return report
 
 
 def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, object]:
@@ -104,6 +144,7 @@ def build_report(samples: int = 500, unique_target: int = 200) -> dict[str, obje
         "exam_format": EXAM_FORMAT,
         "fipi_demo_2027_task_19": {"true_statements": 1, "answer": "1"},
         "theme_samples": themes,
+        "training_series": training_series(),
         "fipi_format_source": (
             "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2027/ma_9_2027.zip"
         ),

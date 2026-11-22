@@ -56,9 +56,16 @@ def test_grid_scheduler_skips_exhausted_shapes_before_rendering(monkeypatch):
     monkeypatch.setattr(oge18_scheduler, "generate", render)
     build = oge18_scheduler.build_task18_candidate_batch
     (result,) = build(state, 42, enabled_families=(distance, area))
-    assert (result["family_id"], result["selection_attempts"]) == (area, 13)
+    assert (result["family_id"], result["selection_attempts"]) == (area, 1)
     assert result["fingerprint"] not in seen
-    assert result["_family_queue_after"] == []
+    assert result["_family_queue_after"] == [distance]
     assert state["family_queue"] == [distance, area]
-    assert build(state, 42, enabled_families=(distance,)) == []
     render.assert_called_once()
+    # Once the alternative has been served, the outstanding type must still
+    # finish the cycle. It reuses its least recently shown shape.
+    (last,) = build({**state, "family_queue": result["_family_queue_after"]}, 42,
+                    enabled_families=(distance, area))
+    assert last["family_id"] == distance
+    assert last["fingerprint"] == state["recent_fingerprints"][0]
+    assert last["_family_queue_after"] == []
+    assert render.call_count == 2

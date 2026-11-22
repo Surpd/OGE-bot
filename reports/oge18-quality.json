@@ -42,9 +42,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 13.601,
-        "repeat_restore_sha_and_renderer_bytes": 13.554,
-        "full_pixel_audit_smoke": 50.413
+        "generation_and_png_hash": 46.141,
+        "repeat_restore_sha_and_renderer_bytes": 49.09,
+        "full_pixel_audit_smoke": 187.288
       },
       "hold_reason": null
     },
@@ -84,9 +84,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 11.541,
-        "repeat_restore_sha_and_renderer_bytes": 11.347,
-        "full_pixel_audit_smoke": 35.028
+        "generation_and_png_hash": 30.226,
+        "repeat_restore_sha_and_renderer_bytes": 26.489,
+        "full_pixel_audit_smoke": 120.107
       },
       "hold_reason": null
     },
@@ -114,9 +114,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 3,
       "performance_ms_median": {
-        "generation_and_png_hash": 12.495,
-        "repeat_restore_sha_and_renderer_bytes": 12.427,
-        "full_pixel_audit_smoke": 40.078
+        "generation_and_png_hash": 18.789,
+        "repeat_restore_sha_and_renderer_bytes": 35.201,
+        "full_pixel_audit_smoke": 145.382
       },
       "hold_reason": "Finite implemented parameter model has exactly 3 normalized shapes; no synthetic novelty added."
     },
@@ -147,9 +147,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 9.333,
-        "repeat_restore_sha_and_renderer_bytes": 10.27,
-        "full_pixel_audit_smoke": 32.07
+        "generation_and_png_hash": 10.273,
+        "repeat_restore_sha_and_renderer_bytes": 10.709,
+        "full_pixel_audit_smoke": 68.72
       },
       "hold_reason": "Finite implemented parameter model has exactly 21 normalized shapes; no synthetic novelty added."
     },
@@ -218,9 +218,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 11.369,
-        "repeat_restore_sha_and_renderer_bytes": 11.585,
-        "full_pixel_audit_smoke": 35.698
+        "generation_and_png_hash": 13.035,
+        "repeat_restore_sha_and_renderer_bytes": 15.661,
+        "full_pixel_audit_smoke": 70.135
       },
       "hold_reason": null
     },
@@ -282,9 +282,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 9.721,
-        "repeat_restore_sha_and_renderer_bytes": 8.922,
-        "full_pixel_audit_smoke": 27.491
+        "generation_and_png_hash": 11.224,
+        "repeat_restore_sha_and_renderer_bytes": 10.586,
+        "full_pixel_audit_smoke": 62.725
       },
       "hold_reason": "Finite implemented parameter model has exactly 130 normalized shapes; no synthetic novelty added."
     },
@@ -329,9 +329,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 20,
       "performance_ms_median": {
-        "generation_and_png_hash": 10.962,
-        "repeat_restore_sha_and_renderer_bytes": 10.715,
-        "full_pixel_audit_smoke": 32.875
+        "generation_and_png_hash": 13.522,
+        "repeat_restore_sha_and_renderer_bytes": 25.863,
+        "full_pixel_audit_smoke": 112.371
       },
       "hold_reason": "Finite implemented parameter model has exactly 75 normalized shapes; no synthetic novelty added."
     },
@@ -362,9 +362,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 6,
       "performance_ms_median": {
-        "generation_and_png_hash": 11.048,
-        "repeat_restore_sha_and_renderer_bytes": 11.012,
-        "full_pixel_audit_smoke": 34.847
+        "generation_and_png_hash": 11.751,
+        "repeat_restore_sha_and_renderer_bytes": 16.218,
+        "full_pixel_audit_smoke": 74.844
       },
       "hold_reason": "Finite implemented parameter model has exactly 6 normalized shapes; no synthetic novelty added."
     },
@@ -392,9 +392,9 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 6,
       "performance_ms_median": {
-        "generation_and_png_hash": 11.788,
-        "repeat_restore_sha_and_renderer_bytes": 11.566,
-        "full_pixel_audit_smoke": 36.503
+        "generation_and_png_hash": 25.898,
+        "repeat_restore_sha_and_renderer_bytes": 14.49,
+        "full_pixel_audit_smoke": 69.11
       },
       "hold_reason": null
     },
@@ -424,9 +424,254 @@
       "full_pixel_audit_count": 50,
       "contact_sheet_distinct_variants": 5,
       "performance_ms_median": {
-        "generation_and_png_hash": 17.964,
-        "repeat_restore_sha_and_renderer_bytes": 15.007,
-        "full_pixel_audit_smoke": 43.329
+        "generation_and_png_hash": 18.716,
+        "repeat_restore_sha_and_renderer_bytes": 24.995,
+        "full_pixel_audit_smoke": 94.487
+      },
+      "hold_reason": null
+    },
+    "OGE18-A06": {
+      "qa_status": "implemented_closed",
+      "source_status": "catalog_visual_verified",
+      "public_enabled": true,
+      "source_id": "323790",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=323790",
+      "generator_version": "oge18-grid-2",
+      "renderer_version": "oge18-pillow-3",
+      "learner_content_version": 2,
+      "smoke_seed_count": 50,
+      "candidate_count": 300,
+      "seed_attempts_for_novelty": 300,
+      "unique_content_fingerprints": 280,
+      "known_model_capacity_note": "At least 200 distinct normalized model fingerprints found within the 1200-seed budget.",
+      "answers": {
+        "5.5": 1,
+        "8": 2,
+        "8.5": 3,
+        "9": 4,
+        "9.5": 1,
+        "10": 1,
+        "10.5": 1,
+        "11": 8,
+        "11.5": 4,
+        "12.5": 2,
+        "13": 6,
+        "13.5": 2,
+        "14": 2,
+        "14.5": 7,
+        "15": 3,
+        "15.5": 3,
+        "16": 4,
+        "16.5": 4,
+        "17": 6,
+        "17.5": 3,
+        "18": 11,
+        "18.5": 5,
+        "19": 12,
+        "19.5": 4,
+        "20": 3,
+        "20.5": 5,
+        "21": 7,
+        "21.5": 5,
+        "22": 5,
+        "22.5": 2,
+        "23": 15,
+        "23.5": 1,
+        "24": 5,
+        "24.5": 3,
+        "25": 3,
+        "25.5": 3,
+        "26": 5,
+        "26.5": 4,
+        "27": 5,
+        "27.5": 3,
+        "28": 4,
+        "28.5": 4,
+        "29": 3,
+        "29.5": 3,
+        "30": 3,
+        "30.5": 1,
+        "31": 2,
+        "31.5": 1,
+        "32": 1,
+        "32.5": 1,
+        "33": 2,
+        "33.5": 3,
+        "34": 4,
+        "34.5": 2,
+        "35": 1,
+        "35.5": 2,
+        "36": 1,
+        "36.5": 2,
+        "37": 1,
+        "37.5": 3,
+        "38": 3,
+        "38.5": 2,
+        "39": 7,
+        "39.5": 1,
+        "40": 3,
+        "41": 4,
+        "41.5": 1,
+        "42": 3,
+        "42.5": 1,
+        "43": 1,
+        "43.5": 2,
+        "44": 4,
+        "44.5": 1,
+        "45": 2,
+        "46": 1,
+        "47": 3,
+        "47.5": 2,
+        "48": 1,
+        "49": 3,
+        "50": 5,
+        "51.5": 1,
+        "52": 1,
+        "53": 1,
+        "53.5": 3,
+        "54": 1,
+        "54.5": 3,
+        "55": 2,
+        "55.5": 1,
+        "56.5": 1,
+        "57.5": 2,
+        "59": 2,
+        "59.5": 1,
+        "60": 1,
+        "60.5": 1,
+        "61": 1,
+        "62": 1,
+        "62.5": 2,
+        "63": 1,
+        "63.5": 1,
+        "67.5": 2,
+        "70": 1,
+        "74.5": 1,
+        "76": 1,
+        "82": 1
+      },
+      "independent_oracle_failures": 0,
+      "versioned_png_restore_failures": 0,
+      "full_pixel_audit_count": 50,
+      "contact_sheet_distinct_variants": 20,
+      "performance_ms_median": {
+        "generation_and_png_hash": 12.465,
+        "repeat_restore_sha_and_renderer_bytes": 12.421,
+        "full_pixel_audit_smoke": 74.659
+      },
+      "hold_reason": null
+    },
+    "OGE18-A07": {
+      "qa_status": "implemented_closed",
+      "source_status": "catalog_visual_verified",
+      "public_enabled": true,
+      "source_id": "341675",
+      "source_url": "https://math-oge.sdamgia.ru/problem?id=341675",
+      "generator_version": "oge18-grid-2",
+      "renderer_version": "oge18-pillow-3",
+      "learner_content_version": 2,
+      "smoke_seed_count": 50,
+      "candidate_count": 300,
+      "seed_attempts_for_novelty": 300,
+      "unique_content_fingerprints": 287,
+      "known_model_capacity_note": "At least 200 distinct normalized model fingerprints found within the 1200-seed budget.",
+      "answers": {
+        "11": 2,
+        "12": 1,
+        "13": 3,
+        "14": 1,
+        "15": 2,
+        "16": 4,
+        "17": 4,
+        "18": 4,
+        "19": 6,
+        "20": 2,
+        "21": 2,
+        "22": 6,
+        "23": 6,
+        "24": 11,
+        "25": 5,
+        "26": 8,
+        "27": 10,
+        "28": 9,
+        "29": 8,
+        "30": 9,
+        "31": 13,
+        "32": 7,
+        "33": 7,
+        "34": 10,
+        "35": 5,
+        "36": 5,
+        "37": 9,
+        "38": 16,
+        "39": 5,
+        "40": 10,
+        "41": 2,
+        "42": 9,
+        "43": 4,
+        "44": 7,
+        "45": 10,
+        "46": 9,
+        "47": 3,
+        "48": 6,
+        "49": 4,
+        "50": 6,
+        "51": 6,
+        "52": 5,
+        "53": 1,
+        "54": 6,
+        "55": 2,
+        "56": 3,
+        "57": 1,
+        "58": 5,
+        "60": 1,
+        "61": 2,
+        "62": 3,
+        "63": 1,
+        "64": 8,
+        "68": 3,
+        "69": 1,
+        "72": 1,
+        "80": 1
+      },
+      "independent_oracle_failures": 0,
+      "versioned_png_restore_failures": 0,
+      "full_pixel_audit_count": 50,
+      "contact_sheet_distinct_variants": 20,
+      "performance_ms_median": {
+        "generation_and_png_hash": 17.625,
+        "repeat_restore_sha_and_renderer_bytes": 14.318,
+        "full_pixel_audit_smoke": 89.758
+      },
+      "hold_reason": null
+    },
+    "OGE18-C01": {
+      "qa_status": "verified_finite",
+      "source_status": "official_demo_verified",
+      "public_enabled": true,
+      "source_id": "FIPI-2026-DEMO-18",
+      "source_url": "https://doc.fipi.ru/oge/demoversii-specifikacii-kodifikatory/2026/ma_9_2026.zip",
+      "generator_version": "oge18-grid-2",
+      "renderer_version": "oge18-pillow-3",
+      "learner_content_version": 2,
+      "smoke_seed_count": 50,
+      "candidate_count": 300,
+      "seed_attempts_for_novelty": 300,
+      "unique_content_fingerprints": 5,
+      "known_model_capacity_note": "Finite implemented parameter model has exactly 5 normalized shapes; no synthetic novelty added.",
+      "answers": {
+        "2": 171,
+        "4.5": 78,
+        "8": 51
+      },
+      "independent_oracle_failures": 0,
+      "versioned_png_restore_failures": 0,
+      "full_pixel_audit_count": 50,
+      "contact_sheet_distinct_variants": 5,
+      "performance_ms_median": {
+        "generation_and_png_hash": 24.267,
+        "repeat_restore_sha_and_renderer_bytes": 27.143,
+        "full_pixel_audit_smoke": 34.736
       },
       "hold_reason": null
     }
@@ -440,12 +685,12 @@
     "public_enabled"
   ],
   "status_counts": {
-    "implemented_closed": 3,
+    "implemented_closed": 5,
+    "verified_finite": 3,
     "source_hold": 0,
     "math_hold": 5,
     "visual_hold": 0,
-    "public_enabled": 10,
-    "verified_finite": 2
+    "public_enabled": 13
   },
   "smoke_samples_per_family": 50,
   "main_candidate_target": 300,
@@ -455,7 +700,7 @@
     390,
     430
   ],
-  "visual_review": "The original eight compact v3 sheets were inspected at 360px, with 20 distinct variants per family where available, 3 for D05, and 6 for A05. All six L01 and five H01 normalized shapes were inspected at 360px. The pixel audit also verifies 360px and 390px resizing and equal grid-cell dimensions.",
+  "visual_review": "The original eight compact v3 sheets were inspected at 360px, with 20 distinct variants per family where available, 3 for D05, and 6 for A05. All six L01 and five H01 normalized shapes were inspected at 360px. The new sheets show 20 A06, 20 A07 and all five C01 shapes. The pixel audit also verifies 360px and 390px resizing and equal grid-cell dimensions.",
   "manual_contact_sheet_review": {
     "compact_v3_families_reviewed": [
       "OGE18-M01",
@@ -467,7 +712,10 @@
       "OGE18-A04",
       "OGE18-A05",
       "OGE18-L01",
-      "OGE18-H01"
+      "OGE18-H01",
+      "OGE18-A06",
+      "OGE18-A07",
+      "OGE18-C01"
     ],
     "compact_v3_widths": [
       360
@@ -493,6 +741,11 @@
       "OGE18-A05": 6,
       "OGE18-L01": 6,
       "OGE18-H01": 5
+    },
+    "new_compact_sheet_variants_reviewed": {
+      "OGE18-A06": 20,
+      "OGE18-A07": 20,
+      "OGE18-C01": 5
     }
   },
   "live_telegram_mobile_smoke": "not_performed; no public release claim",
@@ -506,7 +759,10 @@
     "OGE18-A04",
     "OGE18-A05",
     "OGE18-L01",
-    "OGE18-H01"
+    "OGE18-H01",
+    "OGE18-A06",
+    "OGE18-A07",
+    "OGE18-C01"
   ],
   "source_originals_embedded": false,
   "preview_policy": "Maximum 20 distinct generated PNG per family in compact v3 360px contact sheets; one compact v3 seed0 PNG retained per family; existing previews retained."

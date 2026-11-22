@@ -42,7 +42,7 @@ def answer_instruction(number: int, snapshot: Mapping[str, object]) -> str:
     if number == 19:
         if snapshot.get("answer_policy_id") == "oge19.answer-single-true":
             return "Введите номер верного утверждения: 1, 2 или 3."
-        return "Введите номера верных утверждений подряд, например 13."
+        return "Введите номера выбранных утверждений подряд, например 13."
     return "Напишите ответ в чат."
 
 

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops
 
+from app.bot.diagram_layout import mobile_diagram
 from app.bot.explicit_math import plain_text
 from app.bot.family_display import template_format, typeset_family_text
 from app.bot.math_image import _explicit_formula, _formula, render_math_image
@@ -52,7 +53,7 @@ def previews(dest):
         ("OGE24-common-tangent-ratio", "O₂T₂/ O₁T₁ = PO₂/PO₁ = r₂/r₁"),
         ("OGE13-L01", r"\(a\ne b\), \(a\in A\), \(x\le 3\)"),
     ])
-    for width in (360, 390):
+    for width in (360, 390, 430):
         mobile(width, family_text).save(family_dir / f"fractions-{width}.png")
         mobile(width).save(dest / f"formulas-{width}.png")
         mobile(width, statement_text(example), figure(drawing["path"])).save(
@@ -91,11 +92,12 @@ def fields():
         families, build = _ordinary_generator(number)
         for family in families:
             q = build(family, 2027).to_snapshot()
+            photo = _render_image(number, q)
             steps = q["solution"]
             yield (
                 "ordinary",
-                family,
-                {0: _render_image(number, q)},
+                q,
+                {0: mobile_diagram(photo, q) if photo else None},
                 system_rows(number, q),
                 [
                     question_text(number, q),
@@ -107,7 +109,7 @@ def fields():
     for card in map(json.loads, (ATLAS / "tasks.jsonl").read_text().splitlines()):
         yield (
             "written",
-            card["subtype_id"],
+            card,
             {
                 0 if v["role"] == "condition" else len(card["hints"]) + 1: figure(v["path"])
                 for v in card["visuals"]
@@ -119,7 +121,7 @@ def fields():
 
 def main():
     counts = Counter()
-    min_gutter = {360: 360, 390: 390}
+    min_gutter = {360: 360, 390: 390, 430: 430}
     tallest = 0
     for origin, identity, drawings, rows, texts in fields():
         counts[origin] += 1
@@ -135,7 +137,9 @@ def main():
                 if image.getbbox() is None:
                     raise ValueError((origin, span.source))
             if template == "png" or spans or drawings.get(index):
-                png = render_math_image(text, drawings.get(index), rows if index == 0 else None)
+                rendered_rows = (tuple(typeset_family_text(row, identity) for row in rows)
+                                 if index == 0 and rows else None)
+                png = render_math_image(text, drawings.get(index), rendered_rows)
                 with Image.open(io.BytesIO(png)) as scene:
                     tallest = max(tallest, scene.height)
                     for width in min_gutter:

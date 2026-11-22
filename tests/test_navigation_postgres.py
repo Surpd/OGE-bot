@@ -350,7 +350,7 @@ async def test_postgres_late_next_send_cannot_replace_new_number_as_last_used(
     original_send_text = router.send_text
 
     async def delayed_send(message, repo, text, **kwargs):
-        if text.startswith("Задание №6 ·"):
+        if text.startswith("Задание №6\n"):
             entered_send.set()
             await finish_send.wait()
         return await original_send_text(message, repo, text, **kwargs)

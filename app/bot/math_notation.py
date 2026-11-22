@@ -89,6 +89,8 @@ class _Parser:
                         pos += 1
             elif source[pos : pos + 2] in {"<=", ">=", "!="}:
                 pos += 2
+            elif source.startswith("tg", pos):
+                pos += 2
             elif source.startswith("sin", pos) or source.startswith("cos", pos):
                 pos += 3
             else:
@@ -245,9 +247,13 @@ class _Parser:
         if token == "√":
             grouped = self.peek() == "("
             radicand = self.atom(depth + 1)
+            if grouped and re.fullmatch(r"\\left\(\d+\\right\)", radicand):
+                radicand = radicand.removeprefix(r"\left(").removesuffix(r"\right)")
             if not grouped and self.peek() in {"^", *_SUPER}:
                 raise ValueError("Unbounded radical scope")
             return r"\sqrt{" + radicand + "}"
+        if token == "tg":
+            return r"\mathrm{tg}\," + self.atom(depth + 1)
         if token in {"sin", "cos"}:
             return "\\" + token + " " + self.atom(depth + 1)
         if token in _GREEK or token == "∞":
@@ -286,7 +292,7 @@ def _unsafe_fraction(latex: str) -> bool:
             pos += 1
         denominator = normalized[pos:].removeprefix("{").lstrip()
         denominator = denominator.removeprefix(r"\left").lstrip("( ")
-        if re.match(r"(?:[+-]\s*)?\d+\s*(?:[A-Za-z]|\\[a-z]+|\()", denominator):
+        if re.match(r"(?:[+-]\s*)?\d+\s*(?:[A-Za-z]|\\(?!cdot\b|times\b)[a-z]+|\()", denominator):
             return True
     return False
 
@@ -335,7 +341,28 @@ def _inferred_spans(source: str) -> list[Span]:
         start = pos
         mathematical = source[pos] in (_CHARS - set(" .,*/·×:^_=<>!≤≥≠]);∈∪"))
         if mathematical:
+            brackets = 0
             while pos < len(source) and source[pos] in _CHARS:
+                # In “Выразим C: C = …” the first variable belongs to the
+                # Russian clause. A colon inside “Вычислите 12 : 3” is division.
+                if (
+                    source[pos] == ":"
+                    and re.search(
+                        r"(?i)\b(?:выразим|найд[её]м|получим|обозначим|вычислим|определим)\s+$",
+                        source[:start],
+                    )
+                    and re.fullmatch(r"[A-Za-zΑ-ω][₀-₉]*", source[start:pos].strip())
+                ):
+                    break
+                # A semicolon separates clauses except within an interval or
+                # another bracketed construction such as (−2; 3].
+                char = source[pos]
+                if char == ";" and not brackets:
+                    break
+                if char in "([":
+                    brackets += 1
+                elif char in ")]":
+                    brackets = max(0, brackets - 1)
                 # Sentence punctuation is not a decimal separator.
                 if source[pos] in ".," and not (
                     pos > start

@@ -208,3 +208,30 @@ def test_partition_extreme_proportions_render_and_replay(base, height):
 
     item = _pack("OGE17-P03", 0, {"base": base, "height": height})
     assert audit_math(item.to_snapshot()) == Fraction(3 * base * height, 4)
+
+
+def test_p07_readable_geometry_in_the_entire_parameter_range_and_formerly_failing_seed():
+    import math
+
+    from app.math.oge17_generator import _p07_parameters
+
+    changed = []
+    for bd in range(12, 71):
+        for ac in range(max(10, bd * 17 // 20), bd * 23 // 20 + 1):
+            lower = max(abs(ac - bd) // 2 + 2, min(ac, bd) // 3)
+            for ab in range(lower, min(ac, bd) // 2 + 1):
+                params = _p07_parameters(ac, bd, ab)
+                if params["ab"] != ab:
+                    changed.append((ac, bd, ab))
+                points = build("OGE17-P07", params)["points"]
+                a, b, c, d = (points[key] for key in "ABCD")
+                assert math.dist(a, c) == pytest.approx(ac)
+                assert math.dist(b, d) == pytest.approx(bd)
+                assert math.dist(a, b) == pytest.approx(params["ab"])
+                width = max(x for x, _ in (a, b, c, d)) - min(x for x, _ in (a, b, c, d))
+                assert abs(b[1] - a[1]) >= width / 5
+    assert changed == [(11, 14, 3)]
+    saved = generate("OGE17-P07", 926507482832593720).to_snapshot()
+    assert saved["correct_answer"] == "7"
+    assert saved["exact_model"]["parameters"] == {"ac": 11, "bd": 14, "ab": 4}
+    assert from_snapshot(saved, expected_problem_id=saved["problem_id"]).to_snapshot() == saved

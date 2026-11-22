@@ -24,6 +24,9 @@ ASSET_ROLE = {"condition", "solution"}
 
 
 FIXED_PROOFS = {
+    "A24-cyclic-external-03": "explicit_equal_secant_distances_from_M",
+    "A24-cyclic-converse-01": "inscribed_angle_and_common_arc",
+    "A24-common-tangent-ratio-05": "correct_correspondence_of_tangent_legs",
     "311573": "restored_internal_feet_from_source_diagram",
     "155": "restored_internal_points_from_source_diagram",
     "A24-cyclic-external-02": "secant_through_center",

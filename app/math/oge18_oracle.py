@@ -60,6 +60,19 @@ def answer(points: tuple[Point, ...]) -> Fraction:
 
 def answer_family(family: str, points: tuple[Point, ...]) -> Fraction:
     """Independent integer-coordinate oracle for the six audited grid structures."""
+    if family == "OGE18-C01":
+        a, b, c, d = points
+        if any(type(v) is not int or not 2 <= v <= 17 for p in points for v in p):
+            raise ValueError("Invalid grid radius")
+        if not (a[1] == b[1] and b[0] > a[0] and d[0] - c[0] == d[1] - c[1] > 0):
+            raise ValueError("Circle radii do not follow the source construction")
+        small = sum((x - y) ** 2 for x, y in zip(a, b, strict=True))
+        large = sum((x - y) ** 2 for x, y in zip(c, d, strict=True))
+        distance = sum((x - y) ** 2 for x, y in zip(a, c, strict=True))
+        gap = distance - small - large
+        if small >= large or gap <= 0 or gap**2 <= 4 * small * large:
+            raise ValueError("Disks must have different areas and be disjoint")
+        return Fraction(large,small)
     if family == "OGE18-D05":
         if len(points) != 2 or points[0] == points[1]:
             raise ValueError("Distance requires two distinct points")
@@ -94,6 +107,24 @@ def answer_family(family: str, points: tuple[Point, ...]) -> Fraction:
                 if aa != bb and isqrt(aa) ** 2 == aa and isqrt(bb) ** 2 == bb and hyp == aa + bb:
                     return Fraction(max(isqrt(aa), isqrt(bb)))
         raise ValueError("No unique larger perpendicular integer leg")
+    if family in {"OGE18-A06", "OGE18-A07"}:
+        if any(type(v) is not int or not 2 <= v <= 17 for p in points for v in p):
+            raise ValueError("Off-grid polygon")
+        if family == "OGE18-A06":
+            a, b, c, d = points
+            valid = a[0] == d[0] < b[0] < c[0] and a[1] == b[1] < c[1] < d[1]
+        else:
+            a, b, c, d, e, f, g, h = points
+            valid = (
+                a[0] == h[0] < d[0] == e[0] < min(b[0], f[0])
+                and a[1] == b[1] < c[1] == d[1] < e[1] == f[1] < g[1] == h[1]
+                and b[0] == c[0]
+                and f[0] == g[0]
+            )
+        if not valid:
+            raise ValueError("Polygon topology inconsistent with the source structure")
+        polygon_edges = zip(points, (*points[1:], points[0]), strict=True)
+        return Fraction(abs(sum(x * v - y * u for (x, y), (u, v) in polygon_edges)), 2)
     if family not in {"OGE18-L01", "OGE18-A01", "OGE18-A03", "OGE18-A04", "OGE18-A05"}:
         raise ValueError("Unknown family")
     if len(points) != (3 if family == "OGE18-A03" else 4):

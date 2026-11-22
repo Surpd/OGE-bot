@@ -19,7 +19,8 @@ from uuid import NAMESPACE_URL, uuid5
 
 from app.math.oge11_render import render_graphs
 
-GENERATOR_VERSION = "0.2.0"
+LEGACY_GENERATOR_VERSION = "0.2.0"
+GENERATOR_VERSION = "0.2.1"
 RENDERER_VERSION = "0.3.0"
 POLICY_ID = "oge11.three-digit-bijection"
 POLICY_VERSION = "1"
@@ -392,9 +393,9 @@ def _generate_candidate(
 ) -> Oge11Problem:
     if family_id not in FAMILIES:
         raise ValueError(f"Unknown task-11 family: {family_id}")
-    if generator_version != GENERATOR_VERSION:
+    if generator_version not in {LEGACY_GENERATOR_VERSION, GENERATOR_VERSION}:
         raise ValueError(f"Unsupported generator version: {generator_version}")
-    rng = random.Random(f"{family_id}|{seed}|{retry_seed}|{generator_version}")
+    rng = random.Random(f"{family_id}|{seed}|{retry_seed}|{LEGACY_GENERATOR_VERSION}")
     sign_pairs = (
         cast(
             tuple[tuple[int, int], ...],
@@ -458,7 +459,11 @@ def _generate_candidate(
     )
     image_hash = hashlib.sha256(png).hexdigest()
     problem_id = str(uuid5(NAMESPACE_URL, f"oge11:{family_id}:{seed}:{generator_version}"))
-    solution = _build_solution(family_id, graphs, letter_graph_ids, digit_graph_ids, answer_kind)
+    solution = (
+        _legacy_solution(family_id, graphs, letter_graph_ids, digit_graph_ids, answer_kind)
+        if generator_version == LEGACY_GENERATOR_VERSION
+        else graph_solution(graphs, letter_graph_ids, digit_graph_ids, answer_kind)
+    )
     fingerprint = _semantic_fingerprint(
         family_id, graphs, letter_graph_ids, digit_graph_ids, condition, image_hash, viewport
     )
@@ -587,7 +592,46 @@ def from_snapshot(value: dict[str, object], *, audit_raster: bool = True) -> Oge
     return result
 
 
-def _build_solution(
+def graph_solution(
+    graphs: tuple[Graph, ...], letters: tuple[int, ...], digits: tuple[int, ...], answer_kind: str
+) -> tuple[str, ...]:
+    steps = []
+    for letter, index in zip(_LETTERS, letters, strict=True):
+        graph = graphs[index]
+        option = digits.index(index) + 1
+        if graph.kind == "linear":
+            k, b = graph.coefficients
+            direction = "возрастает" if k > 0 else "убывает"
+            reason = (
+                f"Прямая {direction}. При x = 0 ордината равна {_fraction_text(b)}. "
+                f"При увеличении x на 1 изменение y равно {_fraction_text(k)}."
+            )
+        elif graph.kind == "constant":
+            reason = (
+                f"Прямая горизонтальна. При любом x ордината одна и та же: "
+                f"y = {_fraction_text(graph.coefficients[0])}."
+            )
+        elif graph.kind == "inverse":
+            (q,) = graph.coefficients
+            quarters = "I и III" if q > 0 else "II и IV"
+            reason = (
+                f"Ветви гиперболы лежат в {quarters} четвертях. Произведение x и y "
+                f"постоянно: при x = 1 получаем y = {_fraction_text(q)}."
+            )
+        else:
+            a, b, c = graph.coefficients
+            axis = -b / (2 * a)
+            direction = "вверх" if a > 0 else "вниз"
+            reason = (
+                f"Ветви параболы направлены {direction}. При x = 0 получаем "
+                f"y = {_fraction_text(c)}. Абсцисса вершины равна {_fraction_text(axis)}."
+            )
+        target = "вариант" if answer_kind in {"formula_options", "signs"} else "график"
+        steps.append(f"{letter}. {reason} Подходит {target} {option}.")
+    return (*steps, "Запишите номера соответствующих объектов в порядке А, Б, В.")
+
+
+def _legacy_solution(
     family: str,
     graphs: tuple[Graph, Graph, Graph],
     letters: tuple[int, int, int],
@@ -655,6 +699,10 @@ def _audit_solution(problem: Oge11Problem) -> bool:
     """Check each written step from the graph models without using the builder."""
     if len(problem.solution) != 4:
         return False
+    if problem.generator_version == GENERATOR_VERSION:
+        return problem.solution == graph_solution(
+            problem.graphs, problem.letter_graph_ids, problem.digit_graph_ids, problem.answer_kind
+        )
     expected_steps: list[str] = []
     for letter, graph_id in zip(_LETTERS, problem.letter_graph_ids, strict=True):
         graph = problem.graphs[graph_id]
@@ -692,7 +740,7 @@ def verify(problem: Oge11Problem, *, audit_raster: bool = True) -> tuple[bool, s
     """Independent semantic and raster audit; returns a stable failure category."""
     if problem.family_id not in FAMILIES:
         return False, "unknown family"
-    if problem.generator_version != GENERATOR_VERSION:
+    if problem.generator_version not in {LEGACY_GENERATOR_VERSION, GENERATOR_VERSION}:
         return False, "unsupported generator version"
     if problem.renderer_version != RENDERER_VERSION:
         return False, "unsupported renderer version"
