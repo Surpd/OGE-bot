@@ -383,3 +383,12 @@ async def test_replay_navigation_allows_two_consecutive_data_requests(monkeypatc
         assert sum(c.__api_method__ == 'sendPhoto' for c in transport.calls) == 2
     finally:
         await bot.session.close()
+
+
+def test_completed_replay_keeps_progress_navigation_and_data_is_in_history():
+    from app.bot.navigation import navigation_screen
+
+    markup = error_replay._keyboard('synthetic', completed=True, scenario=True)
+    assert navigation_screen(markup) == 'progress'
+    assert all(not b.callback_data.startswith('replay:')
+               for row in markup.inline_keyboard for b in row)

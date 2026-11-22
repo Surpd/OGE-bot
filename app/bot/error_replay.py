@@ -52,7 +52,7 @@ def _keyboard(
                 InlineKeyboardButton(text="📘 Разбор", callback_data=f"replay:{token}:s"),
             ]
         )
-    if scenario:
+    if scenario and not completed:
         rows.append([InlineKeyboardButton(
             text="📷 Схема / данные", callback_data=f"replay:{token}:d",
         )])
