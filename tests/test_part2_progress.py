@@ -417,6 +417,14 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         other = await bank.current(42)
         assert other["number"] == 22
         assert await bank_pool.fetchval("SELECT count(*) FROM part2_issues WHERE number=22") == 1
+        previous = await bank.current(42, issue)
+        assert other["prompt_message_id"] != previous["prompt_message_id"]
+        await post(
+            message=photo_message(
+                "wrong-card", reply=telegram.messages[previous["prompt_message_id"]]
+            )
+        )
+        assert not (await bank.current(42))["draft"]
         current = other
         await post(message=photo_message("graph", caption="Черновик графика."))
         # The photo confirmation intentionally has only Check/Remove. /start preserves the draft.

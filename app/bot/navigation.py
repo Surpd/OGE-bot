@@ -111,8 +111,12 @@ async def bind_navigation(
 class NavigationMessage:
     """Use the tapping user, never the bot sender of the menu, for existing handlers."""
 
-    def __init__(self, message: Message, callback: CallbackQuery, repository: Repository) -> None:
+    def __init__(
+        self, message: Message, callback: CallbackQuery, repository: Repository,
+        *, edit_navigation: bool = True,
+    ) -> None:
         self._message = message
+        self._edit_navigation = edit_navigation
         self._repository = repository
         self.from_user = callback.from_user
         self.text = ""
@@ -122,7 +126,7 @@ class NavigationMessage:
 
     async def answer(self, text: str, **kwargs: Any) -> Message:
         screen = navigation_screen(kwargs.get("reply_markup"))
-        if screen is not None:
+        if screen is not None and self._edit_navigation:
             try:
                 edit_kwargs = kwargs.copy()
                 edit_kwargs.pop("reply_parameters", None)
@@ -282,7 +286,10 @@ async def navigation_callback(
         or data.startswith("nav:tr:")
     ):
         await oge15_repository.pause_foreground(callback.from_user.id)
-    message = cast(Message, NavigationMessage(callback.message, callback, repository))
+    # Written condition IDs must never be reused by editing another card in place.
+    message = cast(Message, NavigationMessage(
+        callback.message, callback, repository, edit_navigation=not data.startswith("p2:")
+    ))
     if data.startswith("p2:"):
         from app.bot.part2 import action as part2_action
         await answer_callback(callback)
