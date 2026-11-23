@@ -37,6 +37,13 @@ async def check(
     *,
     photo_message: int | None = None,
 ) -> None:
+    from app.config import test_settings
+
+    if test_settings.get() is not None:
+        from app.companion.photo import simulate
+
+        await simulate(message, repo, owner, controls(row))
+        return
     s = get_settings()
     issue, revision = row["id"], row["revision"]
     if not available(s) or s.openai_api_key is None:

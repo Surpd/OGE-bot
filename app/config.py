@@ -1,3 +1,4 @@
+from contextvars import ContextVar
 from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
@@ -15,6 +16,9 @@ class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str | None = None
     telegram_bot_token: str | None = None
+    # Optional companion settings are validated only in its background startup.
+    telegram_test_bot_token: SecretStr | None = None
+    telegram_test_owner_ids: str = ""
     telegram_webhook_secret: str | None = None
     webhook_base_url: str | None = None
     oge_part2_enabled: bool = False
@@ -33,6 +37,20 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
 
+test_settings: ContextVar[Settings | None] = ContextVar("test_settings", default=None)
+
+
 @lru_cache
-def get_settings() -> Settings:
+def _default_settings() -> Settings:
     return Settings()
+
+
+class SettingsProvider:
+    def __call__(self) -> Settings:
+        return test_settings.get() or _default_settings()
+
+    def cache_clear(self) -> None:
+        _default_settings.cache_clear()
+
+
+get_settings = SettingsProvider()

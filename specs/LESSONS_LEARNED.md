@@ -64,3 +64,5 @@
 воспроизводит именно причину; избегай записи одноразовой истории коммита.
 
 | LL-36 | Обязательные данные сюжета | Текстовый каталог убирался из контекста, но PNG выбирался лишь для части зависимых семейств; соседний вопрос Mix не давал вернуть данные. | Сверять входные операнды каждой активной семьи с фактическим payload до вопроса во всех путях; сохранять повторный доступ и останавливать выдачу при недоставленных данных. | №1–5 | `tests/test_scenario_required_materials.py`, [матрица](../reports/scenario-material-coverage.csv) | covered offline |
+
+| LL-companion | Two bot identities / PostgreSQL | Optional test bot must not reuse primary webhook, data namespace or global model settings. | Start independently; fail closed before user lookup; dedicated pool without public fallback; task-local settings and client-level model kill switch. Scope migration constraint checks to current_schema. | Companion in one web process | `tests/test_companion_runtime.py`, `tests/test_companion_qa.py` | covered offline / PG17; phone acceptance pending |
