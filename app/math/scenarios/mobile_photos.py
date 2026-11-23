@@ -495,6 +495,15 @@ _QUESTION_PHOTO_INDEXES: dict[str, tuple[int, ...]] = {
     "TYRES-TABLE-EXTREME": (0,),
     "PAPER-F01": (0,),
     "PAPER-F03": (0,),
+    "PAPER-F04": (0,),
+    "PAPER-F06": (0,),
+    "PAPER-F07": (0,),
+    "STOVE-F01-CAPACITY-LIMITS": (0,),
+    "STOVE-F06-PURCHASE-EXTRA-COSTS": (0,),
+    "STOVE-F07-FIT-WOOD-DELIVERY": (0,),
+    "STOVE-F08-COST-COMPARISON": (0,),
+    "STOVE-F09-DIRECT-DISCOUNT": (0,),
+    "STOVE-F10-REVERSE-DISCOUNT": (0,),
     "STOVE-F02-ATTRIBUTE-MATCH": (0,),
     "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS": (0,),
     "STOVE-F12-ARCH-RADIUS": (1,),
@@ -542,6 +551,11 @@ def scenario_photos_for_question(
     photos = scenario_photos(snapshot)
     # Some pre-table GARDEN snapshots legitimately have no heating PNG. Keep
     # those immutable legacy sessions resumable instead of failing to render.
-    return tuple(
-        photos[index] for index in dict.fromkeys(indexes) if index < len(photos)
-    )
+    missing = [index for index in indexes if index >= len(photos)]
+    if missing and not (
+        snapshot.story_code == "GARDEN" and missing == [1]
+        and snapshot.generator_version in {"garden-sosnovka-1.0", "garden-sosnovka-1.1",
+                                           "garden-sosnovka-1.2", "garden-sosnovka-1.3"}
+    ):
+        raise ValueError("Required scenario material is missing")
+    return tuple(photos[index] for index in dict.fromkeys(indexes) if index < len(photos))
