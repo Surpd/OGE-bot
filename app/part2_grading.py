@@ -125,10 +125,18 @@ def ceiling(s: Settings) -> Decimal:
 
 
 def available(s: Settings) -> bool:
+    from app.config import test_settings
+
+    if test_settings.get() is not None:
+        return False
     return bool(s.oge_grading_enabled and s.openai_api_key and s.oge_grading_model == MODEL)
 
 
 def open_client(s: Settings) -> AsyncOpenAI:
+    from app.config import test_settings
+
+    if test_settings.get() is not None:
+        raise RuntimeError("External models forbidden in test bot")
     if not s.openai_api_key or s.oge_grading_model != MODEL:
         raise ValueError("Нет ключа или выбрана неподдерживаемая модель.")
     return AsyncOpenAI(

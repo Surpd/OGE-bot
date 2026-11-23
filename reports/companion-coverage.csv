@@ -1,0 +1,18 @@
+requirement,evidence,limit
+optional absent/invalid/same token,tests/test_companion_runtime.py::test_optional_failure_never_gates_primary,offline Telegram
+slow startup/shutdown independent,tests/test_companion_runtime.py::test_slow_optional_startup_and_shutdown_do_not_wait_for_telegram,offline Telegram
+owner private forwarding callbacks,tests/test_companion_qa.py::test_all_entry_points_enforce_owner_and_private_chat,plus real dispatcher owner rejection
+webhook secrets bot identity dedup two sessions,tests/test_companion_runtime.py::test_real_pg_isolation_two_sessions_cross_routes_and_restart,PostgreSQL17 synthetic
+schema no public fallback,tests/test_companion_runtime.py::test_namespace_never_falls_back_to_public,PostgreSQL17 synthetic
+reject unmarked schema,tests/test_companion_runtime.py::test_unmarked_namespace_is_not_adopted,no automatic adoption
+paid client task local guard,tests/test_companion_qa.py::test_context_model_kill_switch,plus runtime context task isolation
+student photo no model no grades,tests/test_companion_qa.py::test_clean_student_photo_uses_real_upload_flow_but_no_model,synthetic file marker only
+exact stove materials before condition,tests/test_companion_materials.py,23/12/20 equivalent not original screenshot
+phone menu exact snapshots all five positions,tests/test_companion_qa.py::test_phone_search_archive_diagnostics_and_first_five,offline dispatch
+student resume history exact restart,tests/test_companion_qa.py::test_postgres_restart_isolation_history_and_clean_student,test history only
+reset own test session,tests/test_companion_qa.py::test_reset_only_test_owner_and_preserves_exact_archive,last twelve snapshots retained
+Rich rejection PNG plain fallback,tests/test_companion_qa.py::test_delivery_rejection_fallback_and_uncertain_send,plus simulated grade PNG rejection
+numbers 6-19 versioned generators,tests/test_companion_qa.py::test_every_number_uses_its_existing_family_and_version,only enabled families
+OGE16-D01 seed19,tests/test_companion_qa.py::test_frozen_regressions_and_seed_contract,KNOWN RED not fixed
+production material routes from106,tests/test_scenario_required_materials.py,first-five full single Mix history replay
+last twelve snapshots retain recency after JSONB,tests/test_companion_qa.py::test_last_twelve_snapshots_keep_recency_through_jsonb,explicit ordered array

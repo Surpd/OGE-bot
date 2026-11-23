@@ -85,9 +85,11 @@ async def _assert_no_duplicate_active_sessions(connection: asyncpg.Connection, m
         )
 
 
-async def _run_schema_migrations(pool: asyncpg.Pool) -> None:
+async def _run_schema_migrations(
+    pool: asyncpg.Pool, *, lock_id: int = _MIGRATION_LOCK_ID
+) -> None:
     async with pool.acquire() as connection:
-        await connection.execute("SELECT pg_advisory_lock($1)", _MIGRATION_LOCK_ID)
+        await connection.execute("SELECT pg_advisory_lock($1)", lock_id)
         try:
             await connection.execute(
                 """CREATE TABLE IF NOT EXISTS app_schema_migrations (
@@ -132,7 +134,7 @@ async def _run_schema_migrations(pool: asyncpg.Pool) -> None:
                     "INSERT INTO app_schema_migrations (version) VALUES ($1)", version
                 )
         finally:
-            await connection.execute("SELECT pg_advisory_unlock($1)", _MIGRATION_LOCK_ID)
+            await connection.execute("SELECT pg_advisory_unlock($1)", lock_id)
 
 
 def create_app(
@@ -229,9 +231,15 @@ def create_app(
             from app.persistence.part2_grades import maintain_work
 
             maintenance = asyncio.create_task(maintain_work(pool))
+        from app.companion.runtime import Companion
+
+        companion = Companion(settings, telegram_bot.id)
+        application.state.companion = companion
+        companion.start()  # Optional background startup never gates primary readiness.
         try:
             yield
         finally:
+            await companion.close()
             if maintenance:
                 maintenance.cancel()
                 with suppress(asyncio.CancelledError):
@@ -246,6 +254,27 @@ def create_app(
     @application.get("/health")
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @application.post("/telegram/test-webhook")
+    async def test_webhook(
+        request: Request,
+        x_telegram_bot_api_secret_token: str | None = Header(default=None),
+    ) -> Response:
+        companion = getattr(request.app.state, "companion", None)
+        if companion is None or not companion.accepts(x_telegram_bot_api_secret_token):
+            raise HTTPException(status_code=403, detail="Forbidden")
+        try:
+            payload = await request.json()
+            if (not isinstance(payload, dict) or type(payload.get("update_id")) is not int
+                    or payload["update_id"] < 0):
+                raise ValueError("Invalid update")
+            await companion.feed(payload)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid update") from None
+        except Exception as exc:
+            logger.warning("companion_update_failed type=%s", type(exc).__name__)
+            # An explicit retry from the owner is safe; automatic replay may double-send.
+        return Response(status_code=200)
 
     @application.post("/telegram/webhook")
     async def telegram_webhook(

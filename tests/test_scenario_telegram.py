@@ -359,7 +359,7 @@ def test_each_public_story_builds_single_and_full_from_one_validated_snapshot(
     "story_code, expected_indexes",
     [
         ("TYRES", ((1, 0), (1,), (1,), (1,), (1,))),
-        ("PAPER", ((1, 0), (1,), (1, 0), (1,), (1,))),
+        ("PAPER", ((1, 0), (1,), (1, 0), (1, 0), (1, 0))),
         ("STOVE", ((0,), (), (), (0,), (1,))),
         ("TARIFF", ((0,), (0,), (0,), (), (1,))),
         ("GARDEN", ((0,), (0,), (0,), (0,), (1,))),

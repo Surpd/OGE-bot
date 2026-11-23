@@ -13,7 +13,7 @@ DO $$
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM pg_constraint
-        WHERE conname = 'issued_problems_outcome_check'
+        WHERE connamespace = current_schema()::regnamespace AND conname = 'issued_problems_outcome_check'
     ) THEN
         ALTER TABLE issued_problems
             ADD CONSTRAINT issued_problems_outcome_check
@@ -21,14 +21,14 @@ BEGIN
     END IF;
     IF NOT EXISTS (
         SELECT 1 FROM pg_constraint
-        WHERE conname = 'issued_problems_hints_used_check'
+        WHERE connamespace = current_schema()::regnamespace AND conname = 'issued_problems_hints_used_check'
     ) THEN
         ALTER TABLE issued_problems
             ADD CONSTRAINT issued_problems_hints_used_check CHECK (hints_used >= 0);
     END IF;
     IF NOT EXISTS (
         SELECT 1 FROM pg_constraint
-        WHERE conname = 'issued_problems_selection_attempts_check'
+        WHERE connamespace = current_schema()::regnamespace AND conname = 'issued_problems_selection_attempts_check'
     ) THEN
         ALTER TABLE issued_problems
             ADD CONSTRAINT issued_problems_selection_attempts_check

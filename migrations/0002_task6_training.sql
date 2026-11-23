@@ -4,7 +4,7 @@ DO $$
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM pg_constraint
-        WHERE conname = 'sessions_active_problem_id_fkey'
+        WHERE connamespace = current_schema()::regnamespace AND conname = 'sessions_active_problem_id_fkey'
     ) THEN
         ALTER TABLE sessions
             ADD CONSTRAINT sessions_active_problem_id_fkey
