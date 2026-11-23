@@ -503,3 +503,19 @@ async def test_reset_only_test_owner_and_preserves_exact_archive(staging_pool):
         assert (await h.state())["card"] == exact
     finally:
         await h.bot.session.close()
+
+
+async def test_student_start_keeps_the_ordinary_navigation_contract(harness):
+    h = harness
+    await h.message("/start")
+    await h.click("exit")
+    await h.message("№6 · Вычисления")
+    before = await h.repository.task6_state(42)
+    await h.message("/start")
+    assert not (await h.state())["active"]
+    assert await h.repository.user_state(42) == "main_menu"
+    assert (await h.repository.task6_state(42))["problem"] == before["problem"]
+    await h.click("nav:resume")
+    assert (await h.repository.task6_state(42))["problem"] == before["problem"]
+    await h.message("🔬 Проверки")
+    assert (await h.state())["active"]

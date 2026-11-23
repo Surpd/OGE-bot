@@ -161,12 +161,20 @@ class CompanionMiddleware(BaseMiddleware):
                     "Тестовый бот: внешние API запрещены. Фото проверяется заглушкой."
                 )
                 return None
-            if command in {"/qa", "/start"} or (incoming and incoming.text == "🔬 Проверки"):
+            if (
+                command == "/qa"
+                or (command == "/start" and (state.get("active") or not state.get("visited")))
+                or (incoming and incoming.text == "🔬 Проверки")
+            ):
                 state["visited"] = True
                 await message.answer(f"Тестовый бот · кандидат {self.sha}")
                 await desk.home(message)
                 return None
-            if callback and (callback.data or "").startswith("qa:"):
+            if command == "/start":
+                # In student mode /start follows the ordinary menu/pause contract.
+                handled = True
+                after = "menu"
+            elif callback and (callback.data or "").startswith("qa:"):
                 handled = True
                 parts = (callback.data or "").split(":", 2)
                 if (
