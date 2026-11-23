@@ -199,8 +199,9 @@ class CompanionMiddleware(BaseMiddleware):
                         raise RuntimeError("Reset requires isolated storage")
                     await repository.reset_owner(owner)
                     archive = state.get("archive", {})
+                    order = state.get("archive_order", list(archive))
                     state.clear()
-                    state.update(archive=archive, sha=self.sha)
+                    state.update(archive=archive, archive_order=order, sha=self.sha)
                     await desk.home(message)
                 else:
                     try:

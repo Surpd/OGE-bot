@@ -15,3 +15,4 @@ Rich rejection PNG plain fallback,tests/test_companion_qa.py::test_delivery_reje
 numbers 6-19 versioned generators,tests/test_companion_qa.py::test_every_number_uses_its_existing_family_and_version,only enabled families
 OGE16-D01 seed19,tests/test_companion_qa.py::test_frozen_regressions_and_seed_contract,KNOWN RED not fixed
 production material routes from106,tests/test_scenario_required_materials.py,first-five full single Mix history replay
+last twelve snapshots retain recency after JSONB,tests/test_companion_qa.py::test_last_twelve_snapshots_keep_recency_through_jsonb,explicit ordered array

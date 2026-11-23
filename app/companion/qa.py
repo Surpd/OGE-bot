@@ -10,7 +10,7 @@ from aiogram.types import InlineKeyboardMarkup, Message
 
 from app.bot import error_replay, part2
 from app.bot.presentation import send_text
-from app.bot.scenario_training import public_registry
+from app.bot.scenario_training import STORY_NAMES, public_registry
 from app.companion.catalog import STARTERS, bank_cards, fixture, generate, identity
 from app.companion.photo import NOTICE, simulate
 from app.math.scenario_engine import PracticeMode
@@ -103,7 +103,7 @@ class Desk:
     async def choices(self, message: Message, number: int, page: int) -> None:
         if number <= 5:
             items = [
-                (story, story)
+                (STORY_NAMES.get(story, story), story)
                 for story in public_registry().available_stories(PracticeMode.SINGLE, number)
             ]
         elif number <= 19:
@@ -166,9 +166,14 @@ class Desk:
         card = copy.deepcopy(card)
         key = identity(card)
         archive = self.state.setdefault("archive", {})
+        order = self.state.setdefault("archive_order", list(archive))
+        if key in order:
+            order.remove(key)
+        order.append(key)
         archive[key] = card
-        while len(archive) > 12:
-            del archive[next(iter(archive))]
+        # JSONB sorts object keys; recency must be persisted as an explicit array.
+        while len(order) > 12:
+            archive.pop(order.pop(0), None)
         self.state.update(card=card, card_id=key, source_id=str(uuid4()), photo=False)
         self.state.pop("pending", None)
         self.sandbox._training_error_replays = {}  # type: ignore[attr-defined]
@@ -288,7 +293,10 @@ class Desk:
                 "Последние точные снимки этого тестового бота:",
                 [
                     [(f"№{card['number']} · {key}", f"arch:{key}")]
-                    for key, card in reversed(list(self.state.get("archive", {}).items()))
+                    for key in reversed(
+                        self.state.get("archive_order", list(self.state.get("archive", {})))
+                    )
+                    for card in [self.state["archive"][key]]
                 ]
                 + [[("К проверкам", "home")]],
             )

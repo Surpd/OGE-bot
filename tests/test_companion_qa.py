@@ -519,3 +519,36 @@ async def test_student_start_keeps_the_ordinary_navigation_contract(harness):
     assert (await h.repository.task6_state(42))["problem"] == before["problem"]
     await h.message("🔬 Проверки")
     assert (await h.state())["active"]
+
+
+async def test_last_twelve_snapshots_keep_recency_through_jsonb(staging_pool, monkeypatch):
+    from app.companion.middleware import state_for
+    from app.companion.qa import Desk
+
+    pool, settings, repo = staging_pool
+    h = Harness(repo, settings)
+    cards = [generate(6, enabled(6)[0], seed) for seed in range(15)]
+
+    async def no_delivery(self, message):
+        pass  # This regression targets storage order, not presentation.
+
+    monkeypatch.setattr(Desk, "render", no_delivery)
+    try:
+        message = await h.message("/start")
+        for card in cards:
+            async with state_for(repo, 42) as state:
+                desk = Desk(state, repo, 42)
+                await desk.prepare()
+                await desk.open(message, card)
+        saved = await h.state()
+        expected = [identity(card) for card in cards[-12:]]
+        assert saved["archive_order"] == expected
+        assert set(saved["archive"]) == set(expected)
+        assert identity(cards[0]) not in saved["archive"]
+        async with state_for(repo, 42) as state:
+            await Desk(state, repo, 42).open(message, cards[10])
+        assert (await h.state())["archive_order"] == [
+            key for key in expected if key != identity(cards[10])
+        ] + [identity(cards[10])]
+    finally:
+        await h.bot.session.close()
