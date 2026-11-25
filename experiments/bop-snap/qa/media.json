@@ -1,0 +1,9 @@
+{
+  "webm_alpha_vs_master_all_72_frames": {
+    "maximum_absolute_error_0_255": 1,
+    "mean_absolute_error_0_255": 0.13862
+  },
+  "webm_max_per_frame_visible_rgb_mae_0_255": 2.149,
+  "gif_decoded_duration_ms": 3000,
+  "gif_frames": 75
+}
