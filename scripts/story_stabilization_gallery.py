@@ -37,9 +37,7 @@ from app.persistence.scenario_repository import ScenarioPostgresRepository, Scen
 
 STORIES = ("TYRES", "PAPER", "STOVE", "TARIFF", "GARDEN", "FLAT")
 WIDTHS = (360, 390, 430)
-OUT = Path(
-    r"C:\Users\mitya\.codex\visualizations\2026\11\25\01a21309-32d3-7d51-8b7c-434987d3435b\oge-story-gallery"
-)
+OUT = ROOT / "build" / "oge-story-gallery"
 
 
 class OfflineCaptureSession(BaseSession):
@@ -273,7 +271,7 @@ async def generate() -> None:
 
     html_doc = (
         """<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OGE · офлайн-галерея payload</title><style>
-body{margin:0;background:#eef2f7;color:#182434;font:15px/1.5 system-ui,sans-serif}header{padding:26px max(20px,calc((100vw - 1200px)/2));background:#13243a;color:white}h1{margin:0 0 8px}header p{max-width:850px;color:#d4deeb}main{max-width:1200px;margin:auto;padding:20px}section{margin:24px 0;padding:20px;background:#fff;border-radius:18px;box-shadow:0 4px 18px #14253b12}h3{margin:0 0 14px}.row{display:flex;gap:14px;align-items:flex-start;overflow:auto;padding-bottom:8px}.message{flex:0 0 min(var(--phone),calc(100vw - 64px));max-width:var(--phone);border:1px solid #d8e1ea;border-radius:16px;background:#f6f8fb;padding:10px;box-sizing:border-box}.message small{display:block;color:#52657a;margin:0 4px 8px}.bubble{background:white;border-radius:13px;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 3px #14253b14}.bubble b{color:#152d48}.bubble.media{padding:5px}.bubble img{display:block;width:100%;height:auto;border-radius:9px}details{margin:8px 4px}pre{white-space:pre-wrap;overflow-wrap:anywhere;color:#42546b;font-size:12px}a{display:inline-block;margin:8px;color:#1769aa}
+body{margin:0;background:#eef2f7;color:#182434;font:15px/1.5 system-ui,sans-serif}header{padding:26px max(20px,calc((100vw - 1200px)/2));background:#13243a;color:white}h1{margin:0 0 8px}header p{max-width:850px;color:#d4deeb}main{max-width:1200px;margin:auto;padding:20px}section{margin:24px 0;padding:20px;background:#fff;border-radius:18px;box-shadow:0 4px 18px #14253b12}h3{margin:0 0 14px}.row{display:flex;gap:14px;align-items:flex-start;overflow:auto;padding-bottom:8px}.message{flex:0 0 min(var(--phone),calc(100vw - 64px));max-width:var(--phone);border:1px solid #d8e1ea;border-radius:16px;background:#f6f8fb;padding:10px;box-sizing:border-box}.message small{display:block;color:#52657a;margin:0 4px 8px}.bubble{background:white;border-radius:13px;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 3px #14253b14}.bubble p{margin:0 0 .65rem}.bubble p:last-child{margin-bottom:0}.bubble b{color:#152d48}.bubble.media{padding:5px}.bubble img{display:block;width:100%;height:auto;border-radius:9px}.buttons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.buttons span{border:1px solid #d1dce6;border-radius:8px;background:#fff;padding:4px 7px;font-size:12px;line-height:1.25}details{margin:8px 4px}pre{white-space:pre-wrap;overflow-wrap:anywhere;color:#42546b;font-size:12px}a{display:inline-block;margin:8px;color:#1769aa}
 </style><header><h1>ОГЭ · офлайн-галерея исходящих payload</h1><p>Карточки сняты с вызовов render_session и _send_problem, пропущенных через локальный aiogram BaseSession; подсказки, разбор, повтор и история используют общий send_text. PNG сохранены из исходящих sendPhoto. Это офлайн-перехват Bot API payload, не скриншоты Telegram и не подтверждение фактической доставки. ROUTE недоступен публично и не включён.</p><p>Ширины просмотра: 360, 390 и 430 px. В каждой карточке можно раскрыть точный payload.</p></header><main>"""
         + "\n".join(sections)
         + "</main></html>"

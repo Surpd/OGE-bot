@@ -480,12 +480,14 @@ async def test_upgrade_queues_existing_archive_and_pool_reset_keeps_triggers(ban
 
     import asyncpg
 
+    from app.adaptive.session import Session
     from app.adaptive.store import overview
+    from app.bot.adaptive import generate
     from app.persistence.repository import PostgresRepository
 
     owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
     schema = await bank_pool.fetchval("SELECT current_schema()")
-    old_problem, new_problem = uuid4(), uuid4()
+    old_problem = uuid4()
 
     # Model the production upgrade: source progress exists while the adaptive
     # queue/projection is empty.  Running the migration is the only recovery act.
@@ -528,26 +530,49 @@ async def test_upgrade_queues_existing_archive_and_pool_reset_keeps_triggers(ban
     production_pool = await asyncpg.create_pool(
         os.environ["DATABASE_URL"],
         min_size=1,
-        max_size=1,
+        max_size=5,
         server_settings={"search_path": schema},
     )
     try:
-        for _ in range(3):
+        repo = PostgresRepository(production_pool)
+        session = Session(repo, 1)
+        family = "OGE09-L1"
+        await session.start([family] * 5)
+        backend = await production_pool.fetchval("SELECT pg_backend_pid()")
+        seen = ["old"]
+        for index in range(3):
+            assert await production_pool.fetchval("SELECT pg_backend_pid()") == backend
             assert (
                 await production_pool.fetchval(
                     "SELECT current_setting('bop.adaptive',true)"
                 )
                 != "on"
             )
-        await production_pool.execute(
-            """INSERT INTO issued_problems(id,user_id,family_id,fingerprint,
-            generator_version,snapshot) VALUES($1,$2,'OGE09-L1','new','v','{}')""",
-            new_problem,
-            owner,
-        )
+            candidate = generate(family, seen)
+            assert candidate is not None
+            seen.append(candidate["fingerprint"])
+            slot = await session.current()
+            assert await session.save(slot, family, candidate)
+            issued = await session.current()
+            problem_id = issued["problem"]
+            prompt_id = 9200 + index
+            assert await session.set_prompt(1, str(problem_id), prompt_id)
+            outcome = await session.act(
+                problem_id, prompt_id, "answer", raw=str(candidate["correct_answer"]),
+                correct=True, message_id=9300 + index,
+            )
+            assert outcome == "solved"
+            assert await production_pool.fetchval(
+                "SELECT count(*) FROM adaptive_dirty WHERE owner=$1", owner,
+            ) == 1
+            history = await overview(repo, 1)
+            assert history[0][2].independent_count == index + 2
+            assert await session.act(problem_id, prompt_id, "next") == "next"
         assert await production_pool.fetchval(
-            "SELECT count(*) FROM adaptive_dirty WHERE owner=$1", owner
-        ) == 1
+            """SELECT count(*) FROM adaptive_evidence
+               WHERE owner=$1 AND source='personal' AND outcome='correct'""",
+            owner,
+        ) == 3
     finally:
         await production_pool.close()
 

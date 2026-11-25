@@ -39,7 +39,7 @@ unchanged by the regression test.
 | ordinary №1–19 | `issued_problems` (+ `attempts`) | `ordinary`; derives number/family/snapshot |
 | personal | same ordinary problem linked by `adaptive_slots` | normalized to `personal`, without a second result |
 | mixed | `mixed_training_problems` (+ attempts) | `mixed`; owner comes from mixed session |
-| scenario №1–5 / №15 | non-pending question progress (+ attempts) | `scenario`; owner and position scoped to session |
+| scenario №1–5 | non-pending question progress (+ attempts) | `scenario`; owner and position scoped to session |
 | written №20–25 | `part2_issues` (+ grades/reviews) | `written`; uncertain grades remain ungraded |
 | error replay | `training_error_replays` | `replay`; resolves and reuses the original normalized item |
 
@@ -53,5 +53,6 @@ manually populating adaptive projection tables.
 - PostgreSQL 17 disposable cluster: `127.0.0.1:56435`.
 - Migration 0032 executed twice: one queue row, no duplicates.
 - On-demand read projected the pre-existing ordinary result into OGE09-L1.
-- Three pool reset cycles without `bop.adaptive` retained capture; a later
-  ordinary insert was queued.
+- Three separate issue and answer transactions in an asyncpg 1–5 connection pool
+  kept capturing results after release and reuse without `bop.adaptive`.
+  The normal personal session flow created three new evidence records.

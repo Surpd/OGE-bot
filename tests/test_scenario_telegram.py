@@ -1526,7 +1526,7 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         terminal_card = transport.messages[controls.message_id]
         assert "Напишите ответ" not in (terminal_card.text or "")
         assert "Тренировка завершена досрочно." in (terminal_card.text or "")
-        assert "Задано вопросов: 4." in (terminal_card.text or "")
+        assert "Решено верно: 3 из 4" in (terminal_card.text or "")
         assert "Невыданные вопросы не считаются ошибками или пропусками." in (
             terminal_card.text or ""
         )

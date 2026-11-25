@@ -45,7 +45,7 @@ async def test_progress_hub_summary_and_personal_plan_offer_the_same_focus(monke
     monkeypatch.setattr(adaptive, "_learner_inputs", AsyncMock(return_value=(history, insights)))
     sent = AsyncMock()
     monkeypatch.setattr(adaptive, "send_text", sent)
-    message = SimpleNamespace(from_user=SimpleNamespace(id=learner))
+    message = SimpleNamespace(message_id=1, from_user=SimpleNamespace(id=learner))
 
     plan = adaptive._mode_plan("personal", learner, history, insights)
     await adaptive.progress_target(repository, learner, insights)

@@ -83,7 +83,7 @@ async def test_companion_transport_short_training_hub_and_completion(bank_pool, 
         await harness.message("/start")
         await harness.click("exit")
         await harness.click("nav:trainings")
-        assert "Короткая тренировка — 5 задач" in harness.text()
+        assert "Тренировки" in harness.text()
         await harness.click("train:personal")
         session = Session(repo, 42)
         row = await session.current()
@@ -216,7 +216,7 @@ async def test_disabled_personal_switch_and_progress_family_conflict(bank_pool):
         await harness.click(f"train:family:{family}")
         assert await repo.user_state(42) == "trainings"
         await harness.click("train:hub")
-        assert "Короткая тренировка — 5 задач" in harness.text()
+        assert "Тренировки" in harness.text()
     finally:
         await harness.bot.session.close()
         schema = repo.schema
