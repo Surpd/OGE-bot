@@ -39,6 +39,22 @@ async def test_all_public_numbers_and_linked_scenario_answers_are_reachable():
         assert problem["scenario_snapshot"] == scenario
 
 
+async def test_full_first_part_orders_new_queue_and_preserves_a_paused_legacy_queue():
+    store = MixedTrainingRepository(MemoryRepository())
+    numbers = available_numbers()
+    fresh = await store.start(1, numbers)
+    assert fresh["state"]["queue"] == [1, *range(6, 20)]
+    assert await store.expected_number(1) == (1, 0)
+
+    legacy_queue = [19, 8, 1, 6]
+    legacy = await store.start(2, legacy_queue)
+    await store.pause(2)
+    resumed = await store.start(2, numbers)
+    assert resumed["id"] == legacy["id"]
+    assert resumed["state"]["queue"] == legacy_queue
+    assert await store.expected_number(2) == (19, 0)
+
+
 @pytest.mark.asyncio
 async def test_mixed_oge19_multiple_true_answers_use_text_and_ignore_order(monkeypatch):
     from app.math.oge19_scheduler import build_task19_candidate_batch
@@ -464,12 +480,6 @@ async def test_telegram_mixed_story_five_questions_then_ordinary_and_resume(monk
     monkeypatch.setattr(scenario_materials, "send_text", outbound)
     monkeypatch.setattr(scenario_materials, "send_photo", outbound)
     monkeypatch.setattr(mixed_training, "answer_callback", AsyncMock())
-    monkeypatch.setattr(
-        mixed_training.secrets,
-        "SystemRandom",
-        lambda: SimpleNamespace(shuffle=lambda sequence: None),
-    )
-
     incoming = AsyncMock()
     incoming.from_user = User(id=81_100, is_bot=False, first_name="Student")
     await mixed_training.start_mixed(incoming, repository)

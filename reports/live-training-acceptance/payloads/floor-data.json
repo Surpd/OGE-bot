@@ -1,0 +1,53 @@
+{
+  "case": "floor-data",
+  "label": "Площадь пола · схема и полный каталог печей",
+  "calls": [
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "28010a16-c4e4-48f4-b05e-94a0c21a03d6"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>2{,}8 \\times 2{,}5 \\times 1{,}9</tg-math> м. Дверь: 79 см × 173 см; окон нет.</p><p>Печь | Тип | Объём парной, м³ | Масса, кг | Цена, руб.</p><p>1 | дровяная | 5–11 | 62 | 14 000</p><p>2 | дровяная | 12–19 | 112 | 15 100</p><p>3 | электрическая | 8–22 | 143 | 21 400</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://ZXW8Skg2w2oDug",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "ZXW8Skg2w2oDug": {
+          "path": "assets/ec8054af796daa57d0ac46b9ec139940691a889581db97285e845de611edaf17.png",
+          "filename": "scenario-1.png",
+          "sha256": "ec8054af796daa57d0ac46b9ec139940691a889581db97285e845de611edaf17"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://0v6Tm2my-APiyA",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "0v6Tm2my-APiyA": {
+          "path": "assets/cd238074133782f3386c585193dbe372d62d2bd8399851b1055f39791d23eb7f.png",
+          "filename": "scenario-2.png",
+          "sha256": "cd238074133782f3386c585193dbe372d62d2bd8399851b1055f39791d23eb7f"
+        }
+      }
+    }
+  ]
+}

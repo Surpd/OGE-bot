@@ -245,7 +245,7 @@ def _font_answer(old_pt: int, source_long: int, target_long: int) -> str:
     return str(int(scaled.quantize(Decimal("1"), rounding=ROUND_HALF_UP)))
 
 
-def _make_world(seed: int) -> dict[str, object]:
+def _make_world(seed: int, ratio_family: str | None = None) -> dict[str, object]:
     rng = Random(seed ^ 0x5041504552)
     # The common table supplies the dimensions needed by positions 3 and 4.
     selected_formats = [0, 3, 4, *rng.sample((1, 2, 5, 6), 1)]
@@ -261,7 +261,8 @@ def _make_world(seed: int) -> dict[str, object]:
     source_index = rng.randrange(6)
     target_index = rng.randrange(source_index + 1, 7)
     round_format, round_side, round_multiple = (0, "short", 10)
-    ratio_kind = rng.choice(("PAPER-F04", "PAPER-F06"))
+    default_ratio_family = rng.choice(("PAPER-F04", "PAPER-F06"))
+    ratio_kind = ratio_family or default_ratio_family
     ratio_index = 3 if ratio_kind == "PAPER-F04" else 2
     font_source, font_target = 4, 3
     font_old_pt = rng.choice((10, 15))
@@ -296,7 +297,15 @@ def _make_world(seed: int) -> dict[str, object]:
 
 class PaperGenerator:
     def generate_scenario(self, seed: int) -> ScenarioDraft:
-        context = _make_world(seed)
+        return self._generate(seed)
+
+    def generate_scenario_for_family(
+        self, seed: int, position: int, family_id: str
+    ) -> ScenarioDraft:
+        return self._generate(seed, family_id if position == 4 else None)
+
+    def _generate(self, seed: int, ratio_family: str | None = None) -> ScenarioDraft:
+        context = _make_world(seed, ratio_family)
         return ScenarioDraft(
             story_code="PAPER",
             seed=seed,

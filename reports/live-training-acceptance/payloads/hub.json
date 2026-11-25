@@ -1,0 +1,55 @@
+{
+  "case": "hub",
+  "label": "Четыре направления тренировок",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>Тренировки</b>",
+        "chat_id": "42",
+        "message_id": "115",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🎯 Персональная тренировка",
+                "callback_data": "train:personal~8ad01494a065"
+              }
+            ],
+            [
+              {
+                "text": "🔢 По номеру или типу",
+                "callback_data": "train:areas~8ad01494a065"
+              }
+            ],
+            [
+              {
+                "text": "🔀 Смешанная тренировка",
+                "callback_data": "train:mixed~8ad01494a065"
+              }
+            ],
+            [
+              {
+                "text": "📝 Первая часть целиком",
+                "callback_data": "nav:mixed~8ad01494a065"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~8ad01494a065"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "e4c88876-de73-47bd-8ee9-f27f62e23616"
+      }
+    }
+  ]
+}

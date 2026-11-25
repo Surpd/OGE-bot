@@ -127,7 +127,7 @@ def _builders() -> dict[int, Callable[[dict[str, object], int], list[dict[str, o
 
 
 def available_numbers() -> list[int]:
-    result = [training.number for training in TRAININGS if training.available]
+    result = sorted(training.number for training in TRAININGS if training.available)
     try:
         if public_registry().available_stories(PracticeMode.FULL):
             result.insert(0, 1)  # One queue slot denotes a linked five-question scenario.
@@ -711,6 +711,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             data_snapshot = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
             await send_scenario_materials(
                 message, repository, data_snapshot, number, user_id=user_id,
+                full_story=True,
             )
         else:
             # The previous delivery stopped before the condition. Restore that
@@ -780,10 +781,6 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         next_numbers = _number_list(queue)
         if not next_numbers:
             next_numbers = _number_list(state_data.get("available_numbers", []))
-            secrets.SystemRandom().shuffle(next_numbers)
-            last = number
-            if len(next_numbers) > 1 and next_numbers[0] == last:
-                next_numbers[0], next_numbers[1] = next_numbers[1], next_numbers[0]
         next_number = int(next_numbers[0]) if next_numbers else None
         try:
             scenario = None

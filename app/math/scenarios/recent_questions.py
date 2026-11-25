@@ -1,9 +1,9 @@
 """Bounded avoidance of recently issued questions."""
 
 import json
-import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Collection, Mapping
 from dataclasses import replace
+from hashlib import sha256
 from random import Random
 from typing import cast
 
@@ -12,7 +12,10 @@ from app.math.scenario_engine import (
     PracticeMode,
     PracticePlan,
     PracticeRequest,
+    QuestionDraft,
     QuestionSnapshot,
+    ScenarioCandidateExcluded,
+    ScenarioDraft,
     ScenarioSnapshot,
     build_practice_plan,
 )
@@ -23,117 +26,234 @@ QuestionSignature = tuple[str, str, str]
 def _plain(value: object) -> object:
     if isinstance(value, Mapping):
         return {key: _plain(item) for key, item in value.items()}
-    if isinstance(value, tuple):
+    if isinstance(value, list | tuple):
         return [_plain(item) for item in value]
     return value
 
 
-def _visible_inputs(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -> object:
-    context, model = snapshot.context, question.math_model
-    family = question.family_id
+def _record(value: object) -> Mapping[str, object]:
+    return cast(Mapping[str, object], value)
+
+
+def _fields(record: Mapping[str, object], *keys: str) -> tuple[object, ...]:
+    return tuple(record[key] for key in keys)
+
+
+def _paper_inputs(
+    context: Mapping[str, object], model: Mapping[str, object], family: str,
+) -> object:
+    rows = cast(tuple[tuple[str, int, int], ...], context["rows"])
+    dimensions = {label: (long, short) for label, long, short in rows}
+    if family == "PAPER-F01":
+        return context["target_order"], [row[1:] for row in rows]
+    if family == "PAPER-F02":
+        return cast(int, model["target_index"]) - cast(int, model["source_index"])
+    if family == "PAPER-F03":
+        return dimensions["A0"][1], model["multiple"]
+    if family in {"PAPER-F04", "PAPER-F06"}:
+        return dimensions["A3"]
+    if family == "PAPER-F07":
+        return model["old_pt"], dimensions["A4"][0], dimensions["A3"][0]
+    raise ValueError("Unaudited PAPER family")
+
+
+def _stove_inputs(
+    context: Mapping[str, object], model: Mapping[str, object], family: str,
+) -> object:
+    catalogue = cast(tuple[Mapping[str, object], ...], context["stoves"])
+    by_id = {row["id"]: row for row in catalogue}
+    if family in {"STOVE-F01-CAPACITY-LIMITS", "STOVE-F02-ATTRIBUTE-MATCH"}:
+        key = str(model.get("boundary", model.get("attribute")))
+        return key, model["displayed_values"], sorted((row["id"], row[key]) for row in catalogue)
+    if family == "STOVE-F12-ARCH-RADIUS":
+        return _fields(context, "arc_width_cm", "arc_height_cm")
+
+    room = _record(context["room"])
+    floor = tuple(sorted(cast(tuple[int, ...], _fields(room, "length_tenths", "width_tenths"))))
+    room_dimensions = (*floor, cast(int, room["height_tenths"]))
+    if family == "STOVE-F03-VOLUME":
+        return sorted(room_dimensions)
+    if family == "STOVE-F04-FLOOR-AREA":
+        return floor
+    if family == "STOVE-F05-WALL-AREA-NET":
+        return room_dimensions, _fields(context, "door_width_cm", "door_height_cm")
+    if family == "STOVE-F06-PURCHASE-EXTRA-COSTS":
+        return by_id[3]["price_rub"], _fields(context, "installation_rub", "delivery_rub")
+    if family in {"STOVE-F07-FIT-WOOD-DELIVERY", "STOVE-F08-COST-COMPARISON"}:
+        wood = [row for row in catalogue if row["kind"] == "дровяная"]
+        boundaries = sorted(_fields(row, "min_m3", "max_m3") for row in wood)
+        length, width, height = room_dimensions
+        room_volume_thousandths = length * width * height
+        volume_dimensions = sorted(room_dimensions)
+        selected = next(
+            row for row in wood
+            if 1000 * cast(int, row["min_m3"])
+            <= room_volume_thousandths <= 1000 * cast(int, row["max_m3"])
+        )
+        if family == "STOVE-F07-FIT-WOOD-DELIVERY":
+            return volume_dimensions, boundaries, selected["price_rub"], context["delivery_rub"]
+        return (
+            volume_dimensions, boundaries, selected["price_rub"],
+            by_id[model["electric_stove_id"]]["price_rub"],
+            model["comparison"],
+            context["installation_rub"] if model["installation_included"] else None,
+        )
+    if family == "STOVE-F09-DIRECT-DISCOUNT":
+        row = next(
+            row for row in catalogue
+            if row["kind"] == "дровяная" and row["mass_kg"] == model["mass_kg"]
+        )
+        return model["mass_kg"], row["price_rub"], model["discount_percent"]
+    if family == "STOVE-F10-REVERSE-DISCOUNT":
+        return by_id[model["stove_id"]]["price_rub"], model["discount_percent"]
+    if family == "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS":
+        return (
+            by_id[model["stove_id"]]["price_rub"],
+            _fields(model, "threshold_rub", "item_discount_percent", "delivery_discount_percent"),
+            context["delivery_rub"],
+        )
+    raise ValueError("Unaudited STOVE family")
+
+
+def _tyres_inputs(
+    context: Mapping[str, object], model: Mapping[str, object], family: str,
+) -> object:
     if family == "TYRES-TABLE-EXTREME":
         rims = cast(tuple[int, ...], context["table_rims"])
         index = rims.index(cast(int, model["rim"]))
         rows = cast(tuple[Mapping[str, object], ...], context["table"])
-        return [
-            (
-                row["width_mm"],
-                bool(cast(tuple[tuple[int, ...], ...], row["aspect_ratios_by_rim"])[index]),
-            )
-            for row in rows
-        ]
-    if family in {"TYRES-DIAMETER", "TYRES-PERCENT-ROTATION"}:
-        return context["base_marking"]
-    if family == "PAPER-F01":
-        return [row[1:] for row in cast(tuple[tuple[object, ...], ...], context["rows"])]
-    if family in {"STOVE-F01-CAPACITY-LIMITS", "STOVE-F02-ATTRIBUTE-MATCH"}:
-        from app.math.scenarios.stories.STOVE import _rows
+        return model["rim"], model["extreme"], sorted(
+            cast(int, row["width_mm"]) for row in rows
+            if cast(tuple[tuple[int, ...], ...], row["aspect_ratios_by_rim"])[index]
+        )
+    if family == "TYRES-SIDEWALL":
+        return cast(tuple[int, ...], context["sidewall"])[:2]
+    if family == "TYRES-DIAMETER":
+        return context["base"]
+    if family == "TYRES-RADIUS-DELTA":
+        first, second = cast(tuple[tuple[int, ...], tuple[int, ...]], context["comparison"])
+        # Generated pairs share a disc diameter, which cancels from the subtraction.
+        rims = (first[2], second[2]) if first[2] != second[2] else ()
+        return first[:2], second[:2], rims, model["direction"]
+    if family == "TYRES-PERCENT-ROTATION":
+        return _fields(context, "base", "replacement") + (model["rounding"],)
+    raise ValueError("Unaudited TYRES family")
 
-        key = str(model.get("boundary", model.get("attribute")))
-        return [(row["id"], row[key]) for row in _rows(context)]
-    if family.startswith("STOVE-F") and family[7:9] in {"08", "09", "10", "11", "12"}:
-        from app.math.scenarios.stories.STOVE import _rows
 
-        catalogue = _rows(context)
-        if family.startswith("STOVE-F08"):
-            return (
-                context["room"],
-                [
-                    tuple(row[key] for key in ("id", "kind", "min_m3", "max_m3"))
-                    for row in catalogue
-                ],
-                [
-                    (row["id"], row["price_rub"])
-                    for row in catalogue
-                    if row["id"] in (model.get("wood_stove_id"), model.get("electric_stove_id"))
-                ],
-                context["installation_rub"] if model.get("installation_included") else None,
-            )
-        if family.startswith("STOVE-F09"):
-            mass = re.search(r"массой (\d+) кг", question.condition)
-            return [
-                (row["mass_kg"], row["price_rub"])
-                for row in catalogue
-                if mass and row["mass_kg"] == int(mass[1])
-            ]
-        if family.startswith("STOVE-F10"):
-            selected = re.search(r"№(\d+)", question.condition)
-            return [
-                (row["id"], row["price_rub"])
-                for row in catalogue
-                if selected and row["id"] == int(selected[1])
-            ]
-        if family.startswith("STOVE-F11"):
-            return [(row["id"], row["price_rub"]) for row in catalogue if row["id"] == 2]
-        return context["arc_width_cm"], context["arc_height_cm"]
-    if family == "GARDEN-09-HEAT-BREAKEVEN":
-        heat = cast(Mapping[str, object], context["heat"])
-        return {key: value for key, value in heat.items() if key != "break_even_hours"}
-    if family in {"PAPER-F03", "PAPER-F04", "PAPER-F06", "PAPER-F07"}:
-        relevant = "A0" if family == "PAPER-F03" else "A3"
-        return [
-            row[1:]
-            for row in cast(tuple[tuple[object, ...], ...], context["rows"])
-            if row[0] == relevant
-        ]
-    if family in {"TARIFF-F01-MONTHS-MINUTES", "TARIFF-F05-EXTREMUM"}:
-        return context["minutes"]
+def _tariff_inputs(
+    context: Mapping[str, object], model: Mapping[str, object], family: str,
+) -> object:
+    tariff = _record(context["tariff"])
+    minutes = cast(tuple[int, ...], context["minutes"])
+    if family == "TARIFF-F01-MONTHS-MINUTES":
+        targets = cast(tuple[int, ...], model["targets_minutes"])
+        return tuple((target, tuple(i for i, value in enumerate(minutes) if value == target))
+                     for target in targets)
     if family == "TARIFF-F04-MONTHLY-BILL":
         month = cast(int, model["month_index"])
-        minutes = cast(tuple[int, ...], context["minutes"])
         data = cast(tuple[int, ...], context["gb_quarters"])
-        tariff = cast(Mapping[str, object], context["tariff"])
-        keys = (
-            "monthly_fee_cents",
-            "included_minutes",
-            "included_gb_quarters",
-            "extra_minute_cents",
-            "data_pack_quarters",
-            "data_pack_price_cents",
+        return minutes[month], data[month], _fields(
+            tariff, "monthly_fee_cents", "included_minutes", "included_gb_quarters",
+            "extra_minute_cents", "data_pack_quarters", "data_pack_price_cents",
         )
-        return minutes[month], data[month], tuple(tariff[key] for key in keys)
+    if family == "TARIFF-F05-EXTREMUM":
+        return sorted(minutes)
+    if family == "TARIFF-F09-PERCENT-FEE":
+        return _fields(tariff, "monthly_fee_cents", "fee_after_increase_cents")
     if family == "TARIFF-F12-HOME-ISP":
-        return cast(Mapping[str, object], context["isp"])["plans"]
-    if family in {"GARDEN-01-IDENTIFY", "FLAT-01-ROOM-MATCH"}:
-        key = "labels" if snapshot.story_code == "GARDEN" else "room_labels"
-        labels = cast(Mapping[str, int], context[key])
-        roles = (
-            ("house", "bath", "garage", "greenhouse")
-            if key == "labels"
-            else cast(tuple[str, ...], model["rooms_in_order"])
+        isp = _record(context["isp"])
+        plans = cast(tuple[Mapping[str, object], ...], isp["plans"])
+        return isp["usage_mb"], sorted(
+            _fields(plan, "monthly_fee_cents", "included_mb", "per_mb_cents") for plan in plans
         )
-        return tuple(labels[role] for role in roles)
-    # The other questions state the variable operands in their condition, or use
-    # geometry fixed within the family. Do not hash the rest of the shared world.
-    return ()
+    raise ValueError("Unaudited TARIFF family")
 
 
-def question_signature(snapshot: ScenarioSnapshot, question: QuestionSnapshot) -> QuestionSignature:
-    """Key by the task and its visible operands, independent of answer and PNG bytes."""
-    inputs = json.dumps(
-        _plain(_visible_inputs(snapshot, question)), ensure_ascii=False, sort_keys=True
-    )
-    return question.family_id, " ".join(question.condition.split()), inputs
+def _garden_inputs(
+    context: Mapping[str, object], _model: Mapping[str, object], family: str,
+) -> object:
+    if family == "GARDEN-01-IDENTIFY":
+        return _fields(_record(context["labels"]), "house", "bath", "garage", "greenhouse")
+    if family == "GARDEN-02-TILES-PACKS":
+        return _fields(context, "grid_side_m", "path_tiles", "pad_tiles", "tiles_per_pack")
+    if family == "GARDEN-04-PERIMETER-POLYGON":
+        return _fields(context, "grid_side_m", "exposed_perimeter_edges")
+    if family == "GARDEN-07-PERCENT-BUILDINGS":
+        return _fields(context, "building_areas_m2", "plot_area_m2")
+    if family == "GARDEN-09-HEAT-BREAKEVEN":
+        heat = _record(context["heat"])
+        if "gas_heater_cost" in heat:
+            return _fields(
+                heat, "gas_heater_cost", "gas_installation_cost", "electric_heater_cost",
+                "electric_installation_cost", "gas_m3_per_hour_tenths", "gas_price_per_m3_tenths",
+                "electric_kw_tenths", "electric_price_per_kwh_tenths",
+            )
+        return _fields(
+            heat, "gas_upfront", "electric_upfront", "gas_hourly_cents", "electric_hourly_cents",
+        )
+    raise ValueError("Unaudited GARDEN family")
+
+
+def _flat_inputs(
+    context: Mapping[str, object], model: Mapping[str, object], family: str,
+) -> object:
+    if family == "FLAT-01-ROOM-MATCH":
+        roles = cast(tuple[str, ...], model["rooms_in_order"])
+        return _fields(_record(context["room_labels"]), *roles)
+    if family == "FLAT-02-TILE-PACK":
+        return context["grid_cell_m"], _fields(model, "room_cells", "tile_cells", "pack")
+    if family == "FLAT-02-PARQUET-PACK":
+        return context["grid_cell_m"], _fields(
+            model, "width_cells", "height_cells", "board_m", "pack",
+        )
+    if family == "FLAT-03-RECT-AREA":
+        return context["grid_cell_m"], model["area_cells"]
+    if family == "FLAT-04-RECT-PERCENT":
+        return _fields(model, "base_cells", "delta_cells")
+    if family == "FLAT-05-WASHER-MIN":
+        rows = cast(tuple[Mapping[str, object], ...], context["washers"])
+        costs = [
+            _fields(row, "price", "install", "delivery_pct")
+            for row in rows if row["type"] == "вертикальная" and cast(int, row["capacity"]) >= 6
+        ]
+        return sorted(costs)
+    if family == "FLAT-05-INTERNET-MIN":
+        internet = _record(context["internet"])
+        plans = cast(tuple[Mapping[str, object], ...], internet["plans"])
+        return internet["traffic_mb"], sorted(
+            (
+                (
+                    plan["fee"], plan["included_mb"],
+                    plan["overage"] if plan["included_mb"] is not None else None,
+                )
+                for plan in plans
+            ),
+            key=str,
+        )
+    raise ValueError("Unaudited FLAT family")
+
+
+_INPUTS_BY_STORY = {
+    "FLAT": _flat_inputs,
+    "GARDEN": _garden_inputs,
+    "PAPER": _paper_inputs,
+    "STOVE": _stove_inputs,
+    "TARIFF": _tariff_inputs,
+    "TYRES": _tyres_inputs,
+}
+
+
+def question_signature(
+    snapshot: ScenarioDraft | ScenarioSnapshot, question: QuestionDraft | QuestionSnapshot,
+) -> QuestionSignature:
+    """Key by mathematically relevant visible inputs across all presentation modes."""
+    identify = _INPUTS_BY_STORY.get(snapshot.story_code)
+    if identify is None:
+        # ROUTE is not public. Preserve its historical internal signature.
+        return question.family_id, " ".join(question.condition.split()), "[]"
+    inputs = identify(snapshot.context, question.math_model, question.family_id)
+    operands = json.dumps(_plain(inputs), ensure_ascii=False, sort_keys=True)
+    return question.family_id, "math-v2", operands
 
 
 _FIXED_SINGLE_FAMILIES = frozenset(
@@ -148,6 +268,100 @@ _FIXED_SINGLE_FAMILIES = frozenset(
         "PAPER-F06",
     }
 )
+
+
+# One seed per reachable input in the certified finite generator domains.
+# The acceptance tests verify these witnesses with the same independent oracle
+# that gates issuance. Seed values are a way to reach inputs, never their identity.
+_FINITE_FAMILY_SEEDS: Mapping[str, tuple[int, ...]] = {
+    **dict.fromkeys(_FIXED_SINGLE_FAMILIES, (0,)),
+    "PAPER-F02": (0, 1, 4, 10, 44, 67),
+    "PAPER-F07": (0, 1),
+    "FLAT-02-TILE-PACK": (0, 1, 2, 5, 10),
+    "FLAT-02-PARQUET-PACK": (0, 3, 4, 5),
+    "FLAT-05-INTERNET-MIN": (0, 1, 3, 4, 5, 7),
+    "GARDEN-02-TILES-PACKS": (0, 1, 2, 3, 5, 7, 8, 13),
+    "TARIFF-F09-PERCENT-FEE": (0, 2, 3, 12),
+    "TYRES-SIDEWALL": (
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14, 16, 17,
+        21, 22, 25, 26, 28, 29, 32, 33, 36, 42, 47, 49, 54, 58, 76,
+    ),
+    "TYRES-TABLE-EXTREME": (
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 18, 20, 21, 22, 24,
+        25, 26, 28, 31, 32, 34, 35, 36, 37, 41, 42, 44, 46, 51, 52, 54, 59, 61, 62,
+        67, 72, 76, 77, 80, 84, 94, 100, 101, 106, 112, 113, 114, 123, 128, 135, 136,
+        149, 161, 163, 168, 170, 187, 192, 197, 200, 233, 241, 249, 268, 288, 314, 363,
+        364, 431, 648, 741, 1004, 1563, 1580,
+    ),
+    "STOVE-F04-FLOOR-AREA": (
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 22, 23,
+        24, 26, 27, 28, 29, 30, 31, 33, 34, 36, 37, 38, 40, 42, 44, 45, 46, 49, 50, 53,
+        54, 55, 56, 57, 59, 61, 63, 67, 71, 73, 74, 75, 80, 81, 83, 88, 89, 96, 98, 101,
+        109, 113, 114, 117, 120, 122, 124, 125, 127, 129, 132, 135, 136, 138, 139, 140, 141,
+        142, 148, 151, 153, 154, 155, 157, 160, 162, 166, 167, 170, 172, 181, 185, 191,
+        195, 197, 198, 203, 204, 207, 209, 213, 215, 226, 228, 244, 247, 249, 259, 262, 266,
+        277, 282, 283, 285, 286, 305, 312, 323, 327, 371, 373, 376, 391, 466, 474, 487,
+        516, 518, 543, 574, 686, 748, 785, 805, 864, 871, 1241, 1358, 1362, 1554, 1637, 1731,
+    ),
+    "STOVE-F12-ARCH-RADIUS": tuple(range(68)),
+}
+
+
+class NoFreshScenarioVariant(RuntimeError):
+    """Every known mathematically distinct variant in a certified pool was issued."""
+
+
+class ScenarioVariantSearchFailed(RuntimeError):
+    """The search failed to produce a fresh variant without proving exhaustion."""
+
+
+class ScenarioVariantIdentityError(RuntimeError):
+    """The generated scenario lacks a valid canonical mathematical signature."""
+
+
+def signature_fingerprint(signature: QuestionSignature) -> str:
+    return sha256(json.dumps(signature, ensure_ascii=False).encode()).hexdigest()
+
+
+def fresh_family_plan(
+    request: PracticeRequest,
+    registry: FamilyRegistry,
+    recent: Collection[QuestionSignature] = (),
+    *,
+    recent_fingerprints: Collection[str] = (),
+) -> PracticePlan:
+    """Find a fresh exact family plan or distinguish exhaustion from a bounded miss."""
+    family = request.family_id
+    if family is None or request.position is None:
+        raise ValueError("Fresh family search requires an exact family and position")
+    witnesses = _FINITE_FAMILY_SEEDS.get(family)
+    recent_hashes = frozenset(recent_fingerprints)
+    rng = Random(request.seed)
+    seeds = [request.seed]
+    if recent or recent_hashes:
+        if witnesses is None:
+            seeds.extend(rng.getrandbits(63) for _ in range(4))
+        else:
+            ordered = list(witnesses)
+            rng.shuffle(ordered)
+            seeds.extend(seed for seed in ordered if seed != request.seed)
+    def accept(scenario: ScenarioDraft, question: QuestionDraft) -> bool:
+        try:
+            signature = question_signature(scenario, question)
+        except (KeyError, IndexError, TypeError, ValueError, StopIteration) as error:
+            raise ScenarioVariantIdentityError(family) from error
+        return signature not in recent and signature_fingerprint(signature) not in recent_hashes
+
+    for seed in seeds:
+        try:
+            return build_practice_plan(
+                replace(request, seed=seed), registry, accept_exact_candidate=accept,
+            )
+        except ScenarioCandidateExcluded:
+            continue
+    if witnesses is not None:
+        raise NoFreshScenarioVariant(family)
+    raise ScenarioVariantSearchFailed(family)
 
 
 def is_recent_fixed_single(plan: PracticePlan, recent: frozenset[QuestionSignature]) -> bool:

@@ -1,0 +1,72 @@
+{
+  "case": "family-picker",
+  "label": "Выбор математического типа №3",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№3: весь номер или конкретный тип?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №3",
+                "callback_data": "train:number:3~ff7375072be8"
+              }
+            ],
+            [
+              {
+                "text": "Выбор печи с доставкой",
+                "callback_data": "train:family:STOVE-F07-FIT-WOOD-DELIVERY~ff7375072be8"
+              }
+            ],
+            [
+              {
+                "text": "Диаметр колеса",
+                "callback_data": "train:family:TYRES-DIAMETER~ff7375072be8"
+              }
+            ],
+            [
+              {
+                "text": "Дополнительные расходы на печь",
+                "callback_data": "train:family:STOVE-F06-PURCHASE-EXTRA-COSTS~ff7375072be8"
+              }
+            ],
+            [
+              {
+                "text": "Периметр по плану",
+                "callback_data": "train:family:GARDEN-04-PERIMETER-POLYGON~ff7375072be8"
+              }
+            ],
+            [
+              {
+                "text": "Площадь пола",
+                "callback_data": "train:family:STOVE-F04-FLOOR-AREA~ff7375072be8"
+              }
+            ],
+            [
+              {
+                "text": "→",
+                "callback_data": "train:area:3:1~ff7375072be8"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~ff7375072be8"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "8d5d423a-2099-4d61-a740-021c2cadf4ae"
+      }
+    }
+  ]
+}

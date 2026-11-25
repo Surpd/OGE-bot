@@ -180,15 +180,18 @@ def _has_user(user_id: int | None) -> bool:
     return user_id is not None and user_id > 0
 
 
-def _story_keyboard(selected_number: int | None = None) -> InlineKeyboardMarkup:
+def _story_keyboard(
+    selected_number: int | None = None, *, linked_only: bool = False,
+) -> InlineKeyboardMarkup:
     suffix = f":n{selected_number}" if selected_number is not None else ""
+    callback_prefix = "oge15:linked" if linked_only else "oge15:story"
     rows = [
-        [_button(name, f"oge15:story:{code}{suffix}")]
+        [_button(name, f"{callback_prefix}:{code}{suffix}")]
         for code, name in STORY_NAMES.items()
     ]
     rows.extend(
         (
-            [_button("🎲 Случайный сюжет", f"oge15:story:RANDOM{suffix}")],
+            [_button("🎲 Случайный сюжет", f"{callback_prefix}:RANDOM{suffix}")],
             [_button("📂 Незавершённые тренировки", "oge15:unfinished")],
         )
     )
@@ -197,7 +200,8 @@ def _story_keyboard(selected_number: int | None = None) -> InlineKeyboardMarkup:
             [_button(f"↩ К статистике №{selected_number}", f"oge15:return:{selected_number}")]
         )
     else:
-        rows.append([_button(LABELS["menu"], "nav:main")])
+        rows.append([_button("↩ К тренировкам" if linked_only else LABELS["menu"],
+                             "train:areas" if linked_only else "nav:main")])
     return _keyboard(rows)
 
 
@@ -207,6 +211,7 @@ async def show_public_oge15(
     repository: Repository | None = None,
     *,
     selected_number: int | None = None,
+    linked_only: bool = False,
 ) -> None:
     user_id = message.from_user.id if message.from_user else None
     if not _has_user(user_id):
@@ -220,16 +225,18 @@ async def show_public_oge15(
     text = (
         f"Практика №{selected_number} · выберите сюжет:"
         if selected_number is not None
-        else "Практические задания №1–5\nВыберите сюжет:"
+        else ("№1–5 · Связанный сюжет\nВыберите сюжет:" if linked_only
+              else "Практические задания №1–5\nВыберите сюжет:")
     )
+    keyboard = _story_keyboard(selected_number, linked_only=linked_only)
     if repository is None:
-        await message.answer(text, reply_markup=_story_keyboard(selected_number))
+        await message.answer(text, reply_markup=keyboard)
     else:
         await send_text(
             message,
             repository,
             text,
-            reply_markup=_story_keyboard(selected_number),
+            reply_markup=keyboard,
             user_id_override=user_id,
         )
 
@@ -400,12 +407,14 @@ async def _show_data(
     message: Message, session: ScenarioSession, *, shared: bool, current: bool,
     repository: Repository | None = None, user_id: int | None = None,
     previous_position: int | None = None,
+    full_story: bool = False,
 ) -> bool:
     if not (shared or current):
         return True
     return await send_scenario_materials(
         message, repository, session.snapshot, session.current_position, user_id=user_id,
         previous_position=previous_position,
+        full_story=full_story,
     )
 
 
@@ -445,7 +454,8 @@ async def render_session(
     if show_assets or show_current_asset:
         if not await _show_data(message, session, shared=show_assets, current=True,
                                 repository=repository, user_id=telegram_user_id,
-                                previous_position=previous_position):
+                                previous_position=previous_position,
+                                full_story=show_assets and session.mode is PracticeMode.FULL):
             return
     progress = (
         f"Задание №{session.current_position} из 5"
@@ -807,6 +817,14 @@ async def handle_callback(
                 )
                 await answer_callback(callback)
             return
+    if data.startswith("oge15:again:"):
+        code = data.removeprefix("oge15:again:")
+        if code not in STORY_NAMES:
+            await answer_callback(callback, "Этот сюжет больше недоступен.")
+            return
+        await _start_session(callback, oge15_repository, repository, code,
+                             PracticeMode.FULL, None)
+        return
     if data == "oge15:unfinished" or data.startswith("oge15:unfinished:"):
         raw_page = data.removeprefix("oge15:unfinished:") if data.count(":") == 2 else "0"
         if not raw_page.isascii() or not raw_page.isdigit() or len(raw_page) > 2:
@@ -850,6 +868,13 @@ async def handle_callback(
     elif data.startswith("oge15:rx:"):
         data = data.replace("oge15:rx:", "oge15:restart-cancel:", 1)
     parts = data.split(":")
+    if len(parts) == 3 and parts[:2] == ["oge15", "linked"]:
+        if parts[2] != "RANDOM" and parts[2] not in STORY_NAMES:
+            await answer_callback(callback, "Этот сюжет недоступен.")
+            return
+        await _start_session(callback, oge15_repository, repository, parts[2],
+                             PracticeMode.FULL, None)
+        return
     if len(parts) == 3 and parts[:2] == ["oge15", "story"]:
         await _story_step(callback, parts[2], oge15_repository, repository)
         return
@@ -1017,7 +1042,8 @@ async def handle_callback(
         await answer_callback(callback)
         if action == "data":
             await _show_data(callback.message, session, shared=True, current=True,
-                             repository=repository, user_id=callback.from_user.id)
+                             repository=repository, user_id=callback.from_user.id,
+                             full_story=True)
             return
         updated = await oge15_repository.resume_session(callback.from_user.id, session_id)
         if action == "finish_request" and updated is not None:
@@ -1054,6 +1080,15 @@ async def handle_callback(
                      f"Пропущено: {summary['skipped']}"),
                     ("instruction", note),
                 )
+                terminal_markup = (
+                    _keyboard([
+                        [_button("🔁 Следующий сюжетный комплект",
+                                 f"oge15:again:{session.snapshot.story_code}")],
+                        [_button(LABELS["menu"], "nav:main")],
+                    ])
+                    if action in {"next", "skip"} and session.mode is PracticeMode.FULL
+                    else main_menu()
+                )
                 if repository is not None:
                     from app.bot.navigation import (
                         bind_navigation,
@@ -1062,7 +1097,7 @@ async def handle_callback(
                     )
 
                     await repository.save_user_state(callback.from_user.id, "main_menu")
-                    markup = prepare_navigation_markup(main_menu())
+                    markup = prepare_navigation_markup(terminal_markup)
                     try:
                         edited = await callback.message.edit_text(
                             format_math_message(terminal_text), parse_mode="HTML",
@@ -1079,10 +1114,10 @@ async def handle_callback(
                             repository,
                             terminal_text,
                             user_id_override=callback.from_user.id,
-                            reply_markup=main_menu(),
+                            reply_markup=terminal_markup,
                         )
                 else:
-                    await callback.message.answer(terminal_text)
+                    await callback.message.answer(terminal_text, reply_markup=terminal_markup)
             return
         result_text = None
         if action == "hint":

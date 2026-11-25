@@ -19,9 +19,13 @@ from app.math.scenario_engine import (
     PracticeRequest,
     ScenarioSnapshot,
     ScenarioUnavailable,
-    build_practice_plan,
 )
-from app.math.scenarios.recent_questions import is_recent_fixed_single, question_signature
+from app.math.scenarios.recent_questions import (
+    NoFreshScenarioVariant,
+    ScenarioVariantSearchFailed,
+    fresh_family_plan,
+    question_signature,
+)
 from app.persistence.error_replay import ReplaySource, load_replay_source
 from app.persistence.repository import Repository
 from app.persistence.rotation_history import enabled
@@ -76,7 +80,7 @@ def targeted_candidates(
 
 
 def _scenario_plan(
-    source: ReplaySource, recent: frozenset[tuple[str, str, str]]
+    source: ReplaySource, recent: frozenset[tuple[str, str, str]], seen: list[str],
 ) -> PracticePlan | None:
     from app.bot.scenario_training import public_registry
 
@@ -86,22 +90,16 @@ def _scenario_plan(
     position = source.number
     question = original.questions[position - 1]
     excluded = recent | {question_signature(original, question)}
-    if is_recent_fixed_single(PracticePlan(PracticeMode.SINGLE, original, (position,)), excluded):
-        return None
-    registry = public_registry()
-    for _ in range(12):
-        plan = build_practice_plan(
+    try:
+        return fresh_family_plan(
             PracticeRequest(
                 PracticeMode.SINGLE, secrets.randbelow(2**63), original.story_code, position,
+                family_id=question.family_id,
             ),
-            registry,
+            public_registry(), excluded, recent_fingerprints=seen,
         )
-        candidate = plan.snapshot.questions[position - 1]
-        if candidate.family_id == question.family_id and question_signature(
-            plan.snapshot, candidate,
-        ) not in excluded:
-            return plan
-    return None
+    except NoFreshScenarioVariant:
+        return None
 
 
 def _choices(token: str, *, active: bool = False) -> InlineKeyboardMarkup:
@@ -133,6 +131,7 @@ async def _start_scenario(
     message: Message, repository: Repository, user_id: int, source: ReplaySource,
     token: str, *, confirmed: bool,
 ) -> bool:
+    from app.adaptive.session import Session
     from app.bot.scenario_training import render_session
 
     pool = getattr(repository, "_pool", None)
@@ -149,7 +148,12 @@ async def _start_scenario(
             reply_markup=_choices(token, active=True), user_id_override=user_id,
         )
         return True
-    plan = await asyncio.to_thread(_scenario_plan, source, await store.recent_questions(user_id))
+    owner = await pool.fetchval("SELECT id FROM users WHERE telegram_user_id=$1", user_id)
+    family = str(source.snapshot["family_id"])
+    seen = await Session(repository, user_id).seen(owner, family)
+    plan = await asyncio.to_thread(
+        _scenario_plan, source, await store.recent_questions(user_id), seen,
+    )
     if plan is None:
         return False
     session = await store.start_session(
@@ -229,6 +233,13 @@ async def start_similar(
             starter = _start_scenario if source.scenario_snapshot is not None else _start_ordinary
             if await starter(message, repository, user_id, source, token, confirmed=confirmed):
                 return
+    except ScenarioVariantSearchFailed:
+        if await repository.user_state(user_id) == "progress":
+            await send_text(
+                message, repository, "Не получилось подготовить похожую задачу. Попробуй ещё раз.",
+                reply_markup=_choices(token), user_id_override=user_id,
+            )
+        return
     except (ValueError, KeyError, TypeError, ScenarioUnavailable):
         pass
     if await repository.user_state(user_id) == "progress":

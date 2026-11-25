@@ -3,7 +3,7 @@
 Story modules implement these protocols; this module contains no story math.
 """
 
-from collections.abc import Mapping, Sequence  # noqa: I001
+from collections.abc import Callable, Mapping, Sequence  # noqa: I001
 from dataclasses import dataclass
 from enum import StrEnum
 from hashlib import sha256
@@ -11,7 +11,7 @@ from json import dumps
 from math import isfinite
 from random import Random
 from types import MappingProxyType
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 
 type JsonScalar = str | int | float | bool | None
@@ -33,6 +33,10 @@ class FamilyStatus(StrEnum):
 
 class ScenarioUnavailable(RuntimeError):
     """No registered, student-enabled family can satisfy the requested mode."""
+
+
+class ScenarioCandidateExcluded(RuntimeError):
+    """The caller has already issued this exact generated question."""
 
 
 class ScenarioIntegrityError(RuntimeError):
@@ -338,6 +342,20 @@ class ScenarioGenerator(Protocol):
     def generate_scenario(self, seed: int) -> ScenarioDraft: ...
 
 
+@runtime_checkable
+class FamilyScenarioGenerator(Protocol):
+    def generate_scenario_for_family(
+        self, seed: int, position: int, family_id: str
+    ) -> ScenarioDraft: ...
+
+
+@runtime_checkable
+class FamilyQuestionBuilder(Protocol):
+    def build_question_for_family(
+        self, scenario: ScenarioDraft, position: int, family_id: str
+    ) -> QuestionDraft: ...
+
+
 class QuestionBuilder(Protocol):
     def build_question(self, scenario: ScenarioDraft, position: int) -> QuestionDraft: ...
 
@@ -448,6 +466,7 @@ class PracticeRequest:
     seed: int
     story_code: str | None = None
     position: int | None = None
+    family_id: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.mode, PracticeMode):
@@ -458,6 +477,12 @@ class PracticeRequest:
             raise ValueError("Unsupported story selection")
         if self.mode is PracticeMode.FULL and self.position is not None:
             raise ValueError("Full mode always includes all five questions")
+        if self.family_id is not None and (
+            self.mode is not PracticeMode.SINGLE
+            or self.story_code is None
+            or self.position is None
+        ):
+            raise ValueError("Exact family selection requires a single story and position")
         if self.position is not None and self.position not in POSITIONS:
             raise ValueError("Single-task position must be from 1 through 5")
 
@@ -469,7 +494,12 @@ class PracticePlan:
     selected_positions: tuple[int, ...]
 
 
-def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> PracticePlan:
+def build_practice_plan(
+    request: PracticeRequest,
+    registry: FamilyRegistry,
+    *,
+    accept_exact_candidate: Callable[[ScenarioDraft, QuestionDraft], bool] | None = None,
+) -> PracticePlan:
     """Build and independently validate one immutable scenario and its selected questions."""
     available = registry.available_stories(request.mode, request.position)
     if request.story_code is not None:
@@ -482,11 +512,24 @@ def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> P
         story_code = Random(request.seed).choice(available)
 
     adapter = registry.adapter(story_code)
-    scenario = adapter.generator.generate_scenario(request.seed)
+    exact_family = request.family_id
+    if accept_exact_candidate is not None and exact_family is None:
+        raise ValueError("Candidate filter requires exact family selection")
+    position = request.position
+    generator = adapter.generator
+    if exact_family is not None and not any(
+        family.available and family.family_id == exact_family and family.position == position
+        for family in adapter.family_registry
+    ):
+        raise ScenarioUnavailable("Selected family is not enabled at this position")
+    if exact_family is not None and position is not None and isinstance(
+        generator, FamilyScenarioGenerator
+    ):
+        scenario = generator.generate_scenario_for_family(request.seed, position, exact_family)
+    else:
+        scenario = generator.generate_scenario(request.seed)
     if scenario.story_code != story_code or scenario.seed != request.seed:
         raise ValueError("Scenario generator returned a different story or seed")
-    adapter.independent_oracle.validate_scenario(scenario)
-    rendered = adapter.renderer.render_scenario(scenario)
     selected_positions: tuple[int, ...]
     if request.mode is PracticeMode.FULL:
         selected_positions = POSITIONS
@@ -498,10 +541,30 @@ def build_practice_plan(request: PracticeRequest, registry: FamilyRegistry) -> P
             raise ScenarioUnavailable("Selected story has no enabled question positions")
         selected_positions = (Random(request.seed ^ 0x15).choice(eligible_positions),)
 
+    builder = adapter.question_builder
+    exact_question = None
+    if exact_family is not None and request.position is not None:
+        exact_question = (
+            builder.build_question_for_family(scenario, request.position, exact_family)
+            if isinstance(builder, FamilyQuestionBuilder)
+            else builder.build_question(scenario, request.position)
+        )
+        if exact_question.family_id != exact_family:
+            raise ValueError("Question builder returned a different selected family")
+        if accept_exact_candidate is not None and not accept_exact_candidate(
+            scenario, exact_question,
+        ):
+            raise ScenarioCandidateExcluded(exact_family)
+    adapter.independent_oracle.validate_scenario(scenario)
+    rendered = adapter.renderer.render_scenario(scenario)
+
     questions: list[QuestionSnapshot] = []
     draft_questions: list[QuestionDraft] = []
     for position in POSITIONS:
-        question = adapter.question_builder.build_question(scenario, position)
+        question = (
+            exact_question if exact_question is not None and position == request.position
+            else builder.build_question(scenario, position)
+        )
         if question.position != position or question.scenario_seed != scenario.seed:
             raise ValueError("Question builder returned a mismatched position or scenario seed")
         registrations = [

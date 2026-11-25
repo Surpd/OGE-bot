@@ -158,6 +158,15 @@ def test_oge15_public_number_menu_and_story_exclusions() -> None:
         for row in selected.inline_keyboard
         for button in row
     )
+    linked = scenario_training._story_keyboard(linked_only=True)
+    linked_callbacks = {
+        button.callback_data
+        for row in linked.inline_keyboard
+        for button in row
+    }
+    assert {f"oge15:linked:{code}" for code in scenario_training.STORY_NAMES} <= linked_callbacks
+    assert "oge15:linked:RANDOM" in linked_callbacks
+    assert "train:areas" in linked_callbacks
     saved_id = UUID("12345678-1234-5678-1234-567812345678")
     compact_confirmation = prepare_navigation_markup(
         _keyboard(

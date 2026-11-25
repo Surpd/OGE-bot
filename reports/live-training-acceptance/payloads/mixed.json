@@ -1,0 +1,67 @@
+{
+  "case": "mixed",
+  "label": "Смешанная тренировка",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<img src=\"tg://photo?id=diagram\"/><p><b>Смешанная тренировка</b></p><p> </p><p><b>№18 — задание 1 из 5</b></p><p> </p><p>На клетчатой бумаге с размером клетки <tg-math>1 \\times 1</tg-math> изображён треугольник. Найдите его площадь.</p><p> </p><p>Напишите ответ в чат.</p>",
+          "media": [
+            {
+              "id": "diagram",
+              "media": {
+                "type": "photo",
+                "media": "attach://jWHuSal5OLrnDQ"
+              }
+            }
+          ]
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:79d249fb-34e1-5d79-8acc-c08aed51c1b6"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:79d249fb-34e1-5d79-8acc-c08aed51c1b6"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:79d249fb-34e1-5d79-8acc-c08aed51c1b6"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:79d249fb-34e1-5d79-8acc-c08aed51c1b6"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:79d249fb-34e1-5d79-8acc-c08aed51c1b6"
+              }
+            ]
+          ]
+        }
+      },
+      "attachments": {
+        "jWHuSal5OLrnDQ": {
+          "path": "assets/0d8ae8320b2ef8020b63ce621cc7f1378eb7ca965dd823e17ac5a9ed1a21ef6c.png",
+          "filename": "oge18.png",
+          "sha256": "0d8ae8320b2ef8020b63ce621cc7f1378eb7ca965dd823e17ac5a9ed1a21ef6c"
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "3ebf778c-da30-4bda-a5d3-2552391caecc"
+      }
+    }
+  ]
+}

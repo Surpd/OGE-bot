@@ -1,0 +1,41 @@
+family,story,position,mathematical_inputs,excluded_inputs,distinct_in_100_seeds,certified_capacity,next_issue_and_cross_mode
+FLAT-01-ROOM-MATCH,FLAT,1,numbers of the four requested rooms in question order,other room numbers and prices,95,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+FLAT-02-TILE-PACK,FLAT,2,"grid size, bathroom lattice extent, tile size and pack size",room labels and parquet pack size,5,5,covered by test_public_mathematical_inputs_and_five_issue_cycle
+FLAT-02-PARQUET-PACK,FLAT,2,"grid size, living-room dimensions, board dimensions and pack size",room labels and bathroom tile pack size,4,4,covered by test_public_mathematical_inputs_and_five_issue_cycle
+FLAT-03-RECT-AREA,FLAT,3,cell side and fixed smaller-loggia extent,room labels and consumables,1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+FLAT-04-RECT-PERCENT,FLAT,4,pantry and bathroom cell counts,scale cancels; room labels,1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+FLAT-05-WASHER-MIN,FLAT,5,"prices, installation and delivery rates of machines passing type/capacity constraints","product names, heights and ineligible costs",1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+FLAT-05-INTERNET-MIN,FLAT,5,"traffic, plan fees, data limits and marginal rates",plan names and row order,6,6,covered by test_public_mathematical_inputs_and_five_issue_cycle
+GARDEN-01-IDENTIFY,GARDEN,1,numbers assigned to four requested objects in question order,shed/other labels and heating tariff,85,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+GARDEN-02-TILES-PACKS,GARDEN,2,"scale, paved-path and pad extent, pack size",object labels and heating tariff,8,8,covered by test_public_mathematical_inputs_and_five_issue_cycle
+GARDEN-04-PERIMETER-POLYGON,GARDEN,3,fixed exposed house boundary count and cell side,"object labels, pack size and heating tariff",1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+GARDEN-07-PERCENT-BUILDINGS,GARDEN,4,four building areas and entire plot area,"object labels, pack size and heating tariff",1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+GARDEN-09-HEAT-BREAKEVEN,GARDEN,5,"heating upfront amounts, consumption and energy prices; legacy aggregate amounts","derived break-even hours, map labels",99,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+PAPER-F01,PAPER,1,requested format order and displayed table dimensions in row order,font size and rounding parameters,98,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+PAPER-F02,PAPER,2,number of doublings between formats,choice of initial format when the gap is unchanged; row order,6,6,covered by test_public_mathematical_inputs_and_five_issue_cycle
+PAPER-F03,PAPER,3,A0 short side and rounding multiple,"long side, table row order and other formats",1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+PAPER-F04,PAPER,4,A3 short and long sides,table row order and other formats,1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+PAPER-F06,PAPER,4,A3 short and long sides used to derive A2 dimensions,table row order and other formats,1,1,covered by test_public_mathematical_inputs_and_five_issue_cycle
+PAPER-F07,PAPER,5,old point size and A4/A3 corresponding long sides,row order and other formats,2,2,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F01-CAPACITY-LIMITS,STOVE,1,"requested boundary, ordered targets and stove-to-boundary cells","unrequested boundary, weight, price and unrelated room factors",54,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F02-ATTRIBUTE-MATCH,STOVE,1,"requested attribute, ordered targets and stove-to-attribute cells","unrequested attribute, room and door",100,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F03-VOLUME,STOVE,2,all three room dimensions in tenths of a metre,"catalogue, door, decoration and dimension permutation",88,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F04-FLOOR-AREA,STOVE,3,the unordered length/width pair in tenths of a metre,"height, door, stove prices and illustration",61,144,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F05-WALL-AREA-NET,STOVE,3,"unordered base dimensions, room height and door dimensions",catalogue and illustration,100,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F06-PURCHASE-EXTRA-COSTS,STOVE,3,"electric stove price, installation and delivery charges","other stoves, range and room dimensions",100,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F07-FIT-WOOD-DELIVERY,STOVE,3,"room dimensions, wood stove ranges, fitting wood stove price and delivery","electric ranges and prices, installation, unsuitable wood stove prices",100,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F08-COST-COMPARISON,STOVE,3,"room dimensions, wood stove ranges, fitting wood and electric prices, comparison, installation when included","electric ranges, delivery, installation when excluded",100,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F09-DIRECT-DISCOUNT,STOVE,4,"target mass, price in its matching wood stove row and rate","room, other prices and capacities",99,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F10-REVERSE-DISCOUNT,STOVE,4,selected current price and discount,"stove index if selected price is unchanged, room, other prices and masses",90,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F11-CONDITIONAL-TWO-DISCOUNTS,STOVE,4,"selected price, threshold, each discount rate and delivery charge","other catalogue rows, room and installation",96,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+STOVE-F12-ARCH-RADIUS,STOVE,5,figure width and rise,"catalogue, room and illustration styling",68,68,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TARIFF-F01-MONTHS-MINUTES,TARIFF,1,ordered minute targets and their month coordinates,"data series, tariff prices and unrelated minute points",100,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TARIFF-F04-MONTHLY-BILL,TARIFF,2,"selected minute/GB usage and applicable fee, allowances, surcharge and bundle operands","other months, month label for equal usage, SMS and ISP",83,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TARIFF-F05-EXTREMUM,TARIFF,3,multiset of minute readings,"month order, data series and tariff prices",100,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TARIFF-F09-PERCENT-FEE,TARIFF,4,old and new fee,usage and all other rates,4,4,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TARIFF-F12-HOME-ISP,TARIFF,5,"traffic, fees, included allowances and per-MB prices","plan names, row order and mobile charges",78,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TYRES-TABLE-EXTREME,TYRES,1,"queried rim, min/max direction and available widths in requested column",other columns and exact aspect ratios in occupied cells,47,80,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TYRES-SIDEWALL,TYRES,2,width and aspect percentage,rim diameter and permitted-size table,30,30,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TYRES-DIAMETER,TYRES,3,all three factory markings,individual alternate tyres and table,81,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TYRES-RADIUS-DELTA,TYRES,4,"both widths and aspects in comparison order; differing rims, if any",the common rim diameter and factory marking,84,,covered by test_public_mathematical_inputs_and_five_issue_cycle
+TYRES-PERCENT-ROTATION,TYRES,5,"factory and replacement markings, rounding rule",permitted-size table and other markings,100,,covered by test_public_mathematical_inputs_and_five_issue_cycle

@@ -143,11 +143,16 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
             reference = progress.encode_record_ref(f's:{source.source_id}:{position}')
             page = f'item:{reference}:{progress.encode_return_page("history:0")}'
             await progress.progress_navigation(message, repository, 7, page)
-        assert [value for kind, value, _ in events if kind == 'photo'] == expected, path
+        expected_photos = list(scenario_photos(snapshot)) if path == 'full' else expected
+        assert [value for kind, value, _ in events if kind == 'photo'] == expected_photos, path
         prompt_indexes = [i for i, (kind, body, _) in enumerate(events)
                           if kind == 'text' and question.condition in body]
         assert prompt_indexes == [len(events) - 1], path
-        assert events[0][1] == scenario_materials.scenario_context_for_question(snapshot, position)
+        expected_context = (
+            snapshot.shared_context if path == 'full'
+            else scenario_materials.scenario_context_for_question(snapshot, position)
+        )
+        assert events[0][1] == expected_context
         labels = [b.text for row in events[-1][2].inline_keyboard for b in row]
         assert '📷 Схема / данные' in labels, path
         assert snapshot.to_snapshot() == before
@@ -257,9 +262,9 @@ async def test_required_diagram_failure_blocks_question_and_retry_preserves_snap
     message.answer_photo = AsyncMock()
     store = AsyncMock(spec=ScenarioPostgresRepository)
     store.close_legacy_with_exposed_answer.return_value = False
-    renderer = scenario_materials.scenario_photos_for_question
+    renderer = scenario_materials.scenario_photos
     if failure == 'render':
-        monkeypatch.setattr(scenario_materials, 'scenario_photos_for_question',
+        monkeypatch.setattr(scenario_materials, 'scenario_photos',
                             lambda *a: (_ for _ in ()).throw(OSError('synthetic render failure')))
     else:
         message.answer_photo.side_effect = TelegramNetworkError(
@@ -271,7 +276,7 @@ async def test_required_diagram_failure_blocks_question_and_retry_preserves_snap
     assert all(snapshot.questions[0].condition not in c.args[0]
                for c in message.answer.await_args_list)
     store.set_condition_message.assert_not_awaited()
-    monkeypatch.setattr(scenario_materials, 'scenario_photos_for_question', renderer)
+    monkeypatch.setattr(scenario_materials, 'scenario_photos', renderer)
     message.answer_photo.side_effect = None
     message.answer.reset_mock()
     await scenario_training.render_session(message, store, session, show_assets=True,
@@ -524,6 +529,25 @@ def test_tariff_context_mentions_isp_table_only_when_that_table_is_delivered():
     assert isp_photos == scenario_materials.scenario_photos_for_question(snapshot, 5)
     assert len(chart_photos) == 2  # chart plus blank response grid
     assert len(isp_photos) == 1  # ISP table
+
+
+def test_explicit_story_materials_include_full_context_and_every_story_asset():
+    snapshot = saved('STOVE', '155')
+    context, photos = scenario_materials.prepare_scenario_materials(
+        snapshot, 4, full_story=True,
+    )
+    assert context == snapshot.shared_context
+    assert photos == scenario_photos(snapshot)
+    assert '1 | дровяная' in context and '3 | электрическая' in context
+
+
+def test_standalone_tariff_fee_question_does_not_claim_to_use_a_graph():
+    snapshot = saved('TARIFF', '0')
+    context, photos = scenario_materials.prepare_scenario_materials(snapshot, 4)
+    assert 'На графике' not in context
+    assert 'по графику' not in context
+    assert 'абонентская плата' in context.lower()
+    assert photos == ()
 
 
 @pytest.mark.asyncio

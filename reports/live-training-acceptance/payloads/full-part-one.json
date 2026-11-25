@@ -1,0 +1,94 @@
+{
+  "case": "full-part-one",
+  "label": "Первая часть целиком · начало связанного сюжета",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://Q0lX-37T3KK8Jw",
+        "caption": "Данные задачи №1",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "Q0lX-37T3KK8Jw": {
+          "path": "assets/7fcfd2336151741cb18687e24266d73ba8a1905b3916106dd2b509f90a8e503d.png",
+          "filename": "scenario-1.png",
+          "sha256": "7fcfd2336151741cb18687e24266d73ba8a1905b3916106dd2b509f90a8e503d"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://Gh17DMgkkY7iew",
+        "caption": "Данные задачи №1",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "Gh17DMgkkY7iew": {
+          "path": "assets/de9347cbf62d6b3e66f70450015a4fccba840a8827bbe215c8bd230bbca59b32.png",
+          "filename": "scenario-2.png",
+          "sha256": "de9347cbf62d6b3e66f70450015a4fccba840a8827bbe215c8bd230bbca59b32"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Задание №1</b></p><p> </p><p>Определите по плану номера помещений. Запишите номера в порядке: санузел, кладовая, спальня, гостиная.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "mixed:hint:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "mixed:solution:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "mixed:skip:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "mixed:data:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "mixed:menu:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "23d35394-b4e3-478e-ac20-a4365d8457b6"
+      }
+    }
+  ]
+}

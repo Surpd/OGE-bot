@@ -13,7 +13,12 @@ from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, Message
 from app.bot.math_layout import TrainingMessage
 from app.bot.presentation import MathDeliveryUncertain, send_photo, send_text
 from app.math.scenario_engine import ScenarioSnapshot
-from app.math.scenarios.mobile_photos import _photo_indexes, scenario_photos_for_question, table
+from app.math.scenarios.mobile_photos import (
+    _photo_indexes,
+    scenario_photos,
+    scenario_photos_for_question,
+    table,
+)
 from app.math.scenarios.stories import FLAT, GARDEN, STOVE
 from app.persistence.repository import Repository
 
@@ -50,6 +55,13 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
             context = "\n".join(
                 line for line in context.splitlines()
                 if "приложенной таблице" not in line
+            )
+        if question.family_id == "TARIFF-F09-PERCENT-FEE":
+            context = "\n".join(
+                line for line in context.splitlines()
+                if not line.startswith((
+                    "За каждый месяц года показаны", "На графике сплошная линия",
+                ))
             )
     elif snapshot.story_code == "GARDEN" and snapshot.generator_version in {
         "garden-sosnovka-1.0", "garden-sosnovka-1.1",
@@ -108,14 +120,19 @@ def answer_grid_photo(snapshot: ScenarioSnapshot, position: int) -> bytes | None
 
 def prepare_scenario_materials(
     snapshot: ScenarioSnapshot, position: int, *, previous_position: int | None = None,
+    full_story: bool = False,
 ) -> tuple[str, tuple[bytes, ...]]:
-    context = scenario_context_for_question(snapshot, position)
-    if previous_position is not None:
+    context = (
+        snapshot.shared_context
+        if full_story
+        else scenario_context_for_question(snapshot, position)
+    )
+    if previous_position is not None and not full_story:
         if context == scenario_context_for_question(snapshot, previous_position):
             context = ""
-    grid = answer_grid_photo(snapshot, position)
+    grid = None if full_story else answer_grid_photo(snapshot, position)
     try:
-        photos = (
+        photos = scenario_photos(snapshot) if full_story else (
             scenario_photos_for_question(snapshot, position)
             if previous_position is None
             else scenario_photos_for_question(
@@ -141,6 +158,7 @@ async def send_scenario_materials(
     message: Message, repository: Repository | None, snapshot: ScenarioSnapshot,
     position: int, *, user_id: int | None, previous_position: int | None = None,
     reply_markup: InlineKeyboardMarkup | None = None,
+    full_story: bool = False,
 ) -> bool:
     async def text(body: str, markup: InlineKeyboardMarkup | None = None) -> None:
         if repository is None:
@@ -152,7 +170,8 @@ async def send_scenario_materials(
 
     try:
         context, photos = await asyncio.to_thread(
-            prepare_scenario_materials, snapshot, position, previous_position=previous_position,
+            prepare_scenario_materials, snapshot, position,
+            previous_position=previous_position, full_story=full_story,
         )
         if context:
             await text(TrainingMessage(("context", context)), reply_markup if not photos else None)

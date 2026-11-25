@@ -1,0 +1,35 @@
+{
+  "case": "checkpoint",
+  "label": "Промежуточный итог после пяти задач",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Промежуточный итог</b></p><p> </p><p><b>Задания 1–5</b></p><p> </p><p>Решено верно: 5 из 5</p><p>Самостоятельно: 5 из 5</p><p>Пропущено: 0</p><p> </p><p><b>Твой прогресс</b></p><p> </p><p>• Площадь пола · серия <tg-math>\\frac{0}{3}</tg-math> → <tg-math>\\frac{3}{3}</tg-math>.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "➡ Продолжить",
+                "callback_data": "ad:continue:74025fb6-7610-490f-bd55-f40a0dbbb087"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:74025fb6-7610-490f-bd55-f40a0dbbb087"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:74025fb6-7610-490f-bd55-f40a0dbbb087"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

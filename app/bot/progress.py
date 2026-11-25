@@ -245,7 +245,7 @@ def progress_keyboard(
     else:
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     if section in {"number", "family"} and insights and get_settings().oge_adaptive_enabled:
-        rows[0] = [_button(f"Пять задач №{number}", f"train:number:{number}")]
+        rows[0] = [_button(f"Тренировать №{number}", f"train:number:{number}")]
         start = (
             int(parts[2]) if section == "family" and len(parts) > 2 and parts[2].isdigit() else 0
         )
@@ -273,7 +273,7 @@ def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
     if number is None:
         return None
     if get_settings().oge_adaptive_enabled:
-        return f"Пять задач №{number}", f"train:number:{number}"
+        return f"Тренировать №{number}", f"train:number:{number}"
     route = "nav:oge15" if number <= 5 else "nav:task"
     return f"▶ Тренировать №{number}", f"{route}:{number}"
 

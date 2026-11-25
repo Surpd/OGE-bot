@@ -325,8 +325,6 @@ class _Generator:
 
 class _QuestionBuilder:
     def build_question(self, scenario: ScenarioDraft, position: int) -> QuestionDraft:
-        c = cast(Mapping[str, Any], scenario.context)
-        labels = cast(Mapping[str, int], c["room_labels"])
         variant = (
             1
             if scenario.seed == SOURCE_VECTOR_SEED
@@ -341,6 +339,15 @@ class _QuestionBuilder:
         }.get(position)
         if family is None:
             raise ValueError("Question position must be 1 through 5")
+        return self.build_question_for_family(scenario, position, family)
+
+    def build_question_for_family(
+        self, scenario: ScenarioDraft, position: int, family: str
+    ) -> QuestionDraft:
+        if FAMILY_POSITION.get(family) != position:
+            raise ValueError("FLAT family does not belong to this question position")
+        c = cast(Mapping[str, Any], scenario.context)
+        labels = cast(Mapping[str, int], c["room_labels"])
         solution: tuple[str, ...]
         if position == 1:
             rooms = ("bathroom", "pantry", "bedroom", "living")

@@ -1,0 +1,40 @@
+{
+  "case": "finish-early",
+  "label": "Досрочное завершение и накопительный итог",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Тренировка завершена.</b>\n\nРешено верно: 5 из 6\nСамостоятельно: 5 из 6\nПропущено: 1\n\n<b>Твой прогресс</b>\n\n• Площадь пола · серия 0/3 → 3/3.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Персональная тренировка",
+                "callback_data": "train:personal~1915a27c3e87"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "train:progress~1915a27c3e87"
+              },
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~1915a27c3e87"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "7023c4cf-823b-453b-b440-b27a7e91581f"
+      }
+    }
+  ]
+}

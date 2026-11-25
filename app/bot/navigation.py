@@ -50,6 +50,8 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
+    if "nav:linked" in callbacks:
+        return "trainings"
     if "nav:trainings" in callbacks:
         return "main_menu"
     if any(c and c.startswith("nav:numbers:") for c in callbacks) or (
@@ -84,8 +86,6 @@ def navigation_screen(markup: object) -> str | None:
         value and value.startswith("progress:") for value in callbacks
     ):
         return "progress"
-    if any(value and value.startswith("train:") for value in callbacks):
-        return "trainings"
     if "nav:task:6" in callbacks:
         return "number_selection"
     if any(
@@ -95,12 +95,16 @@ def navigation_screen(markup: object) -> str | None:
                 "oge15:story:", "oge15:mode:", "oge15:start:", "oge15:return:",
                 "oge15:new:", "oge15:unfinished", "oge15:resume:", "oge15:restart:",
                 "oge15:new-confirm:", "oge15:restart-confirm:", "oge15:restart-cancel:",
-                "oge15:rc:", "oge15:rx:",
+                "oge15:rc:", "oge15:rx:", "oge15:linked:", "oge15:again:",
             )
         )
         for value in callbacks
     ):
         return "oge15_menu"
+    if any(value and value.startswith("train:") for value in callbacks):
+        if any(value and value.startswith("ad:") for value in callbacks):
+            return "adaptive"
+        return "trainings"
     if "nav:numbers" in callbacks:
         return "main_menu"
     return None
@@ -236,7 +240,7 @@ async def navigation_callback(
         if value.isascii() and value.isdigit() and len(value) <= 2:
             number_page = int(value)
             target = handlers.choose_number
-    if data == "nav:oge15":
+    if data in {"nav:oge15", "nav:linked"}:
         target = show_public_oge15
     oge15_number: int | None = None
     if data.startswith("nav:oge15:"):
@@ -361,8 +365,10 @@ async def navigation_callback(
 
         await replay_callback(callback, repository)
         return
-    elif data == "nav:oge15":
-        await show_public_oge15(message, oge15_repository, repository)
+    elif data in {"nav:oge15", "nav:linked"}:
+        await show_public_oge15(
+            message, oge15_repository, repository, linked_only=data == "nav:linked",
+        )
     elif oge15_number is not None:
         await show_public_oge15(
             message, oge15_repository, repository, selected_number=oge15_number
@@ -374,7 +380,9 @@ async def navigation_callback(
             oge15_repository,
         )
     elif target is not None:
-        if data == "nav:resume":
+        if data == "nav:trainings":
+            await show_trainings(message, repository, oge15_repository)
+        elif data == "nav:resume":
             await handlers.continue_session(
                 message,
                 repository,

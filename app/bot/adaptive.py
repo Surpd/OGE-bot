@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import secrets
 from datetime import UTC, datetime
 from functools import lru_cache
@@ -18,7 +19,7 @@ from app.adaptive.planner import (
     plan_with_trace,
     unlocked,
 )
-from app.adaptive.session import Session
+from app.adaptive.session import BLOCK_SIZE, OPEN_PRACTICE, Session, at_checkpoint
 from app.adaptive.skills import title
 from app.adaptive.sources import scenario_variant
 from app.adaptive.store import overview
@@ -31,16 +32,23 @@ from app.bot.presentation import hint_message, send_text
 from app.bot.scenario_materials import send_scenario_materials
 from app.bot.scenario_training import public_registry
 from app.bot.similar_practice import targeted_candidates
-from app.bot.trainings import TRAININGS
+from app.bot.trainings import PART2_TRAININGS, TRAININGS
 from app.config import get_settings
 from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
     ScenarioSnapshot,
-    build_practice_plan,
     snapshot_digest,
 )
+from app.math.scenarios.recent_questions import NoFreshScenarioVariant, fresh_family_plan
 from app.persistence.rotation_history import enabled
+from app.persistence.scenario_repository import ScenarioPostgresRepository
+
+logger = logging.getLogger(__name__)
+
+
+class VariantIdentityError(ValueError):
+    """A generated task has no usable mathematical identity."""
 
 
 def button(text: str, data: str) -> InlineKeyboardButton:
@@ -65,35 +73,34 @@ def generate(skill: str, seen: list[str]) -> dict[str, Any] | None:
     if number <= 5:
         registry = public_registry()
         story = skill.partition("-")[0]
-        for _ in range(12):
-            bundle = build_practice_plan(
-                PracticeRequest(PracticeMode.SINGLE, secrets.randbits(63), story, number), registry
-            )
-            q = bundle.snapshot.questions[number - 1]
-            fp = scenario_variant(bundle.snapshot, number)
-            if q.family_id == skill and fp not in seen:
-                return {
-                    **_scenario_question(bundle.snapshot.to_snapshot(), number),
-                    "problem_id": str(uuid4()),
-                    "fingerprint": fp,
-                    "scenario_digest": snapshot_digest(bundle.snapshot),
-                    "number": number,
-                }
-        return None
+        bundle = fresh_family_plan(
+            PracticeRequest(
+                PracticeMode.SINGLE, secrets.randbits(63), story, number, family_id=skill,
+            ),
+            registry, recent_fingerprints=seen,
+        )
+        if bundle.snapshot.questions[number - 1].family_id != skill:
+            raise VariantIdentityError("generated a different family")
+        fp = scenario_variant(bundle.snapshot, number)
+        if not fp or fp in seen:
+            raise VariantIdentityError("generated scenario identity does not match the selection")
+        return {
+            **_scenario_question(bundle.snapshot.to_snapshot(), number),
+            "problem_id": str(uuid4()),
+            "fingerprint": fp,
+            "scenario_digest": snapshot_digest(bundle.snapshot),
+            "number": number,
+        }
     state: dict[str, object] = {"recent_fingerprints": seen}
     if number == 19:
         state["recent_proposition_ids"] = [p for fp in seen[-10:] for p in fp.split(":")]
     candidates = targeted_candidates(number, skill, state)
-    return next(
-        (
-            p
-            for p in candidates
-            if p.get("fingerprint")
-            and p.get("problem_id")
-            and p.get("fingerprint") != p.get("problem_id")
-        ),
-        None,
-    )
+    if not candidates:
+        return None
+    for p in candidates:
+        if p.get("fingerprint") and p.get("problem_id") != p["fingerprint"] and p.get("problem_id"):
+            return p
+    raise VariantIdentityError("generated task is missing its fingerprint")
 
 
 def keyboard(row: Any) -> InlineKeyboardMarkup:
@@ -195,7 +202,7 @@ def _select(
 
 def _recommendation_action(item: SelectionReason) -> tuple[str, str]:
     if item.by_number:
-        return f"Пять задач №{item.number}", f"train:number:{item.number}"
+        return f"Тренировать №{item.number}", f"train:number:{item.number}"
     return title(item.family), f"train:family:{item.family}"
 
 
@@ -228,93 +235,71 @@ async def progress_target(repository: Any, learner: int, insights: dict[str, Any
         insights["personal_action"] = ("Персональная тренировка", "train:personal")
 
 
-async def present(message: Message, repository: Any, learner: int) -> None:
+async def _pending_task(
+    message: Message, repository: Any, store: Session, row: Any, *, exhausted: bool,
+) -> None:
+    token = f"{row['id']}.{row['position']}"
+    rows = []
+    if exhausted:
+        rows.append([button("🔁 Повторить вариант", f"ad:repeat:{token}")])
+    else:
+        rows.append([button("Попробовать ещё раз", f"ad:retry:{token}")])
+    scope = json.loads(row["scope"])
+    if scope.get("similar_position") == row["position"]:
+        rows.append([button("Вернуться к заданию", f"ad:back:{token}")])
+    rows.append([button("Выбрать другой тип", "train:areas")])
+    rows.append([
+        button(LABELS["menu"], f"ad:menu:{token}"), button("Завершить", f"ad:finish:{token}"),
+    ])
+    sent = await send_text(
+        message, repository,
+        "Ты уже видел все варианты этого типа. Можно повторить один из них."
+        if exhausted else "Не получилось подготовить задачу. Попробуй ещё раз.",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows), user_id_override=store.learner,
+    )
+    await store.set_pending_prompt(row, sent.message_id)
+
+
+async def present(
+    message: Message, repository: Any, learner: int, *, repeat: bool = False,
+    expected_prompt: int | None = None,
+) -> None:
     store = Session(repository, learner)
     row = await store.current()
     if row is None:
         return
-    skills = json.loads(row["plan"])
-    prefix = skills[: row["position"] + int(row["problem"] is not None)]
-    excluded = await store.excluded_for_learner()
-    strategy = str(row.get("strategy", "personal"))
-    history, insights = (
-        await _learner_inputs(repository, learner)
-        if strategy in {"personal", "number"}
-        else ([], {})
-    )
-    scope = row["scope"] or {}
-    if isinstance(scope, str):
-        scope = json.loads(scope)
-    exact_family = strategy == "family" or scope.get("similar_position") == row["position"]
-    for _ in range(8):
-        updated = skills
-        if not exact_family and (
-            strategy == "personal" or skills[row["position"]] in excluded
-        ):
-            updated = list(_select(
-                strategy, learner, history, insights, prefix=prefix, excluded=excluded,
-                number=scope.get("number"), size=len(skills),
-                seed=str(scope.get("plan_seed", learner)),
-            ).slots)
-        if len(updated) <= row["position"]:
-            break
-        if updated != skills and not await store.refresh(row, updated):
-            return
-        if row["problem"]:
-            break
-        skill = updated[row["position"]]
-        try:
-            candidate = await asyncio.to_thread(
-                generate, skill, await store.seen(row["owner"], skill)
-            )
-        except (ValueError, RuntimeError, KeyError, OSError):
-            candidate = None
-        if candidate:
-            if await store.save(row, skill, candidate):
-                row = await store.current()
-                break
-            # A concurrent presentation or a newly recorded fingerprint can win.
-            current = await store.current()
-            if (not current or current["id"] != row["id"] or current["problem"]
-                    or current["revision"] != row["revision"]):
-                return
-        await store.unavailable(row["owner"], skill)
-        excluded.append(skill)
-        skills = updated
-        if exact_family:
-            break
-    if not row:
+    if expected_prompt is not None and (row["problem"] or row["prompt"] != expected_prompt):
         return
+    if at_checkpoint(row):
+        await checkpoint(message, repository, store, row)
+        return
+    skills = json.loads(row["plan"])
+    strategy = str(row.get("strategy", "personal"))
     if not row["problem"]:
-        scope = row["scope"] or {}
-        if isinstance(scope, str):
-            scope = json.loads(scope)
-        if scope.get("similar_position") == row["position"]:
-            result = await store.cancel_similar(
-                row["id"], row["position"], revision=row["revision"]
-            )
-            if result == "exhausted":
-                await feedback(
-                    message, repository, learner,
-                    "Новых похожих вариантов сейчас нет. Нажми «Дальше».",
-                )
-            return
-        result = await store.act(
-            None, None, "finish", session_id=row["id"], position=row["position"],
-            revision=row["revision"],
-        )
-        if result == "finished":
-            await completion(
-                message, repository, store, row, "Пока не удалось подобрать свежий вариант."
-            )
+        row = await _issue_task(message, repository, store, row, skills, repeat=repeat)
+    elif strategy == "personal":
+        history, insights = await _learner_inputs(repository, learner)
+        scope = json.loads(row["scope"])
+        updated = list(_select(
+            strategy, learner, history, insights, prefix=skills[:row["position"] + 1],
+            excluded=await store.excluded_for_learner(), size=len(skills),
+            seed=str(scope.get("plan_seed", learner)),
+        ).slots)
+        if len(updated) == len(skills) and updated != skills:
+            if not await store.refresh(row, updated):
+                return
+    if not row:
         return
     data = problem_data(row)
     mode_name = {
         "personal": "Персональная тренировка",
         "mixed": "Смешанная тренировка",
-        "number": f"По номеру · №{data['number']}",
+        "number": "Тренировка по номеру",
         "family": title(json.loads(row["plan"])[row["position"]]),
     }.get(strategy, "Тренировка")
+    position = f"№{data['number']} — задание {row['position'] + 1}"
+    if strategy not in OPEN_PRACTICE:
+        position += f" из {len(skills)}"
     await _send_problem(
         message,
         repository,
@@ -323,7 +308,93 @@ async def present(message: Message, repository: Any, learner: int) -> None:
         user_id=learner,
         keyboard=keyboard(row),
         heading=mode_name,
-        position_text=f"№{data['number']} — задание {row['position'] + 1} из {len(skills)}",
+        position_text=position,
+    )
+
+
+async def _issue_task(
+    message: Message, repository: Any, store: Session, row: Any, skills: list[str],
+    *, repeat: bool,
+) -> Any:
+    position, strategy = row["position"], row["strategy"]
+    scope = json.loads(row["scope"])
+    exact = strategy == "family" or scope.get("similar_position") == position
+    excluded = [] if exact or repeat else await store.excluded_for_learner()
+    history, insights = (
+        await _learner_inputs(repository, store.learner)
+        if not exact and not repeat and strategy in {"personal", "number"} else ([], {})
+    )
+    exhausted_plan = None
+    technical_failure = bool(excluded)
+    for _ in range(8):  # Try different eligible families, never random families within one search.
+        updated = skills
+        if not exact and not repeat and (strategy == "personal" or skills[position] in excluded):
+            updated = list(_select(
+                strategy, store.learner, history, insights, prefix=skills[:position],
+                excluded=excluded, number=scope.get("number"), size=len(skills),
+                seed=str(scope.get("plan_seed", store.learner)),
+            ).slots)
+        if len(updated) <= position:
+            break
+        if updated != skills and not await store.refresh(row, updated):
+            return None
+        skills = updated
+        skill = skills[position]
+        seen = await store.seen(row["owner"], skill)
+        try:
+            candidate = await asyncio.to_thread(generate, skill, seen)
+        except NoFreshScenarioVariant:
+            exhausted_plan = skills
+            try:
+                candidate = await asyncio.to_thread(generate, skill, []) if repeat else None
+            except (ValueError, RuntimeError, KeyError, OSError):
+                logger.warning("Could not reissue a scenario for family %s", skill)
+                technical_failure = True
+                candidate = None
+        except (ValueError, RuntimeError, KeyError, OSError) as error:
+            logger.warning("Adaptive generation failed for %s (%s)", skill, type(error).__name__)
+            technical_failure = True
+            candidate = None
+        else:
+            if repeat:  # Repeat is available only after checking the entire certified pool.
+                candidate = None
+            technical_failure |= candidate is None
+        if candidate:
+            if not await store.save(row, skill, candidate, repeat=repeat):
+                # A competing update can reserve the cursor or issue this very variant.
+                # Neither case proves that the family is exhausted.
+                current = await store.current()
+                if not _same_pending(current, row, skills):
+                    return None
+                technical_failure = True
+                continue
+            current = await store.current()
+            if current and str(current["problem"]) == candidate["problem_id"]:
+                return current
+            return None
+        if exact or repeat:
+            break
+        excluded.append(skill)
+    else:
+        technical_failure = True
+    current = await store.current()
+    if _same_pending(current, row, skills) and (
+        await repository.user_state(store.learner) == "adaptive"
+    ):
+        exhausted = exhausted_plan is not None and not technical_failure
+        if exhausted and exhausted_plan != skills:
+            assert exhausted_plan is not None
+            if not await store.refresh(row, exhausted_plan):
+                return None
+        await _pending_task(message, repository, store, current, exhausted=exhausted)
+    return None
+
+
+def _same_pending(current: Any, row: Any, plan: list[str]) -> bool:
+    return (
+        current is not None and current["problem"] is None
+        and json.loads(current["plan"]) == plan
+        and all(current[key] == row[key] for key in ("id", "position", "revision", "prompt"))
     )
 
 
@@ -405,7 +476,7 @@ async def start(
         await repository.save_user_state(learner, "trainings")
         await send_text(
             message, repository,
-            "У вас уже сохранена короткая тренировка. Продолжить её или завершить досрочно?",
+            "У тебя уже есть начатая тренировка. Продолжить её или выбрать другую?",
             reply_markup=markup, user_id_override=learner,
         )
         return
@@ -441,54 +512,37 @@ async def start(
     await present(message, repository, learner)
 
 
-async def trainings(message: Message, repository: Any) -> None:
+async def trainings(
+    message: Message, repository: Any, oge15_repository: ScenarioPostgresRepository | None = None,
+) -> None:
+    from app.bot.router import _has_resumable_session
+
     if not message.from_user:
         return
     learner = message.from_user.id
     short_enabled = get_settings().oge_adaptive_enabled
     personal_available = short_enabled and await repository.personal_enabled(learner)
-    recommendations: tuple[SelectionReason, ...] = ()
-    lines = ["Тренировки", "", reply("start", message.message_id)]
-    if personal_available:
-        history, insights = await _learner_inputs(repository, learner)
-        recommendations = _select(
-            "personal", learner, history, insights,
-            excluded=await Session(repository, learner).excluded_for_learner(),
-            size=2, recommendations_only=True,
-        ).reasons
-        if recommendations:
-            lines.extend(("", "Что потренировать"))
-            lines.extend(f"• {_recommendation_text(item)}" for item in recommendations)
-        elif not history:
-            lines.extend(("", "Начни с персональной тренировки, чтобы проверить разные темы."))
+    has_session = await _has_resumable_session(repository, learner, oge15_repository)
     await repository.save_user_state(learner, "trainings")
-    markup = trainings_hub(personal_enabled=personal_available, short_enabled=short_enabled)
-    if recommendations:
-        markup.inline_keyboard[1:1] = [
-            [button(*_recommendation_action(item))] for item in recommendations
-        ]
     await send_text(
-        message, repository, "\n".join(lines),
-        reply_markup=markup,
+        message, repository, TrainingMessage(("title", "Тренировки")),
+        reply_markup=trainings_hub(
+            personal_enabled=personal_available, short_enabled=short_enabled,
+            has_session=has_session,
+        ),
         user_id_override=learner,
     )
 
 
-def area_keyboard(page: int = 0) -> InlineKeyboardMarkup:
+def area_keyboard() -> InlineKeyboardMarkup:
     numbers = sorted(set(catalog().values()))
-    page_count = max(1, (len(numbers) + 5) // 6)
-    page = min(max(0, page), page_count - 1)
-    shown = numbers[page * 6:(page + 1) * 6]
-    rows = [[button(f"№{n}", f"train:area:{n}") for n in shown[i:i + 3]]
-            for i in range(0, len(shown), 3)]
-    arrows = []
-    if page:
-        arrows.append(button("←", f"train:areas:{page - 1}"))
-    if page + 1 < page_count:
-        arrows.append(button("→", f"train:areas:{page + 1}"))
-    if arrows:
-        rows.append(arrows)
-    rows.append([button("↩ К тренировкам", "train:hub")])
+    rows = [[button("№1–5 · Связанный сюжет", "nav:linked")]]
+    rows.extend([button(f"№{n}", f"train:area:{n}") for n in numbers[i:i + 5]]
+                for i in range(0, len(numbers), 5))
+    if get_settings().oge_part2_enabled:
+        written = [button(f"№{t.number}", f"p2:menu:{t.number}") for t in PART2_TRAININGS]
+        rows.extend(written[i:i + 3] for i in range(0, len(written), 3))
+    rows.append([button("↩ К тренировкам", "nav:trainings")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -677,7 +731,10 @@ async def answer(message: Message, repository: Any) -> None:
         raise SkipHandler
     store = Session(repository, learner)
     row = await store.current()
-    if not row or not row["problem"] or not row["prompt"] or message.message_id <= row["prompt"]:
+    if (
+        not row or row["outcome"] != "issued" or not row["problem"] or not row["prompt"]
+        or message.message_id <= row["prompt"]
+    ):
         return
     reply_to = message.reply_to_message
     if reply_to and reply_to.message_id != row["prompt"]:
@@ -728,6 +785,14 @@ async def feedback(message: Message, repository: Any, learner: int, text: str) -
     store = Session(repository, learner)
     row = await store.current()
     if row and row["problem"]:
+        if at_checkpoint(row):
+            if isinstance(text, TrainingMessage):
+                await send_text(
+                    message, repository, text,
+                    user_id_override=learner, math_family=problem_data(row),
+                )
+            await checkpoint(message, repository, store, row)
+            return
         sent = await send_text(
             message,
             repository,
@@ -781,19 +846,48 @@ def _summary_changes(deltas: list[Any]) -> list[str]:
     return changes
 
 
+def _result_lines(totals: Any) -> str:
+    return "\n".join((
+        f"Решено верно: {totals['solved']} из {totals['issued']}",
+        f"Самостоятельно: {totals['independent']} из {totals['issued']}",
+        f"Пропущено: {totals.get('skipped', 0)}",
+    ))
+
+
+async def checkpoint(message: Message, repository: Any, store: Session, row: Any) -> None:
+    completed = row["position"] + 1
+    start_position = completed - BLOCK_SIZE
+    deltas = await store.summary_deltas(row["id"], from_position=start_position)
+    totals = await store.totals(row["id"], from_position=start_position)
+    blocks: list[tuple[Role, str]] = [
+        ("title", "Промежуточный итог"),
+        ("position", f"Задания {start_position + 1}–{completed}"),
+        ("stats", _result_lines(totals)),
+    ]
+    changes = _summary_changes(deltas)
+    if changes:
+        blocks.extend((("section", "Твой прогресс"), ("stats", "\n".join(changes))))
+    pid = row["problem"]
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [button("➡ Продолжить", f"ad:continue:{pid}"), button("Завершить", f"ad:finish:{pid}")],
+        [button(LABELS["menu"], f"ad:menu:{pid}")],
+    ])
+    sent = await send_text(
+        message, repository, TrainingMessage(*blocks), reply_markup=markup,
+        user_id_override=store.learner,
+    )
+    await store.set_prompt(store.learner, str(pid), sent.message_id)
+
+
 async def completion(
     message: Message, repository: Any, store: Session, row: Any, heading: str
 ) -> None:
     deltas = await store.summary_deltas(row["id"])
     totals = await store.totals(row["id"])
-    lines = [
-        f"Решено верно: {totals['solved']} из {totals['issued']}",
-        f"Самостоятельно: {totals['independent']} из {totals['issued']}",
-        f"Пропущено: {totals.get('skipped', 0)}",
-    ]
-    if totals["completed"] < 5:
-        lines.insert(0, f"Пройдено задач: {totals['completed']} из 5")
-    blocks: list[tuple[Role, str]] = [("title", heading), ("stats", "\n".join(lines))]
+    if not totals["issued"]:
+        await trainings(message, repository)
+        return
+    blocks: list[tuple[Role, str]] = [("title", heading), ("stats", _result_lines(totals))]
     changes = _summary_changes(deltas)
     if changes:
         blocks.extend((("section", "Твой прогресс"), ("stats", "\n".join(changes))))
@@ -840,7 +934,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
         if not nav_revision or not await repository.claim_navigation_message(
             learner, cb.message.message_id, nav_revision
         ):
-            await answer_callback(cb, "Это меню устарело. Откройте тренировки снова.")
+            await answer_callback(cb, "Это меню устарело. Открой тренировки снова.")
             return
         parts = raw.split(":")
         action = parts[1] if len(parts) > 1 else ""
@@ -853,9 +947,9 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
 
             await show_progress(actor_message, repository)
         elif action == "areas" and (len(parts) == 2 or parts[2].isdigit()):
-            page = int(parts[2]) if len(parts) == 3 else 0
-            await send_text(actor_message, repository, "Выбери номер для короткой тренировки.",
-                            reply_markup=area_keyboard(page), user_id_override=learner)
+            await repository.save_user_state(learner, "trainings")
+            await send_text(actor_message, repository, TrainingMessage(("title", "Выбери номер")),
+                            reply_markup=area_keyboard(), user_id_override=learner)
         elif action == "area" and len(parts) in {3, 4} and parts[2].isdigit():
             number = int(parts[2])
             page = int(parts[3]) if len(parts) == 4 and parts[3].isdigit() else 0
@@ -946,8 +1040,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
         or len(parts) != 3
         or str(row["problem"] or f"{row['id']}.{row['position']}") != parts[2]
         or await repository.user_state(learner) != "adaptive"
-        or row["problem"]
-        and row["prompt"] != cb.message.message_id
+        or row["prompt"] != cb.message.message_id
     ):
         await answer_callback(cb, "Это задание уже сменилось.")
         return
@@ -959,11 +1052,41 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
         if isinstance(raw_scenario, dict):
             snapshot = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
             await send_scenario_materials(
-                cb.message, repository, snapshot, data["number"], user_id=learner,
+                cb.message, repository, snapshot, data["number"], user_id=learner, full_story=True,
             )
         return
-    if action == "retry":
-        await present(cb.message, repository, learner)
+    if action in {"retry", "repeat"} and row["problem"] is None:
+        await present(
+            cb.message, repository, learner, repeat=action == "repeat",
+            expected_prompt=cb.message.message_id,
+        )
+    elif action == "back" and row["problem"] is None:
+        result = await store.cancel_similar(
+            row["id"], row["position"], revision=row["revision"], prompt=cb.message.message_id,
+        )
+        if result == "exhausted":
+            await present(cb.message, repository, learner)
+    elif action == "continue" and at_checkpoint(row):
+        scope = json.loads(row["scope"])
+        strategy = row["strategy"]
+        history, insights = (
+            await _learner_inputs(repository, learner) if strategy == "number" else ([], {})
+        )
+        next_block = _mode_plan(
+            strategy, learner, history, insights, number=scope.get("number"),
+            family=scope.get("family"), seed=secrets.token_hex(8),
+        )
+        result = await store.act(
+            row["problem"], row["prompt"], action, session_id=row["id"],
+            position=row["position"], revision=row["revision"], next_block=next_block,
+        )
+        if result == "next":
+            await present(cb.message, repository, learner)
+        elif not next_block:
+            await answer_callback(
+                cb, "Сейчас это направление недоступно. Можно завершить тренировку.",
+            )
+            return
     elif action == "menu":
         result = await store.act(
             row["problem"], row["prompt"], "menu", session_id=row["id"],
@@ -976,17 +1099,19 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             cb.message,
             repository,
             "Тренировка сохранена.",
-            reply_markup=main_menu(),
+            reply_markup=main_menu(has_session=True),
             user_id_override=learner,
         )
     elif action == "similar":
         result = await store.choose_similar(
-            row["id"], row["position"], row["problem"], revision=row.get("revision")
+            row["id"], row["position"], row["problem"], revision=row["revision"],
+            prompt=cb.message.message_id,
         )
         if result == "next":
             await present(cb.message, repository, learner)
         elif result == "full":
-            await completion(cb.message, repository, store, row, "Тренировка завершена!")
+            if at_checkpoint(row):
+                await checkpoint(cb.message, repository, store, row)
         else:
             await answer_callback(cb, "Похожее задание сейчас недоступно.")
             return

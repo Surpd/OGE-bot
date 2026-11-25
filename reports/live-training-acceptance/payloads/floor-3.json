@@ -1,0 +1,66 @@
+{
+  "case": "floor-3",
+  "label": "Площадь пола · вариант 3",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}2 \\times 2{,}5 \\times 1{,}9</tg-math> м. Дверь: 87 см × 183 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Площадь пола</b></p><p> </p><p><b>№3 — задание 3</b></p><p> </p><p>Найдите площадь пола парной в квадратных метрах.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:7e5a9fcf-1331-45aa-b292-6de6faae173e"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:7e5a9fcf-1331-45aa-b292-6de6faae173e"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:7e5a9fcf-1331-45aa-b292-6de6faae173e"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:7e5a9fcf-1331-45aa-b292-6de6faae173e"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:7e5a9fcf-1331-45aa-b292-6de6faae173e"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:7e5a9fcf-1331-45aa-b292-6de6faae173e"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "99bc8f5a-a47b-4a76-a63b-6ddca898dd42"
+      }
+    }
+  ]
+}

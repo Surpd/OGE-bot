@@ -209,7 +209,7 @@ async def test_written_progress_uses_validated_initial_grade_and_preserves_revis
 async def test_mixed_and_scenario_share_variant_and_only_fresh_results_count(bank_pool):
     import json
 
-    from app.adaptive.sources import item
+    from app.adaptive.sources import item, scenario_variant
     from app.adaptive.store import sync
     from app.bot.adaptive import generate
     from app.math.scenario_engine import ScenarioSnapshot, snapshot_digest
@@ -280,6 +280,38 @@ async def test_mixed_and_scenario_share_variant_and_only_fresh_results_count(ban
         second = await item(conn, owner, "mixed", str(uid))
         assert first.skill == second.skill and first.variant == second.variant == p["fingerprint"]
         await sync(conn, owner)
+        before_snapshot = await conn.fetchval(
+            "SELECT snapshot FROM oge15_scenarios WHERE id=$1", sid
+        )
+        # Simulate legacy adaptive evidence written with a stale semantic key.
+        await conn.execute(
+            "UPDATE adaptive_evidence SET variant='legacy-stale' WHERE owner=$1 AND skill=$2",
+            owner,
+            first.skill,
+        )
+        await conn.execute(
+            "INSERT INTO adaptive_dirty(owner,source,task) "
+            "VALUES($1,'scenario',$2),($1,'mixed',$3)",
+            owner,
+            f"{session}:{pos}",
+            str(uid),
+        )
+        await sync(conn, owner)
+        canonical = scenario_variant(scene, pos)
+        assert await conn.fetchval(
+            "SELECT count(DISTINCT variant) FROM adaptive_evidence WHERE owner=$1 AND skill=$2",
+            owner,
+            first.skill,
+        ) == 1
+        assert await conn.fetchval(
+            "SELECT bool_and(variant=$3) FROM adaptive_evidence WHERE owner=$1 AND skill=$2",
+            owner,
+            first.skill,
+            canonical,
+        )
+        assert await conn.fetchval(
+            "SELECT snapshot FROM oge15_scenarios WHERE id=$1", sid
+        ) == before_snapshot
         practice = await conn.fetchval(
             "SELECT state->>'practice' FROM adaptive_skills WHERE owner=$1 AND skill=$2",
             owner,
@@ -287,6 +319,72 @@ async def test_mixed_and_scenario_share_variant_and_only_fresh_results_count(ban
         )
         # Same transaction timestamp for both exposures. No proof either was independent.
         assert practice == "0"
+
+
+async def test_explicit_repeat_slot_cannot_supply_independent_adaptive_evidence(bank_pool):
+    import json
+
+    from app.adaptive.store import sync
+
+    owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+    problem = uuid4()
+    session = uuid4()
+    async with bank_pool.acquire() as conn, conn.transaction():
+        await conn.execute(
+            """INSERT INTO issued_problems(id,user_id,family_id,generator_version,
+            fingerprint,snapshot) VALUES($1,$2,'OGE09-L1','test','same-math',
+            '{"number":9}'::jsonb)""",
+            problem,
+            owner,
+        )
+        await conn.execute(
+            """INSERT INTO attempts(user_id,problem_id,attempt_no,raw_answer,is_correct,
+               used_hint,telegram_message_id) VALUES($1,$2,1,'answer',true,false,23)""",
+            owner,
+            problem,
+        )
+        await conn.execute(
+            """INSERT INTO adaptive_sessions(id,owner,plan,strategy)
+            VALUES($1,$2,'["OGE09-L1"]'::jsonb,'personal')""",
+            session,
+            owner,
+        )
+        await conn.execute(
+            """INSERT INTO adaptive_slots(session_id,position,problem,selection)
+            VALUES($1,1,$2,'repeat')""",
+            session,
+            problem,
+        )
+        await conn.execute(
+            "INSERT INTO adaptive_dirty(owner,source,task) VALUES($1,'ordinary',$2) "
+            "ON CONFLICT DO NOTHING",
+            owner,
+            str(problem),
+        )
+        await sync(conn, owner)
+    state = await bank_pool.fetchval(
+        "SELECT state FROM adaptive_skills WHERE owner=$1 AND skill='OGE09-L1'", owner
+    )
+    assert json.loads(state)["independent_count"] == 0
+    # The archived answer remains available to ordinary number statistics.
+    assert await bank_pool.fetchval(
+        "SELECT count(*) FROM attempts WHERE user_id=$1 AND problem_id=$2", owner, problem
+    ) == 1
+
+
+async def test_variant_reprojection_migration_clears_temporary_exclusions(bank_pool):
+    from pathlib import Path
+
+    owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+    await bank_pool.execute(
+        "INSERT INTO adaptive_unavailable(owner,skill,retry_after) "
+        "VALUES($1,'STOVE-F04-FLOOR-AREA',now()+interval '1 hour')",
+        owner,
+    )
+    await bank_pool.execute(Path("migrations/0033_adaptive_variant_reprojection.sql").read_text())
+    assert await bank_pool.fetchval(
+        "SELECT count(*) FROM adaptive_unavailable WHERE owner=$1", owner
+    ) == 0
 
 
 async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeypatch, bank_pool):
@@ -669,11 +767,14 @@ async def test_mixed_oge19_correct_answers_do_not_claim_broad_family_success(ban
 
 def test_fixed_bank_and_unavailable_family_fail_closed():
     from app.bot.adaptive import generate
+    from app.math.scenarios.recent_questions import NoFreshScenarioVariant
 
     assert generate("unsupported", []) is None
     f = "FLAT-03-RECT-AREA"
     first = generate(f, [])
-    assert first and not generate(f, [first["fingerprint"]])
+    assert first
+    with pytest.raises(NoFreshScenarioVariant):
+        generate(f, [first["fingerprint"]])
     assert trajectory(ev(1, 0, "ambiguous"), ev(1, 0, "ambiguous", 2)).stage == Stage.CHECK
 
 
@@ -872,7 +973,7 @@ async def test_upgrade_archives_old_closures_and_reprojects_without_new_attempt(
 
 
 @pytest.mark.parametrize("strategy", ["personal", "mixed", "number"])
-async def test_exhausted_families_are_bounded_and_never_leave_issued_or_active_task(
+async def test_generation_attempts_are_bounded_and_leave_unissued_cursor(
     bank_pool, monkeypatch, strategy
 ):
     from aiogram import Bot
@@ -902,14 +1003,18 @@ async def test_exhausted_families_are_bounded_and_never_leave_issued_or_active_t
             chat=Chat(id=1, type="private"),
             from_user=User(id=1, is_bot=False, first_name="QA"),
         ).as_(bot)
+        await session.start(
+            list(candidates)[:5], strategy=strategy,
+            scope={"number": 6} if strategy == "number" else {},
+        )
+        original = await session.current()
         for _ in range(2):
-            await session.start(
-                list(candidates)[:5], strategy=strategy,
-                scope={"number": 6} if strategy == "number" else {},
-            )
+            tried.clear()
             await adaptive.present(msg, repo, 1)
-            assert await session.current() is None
-        assert len(tried) == len(set(tried)) == 10
+            pending = await session.current()
+            assert pending["id"] == original["id"] and pending["position"] == 0
+            assert pending["problem"] is None
+            assert len(tried) == len(set(tried)) == 8
         assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_slots") == 0
     finally:
         await bot.session.close()

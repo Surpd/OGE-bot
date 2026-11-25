@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import secrets
 from hashlib import sha256
 from typing import Any, cast
 from uuid import UUID, uuid4
@@ -163,17 +162,13 @@ class MixedTrainingRepository:
                 current["status"] = "active"
                 await self._repository.save_user_state(user_id, "mixed")
                 return cast(dict[str, object], current)
-            numbers = list(available_numbers)
-            secrets.SystemRandom().shuffle(numbers)
-            if len(numbers) > 1 and current and numbers[0] == current.get("last_number"):
-                numbers[0], numbers[1] = numbers[1], numbers[0]
             session = {
                 "id": str(uuid4()),
                 "status": "active",
                 "revision": 0,
                 "state": {
                     "available_numbers": available_numbers,
-                    "queue": numbers,
+                    "queue": list(available_numbers),
                     "current_number": None,
                     "active_problem_id": None,
                     "scenario_snapshot": None,
@@ -198,11 +193,9 @@ class MixedTrainingRepository:
                 user["id"],
             )
             if row is None:
-                queue = list(available_numbers)
-                secrets.SystemRandom().shuffle(queue)
                 state = {
                     "available_numbers": available_numbers,
-                    "queue": queue,
+                    "queue": list(available_numbers),
                     "current_number": None,
                     "active_problem_id": None,
                     "scenario_snapshot": None,
@@ -671,8 +664,6 @@ class MixedTrainingRepository:
             queue = state.get("queue", [])
             if not isinstance(queue, list) or not queue:
                 queue = list(new_cycle) if new_cycle else _int_list(state.get("available_numbers"))
-                if len(queue) > 1 and queue[0] == state["last_number"]:
-                    queue[0], queue[1] = queue[1], queue[0]
                 state["queue"] = queue
             if int(queue[0]) != next_number:
                 return None
@@ -729,11 +720,6 @@ class MixedTrainingRepository:
                 queue = list(new_cycle) if new_cycle else _int_list(
                     state.get("available_numbers")
                 )
-                if not new_cycle:
-                    secrets.SystemRandom().shuffle(queue)
-                previous = int(row["number"])
-                if len(queue) > 1 and int(queue[0]) == previous:
-                    queue[0], queue[1] = queue[1], queue[0]
             if not queue:
                 await connection.execute(
                     """UPDATE mixed_training_sessions SET status='completed',

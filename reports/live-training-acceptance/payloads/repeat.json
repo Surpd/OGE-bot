@@ -1,0 +1,98 @@
+{
+  "case": "repeat",
+  "label": "Осознанный повтор варианта",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://L-h9pj2PkUemsw",
+        "caption": "Данные задачи №5",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "L-h9pj2PkUemsw": {
+          "path": "assets/789cfd6a150dceb15c3467d14d42ed7ec7002ccd6cd0bf5f3ee4e79827daa9b7.png",
+          "filename": "scenario-1.png",
+          "sha256": "789cfd6a150dceb15c3467d14d42ed7ec7002ccd6cd0bf5f3ee4e79827daa9b7"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://85nu3jdHuyJzTg",
+        "caption": "Данные задачи №5",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "85nu3jdHuyJzTg": {
+          "path": "assets/e764136612c1a19b32f2e7ce7fcd409cfef017ba459db3b3c983f8954337f05f.png",
+          "filename": "scenario-2.png",
+          "sha256": "e764136612c1a19b32f2e7ce7fcd409cfef017ba459db3b3c983f8954337f05f"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Масштабирование шрифта</b></p><p> </p><p><b>№5 — задание 3</b></p><p> </p><p>Размер шрифта на листе A4 равен 10 пт. После изменения формата листа на A3 размер шрифта меняют пропорционально соответствующей стороне формата. Округлите новый размер до целого числа пунктов.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:fd2020e2-8999-423e-ba7c-784865efe746"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:fd2020e2-8999-423e-ba7c-784865efe746"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:fd2020e2-8999-423e-ba7c-784865efe746"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:fd2020e2-8999-423e-ba7c-784865efe746"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:fd2020e2-8999-423e-ba7c-784865efe746"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:fd2020e2-8999-423e-ba7c-784865efe746"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "e892e2b8-2a46-436e-9c1a-14a3644f86ab"
+      }
+    }
+  ]
+}
