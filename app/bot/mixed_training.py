@@ -8,7 +8,7 @@ import hashlib
 import secrets
 from collections.abc import Callable
 from functools import partial
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
 from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.types import (
@@ -367,14 +367,20 @@ async def _issue(store: MixedTrainingRepository, user_id: int) -> dict[str, obje
     return await store.issue_current(user_id, revision, number, snapshot)
 
 
+class PromptStore(Protocol):
+    async def set_prompt(self, user_id: int, problem_id: str, message_id: int) -> bool: ...
+
+
 async def _send_problem(
     message: Message,
     repository: Repository,
-    store: MixedTrainingRepository,
+    store: PromptStore,
     problem: dict[str, object],
     *,
     user_id: int,
     previous_problem: dict[str, object] | None = None,
+    keyboard: InlineKeyboardMarkup | None = None,
+    heading: str | None = None,
 ) -> None:
     number_value = problem.get("number")
     if not isinstance(number_value, int):
@@ -427,7 +433,7 @@ async def _send_problem(
         None if number <= 5 else await asyncio.to_thread(_render_image, number, problem)
     )
     completed = problem.get("outcome") in {"solved", "failed", "skipped", "solution_viewed"}
-    markup = _mixed_menu(
+    markup = keyboard or _mixed_menu(
         str(problem["problem_id"]),
         completed=completed,
         scenario=number <= 5,
@@ -435,7 +441,7 @@ async def _send_problem(
         if completed
         else (_task19_button_choices(problem) if number == 19 else (4 if number == 13 else 0)),
     )
-    caption = f"Задание №{number}\n\n{condition}"
+    caption = f"{heading or f'Задание №{number}'}\n\n{condition}"
     math_system_rows = system_rows(number, problem)
     if image_data is not None:
         sent = await send_photo(

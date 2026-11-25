@@ -2708,11 +2708,18 @@ async def unknown_message(message: Message, repository: Repository) -> None:
 
 
 def build_router() -> Router:
+    from app.bot.adaptive_feedback import AdaptiveFeedback
+
     router = Router()
+    router.message.middleware(AdaptiveFeedback())
+    router.callback_query.middleware(AdaptiveFeedback())
     router.callback_query.register(
         navigation_callback,
         F.data.startswith(("nav:", "p2:", "progress:", "replay:")),
     )
+    from app.bot import adaptive
+
+    router.callback_query.register(adaptive.callback, F.data.startswith("ad:"))
     router.callback_query.register(mixed_callback, F.data.startswith("mixed:"))
     router.message.register(start, CommandStart())
     from app.bot.api_diagnostics import api_status, api_test
@@ -2751,6 +2758,7 @@ def build_router() -> Router:
     from app.bot.part2 import collect
 
     router.message.register(collect, F.text | F.photo)
+    router.message.register(adaptive.answer, F.text)
     router.message.register(mixed_answer, F.text)
     router.message.register(task17_or_scenario_answer)
     router.message.register(menu_section, F.text.in_(MAIN_MENU))

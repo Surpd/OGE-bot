@@ -152,6 +152,8 @@ def progress_keyboard(
     from app.config import get_settings
 
     if section == "summary":
+        if get_settings().oge_adaptive_enabled:
+            rows.append([_button("Навыки и пробелы", "nav:gaps:0")])
         action = _summary_action(insights) if insights is not None else None
         if action is not None:
             rows.append([_button(*action)])

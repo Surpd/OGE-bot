@@ -5,6 +5,7 @@ import secrets
 
 import asyncpg
 
+from app.config import get_settings
 from app.persistence.part2_bank import import_bank
 from app.persistence.repository import PostgresRepository
 
@@ -57,7 +58,10 @@ async def open_storage(url: str, bot_id: int) -> TestRepository:
         min_size=1,
         max_size=3,
         command_timeout=15,
-        server_settings={"search_path": schema, "application_name": "oge-companion"},
+        server_settings={
+            "search_path": schema, "application_name": "oge-companion",
+            "bop.adaptive": "on" if get_settings().oge_companion_adaptive_enabled else "off",
+        },
     )
     assert pool is not None
     try:

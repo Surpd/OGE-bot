@@ -74,6 +74,8 @@ def navigation_screen(markup: object) -> str | None:
             return f"family_selection:{value.split(':')[2]}"
     if any(value and value.startswith("replay:") for value in callbacks):
         return "error_replay"
+    if "nav:progress" in callbacks and "nav:numbers" not in callbacks:
+        return "progress"
     if "nav:details" in callbacks or "nav:progress_text" in callbacks or any(
         value and value.startswith("progress:") for value in callbacks
     ):
@@ -196,6 +198,16 @@ async def navigation_callback(
         "nav:details": handlers.show_progress_details,
         "nav:display": show_display_options,
     }
+    from app.config import get_settings
+
+    gaps_offset = None
+    if get_settings().oge_adaptive_enabled:
+        from app.bot.adaptive import gaps, start
+
+        targets["nav:adaptive"] = start
+        if data.startswith("nav:gaps:") and data[9:].isdigit() and len(data[9:]) <= 6:
+            gaps_offset = int(data[9:])
+            targets[data] = gaps
     target = targets.get(data)
     number_page = None
     if data.startswith("nav:numbers:"):
@@ -278,7 +290,8 @@ async def navigation_callback(
     if oge15_repository is not None and (
         data
         in {
-            "nav:main", "nav:numbers", "nav:mixed", "nav:progress", "nav:progress_text",
+            "nav:adaptive", "nav:main", "nav:numbers", "nav:mixed",
+            "nav:progress", "nav:progress_text",
             "nav:details", "nav:display",
             "nav:settings",
         }
@@ -295,7 +308,9 @@ async def navigation_callback(
         await answer_callback(callback)
         await part2_action(message, repository, callback.from_user.id, data)
         return
-    if display_mode is not None:
+    if gaps_offset is not None:
+        await gaps(message, repository, gaps_offset)
+    elif display_mode is not None:
         await repository.set_math_display(callback.from_user.id, display_mode)
         await show_display_options(message, repository)
     elif family_action is not None:

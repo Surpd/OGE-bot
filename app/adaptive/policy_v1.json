@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "practice_count": 2,
+  "intervals_days": [2, 5],
+  "diagnostic_days": 30,
+  "distinct_errors": 2,
+  "attempts_per_task": 2
+}

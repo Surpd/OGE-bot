@@ -88,6 +88,7 @@ class CompanionMiddleware(BaseMiddleware):
         self.settings = settings.model_copy(
             update={
                 "oge_part2_enabled": True,
+                "oge_adaptive_enabled": settings.oge_companion_adaptive_enabled,
                 "oge_grading_enabled": False,
                 "openai_api_key": None,
             }

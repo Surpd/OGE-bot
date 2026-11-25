@@ -52,15 +52,18 @@ def supports_similar(source: ReplaySource) -> bool:
 
 
 def _candidates(source: ReplaySource, state: dict[str, object]) -> list[dict[str, object]]:
-    number = source.number
-    family = str(source.snapshot["family_id"])
     fingerprint = source.snapshot["fingerprint"]
     recent = state.get("recent_fingerprints")
-    selection = {
+    return targeted_candidates(source.number, str(source.snapshot["family_id"]), {
         **state,
-        "family_queue": [family],
         "recent_fingerprints": [*(recent if isinstance(recent, list) else []), fingerprint],
-    }
+    })
+
+
+def targeted_candidates(
+    number: int, family: str, state: dict[str, object],
+) -> list[dict[str, object]]:
+    selection = {**state, "family_queue": [family], "selected_family_id": family}
     builder = cast(Callable[..., list[dict[str, object]]], _builders()[number])
     seed = secrets.randbelow(2**63)
     if number == 7:
@@ -71,7 +74,9 @@ def _candidates(source: ReplaySource, state: dict[str, object]) -> list[dict[str
         batch = builder(selection, seed)
     return [
         candidate for candidate in batch
-        if candidate.get("family_id") == family and candidate.get("fingerprint") != fingerprint
+        if candidate.get("family_id") == family and candidate.get("fingerprint") not in cast(
+            list[str], selection.get("recent_fingerprints", [])
+        )
     ]
 
 
@@ -114,6 +119,21 @@ def _choices(token: str, *, active: bool = False) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+async def _origin(
+    repository: Repository, learner: int, source: ReplaySource, kind: str, task: str,
+) -> None:
+    from app.config import get_settings
+
+    pool = getattr(repository, "_pool", None)
+    if pool is not None and get_settings().oge_adaptive_enabled:
+        original = str(source.source_id)
+        if source.source_type=="scenario":
+            original += f":{source.source_position}"
+        await pool.execute("""INSERT INTO adaptive_origins
+            SELECT id,$2,$3,$4,$5 FROM users WHERE telegram_user_id=$1 ON CONFLICT DO NOTHING""",
+            learner,kind,task,source.source_type,original)
+
+
 async def _start_scenario(
     message: Message, repository: Repository, user_id: int, source: ReplaySource,
     token: str, *, confirmed: bool,
@@ -144,6 +164,7 @@ async def _start_scenario(
     )
     if session is None:
         return False
+    await _origin(repository,user_id,source,"scenario",f"{session.session_id}:{source.number}")
     await render_session(
         message, store, session, show_assets=True, user_id_override=user_id,
         repository=repository,
@@ -194,6 +215,7 @@ async def _start_ordinary(
         if previous_status is not None and problem_id is not None:
             await repository.restore_training_restart(user_id, mode, problem_id, previous_status)
         return False
+    await _origin(repository, user_id, source, "ordinary", str(issued["problem_id"]))
     sender = router._send_problem if number == 6 else getattr(router, f"_send_{mode}_problem")
     return bool(await sender(
         message, repository, action="resume", expected_problem_id=str(issued["problem_id"]),
