@@ -1,4 +1,5 @@
 import io
+import json
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
@@ -205,6 +206,59 @@ async def test_training_blocks_survive_in_serialized_rich_payload():
         assert "<p><b>Разбор:</b></p><p>\u00a0</p>" in rendered
         assert "<tg-math-block>" in rendered
         assert "<b>Ответ:</b> <tg-math>" in rendered
+    finally:
+        await bot.session.close()
+
+
+@pytest.mark.parametrize("fallback", [False, True])
+async def test_adaptive_review_with_reaction_keeps_family_typesetting(monkeypatch, fallback):
+    from app.bot import adaptive
+
+    family = "OGE06-F006-MIXED-MINUS-DECIMAL"
+    problem = {
+        "number": 6, "family_id": family,
+        "solution": ["Вычислим: 2 1/2 − 0,8"], "correct_answer": "1,7",
+    }
+    row = {
+        "problem": "current-problem", "snapshot": json.dumps(problem),
+        "plan": json.dumps([family]), "position": 0, "outcome": "failed",
+        "prompt": 84, "hints_used": 0,
+    }
+    session = AsyncMock()
+    session.current.return_value = row
+    monkeypatch.setattr(adaptive, "Session", lambda *_: session)
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=96, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock(return_value=sent)
+    if fallback:
+        bot.send_rich_message.side_effect = TelegramBadRequest(
+            method=SendRichMessage(chat_id=42, rich_message={"html": "test"}),
+            message="Bad Request: can't parse entities: unsupported start tag",
+        )
+    bot.send_photo = AsyncMock(return_value=sent)
+    repository = AsyncMock()
+    repository.math_display.return_value = "auto"
+    repository.math_format.return_value = "auto"
+    reaction = "Давай разберёмся."
+    try:
+        await adaptive.feedback(incoming(bot), repository, 42,
+                                adaptive._solution(problem, reaction))
+        repository.math_display.assert_awaited_with(42, family)
+        sent_rich = bot.send_rich_message.await_args.kwargs
+        rich = sent_rich["rich_message"].html
+        assert rich.index(reaction) < rich.index("<b>Разбор:</b>")
+        assert r"2\frac{1}{2}" in rich
+        assert "<b>Ответ:</b>" in rich
+        if fallback:
+            bot.send_photo.assert_awaited_once()
+            sent_png = bot.send_photo.await_args.kwargs
+            with Image.open(io.BytesIO(sent_png["photo"].data)) as image:
+                assert image.format == "PNG" and image.width == 1200
+            assert sent_png["reply_markup"] == sent_rich["reply_markup"]
+            repository.remember_png_template.assert_awaited_once_with(family)
+        else:
+            bot.send_photo.assert_not_awaited()
+        session.set_prompt.assert_awaited_once_with(42, "current-problem", 96)
     finally:
         await bot.session.close()
 

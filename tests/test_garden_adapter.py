@@ -12,6 +12,7 @@ from app.math.scenario_engine import (
     FamilyRegistry,
     PracticeMode,
     PracticeRequest,
+    QuestionSnapshot,
     ScenarioSnapshot,
     build_practice_plan,
     restore_asset_bytes,
@@ -51,18 +52,18 @@ def test_garden_heat_uses_two_stage_source_operands_and_independent_oracle() -> 
     question = plan.snapshot.questions[4]
     context = plan.snapshot.shared_context
     assert question.canonical_answer == "500"
-    assert "котёл 20000 руб., монтаж 15370 руб." in context
-    assert "котёл 15000 руб., монтаж 14000 руб." in context
-    assert "1.6 м³/ч, 4.9 руб./м³" in context
-    assert "4.9 кВт, 4.2 руб./(кВт·ч)" in context
+    assert "числовые исходные данные приведены в отдельной таблице" in context
+    assert all(value not in context for value in ("20000", "15370", "15000", "14000"))
+    assert all(value not in question.condition for value in ("20000", "15370", "1.6", "4.9"))
+    assert "Используйте таблицу исходных данных" in question.condition
     assert "7.84" not in context and "20.58" not in context
     assert "Сколько часов" in question.condition or "Через сколько часов" in question.condition
 
     scenario = _Generator().generate_scenario(0)
     rendered = _Renderer().render_scenario(scenario)
     oracle = _Oracle()
-    altered = replace(rendered, shared_context=context.replace("15370", "15371"))
-    with pytest.raises(ValueError):
+    altered = replace(rendered, shared_context=context + "\nМонтаж: 15370 руб.")
+    with pytest.raises(ValueError, match="Shared plan/table text"):
         oracle.validate_question(scenario, _Builder().build_question(scenario, 5), altered)
     question = _Builder().build_question(scenario, 5)
     with pytest.raises(ValueError):
@@ -74,10 +75,63 @@ def test_garden_heat_uses_two_stage_source_operands_and_independent_oracle() -> 
             ),
             rendered,
         )
-    malformed_context = context.replace("4.9 руб./м³", "4.91 руб./м³")
-    malformed_rate = replace(rendered, shared_context=malformed_context)
-    with pytest.raises(ValueError):
-        oracle.validate_question(scenario, question, malformed_rate)
+    malformed_question = replace(
+        question, condition=question.condition.replace("таблицу", "список"),
+    )
+    with pytest.raises(ValueError, match="presented data table"):
+        oracle.validate_question(scenario, malformed_question, rendered)
+
+
+def test_garden_heating_table_is_the_single_complete_visible_operand_source(monkeypatch) -> None:
+    from unittest.mock import Mock
+
+    from app.math.scenarios import mobile_photos
+
+    snapshot = _plan(0).snapshot
+    render = Mock(return_value=b"heating-table")
+    monkeypatch.setattr(mobile_photos, "table", render)
+    assert mobile_photos.garden_heating_table(snapshot) == b"heating-table"
+    title, rows, _widths = render.call_args.args
+    assert title == "Отопление: исходные данные"
+    visible = " ".join(cell for row in rows for cell in row)
+    for value in ("20 000", "15 370", "15 000", "14 000", "1.6", "4.9", "4.2"):
+        assert value in visible
+    assert all(value not in snapshot.shared_context for value in ("20000", "15370", "15000"))
+    assert all(value not in snapshot.questions[4].condition for value in ("20000", "15370", "1.6"))
+
+
+def test_garden_v1_6_shared_context_remains_byte_for_byte_compatible() -> None:
+    scenario = _Generator().generate_scenario(0)
+    previous = replace(scenario, generator_version="garden-sosnovka-1.6")
+    context = _Renderer().render_scenario(previous).shared_context
+    assert "Газ: котёл 20000 руб., монтаж 15370 руб.; 1.6 м³/ч, 4.9 руб./м³." in context
+    assert "Электричество: котёл 15000 руб., монтаж 14000 руб.; 4.9 кВт" in context
+
+
+@pytest.mark.parametrize("version", ["garden-sosnovka-1.5", "garden-sosnovka-1.6"])
+def test_delivered_archived_heat_question_is_not_repeated_in_context_or_table(version: str) -> None:
+    from app.bot.scenario_materials import scenario_context_for_question
+    from app.math.scenarios.mobile_photos import scenario_photos_for_question
+
+    current = _plan(0).snapshot
+    archived_scenario = replace(
+        _Generator().generate_scenario(0), generator_version="garden-sosnovka-1.6"
+    )
+    archived_question = QuestionSnapshot.from_draft(
+        replace(_Builder().build_question(archived_scenario, 5), generator_version=version)
+    )
+    archived = replace(
+        current,
+        generator_version=version,
+        shared_context=_Renderer().render_scenario(archived_scenario).shared_context,
+        questions=(*current.questions[:4], archived_question),
+    )
+    before = archived.to_snapshot()
+
+    assert "газовый котёл 20000 руб." in archived_question.condition
+    assert "Отопление одного дома" not in scenario_context_for_question(archived, 5)
+    assert scenario_photos_for_question(archived, 5) == ()
+    assert archived.to_snapshot() == before
 
 
 def test_quarantined_and_research_only_types_stay_disabled() -> None:
@@ -195,7 +249,8 @@ def test_quality_250_seeds_answers_unique_and_restorable() -> None:
         plan = build_practice_plan(
             PracticeRequest(PracticeMode.FULL, seed, "GARDEN"), FamilyRegistry((adapter,))
         )
-        fingerprints.add(tuple(q.condition for q in plan.snapshot.questions))
+        conditions = tuple(q.condition for q in plan.snapshot.questions)
+        fingerprints.add((*conditions, repr(plan.snapshot.context["heat"])))
         assert tuple(q.family_id for q in plan.snapshot.questions) == FAMILIES
         assert restore_asset_bytes(adapter.renderer, plan.snapshot, plan.snapshot.assets[0])
     assert len(fingerprints) >= 200

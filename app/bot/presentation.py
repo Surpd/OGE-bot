@@ -79,7 +79,7 @@ def render_math_fragment(fragment: MathFragment) -> str:
     return format_math_message(fragment.unicode())
 
 
-def hint_message(hint: str, problem: object = None, *, numbered: bool = True) -> str:
+def hint_message(hint: str, problem: object = None, *, numbered: bool = True) -> TrainingMessage:
     hints = problem.get("hints") if isinstance(problem, dict) else None
     number = ""
     if numbered and isinstance(hints, list | tuple) and len(hints) > 1 and hint in hints:
@@ -341,7 +341,10 @@ async def send_text(
             key in {"OGE18-A06", "OGE18-A07", "OGE18-C01"}
             and isinstance(math_family, dict)
             and isinstance(text, str)
-            and any(s.startswith("Разбор") for s in text.splitlines())
+            and (
+                text.has_role("solution") if isinstance(text, TrainingMessage)
+                else any(line.startswith("Разбор") for line in text.splitlines())
+            )
         ):
             from app.math.oge18_render import polygon_construction
 

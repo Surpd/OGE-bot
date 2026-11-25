@@ -39,6 +39,9 @@ class TrainingMessage(str):
     def transform(self, render: Callable[[str], str]) -> "TrainingMessage":
         return TrainingMessage(*((role, render(body)) for role, body in self.blocks))
 
+    def has_role(self, *roles: Role) -> bool:
+        return any(role in roles for role, _ in self.blocks)
+
     def headings(self) -> frozenset[str]:
         return frozenset(
             line for role, body in self.blocks if role in EMPHASIS for line in body.splitlines()

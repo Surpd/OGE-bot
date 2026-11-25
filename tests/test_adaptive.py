@@ -577,6 +577,68 @@ async def test_upgrade_queues_existing_archive_and_pool_reset_keeps_triggers(ban
         await production_pool.close()
 
 
+async def test_archive_recovery_read_does_not_mutate_written_history_or_budget(bank_pool):
+    """Queue reconstruction and projection are read-only for paid grading data."""
+    from pathlib import Path
+
+    from app.adaptive.store import overview
+    from app.persistence.repository import PostgresRepository
+
+    card = await bank_pool.fetchrow(
+        """SELECT c.task_id,c.subtype_id,v.version FROM part2_cards c
+        JOIN part2_versions v USING(task_id)
+        WHERE v.reviewed AND v.available ORDER BY c.task_id LIMIT 1"""
+    )
+    issue = await bank_pool.fetchval(
+        """INSERT INTO part2_issues(owner,number,task_id,version,subtype_id,closed)
+        VALUES(1,20,$1,$2,$3,true) RETURNING id""",
+        card["task_id"],
+        card["version"],
+        card["subtype_id"],
+    )
+    await bank_pool.execute(
+        """INSERT INTO part2_grades(issue_id,revision,model,prompt_version,
+        rubric_version,status,score,result,reserved_usd,cost_usd,input_tokens,
+        output_tokens,dispatched_at)
+        VALUES($1,1,'fixture','v1',1,'graded',1,
+        '{"status":"graded","score":1,"needs_review":false,
+        "criterion_evidence":[{"criterion":"answer","student_evidence":"x=2"}]}'::jsonb,
+        0.025,0.017,120,30,clock_timestamp())""",
+        issue,
+    )
+    await bank_pool.execute("TRUNCATE adaptive_dirty,adaptive_evidence,adaptive_skills")
+
+    snapshot_sql = """SELECT jsonb_build_object(
+      'issues',(SELECT jsonb_agg(to_jsonb(i) ORDER BY i.id)
+                FROM part2_issues i WHERE i.owner=1),
+      'grades',(SELECT jsonb_agg(to_jsonb(g) ORDER BY g.issue_id,g.revision)
+                FROM part2_grades g JOIN part2_issues i ON i.id=g.issue_id
+                WHERE i.owner=1),
+      'work',(SELECT jsonb_agg(to_jsonb(w) ORDER BY w.issue_id,w.message_id)
+              FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
+              WHERE i.owner=1),
+      'reviews',(SELECT jsonb_agg(to_jsonb(r) ORDER BY r.issue_id,r.revision)
+                 FROM adaptive_grade_reviews r JOIN part2_issues i ON i.id=r.issue_id
+                 WHERE i.owner=1),
+      'api_tests',(SELECT jsonb_agg(to_jsonb(t) ORDER BY t.confirmation)
+                   FROM part2_api_tests t WHERE t.owner=1))"""
+    before = await bank_pool.fetchval(snapshot_sql)
+    migration = Path("migrations/0032_adaptive_archive_recovery.sql").read_text()
+
+    await bank_pool.execute(migration)
+    await bank_pool.execute(migration)
+    assert await bank_pool.fetchval(
+        "SELECT count(*) FROM adaptive_dirty WHERE source='written' AND task=$1",
+        str(issue),
+    ) == 1
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_evidence") == 0
+    assert await bank_pool.fetchval(snapshot_sql) == before
+
+    history = await overview(PostgresRepository(bank_pool), 1)
+    assert any(number == 20 and skill == card["subtype_id"] for number, skill, *_ in history)
+    assert await bank_pool.fetchval(snapshot_sql) == before
+
+
 async def test_mixed_oge19_correct_answers_do_not_claim_broad_family_success(bank_pool):
     from app.adaptive.store import overview, sync
     from app.persistence.repository import PostgresRepository

@@ -535,6 +535,14 @@ def _photo_indexes(snapshot: ScenarioSnapshot, position: int) -> tuple[int, ...]
     question = next((item for item in snapshot.questions if item.position == position), None)
     if question is None:
         raise ValueError("Question is not present in the scenario snapshot")
+    if (
+        question.family_id == "GARDEN-09-HEAT-BREAKEVEN"
+        and snapshot.generator_version in {"garden-sosnovka-1.5", "garden-sosnovka-1.6"}
+    ):
+        # These persisted questions already contain every heating operand.
+        # Keep their stored payload/digests untouched and avoid re-delivering
+        # the same numbers through both shared prose and a generated table.
+        return ()
     return (
         *_SHARED_PHOTO_INDEXES.get(snapshot.story_code, ()),
         *_QUESTION_PHOTO_INDEXES.get(question.family_id, ()),

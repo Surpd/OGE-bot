@@ -734,7 +734,11 @@ async def feedback(message: Message, repository: Any, learner: int, text: str) -
             text,
             reply_markup=keyboard(row),
             user_id_override=learner,
-            math_family=problem_data(row) if text.startswith(("Подсказка", "Разбор:")) else None,
+            math_family=(
+                problem_data(row)
+                if isinstance(text, TrainingMessage) and text.has_role("hint", "solution")
+                else None
+            ),
         )
         await store.set_prompt(learner, str(row["problem"]), sent.message_id)
 

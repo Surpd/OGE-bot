@@ -4,20 +4,21 @@ from __future__ import annotations
 import asyncio
 import re
 from collections.abc import Mapping
+from contextlib import suppress
 from textwrap import fill
 
-from aiogram.exceptions import TelegramAPIError
+from aiogram.exceptions import ClientDecodeError, TelegramAPIError
 from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, Message
 
 from app.bot.math_layout import TrainingMessage
-from app.bot.presentation import send_photo, send_text
+from app.bot.presentation import MathDeliveryUncertain, send_photo, send_text
 from app.math.scenario_engine import ScenarioSnapshot
 from app.math.scenarios.mobile_photos import _photo_indexes, scenario_photos_for_question, table
 from app.math.scenarios.stories import FLAT, GARDEN, STOVE
 from app.persistence.repository import Repository
 
 MATERIALS_UNAVAILABLE = (
-    "Не удалось загрузить обязательные данные задачи. "
+    "Не удалось подтвердить доставку всех данных задачи. "
     "Открой меню и нажми «Продолжить». "
     "Для повтора ошибки снова открой задачу в списке ошибок."
 )
@@ -45,6 +46,11 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
                 "Минуты по месяцам:", "Мобильный интернет по месяцам:",
             ))
         )
+        if question.family_id != "TARIFF-F12-HOME-ISP":
+            context = "\n".join(
+                line for line in context.splitlines()
+                if "приложенной таблице" not in line
+            )
     elif snapshot.story_code == "GARDEN" and snapshot.generator_version in {
         "garden-sosnovka-1.0", "garden-sosnovka-1.1",
     }:
@@ -52,7 +58,10 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
             "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
             "гараж ниже ворот справа, теплица внутри огорода."
         )
-    elif snapshot.story_code == "GARDEN" and question.family_id != "GARDEN-09-HEAT-BREAKEVEN":
+    elif snapshot.story_code == "GARDEN" and (
+        question.family_id != "GARDEN-09-HEAT-BREAKEVEN"
+        or snapshot.generator_version in {"garden-sosnovka-1.5", "garden-sosnovka-1.6"}
+    ):
         prefix, separator, remainder = context.partition("Отопление одного дома")
         if separator:
             _, shared_questions, closing = remainder.partition("Все пять вопросов")
@@ -157,9 +166,11 @@ async def send_scenario_materials(
                 await send_photo(message, repository, upload,
                                  caption=f"Данные задачи №{position}",
                                  user_id_override=user_id, reply_markup=markup)
-    except (TelegramAPIError, OSError, ValueError, RuntimeError):
-        # Do not blindly resend a photo after an ambiguous network failure.
-        # Never continue to the question without all of its required inputs.
-        await text(MATERIALS_UNAVAILABLE, reply_markup)
+    except (MathDeliveryUncertain, TelegramAPIError, ClientDecodeError,
+            OSError, ValueError, RuntimeError):
+        # An ambiguous delivery may already be visible. Only a separate
+        # recovery notice is attempted. Navigation can reopen the saved issue.
+        with suppress(MathDeliveryUncertain, TelegramAPIError, ClientDecodeError, TimeoutError):
+            await text(MATERIALS_UNAVAILABLE, reply_markup)
         return False
     return True

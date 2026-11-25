@@ -19,7 +19,7 @@ def _bundle(adapter, seed: int = 17):
 
 def test_garden_shared_story_makes_single_geometry_questions_determinate() -> None:
     scenario, rendered, questions = _bundle(GARDEN.build_adapter())
-    assert scenario.generator_version == "garden-sosnovka-1.6"
+    assert scenario.generator_version == "garden-sosnovka-1.7"
     assert "Единственные ворота" in rendered.shared_context
     assert "слева находится гараж" in rendered.shared_context
     assert "теплица расположена внутри огорода" in rendered.shared_context
