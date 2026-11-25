@@ -320,6 +320,7 @@ def table_photos(snapshot: ScenarioSnapshot) -> tuple[bytes, ...]:
 
 def flat_plan(snapshot: ScenarioSnapshot) -> bytes:
     legacy = snapshot.generator_version == FLAT.LEGACY_VERSION
+    highlight_loggias = snapshot.generator_version == FLAT.GENERATOR_VERSION
     geometry, doors, windows = FLAT.plan_symbols(snapshot.generator_version)
     image = Image.new("RGB", (1000, 1030) if legacy else (1250, 900), "white")
     draw = ImageDraw.Draw(image)
@@ -330,8 +331,9 @@ def flat_plan(snapshot: ScenarioSnapshot) -> bytes:
         return (146 + 34 * x, 265 + 34 * y) if legacy else (60 + 34 * x, 150 + 34 * y)
 
     for room, parts in geometry.items():
+        fill = "#ffebba" if highlight_loggias and room.startswith("loggia_") else "#f4f8fc"
         for x1, y1, x2, y2 in parts:
-            draw.rectangle((*xy(x1, y1), *xy(x2, y2)), fill="#f4f8fc")
+            draw.rectangle((*xy(x1, y1), *xy(x2, y2)), fill=fill)
             for x in range(x1 + 1, x2):
                 draw.line((*xy(x, y1), *xy(x, y2)), fill="#b3c5d6", width=2)
             for y in range(y1 + 1, y2):
@@ -362,11 +364,14 @@ def flat_plan(snapshot: ScenarioSnapshot) -> bytes:
         (384, 925) if legacy else (400, 780), "Вход", font=font(36), fill="#ad252c", anchor="mt"
     )
     draw.text(
-        (32, 981) if legacy else (32, 846),
+        (32, 981) if legacy else (32, 828 if highlight_loggias else 846),
         "Клетка — 0,4 м · двери синие · окна бирюзовые",
         font=font(35),
         fill=INK,
     )
+    if highlight_loggias:
+        draw.rectangle((32, 870, 53, 890), fill="#ffebba", outline=INK)
+        draw.text((64, 862), "Лоджии выделены цветом", font=font(29), fill=INK)
     return png(image)
 
 

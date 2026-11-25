@@ -13,7 +13,7 @@ from app.bot.math_layout import TrainingMessage
 from app.bot.presentation import send_photo, send_text
 from app.math.scenario_engine import ScenarioSnapshot
 from app.math.scenarios.mobile_photos import _photo_indexes, scenario_photos_for_question, table
-from app.math.scenarios.stories import GARDEN, STOVE
+from app.math.scenarios.stories import FLAT, GARDEN, STOVE
 from app.persistence.repository import Repository
 
 MATERIALS_UNAVAILABLE = (
@@ -68,6 +68,8 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
         context = context.replace("Это собственная SVG/PNG схема фиксированной топологии.", "")
         if "первая лоджия" in snapshot.questions[2].condition:
             context += " На плане первая лоджия расположена слева."
+        elif snapshot.generator_version == FLAT.PREVIOUS_VERSION:
+            context += " Обе лоджии расположены в верхних углах плана."
     context = re.sub(r"Все пять вопросов относятся к [^.]+\.\s*", "", context)
     return re.sub(r"\n{3,}", "\n\n", context.replace("Аналог ОГЭ.", "")).strip()
 
