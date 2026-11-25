@@ -74,6 +74,8 @@ def navigation_screen(markup: object) -> str | None:
             return f"family_selection:{value.split(':')[2]}"
     if any(value and value.startswith("replay:") for value in callbacks):
         return "error_replay"
+    if callbacks == {"nav:adaptive", "nav:main"}:
+        return "main_menu"
     if "nav:progress" in callbacks and "nav:numbers" not in callbacks:
         return "progress"
     if "nav:details" in callbacks or "nav:progress_text" in callbacks or any(

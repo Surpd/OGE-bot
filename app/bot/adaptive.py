@@ -1,7 +1,6 @@
 import asyncio
 import json
 import secrets
-from datetime import UTC, datetime
 from functools import lru_cache
 from typing import Any
 from uuid import uuid4
@@ -9,7 +8,7 @@ from uuid import uuid4
 from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from app.adaptive.engine import V1, Stage, State
+from app.adaptive.engine import CURRENT, Stage, State
 from app.adaptive.planner import History, plan, unlocked
 from app.adaptive.session import Session
 from app.adaptive.skills import title
@@ -92,14 +91,11 @@ def keyboard(row: Any) -> InlineKeyboardMarkup:
         return button(label, f"ad:{code}:{pid}")
 
     rows = []
-    if row["problem"]:
-        if row["outcome"] == "issued":
-            rows.append([action("Подсказка", "hint"), action("Разбор", "solution")])
-            rows.append([action("Пропустить", "skip")])
-        else:
-            rows.append([action("Далее", "next")])
+    if row["outcome"] == "issued":
+        rows.append([action("Подсказка", "hint"), action("Разбор", "solution")])
+        rows.append([action("Пропустить", "skip")])
     else:
-        rows.append([action("Попробовать снова", "retry"), action("Дальше", "omit")])
+        rows.append([action("Далее", "next")])
     rows.append([action("В меню", "menu"), action("Завершить", "finish")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
@@ -122,58 +118,43 @@ async def present(message: Message, repository: Any, learner: int) -> None:
     if row is None:
         return
     skills = json.loads(row["plan"])
-    skill = skills[row["position"]]
-    if not row["problem"] or row["outcome"] == "issued":
-        history = await overview(repository, learner)
-        state = next((s for _, key, s, _ in history if key == skill), State())
-        if (
-            state.stage == Stage.CONFIRMED
-            or state.due
-            and (
-                state.due > datetime.now(UTC).timestamp()
-                or row["issued_at"]
-                and row["issued_at"].timestamp() < state.due
-            )
-        ):
-            result = await store.act(
-                row["problem"],
-                row["prompt"],
-                "fulfilled",
-                session_id=row["id"],
-                position=row["position"],
-            )
-            if result == "next":
-                await present(message, repository, learner)
-            elif result == "completed":
-                await send_text(
-                    message,
-                    repository,
-                    "План завершён. Решения из других тренировок учтены.",
-                    reply_markup=main_menu(),
-                    user_id_override=learner,
-                )
+    history = await overview(repository, learner)
+    prefix = skills[: row["position"] + int(row["problem"] is not None)]
+    excluded = await store.excluded_for_learner()
+    for _ in range(8):
+        updated = plan(history, catalog(), prefix=prefix, excluded=excluded, size=len(skills))
+        if len(updated) <= row["position"]:
+            break
+        if updated != skills and not await store.refresh(row, updated):
             return
-    if not row["problem"]:
+        if row["problem"]:
+            break
+        skill = updated[row["position"]]
         try:
             candidate = await asyncio.to_thread(
                 generate, skill, await store.seen(row["owner"], skill)
             )
         except (ValueError, RuntimeError, KeyError):
             candidate = None
-        if not candidate:
-            await send_text(
-                message,
-                repository,
-                "Новый вариант этого типа пока недоступен. Проверка останется в плане.",
-                reply_markup=keyboard(row),
-                user_id_override=learner,
+        if candidate:
+            if not await store.save(row, skill, candidate):
+                return
+            row = await store.current()
+            break
+        await store.unavailable(row["owner"], skill)
+        excluded.append(skill)
+        skills = updated
+    if not row:
+        return
+    if not row["problem"]:
+        result = await store.act(
+            None, None, "finish", session_id=row["id"], position=row["position"]
+        )
+        if result == "finished":
+            await completion(
+                message, repository, store, row, "Пока не удалось подобрать свежий вариант."
             )
-            return
-        if not await store.save(row, skill, candidate):
-            return
-        row = await store.current()
-        if not row:
-            return
+        return
     data = problem_data(row)
     await _send_problem(
         message,
@@ -204,7 +185,17 @@ async def start(message: Message, repository: Any) -> None:
                 user_id_override=learner,
             )
             return
-        await store.start(plan(history, catalog(), datetime.now(UTC).timestamp()))
+        skills = plan(history, catalog(), excluded=await store.excluded_for_learner())
+        if not skills:
+            await send_text(
+                message,
+                repository,
+                "Сейчас нет свежих вариантов для персональной тренировки.",
+                reply_markup=main_menu(),
+                user_id_override=learner,
+            )
+            return
+        await store.start(skills)
     elif store:
         await store.start([])
     await present(message, repository, learner)
@@ -228,8 +219,7 @@ _LABEL = {
     Stage.CHECK: "Нужна самостоятельная проверка",
     Stage.GAP: "Обнаружен пробел",
     Stage.PRACTICE: "Закрепляется",
-    Stage.WAIT: "Ожидает проверки",
-    Stage.CONFIRMED: "Навык подтверждён",
+    Stage.CONFIRMED: "Уверенно решаешь сейчас",
     Stage.REOPENED: "Повторное закрепление",
 }
 
@@ -240,33 +230,27 @@ def stage_line(s: State) -> str:
     return _LABEL[Stage(s.stage)]
 
 
-def summary(history: History, now: float, offset: int = 0) -> str:
+def summary(history: History, offset: int = 0) -> str:
     if not history:
         return "Пока нет проверенных навыков. Начни с задания по номеру."
-    due = sum(s.due is not None and s.due <= now for _, _, s, _ in history)
+    first = [s for n, _, s, _ in history if n <= 19]
     lines = [
         "Навыки и пробелы",
-        f"Открыто пробелов · {sum(s.opened > s.closed for _, _, s, _ in history)}",
-        f"Проверок на сегодня · {due}",
-        f"Закрыто пробелов · {sum(s.closed for _, _, s, _ in history)}",
-        f"На закреплении · {sum(s.stage == Stage.PRACTICE for _, _, s, _ in history)}",
-        f"Предстоящих проверок · {sum(bool(s.due and s.due > now) for _, _, s, _ in history)}",
-        f"Повторно открыто · {sum(max(0, s.opened - 1) for _, _, s, _ in history)}",
-        f"Требуют проверки · {sum(s.stage == Stage.CHECK for _, _, s, _ in history)}",
+        f"Открыто пробелов · {sum(s.opened > s.closed for s in first)}",
+        f"На закреплении · {sum(s.stage == Stage.PRACTICE for s in first)}",
+        f"Закрыто пробелов сейчас · {sum(s.closed > 0 and s.opened == s.closed for s in first)}",
     ]
     for number, skill, s, _ in history[offset : offset + 1]:
-        label = title(skill)
-        lines.extend(["", f"№{number} · {label}", stage_line(s)])
-        if s.opened or s.practice:
+        lines.extend(["", f"№{number} · {title(skill)}"])
+        if number >= 20:
+            if s.stage == Stage.CHECK:
+                lines.append("Можно потренироваться на новой письменной работе этого подтипа.")
+            continue
+        lines.append(stage_line(s))
+        if s.opened > s.closed or s.practice:
             lines.append(
-                f"Самостоятельные решения {s.practice}/{V1.practice_count} · "
-                f"проверки {s.checks}/{len(V1.intervals_days)}"
+                f"Новые варианты подряд без помощи · {s.practice}/{CURRENT.practice_count}"
             )
-        if s.due:
-            date = datetime.fromtimestamp(s.due, UTC).strftime("%d.%m.%Y %H:%M UTC")
-            lines.append("Можно проверить сейчас" if s.due <= now else f"Следующая проверка {date}")
-        if number >= 20 and s.stage != Stage.CONFIRMED:
-            lines.append("Для проверки выбери новую письменную работу этого подтипа.")
     return "\n".join(lines)
 
 
@@ -274,7 +258,17 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
     if not get_settings().oge_adaptive_enabled or not message.from_user:
         return
     learner = message.from_user.id
-    history = await overview(repository, learner)
+    history = sorted(
+        await overview(repository, learner),
+        key=lambda h: (
+            h[0] >= 20,
+            h[2].opened == h[2].closed,
+            h[2].stage not in {Stage.CHECK, Stage.PRACTICE},
+            h[2].stage == Stage.UNCHECKED,
+            -h[3].timestamp(),
+            h[1],
+        ),
+    )
     rows = []
     for number, skill, state, _ in history[offset : offset + 1]:
         if (
@@ -285,7 +279,7 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
             rows.append([button(f"Письменная работа №{number}", f"p2:open:{number}:{skill}")])
     if unlocked(history):
         rows.append([button("Персональная тренировка", "nav:adaptive")])
-    body = summary(history, datetime.now(UTC).timestamp(), offset)
+    body = summary(history, offset)
     if history[offset : offset + 1]:
         from app.bot.progress import encode_record_ref
 
@@ -298,6 +292,14 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
             learner,
             skill,
         )
+        previous = await repository._pool.fetchval(
+            """SELECT max(m.occurred) FROM adaptive_past_milestones m JOIN users u ON u.id=m.owner
+            WHERE u.telegram_user_id=$1 AND m.skill=$2 AND m.reason='gap_closed'""",
+            learner,
+            skill,
+        )
+        if previous:
+            body += f"\nПробел закрывался по прежним правилам · {previous:%d.%m.%Y}"
         if log:
             body += "\n\nПоследние свидетельства"
         refs = []
@@ -311,9 +313,9 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
                 "gap_opened": "пробел обнаружен",
                 "gap_reopened": "пробел открыт снова",
                 "independent_success": "самостоятельное решение",
-                "check_passed": "проверка пройдена",
+                "written_recommended": "рекомендация по подтипу",
                 "gap_closed": "пробел закрыт",
-                "practice_complete": "назначена проверка",
+                "skill_confirmed": "три самостоятельных решения подряд",
                 "thematic_check_needed": "нужна проверка на одной теме",
                 "independent_check_needed": "нужен новый вариант без помощи",
             }.get(r["reason"], "")
@@ -349,11 +351,6 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
                 learner,
             )
             body += f"\nНовых проверенных карточек подтипа · {remaining}"
-            if (
-                remaining
-                < max(0, V1.practice_count - state.practice) + len(V1.intervals_days) - state.checks
-            ):
-                body += "\nДля полного цикла потребуется проверка новых работ преподавателем."
     arrows = []
     if offset:
         arrows.append(button("Назад", f"nav:gaps:{max(0, offset - 1)}"))
@@ -418,6 +415,25 @@ async def feedback(message: Message, repository: Any, learner: int, text: str) -
         await store.set_prompt(learner, str(row["problem"]), sent.message_id)
 
 
+async def completion(
+    message: Message, repository: Any, store: Session, row: Any, heading: str
+) -> None:
+    totals = await store.totals(row["id"])
+    text = (
+        f"{heading}\nРешено {totals['solved']} из {totals['issued']} выданных. "
+        f"С первой попытки без помощи · {totals['independent']}."
+    )
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [button("Ещё одна тренировка", "nav:adaptive")],
+            [button("В меню", "nav:main")],
+        ]
+    )
+    await send_text(
+        message, repository, text, reply_markup=keyboard, user_id_override=store.learner
+    )
+
+
 async def callback(cb: CallbackQuery, repository: Any) -> None:
     if not get_settings().oge_adaptive_enabled or not isinstance(cb.message, Message):
         await answer_callback(cb)
@@ -458,15 +474,8 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             row["problem"], row["prompt"], action, session_id=row["id"], position=row["position"]
         )
         if result in {"finished", "completed"}:
-            await send_text(
-                cb.message,
-                repository,
-                "Тренировка завершена.",
-                reply_markup=main_menu(),
-                user_id_override=learner,
-            )
+            await completion(cb.message, repository, store, row, "Тренировка завершена.")
         elif result == "next":
-            await overview(repository, learner)
             await present(cb.message, repository, learner)
         elif result in {"hint", "skip", "solution", "no_hint"}:
             p = problem_data(row)

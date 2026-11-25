@@ -23,12 +23,8 @@ def test_gradual_ordinary_only_closure_and_relapse():
     start = [ev(1, 0, "wrong"), ev(1, 0, "wrong", 2)]
     assert trajectory(*start).stage == Stage.GAP
     practice = [*start, ev(2, 1), ev(3, 1)]
-    wait = trajectory(*practice)
-    assert wait.due == 3 * DAY
-    assert trajectory(*practice, ev(4, 2)) == wait
-    delayed = [*practice, ev(4, 30), ev(5, 31)]
-    assert trajectory(*delayed).due == 35 * DAY
-    closed = trajectory(*delayed, ev(6, 35))
+    assert trajectory(*practice).practice == 2
+    closed = trajectory(*practice, ev(4, 1))
     assert closed.stage == Stage.CONFIRMED and closed.closed == 1
     suspect, _ = apply(closed, ev(7, 50, "wrong"))
     assert suspect.opened == suspect.closed
@@ -56,13 +52,15 @@ def test_personal_selection():
     keys = {f"f{i}": 6 + i for i in range(8)}
     at = datetime(2026, 1, 1, tzinfo=UTC)
     history = [
-        (6, "f0", State(stage=Stage.WAIT, due=1), at),
+        (6, "f0", State(stage=Stage.CHECK), at),
         (7, "f1", State(stage=Stage.GAP, opened=1), at),
     ]
     assert unlocked(history) and not unlocked([])
-    slots = plan(history, keys, at.timestamp())
-    assert slots[0] == "f0" and "f1" in slots and len(slots) == 5
-    assert slots.count("f0") == 1
+    slots = plan(history, keys)
+    assert slots[0] == "f1" and "f0" in slots and len(slots) == 5
+    assert len(set(slots)) >= 3
+    assert "written" not in plan(history, {**keys, "written": 20})
+    assert "f1" not in plan(history, keys, excluded=["f1"])
 
 
 async def test_pg_evidence_rebuild_session_resume_and_concurrent_updates(bank_pool):
@@ -130,11 +128,20 @@ async def test_pg_evidence_rebuild_session_resume_and_concurrent_updates(bank_po
     assert (await reopened.current())["position"] == 1
 
 
-def test_delayed_retrieval_requires_issue_after_interval():
-    waiting = trajectory(ev("a", 0), ev("b", 0))
-    state, _ = apply(waiting, replace(ev("c", 12), issued=DAY))
-    assert state == waiting
-    assert apply(waiting, replace(ev("c", 12), issued=3 * DAY))[0].checks == 1
+def test_alternating_evidence_and_broken_streak():
+    events = [ev(1, 0, "wrong"), ev(2, 0), ev(3, 0, "wrong")]
+    assert trajectory(*events).stage == Stage.GAP
+    streak = trajectory(*events, ev(4, 0), ev(5, 0))
+    for interruption in (
+        ev(6, 0, helped=True),
+        ev(6, 0, helped=None),
+        ev(6, 0, "solution"),
+        ev(6, 0, "wrong"),
+        ev(6, 0, attempt=2),
+    ):
+        reset, _ = apply(streak, interruption)
+        assert reset.practice == 0 and reset.opened > reset.closed
+    assert apply(streak, ev(6, 90))[0].closed == 1
 
 
 async def test_written_progress_uses_validated_initial_grade_and_preserves_revisions(bank_pool):
@@ -325,6 +332,17 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
         previous = await h.click(f"ad:next:{first}")
         await h.click(saved=previous)
         assert (await session.current())["position"] == 1
+        for pos in range(1, 5):
+            current = await session.current()
+            assert current["position"] == pos
+            await h.click(f"ad:skip:{current['problem']}")
+            await h.click(f"ad:next:{current['problem']}")
+        assert await session.current() is None
+        done, _ = h.button("nav:adaptive")
+        assert "Решено 1 из 5" in done.text and "без помощи · 1" in done.text
+        await h.click("nav:adaptive")
+        new = await session.current()
+        assert new["id"] != row["id"] and new["position"] == 0 and new["problem"]
         assert (await repo.task6_state(42))["problem"] == ordinary["problem"]
         await h.message("/start")
         await h.message("/progress")
@@ -342,7 +360,7 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
         get_settings.cache_clear()
 
 
-async def test_backfilled_ordinary_and_mixed_delayed_checks(bank_pool):
+async def test_backfilled_ordinary_and_mixed_same_day_streak(bank_pool):
     from datetime import timedelta
 
     from app.adaptive.store import overview, sync
@@ -355,7 +373,7 @@ async def test_backfilled_ordinary_and_mixed_delayed_checks(bank_pool):
         "INSERT INTO mixed_training_sessions(user_id,state) VALUES($1,'{}') RETURNING id", owner
     )
     async with bank_pool.acquire() as conn, conn.transaction():
-        for ix, (channel, day, passes) in enumerate(
+        for ix, (channel, _day, passes) in enumerate(
             [
                 ("ordinary", 0, False),
                 ("mixed", 1, False),
@@ -366,7 +384,7 @@ async def test_backfilled_ordinary_and_mixed_delayed_checks(bank_pool):
                 ("ordinary", 12, True),
             ]
         ):
-            at = t + timedelta(days=day, seconds=ix)
+            at = t + timedelta(seconds=ix)
             pid = uuid4()
             if channel == "mixed":
                 await conn.execute(
@@ -413,11 +431,11 @@ async def test_backfilled_ordinary_and_mixed_delayed_checks(bank_pool):
     assert history[0][2].closed == 1 and history[0][2].stage == Stage.CONFIRMED
     assert (
         await bank_pool.fetchval(
-            """SELECT source FROM adaptive_evidence WHERE reason='check_passed'
+            """SELECT source FROM adaptive_evidence WHERE reason='gap_closed'
         AND owner=$1""",
             owner,
         )
-        == "mixed"
+        == "ordinary"
     )
 
 
@@ -431,7 +449,7 @@ def test_fixed_bank_and_unavailable_family_fail_closed():
     assert trajectory(ev(1, 0, "ambiguous"), ev(1, 0, "ambiguous", 2)).stage == Stage.CHECK
 
 
-async def test_teacher_confirmed_written_cycle_is_scoped_idempotent_and_rebuildable(bank_pool):
+async def test_teacher_confirmed_written_advice_is_scoped_idempotent_and_rebuildable(bank_pool):
     from datetime import timedelta
 
     import pytest
@@ -481,9 +499,12 @@ async def test_teacher_confirmed_written_cycle_is_scoped_idempotent_and_rebuilda
             reasons = ["justification"] if score == 0 else []
             await confirm(conn, 1, issue, 1, score, reasons)
             await confirm(conn, 1, issue, 1, score, reasons)
+            if i == 1:
+                advice = await overview(PostgresRepository(bank_pool), 1)
+                assert advice[0][2].stage == Stage.CHECK and not unlocked(advice)
         repo = PostgresRepository(bank_pool)
         before = await overview(repo, 1)
-        assert before[0][2].stage == Stage.CONFIRMED and before[0][2].closed == 1
+        assert before[0][2] == State() and not unlocked(before)
         owner = await conn.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
         async with conn.transaction():
             await sync(conn, owner, rebuild=True)
@@ -496,7 +517,7 @@ async def test_teacher_confirmed_written_cycle_is_scoped_idempotent_and_rebuilda
         )
 
 
-async def test_resume_waives_issued_check_satisfied_in_ordinary_training(bank_pool, monkeypatch):
+async def test_resume_keeps_issued_task_and_replans_after_ordinary_training(bank_pool, monkeypatch):
     from datetime import timedelta
 
     from aiogram import Bot
@@ -517,7 +538,7 @@ async def test_resume_waives_issued_check_satisfied_in_ordinary_training(bank_po
         repo = PostgresRepository(bank_pool)
         store = Session(repo, 1)
         family = enabled(9)[0]
-        await store.start([family])
+        await store.start([family] * 5)
         row = await store.current()
         candidate = generate(family, [])
         assert await store.save(row, family, candidate)
@@ -552,10 +573,12 @@ async def test_resume_waives_issued_check_satisfied_in_ordinary_training(bank_po
             from_user=User(id=1, is_bot=False, first_name="QA"),
         ).as_(bot)
         await start(msg, repo)
-        assert await store.current() is None
-        assert await bank_pool.fetchval(
-            "SELECT fulfilled_elsewhere FROM adaptive_slots WHERE session_id=$1", row["id"]
-        )
+        resumed = await store.current()
+        assert str(resumed["problem"]) == candidate["problem_id"] and resumed["position"] == 0
+        import json
+
+        updated = json.loads(resumed["plan"])
+        assert len(updated) == 5 and updated[0] == family and family not in updated[1:]
         assert (
             await bank_pool.fetchval(
                 "SELECT outcome FROM issued_problems WHERE id=$1", candidate["problem_id"]
@@ -570,5 +593,90 @@ async def test_resume_waives_issued_check_satisfied_in_ordinary_training(bank_po
 def test_help_after_confirmation_requests_check_without_opening_gap():
     state = trajectory(ev(1, 0), ev(2, 1), ev(3, 3), ev(4, 8))
     checked, _ = apply(state, ev(5, 9, "solution"))
-    assert checked.stage == Stage.CHECK and checked.checks == 2 and not checked.opened
-    assert apply(checked, ev(6, 10))[0].stage == Stage.CONFIRMED
+    assert checked.stage == Stage.CHECK and checked.practice == 0 and not checked.opened
+    assert apply(checked, ev(6, 10))[0].practice == 1
+
+
+async def test_upgrade_archives_old_closures_and_reprojects_without_new_attempt(bank_pool):
+    from pathlib import Path
+
+    from app.adaptive.store import menu_available, overview, sync
+    from app.persistence.repository import PostgresRepository
+
+    owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+    pid = await bank_pool.fetchval(
+        """INSERT INTO issued_problems(user_id,family_id,fingerprint,
+        generator_version,snapshot) VALUES($1,'OGE09-L1','v','test','{}') RETURNING id""",
+        owner,
+    )
+    await bank_pool.execute(
+        """INSERT INTO attempts(user_id,problem_id,attempt_no,telegram_message_id,
+        raw_answer,is_correct) VALUES($1,$2,1,1,'0',false)""",
+        owner,
+        pid,
+    )
+    async with bank_pool.acquire() as c, c.transaction():
+        await sync(c, owner, rebuild=True)
+    await bank_pool.execute(
+        """UPDATE adaptive_skills SET policy=1,
+        state='{"stage":"wait","due":1,"practice":2,"checks":1}'"""
+    )
+    await bank_pool.execute(
+        """UPDATE adaptive_evidence SET policy=1,reason='gap_closed' WHERE ordinal=1"""
+    )
+    migration = Path("migrations/0030_adaptive_on_demand.sql").read_text()
+    await bank_pool.execute(migration)
+    await bank_pool.execute(migration)
+    repo = PostgresRepository(bank_pool)
+    assert await menu_available(repo, 1)
+    assert (await overview(repo, 1))[0][2].stage == Stage.CHECK
+    assert await bank_pool.fetchval("SELECT policy FROM adaptive_skills") == 2
+    async with bank_pool.acquire() as c, c.transaction():
+        await sync(c, owner, rebuild=True)
+    assert (
+        await bank_pool.fetchval(
+            "SELECT count(*) FROM adaptive_past_milestones WHERE owner=$1", owner
+        )
+        == 1
+    )
+    assert not await menu_available(repo, 2)
+
+
+async def test_exhausted_families_are_bounded_and_never_leave_issued_or_active_task(
+    bank_pool, monkeypatch
+):
+    from aiogram import Bot
+    from aiogram.types import Chat, Message, User
+    from test_inline_dispatcher_postgres import TelegramSession
+
+    from app.adaptive.session import Session
+    from app.bot import adaptive
+    from app.persistence.repository import PostgresRepository
+
+    repo = PostgresRepository(bank_pool)
+    session = Session(repo, 1)
+    candidates = {f"f{i}": 6 for i in range(10)}
+    tried = []
+    monkeypatch.setattr(adaptive, "catalog", lambda: candidates)
+
+    def unavailable(skill, seen):
+        tried.append(skill)
+        return None
+
+    monkeypatch.setattr(adaptive, "generate", unavailable)
+    bot = Bot("123456:TEST", session=TelegramSession())
+    try:
+        msg = Message(
+            message_id=2,
+            date=datetime.now(UTC),
+            chat=Chat(id=1, type="private"),
+            from_user=User(id=1, is_bot=False, first_name="QA"),
+        ).as_(bot)
+        for _ in range(2):
+            await session.start(list(candidates)[:5])
+            await adaptive.present(msg, repo, 1)
+            assert await session.current() is None
+        assert len(tried) == len(set(tried)) == 10
+        assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_slots") == 0
+    finally:
+        await bot.session.close()

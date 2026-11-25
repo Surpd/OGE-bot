@@ -39,6 +39,52 @@ class Session:
             self.learner,
         )
 
+    async def excluded_for_learner(self) -> list[str]:
+        return [
+            r["skill"]
+            for r in await self.pool.fetch(
+                """SELECT skill FROM adaptive_unavailable a JOIN users u ON u.id=a.owner
+            WHERE u.telegram_user_id=$1 AND retry_after>now()""",
+                self.learner,
+            )
+        ]
+
+    async def unavailable(self, owner: UUID, skill: str) -> None:
+        await self.pool.execute(
+            """INSERT INTO adaptive_unavailable VALUES($1,$2,now()+interval '1 hour')
+            ON CONFLICT(owner,skill) DO UPDATE SET retry_after=excluded.retry_after""",
+            owner,
+            skill,
+        )
+
+    async def refresh(self, row: Any, skills: list[str]) -> bool:
+        return bool(
+            await self.pool.fetchval(
+                """UPDATE adaptive_sessions a SET plan=$5 FROM users u WHERE a.owner=u.id
+            AND u.telegram_user_id=$1 AND u.current_state->>'screen'='adaptive'
+            AND a.id=$2 AND a.position=$3 AND a.problem IS NOT DISTINCT FROM $4
+            AND a.finished IS NULL RETURNING true""",
+                self.learner,
+                row["id"],
+                row["position"],
+                row["problem"],
+                json.dumps(skills),
+            )
+        )
+
+    async def totals(self, session_id: UUID) -> Any:
+        return await self.pool.fetchrow(
+            """SELECT count(*) issued,count(*) FILTER(WHERE p.outcome='solved') solved,
+            count(*) FILTER(WHERE EXISTS(SELECT FROM attempts t WHERE t.problem_id=p.id
+            AND t.attempt_no=1 AND t.is_correct AND t.used_hint IS FALSE
+            AND (p.solution_viewed_at IS NULL OR p.solution_viewed_at>t.created_at))) independent
+            FROM adaptive_slots s JOIN issued_problems p ON p.id=s.problem
+            JOIN users u ON u.id=p.user_id
+            WHERE s.session_id=$1 AND u.telegram_user_id=$2""",
+            session_id,
+            self.learner,
+        )
+
     async def seen(self, owner: UUID, family: str) -> list[str]:
         return [
             r["variant"]
@@ -57,12 +103,13 @@ class Session:
             claimed = await conn.fetchval(
                 """SELECT a.id FROM adaptive_sessions a JOIN users u
                 ON u.id=a.owner WHERE a.id=$1 AND u.telegram_user_id=$2 AND a.position=$3
-                AND a.problem IS NULL AND a.finished IS NULL
+                AND a.problem IS NULL AND a.finished IS NULL AND a.plan->>a.position::int=$4
                 AND u.current_state->>'screen'='adaptive'
                 FOR UPDATE OF u,a""",
                 row["id"],
                 self.learner,
                 row["position"],
+                family,
             )
             if not claimed:
                 return False
@@ -151,18 +198,7 @@ class Session:
                 )
                 return "finished"
             advance = action == "next" and problem and row["outcome"] != "issued"
-            if action == "fulfilled" and row["outcome"] == "issued" and position is not None:
-                await conn.execute(
-                    """UPDATE adaptive_slots SET fulfilled_elsewhere=true
-                    WHERE session_id=$1 AND position=$2 AND problem=$3""",
-                    row["id"],
-                    position,
-                    problem,
-                )
-                advance = True
-            if advance or (
-                action in {"omit", "fulfilled"} and problem is None and position is not None
-            ):
+            if advance:
                 done = row["position"] + 1 >= len(json.loads(row["plan"]))
                 await conn.execute(
                     """UPDATE adaptive_sessions SET position=position+1,problem=NULL,

@@ -317,7 +317,9 @@ async def send_text(
     from app.config import get_settings
 
     if (get_settings().oge_adaptive_enabled
-        and navigation_screen(kwargs.get("reply_markup")) == "main_menu"):
+        and navigation_screen(kwargs.get("reply_markup")) == "main_menu"
+        and not any(b.callback_data == "nav:adaptive"
+                    for row in kwargs["reply_markup"].inline_keyboard for b in row)):
 
         from app.adaptive.store import menu_available
         from app.bot.adaptive import button

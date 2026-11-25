@@ -1,4 +1,4 @@
-"""Stable keys belong to registries; these links only recommend prerequisite practice."""
+"""Display names for stable registry keys."""
 
 import json
 from functools import lru_cache
@@ -6,8 +6,6 @@ from functools import lru_cache
 from app.math.first_rotation import topics
 from app.persistence.part2_bank import ATLAS
 from app.persistence.training_insights import family_name
-
-PREREQUISITES = {"OGE23-right-median": "OGE15-F14", "OGE23-trapezoid-area": "OGE15-F14"}
 
 _STORIES = {
     "TYRES-TABLE-EXTREME": "Чтение таблицы размеров шин",

@@ -94,13 +94,11 @@ async def main() -> None:
                     await overview(repo, user)
 
             async def personal():
-                from datetime import UTC, datetime
-
                 from app.adaptive.planner import plan
                 from app.adaptive.store import overview
                 from app.bot.adaptive import catalog
 
-                plan(await overview(repo, user), catalog(), datetime.now(UTC).timestamp())
+                plan(await overview(repo, user), catalog())
 
             await measure("answer", answer)
             await measure("menu", menu)

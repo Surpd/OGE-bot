@@ -8,7 +8,7 @@ from uuid import UUID
 
 import asyncpg
 
-from app.adaptive.engine import V1, Evidence, State, apply
+from app.adaptive.engine import CURRENT, Evidence, State, apply, apply_written
 from app.adaptive.sources import item
 
 
@@ -48,6 +48,13 @@ async def sync(
         "DELETE FROM adaptive_dirty WHERE owner=$1 RETURNING source,task", owner
     )
     touched: dict[str, datetime] = {}
+    if not rebuild:
+        for old in await conn.fetch(
+            "SELECT skill,latest FROM adaptive_skills WHERE owner=$1 AND policy<>$2",
+            owner,
+            CURRENT.version,
+        ):
+            touched[old["skill"]] = old["latest"]
     for key in dirty:
         result = await item(conn, owner, key["source"], key["task"])
         if result is None:
@@ -88,7 +95,7 @@ async def _project(
     saved = await conn.fetchrow(
         "SELECT * FROM adaptive_skills WHERE owner=$1 AND skill=$2", owner, skill
     )
-    incremental = saved and saved["policy"] == V1.version and earliest > saved["latest"]
+    incremental = saved and saved["policy"] == CURRENT.version and earliest > saved["latest"]
     after = saved["latest"] if incremental else None
     state = restore(saved["state"]) if incremental else State()
     rows = await conn.fetch(
@@ -120,11 +127,19 @@ async def _project(
             row["fresh"],
             row["issued_at"].timestamp() if row["issued_at"] else None,
         )
-        state, reason = apply(state, evidence)
+        state, reason = (apply_written if row["number"] >= 20 else apply)(state, evidence)
         if reason and row["policy"] is None:
             milestones.append((skill, reason))
         updates.append(
-            (owner, row["source"], row["task"], row["ordinal"], reason, state.stage, V1.version)
+            (
+                owner,
+                row["source"],
+                row["task"],
+                row["ordinal"],
+                reason,
+                state.stage,
+                CURRENT.version,
+            )
         )
     await conn.executemany(
         """UPDATE adaptive_evidence SET reason=$5,stage_after=$6,policy=$7
@@ -140,7 +155,7 @@ async def _project(
         rows[-1]["number"],
         json.dumps(asdict(state)),
         rows[-1]["occurred"],
-        V1.version,
+        CURRENT.version,
     )
 
     return milestones
@@ -153,8 +168,10 @@ async def overview(repository: Any, learner: int) -> list[tuple[int, str, State,
     async with pool.acquire() as conn, conn.transaction():
         row = await conn.fetchrow(
             """SELECT id,EXISTS(SELECT FROM adaptive_dirty d WHERE d.owner=u.id)
-            pending FROM users u WHERE u.telegram_user_id=$1""",
+            OR EXISTS(SELECT FROM adaptive_skills s WHERE s.owner=u.id AND policy<>$2) pending
+            FROM users u WHERE u.telegram_user_id=$1""",
             learner,
+            CURRENT.version,
         )
         if not row:
             return []
@@ -173,14 +190,14 @@ async def menu_available(repository: Any, learner: int) -> bool:
     if pool is None:
         return False
     row = await pool.fetchrow(
-        """SELECT EXISTS(SELECT FROM adaptive_dirty WHERE owner=u.id) pending,
+        """SELECT EXISTS(SELECT FROM adaptive_dirty WHERE owner=u.id)
+        OR EXISTS(SELECT FROM adaptive_skills WHERE owner=u.id AND policy<>$2) pending,
         EXISTS(SELECT FROM adaptive_sessions WHERE owner=u.id AND finished IS NULL)
-        OR EXISTS(SELECT FROM adaptive_skills WHERE owner=u.id AND
-            ((state->>'opened')::int>0 OR state->>'due' IS NOT NULL))
-        OR (SELECT count(*) FROM (SELECT FROM adaptive_skills WHERE owner=u.id
-            AND (state->>'practice')::int>0 LIMIT 3) sample)=3 AS available
+        OR EXISTS(SELECT FROM adaptive_skills WHERE owner=u.id AND number BETWEEN 1 AND 19
+            AND policy=$2 AND state->>'stage'<>'unchecked') AS available
         FROM users u WHERE telegram_user_id=$1""",
         learner,
+        CURRENT.version,
     )
     if row and row["pending"] and not row["available"]:
         from app.adaptive.planner import unlocked
