@@ -262,6 +262,7 @@ def test_deterministic_recovery_dispatch_checks_seed_and_version_for_numbers_6_t
 
 def test_replay_restores_text_options_and_all_scenario_materials():
     from app.bot.error_replay import _accepts, _condition, _materials
+    from app.bot.scenario_materials import answer_grid_photo
     from app.bot.scenario_training import public_registry
     from app.math.inequalities import generate
     from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
@@ -292,7 +293,9 @@ def test_replay_restores_text_options_and_all_scenario_materials():
     )
     context, photos = _materials(source)
     assert scenario.shared_context.splitlines()[0] in context
-    assert photos == scenario_photos_for_question(scenario, photo_case)
+    grid = answer_grid_photo(scenario, photo_case)
+    assert grid is not None
+    assert photos == (*scenario_photos_for_question(scenario, photo_case), grid)
 
 
 def test_replay_uses_legacy_statement_policy_and_choice_bounds():
