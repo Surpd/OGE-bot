@@ -166,12 +166,14 @@ async def _written(conn: asyncpg.Connection, owner: UUID, issue: int) -> Item | 
         return None
     facts = [Fact(row["issued_at"], "issued", 0)]
     for grade in await conn.fetch(
-        """SELECT revision,score,status,created_at,adaptive_hint,adaptive_solution,
+        """SELECT g.revision,g.score,status,created_at,adaptive_hint,adaptive_solution,
+           review.score AS teacher_score,
            result->>'needs_review' review, result->>'status' assessed_status,
            result->>'score' assessed_score,
            CASE WHEN jsonb_typeof(result->'criterion_evidence')='array'
-           THEN jsonb_array_length(result->'criterion_evidence') END evidence FROM part2_grades
-           WHERE issue_id=$1 AND status<>'pending' ORDER BY revision""",
+           THEN jsonb_array_length(result->'criterion_evidence') END evidence FROM part2_grades g
+           LEFT JOIN adaptive_grade_reviews review USING(issue_id,revision)
+           WHERE g.issue_id=$1 AND status<>'pending' ORDER BY g.revision""",
         issue,
     ):
         at, score, rev = grade["created_at"], grade["score"], grade["revision"]
@@ -191,6 +193,26 @@ async def _written(conn: asyncpg.Connection, owner: UUID, issue: int) -> Item | 
         hint, solution = grade["adaptive_hint"], grade["adaptive_solution"]
         helped = None if hint is None or solution is None else hint or solution
         facts.append(Fact(at, outcome, rev, rev, helped, score, grade["status"], hint, solution))
+        if (
+            outcome == "ungraded"
+            and grade["status"] == "graded"
+            and score is not None
+            and grade["teacher_score"] == score
+        ):
+            # The confirmation refers to the original submission, even when reviewed days later.
+            facts.append(
+                Fact(
+                    at,
+                    "correct" if score == 2 else "wrong",
+                    -2 - rev,
+                    rev,
+                    helped,
+                    score,
+                    "teacher_confirmed",
+                    hint,
+                    solution,
+                )
+            )
     if row["solution_viewed_at"]:
         facts.append(Fact(row["solution_viewed_at"], "solution", -1))
     return Item(row["number"], row["subtype_id"], row["task_id"], "written", str(issue), facts)

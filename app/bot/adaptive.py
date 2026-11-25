@@ -198,6 +198,19 @@ async def start(message: Message, repository: Any) -> None:
     await present(message, repository, learner)
 
 
+_REASON_NAMES = {
+    "calculation": "вычислительная ошибка",
+    "lost_root": "потерян корень",
+    "equivalence": "нарушена равносильность",
+    "domain": "не учтена область допустимых значений",
+    "justification": "ошибка в обосновании",
+    "theorem": "неверно применена теорема",
+    "incomplete_proof": "неполное доказательство",
+    "graph": "ошибка построения графика",
+    "model": "ошибка в математической модели",
+}
+
+
 _LABEL = {
     Stage.UNCHECKED: "Ещё не проверено",
     Stage.CHECK: "Нужна самостоятельная проверка",
@@ -264,10 +277,10 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
     if history[offset : offset + 1]:
         from app.bot.progress import encode_record_ref
 
-        number, skill, _, _ = history[offset]
+        number, skill, state, _ = history[offset]
         log = await repository._pool.fetch(
-            """SELECT source,task,outcome,attempt,reason,occurred
-            FROM adaptive_evidence e JOIN users u ON u.id=e.owner
+            """SELECT source,task,outcome,attempt,reason,occurred,confirmed_error_reasons
+            FROM adaptive_learning_events e JOIN users u ON u.id=e.owner
             WHERE u.telegram_user_id=$1 AND e.skill=$2 AND e.reason IS NOT NULL
             ORDER BY occurred DESC,ordinal DESC LIMIT 4""",
             learner,
@@ -297,6 +310,9 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
                 body += f", попытка {r['attempt']}"
             if detail:
                 body += f" · {detail}"
+            if r["confirmed_error_reasons"]:
+                labels = [_REASON_NAMES[code] for code in r["confirmed_error_reasons"]]
+                body += "\nПреподаватель отметил: " + ", ".join(labels)
             source = {"ordinary": "o", "personal": "o", "mixed": "m", "scenario": "s"}.get(
                 r["source"]
             )
@@ -321,6 +337,11 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
                 learner,
             )
             body += f"\nНовых проверенных карточек подтипа · {remaining}"
+            if (
+                remaining
+                < max(0, V1.practice_count - state.practice) + len(V1.intervals_days) - state.checks
+            ):
+                body += "\nДля полного цикла потребуется проверка новых работ преподавателем."
     arrows = []
     if offset:
         arrows.append(button("Назад", f"nav:gaps:{max(0, offset - 1)}"))

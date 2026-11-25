@@ -49,13 +49,27 @@ CREATE TABLE IF NOT EXISTS adaptive_origins (
 );
 ALTER TABLE adaptive_origins ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON adaptive_origins FROM PUBLIC;
+CREATE TABLE IF NOT EXISTS adaptive_grade_reviews (
+ issue_id bigint NOT NULL, revision integer NOT NULL, score smallint NOT NULL CHECK(score BETWEEN 0 AND 2),
+ reasons text[] NOT NULL DEFAULT '{}', reviewed_at timestamptz NOT NULL DEFAULT now(),
+ PRIMARY KEY(issue_id,revision),
+ FOREIGN KEY(issue_id,revision) REFERENCES part2_grades ON DELETE CASCADE,
+ CHECK(score<2 OR cardinality(reasons)=0),
+ CHECK(reasons <@ ARRAY['calculation','lost_root','equivalence','domain','justification',
+    'theorem','incomplete_proof','graph','model']::text[])
+);
+ALTER TABLE adaptive_grade_reviews ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON adaptive_grade_reviews FROM PUBLIC;
 CREATE OR REPLACE VIEW adaptive_learning_events WITH (security_invoker=true) AS
  SELECT e.*,CASE WHEN o.task IS NOT NULL THEN 'similar' ELSE e.source END AS activity,
  COALESCE(o.original_source,r.source_type,e.source) AS original_source,
  COALESCE(o.original_task,r.source_id::text ||
-   CASE WHEN r.source_type='scenario' THEN ':'||r.source_position ELSE '' END,e.task) AS original_task
+   CASE WHEN r.source_type='scenario' THEN ':'||r.source_position ELSE '' END,e.task) AS original_task,
+ review.reasons AS confirmed_error_reasons,review.reviewed_at AS teacher_reviewed_at
  FROM adaptive_evidence e LEFT JOIN adaptive_origins o USING(owner,source,task)
- LEFT JOIN training_error_replays r ON e.source='replay' AND r.user_id=e.owner AND r.id::text=e.task;
+ LEFT JOIN training_error_replays r ON e.source='replay' AND r.user_id=e.owner AND r.id::text=e.task
+ LEFT JOIN adaptive_grade_reviews review ON e.source='written' AND review.issue_id::text=e.task
+  AND review.revision=e.attempt;
 REVOKE ALL ON adaptive_learning_events FROM PUBLIC;
 CREATE OR REPLACE FUNCTION adaptive_grade_context() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
@@ -122,6 +136,6 @@ REVOKE ALL ON adaptive_sessions FROM PUBLIC;
 DO $$ DECLARE role_name text; BEGIN
  FOREACH role_name IN ARRAY ARRAY['anon','authenticated'] LOOP
  IF EXISTS(SELECT FROM pg_roles WHERE rolname=role_name) THEN
- EXECUTE format('REVOKE ALL ON adaptive_dirty,adaptive_evidence,adaptive_skills,adaptive_sessions,adaptive_slots,adaptive_origins,adaptive_learning_events FROM %I',role_name);
+ EXECUTE format('REVOKE ALL ON adaptive_dirty,adaptive_evidence,adaptive_skills,adaptive_sessions,adaptive_slots,adaptive_origins,adaptive_grade_reviews,adaptive_learning_events FROM %I',role_name);
  END IF; END LOOP; END $$;
 COMMIT;

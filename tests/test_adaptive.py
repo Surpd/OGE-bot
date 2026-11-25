@@ -409,3 +409,68 @@ def test_fixed_bank_and_unavailable_family_fail_closed():
     first = generate(f, [])
     assert first and not generate(f, [first["fingerprint"]])
     assert trajectory(ev(1, 0, "ambiguous"), ev(1, 0, "ambiguous", 2)).stage == Stage.CHECK
+
+
+async def test_teacher_confirmed_written_cycle_is_scoped_idempotent_and_rebuildable(bank_pool):
+    from datetime import timedelta
+
+    import pytest
+
+    from app.adaptive.store import overview, sync
+    from app.persistence.repository import PostgresRepository
+    from scripts.adaptive_confirm_grade import confirm
+
+    subtype = await bank_pool.fetchval("""SELECT c.subtype_id FROM part2_cards c
+        JOIN part2_versions v
+        USING(task_id) WHERE v.available AND NOT v.reviewed GROUP BY c.subtype_id HAVING count(*)>=6
+        ORDER BY c.subtype_id LIMIT 1""")
+    cards = await bank_pool.fetch(
+        """SELECT c.task_id,v.version,f.number FROM part2_cards c
+        JOIN part2_versions v USING(task_id) JOIN part2_subtypes s USING(subtype_id)
+        JOIN part2_families f USING(family_id) WHERE c.subtype_id=$1
+        AND v.available AND NOT v.reviewed
+        ORDER BY c.task_id LIMIT 6""",
+        subtype,
+    )
+    base = datetime(2026, 1, 1, tzinfo=UTC)
+    async with bank_pool.acquire() as conn:
+        for i, (card, day) in enumerate(zip(cards, (0, 1, 2, 3, 5, 10), strict=True)):
+            time = base + timedelta(days=day, seconds=i)
+            score = 0 if i < 2 else 2
+            async with conn.transaction():
+                await conn.execute("SET LOCAL bop.adaptive='on'")
+                issue = await conn.fetchval(
+                    """INSERT INTO part2_issues(owner,number,task_id,version,
+                    subtype_id,closed,issued_at) VALUES(1,$1,$2,$3,$4,true,$5) RETURNING id""",
+                    card["number"],
+                    card["task_id"],
+                    card["version"],
+                    subtype,
+                    time,
+                )
+                await conn.execute(
+                    """INSERT INTO part2_grades(issue_id,revision,model,prompt_version,
+                    rubric_version,status,score,reserved_usd,created_at)
+                    VALUES($1,1,'fixture','v1',1,'graded',$2,0,$3)""",
+                    issue,
+                    score,
+                    time,
+                )
+            with pytest.raises(ValueError):
+                await confirm(conn, 2, issue, 1, score, [])
+            reasons = ["justification"] if score == 0 else []
+            await confirm(conn, 1, issue, 1, score, reasons)
+            await confirm(conn, 1, issue, 1, score, reasons)
+        repo = PostgresRepository(bank_pool)
+        before = await overview(repo, 1)
+        assert before[0][2].stage == Stage.CONFIRMED and before[0][2].closed == 1
+        owner = await conn.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+        async with conn.transaction():
+            await sync(conn, owner, rebuild=True)
+        assert before == await overview(repo, 1)
+        assert (
+            await conn.fetchval("""SELECT count(*) FROM adaptive_learning_events
+            WHERE grade_status='teacher_confirmed'
+            AND confirmed_error_reasons @> ARRAY['justification']""")
+            == 2
+        )
