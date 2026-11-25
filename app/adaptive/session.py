@@ -34,11 +34,11 @@ class Session:
                 self.learner,
             )
             owner = user["id"]
+            state = user["current_state"] or {}
+            if isinstance(state, str):
+                state = json.loads(state)
+            fallback = state.get("resume_mode")
             if skills:
-                state = user["current_state"] or {}
-                if isinstance(state, str):
-                    state = json.loads(state)
-                fallback = state.get("resume_mode")
                 if fallback and fallback != "adaptive":
                     scope["resume_fallback"] = fallback
                 await conn.execute(
@@ -49,6 +49,13 @@ class Session:
                     json.dumps(skills),
                     strategy,
                     json.dumps(scope),
+                )
+            elif fallback and fallback != "adaptive":
+                await conn.execute(
+                    """UPDATE adaptive_sessions SET scope=scope ||
+                    jsonb_build_object('resume_fallback',$2::text)
+                    WHERE owner=$1 AND finished IS NULL""",
+                    owner, fallback,
                 )
             await conn.execute(
                 """UPDATE users SET current_state=current_state ||
@@ -64,6 +71,54 @@ class Session:
             WHERE u.telegram_user_id=$1 AND a.finished IS NULL""",
             self.learner,
         )
+
+    async def finish_disabled_personal(
+        self,
+        session_id: UUID,
+        position: int,
+        problem: UUID | None,
+        *,
+        revision: int,
+    ) -> str:
+        """Close a disabled personal session only for an explicit mode switch."""
+        async with self.pool.acquire() as conn, conn.transaction():
+            row = await conn.fetchrow(
+                """SELECT a.*,p.outcome FROM adaptive_sessions a
+                JOIN users u ON u.id=a.owner LEFT JOIN issued_problems p ON p.id=a.problem
+                WHERE a.id=$1 AND u.telegram_user_id=$2 AND a.position=$3
+                AND a.problem IS NOT DISTINCT FROM $4 AND a.revision=$5
+                AND a.finished IS NULL AND a.strategy='personal'
+                AND u.preferences->>'personal_training'='false' FOR UPDATE OF u,a""",
+                session_id,
+                self.learner,
+                position,
+                problem,
+                revision,
+            )
+            if not row:
+                return "stale"
+            if problem is not None and row["outcome"] == "issued":
+                await conn.execute(
+                    "UPDATE issued_problems SET outcome='skipped' WHERE id=$1", problem
+                )
+            await conn.execute(
+                """UPDATE adaptive_sessions SET finished=now(),revision=revision+1
+                WHERE id=$1""",
+                session_id,
+            )
+            scope = row["scope"] or {}
+            if isinstance(scope, str):
+                scope = json.loads(scope)
+            fallback = scope.get("resume_fallback")
+            await conn.execute(
+                """UPDATE users SET current_state=CASE WHEN $2::text IS NULL THEN
+                (current_state || '{"screen":"trainings"}'::jsonb)-'resume_mode'
+                ELSE current_state || '{"screen":"trainings"}'::jsonb ||
+                jsonb_build_object('resume_mode',$2::text) END WHERE id=$1""",
+                row["owner"],
+                fallback,
+            )
+            return "finished"
 
     async def excluded_for_learner(self) -> list[str]:
         return [

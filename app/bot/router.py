@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import json
 import logging
 import secrets
 from collections.abc import Awaitable, Callable
@@ -135,32 +136,33 @@ def _has_resumable_task9(state: dict[str, object] | None) -> bool:
     }
 
 
+async def _resume_mode(repository: Repository, user_id: int) -> str | None:
+    from app.adaptive.session import Session
+    from app.config import get_settings
+
+    mode = await repository.last_training_mode(user_id)
+    if mode not in {None, "adaptive"} or getattr(repository, "_pool", None) is None:
+        return mode
+    row = await Session(repository, user_id).current()
+    if row is None:
+        return None
+    if get_settings().oge_adaptive_enabled and (
+        row["strategy"] != "personal" or await repository.personal_enabled(user_id)
+    ):
+        return "adaptive"
+    scope = json.loads(row["scope"])
+    fallback = scope.get("resume_fallback")
+    return fallback if isinstance(fallback, str) else None
+
+
 async def _has_resumable_session(
     repository: Repository,
     user_id: int,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> bool:
-    from app.config import get_settings
-
-    adaptive = None
-    if getattr(repository, "_pool", None) is not None:
-        from app.adaptive.session import Session
-
-        adaptive = await Session(repository, user_id).current()
-        if (
-            adaptive is not None
-            and get_settings().oge_adaptive_enabled
-            and await repository.personal_enabled(user_id)
-        ):
-            return True
-    mode = await repository.last_training_mode(user_id)
-    if mode == "adaptive" and adaptive is not None:
-        scope = adaptive["scope"] or {}
-        if isinstance(scope, str):
-            import json
-
-            scope = json.loads(scope)
-        mode = scope.get("resume_fallback")
+    mode = await _resume_mode(repository, user_id)
+    if mode == "adaptive":
+        return True
     if mode == "part2":
         from app.bot.part2 import store
 
@@ -350,23 +352,14 @@ async def continue_session(
         return
     user_id: int = actor_id
 
-    from app.config import get_settings
-
-    adaptive = None
-    if getattr(repository, "_pool", None) is not None:
+    last = await _resume_mode(repository, user_id)
+    if last == "adaptive":
         from app.adaptive.session import Session
         from app.bot.adaptive import present
 
-        short = Session(repository, user_id)
-        adaptive = await short.current()
-        if (
-            adaptive is not None
-            and get_settings().oge_adaptive_enabled
-            and await repository.personal_enabled(user_id)
-        ):
-            await short.start([])
-            await present(message, repository, user_id)
-            return
+        await Session(repository, user_id).start([])
+        await present(message, repository, user_id)
+        return
 
     async def resume_pilot() -> bool:
         if oge15_repository is None:
@@ -389,14 +382,6 @@ async def continue_session(
         await repository.save_user_state(user_id, "oge15")
         return True
 
-    last = await repository.last_training_mode(user_id)
-    if last == "adaptive" and adaptive is not None:
-        scope = adaptive["scope"] or {}
-        if isinstance(scope, str):
-            import json
-
-            scope = json.loads(scope)
-        last = scope.get("resume_fallback")
     if last == "part2":
         from app.bot.part2 import resume
 

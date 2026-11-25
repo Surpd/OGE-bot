@@ -291,3 +291,71 @@ async def test_fifth_terminal_action_finishes_atomically(bank_pool, action):
         else:
             assert result == f"completed_{action}"
     assert await session.current() is None
+
+@pytest.mark.parametrize("failures", [2, 5])
+async def test_five_voluntary_similar_tasks_close_gap_or_report_five_failures(bank_pool, failures):
+    from app.adaptive.session import Session
+    from app.adaptive.store import sync
+    from app.bot.adaptive import generate
+    from app.bot.mixed_training import _is_correct
+    from app.persistence.repository import PostgresRepository
+
+    family = "OGE09-L1"
+    session = Session(PostgresRepository(bank_pool), 1)
+    await session.start([family] * 5, strategy="family", scope={"family": family})
+    for position in range(5):
+        row = await session.current()
+        assert row["position"] == position
+        problem = generate(family, await session.seen(row["owner"], family))
+        assert problem and await session.save(row, family, problem)
+        row = await session.current()
+        correct = position >= failures
+        raw = str(problem["correct_answer"]) if correct else "-987654321"
+        assert _is_correct(9, problem, raw) is correct
+        for attempt in range(1 if correct else 2):
+            result = await session.act(
+                row["problem"], None, "answer", raw=raw, correct=correct,
+                message_id=position * 2 + attempt + 100,
+            )
+        outcome = "solved" if correct else "failed"
+        if position < 4:
+            assert result == outcome
+            assert await session.choose_similar(row["id"], position, row["problem"]) == "next"
+        else:
+            assert result == f"completed_{outcome}"
+    assert await session.current() is None
+    totals = await session.totals(row["id"])
+    assert (totals["completed"], totals["independent"], totals["reviewed"]) == (
+        5, 5 - failures, failures,
+    )
+    async with bank_pool.acquire() as conn, conn.transaction():
+        await sync(conn, row["owner"], rebuild=True)
+    deltas = await session.summary_deltas(row["id"])
+    closures = [d["position"] for d in deltas if d["reason"] == "gap_closed"]
+    assert closures == ([4] if failures == 2 else [])
+
+async def test_continue_follows_last_mode_and_ignores_personal_toggle_for_mixed(
+    bank_pool, monkeypatch,
+):
+    from app.adaptive.session import Session
+    from app.bot.router import _resume_mode
+    from app.config import get_settings
+    from app.persistence.repository import PostgresRepository
+
+    monkeypatch.setenv("OGE_ADAPTIVE_ENABLED", "true")
+    get_settings.cache_clear()
+    repo = PostgresRepository(bank_pool)
+    try:
+        await repo.save_user_state(1, "task6")
+        store = Session(repo, 1)
+        await store.start(["OGE09-L1"] * 5, strategy="mixed")
+        await repo.set_personal_enabled(1, False)
+        assert await _resume_mode(repo, 1) == "adaptive"
+        await repo.save_user_state(1, "task9")
+        assert await _resume_mode(repo, 1) == "task9"
+        await store.start([])
+        row = await store.current()
+        await store.act(None, None, "finish", session_id=row["id"], position=0)
+        assert await _resume_mode(repo, 1) == "task9"
+    finally:
+        get_settings.cache_clear()

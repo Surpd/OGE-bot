@@ -338,19 +338,23 @@ async def start(
     store = Session(repository, learner) if pool is not None else None
     current = await store.current() if store else None
     if current is not None and not _requested_mode(current, strategy, number, family):
+        personal_available = await repository.personal_enabled(learner)
         current_name = {
             "personal": "персональная",
             "mixed": "смешанная",
             "number": "по номеру",
             "family": "по типу",
         }.get(str(current["strategy"]), "короткая")
-        markup = InlineKeyboardMarkup(inline_keyboard=[
-            [button(f"Продолжить: {current_name}", "train:resume")],
+        rows = [
             [button("Завершить и переключиться", _switch_callback(
                 strategy, number, family,
             ))],
             [button("↩ К тренировкам", "train:hub")],
-        ])
+        ]
+        if current["strategy"] != "personal" or personal_available:
+            rows.insert(0, [button(f"Продолжить: {current_name}", "train:resume")])
+        markup = InlineKeyboardMarkup(inline_keyboard=rows)
+        await repository.save_user_state(learner, "trainings")
         await send_text(
             message, repository,
             "У вас уже сохранена короткая тренировка. Продолжить её или завершить досрочно?",
@@ -400,6 +404,7 @@ async def trainings(message: Message, repository: Any) -> None:
     if not message.from_user:
         return
     learner = message.from_user.id
+    personal_available = await repository.personal_enabled(learner)
     history = await overview(repository, learner)
     from app.persistence.training_insights import training_insights
 
@@ -412,7 +417,7 @@ async def trainings(message: Message, repository: Any) -> None:
             item[2].stage not in {Stage.GAP, Stage.PRACTICE, Stage.CHECK, Stage.REOPENED},
             -item[3].timestamp(),
         ),
-    )[:2]
+    )[:2] if personal_available else []
     lines = ["Тренировки", "", "Короткая тренировка — 5 задач."]
     if recommendations:
         lines.extend(["", "Рекомендую:"])
@@ -427,13 +432,13 @@ async def trainings(message: Message, repository: Any) -> None:
             if state.practice:
                 reason += f", самостоятельное закрепление {state.practice}/{CURRENT.practice_count}"
             lines.append(f"• №{number} · {title(skill)} — {reason}.")
-    elif not history:
+    elif not history and personal_available:
         lines.extend(["", "Начните с персональной диагностической пятёрки — история не требуется."])
-    else:
+    elif personal_available:
         lines.append("Попробуйте новые типы в персональной тренировке.")
     await repository.save_user_state(learner, "trainings")
     markup = trainings_hub(
-        personal_enabled=await repository.personal_enabled(learner),
+        personal_enabled=personal_available,
         short_enabled=get_settings().oge_adaptive_enabled,
     )
     if get_settings().oge_adaptive_enabled and recommendations:
@@ -763,7 +768,8 @@ async def completion(
                 detail = f"{status}; {detail}"
             lines.append(f"• {title(delta['skill'])}: {detail}.")
     lines.extend(["", "Что дальше"])
-    final_history = await overview(repository, store.learner)
+    personal_available = await repository.personal_enabled(store.learner)
+    final_history = await overview(repository, store.learner) if personal_available else []
     remaining = sorted(
         (item for item in final_history if item[1] in catalog()
          and item[2].stage in {Stage.CHECK, Stage.GAP, Stage.PRACTICE, Stage.REOPENED}),
@@ -778,17 +784,21 @@ async def completion(
         lines.append(
             f"Рекомендую: {title(remaining[0][1])} — {stage_line(remaining[0][2]).lower()}."
         )
-    else:
+    elif personal_available:
         lines.append("Можно начать новую персональную тренировку или выбрать номер.")
+    else:
+        lines.append("Можно выбрать короткую тренировку по номеру или смешанную пятёрку.")
     text = "\n".join(lines)
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [button("Новая персональная", "train:personal")],
+    rows = [
             *([[button("Потренировать этот тип", f"train:family:{focus}")]] if focus else []),
             [button("Мой прогресс", "train:progress")],
             [button("В меню", "nav:main")],
-        ]
-    )
+    ]
+    rows.insert(0, [button(
+        "Новая персональная" if personal_available else "Смешанная · 5 задач",
+        "train:personal" if personal_available else "train:mixed",
+    )])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
     await repository.save_user_state(store.learner, "trainings")
     await send_text(
         message, repository, text, reply_markup=keyboard, user_id_override=store.learner
@@ -836,8 +846,16 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             await start(actor_message, repository, strategy=action)
         elif action == "resume" and len(parts) == 2:
             store = Session(repository, learner)
-            if await store.current() is None:
+            current = await store.current()
+            if current is None:
                 await answer_callback(cb, "Сохранённая тренировка уже завершена.")
+                return
+            if current["strategy"] == "personal" and not await repository.personal_enabled(
+                learner
+            ):
+                await answer_callback(
+                    cb, "Персональная тренировка выключена. Выберите другой режим."
+                )
                 return
             await store.start([])
             await present(actor_message, repository, learner)
@@ -863,14 +881,24 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
                 await answer_callback(cb, "Это направление недоступно.")
                 return
             store = Session(repository, learner)
-            await store.start([])
             current = await store.current()
             if current is not None:
-                result = await store.act(
-                    current["problem"], current["prompt"], "finish",
-                    session_id=current["id"], position=current["position"],
-                    revision=current["revision"],
+                disabled_personal = (
+                    current["strategy"] == "personal"
+                    and not await repository.personal_enabled(learner)
                 )
+                if disabled_personal:
+                    result = await store.finish_disabled_personal(
+                        current["id"], current["position"], current["problem"],
+                        revision=current["revision"],
+                    )
+                else:
+                    await store.start([])
+                    result = await store.act(
+                        current["problem"], current["prompt"], "finish",
+                        session_id=current["id"], position=current["position"],
+                        revision=current["revision"],
+                    )
                 if result != "finished":
                     await answer_callback(cb, "Тренировка уже изменилась.")
                     return
