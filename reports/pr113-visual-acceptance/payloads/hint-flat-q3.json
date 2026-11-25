@@ -1,0 +1,18 @@
+{
+  "id": "hint-flat-q3",
+  "label": "Подсказка · FLAT №3",
+  "category": "hint",
+  "story": "FLAT",
+  "seed": 42,
+  "position": 3,
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "<b>Подсказка №1:</b>\n\nНайдите ширину и длину лоджии в клетках плана.",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')"
+    }
+  ]
+}

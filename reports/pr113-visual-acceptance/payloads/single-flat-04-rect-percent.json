@@ -1,0 +1,78 @@
+{
+  "id": "single-flat-04-rect-percent",
+  "label": "Одиночная выдача · FLAT-04-RECT-PERCENT",
+  "category": "single-family",
+  "story": "FLAT",
+  "seed": 0,
+  "position": 4,
+  "family": "FLAT-04-RECT-PERCENT",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/c02e2bbbae39fc5256fc4fabbd697934439f92571de0342c82f8216558ea542c.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "c02e2bbbae39fc5256fc4fabbd697934439f92571de0342c82f8216558ea542c",
+          "bytes": 36784
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:ac51ac8b-95c0-52d3-b490-6d9482ea7bee:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:ac51ac8b-95c0-52d3-b490-6d9482ea7bee:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:ac51ac8b-95c0-52d3-b490-6d9482ea7bee:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:ac51ac8b-95c0-52d3-b490-6d9482ea7bee:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:ac51ac8b-95c0-52d3-b490-6d9482ea7bee:4:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Квартиры</b></p><p> </p><p><b>Задание №4</b></p><p> </p><p>По плану определите, на сколько процентов площадь санузла больше площади кладовой?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

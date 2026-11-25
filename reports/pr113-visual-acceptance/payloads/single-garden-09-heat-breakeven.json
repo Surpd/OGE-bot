@@ -1,0 +1,78 @@
+{
+  "id": "single-garden-09-heat-breakeven",
+  "label": "Одиночная выдача · GARDEN-09-HEAT-BREAKEVEN",
+  "category": "single-family",
+  "story": "GARDEN",
+  "seed": 0,
+  "position": 5,
+  "family": "GARDEN-09-HEAT-BREAKEVEN",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>На плане изображён дачный участок в посёлке Сосновка. Единственные ворота расположены на правой границе. При входе слева находится гараж, справа — сарай, а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, плитка — <tg-math>1 \\times 1</tg-math> м.</p><p>Отопление одного дома можно организовать газовым или электрическим котлом. Для сравнения учитывают стоимость котла, монтажа и потребляемой энергии; числовые исходные данные приведены в отдельной таблице.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №5",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/9dbf1ca9e7034edce5e5c8b423450e9c392b2ae98edeca34a6b525070ccfe1bf.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "9dbf1ca9e7034edce5e5c8b423450e9c392b2ae98edeca34a6b525070ccfe1bf",
+          "bytes": 52767
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:d5c0ac1d-bbd6-57ff-a63d-0435de31b1f7:5:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:d5c0ac1d-bbd6-57ff-a63d-0435de31b1f7:5:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:d5c0ac1d-bbd6-57ff-a63d-0435de31b1f7:5:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:d5c0ac1d-bbd6-57ff-a63d-0435de31b1f7:5:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:d5c0ac1d-bbd6-57ff-a63d-0435de31b1f7:5:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Участки</b></p><p> </p><p><b>Задание №5</b></p><p> </p><p>Для одного и того же дома выбирают отопление газом или электричеством. Используйте таблицу исходных данных. Через сколько часов суммарные затраты на оборудование, установку и энергию сравняются?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

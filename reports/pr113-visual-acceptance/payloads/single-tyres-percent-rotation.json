@@ -1,0 +1,78 @@
+{
+  "id": "single-tyres-percent-rotation",
+  "label": "Одиночная выдача · TYRES-PERCENT-ROTATION",
+  "category": "single-family",
+  "story": "TYRES",
+  "seed": 0,
+  "position": 5,
+  "family": "TYRES-PERCENT-ROTATION",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Ситуация. Завод устанавливает на автомобили шины маркировки 185/55 R12. Первое число обозначает ширину шины в миллиметрах, второе — высоту боковины в процентах от ширины, а число после <tg-math>R</tg-math> — диаметр диска в дюймах (1 дюйм = 25,4 мм). Диаметр всего колеса равен диаметру диска в миллиметрах плюс две высоты боковины.</p><p> </p><p>Схема показывает величины <tg-math>B</tg-math>, <tg-math>H</tg-math>, <tg-math>d</tg-math> и <tg-math>D</tg-math>. Рисунок условный и не в масштабе.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №5",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa",
+          "bytes": 23857
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:a281dec6-6515-5ef5-b973-4f5a3b825b88:5:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:a281dec6-6515-5ef5-b973-4f5a3b825b88:5:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:a281dec6-6515-5ef5-b973-4f5a3b825b88:5:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:a281dec6-6515-5ef5-b973-4f5a3b825b88:5:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:a281dec6-6515-5ef5-b973-4f5a3b825b88:5:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Шины</b></p><p> </p><p><b>Задание №5</b></p><p> </p><p>На сколько процентов увеличится пробег автомобиля при одном обороте колеса, если заменить заводские колёса шинами 165/65 R14? Результат округлите до десятых.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

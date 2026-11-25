@@ -1,0 +1,65 @@
+{
+  "id": "full-stove-q2",
+  "label": "Полный комплект · STOVE · вопрос 2",
+  "category": "full-scenario",
+  "story": "STOVE",
+  "seed": 42,
+  "position": 2,
+  "mode": "full",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}6 \\times 2 \\times 2{,}3</tg-math> м. Дверь: 56 см × 210 см; окон нет.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:a1440d3f-2beb-5ae2-a039-02a0ac0017ac:2:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:a1440d3f-2beb-5ae2-a039-02a0ac0017ac:2:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:a1440d3f-2beb-5ae2-a039-02a0ac0017ac:2:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:a1440d3f-2beb-5ae2-a039-02a0ac0017ac:2:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:a1440d3f-2beb-5ae2-a039-02a0ac0017ac:2:0:p"
+            },
+            {
+              "text": "⏹ Завершить",
+              "callback_data": "o:a:a1440d3f-2beb-5ae2-a039-02a0ac0017ac:2:0:r"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №2 из 5</b></p><p> </p><p>Найдите объём парной в кубических метрах.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

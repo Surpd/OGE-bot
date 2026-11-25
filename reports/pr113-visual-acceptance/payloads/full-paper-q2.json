@@ -1,0 +1,81 @@
+{
+  "id": "full-paper-q2",
+  "label": "Полный комплект · PAPER · вопрос 2",
+  "category": "full-scenario",
+  "story": "PAPER",
+  "seed": 42,
+  "position": 2,
+  "mode": "full",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №2",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49",
+          "bytes": 16865
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:d1f5223b-e29d-52e1-a0b1-5599d97db255:2:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:d1f5223b-e29d-52e1-a0b1-5599d97db255:2:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:d1f5223b-e29d-52e1-a0b1-5599d97db255:2:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:d1f5223b-e29d-52e1-a0b1-5599d97db255:2:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:d1f5223b-e29d-52e1-a0b1-5599d97db255:2:0:p"
+            },
+            {
+              "text": "⏹ Завершить",
+              "callback_data": "o:a:d1f5223b-e29d-52e1-a0b1-5599d97db255:2:0:r"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Бумага</b></p><p> </p><p><b>Задание №2 из 5</b></p><p> </p><p>Из одного листа формата A2 последовательно получают листы формата A4. Сколько листов A4 получится из одного листа A2?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

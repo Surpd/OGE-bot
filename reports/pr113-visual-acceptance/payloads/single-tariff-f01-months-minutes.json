@@ -1,0 +1,94 @@
+{
+  "id": "single-tariff-f01-months-minutes",
+  "label": "Одиночная выдача · TARIFF-F01-MONTHS-MINUTES",
+  "category": "single-family",
+  "story": "TARIFF",
+  "seed": 0,
+  "position": 1,
+  "family": "TARIFF-F01-MONTHS-MINUTES",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>За каждый месяц года показаны расход минут исходящих вызовов и мобильного интернета.</p><p>На графике сплошная линия — минуты (левая шкала), пунктирная — интернет в ГБ (правая шкала).</p><p>Тариф «Стандартный»: абонентская плата 350 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.</p><p>Сверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.</p><p>Месяцы указаны в календарном порядке с января по декабрь.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №1",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/f8c603351ceaeed213d10ac78666ae38dc55fb3465df6bc9025afbe24b72c7eb.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "f8c603351ceaeed213d10ac78666ae38dc55fb3465df6bc9025afbe24b72c7eb",
+          "bytes": 46186
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №1",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/fe05f53e54aca88b5347ebd19c1438447e4204723a71b7099ed46330f67b2df3.png",
+          "source_filename": "scenario-2.png",
+          "sha256": "fe05f53e54aca88b5347ebd19c1438447e4204723a71b7099ed46330f67b2df3",
+          "bytes": 16936
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:e1072c61-c877-5ab8-b4c5-4572a01cafd6:1:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:e1072c61-c877-5ab8-b4c5-4572a01cafd6:1:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:e1072c61-c877-5ab8-b4c5-4572a01cafd6:1:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:e1072c61-c877-5ab8-b4c5-4572a01cafd6:1:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:e1072c61-c877-5ab8-b4c5-4572a01cafd6:1:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Тарифы</b></p><p> </p><p><b>Задание №1</b></p><p> </p><p>Определите номера месяцев, в которых израсходовано соответственно 100 мин, 250 мин, 225 мин, 125 мин. Запишите номера подряд, без разделителей.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

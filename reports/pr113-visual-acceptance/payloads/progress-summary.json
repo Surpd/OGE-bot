@@ -1,0 +1,46 @@
+{
+  "id": "progress-summary",
+  "label": "Общий прогресс",
+  "category": "progress",
+  "page": "summary",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "<b>Мой прогресс · ОГЭ №1–19</b>\n\nВерно: 8 · Успешность: 80% · Пропущено: 1\nЗадач с ответом: 10 · Выдано: 12\n\nПроверь вычисление площади по плану.",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "📊 Подробнее о номере",
+              "callback_data": "progress:details~5fae41da4382"
+            }
+          ],
+          [
+            {
+              "text": "⚠️ Мои ошибки",
+              "callback_data": "progress:errors:0~5fae41da4382"
+            },
+            {
+              "text": "🕘 История",
+              "callback_data": "progress:history:0~5fae41da4382"
+            }
+          ],
+          [
+            {
+              "text": "🔄 Обновить",
+              "callback_data": "progress:refresh~5fae41da4382"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~5fae41da4382"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

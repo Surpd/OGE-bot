@@ -1,0 +1,38 @@
+{
+  "id": "progress-family-15",
+  "label": "Сводка по типам · №15",
+  "category": "progress",
+  "page": "family:15:0",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "<b>№15 · Типы задач</b>\n\n• Площади по плану: 1/2 · 50%",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №15",
+              "callback_data": "nav:task:15~ad2b9448aa56"
+            }
+          ],
+          [
+            {
+              "text": "↩ К №15",
+              "callback_data": "progress:number:15~ad2b9448aa56"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~ad2b9448aa56"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

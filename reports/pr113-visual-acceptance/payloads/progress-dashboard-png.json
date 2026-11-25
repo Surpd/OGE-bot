@@ -1,0 +1,54 @@
+{
+  "id": "progress-dashboard-png",
+  "label": "Визуальный общий прогресс · PNG",
+  "category": "progress-image",
+  "page": "summary",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "<b>Мой прогресс</b>",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "📊 Подробнее о номере",
+              "callback_data": "progress:details~5fad9701411b"
+            }
+          ],
+          [
+            {
+              "text": "⚠️ Мои ошибки",
+              "callback_data": "progress:errors:0~5fad9701411b"
+            },
+            {
+              "text": "🕘 История",
+              "callback_data": "progress:history:0~5fad9701411b"
+            }
+          ],
+          [
+            {
+              "text": "🔄 Обновить",
+              "callback_data": "progress:refresh~5fad9701411b"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~5fad9701411b"
+            }
+          ]
+        ]
+      },
+      "media": [
+        {
+          "file": "assets/png/724de1003f2355d2b71ec58e88697cbea69e30206db6f71b05ca50d3de1a2a17.png",
+          "source_filename": "progress.png",
+          "sha256": "724de1003f2355d2b71ec58e88697cbea69e30206db6f71b05ca50d3de1a2a17",
+          "bytes": 72437
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "id": "progress-details",
+  "label": "Детализация по номеру",
+  "category": "progress",
+  "page": "details",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "<b>Подробнее о номере</b>\n\nВыберите №1–19.",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "№1",
+              "callback_data": "progress:number:1~d2a468511951"
+            },
+            {
+              "text": "№2",
+              "callback_data": "progress:number:2~d2a468511951"
+            },
+            {
+              "text": "№3",
+              "callback_data": "progress:number:3~d2a468511951"
+            },
+            {
+              "text": "№4",
+              "callback_data": "progress:number:4~d2a468511951"
+            }
+          ],
+          [
+            {
+              "text": "№5",
+              "callback_data": "progress:number:5~d2a468511951"
+            },
+            {
+              "text": "№6",
+              "callback_data": "progress:number:6~d2a468511951"
+            },
+            {
+              "text": "№7",
+              "callback_data": "progress:number:7~d2a468511951"
+            },
+            {
+              "text": "№8",
+              "callback_data": "progress:number:8~d2a468511951"
+            }
+          ],
+          [
+            {
+              "text": "№9",
+              "callback_data": "progress:number:9~d2a468511951"
+            },
+            {
+              "text": "№10",
+              "callback_data": "progress:number:10~d2a468511951"
+            },
+            {
+              "text": "№11",
+              "callback_data": "progress:number:11~d2a468511951"
+            },
+            {
+              "text": "№12",
+              "callback_data": "progress:number:12~d2a468511951"
+            }
+          ],
+          [
+            {
+              "text": "№13",
+              "callback_data": "progress:number:13~d2a468511951"
+            },
+            {
+              "text": "№14",
+              "callback_data": "progress:number:14~d2a468511951"
+            },
+            {
+              "text": "№15",
+              "callback_data": "progress:number:15~d2a468511951"
+            },
+            {
+              "text": "№16",
+              "callback_data": "progress:number:16~d2a468511951"
+            }
+          ],
+          [
+            {
+              "text": "№17",
+              "callback_data": "progress:number:17~d2a468511951"
+            },
+            {
+              "text": "№18",
+              "callback_data": "progress:number:18~d2a468511951"
+            },
+            {
+              "text": "№19",
+              "callback_data": "progress:number:19~d2a468511951"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~d2a468511951"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

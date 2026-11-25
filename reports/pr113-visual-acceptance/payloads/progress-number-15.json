@@ -1,0 +1,44 @@
+{
+  "id": "progress-number-15",
+  "label": "Мой прогресс · №15",
+  "category": "progress",
+  "page": "number:15",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "<b>№15 · Треугольники</b>\n\nРешено правильно: 5 из 6\nУспешность: 83%\nПропущено: 1\n\nПопытки\nВерно с первой: 3\nВерно со второй: 2\nС подсказкой: 2\nБез подсказки: 3\n\nТипы задач\n• Площади по плану: 1/2 · 50%",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №15",
+              "callback_data": "nav:task:15~04916968373c"
+            }
+          ],
+          [
+            {
+              "text": "Все типы задач",
+              "callback_data": "progress:family:15:0~04916968373c"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "progress:details~04916968373c"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~04916968373c"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

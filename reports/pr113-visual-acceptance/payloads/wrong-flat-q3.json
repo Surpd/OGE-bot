@@ -1,0 +1,18 @@
+{
+  "id": "wrong-flat-q3",
+  "label": "Ошибка · первая попытка · FLAT №3",
+  "category": "answer-wrong",
+  "story": "FLAT",
+  "seed": 42,
+  "position": 3,
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "Пока не получилось. Попробуй ещё раз.",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')"
+    }
+  ]
+}

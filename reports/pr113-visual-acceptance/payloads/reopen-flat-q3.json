@@ -1,0 +1,36 @@
+{
+  "id": "reopen-flat-q3",
+  "label": "Повторное открытие схемы и данных · FLAT №3",
+  "category": "data-reopen",
+  "story": "FLAT",
+  "seed": 42,
+  "position": 3,
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №3",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/86beb10eef9b4245dd77bbe8f545abb0c9fcf4077d62b5e44b565a6e60134adf.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "86beb10eef9b4245dd77bbe8f545abb0c9fcf4077d62b5e44b565a6e60134adf",
+          "bytes": 36791
+        }
+      ]
+    }
+  ]
+}

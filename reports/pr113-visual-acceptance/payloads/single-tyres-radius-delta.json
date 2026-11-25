@@ -1,0 +1,78 @@
+{
+  "id": "single-tyres-radius-delta",
+  "label": "Одиночная выдача · TYRES-RADIUS-DELTA",
+  "category": "single-family",
+  "story": "TYRES",
+  "seed": 0,
+  "position": 4,
+  "family": "TYRES-RADIUS-DELTA",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Ситуация. Завод устанавливает на автомобили шины маркировки 185/55 R12. Первое число обозначает ширину шины в миллиметрах, второе — высоту боковины в процентах от ширины, а число после <tg-math>R</tg-math> — диаметр диска в дюймах (1 дюйм = 25,4 мм). Диаметр всего колеса равен диаметру диска в миллиметрах плюс две высоты боковины.</p><p> </p><p>Схема показывает величины <tg-math>B</tg-math>, <tg-math>H</tg-math>, <tg-math>d</tg-math> и <tg-math>D</tg-math>. Рисунок условный и не в масштабе.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa",
+          "bytes": 23857
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:e846a77b-82aa-5799-bc40-67a8e6f50107:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:e846a77b-82aa-5799-bc40-67a8e6f50107:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:e846a77b-82aa-5799-bc40-67a8e6f50107:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:e846a77b-82aa-5799-bc40-67a8e6f50107:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:e846a77b-82aa-5799-bc40-67a8e6f50107:4:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Шины</b></p><p> </p><p><b>Задание №4</b></p><p> </p><p>На сколько миллиметров радиус колеса с шиной 185/45 R16 меньше, чем радиус колеса с шиной 205/45 R16?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}
