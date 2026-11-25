@@ -10,7 +10,7 @@ COPY pyproject.toml uv.lock README.md ./
 COPY app ./app
 COPY atlas ./atlas
 COPY migrations ./migrations
-COPY scripts/import_part2.py ./scripts/import_part2.py
+COPY scripts/import_part2.py scripts/adaptive_rebuild.py ./scripts/
 RUN uv sync --frozen --no-dev
 USER 10001:10001
 EXPOSE 8000

@@ -55,8 +55,8 @@ async def sync(
         for f in result.facts:
             added = await conn.fetchval(
                 """INSERT INTO adaptive_evidence(owner,skill,number,source,task,ordinal,
-                   variant,occurred,outcome,assisted,attempt,score,grade_status)
-                   VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+                   variant,occurred,outcome,assisted,attempt,score,grade_status,used_hint,solution_before)
+                   VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
                    ON CONFLICT DO NOTHING RETURNING true""",
                 owner,
                 result.skill,
@@ -71,6 +71,8 @@ async def sync(
                 f.attempt,
                 f.score,
                 f.grade_status,
+                f.used_hint,
+                f.solution_before,
             )
             if added:
                 touched[result.skill] = min(touched.get(result.skill, f.at), f.at)

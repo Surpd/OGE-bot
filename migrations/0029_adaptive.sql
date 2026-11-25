@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS adaptive_dirty (
 );
 CREATE TABLE IF NOT EXISTS adaptive_evidence (
  owner uuid NOT NULL REFERENCES users ON DELETE CASCADE, skill text NOT NULL,
- number smallint NOT NULL, source text NOT NULL, task text NOT NULL, ordinal smallint NOT NULL,
+ number smallint NOT NULL, source text NOT NULL, task text NOT NULL, ordinal integer NOT NULL,
  variant text NOT NULL, occurred timestamptz NOT NULL, outcome text NOT NULL,
- assisted boolean, attempt smallint NOT NULL, score smallint, grade_status text,
+ assisted boolean, used_hint boolean, solution_before boolean, attempt integer NOT NULL, score smallint, grade_status text,
  reason text, stage_after text, policy integer,
  PRIMARY KEY(owner,source,task,ordinal)
 );
@@ -32,7 +32,17 @@ CREATE TABLE IF NOT EXISTS adaptive_slots (
 ALTER TABLE adaptive_slots ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON adaptive_slots FROM PUBLIC;
 CREATE UNIQUE INDEX IF NOT EXISTS adaptive_open ON adaptive_sessions(owner) WHERE finished IS NULL;
-ALTER TABLE part2_grades ADD COLUMN IF NOT EXISTS adaptive_helped boolean;
+ALTER TABLE oge15_question_progress ADD COLUMN IF NOT EXISTS adaptive_issued_at timestamptz;
+CREATE OR REPLACE FUNCTION adaptive_question_start() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ IF NEW.status='active' AND NEW.adaptive_issued_at IS NULL THEN NEW.adaptive_issued_at:=now(); END IF;
+ RETURN NEW;
+END $$;
+CREATE OR REPLACE TRIGGER adaptive_question_start BEFORE INSERT OR UPDATE OF status
+ ON oge15_question_progress FOR EACH ROW WHEN (current_setting('bop.adaptive',true)='on')
+ EXECUTE FUNCTION adaptive_question_start();
+ALTER TABLE part2_grades ADD COLUMN IF NOT EXISTS adaptive_hint boolean,
+ ADD COLUMN IF NOT EXISTS adaptive_solution boolean;
 CREATE TABLE IF NOT EXISTS adaptive_origins (
  owner uuid NOT NULL REFERENCES users ON DELETE CASCADE, source text NOT NULL, task text NOT NULL,
  original_source text NOT NULL, original_task text NOT NULL, PRIMARY KEY(owner,source,task)
@@ -49,7 +59,7 @@ CREATE OR REPLACE VIEW adaptive_learning_events WITH (security_invoker=true) AS
 REVOKE ALL ON adaptive_learning_events FROM PUBLIC;
 CREATE OR REPLACE FUNCTION adaptive_grade_context() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
- SELECT i.hints>0 OR i.solution_viewed_at IS NOT NULL INTO NEW.adaptive_helped
+ SELECT i.hints>0,i.solution_viewed_at IS NOT NULL INTO NEW.adaptive_hint,NEW.adaptive_solution
  FROM part2_issues i WHERE i.id=NEW.issue_id;
  RETURN NEW;
 END $$;

@@ -21,6 +21,8 @@ class Fact:
     assisted: bool | None = None
     score: int | None = None
     grade_status: str | None = None
+    used_hint: bool | None = None
+    solution_before: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -71,7 +73,9 @@ async def item(conn: asyncpg.Connection, owner: UUID, source: str, task: str) ->
         row = await conn.fetchrow(
             """SELECT sc.snapshot->'questions'->($3::int-1)->>'family_id' family_id,
                sc.snapshot AS scene,
-               $3::int number,s.started_at issued_at,p.status outcome,p.solution_viewed_at,
+               $3::int number,coalesce(p.adaptive_issued_at,s.started_at) issued_at,
+               p.status outcome,
+               p.solution_viewed_at,
                '' fingerprint FROM oge15_sessions s JOIN oge15_scenarios sc ON sc.id=s.scenario_id
                JOIN oge15_question_progress p ON p.session_id=s.id AND p.position=$3
                WHERE s.user_id=$1 AND s.id=$2 AND p.status<>'pending'""",
@@ -128,15 +132,16 @@ async def item(conn: asyncpg.Connection, owner: UUID, source: str, task: str) ->
     for a in await conn.fetch(attempt_sql + " ORDER BY attempt_no", *args):
         at = a["created_at"]
         helped = a["used_hint"] if a["telegram_message_id"] is not None else None
-        if row["solution_viewed_at"] and row["solution_viewed_at"] <= at:
-            helped = True
+        solution = bool(row["solution_viewed_at"] and row["solution_viewed_at"] <= at)
         facts.append(
             Fact(
                 at,
                 "correct" if a["is_correct"] else "wrong",
                 a["attempt_no"],
                 a["attempt_no"],
-                helped,
+                True if solution else helped,
+                used_hint=helped,
+                solution_before=solution,
             )
         )
     if row["solution_viewed_at"] and row["outcome"] == "solution_viewed":
@@ -161,8 +166,11 @@ async def _written(conn: asyncpg.Connection, owner: UUID, issue: int) -> Item | 
         return None
     facts = [Fact(row["issued_at"], "issued", 0)]
     for grade in await conn.fetch(
-        """SELECT revision,score,status,created_at,adaptive_helped,result->>'needs_review' review,
-           jsonb_array_length(result->'criterion_evidence') evidence FROM part2_grades
+        """SELECT revision,score,status,created_at,adaptive_hint,adaptive_solution,
+           result->>'needs_review' review, result->>'status' assessed_status,
+           result->>'score' assessed_score,
+           CASE WHEN jsonb_typeof(result->'criterion_evidence')='array'
+           THEN jsonb_array_length(result->'criterion_evidence') END evidence FROM part2_grades
            WHERE issue_id=$1 AND status<>'pending' ORDER BY revision""",
         issue,
     ):
@@ -173,11 +181,16 @@ async def _written(conn: asyncpg.Connection, owner: UUID, issue: int) -> Item | 
             grade["status"] != "graded"
             or not row["reviewed"]
             or grade["review"] != "false"
+            or grade["assessed_status"] != grade["status"]
+            or grade["assessed_score"] != str(score)
             or not grade["evidence"]
         ):
             outcome = "ungraded"
         else:
             outcome = "correct" if score == 2 else "wrong"
-        helped = grade["adaptive_helped"]
-        facts.append(Fact(at, outcome, rev, rev, helped, score, grade["status"]))
+        hint, solution = grade["adaptive_hint"], grade["adaptive_solution"]
+        helped = None if hint is None or solution is None else hint or solution
+        facts.append(Fact(at, outcome, rev, rev, helped, score, grade["status"], hint, solution))
+    if row["solution_viewed_at"]:
+        facts.append(Fact(row["solution_viewed_at"], "solution", -1))
     return Item(row["number"], row["subtype_id"], row["task_id"], "written", str(issue), facts)

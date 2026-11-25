@@ -165,8 +165,9 @@ async def test_written_progress_uses_validated_initial_grade_and_preserves_revis
                 await conn.execute(
                     """INSERT INTO part2_grades(issue_id,revision,model,prompt_version,
                     rubric_version,status,score,result,reserved_usd) VALUES($1,$2,'mock','test',
-                    1,$3,$4,'{"criterion_evidence":[{"criterion":"answer","student_evidence":"x=2"}],
-                    "needs_review":false}',0)""",
+                    1,$3,$4,jsonb_build_object('status',$3::text,'score',$4::smallint) ||
+                    '{"criterion_evidence":[{"criterion":"answer","student_evidence":"x=2"}],
+                    "needs_review":false}'::jsonb,0)""",
                     issue,
                     rev,
                     status,

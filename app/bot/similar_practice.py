@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import secrets
 from collections.abc import Callable
-from importlib import import_module
 from typing import cast
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
@@ -25,6 +24,7 @@ from app.math.scenario_engine import (
 from app.math.scenarios.recent_questions import is_recent_fixed_single, question_signature
 from app.persistence.error_replay import ReplaySource, load_replay_source
 from app.persistence.repository import Repository
+from app.persistence.rotation_history import enabled
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 
@@ -43,12 +43,7 @@ def supports_similar(source: ReplaySource) -> bool:
     training = BY_NUMBER.get(source.number)
     if training is None or not training.available:
         return False
-    if source.number == 6:
-        from app.math.registry import SPEC_BY_ID
-
-        return isinstance(family, str) and family in SPEC_BY_ID
-    module = import_module(_builders()[source.number].__module__)
-    return family in getattr(module, "ENABLED_FAMILIES", ())
+    return isinstance(family, str) and family in enabled(source.number)
 
 
 def _candidates(source: ReplaySource, state: dict[str, object]) -> list[dict[str, object]]:
@@ -127,11 +122,11 @@ async def _origin(
     pool = getattr(repository, "_pool", None)
     if pool is not None and get_settings().oge_adaptive_enabled:
         original = str(source.source_id)
-        if source.source_type=="scenario":
+        if source.source_type == "scenario":
             original += f":{source.source_position}"
         await pool.execute("""INSERT INTO adaptive_origins
             SELECT id,$2,$3,$4,$5 FROM users WHERE telegram_user_id=$1 ON CONFLICT DO NOTHING""",
-            learner,kind,task,source.source_type,original)
+            learner, kind, task, source.source_type, original)
 
 
 async def _start_scenario(
@@ -164,7 +159,7 @@ async def _start_scenario(
     )
     if session is None:
         return False
-    await _origin(repository,user_id,source,"scenario",f"{session.session_id}:{source.number}")
+    await _origin(repository, user_id, source, "scenario", f"{session.session_id}:{source.number}")
     await render_session(
         message, store, session, show_assets=True, user_id_override=user_id,
         repository=repository,
