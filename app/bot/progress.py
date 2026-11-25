@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any, TypedDict
 from uuid import UUID
 
@@ -244,17 +244,35 @@ def progress_keyboard(
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     else:
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
+    if section in {"number", "family"} and insights and get_settings().oge_adaptive_enabled:
+        rows[0] = [_button(f"Пять задач №{number}", f"train:number:{number}")]
+        start = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
+        families = sorted(
+            (r for r in insights["families"] if r["number"] == number),
+            key=lambda r: str(r["family_id"]),
+        )
+        practice = [
+            [_button(f"Тренировать · {r['name']}", f"train:family:{r['family_id']}")]
+            for r in families[start:start + PAGE_SIZE] if r.get("practice_priority")
+        ]
+        rows[1:1] = practice
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
+    from app.config import get_settings
+
     if insights.get("personal_tip"):
         return "Персональная тренировка", "nav:adaptive"
     if insights["total"]["answered_tasks"] == 0:
-        return "🎲 Смешанная тренировка", "nav:mixed"
+        if get_settings().oge_adaptive_enabled:
+            return "Смешанная пятёрка", "train:mixed"
+        return "🎲 Полный вариант №1–19", "nav:mixed"
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is None:
         return None
+    if get_settings().oge_adaptive_enabled:
+        return f"Пять задач №{number}", f"train:number:{number}"
     route = "nav:oge15" if number <= 5 else "nav:task"
     return f"▶ Тренировать №{number}", f"{route}:{number}"
 
@@ -338,6 +356,49 @@ def _record_list(insights: dict[str, Any], page: str) -> Text:
                 "\n\n", as_list(*rows, sep="\n\n"), "\n\nВыберите номер записи ниже.")
 
 
+def _family_line(row: dict[str, Any]) -> str:
+    line = f"• {row['name']}"
+    if row.get("answered_tasks") or "diagnosis" not in row:
+        line += f": {row['correct']}/{row['answered_tasks']} · {success_label(row)}"
+    if "diagnosis" in row:
+        line += f" · {row['diagnosis']}"
+    return line
+
+
+async def _include_family_states(
+    insights: dict[str, Any], repository: Any, user_id: int, number: int,
+) -> None:
+    from app.adaptive.engine import State, family_status
+    from app.adaptive.skills import title
+    from app.adaptive.store import overview
+    from app.bot.adaptive import catalog
+    from app.config import get_settings
+
+    if not get_settings().oge_adaptive_enabled:
+        return
+    states = {f: state for n, f, state, _ in await overview(repository, user_id) if n == number}
+    insights["independent_count"] = sum(state.independent_count for state in states.values())
+    rows = {r["family_id"]: r for r in insights["families"] if r["number"] == number}
+    for family, position in catalog().items():
+        if position != number:
+            continue
+        row = rows.get(family)
+        if row is None:
+            row = {"family_id": family, "number": number, "correct": 0, "answered_tasks": 0}
+            insights["families"].append(row)
+        row["name"] = title(family)
+        state = states.get(family, State())
+        status = family_status(state)
+        label = status.label
+        if status.practice:
+            label += f", {status.practice}/{status.target}"
+        if state.reviewed_at is not None:
+            day = datetime.fromtimestamp(state.reviewed_at, UTC)
+            label += f" · повторено самостоятельно {day:%d.%m.%Y}"
+        row["diagnosis"] = label
+        row["practice_priority"] = status.key in {"check", "gap", "reopened", "practice"}
+
+
 def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
     """Render text fallback, number details, history/error lists, or a record."""
     section, parts = _progress_page_parts(page)
@@ -376,6 +437,8 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
                 f"Без подсказки: {values.get('unassisted_correct', 0)}",
             )
         )
+        if "independent_count" in insights:
+            lines.append(f"Новых вариантов самостоятельно: {insights['independent_count']}")
         if int(values.get("answered_tasks", 0)) < MIN_ANSWERED_SAMPLE:
             lines.append(
                 f"Данных недостаточно для оценки: нужно {MIN_ANSWERED_SAMPLE} задач с ответом."
@@ -392,10 +455,7 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
         visible = families[family_offset : family_offset + PAGE_SIZE]
         if visible:
             for family in visible:
-                lines.append(
-                    f"• {family['name']}: {family['correct']}/{family['answered_tasks']} · "
-                    f"{success_label(family)}"
-                )
+                lines.append(_family_line(family))
         else:
             lines.append("• Пока нет результатов по семействам.")
         if len(families) > PAGE_SIZE:
@@ -415,8 +475,7 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
                 f"№{number} · результаты по семействам",
                 "",
                 *[
-                    f"• {row['name']}: {row['correct']}/{row['answered_tasks']} · "
-                    f"{success_label(row)}"
+                    _family_line(row)
                     for row in families[offset : offset + PAGE_SIZE]
                 ],
                 f"\nТипов заданий: {len(families)}",
@@ -698,19 +757,24 @@ async def progress_navigation(
             return await progress_navigation(message, repository, user_id, "details")
         offset = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
         insights = await training_insights(repository, user_id, "summary")
+        await _include_family_states(insights, repository, user_id, number)
         family_total = sum(int(row["number"]) == number for row in insights["families"])
         errors = await training_insights(repository, user_id, "errors:0", 1, number_filter=number)
         has_errors = int(errors.get("page_total", 0)) > 0
         output_page = f"number:{number}:{offset}"
         markup = progress_keyboard(
-            output_page, number=number, family_total=family_total, has_errors=has_errors
+            output_page, number=number, family_total=family_total, has_errors=has_errors,
+            insights=insights,
         )
     elif section == "family" and len(parts) == 3 and all(p.isdigit() for p in parts[1:]):
         number, offset = map(int, parts[1:])
         insights = await training_insights(repository, user_id, "summary")
+        await _include_family_states(insights, repository, user_id, number)
         family_total = sum(int(row["number"]) == number for row in insights["families"])
         output_page = f"family:{number}:{offset}"
-        markup = progress_keyboard(output_page, number=number, family_total=family_total)
+        markup = progress_keyboard(
+            output_page, number=number, family_total=family_total, insights=insights
+        )
     elif section in {"history", "errors"} and len(parts) == 2 and parts[1].isdigit():
         output_page = page
         insights = await load_progress_text_page(repository, user_id, page)

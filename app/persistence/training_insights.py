@@ -68,7 +68,9 @@ def family_names() -> dict[str, str]:
         visit(json.loads(path.read_text(encoding="utf-8")))
     from app.math.registry import SPEC_BY_ID
 
-    structures = json.loads((atlas / "oge6_reference_structures.json").read_text())["structures"]
+    structures = json.loads(
+        (atlas / "oge6_reference_structures.json").read_text(encoding="utf-8")
+    )["structures"]
     labels = {item["id"]: item["label"] for item in structures}
     names.update({f: labels[spec.reference_structure_id] for f, spec in SPEC_BY_ID.items()})
     names.update({
@@ -296,6 +298,7 @@ _METRIC_ROWS = """, metrics AS (
 _SCENARIO_EVENTS = """, scenario_events AS (
  SELECT progress.session_id, session.scenario_id, progress.position::int AS number,
         'OGE15:' || scenario.story_code AS family_id, progress.status AS outcome,
+        scenario.snapshot->'questions'->(progress.position-1)->>'family_id' AS question_family,
         progress.hints_used, (progress.solution_viewed_at IS NOT NULL) AS solution_viewed,
         progress.updated_at
  FROM oge15_question_progress progress
@@ -316,7 +319,8 @@ _SCENARIO_EVENTS = """, scenario_events AS (
  JOIN users app_user ON app_user.id=session.user_id
  WHERE app_user.telegram_user_id=$1 GROUP BY attempt.session_id, attempt.position
 ), scenario_metrics AS (
- SELECT event.number, event.family_id, 1::bigint AS issued,
+ SELECT event.number, COALESCE(event.question_family,event.family_id) AS family_id,
+        1::bigint AS issued,
         (event.outcome IN ('solved','failed','skipped','solution_viewed'))::int AS completed,
         (COALESCE(attempt.attempts,0) > 0 OR event.outcome IN ('solved','failed'))::int
           AS answered_tasks,

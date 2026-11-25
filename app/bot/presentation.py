@@ -305,21 +305,7 @@ async def send_text(
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
-    from app.config import get_settings
 
-    if (get_settings().oge_adaptive_enabled
-        and navigation_screen(kwargs.get("reply_markup")) == "main_menu"
-        and not any(b.callback_data == "nav:adaptive"
-                    for row in kwargs["reply_markup"].inline_keyboard for b in row)):
-
-        from app.adaptive.store import menu_available
-        from app.bot.adaptive import button
-
-        learner = user_id_override or (message.from_user.id if message.from_user else None)
-        if learner and await menu_available(repository, learner):
-            markup = kwargs["reply_markup"]
-            rows = [[button("Персональная тренировка", "nav:adaptive")], *markup.inline_keyboard]
-            kwargs["reply_markup"] = markup.model_copy(update={"inline_keyboard": rows})
     has_navigation = navigation_screen(kwargs.get("reply_markup")) is not None
     key = template_key(math_family)
     if "reply_markup" in kwargs:

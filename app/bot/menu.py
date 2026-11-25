@@ -10,12 +10,40 @@ def _button(text: str, data: str) -> InlineKeyboardButton:
 
 
 def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
-    rows = [[_button("🎲 Смешанная тренировка", "nav:mixed")]]
-    rows.append([_button("🧮 По номеру", "nav:numbers")])
+    from app.config import get_settings
+
+    if get_settings().oge_adaptive_enabled:
+        rows = [[_button("🎯 Тренировки", "nav:trainings")]]
+    else:
+        rows = [
+            [_button("🎲 Смешанная тренировка", "nav:mixed")],
+            [_button("🧮 По номеру", "nav:numbers")],
+        ]
     rows.append([_button("📊 Мой прогресс", "nav:progress")])
     rows.append([_button("⚙️ Настройки", "nav:display")])
     if has_session:
         rows.insert(0, [_button("▶ Продолжить", "nav:resume")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def trainings_hub(
+    *, personal_enabled: bool = True, short_enabled: bool = True
+) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = []
+    if short_enabled and personal_enabled:
+        rows.append([_button("✨ Персональная · 5 задач", "train:personal")])
+    if short_enabled:
+        rows.extend([
+            [_button("🧮 По номеру или типу · 5 задач", "train:areas")],
+            [_button("🎲 Смешанная · 5 задач", "train:mixed")],
+        ])
+    rows.extend(
+        [
+            [_button("📝 Свободная практика", "nav:numbers")],
+            [_button("📚 Полный Mix №1–19", "nav:mixed")],
+            [_button("↩ В меню", "nav:main")],
+        ]
+    )
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 

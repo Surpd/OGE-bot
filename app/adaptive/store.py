@@ -14,7 +14,11 @@ from app.adaptive.sources import item
 
 def restore(raw: str) -> State:
     data = json.loads(raw)
-    data["errors"] = tuple(tuple(e) for e in data["errors"])
+    data["errors"] = tuple(tuple(e) for e in data.get("errors", ()))
+    # State JSON is a rebuildable projection. Missing fields from prior policy
+    # versions intentionally retain conservative defaults.
+    allowed = State.__dataclass_fields__
+    data = {key: value for key, value in data.items() if key in allowed}
     return State(**data)
 
 
@@ -35,7 +39,21 @@ async def sync(
 ) -> list[tuple[str, str]]:
     # Readers serialize per learner; writes to source rows never acquire this lock.
     await conn.execute("SELECT pg_advisory_xact_lock(hashtextextended($1,294))", str(owner))
+    # A policy rebuild must not erase genuine historical achievements.
+    await conn.execute(
+        """INSERT INTO adaptive_past_milestones
+        SELECT owner,source,task,ordinal,policy,skill,reason,occurred
+        FROM adaptive_evidence WHERE owner=$1 AND policy IS NOT NULL AND policy<>$2
+        AND reason IN ('gap_opened','gap_closed','gap_reopened','skill_confirmed')
+        ON CONFLICT DO NOTHING""",
+        owner,
+        CURRENT.version,
+    )
     if rebuild:
+        await conn.execute(
+            """DELETE FROM adaptive_session_deltas d USING adaptive_sessions s
+            WHERE d.session_id=s.id AND s.owner=$1""", owner
+        )
         for table in ("adaptive_evidence", "adaptive_skills"):
             await conn.execute(f"DELETE FROM {table} WHERE owner=$1", owner)
         await conn.execute(
@@ -117,11 +135,18 @@ async def _project(
     milestones = []
     updates = []
     for row in rows:
+        before = state
         evidence = Evidence(
             row["source"] + ":" + row["task"],
             row["variant"],
             row["occurred"].timestamp(),
-            "ambiguous" if skill == "OGE19-MIXED" and row["outcome"] == "wrong" else row["outcome"],
+            (
+                "ambiguous"
+                if skill == "OGE19-MIXED" and row["outcome"] == "wrong"
+                else "ungraded"
+                if skill == "OGE19-MIXED" and row["outcome"] == "correct"
+                else row["outcome"]
+            ),
             row["attempt"],
             row["assisted"],
             row["fresh"],
@@ -130,6 +155,24 @@ async def _project(
         state, reason = (apply_written if row["number"] >= 20 else apply)(state, evidence)
         if reason and row["policy"] is None:
             milestones.append((skill, reason))
+        before_compact = {
+            key: getattr(before, key) for key in ("stage", "practice", "opened", "closed")
+        }
+        after_compact = {
+            key: getattr(state, key) for key in ("stage", "practice", "opened", "closed")
+        }
+        if row["source"] == "personal" and before_compact != after_compact:
+            await conn.execute(
+                """INSERT INTO adaptive_session_deltas(session_id,position,ordinal,skill,
+                before_state,after_state,reason)
+                SELECT sl.session_id,sl.position,$2,$3,$4,$5,$6
+                FROM adaptive_slots sl WHERE sl.problem=$1::uuid
+                ON CONFLICT(session_id,position,ordinal) DO UPDATE SET
+                before_state=excluded.before_state,after_state=excluded.after_state,
+                reason=excluded.reason""",
+                row["task"], row["ordinal"], skill, json.dumps(before_compact),
+                json.dumps(after_compact), reason or "progress_changed",
+            )
         updates.append(
             (
                 owner,
@@ -186,22 +229,6 @@ async def overview(repository: Any, learner: int) -> list[tuple[int, str, State,
 
 
 async def menu_available(repository: Any, learner: int) -> bool:
-    pool = getattr(repository, "_pool", None)
-    if pool is None:
-        return False
-    row = await pool.fetchrow(
-        """SELECT EXISTS(SELECT FROM adaptive_dirty WHERE owner=u.id)
-        OR EXISTS(SELECT FROM adaptive_skills WHERE owner=u.id AND policy<>$2) pending,
-        EXISTS(SELECT FROM adaptive_sessions WHERE owner=u.id AND finished IS NULL)
-        OR EXISTS(SELECT FROM adaptive_skills WHERE owner=u.id AND number BETWEEN 1 AND 19
-            AND policy=$2 AND state->>'stage'<>'unchecked') AS available
-        FROM users u WHERE telegram_user_id=$1
-        AND preferences->>'personal_training' IS DISTINCT FROM 'false'""",
-        learner,
-        CURRENT.version,
+    return getattr(repository, "_pool", None) is not None and bool(
+        await repository.personal_enabled(learner)
     )
-    if row and row["pending"] and not row["available"]:
-        from app.adaptive.planner import unlocked
-
-        return unlocked(await overview(repository, learner))
-    return bool(row and row["available"])

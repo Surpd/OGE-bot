@@ -140,7 +140,27 @@ async def _has_resumable_session(
     user_id: int,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> bool:
+    from app.config import get_settings
+
+    adaptive = None
+    if getattr(repository, "_pool", None) is not None:
+        from app.adaptive.session import Session
+
+        adaptive = await Session(repository, user_id).current()
+        if (
+            adaptive is not None
+            and get_settings().oge_adaptive_enabled
+            and await repository.personal_enabled(user_id)
+        ):
+            return True
     mode = await repository.last_training_mode(user_id)
+    if mode == "adaptive" and adaptive is not None:
+        scope = adaptive["scope"] or {}
+        if isinstance(scope, str):
+            import json
+
+            scope = json.loads(scope)
+        mode = scope.get("resume_fallback")
     if mode == "part2":
         from app.bot.part2 import store
 
@@ -330,6 +350,24 @@ async def continue_session(
         return
     user_id: int = actor_id
 
+    from app.config import get_settings
+
+    adaptive = None
+    if getattr(repository, "_pool", None) is not None:
+        from app.adaptive.session import Session
+        from app.bot.adaptive import present
+
+        short = Session(repository, user_id)
+        adaptive = await short.current()
+        if (
+            adaptive is not None
+            and get_settings().oge_adaptive_enabled
+            and await repository.personal_enabled(user_id)
+        ):
+            await short.start([])
+            await present(message, repository, user_id)
+            return
+
     async def resume_pilot() -> bool:
         if oge15_repository is None:
             return False
@@ -352,6 +390,13 @@ async def continue_session(
         return True
 
     last = await repository.last_training_mode(user_id)
+    if last == "adaptive" and adaptive is not None:
+        scope = adaptive["scope"] or {}
+        if isinstance(scope, str):
+            import json
+
+            scope = json.loads(scope)
+        last = scope.get("resume_fallback")
     if last == "part2":
         from app.bot.part2 import resume
 
@@ -2719,7 +2764,7 @@ def build_router() -> Router:
     )
     from app.bot import adaptive
 
-    router.callback_query.register(adaptive.callback, F.data.startswith("ad:"))
+    router.callback_query.register(adaptive.callback, F.data.startswith(("ad:", "train:")))
     router.callback_query.register(mixed_callback, F.data.startswith("mixed:"))
     router.message.register(start, CommandStart())
     from app.bot.api_diagnostics import api_status, api_test

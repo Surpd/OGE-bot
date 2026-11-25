@@ -1,0 +1,32 @@
+{
+  "python": "3.12.7",
+  "sqlite": "3.45.3",
+  "queues": [
+    {
+      "skills": 25,
+      "repetitions": 1000,
+      "median_us": 15.1,
+      "p95_us": 17.7
+    },
+    {
+      "skills": 250,
+      "repetitions": 1000,
+      "median_us": 150.2,
+      "p95_us": 219.7
+    },
+    {
+      "skills": 1000,
+      "repetitions": 1000,
+      "median_us": 559.0,
+      "p95_us": 760.4
+    }
+  ],
+  "delivery": {
+    "observations": 400,
+    "bytes_initial": 32768,
+    "bytes_final": 94208,
+    "nominal_bytes_per_additional_observation": 153.6,
+    "sql_statements_first_issue_including_tx": 5,
+    "sql_statements_first_submission_including_tx": 6
+  }
+}

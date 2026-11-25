@@ -2,7 +2,9 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from app.adaptive.engine import Evidence, Stage, State, apply
+import pytest
+
+from app.adaptive.engine import CURRENT, Evidence, Stage, State, apply
 from app.adaptive.planner import plan, unlocked
 
 DAY = 86400
@@ -21,10 +23,13 @@ def trajectory(*events):
 
 def test_gradual_ordinary_only_closure_and_relapse():
     start = [ev(1, 0, "wrong"), ev(1, 0, "wrong", 2)]
-    assert trajectory(*start).stage == Stage.GAP
-    practice = [*start, ev(2, 1), ev(3, 1)]
+    # Two inputs against one unchanged condition remain one observation.
+    assert trajectory(*start).stage == Stage.CHECK
+    detected = [*start, ev(2, 1, "wrong")]
+    assert trajectory(*detected).stage == Stage.GAP
+    practice = [*detected, ev(3, 1), ev(4, 1)]
     assert trajectory(*practice).practice == 2
-    closed = trajectory(*practice, ev(4, 1))
+    closed = trajectory(*practice, ev(5, 1))
     assert closed.stage == Stage.CONFIRMED and closed.closed == 1
     suspect, _ = apply(closed, ev(7, 50, "wrong"))
     assert suspect.opened == suspect.closed
@@ -41,8 +46,9 @@ def test_strong_learner_rare_errors_and_old_errors():
 def test_guess_help_replay_and_duplicate_variants():
     for outcome in ("skip", "invalid", "ungraded", "revision", "replay"):
         assert trajectory(ev(1, 0, outcome)) == State()
-    for e in (ev(1, 1, helped=True), ev(1, 0, "solution"), ev(2, 1, helped=None)):
+    for e in (ev(1, 1, helped=True), ev(1, 0, "solution")):
         assert trajectory(e).stage == Stage.CHECK
+    assert trajectory(ev(2, 1, helped=None)).stage == Stage.UNCHECKED
     assert trajectory(ev(1, 0, "wrong"), ev(1, 0, attempt=2)).stage == Stage.CHECK
     assert trajectory(ev(1, 0), ev(2, 1, fresh=False)).practice == 1
     assert trajectory(ev(1, 0, "wrong"), replace(ev(2, 0, "wrong"), variant="1")).opened == 0
@@ -109,7 +115,7 @@ async def test_pg_evidence_rebuild_session_resume_and_concurrent_updates(bank_po
                 attempt,
             )
     first, second = await asyncio.gather(overview(repo, 1), overview(repo, 1))
-    assert first == second and first[0][2].opened == 1
+    assert first == second and first[0][2].stage == Stage.CHECK
     assert await overview(repo, 2) == []
     session = Session(repo, 1)
     await session.start([family] * 5)
@@ -146,13 +152,13 @@ def test_alternating_evidence_and_broken_streak():
     streak = trajectory(*events, ev(4, 0), ev(5, 0))
     for interruption in (
         ev(6, 0, helped=True),
-        ev(6, 0, helped=None),
         ev(6, 0, "solution"),
         ev(6, 0, "wrong"),
         ev(6, 0, attempt=2),
     ):
         reset, _ = apply(streak, interruption)
         assert reset.practice == 0 and reset.opened > reset.closed
+    assert apply(streak, ev(6, 0, helped=None))[0].practice == 2
     assert apply(streak, ev(6, 90))[0].closed == 1
 
 
@@ -331,7 +337,8 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
         )
         h.transport.next_message_id = next_mid
         await h.message("/start")
-        await h.click("nav:adaptive")
+        await h.click("nav:trainings")
+        await h.click("train:personal")
         session = Session(repo, 42)
         row = await session.current()
         assert row and row["problem"] and row["position"] == 0
@@ -345,8 +352,10 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
         await h.click("nav:personal:on")
         await h.click("nav:math:auto")
         assert await repo.personal_enabled(42)
-        await h.click("nav:main")
-        await h.click("nav:adaptive")
+        from app.bot.adaptive import present
+
+        await session.start([])
+        await present(next(reversed(h.transport.messages.values())), repo, 42)
         assert (await session.current())["problem"] == first
         await h.message(json.loads(row["snapshot"])["correct_answer"])
         assert (await session.current())["outcome"] == "solved"
@@ -357,11 +366,14 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
             current = await session.current()
             assert current["position"] == pos
             await h.click(f"ad:skip:{current['problem']}")
-            await h.click(f"ad:next:{current['problem']}")
+            if pos < 4:
+                await h.click(f"ad:next:{current['problem']}")
         assert await session.current() is None
-        done, _ = h.button("nav:adaptive")
-        assert "Решено 1 из 5" in done.text and "без помощи · 1" in done.text
-        await h.click("nav:adaptive")
+        done, _ = h.button("train:personal")
+        assert "Решено верно: 1/5" in done.text and "Самостоятельно: 1/5" in done.text
+        await h.message("/start")
+        await h.click("nav:trainings")
+        await h.click("train:personal")
         new = await session.current()
         assert new["id"] != row["id"] and new["position"] == 0 and new["problem"]
         assert (await repo.task6_state(42))["problem"] == ordinary["problem"]
@@ -458,6 +470,34 @@ async def test_backfilled_ordinary_and_mixed_same_day_streak(bank_pool):
         )
         == "ordinary"
     )
+
+
+async def test_mixed_oge19_correct_answers_do_not_claim_broad_family_success(bank_pool):
+    from app.adaptive.store import overview, sync
+    from app.persistence.repository import PostgresRepository
+
+    owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+    async with bank_pool.acquire() as conn, conn.transaction():
+        await conn.execute("SET LOCAL bop.adaptive='on'")
+        for index in range(3):
+            pid = uuid4()
+            await conn.execute(
+                """INSERT INTO issued_problems(id,user_id,family_id,fingerprint,
+                generator_version,snapshot) VALUES($1,$2,'OGE19-MIXED',$3,'test','{}')""",
+                pid,
+                owner,
+                f"oge19-triple-{index}",
+            )
+            await conn.execute(
+                """INSERT INTO attempts(problem_id,user_id,attempt_no,telegram_message_id,
+                raw_answer,is_correct) VALUES($1,$2,1,$3,'1',true)""",
+                pid,
+                owner,
+                900 + index,
+            )
+        await sync(conn, owner, rebuild=True)
+    state = (await overview(PostgresRepository(bank_pool), 1))[0][2]
+    assert state.stage == Stage.UNCHECKED and state.independent_count == 0
 
 
 def test_fixed_bank_and_unavailable_family_fail_closed():
@@ -651,7 +691,7 @@ async def test_upgrade_archives_old_closures_and_reprojects_without_new_attempt(
     repo = PostgresRepository(bank_pool)
     assert await menu_available(repo, 1)
     assert (await overview(repo, 1))[0][2].stage == Stage.CHECK
-    assert await bank_pool.fetchval("SELECT policy FROM adaptive_skills") == 2
+    assert await bank_pool.fetchval("SELECT policy FROM adaptive_skills") == CURRENT.version
     async with bank_pool.acquire() as c, c.transaction():
         await sync(c, owner, rebuild=True)
     assert (
@@ -660,11 +700,13 @@ async def test_upgrade_archives_old_closures_and_reprojects_without_new_attempt(
         )
         == 1
     )
-    assert not await menu_available(repo, 2)
+    # Cold start is intentionally available without diagnostic history.
+    assert await menu_available(repo, 2)
 
 
+@pytest.mark.parametrize("strategy", ["personal", "mixed", "number"])
 async def test_exhausted_families_are_bounded_and_never_leave_issued_or_active_task(
-    bank_pool, monkeypatch
+    bank_pool, monkeypatch, strategy
 ):
     from aiogram import Bot
     from aiogram.types import Chat, Message, User
@@ -694,7 +736,10 @@ async def test_exhausted_families_are_bounded_and_never_leave_issued_or_active_t
             from_user=User(id=1, is_bot=False, first_name="QA"),
         ).as_(bot)
         for _ in range(2):
-            await session.start(list(candidates)[:5])
+            await session.start(
+                list(candidates)[:5], strategy=strategy,
+                scope={"number": 6} if strategy == "number" else {},
+            )
             await adaptive.present(msg, repo, 1)
             assert await session.current() is None
         assert len(tried) == len(set(tried)) == 10

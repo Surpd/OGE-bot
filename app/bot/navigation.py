@@ -50,6 +50,8 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
+    if "nav:trainings" in callbacks:
+        return "main_menu"
     if any(c and c.startswith("nav:numbers:") for c in callbacks) or (
         "nav:oge15" in callbacks and "nav:task:6" in callbacks
     ):
@@ -82,6 +84,8 @@ def navigation_screen(markup: object) -> str | None:
         value and value.startswith("progress:") for value in callbacks
     ):
         return "progress"
+    if any(value and value.startswith("train:") for value in callbacks):
+        return "trainings"
     if "nav:task:6" in callbacks:
         return "number_selection"
     if any(
@@ -197,6 +201,7 @@ async def navigation_callback(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     from app.bot import router as handlers
+    from app.bot.adaptive import trainings as show_trainings
 
     if not isinstance(callback.message, Message) or not callback.data:
         await answer_callback(callback)
@@ -204,6 +209,7 @@ async def navigation_callback(
     data, _, revision = callback.data.partition("~")
     targets = {
         "nav:main": handlers.return_to_menu,
+        "nav:trainings": show_trainings,
         "nav:numbers": handlers.choose_number,
         "nav:resume": handlers.continue_session,
         "nav:mixed": handlers.start_mixed,
