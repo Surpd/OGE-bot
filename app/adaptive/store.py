@@ -195,7 +195,8 @@ async def menu_available(repository: Any, learner: int) -> bool:
         EXISTS(SELECT FROM adaptive_sessions WHERE owner=u.id AND finished IS NULL)
         OR EXISTS(SELECT FROM adaptive_skills WHERE owner=u.id AND number BETWEEN 1 AND 19
             AND policy=$2 AND state->>'stage'<>'unchecked') AS available
-        FROM users u WHERE telegram_user_id=$1""",
+        FROM users u WHERE telegram_user_id=$1
+        AND preferences->>'personal_training' IS DISTINCT FROM 'false'""",
         learner,
         CURRENT.version,
     )

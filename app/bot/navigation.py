@@ -160,11 +160,22 @@ async def show_display_options(message: Message, repository: Repository) -> None
     user_id = message.from_user.id
     await repository.save_user_state(user_id, "display_settings")
     mode = await repository.math_display(user_id)
+    from app.config import get_settings
+
+    personal_rows = []
+    status = ""
+    if get_settings().oge_adaptive_enabled:
+        enabled = await repository.personal_enabled(user_id)
+        status = "Персональная тренировка " + ("включена" if enabled else "выключена") + ".\n\n"
+        personal_rows = [[InlineKeyboardButton(
+            text=("Выключить" if enabled else "Включить") + " персональную тренировку",
+            callback_data="nav:personal:" + ("off" if enabled else "on"),
+        )]]
     label = "картинкой" if mode == "png" else "обычное оформление"
     await send_text(
         message,
         repository,
-        f"Вид формул: {label}.\n\n"
+        f"Настройки\n\n{status}Вид формул: {label}.\n\n"
         "Если формулы не видны в вашем Telegram, выберите «Картинкой», "
         "затем продолжите сохранённое задание из меню.",
         reply_markup=InlineKeyboardMarkup(
@@ -173,6 +184,7 @@ async def show_display_options(message: Message, repository: Repository) -> None
                     InlineKeyboardButton(text="Обычное оформление", callback_data="nav:math:auto"),
                     InlineKeyboardButton(text="Картинкой", callback_data="nav:math:png"),
                 ],
+                *personal_rows,
                 [InlineKeyboardButton(text="В меню", callback_data="nav:main")],
             ]
         ),
@@ -206,6 +218,7 @@ async def navigation_callback(
     if get_settings().oge_adaptive_enabled:
         from app.bot.adaptive import gaps, start
 
+        targets["nav:personal:on"] = targets["nav:personal:off"] = show_display_options
         targets["nav:adaptive"] = start
         if data.startswith("nav:gaps:") and data[9:].isdigit() and len(data[9:]) <= 6:
             gaps_offset = int(data[9:])
@@ -310,7 +323,10 @@ async def navigation_callback(
         await answer_callback(callback)
         await part2_action(message, repository, callback.from_user.id, data)
         return
-    if gaps_offset is not None:
+    if data in {"nav:personal:on", "nav:personal:off"}:
+        await repository.set_personal_enabled(callback.from_user.id, data.endswith(":on"))
+        await show_display_options(message, repository)
+    elif gaps_offset is not None:
         await gaps(message, repository, gaps_offset)
     elif display_mode is not None:
         await repository.set_math_display(callback.from_user.id, display_mode)

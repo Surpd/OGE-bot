@@ -11,6 +11,10 @@ from app.persistence.training_preferences import (
 
 
 class Repository(Protocol):
+    async def personal_enabled(self, user_id: int) -> bool: ...
+
+    async def set_personal_enabled(self, user_id: int, enabled: bool) -> None: ...
+
     async def math_display(self, user_id: int | None, template_id: str | None = None) -> str: ...
 
     async def remember_png_template(self, template_id: str) -> None: ...
@@ -7243,6 +7247,7 @@ class MemoryRepository(MemoryTrainingPreferences):
     def __init__(self) -> None:
         self.issue_order: dict[tuple[int, str], int] = {}
         self.training_preferences: dict[tuple[int, int], str | None] = {}
+        self.personal_preferences: dict[int, bool] = {}
         self.math_preferences: dict[int, str] = {}
         self.png_templates: set[str] = set()
         self.users: set[int] = set()

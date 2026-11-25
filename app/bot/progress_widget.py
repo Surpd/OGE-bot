@@ -50,7 +50,9 @@ def overview_data(insights: dict[str, Any]) -> str:
     total = insights["total"]
     completed = total["completed"]
     number = recommended_number(insights["numbers"], insights.get("families"))
-    if number is not None:
+    if insights.get("personal_tip"):
+        recommendation = insights["personal_tip"]
+    elif number is not None:
         recommendation = f"Можно поработать над №{number}: у него самая низкая успешность."
     elif not has_recommendation_sample(insights["numbers"]):
         recommendation = "Пока недостаточно ответов: для оценки нужно не менее 5 на номер."

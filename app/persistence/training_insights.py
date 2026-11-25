@@ -482,9 +482,15 @@ async def training_insights(repository: Any, telegram_user_id: int,
         normalized_page = (
             "errors:" + page.rpartition(":")[2] if page.startswith("numerr:") else page
         )
-        return await _postgres_insights(
+        result = await _postgres_insights(
             repository, telegram_user_id, normalized_page, page_size, number_filter
         )
+        if page == "summary":
+            from app.config import get_settings
+            if get_settings().oge_adaptive_enabled:
+                from app.bot.adaptive import progress_target
+                await progress_target(repository, telegram_user_id, result)
+        return result
     result = summarize(await _memory_records(repository, telegram_user_id))
     section, offset, limit = _page(page, page_size)
     if page.startswith("numerr:"):

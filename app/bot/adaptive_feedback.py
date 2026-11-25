@@ -39,6 +39,8 @@ class AdaptiveFeedback(BaseMiddleware):
                 event.from_user.id,
             )
             notices = await sync(conn, owner) if owner else []
+        if notices and not await data["repository"].personal_enabled(event.from_user.id):
+            return result
         for skill, reason in notices:
             if reason in MILESTONES:
                 await message.answer(f"{title(skill)}\n{MILESTONES[reason]}")

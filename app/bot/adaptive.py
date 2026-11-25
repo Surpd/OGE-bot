@@ -17,7 +17,7 @@ from app.adaptive.store import overview
 from app.bot.callbacks import answer_callback
 from app.bot.menu import main_menu
 from app.bot.mixed_training import _is_correct, _scenario_question, _send_problem
-from app.bot.presentation import send_text
+from app.bot.presentation import hint_message, send_text
 from app.bot.scenario_training import public_registry
 from app.bot.similar_practice import targeted_candidates
 from app.bot.trainings import TRAININGS
@@ -112,6 +112,48 @@ def problem_data(row: Any) -> dict[str, Any]:
     }
 
 
+def progress_weights(insights: dict[str, Any]) -> dict[str, float]:
+    from app.persistence.training_insights import MIN_ANSWERED_SAMPLE
+
+    def difficulty(row: dict[str, Any]) -> float:
+        n = row.get("answered_tasks", 0)
+        if n < MIN_ANSWERED_SAMPLE:
+            return 0.0
+        # Shrink small samples. Unknown help contributes only to answer accuracy.
+        known = max(0, row.get("correct", 0) - row.get("unknown_assistance", 0))
+        assisted = max(0, known - row.get("unassisted_correct", 0))
+        return float((n - row.get("correct", 0) + 0.5 * assisted) / (n + MIN_ANSWERED_SAMPLE))
+
+    families = {r["family_id"]: difficulty(r) for r in insights.get("families", [])}
+    return {
+        k: difficulty(insights["numbers"].get(n, {})) + families.get(k, 0.0)
+        for k, n in catalog().items()
+    }
+
+
+async def progress_target(repository: Any, learner: int, insights: dict[str, Any]) -> None:
+    if not await repository.personal_enabled(learner):
+        return
+    history = await overview(repository, learner)
+    store = Session(repository, learner)
+    current = await store.current()
+    if current and current["problem"]:
+        skill = json.loads(current["plan"])[current["position"]]
+        insights["personal_tip"] = f"Продолжить тренировку · №{catalog().get(skill)}"
+    elif unlocked(history):
+        prefix = json.loads(current["plan"])[: current["position"]] if current else []
+        slots = plan(
+            history,
+            catalog(),
+            prefix=prefix,
+            excluded=await store.excluded_for_learner(),
+            support=progress_weights(insights),
+        )
+        if len(slots) > len(prefix):
+            skill = slots[len(prefix)]
+            insights["personal_tip"] = f"Для практики · №{catalog()[skill]} · {title(skill)}"
+
+
 async def present(message: Message, repository: Any, learner: int) -> None:
     store = Session(repository, learner)
     row = await store.current()
@@ -121,8 +163,13 @@ async def present(message: Message, repository: Any, learner: int) -> None:
     history = await overview(repository, learner)
     prefix = skills[: row["position"] + int(row["problem"] is not None)]
     excluded = await store.excluded_for_learner()
+    from app.persistence.training_insights import training_insights
+
+    support = progress_weights(await training_insights(repository, learner, "numbers"))
     for _ in range(8):
-        updated = plan(history, catalog(), prefix=prefix, excluded=excluded, size=len(skills))
+        updated = plan(
+            history, catalog(), prefix=prefix, excluded=excluded, size=len(skills), support=support
+        )
         if len(updated) <= row["position"]:
             break
         if updated != skills and not await store.refresh(row, updated):
@@ -171,6 +218,15 @@ async def start(message: Message, repository: Any) -> None:
     if not get_settings().oge_adaptive_enabled or not message.from_user:
         return
     learner = message.from_user.id
+    if not await repository.personal_enabled(learner):
+        await send_text(
+            message,
+            repository,
+            "Персональная тренировка выключена в настройках.",
+            reply_markup=main_menu(),
+            user_id_override=learner,
+        )
+        return
     pool = getattr(repository, "_pool", None)
     store = Session(repository, learner) if pool is not None else None
     current = await store.current() if store else None
@@ -277,7 +333,7 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
             and get_settings().oge_part2_enabled
         ):
             rows.append([button(f"Письменная работа №{number}", f"p2:open:{number}:{skill}")])
-    if unlocked(history):
+    if unlocked(history) and await repository.personal_enabled(learner):
         rows.append([button("Персональная тренировка", "nav:adaptive")])
     body = summary(history, offset)
     if history[offset : offset + 1]:
@@ -373,7 +429,9 @@ async def answer(message: Message, repository: Any) -> None:
     if not get_settings().oge_adaptive_enabled or not message.from_user or not message.text:
         raise SkipHandler
     learner = message.from_user.id
-    if await repository.user_state(learner) != "adaptive":
+    if await repository.user_state(learner) != "adaptive" or not await repository.personal_enabled(
+        learner
+    ):
         raise SkipHandler
     store = Session(repository, learner)
     row = await store.current()
@@ -400,7 +458,7 @@ async def answer(message: Message, repository: Any) -> None:
     text = {
         "solved": "Верно.",
         "issued": "Пока неверно. Попробуй ещё раз.",
-        "failed": "Разбор\n" + "\n".join(problem.get("solution", [])),
+        "failed": "Разбор:\n\n" + "\n".join(problem.get("solution", [])),
     }[result]
     await feedback(message, repository, learner, text)
 
@@ -410,7 +468,12 @@ async def feedback(message: Message, repository: Any, learner: int, text: str) -
     row = await store.current()
     if row and row["problem"]:
         sent = await send_text(
-            message, repository, text, reply_markup=keyboard(row), user_id_override=learner
+            message,
+            repository,
+            text,
+            reply_markup=keyboard(row),
+            user_id_override=learner,
+            math_family=problem_data(row) if text.startswith(("Подсказка", "Разбор:")) else None,
         )
         await store.set_prompt(learner, str(row["problem"]), sent.message_id)
 
@@ -439,6 +502,9 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
         await answer_callback(cb)
         return
     learner = cb.from_user.id
+    if not await repository.personal_enabled(learner):
+        await answer_callback(cb, "Режим выключен в настройках.")
+        return
     store = Session(repository, learner)
     row = await store.current()
     parts = (cb.data or "").split(":")
@@ -481,8 +547,13 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             p = problem_data(row)
             text = {
                 "skip": "Задание пропущено.",
-                "solution": "\n".join(p.get("solution", [])),
+                "solution": "Разбор:\n\n" + "\n".join(p.get("solution", [])),
                 "no_hint": "Подсказок больше нет.",
             }.get(result)
-            await feedback(cb.message, repository, learner, text or p["hints"][row["hints_used"]])
+            await feedback(
+                cb.message,
+                repository,
+                learner,
+                text or hint_message(p["hints"][row["hints_used"]], p),
+            )
     await answer_callback(cb)

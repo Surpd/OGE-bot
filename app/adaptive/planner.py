@@ -21,6 +21,7 @@ def plan(
     prefix: Sequence[str] = (),
     excluded: Sequence[str] = (),
     size: int = 5,
+    support: Mapping[str, float] | None = None,
 ) -> list[str]:
     """Keep the delivered prefix. Rank the remainder again after each result."""
     states = {k: s for _, k, s, _ in history}
@@ -54,7 +55,11 @@ def plan(
             same = bool(slots and construction(k) == construction(slots[-1]))
             recency = latest.get(k, 0)
             return (
-                priority[k] - 4 * counts[k] - 3 * same - group_counts[load_group[k]],
+                priority[k]
+                + (support or {}).get(k, 0)
+                - 4 * counts[k]
+                - 3 * same
+                - group_counts[load_group[k]],
                 recency if priority[k] >= 4 else -recency,
             )
 

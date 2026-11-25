@@ -337,6 +337,15 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
         assert row and row["problem"] and row["position"] == 0
         first = row["problem"]
         await h.click(f"ad:menu:{first}")
+        await h.click("nav:display")
+        await h.click("nav:personal:off")
+        assert not await repo.personal_enabled(42) and await repo.personal_enabled(43)
+        await h.click("nav:math:png")
+        assert await repo.math_display(42) == "png" and not await repo.personal_enabled(42)
+        await h.click("nav:personal:on")
+        await h.click("nav:math:auto")
+        assert await repo.personal_enabled(42)
+        await h.click("nav:main")
         await h.click("nav:adaptive")
         assert (await session.current())["problem"] == first
         await h.message(json.loads(row["snapshot"])["correct_answer"])
@@ -692,3 +701,21 @@ async def test_exhausted_families_are_bounded_and_never_leave_issued_or_active_t
         assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_slots") == 0
     finally:
         await bot.session.close()
+
+
+def test_progress_signals_use_sample_accuracy_and_assistance():
+    from app.bot.adaptive import catalog, progress_weights
+    from app.bot.progress import _recommendation, _summary_action
+    from app.bot.progress_image import _recommendation as image_tip
+
+    family = next(k for k,n in catalog().items() if n == 9)
+    scores = {"answered_tasks": 10, "correct": 8, "unassisted_correct": 6}
+    data = {"numbers": {9: scores}, "families": []}
+    base = progress_weights(data)[family]
+    data["families"] = [dict(scores, family_id=family, answered_tasks=4)]
+    assert progress_weights(data)[family] == base
+    data["families"] = [dict(scores, family_id=family)]
+    assert progress_weights(data)[family] > base > 0
+    data["personal_tip"] = "Для практики · №9"
+    assert _recommendation(data) == image_tip(data) == data["personal_tip"]
+    assert _summary_action(data)[1] == "nav:adaptive"

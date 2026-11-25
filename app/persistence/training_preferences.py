@@ -6,13 +6,28 @@ import asyncpg
 class PostgresTrainingPreferences:
     _pool: asyncpg.Pool
 
+    async def personal_enabled(self, user_id: int) -> bool:
+        value = await self._pool.fetchval(
+            "SELECT preferences->>'personal_training' FROM users WHERE telegram_user_id=$1", user_id
+        )
+        return not (isinstance(value, str) and value == "false")
+
+    async def set_personal_enabled(self, user_id: int, enabled: bool) -> None:
+        await self._pool.execute(
+            """UPDATE users SET preferences=jsonb_set(preferences,'{personal_training}',
+            to_jsonb($2::boolean)) WHERE telegram_user_id=$1""",
+            user_id,
+            enabled,
+        )
+
     async def math_display(self, user_id: int | None, template_id: str | None = None) -> str:
         if template_id is not None:
             pinned_or_requested = await self._pool.fetchval(
                 """SELECT EXISTS (SELECT FROM math_template_png_fallbacks WHERE template_id=$2)
                        OR EXISTS (SELECT FROM users WHERE telegram_user_id=$1
                                   AND preferences->>'math_display'='png')""",
-                user_id, template_id,
+                user_id,
+                template_id,
             )
             return "png" if pinned_or_requested else "auto"
         value = await self._pool.fetchval(
@@ -32,7 +47,9 @@ class PostgresTrainingPreferences:
             raise ValueError("Unsupported math display mode")
         await self._pool.execute(
             "UPDATE users SET preferences=jsonb_set(preferences, '{math_display}', "
-            "to_jsonb($2::text), true) WHERE telegram_user_id=$1", user_id, mode
+            "to_jsonb($2::text), true) WHERE telegram_user_id=$1",
+            user_id,
+            mode,
         )
 
     async def training_family(self, user_id: int, number: int) -> str | None:
@@ -60,6 +77,13 @@ class MemoryTrainingPreferences:
     training_preferences: dict[tuple[int, int], str | None]
     math_preferences: dict[int, str]
     png_templates: set[str]
+    personal_preferences: dict[int, bool]
+
+    async def personal_enabled(self, user_id: int) -> bool:
+        return self.personal_preferences.get(user_id, True)
+
+    async def set_personal_enabled(self, user_id: int, enabled: bool) -> None:
+        self.personal_preferences[user_id] = enabled
 
     async def math_display(self, user_id: int | None, template_id: str | None = None) -> str:
         if template_id in self.png_templates:

@@ -248,6 +248,8 @@ def progress_keyboard(
 
 
 def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
+    if insights.get("personal_tip"):
+        return "Персональная тренировка", "nav:adaptive"
     if insights["total"]["answered_tasks"] == 0:
         return "🎲 Смешанная тренировка", "nav:mixed"
     number = recommended_number(insights["numbers"], insights.get("families"))
@@ -258,6 +260,8 @@ def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
 
 
 def _recommendation(insights: dict[str, Any]) -> str:
+    if insights.get("personal_tip"):
+        return str(insights["personal_tip"])
     if insights["total"]["answered_tasks"] == 0:
         return "Начните со смешанной тренировки или выберите номер."
     number = recommended_number(insights["numbers"], insights.get("families"))
