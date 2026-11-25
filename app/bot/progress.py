@@ -636,7 +636,7 @@ async def progress_navigation(
 
     math_family: object = None
     math_system_rows: tuple[str, ...] | None = None
-    if section in {"item"} and len(parts) == 3:
+    if section in {"item", "data"} and len(parts) == 3:
         from aiogram.types import BufferedInputFile
 
         from app.bot.diagram_layout import mobile_diagram
@@ -669,11 +669,11 @@ async def progress_navigation(
                         if not await send_scenario_materials(
                             message, repository,
                             ScenarioSnapshot.from_snapshot(source.scenario_snapshot),
-                            source.number, user_id=user_id,
+                            source.number, user_id=user_id, full_story=section == "data",
                         ):
                             return
                         context, photos = "", ()
-                        scenario_data_action = f"progress:{page}"
+                        scenario_data_action = f"progress:data:{parts[1]}:{parts[2]}"
                     else:
                         context, photos = await asyncio.to_thread(_materials, source)
                 except (ValueError, KeyError, TypeError, RuntimeError):

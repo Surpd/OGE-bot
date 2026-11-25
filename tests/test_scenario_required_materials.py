@@ -101,7 +101,7 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
     store.close_legacy_with_exposed_answer.return_value = False
     short_modes = ('personal', 'short-mixed', 'short-number', 'short-family')
     for path in ('single', 'full', 'resume', 'mix', 'mix-adjacent', 'replay',
-                 'history', *short_modes):
+                 'history', 'history-data', *short_modes):
         events.clear()
         if path in ('single', 'full', 'resume'):
             await scenario_training.render_session(
@@ -142,12 +142,21 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
             }))
             reference = progress.encode_record_ref(f's:{source.source_id}:{position}')
             page = f'item:{reference}:{progress.encode_return_page("history:0")}'
-            await progress.progress_navigation(message, repository, 7, page)
-        assert [value for kind, value, _ in events if kind == 'photo'] == expected, path
+            await progress.progress_navigation(
+                message, repository, 7, page.replace('item:', 'data:', 1)
+                if path == 'history-data' else page,
+            )
+        expected_photos = (
+            [*scenario_photos(snapshot), *([grid] if grid is not None else [])]
+            if path == 'history-data' else expected
+        )
+        assert [value for kind, value, _ in events if kind == 'photo'] == expected_photos, path
         prompt_indexes = [i for i, (kind, body, _) in enumerate(events)
                           if kind == 'text' and question.condition in body]
         assert prompt_indexes == [len(events) - 1], path
-        expected_context = scenario_materials.scenario_context_for_question(snapshot, position)
+        expected_context = scenario_materials.scenario_context_for_question(
+            snapshot, position, full_story=path == 'history-data',
+        )
         assert events[0][1] == expected_context
         labels = [b.text for row in events[-1][2].inline_keyboard for b in row]
         assert '📷 Схема / данные' in labels, path
@@ -404,6 +413,7 @@ async def test_replay_data_button_preserves_original_attempt_and_snapshot(
     await error_replay.callback(callback, repository)
     if status == 'active' and screen == 'error_replay':
         assert delivery.await_args.args[2].to_snapshot() == snapshot.to_snapshot()
+        assert delivery.await_args.kwargs["full_story"] is True
     else:
         delivery.assert_not_awaited()
         error_replay._feedback.assert_not_awaited()
@@ -596,7 +606,10 @@ async def test_replay_navigation_allows_two_consecutive_data_requests(monkeypatc
         # The callback from the preceding keyboard revision is now stale.
         await navigation_callback(callback, repository)
         assert replay['attempt_count'] == 1 and replay['status'] == 'active'
-        assert sum(c.__api_method__ == 'sendPhoto' for c in transport.calls) == 4
+        expected = [*scenario_photos(snapshot), scenario_materials.answer_grid_photo(snapshot, 1)]
+        assert [
+            c.photo.data for c in transport.calls if c.__api_method__ == 'sendPhoto'
+        ] == expected * 2
     finally:
         await bot.session.close()
 
