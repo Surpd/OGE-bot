@@ -8,6 +8,7 @@ import pytest
 from aiogram.types import Message
 from PIL import Image, ImageDraw
 
+from app.bot.scenario_materials import answer_grid_photo
 from app.bot.scenario_training import public_registry, render_session
 from app.math.scenario_engine import (
     PracticeMode,
@@ -126,6 +127,9 @@ async def test_public_card_sends_only_materials_needed_for_current_question(stor
     store.close_legacy_with_exposed_answer.return_value = False
     await render_session(message, store, session, show_assets=True, user_id_override=1)
     expected = scenario_photos_for_question(snapshot, session.current_position)
+    grid = answer_grid_photo(snapshot, session.current_position)
+    if grid is not None:
+        expected = (*expected, grid)
     assert message.answer_photo.await_count == len(expected)
     assert [call.args[0].data for call in message.answer_photo.await_args_list] == list(expected)
     card = message.answer.await_args.args[0]

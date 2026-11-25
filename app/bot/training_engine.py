@@ -9,7 +9,9 @@ from typing import Any, Protocol, cast
 
 from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
+from app.bot.bop_copy import reply
 from app.bot.callbacks import answer_callback
+from app.bot.math_layout import question_message, solution_message
 from app.bot.menu import main_menu, training_menu
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.training_ux import TERMINAL_RESULTS, matches_current_condition, resumed_result
@@ -251,7 +253,7 @@ async def send_problem(
             # issued snapshot consumed by the geometry validator.
             problem.pop("_transitioned", None)
     result = resumed_result(status, problem) if terminal else None
-    result_suffix = f"\n\n{result}" if result else ""
+    body = question_message(f"Задание №{adapter.number}", str(problem["condition"]), result or "")
     markup = adapter.menu(str(problem["problem_id"]), completed=terminal)
     if adapter.number == 15:
         try:
@@ -264,7 +266,7 @@ async def send_problem(
             message,
             repository,
             BufferedInputFile(triangle_restored.png_bytes, filename="oge15.png"),
-            caption=f"Задание №15\n\n{problem['condition']}" + result_suffix,
+            caption=body,
             reply_markup=markup,
             user_id_override=user_id,
             math_family=problem,
@@ -277,7 +279,7 @@ async def send_problem(
             return False
         sent = await send_photo(
             message, repository, BufferedInputFile(picture, filename="oge10.png"),
-            caption=f"Задание №10\n\n{problem['condition']}" + result_suffix,
+            caption=body,
             reply_markup=markup, user_id_override=user_id,
             math_family=problem,
         )
@@ -291,7 +293,7 @@ async def send_problem(
             message,
             repository,
             BufferedInputFile(restored_circle.png, filename="oge16.png"),
-            caption=f"Задание №16\n\n{problem['condition']}" + result_suffix,
+            caption=body,
             reply_markup=markup,
             user_id_override=user_id,
             math_family=problem,
@@ -316,7 +318,7 @@ async def send_problem(
                 __import__("base64").b64decode(restored17.to_snapshot()["png_base64"]),
                 filename="oge17.png",
             ),
-            caption=f"Задание №17\n\n{problem['condition']}" + result_suffix,
+            caption=body,
             reply_markup=markup,
             user_id_override=user_id,
             math_family=problem,
@@ -331,7 +333,7 @@ async def send_problem(
             message,
             repository,
             BufferedInputFile(restored.png_bytes, filename="oge18.png"),
-            caption=f"Задание №18\n\n{problem['condition']}" + result_suffix,
+            caption=body,
             reply_markup=markup,
             user_id_override=user_id,
             math_family=problem,
@@ -345,7 +347,7 @@ async def send_problem(
         sent = await send_text(
             message,
             repository,
-            f"Задание №19\n\n{problem['condition']}" + result_suffix,
+            body,
             reply_markup=markup,
             math_family=problem,
         )
@@ -353,7 +355,7 @@ async def send_problem(
         sent = await send_text(
             message,
             repository,
-            f"Задание №{adapter.number}\n\n{problem['condition']}" + result_suffix,
+            body,
             reply_markup=markup,
             math_family=problem,
         )
@@ -500,9 +502,7 @@ async def training_callback(
         sent = await send_text(
             message,
             repository,
-            "Разбор (самостоятельное решение не засчитывается):\n"
-            + "\n".join(str(step) for step in steps)
-            + f"\n\nОтвет: {snapshot['correct_answer']}",
+            solution_message(map(str, steps), str(snapshot["correct_answer"])),
             reply_markup=adapter.menu(expected_id, completed=True),
             math_family=problem,
         )
@@ -623,14 +623,17 @@ async def training_answer(
         return
     status = outcome.get("status")
     if status == "solved":
-        text = "✅ Верно! Ответ засчитан."
+        text = reply(
+            "corrected" if int(outcome.get("attempt_no", 1) or 1) > 1 else "correct",
+            message.message_id,
+        )
     elif status == "active":
-        text = "Пока неверно. Попробуйте ещё раз."
+        text = reply("wrong", message.message_id)
     elif status == "failed":
         snapshot = cast(dict[str, object], outcome["problem"])
-        text = (
-            f"Вторая попытка неверна. Ответ: {snapshot['correct_answer']}\n\nРазбор:\n"
-            + "\n".join(map(str, cast(list[object], snapshot.get("solution", []))))
+        text = solution_message(
+            map(str, cast(list[object], snapshot.get("solution", []))),
+            str(snapshot["correct_answer"]), reply("review", message.message_id),
         )
     else:
         await send_text(message, repository, "Ответ уже обработан. Нажмите «Следующее».")

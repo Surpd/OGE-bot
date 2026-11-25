@@ -22,10 +22,13 @@ from app.adaptive.session import Session
 from app.adaptive.skills import title
 from app.adaptive.sources import scenario_variant
 from app.adaptive.store import overview
+from app.bot.bop_copy import LABELS, reply
 from app.bot.callbacks import answer_callback
+from app.bot.math_layout import Role, TrainingMessage, solution_message
 from app.bot.menu import main_menu, trainings_hub
 from app.bot.mixed_training import _is_correct, _scenario_question, _send_problem
 from app.bot.presentation import hint_message, send_text
+from app.bot.scenario_materials import send_scenario_materials
 from app.bot.scenario_training import public_registry
 from app.bot.similar_practice import targeted_candidates
 from app.bot.trainings import TRAININGS
@@ -33,6 +36,7 @@ from app.config import get_settings
 from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
+    ScenarioSnapshot,
     build_practice_plan,
     snapshot_digest,
 )
@@ -100,11 +104,13 @@ def keyboard(row: Any) -> InlineKeyboardMarkup:
 
     rows = []
     if row["outcome"] == "issued":
-        rows.append([action("Подсказка", "hint"), action("Разбор", "solution")])
-        rows.append([action("Пропустить", "skip")])
+        rows.append([action(LABELS["hint"], "hint"), action(LABELS["solution"], "solution")])
+        rows.append([action(LABELS["skip"], "skip")])
     else:
-        rows.append([action("Похожее", "similar"), action("Дальше", "next")])
-    rows.append([action("В меню", "menu"), action("Завершить", "finish")])
+        rows.append([action(LABELS["similar"], "similar"), action(LABELS["next"], "next")])
+    if row.get("snapshot") and problem_data(row).get("scenario_snapshot") is not None:
+        rows.append([action(LABELS["data"], "data")])
+    rows.append([action(LABELS["menu"], "menu"), action("Завершить", "finish")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -120,11 +126,10 @@ def problem_data(row: Any) -> dict[str, Any]:
     }
 
 
-def _solution_text(problem: dict[str, Any]) -> str:
+def _solution(problem: dict[str, Any], intro: str = "") -> TrainingMessage:
     raw = problem.get("solution", [])
-    if isinstance(raw, list):
-        return "\n".join(str(step) for step in raw)
-    return str(raw)
+    steps = [str(step) for step in raw] if isinstance(raw, list) else [str(raw)]
+    return solution_message(steps, str(problem.get("correct_answer", "")), intro)
 
 
 def _family_support(insights: dict[str, Any]) -> dict[str, float]:
@@ -317,7 +322,8 @@ async def present(message: Message, repository: Any, learner: int) -> None:
         data,
         user_id=learner,
         keyboard=keyboard(row),
-        heading=f"{mode_name} · {row['position'] + 1} из {len(skills)} · №{data['number']}",
+        heading=mode_name,
+        position_text=f"№{data['number']} — задание {row['position'] + 1} из {len(skills)}",
     )
 
 
@@ -442,7 +448,7 @@ async def trainings(message: Message, repository: Any) -> None:
     short_enabled = get_settings().oge_adaptive_enabled
     personal_available = short_enabled and await repository.personal_enabled(learner)
     recommendations: tuple[SelectionReason, ...] = ()
-    lines = ["Тренировки", "", "Короткая тренировка — 5 задач."]
+    lines = ["Тренировки", "", reply("start", message.message_id)]
     if personal_available:
         history, insights = await _learner_inputs(repository, learner)
         recommendations = _select(
@@ -549,14 +555,17 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
     if not get_settings().oge_adaptive_enabled or not message.from_user:
         return
     learner = message.from_user.id
+    from app.bot.progress import _FAMILY_PRIORITY
+
+    projected, insights = await _learner_inputs(repository, learner)
+    answered = {row["family_id"]: row["answered_tasks"] for row in insights.get("families", [])}
     history = sorted(
-        await overview(repository, learner),
+        (row for row in projected if row[2].stage != Stage.UNCHECKED),
         key=lambda h: (
             h[0] >= 20,
-            h[2].opened == h[2].closed,
-            h[2].stage not in {Stage.CHECK, Stage.PRACTICE},
-            h[2].stage == Stage.UNCHECKED,
-            -h[3].timestamp(),
+            _FAMILY_PRIORITY.get(h[2].stage, 4),
+            -answered.get(h[1], 0),
+            h[0],
             h[1],
         ),
     )
@@ -568,7 +577,7 @@ async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
             and get_settings().oge_part2_enabled
         ):
             rows.append([button(f"Письменная работа №{number}", f"p2:open:{number}:{skill}")])
-    if unlocked(history) and await repository.personal_enabled(learner):
+    if unlocked(projected) and await repository.personal_enabled(learner):
         rows.append([button("Персональная тренировка", "nav:adaptive")])
     body = summary(history, offset)
     if history[offset : offset + 1]:
@@ -670,8 +679,8 @@ async def answer(message: Message, repository: Any) -> None:
     row = await store.current()
     if not row or not row["problem"] or not row["prompt"] or message.message_id <= row["prompt"]:
         return
-    reply = message.reply_to_message
-    if reply and reply.message_id != row["prompt"]:
+    reply_to = message.reply_to_message
+    if reply_to and reply_to.message_id != row["prompt"]:
         return
     problem = problem_data(row)
     correct = await asyncio.to_thread(_is_correct, problem["number"], problem, message.text)
@@ -691,24 +700,26 @@ async def answer(message: Message, repository: Any) -> None:
         return
     terminal_result = result.removeprefix("completed_")
     text = {
-        "solved": "Верно.",
-        "issued": "Пока неверно. Попробуй ещё раз.",
-        "failed": "Разбор:\n\n" + _solution_text(problem),
+        "solved": reply("corrected" if row.get("attempt_count") else "correct", message.message_id),
+        "issued": reply("wrong", message.message_id),
+        "failed": _solution(problem, reply("review", message.message_id)),
     }[terminal_result]
     if terminal_result == "solved" and not result.startswith("completed_"):
         delta = await store.answer_delta(row["id"], message.message_id)
         if delta is not None:
             if delta["reason"] == "independent_review":
-                text += " Ты снова решил задачу этого типа после перерыва."
+                text += " " + reply("series", message.message_id)
             else:
                 state = json.loads(delta["after_state"])
-                text += f" Серия этого типа {state['practice']}/{CURRENT.practice_count}."
+                if delta.get("selection") == "similar":
+                    text = reply("analog", message.message_id)
+                text += f" Серия этого типа: {state['practice']}/{CURRENT.practice_count}."
     if result.startswith("completed_"):
-        await send_text(
-            message, repository, text, user_id_override=learner,
-            math_family=problem if terminal_result == "failed" else None,
-        )
-        await completion(message, repository, store, row, "Тренировка завершена!")
+        if terminal_result == "failed":
+            await send_text(
+                message, repository, text, user_id_override=learner, math_family=problem,
+            )
+        await completion(message, repository, store, row, reply("done", message.message_id))
         return
     await feedback(message, repository, learner, text)
 
@@ -772,14 +783,16 @@ async def completion(
     deltas = await store.summary_deltas(row["id"])
     totals = await store.totals(row["id"])
     lines = [
-        heading,
-        f"Пройдено задач: {totals['completed']} из 5.",
-        f"Верно {totals['solved']}/{totals['issued']} · самостоятельно "
-        f"{totals['independent']}/{totals['issued']}.",
+        f"Решено верно: {totals['solved']} из {totals['issued']}",
+        f"Самостоятельно: {totals['independent']} из {totals['issued']}",
+        f"Пропущено: {totals.get('skipped', 0)}",
     ]
+    if totals["completed"] < 5:
+        lines.insert(0, f"Пройдено задач: {totals['completed']} из 5")
+    blocks: list[tuple[Role, str]] = [("title", heading), ("stats", "\n".join(lines))]
     changes = _summary_changes(deltas)
     if changes:
-        lines.extend(("", *changes))
+        blocks.extend((("section", "Твой прогресс"), ("stats", "\n".join(changes))))
     personal_available = await repository.personal_enabled(store.learner)
     recommendations: tuple[SelectionReason, ...] = ()
     if personal_available:
@@ -793,14 +806,17 @@ async def completion(
     rows = []
     if recommendations:
         item = recommendations[0]
-        lines.extend(("", "Что дальше", _recommendation_text(item)))
+        detail = _recommendation_text(item)
+        if not item.by_number:
+            detail = f"№{item.number} · {detail}"
+        blocks.extend((("section", "Что потренировать дальше"), ("recommendation", detail)))
         rows.append([button(*_recommendation_action(item))])
     if personal_available:
         rows.append([button("Персональная тренировка", "train:personal")])
     else:
         rows.append([button("К тренировкам", "train:hub")])
-    rows.append([button("Мой прогресс", "train:progress"), button("В меню", "nav:main")])
-    text = "\n".join(lines)
+    rows.append([button(LABELS["progress"], "train:progress"), button(LABELS["menu"], "nav:main")])
+    text = TrainingMessage(*blocks)
     keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
     await repository.save_user_state(store.learner, "trainings")
     await send_text(
@@ -932,6 +948,16 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
         await answer_callback(cb, "Это задание уже сменилось.")
         return
     action = parts[1]
+    if action == "data":
+        data = problem_data(row)
+        raw_scenario = data.get("scenario_snapshot")
+        await answer_callback(cb)
+        if isinstance(raw_scenario, dict):
+            snapshot = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
+            await send_scenario_materials(
+                cb.message, repository, snapshot, data["number"], user_id=learner,
+            )
+        return
     if action == "retry":
         await present(cb.message, repository, learner)
     elif action == "menu":
@@ -968,7 +994,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
         if result in {"completed_skip", "completed_solution"}:
             problem = problem_data(row)
             terminal_text = (
-                "Разбор:\n\n" + _solution_text(problem)
+                _solution(problem)
                 if result == "completed_solution" else "Задание пропущено."
             )
             await send_text(
@@ -988,7 +1014,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             p = problem_data(row)
             text = {
                 "skip": "Задание пропущено.",
-                "solution": "Разбор:\n\n" + _solution_text(p),
+                "solution": _solution(p),
                 "no_hint": "Подсказок больше нет.",
             }.get(result)
             await feedback(

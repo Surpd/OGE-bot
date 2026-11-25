@@ -185,8 +185,8 @@ def progress_keyboard(
             rows.append([_button(f"Тренировать №{number}", f"nav:task:{number}")])
         if has_errors:
             rows.append([_button(f"⚠️ Ошибки №{number}", f"progress:numerr:{number}:0")])
-        if family_total > PAGE_SIZE:
-            rows.append([_button("Семейства: дальше →", f"progress:family:{number}:{PAGE_SIZE}")])
+        if family_total:
+            rows.append([_button("Все типы задач", f"progress:family:{number}:0")])
         rows.append([_button("↩ К номерам", "progress:details")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     elif section == "family" and number is not None:
@@ -246,11 +246,12 @@ def progress_keyboard(
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     if section in {"number", "family"} and insights and get_settings().oge_adaptive_enabled:
         rows[0] = [_button(f"Пять задач №{number}", f"train:number:{number}")]
-        start = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
-        families = sorted(
-            (r for r in insights["families"] if r["number"] == number),
-            key=lambda r: str(r["family_id"]),
+        start = (
+            int(parts[2]) if section == "family" and len(parts) > 2 and parts[2].isdigit() else 0
         )
+        families = _number_families(insights, number)
+        if section == "number":
+            families = [family for family in families if _has_family_results(family)]
         practice = [
             [_button(f"Тренировать · {r['name']}", f"train:family:{r['family_id']}")]
             for r in families[start:start + PAGE_SIZE] if r.get("practice_priority")
@@ -356,11 +357,32 @@ def _record_list(insights: dict[str, Any], page: str) -> Text:
                 "\n\n", as_list(*rows, sep="\n\n"), "\n\nВыберите номер записи ниже.")
 
 
+_FAMILY_PRIORITY = {"gap": 0, "reopened": 0, "check": 1, "practice": 2, "confirmed": 3}
+
+
+def _number_families(insights: dict[str, Any], number: int | None) -> list[dict[str, Any]]:
+    return sorted(
+        (row for row in insights.get("families", []) if row["number"] == number),
+        key=lambda row: (
+            _FAMILY_PRIORITY.get(row.get("diagnosis_key", ""), 4),
+            -int(row.get("answered_tasks", 0)),
+            str(row["name"]).casefold(),
+            str(row["family_id"]),
+        ),
+    )
+
+
+def _has_family_results(row: dict[str, Any]) -> bool:
+    return bool(row.get("answered_tasks")) or (
+        row.get("diagnosis_key") not in {None, "unchecked"}
+    )
+
+
 def _family_line(row: dict[str, Any]) -> str:
     line = f"• {row['name']}"
     if row.get("answered_tasks") or "diagnosis" not in row:
         line += f": {row['correct']}/{row['answered_tasks']} · {success_label(row)}"
-    if "diagnosis" in row:
+    if "diagnosis" in row and row.get("diagnosis_key") != "unchecked":
         line += f" · {row['diagnosis']}"
     return line
 
@@ -396,6 +418,7 @@ async def _include_family_states(
             day = datetime.fromtimestamp(state.reviewed_at, UTC)
             label += f" · повторено самостоятельно {day:%d.%m.%Y}"
         row["diagnosis"] = label
+        row["diagnosis_key"] = status.key
         row["practice_priority"] = status.key in {"check", "gap", "reopened", "practice"}
 
 
@@ -420,67 +443,47 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
     if section == "number" and parts and parts[0].isdigit():
         number = int(parts[0])
         values = insights["numbers"].get(number, {})
-        families = sorted(
-            (row for row in insights.get("families", []) if int(row["number"]) == number),
-            key=lambda row: str(row["family_id"]),
-        )
-        family_offset = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
-        lines = [f"№{number} · {_number_title(number)}", ""]
-        lines.extend(
-            (
-                f"Решено правильно: {values.get('correct', 0)}",
-                f"Задач с ответом: {values.get('answered_tasks', 0)}",
-                f"Успешность: {success_label(values)}",
-                f"С первой попытки: {values.get('first_correct', 0)}",
-                f"Со второй попытки: {values.get('second_correct', 0)}",
-                f"С подсказкой: {values.get('assisted_correct', 0)}",
-                f"Без подсказки: {values.get('unassisted_correct', 0)}",
-            )
-        )
+        families = [row for row in _number_families(insights, number) if _has_family_results(row)]
+        answered = values.get("answered_tasks", 0)
+        lines = [
+            f"№{number} · {_number_title(number)}", "",
+            f"Решено правильно: {values.get('correct', 0)} из {answered}",
+            f"Успешность: {success_label(values)}",
+        ]
+        if values.get("skipped"):
+            lines.append(f"Пропущено: {values['skipped']}")
         if "independent_count" in insights:
             lines.append(f"Новых вариантов самостоятельно: {insights['independent_count']}")
-        if int(values.get("answered_tasks", 0)) < MIN_ANSWERED_SAMPLE:
+        if int(answered) < MIN_ANSWERED_SAMPLE:
             lines.append(
                 f"Данных недостаточно для оценки: нужно {MIN_ANSWERED_SAMPLE} задач с ответом."
             )
-        if values.get("unknown_assistance", 0):
-            lines.append(f"Подсказка неизвестна: {values['unknown_assistance']}")
-        lines.extend(
-            (
-                f"Пропущено: {values.get('skipped', 0)}",
-                "",
-                "По семействам:",
-            )
-        )
-        visible = families[family_offset : family_offset + PAGE_SIZE]
-        if visible:
-            for family in visible:
-                lines.append(_family_line(family))
-        else:
-            lines.append("• Пока нет результатов по семействам.")
-        if len(families) > PAGE_SIZE:
-            start = min(family_offset + 1, len(families))
-            stop = min(family_offset + PAGE_SIZE, len(families))
-            lines.append(f"\nТипы {start}–{stop} из {len(families)}")
+        if answered:
+            lines.extend((
+                "", "Попытки",
+                f"Верно с первой: {values.get('first_correct', 0)}",
+                f"Верно со второй: {values.get('second_correct', 0)}",
+                f"С подсказкой: {values.get('assisted_correct', 0)}",
+                f"Без подсказки: {values.get('unassisted_correct', 0)}",
+            ))
+            if values.get("unknown_assistance", 0):
+                lines.append(f"Подсказка неизвестна: {values['unknown_assistance']}")
+        if families:
+            lines.extend(("", "Типы задач", *map(_family_line, families[:PAGE_SIZE])))
         return "\n".join(lines)
     if section == "family" and len(parts) >= 2:
         number = int(parts[0]) if parts[0].isdigit() else 0
         offset = int(parts[1]) if parts[1].isdigit() else 0
-        families = sorted(
-            (row for row in insights.get("families", []) if int(row["number"]) == number),
-            key=lambda row: str(row["family_id"]),
-        )
-        return "\n".join(
-            [
-                f"№{number} · результаты по семействам",
-                "",
-                *[
-                    _family_line(row)
-                    for row in families[offset : offset + PAGE_SIZE]
-                ],
-                f"\nТипов заданий: {len(families)}",
-            ]
-        )
+        families = _number_families(insights, number)
+        visible = families[offset : offset + PAGE_SIZE]
+        observed = [_family_line(row) for row in visible if _has_family_results(row)]
+        unchecked = [_family_line(row) for row in visible if not _has_family_results(row)]
+        lines = [f"№{number} · Типы задач", "", *observed]
+        if unchecked:
+            lines.extend(("", "Нет данных", *unchecked))
+        if len(families) > PAGE_SIZE:
+            lines.append(f"\nТипы {offset + 1}–{offset + len(visible)} из {len(families)}")
+        return "\n".join(lines)
     if section in {"history", "errors", "numerr"}:
         return _record_list(insights, page).render()[0]
     if section == "item":

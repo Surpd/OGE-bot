@@ -26,7 +26,7 @@ from app.math.scenario_engine import (
 )
 
 STORY_CODE = "TYRES"
-GENERATOR_VERSION = "tyres-v2"
+GENERATOR_VERSION = "tyres-v3"
 COMPATIBILITY_MATRIX_VERSION = "fipi-2026-tyres-v1"
 NUMBER_POLICY_ID = "oge.numeric-decimal"
 NUMBER_POLICY_VERSION = "1"
@@ -462,7 +462,20 @@ class TyresQuestionBuilder:
             canonical_answer=answer,
             hints=hints,
             solution_steps=steps,
-            math_model=cast(Mapping[str, object], model),  # type: ignore[arg-type]
+            math_model=cast(
+                Mapping[str, object],
+                {
+                    **model,
+                    "source_ids": list(
+                        next(
+                            family.source_ids
+                            for family in _FAMILIES
+                            if family.family_id == family_id
+                        )
+                    ),
+                    "content_kind": "generated_analogue",
+                },
+            ),  # type: ignore[arg-type]
         )
 
 

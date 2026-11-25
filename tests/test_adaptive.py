@@ -370,7 +370,8 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
                 await h.click(f"ad:next:{current['problem']}")
         assert await session.current() is None
         done, _ = h.button("train:personal")
-        assert "Верно 1/5 · самостоятельно 1/5" in done.text
+        assert "Решено верно: 1 из 5" in done.text
+        assert "Самостоятельно: 1 из 5" in done.text
         await h.message("/start")
         await h.click("nav:trainings")
         await h.click("train:personal")
@@ -470,6 +471,85 @@ async def test_backfilled_ordinary_and_mixed_same_day_streak(bank_pool):
         )
         == "ordinary"
     )
+
+
+async def test_upgrade_queues_existing_archive_and_pool_reset_keeps_triggers(bank_pool):
+    """Upgrade recovery must use source history; callers never seed projections."""
+    import os
+    from pathlib import Path
+
+    import asyncpg
+
+    from app.adaptive.store import overview
+    from app.persistence.repository import PostgresRepository
+
+    owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+    schema = await bank_pool.fetchval("SELECT current_schema()")
+    old_problem, new_problem = uuid4(), uuid4()
+
+    # Model the production upgrade: source progress exists while the adaptive
+    # queue/projection is empty.  Running the migration is the only recovery act.
+    await bank_pool.execute("TRUNCATE adaptive_evidence, adaptive_skills CASCADE")
+    await bank_pool.execute(
+        """INSERT INTO issued_problems(id,user_id,family_id,fingerprint,
+        generator_version,snapshot,outcome) VALUES($1,$2,'OGE09-L1','old','v','{}','solved')""",
+        old_problem,
+        owner,
+    )
+    await bank_pool.execute(
+        """INSERT INTO attempts(problem_id,user_id,attempt_no,telegram_message_id,
+        raw_answer,is_correct) VALUES($1,$2,1,9001,'1',true)""",
+        old_problem,
+        owner,
+    )
+    # Model the deployed missed trigger outcome without manufacturing any
+    # adaptive row: authoritative source rows remain, the derived queue is empty.
+    await bank_pool.execute("TRUNCATE adaptive_dirty")
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_dirty") == 0
+
+    source_counts = await bank_pool.fetchrow(
+        "SELECT (SELECT count(*) FROM issued_problems), (SELECT count(*) FROM attempts)"
+    )
+    migration = Path("migrations/0032_adaptive_archive_recovery.sql").read_text()
+    await bank_pool.execute(migration)
+    await bank_pool.execute(migration)
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_dirty") == 1
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_evidence") == 0
+    assert await bank_pool.fetchrow(
+        "SELECT (SELECT count(*) FROM issued_problems), (SELECT count(*) FROM attempts)"
+    ) == source_counts
+
+    history = await overview(PostgresRepository(bank_pool), 1)
+    assert history and history[0][0:2] == (9, "OGE09-L1")
+    assert history[0][2].practice == 1
+
+    # Transaction-pool backends need not keep custom startup GUCs. Capture must
+    # work after reset without bop.adaptive.
+    production_pool = await asyncpg.create_pool(
+        os.environ["DATABASE_URL"],
+        min_size=1,
+        max_size=1,
+        server_settings={"search_path": schema},
+    )
+    try:
+        for _ in range(3):
+            assert (
+                await production_pool.fetchval(
+                    "SELECT current_setting('bop.adaptive',true)"
+                )
+                != "on"
+            )
+        await production_pool.execute(
+            """INSERT INTO issued_problems(id,user_id,family_id,fingerprint,
+            generator_version,snapshot) VALUES($1,$2,'OGE09-L1','new','v','{}')""",
+            new_problem,
+            owner,
+        )
+        assert await production_pool.fetchval(
+            "SELECT count(*) FROM adaptive_dirty WHERE owner=$1", owner
+        ) == 1
+    finally:
+        await production_pool.close()
 
 
 async def test_mixed_oge19_correct_answers_do_not_claim_broad_family_success(bank_pool):

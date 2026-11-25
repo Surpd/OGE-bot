@@ -32,7 +32,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "paper-v3"
+GENERATOR_VERSION = "paper-v4"
 WORLD_VERSION = "paper-world-v1"
 ANSWER_POLICY_VERSION = "1"
 
@@ -385,7 +385,15 @@ def _build_mapping_question(
         condition,
         answer,
         "paper.mapping_four",
-        {"target_order": list(order), "rows": [list(row) for row in rows]},
+        {
+            "target_order": list(order),
+            "rows": [list(row) for row in rows],
+            "answer_grid": {
+                "columns": list(order),
+                "header": "Формат",
+                "row": "Номер строки",
+            },
+        },
         ("Площадь A0 близка к 1 000 000 мм². У каждого следующего формата "
          "площадь примерно вдвое меньше.",)
         + tuple(

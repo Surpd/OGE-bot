@@ -89,8 +89,9 @@ async def test_all_independent_answers_do_not_invent_a_problem(monkeypatch, prof
     sent = AsyncMock()
     monkeypatch.setattr(adaptive, "send_text", sent)
     await adaptive.completion(object(), repository, store, {"id": "done"}, "Тренировка завершена!")
-    assert "Верно 5/5 · самостоятельно 5/5" in sent.await_args.args[2]
-    assert "Что дальше" not in sent.await_args.args[2]
+    assert "Решено верно: 5 из 5" in sent.await_args.args[2]
+    assert "Самостоятельно: 5 из 5" in sent.await_args.args[2]
+    assert "Что потренировать дальше" not in sent.await_args.args[2]
     assert [button.callback_data
             for row in sent.await_args.kwargs["reply_markup"].inline_keyboard
             for button in row] == ["train:personal", "train:progress", "nav:main"]

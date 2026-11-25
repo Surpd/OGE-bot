@@ -98,7 +98,7 @@ async def test_companion_transport_short_training_hub_and_completion(bank_pool, 
             if _is_correct(problem["number"], problem, candidate) is False
         )
         await harness.message(wrong)
-        assert "Пока неверно" in harness.text()
+        assert "Попробуй ещё раз" in harness.text()
         await harness.message(wrong)
         assert "Разбор:" in harness.text()
         await harness.click(f"ad:similar:{row['problem']}")
@@ -117,8 +117,8 @@ async def test_companion_transport_short_training_hub_and_completion(bank_pool, 
 
         transcript = harness.text()
         assert "Тренировка завершена" in transcript
-        assert "Пройдено задач: 5" in transcript
-        assert "Что дальше" in transcript
+        assert "Решено верно: 0 из 5" in transcript
+        assert "Что потренировать дальше" in transcript
         await harness.click("train:progress")
         assert await repo.user_state(42) == "progress"
         print(transcript)

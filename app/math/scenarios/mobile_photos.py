@@ -138,7 +138,7 @@ def tariff_chart(context: Mapping[str, object]) -> bytes:
 
 
 def garden_plan(snapshot: ScenarioSnapshot) -> bytes:
-    if snapshot.context.get("world_version") == GARDEN.VERSION:
+    if snapshot.context.get("world_version") in GARDEN.SOURCE_PLAN_VERSIONS:
         return _garden_source_plan(snapshot)
     root = ElementTree.fromstring(GARDEN._svg(snapshot.context))
     image = Image.new("RGB", (990, 750), "white")

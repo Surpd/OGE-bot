@@ -35,7 +35,7 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-GENERATOR_VERSION = "tariff-v2"
+GENERATOR_VERSION = "tariff-v3"
 MATRIX_VERSION = "tariff-compatible-71946582-v1"
 WORLD_VERSION = "tariff-world-v1"
 MONTHS = (
@@ -380,7 +380,7 @@ class TariffRenderer:
             f"Сверх пакета: {_as_int(tariff['extra_minute_cents']) / 100:g} руб./мин.; интернет — "
             f"{_rubles(_as_int(tariff['data_pack_price_cents']))} руб. за {_as_int(tariff['data_pack_quarters']) / 4:g} ГБ. "  # noqa: E501
             f"За год отправлено {tariff['annual_sms']} SMS.\n"
-            "Таблица вариантов домашнего интернета приведена в задании №5.\n"
+            "В отдельной приложенной таблице приведены варианты домашнего интернета.\n"
             "Месяцы указаны в календарном порядке с января по декабрь."
         )
         assets: list[ScenarioAssetRef] = []
@@ -440,7 +440,7 @@ class TariffQuestionBuilder:
             raise ValueError("Invalid scenario series")
         rng = Random(scenario.seed ^ (0x15A0 + position))
         if position == 1:
-            family, source = MINUTES_FAMILY, FAMILY_SOURCES[MINUTES_FAMILY]
+            family, source = MINUTES_FAMILY, SET_A_SOURCES[MINUTES_FAMILY]
             values = minutes
             indexes = rng.sample(range(12), 4)
             rng.shuffle(indexes)
@@ -459,9 +459,16 @@ class TariffQuestionBuilder:
                 f"{value} мин — {MONTHS[index]} ({index + 1})."
                 for value, index in zip(targets, indexes, strict=True)
             ) + (f"В указанном порядке получаем код {answer}.",)
-            model: dict[str, JsonValue] = {"targets_minutes": tuple(targets)}
+            model: dict[str, JsonValue] = {
+                "targets_minutes": tuple(targets),
+                "answer_grid": {
+                    "columns": tuple(f"{value} мин" for value in targets),
+                    "header": "Расход",
+                    "row": "Номер месяца",
+                },
+            }
         elif position == 2:
-            family, source = BILL_FAMILY, FAMILY_SOURCES[BILL_FAMILY]
+            family, source = BILL_FAMILY, SET_A_SOURCES[BILL_FAMILY]
             month_index = rng.randrange(12)
             bill = _monthly_bill_cents(context, month_index)
             answer = _rubles(bill)
@@ -486,7 +493,7 @@ class TariffQuestionBuilder:
             )
             model = {"month_index": month_index}
         elif position == 3:
-            family, _, source = MINIMUM_FAMILY, "integer", FAMILY_SOURCES[MINIMUM_FAMILY]
+            family, _, source = MINIMUM_FAMILY, "integer", SET_A_SOURCES[MINIMUM_FAMILY]
             values = minutes
             answer = str(min(_as_int(value) for value in values))
             condition = (
@@ -505,7 +512,7 @@ class TariffQuestionBuilder:
             )
             model = {"series": "minutes"}
         elif position == 4:
-            family, _, source = PERCENT_FAMILY, "integer", FAMILY_SOURCES[PERCENT_FAMILY]
+            family, _, source = PERCENT_FAMILY, "integer", SET_A_SOURCES[PERCENT_FAMILY]
             old_fee = _as_int(tariff["monthly_fee_cents"])
             new_fee = _as_int(tariff["fee_after_increase_cents"])
             numerator = (new_fee - old_fee) * 100
@@ -523,7 +530,7 @@ class TariffQuestionBuilder:
             )
             model = {"fee_change_kind": "increase"}
         elif position == 5:
-            family, _, source = ISP_FAMILY, "integer_rubles", FAMILY_SOURCES[ISP_FAMILY]
+            family, _, source = ISP_FAMILY, "integer_rubles", SET_A_SOURCES[ISP_FAMILY]
             isp = context["isp"]
             if not isinstance(isp, Mapping):
                 raise ValueError("Invalid ISP data")
@@ -568,7 +575,14 @@ class TariffQuestionBuilder:
             answer,
             hints,
             steps,
-            cast(Mapping[str, JsonValue], {**model, "source_ids": tuple(source)}),
+            cast(
+                Mapping[str, JsonValue],
+                {
+                    **model,
+                    "source_ids": tuple(source),
+                    "content_kind": "generated_analogue",
+                },
+            ),
         )
 
 

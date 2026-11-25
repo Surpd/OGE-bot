@@ -179,6 +179,37 @@ def test_oge13_option_list_keeps_interval_edges_and_decimal_comma_visible():
 
 
 @pytest.mark.asyncio
+async def test_training_blocks_survive_in_serialized_rich_payload():
+    from app.bot.math_layout import question_message, solution_message
+
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=96, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock(return_value=sent)
+    repository = AsyncMock()
+    repository.math_display.return_value = "auto"
+    try:
+        question = question_message(
+            "Персональная тренировка", "Вычисли значение.\n1/2 + 1/4",
+            "Запиши ответ числом.", position="№6 — задание 4 из 5",
+        )
+        await send_text(incoming(bot), repository, question)
+        rendered = bot.send_rich_message.await_args.kwargs["rich_message"].html
+        assert "<p><b>Персональная тренировка</b></p><p>\u00a0</p>" in rendered
+        assert "<p><b>№6 — задание 4 из 5</b></p><p>\u00a0</p>" in rendered
+        assert "<p>Вычисли значение.</p><tg-math-block>" in rendered
+        assert "</tg-math-block><p>\u00a0</p><p>Запиши ответ числом.</p>" in rendered
+
+        review = solution_message(["Приведи к общему знаменателю.", "2/4 + 1/4"], "3/4")
+        await send_text(incoming(bot), repository, review)
+        rendered = bot.send_rich_message.await_args.kwargs["rich_message"].html
+        assert "<p><b>Разбор:</b></p><p>\u00a0</p>" in rendered
+        assert "<tg-math-block>" in rendered
+        assert "<b>Ответ:</b> <tg-math>" in rendered
+    finally:
+        await bot.session.close()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "source",
     [

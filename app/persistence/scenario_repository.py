@@ -741,18 +741,16 @@ class ScenarioPostgresRepository:
             row = await connection.fetchrow(
                 """SELECT count(*) FILTER (WHERE status <> 'pending') AS issued,
                           count(*) FILTER (WHERE status = 'solved') AS correct,
+                          count(*) FILTER (WHERE status = 'solved' AND attempt_count = 1
+                                           AND hints_used = 0) AS independent,
                           count(*) FILTER (WHERE status = 'failed') AS failed,
                           count(*) FILTER (WHERE status = 'solution_viewed') AS reviewed,
                           count(*) FILTER (WHERE status = 'skipped') AS skipped
                    FROM oge15_question_progress WHERE session_id=$1""",
                 session_id,
             )
-        if row is None:
-            return {key: 0 for key in ('issued', 'correct', 'failed', 'reviewed', 'skipped')}
-        return {
-            key: int(row[key])
-            for key in ('issued', 'correct', 'failed', 'reviewed', 'skipped')
-        }
+        keys = ('issued', 'correct', 'independent', 'failed', 'reviewed', 'skipped')
+        return {key: int(row[key]) if row is not None else 0 for key in keys}
 
 
 __all__ = ["AttemptResult", "ScenarioPostgresRepository", "ScenarioSession"]

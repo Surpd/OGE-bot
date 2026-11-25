@@ -70,7 +70,7 @@ async def test_late_wrong_feedback_cannot_replace_solved_keyboard(task_number: i
     assert final_state["state"]["status"] == "solved"
     assert final_state["state"]["input_prompt_message_id"] == solved_feedback.message_id
     next_keyboard = correct.answer.await_args.kwargs["reply_markup"]
-    assert next_keyboard.inline_keyboard[0][0].text == "➡ Следующее"
+    assert next_keyboard.inline_keyboard[0][0].text == "➡ Дальше"
 
     release_feedback.set()
     await first_handler

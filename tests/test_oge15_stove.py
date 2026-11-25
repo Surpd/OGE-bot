@@ -214,9 +214,9 @@ def test_oracle_rejects_wall_units_and_changed_arc_asset() -> None:
     walls = adapter.question_builder.build_question_for_family(
         scenario, 3, "STOVE-F05-WALL-AREA-NET"
     )
-    wrong_units = replace(walls, condition=walls.condition.replace("см ×", "м ×"))
+    wrong_units = replace(rendered, shared_context=rendered.shared_context.replace("см ×", "м ×"))
     with pytest.raises(ValueError):
-        adapter.independent_oracle.validate_question(scenario, wrong_units, rendered)
+        adapter.independent_oracle.validate_question(scenario, walls, wrong_units)
 
     arc = adapter.question_builder.build_question(scenario, 5)
     svg_ref = next(a for a in rendered.assets if a.content_type == "image/svg+xml")

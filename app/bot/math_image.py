@@ -17,7 +17,7 @@ from app.bot.explicit_math import (
     local_tex,
 )
 from app.bot.math_fragments import MathFragment, System
-from app.bot.math_layout import HEADING, action_prefix, layout_text
+from app.bot.math_layout import TrainingMessage, action_prefix, heading_for, layout_text
 from app.bot.math_notation import Span, math_spans, parse_formula
 
 _RENDER_LOCK = threading.Lock()
@@ -135,7 +135,11 @@ def render_math_image(
                     if lines[index : index + len(system_rows)] == list(system_rows):
                         system_range = (index, index + len(system_rows))
                         break
-            return _render(laid_out, diagram, system_range=system_range)
+            headings = (
+                source.transform(flatten_math_lines).headings()
+                if isinstance(source, TrainingMessage) else None
+            )
+            return _render(laid_out, diagram, system_range=system_range, headings=headings)
         if isinstance(source, System):
             # Mathtext does not implement TeX's cases environment. Render the
             # explicitly typed rows directly and draw the system brace locally.
@@ -153,6 +157,7 @@ def _render(
     diagram: bytes | None,
     *,
     explicit_rows: list[str] | None = None,
+    headings: frozenset[str] | None = None,
     system: bool = False,
     system_range: tuple[int, int] | None = None,
 ) -> bytes:
@@ -224,7 +229,7 @@ def _render(
     line_row_starts = []
     for line_index, line in enumerate(source_lines):
         line_row_starts.append(len(rows))
-        heading = HEADING.match(line) is not None
+        heading = bool(heading_for(line, headings))
         font = bold if heading else regular
         prefix = None if heading else action_prefix(line)
         spans = (
