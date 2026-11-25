@@ -13,23 +13,23 @@
             [
               {
                 "text": "🔁 Повторить вариант",
-                "callback_data": "ad:repeat:3ef9a01c-b49f-431f-9c9d-24afd0c271c9.2~fd6b9cb6894f"
+                "callback_data": "ad:repeat:e413d798-4b66-43cc-9bf4-2a724c699f36.2~345e8993f2e1"
               }
             ],
             [
               {
                 "text": "Выбрать другой тип",
-                "callback_data": "train:areas~fd6b9cb6894f"
+                "callback_data": "train:areas~345e8993f2e1"
               }
             ],
             [
               {
                 "text": "↩ В меню",
-                "callback_data": "ad:menu:3ef9a01c-b49f-431f-9c9d-24afd0c271c9.2~fd6b9cb6894f"
+                "callback_data": "ad:menu:e413d798-4b66-43cc-9bf4-2a724c699f36.2~345e8993f2e1"
               },
               {
                 "text": "Завершить",
-                "callback_data": "ad:finish:3ef9a01c-b49f-431f-9c9d-24afd0c271c9.2~fd6b9cb6894f"
+                "callback_data": "ad:finish:e413d798-4b66-43cc-9bf4-2a724c699f36.2~345e8993f2e1"
               }
             ]
           ]
@@ -39,7 +39,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "e081242b-0e11-44f2-be37-406159f29088"
+        "callback_query_id": "6f08fe92-faa2-4b29-89a1-81a2482d42e0"
       }
     }
   ]

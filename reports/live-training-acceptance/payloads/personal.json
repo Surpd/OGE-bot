@@ -7,34 +7,34 @@
       "payload": {
         "chat_id": "42",
         "rich_message": {
-          "html": "<p><b>Персональная тренировка</b></p><p> </p><p><b>№13 — задание 1 из 5</b></p><p> </p><tg-math-block>{x}^{2} + 10{,}22x \\geq 0</tg-math-block><p> </p><p>1. (0;+∞)</p><p>2. [1;+∞)</p><p>3. [0;+∞)</p><p>4. (−∞;-10,22] ∪ [0;+∞)</p><p> </p><p>Введите номер варианта 1–4.</p>"
+          "html": "<p><b>Персональная тренировка</b></p><p> </p><p><b>№13 — задание 1 из 5</b></p><p> </p><tg-math-block>{x}^{2} + 10{,}43x \\geq 0</tg-math-block><p> </p><p>1. (0;+∞)</p><p>2. (−∞;-10,43]</p><p>3. [1;+∞)</p><p>4. (−∞;-10,43] ∪ [0;+∞)</p><p> </p><p>Введите номер варианта 1–4.</p>"
         },
         "reply_markup": {
           "inline_keyboard": [
             [
               {
                 "text": "💡 Подсказка",
-                "callback_data": "ad:hint:0cc08a16-83f8-59fc-865b-53c26fd7e297"
+                "callback_data": "ad:hint:0ae24f7d-6c03-56f6-9868-c13e301035f1"
               },
               {
                 "text": "📘 Разбор",
-                "callback_data": "ad:solution:0cc08a16-83f8-59fc-865b-53c26fd7e297"
+                "callback_data": "ad:solution:0ae24f7d-6c03-56f6-9868-c13e301035f1"
               }
             ],
             [
               {
                 "text": "⏭ Пропустить",
-                "callback_data": "ad:skip:0cc08a16-83f8-59fc-865b-53c26fd7e297"
+                "callback_data": "ad:skip:0ae24f7d-6c03-56f6-9868-c13e301035f1"
               }
             ],
             [
               {
                 "text": "↩ В меню",
-                "callback_data": "ad:menu:0cc08a16-83f8-59fc-865b-53c26fd7e297"
+                "callback_data": "ad:menu:0ae24f7d-6c03-56f6-9868-c13e301035f1"
               },
               {
                 "text": "Завершить",
-                "callback_data": "ad:finish:0cc08a16-83f8-59fc-865b-53c26fd7e297"
+                "callback_data": "ad:finish:0ae24f7d-6c03-56f6-9868-c13e301035f1"
               }
             ]
           ]
@@ -44,7 +44,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "efb48bd9-7051-46c6-91bb-8d3130c2516e"
+        "callback_query_id": "6b3108cc-04b1-44df-b016-00fe35f4e1dc"
       }
     }
   ]

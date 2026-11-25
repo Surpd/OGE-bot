@@ -7,7 +7,7 @@
       "payload": {
         "chat_id": "42",
         "rich_message": {
-          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3 \\times 2{,}2 \\times 2{,}6</tg-math> м. Дверь: 67 см × 183 см; окон нет.</p>"
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>2{,}8 \\times 1{,}9 \\times 2{,}6</tg-math> м. Дверь: 69 см × 184 см; окон нет.</p>"
         }
       }
     },
@@ -23,33 +23,33 @@
             [
               {
                 "text": "💡 Подсказка",
-                "callback_data": "ad:hint:f2365aad-1c2d-4ebf-a905-5e6fcecbef6f"
+                "callback_data": "ad:hint:a7a6ec02-0a5c-401b-bce1-fcebef95de5b"
               },
               {
                 "text": "📘 Разбор",
-                "callback_data": "ad:solution:f2365aad-1c2d-4ebf-a905-5e6fcecbef6f"
+                "callback_data": "ad:solution:a7a6ec02-0a5c-401b-bce1-fcebef95de5b"
               }
             ],
             [
               {
                 "text": "⏭ Пропустить",
-                "callback_data": "ad:skip:f2365aad-1c2d-4ebf-a905-5e6fcecbef6f"
+                "callback_data": "ad:skip:a7a6ec02-0a5c-401b-bce1-fcebef95de5b"
               }
             ],
             [
               {
                 "text": "📷 Схема / данные",
-                "callback_data": "ad:data:f2365aad-1c2d-4ebf-a905-5e6fcecbef6f"
+                "callback_data": "ad:data:a7a6ec02-0a5c-401b-bce1-fcebef95de5b"
               }
             ],
             [
               {
                 "text": "↩ В меню",
-                "callback_data": "ad:menu:f2365aad-1c2d-4ebf-a905-5e6fcecbef6f"
+                "callback_data": "ad:menu:a7a6ec02-0a5c-401b-bce1-fcebef95de5b"
               },
               {
                 "text": "Завершить",
-                "callback_data": "ad:finish:f2365aad-1c2d-4ebf-a905-5e6fcecbef6f"
+                "callback_data": "ad:finish:a7a6ec02-0a5c-401b-bce1-fcebef95de5b"
               }
             ]
           ]
@@ -59,7 +59,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "d46a3bc7-c3da-4c3d-aa75-55a440ae02e8"
+        "callback_query_id": "9a8d4d52-b265-4072-8c2c-ff6bd0d851d4"
       }
     }
   ]

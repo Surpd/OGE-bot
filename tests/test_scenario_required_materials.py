@@ -143,15 +143,11 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
             reference = progress.encode_record_ref(f's:{source.source_id}:{position}')
             page = f'item:{reference}:{progress.encode_return_page("history:0")}'
             await progress.progress_navigation(message, repository, 7, page)
-        expected_photos = list(scenario_photos(snapshot)) if path == 'full' else expected
-        assert [value for kind, value, _ in events if kind == 'photo'] == expected_photos, path
+        assert [value for kind, value, _ in events if kind == 'photo'] == expected, path
         prompt_indexes = [i for i, (kind, body, _) in enumerate(events)
                           if kind == 'text' and question.condition in body]
         assert prompt_indexes == [len(events) - 1], path
-        expected_context = (
-            snapshot.shared_context if path == 'full'
-            else scenario_materials.scenario_context_for_question(snapshot, position)
-        )
+        expected_context = scenario_materials.scenario_context_for_question(snapshot, position)
         assert events[0][1] == expected_context
         labels = [b.text for row in events[-1][2].inline_keyboard for b in row]
         assert '📷 Схема / данные' in labels, path
@@ -536,9 +532,19 @@ def test_explicit_story_materials_include_full_context_and_every_story_asset():
     context, photos = scenario_materials.prepare_scenario_materials(
         snapshot, 4, full_story=True,
     )
-    assert context == snapshot.shared_context
     assert photos == scenario_photos(snapshot)
-    assert '1 | дровяная' in context and '3 | электрическая' in context
+    assert 'парн' in context.lower()
+    assert 'Печь | Тип |' not in context  # The catalogue is delivered as a photo.
+
+
+def test_full_paper_story_uses_an_unlabelled_table_and_a_blank_current_grid():
+    snapshot = saved('PAPER', '0')
+    context, photos = scenario_materials.prepare_scenario_materials(
+        snapshot, 1, full_story=True,
+    )
+    assert "Таблица размеров" in snapshot.shared_context
+    assert "Таблица размеров" not in context  # The archived text includes the format labels.
+    assert photos == (*scenario_photos(snapshot), scenario_materials.answer_grid_photo(snapshot, 1))
 
 
 def test_standalone_tariff_fee_question_does_not_claim_to_use_a_graph():

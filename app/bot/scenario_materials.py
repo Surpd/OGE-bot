@@ -29,7 +29,9 @@ MATERIALS_UNAVAILABLE = (
 )
 
 
-def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> str:
+def scenario_context_for_question(
+    snapshot: ScenarioSnapshot, position: int, *, full_story: bool = False,
+) -> str:
     context = snapshot.shared_context
     question = next(
         item for item in snapshot.questions if item.position == position
@@ -51,12 +53,12 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
                 "Минуты по месяцам:", "Мобильный интернет по месяцам:",
             ))
         )
-        if question.family_id != "TARIFF-F12-HOME-ISP":
+        if not full_story and question.family_id != "TARIFF-F12-HOME-ISP":
             context = "\n".join(
                 line for line in context.splitlines()
                 if "приложенной таблице" not in line
             )
-        if question.family_id == "TARIFF-F09-PERCENT-FEE":
+        if not full_story and question.family_id == "TARIFF-F09-PERCENT-FEE":
             context = "\n".join(
                 line for line in context.splitlines()
                 if not line.startswith((
@@ -70,7 +72,7 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
             "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
             "гараж ниже ворот справа, теплица внутри огорода."
         )
-    elif snapshot.story_code == "GARDEN" and (
+    elif snapshot.story_code == "GARDEN" and not full_story and (
         question.family_id != "GARDEN-09-HEAT-BREAKEVEN"
         or snapshot.generator_version in {"garden-sosnovka-1.5", "garden-sosnovka-1.6"}
     ):
@@ -122,15 +124,11 @@ def prepare_scenario_materials(
     snapshot: ScenarioSnapshot, position: int, *, previous_position: int | None = None,
     full_story: bool = False,
 ) -> tuple[str, tuple[bytes, ...]]:
-    context = (
-        snapshot.shared_context
-        if full_story
-        else scenario_context_for_question(snapshot, position)
-    )
+    context = scenario_context_for_question(snapshot, position, full_story=full_story)
     if previous_position is not None and not full_story:
         if context == scenario_context_for_question(snapshot, previous_position):
             context = ""
-    grid = None if full_story else answer_grid_photo(snapshot, position)
+    grid = answer_grid_photo(snapshot, position)
     try:
         photos = scenario_photos(snapshot) if full_story else (
             scenario_photos_for_question(snapshot, position)
@@ -144,7 +142,10 @@ def prepare_scenario_materials(
         # A catalogue can be transcribed without doing any student calculation.
         # Plans/charts and PAPER's unlabeled matching table cannot be replaced
         # with derived answers or the labeled internal shared_context.
-        if snapshot.story_code != "STOVE" or _photo_indexes(snapshot, position) != (0,):
+        if (
+            full_story or snapshot.story_code != "STOVE"
+            or _photo_indexes(snapshot, position) != (0,)
+        ):
             raise
         rows = [
             f"Печь №{r['id']}: {r['kind']}; объём {r['min_m3']}–{r['max_m3']} м³; "

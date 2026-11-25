@@ -14,17 +14,17 @@
             [
               {
                 "text": "➡ Продолжить",
-                "callback_data": "ad:continue:74025fb6-7610-490f-bd55-f40a0dbbb087"
+                "callback_data": "ad:continue:30bfb0c2-421c-4fde-9168-805528808648"
               },
               {
                 "text": "Завершить",
-                "callback_data": "ad:finish:74025fb6-7610-490f-bd55-f40a0dbbb087"
+                "callback_data": "ad:finish:30bfb0c2-421c-4fde-9168-805528808648"
               }
             ],
             [
               {
                 "text": "↩ В меню",
-                "callback_data": "ad:menu:74025fb6-7610-490f-bd55-f40a0dbbb087"
+                "callback_data": "ad:menu:30bfb0c2-421c-4fde-9168-805528808648"
               }
             ]
           ]

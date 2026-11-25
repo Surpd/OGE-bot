@@ -13,97 +13,125 @@
             [
               {
                 "text": "№1–5 · Связанный сюжет",
-                "callback_data": "nav:linked~7edc6738ce56"
+                "callback_data": "nav:linked~14177b80df0d"
               }
             ],
             [
               {
                 "text": "№1",
-                "callback_data": "train:area:1~7edc6738ce56"
+                "callback_data": "train:area:1~14177b80df0d"
               },
               {
                 "text": "№2",
-                "callback_data": "train:area:2~7edc6738ce56"
+                "callback_data": "train:area:2~14177b80df0d"
               },
               {
                 "text": "№3",
-                "callback_data": "train:area:3~7edc6738ce56"
+                "callback_data": "train:area:3~14177b80df0d"
               },
               {
                 "text": "№4",
-                "callback_data": "train:area:4~7edc6738ce56"
+                "callback_data": "train:area:4~14177b80df0d"
               },
               {
                 "text": "№5",
-                "callback_data": "train:area:5~7edc6738ce56"
+                "callback_data": "train:area:5~14177b80df0d"
               }
             ],
             [
               {
                 "text": "№6",
-                "callback_data": "train:area:6~7edc6738ce56"
+                "callback_data": "train:area:6~14177b80df0d"
               },
               {
                 "text": "№7",
-                "callback_data": "train:area:7~7edc6738ce56"
+                "callback_data": "train:area:7~14177b80df0d"
               },
               {
                 "text": "№8",
-                "callback_data": "train:area:8~7edc6738ce56"
+                "callback_data": "train:area:8~14177b80df0d"
               },
               {
                 "text": "№9",
-                "callback_data": "train:area:9~7edc6738ce56"
+                "callback_data": "train:area:9~14177b80df0d"
               },
               {
                 "text": "№10",
-                "callback_data": "train:area:10~7edc6738ce56"
+                "callback_data": "train:area:10~14177b80df0d"
               }
             ],
             [
               {
                 "text": "№11",
-                "callback_data": "train:area:11~7edc6738ce56"
+                "callback_data": "train:area:11~14177b80df0d"
               },
               {
                 "text": "№12",
-                "callback_data": "train:area:12~7edc6738ce56"
+                "callback_data": "train:area:12~14177b80df0d"
               },
               {
                 "text": "№13",
-                "callback_data": "train:area:13~7edc6738ce56"
+                "callback_data": "train:area:13~14177b80df0d"
               },
               {
                 "text": "№14",
-                "callback_data": "train:area:14~7edc6738ce56"
+                "callback_data": "train:area:14~14177b80df0d"
               },
               {
                 "text": "№15",
-                "callback_data": "train:area:15~7edc6738ce56"
+                "callback_data": "train:area:15~14177b80df0d"
               }
             ],
             [
               {
                 "text": "№16",
-                "callback_data": "train:area:16~7edc6738ce56"
+                "callback_data": "train:area:16~14177b80df0d"
               },
               {
                 "text": "№17",
-                "callback_data": "train:area:17~7edc6738ce56"
+                "callback_data": "train:area:17~14177b80df0d"
               },
               {
                 "text": "№18",
-                "callback_data": "train:area:18~7edc6738ce56"
+                "callback_data": "train:area:18~14177b80df0d"
               },
               {
                 "text": "№19",
-                "callback_data": "train:area:19~7edc6738ce56"
+                "callback_data": "train:area:19~14177b80df0d"
+              }
+            ],
+            [
+              {
+                "text": "№20",
+                "callback_data": "p2:menu:20~14177b80df0d"
+              },
+              {
+                "text": "№21",
+                "callback_data": "p2:menu:21~14177b80df0d"
+              },
+              {
+                "text": "№22",
+                "callback_data": "p2:menu:22~14177b80df0d"
+              }
+            ],
+            [
+              {
+                "text": "№23",
+                "callback_data": "p2:menu:23~14177b80df0d"
+              },
+              {
+                "text": "№24",
+                "callback_data": "p2:menu:24~14177b80df0d"
+              },
+              {
+                "text": "№25",
+                "callback_data": "p2:menu:25~14177b80df0d"
               }
             ],
             [
               {
                 "text": "↩ К тренировкам",
-                "callback_data": "nav:trainings~7edc6738ce56"
+                "callback_data": "nav:trainings~14177b80df0d"
               }
             ]
           ]
@@ -113,7 +141,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "0ee0076e-fcfc-4f00-8488-ea8048ad1ccd"
+        "callback_query_id": "79dd3989-81d3-49f6-841e-1f2c75ac1f5c"
       }
     }
   ]

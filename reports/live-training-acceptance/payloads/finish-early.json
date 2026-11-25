@@ -13,17 +13,17 @@
             [
               {
                 "text": "Персональная тренировка",
-                "callback_data": "train:personal~1915a27c3e87"
+                "callback_data": "train:personal~03e408a0e340"
               }
             ],
             [
               {
                 "text": "📊 Мой прогресс",
-                "callback_data": "train:progress~1915a27c3e87"
+                "callback_data": "train:progress~03e408a0e340"
               },
               {
                 "text": "↩ В меню",
-                "callback_data": "nav:main~1915a27c3e87"
+                "callback_data": "nav:main~03e408a0e340"
               }
             ]
           ]
@@ -33,7 +33,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "7023c4cf-823b-453b-b440-b27a7e91581f"
+        "callback_query_id": "7083858e-bf25-462c-b84a-1e64b175e0cc"
       }
     }
   ]

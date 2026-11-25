@@ -14,31 +14,31 @@
             [
               {
                 "text": "🎯 Персональная тренировка",
-                "callback_data": "train:personal~8ad01494a065"
+                "callback_data": "train:personal~613d0c329b95"
               }
             ],
             [
               {
                 "text": "🔢 По номеру или типу",
-                "callback_data": "train:areas~8ad01494a065"
+                "callback_data": "train:areas~613d0c329b95"
               }
             ],
             [
               {
                 "text": "🔀 Смешанная тренировка",
-                "callback_data": "train:mixed~8ad01494a065"
+                "callback_data": "train:mixed~613d0c329b95"
               }
             ],
             [
               {
                 "text": "📝 Первая часть целиком",
-                "callback_data": "nav:mixed~8ad01494a065"
+                "callback_data": "nav:mixed~613d0c329b95"
               }
             ],
             [
               {
                 "text": "↩ В меню",
-                "callback_data": "nav:main~8ad01494a065"
+                "callback_data": "nav:main~613d0c329b95"
               }
             ]
           ]
@@ -48,7 +48,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "e4c88876-de73-47bd-8ee9-f27f62e23616"
+        "callback_query_id": "37f6ee6e-a2bb-44af-9a3f-c6c437e9e94b"
       }
     }
   ]

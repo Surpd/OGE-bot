@@ -15,15 +15,15 @@
       "method": "sendPhoto",
       "payload": {
         "chat_id": "42",
-        "photo": "attach://Q0lX-37T3KK8Jw",
+        "photo": "attach://o0W3NbZSqChi6w",
         "caption": "Данные задачи №1",
         "parse_mode": "HTML"
       },
       "attachments": {
-        "Q0lX-37T3KK8Jw": {
-          "path": "assets/7fcfd2336151741cb18687e24266d73ba8a1905b3916106dd2b509f90a8e503d.png",
+        "o0W3NbZSqChi6w": {
+          "path": "assets/91307584619f24036ce7bceec79a0136808067fd14625a3304cd67b5ebec0e28.png",
           "filename": "scenario-1.png",
-          "sha256": "7fcfd2336151741cb18687e24266d73ba8a1905b3916106dd2b509f90a8e503d"
+          "sha256": "91307584619f24036ce7bceec79a0136808067fd14625a3304cd67b5ebec0e28"
         }
       }
     },
@@ -31,12 +31,12 @@
       "method": "sendPhoto",
       "payload": {
         "chat_id": "42",
-        "photo": "attach://Gh17DMgkkY7iew",
+        "photo": "attach://zpEuD5O051OGdQ",
         "caption": "Данные задачи №1",
         "parse_mode": "HTML"
       },
       "attachments": {
-        "Gh17DMgkkY7iew": {
+        "zpEuD5O051OGdQ": {
           "path": "assets/de9347cbf62d6b3e66f70450015a4fccba840a8827bbe215c8bd230bbca59b32.png",
           "filename": "scenario-2.png",
           "sha256": "de9347cbf62d6b3e66f70450015a4fccba840a8827bbe215c8bd230bbca59b32"
@@ -55,29 +55,29 @@
             [
               {
                 "text": "💡 Подсказка",
-                "callback_data": "mixed:hint:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+                "callback_data": "mixed:hint:b968ad98-4ebd-491e-b1af-b3588cba21b3"
               },
               {
                 "text": "📘 Разбор",
-                "callback_data": "mixed:solution:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+                "callback_data": "mixed:solution:b968ad98-4ebd-491e-b1af-b3588cba21b3"
               }
             ],
             [
               {
                 "text": "⏭ Пропустить",
-                "callback_data": "mixed:skip:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+                "callback_data": "mixed:skip:b968ad98-4ebd-491e-b1af-b3588cba21b3"
               }
             ],
             [
               {
                 "text": "📷 Схема / данные",
-                "callback_data": "mixed:data:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+                "callback_data": "mixed:data:b968ad98-4ebd-491e-b1af-b3588cba21b3"
               }
             ],
             [
               {
                 "text": "↩ В меню",
-                "callback_data": "mixed:menu:1ea72776-e3ab-4fa8-930d-dde8d378205c"
+                "callback_data": "mixed:menu:b968ad98-4ebd-491e-b1af-b3588cba21b3"
               }
             ]
           ]
@@ -87,7 +87,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "23d35394-b4e3-478e-ac20-a4365d8457b6"
+        "callback_query_id": "8ac4c82b-e19b-4a7e-be2f-25b8b432832d"
       }
     }
   ]

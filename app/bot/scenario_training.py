@@ -454,8 +454,7 @@ async def render_session(
     if show_assets or show_current_asset:
         if not await _show_data(message, session, shared=show_assets, current=True,
                                 repository=repository, user_id=telegram_user_id,
-                                previous_position=previous_position,
-                                full_story=show_assets and session.mode is PracticeMode.FULL):
+                                previous_position=previous_position):
             return
     progress = (
         f"Задание №{session.current_position} из 5"
