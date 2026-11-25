@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     telegram_webhook_secret: str | None = None
     webhook_base_url: str | None = None
     oge_adaptive_enabled: bool = False
+    oge_adaptive_capture_only: bool = False
+    oge_companion_adaptive_capture_only: bool = False
     oge_companion_adaptive_enabled: bool = False
     oge_part2_enabled: bool = False
     oge_grading_max_images: int = Field(default=1, ge=1, le=1)

@@ -276,14 +276,12 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
     from app.config import get_settings
     from app.persistence.scenario_repository import ScenarioPostgresRepository
 
-    monkeypatch.setenv("OGE_COMPANION_ADAPTIVE_ENABLED", "true")
+    monkeypatch.setenv("OGE_COMPANION_ADAPTIVE_CAPTURE_ONLY", "true")
     get_settings.cache_clear()
     bot_id = 200000000 + int(uuid4().hex[:7], 16)
     url = os.environ["DATABASE_URL"]
     repo = await open_storage(url, bot_id)
-    h = Harness(
-        repo, config(oge_companion_adaptive_enabled=True), ScenarioPostgresRepository(repo._pool)
-    )
+    h = Harness(repo, config(), ScenarioPostgresRepository(repo._pool))
     try:
         await h.message("/start")
         await h.click("exit")
@@ -291,6 +289,28 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
         ordinary = await repo.task6_state(42)
         await h.message("7654321")
         await h.message("7654321")
+        await h.message("/start")
+        assert await repo._pool.fetchval("SELECT count(*) FROM adaptive_dirty") > 0
+        assert not any(
+            b.callback_data and b.callback_data.startswith("nav:adaptive")
+            for m in h.transport.messages.values()
+            if m.reply_markup and hasattr(m.reply_markup, "inline_keyboard")
+            for row in m.reply_markup.inline_keyboard
+            for b in row
+        )
+        from app.adaptive.store import sync
+
+        async with repo._pool.acquire() as c, c.transaction():
+            owner = await c.fetchval("SELECT id FROM users WHERE telegram_user_id=42")
+            await sync(c, owner, rebuild=True)
+        next_mid = h.transport.next_message_id + 100
+        await h.bot.session.close()
+        h = Harness(
+            repo,
+            config(oge_companion_adaptive_enabled=True),
+            ScenarioPostgresRepository(repo._pool),
+        )
+        h.transport.next_message_id = next_mid
         await h.message("/start")
         await h.click("nav:adaptive")
         session = Session(repo, 42)
@@ -474,3 +494,81 @@ async def test_teacher_confirmed_written_cycle_is_scoped_idempotent_and_rebuilda
             AND confirmed_error_reasons @> ARRAY['justification']""")
             == 2
         )
+
+
+async def test_resume_waives_issued_check_satisfied_in_ordinary_training(bank_pool, monkeypatch):
+    from datetime import timedelta
+
+    from aiogram import Bot
+    from aiogram.types import Chat, Message, User
+    from test_inline_dispatcher_postgres import TelegramSession
+
+    from app.adaptive.session import Session
+    from app.adaptive.store import sync
+    from app.bot.adaptive import generate, start
+    from app.config import get_settings
+    from app.persistence.repository import PostgresRepository
+    from app.persistence.rotation_history import enabled
+
+    monkeypatch.setenv("OGE_ADAPTIVE_ENABLED", "true")
+    get_settings.cache_clear()
+    bot = Bot("123456:TEST", session=TelegramSession())
+    try:
+        repo = PostgresRepository(bank_pool)
+        store = Session(repo, 1)
+        family = enabled(9)[0]
+        await store.start([family])
+        row = await store.current()
+        candidate = generate(family, [])
+        assert await store.save(row, family, candidate)
+        owner = row["owner"]
+        at = datetime.now(UTC) - timedelta(days=12)
+        async with bank_pool.acquire() as c, c.transaction():
+            for i, day in enumerate((0, 1, 4, 10)):
+                stamp = at + timedelta(days=day)
+                pid = await c.fetchval(
+                    """INSERT INTO issued_problems(user_id,family_id,fingerprint,
+                    generator_version,snapshot,issued_at)
+                    VALUES($1,$2,$3,'v','{}',$4) RETURNING id""",
+                    owner,
+                    family,
+                    str(i),
+                    stamp,
+                )
+                await c.execute(
+                    """INSERT INTO attempts(user_id,problem_id,attempt_no,raw_answer,
+                    is_correct,telegram_message_id,created_at) VALUES($1,$2,1,'x',true,$3,$4)""",
+                    owner,
+                    pid,
+                    i + 15,
+                    stamp,
+                )
+            await sync(c, owner, rebuild=True)
+        await repo.save_user_state(1, "main_menu")
+        msg = Message(
+            message_id=42,
+            date=datetime.now(UTC),
+            chat=Chat(id=1, type="private"),
+            from_user=User(id=1, is_bot=False, first_name="QA"),
+        ).as_(bot)
+        await start(msg, repo)
+        assert await store.current() is None
+        assert await bank_pool.fetchval(
+            "SELECT fulfilled_elsewhere FROM adaptive_slots WHERE session_id=$1", row["id"]
+        )
+        assert (
+            await bank_pool.fetchval(
+                "SELECT outcome FROM issued_problems WHERE id=$1", candidate["problem_id"]
+            )
+            == "issued"
+        )
+    finally:
+        await bot.session.close()
+        get_settings.cache_clear()
+
+
+def test_help_after_confirmation_requests_check_without_opening_gap():
+    state = trajectory(ev(1, 0), ev(2, 1), ev(3, 3), ev(4, 8))
+    checked, _ = apply(state, ev(5, 9, "solution"))
+    assert checked.stage == Stage.CHECK and checked.checks == 2 and not checked.opened
+    assert apply(checked, ev(6, 10))[0].stage == Stage.CONFIRMED

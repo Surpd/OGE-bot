@@ -32,7 +32,7 @@ class Session:
 
     async def current(self) -> Any:
         return await self.pool.fetchrow(
-            """SELECT a.*,p.snapshot,p.outcome,p.hints_used
+            """SELECT a.*,p.snapshot,p.outcome,p.hints_used,p.issued_at
             FROM adaptive_sessions a JOIN users u ON u.id=a.owner
             LEFT JOIN issued_problems p ON p.id=a.problem
             WHERE u.telegram_user_id=$1 AND a.finished IS NULL""",
@@ -78,7 +78,10 @@ class Session:
                 json.dumps(candidate, ensure_ascii=False),
             )
             await conn.execute(
-                "INSERT INTO adaptive_slots VALUES($1,$2,$3)", claimed, row["position"], pid
+                "INSERT INTO adaptive_slots(session_id,position,problem) VALUES($1,$2,$3)",
+                claimed,
+                row["position"],
+                pid,
             )
             await conn.execute(
                 "UPDATE adaptive_sessions SET problem=$2,prompt=NULL WHERE id=$1", claimed, pid
@@ -148,7 +151,18 @@ class Session:
                 )
                 return "finished"
             advance = action == "next" and problem and row["outcome"] != "issued"
-            if advance or (action == "omit" and problem is None and position is not None):
+            if action == "fulfilled" and row["outcome"] == "issued" and position is not None:
+                await conn.execute(
+                    """UPDATE adaptive_slots SET fulfilled_elsewhere=true
+                    WHERE session_id=$1 AND position=$2 AND problem=$3""",
+                    row["id"],
+                    position,
+                    problem,
+                )
+                advance = True
+            if advance or (
+                action in {"omit", "fulfilled"} and problem is None and position is not None
+            ):
                 done = row["position"] + 1 >= len(json.loads(row["plan"]))
                 await conn.execute(
                     """UPDATE adaptive_sessions SET position=position+1,problem=NULL,

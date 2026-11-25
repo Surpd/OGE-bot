@@ -156,7 +156,9 @@ def create_app(
                 raise RuntimeError("DATABASE_URL is required")
             pool = await asyncpg.create_pool(
                 settings.database_url, min_size=1, max_size=5,
-                server_settings={"bop.adaptive": "on"} if settings.oge_adaptive_enabled else {},
+                server_settings={"bop.adaptive":"on"} if (
+                    settings.oge_adaptive_enabled or settings.oge_adaptive_capture_only
+                ) else {},
             )
             repo = PostgresRepository(pool)
             if run_schema_migrations:

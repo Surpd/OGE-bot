@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS adaptive_sessions (
 CREATE TABLE IF NOT EXISTS adaptive_slots (
  session_id uuid NOT NULL REFERENCES adaptive_sessions ON DELETE CASCADE,
  position smallint NOT NULL, problem uuid UNIQUE NOT NULL REFERENCES issued_problems ON DELETE CASCADE,
- PRIMARY KEY(session_id,position)
+ fulfilled_elsewhere boolean NOT NULL DEFAULT false, PRIMARY KEY(session_id,position)
 );
 ALTER TABLE adaptive_slots ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON adaptive_slots FROM PUBLIC;

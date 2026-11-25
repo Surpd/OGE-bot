@@ -100,7 +100,7 @@ def apply(state: State, event: Evidence, policy: Policy = V1) -> tuple[State, st
             "diagnostic_signal"
         )
     if event.outcome != "correct" or event.attempt != 1 or event.assisted is not False:
-        if state.stage == Stage.UNCHECKED:
+        if state.stage in {Stage.UNCHECKED, Stage.CONFIRMED}:
             return replace(state, stage=Stage.CHECK), "independent_check_needed"
         return state, None
     if not event.variant or not event.fresh:

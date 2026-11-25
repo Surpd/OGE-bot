@@ -122,30 +122,38 @@ async def present(message: Message, repository: Any, learner: int) -> None:
     if row is None:
         return
     skills = json.loads(row["plan"])
-    if not row["problem"]:
-        skill = skills[row["position"]]
+    skill = skills[row["position"]]
+    if not row["problem"] or row["outcome"] == "issued":
         history = await overview(repository, learner)
         state = next((s for _, key, s, _ in history if key == skill), State())
         if (
             state.stage == Stage.CONFIRMED
             or state.due
-            and state.due > datetime.now(UTC).timestamp()
+            and (
+                state.due > datetime.now(UTC).timestamp()
+                or row["issued_at"]
+                and row["issued_at"].timestamp() < state.due
+            )
         ):
             result = await store.act(
-                None, None, "omit", session_id=row["id"], position=row["position"]
+                row["problem"],
+                row["prompt"],
+                "fulfilled",
+                session_id=row["id"],
+                position=row["position"],
             )
             if result == "next":
                 await present(message, repository, learner)
             elif result == "completed":
-                await repository.save_user_state(learner, "main_menu")
                 await send_text(
                     message,
                     repository,
-                    "Все проверки этой тренировки выполнены.",
+                    "План завершён. Решения из других тренировок учтены.",
                     reply_markup=main_menu(),
                     user_id_override=learner,
                 )
             return
+    if not row["problem"]:
         try:
             candidate = await asyncio.to_thread(
                 generate, skill, await store.seen(row["owner"], skill)
@@ -182,19 +190,23 @@ async def start(message: Message, repository: Any) -> None:
     if not get_settings().oge_adaptive_enabled or not message.from_user:
         return
     learner = message.from_user.id
-    history = await overview(repository, learner)
-    if not unlocked(history):
-        await send_text(
-            message,
-            repository,
-            "Для плана нужны результаты обычных тренировок.",
-            reply_markup=main_menu(),
-            user_id_override=learner,
-        )
-        return
-    await Session(repository, learner).start(
-        plan(history, catalog(), datetime.now(UTC).timestamp())
-    )
+    pool = getattr(repository, "_pool", None)
+    store = Session(repository, learner) if pool is not None else None
+    current = await store.current() if store else None
+    if current is None:
+        history = await overview(repository, learner)
+        if not unlocked(history) or store is None:
+            await send_text(
+                message,
+                repository,
+                "Для плана нужны результаты обычных тренировок.",
+                reply_markup=main_menu(),
+                user_id_override=learner,
+            )
+            return
+        await store.start(plan(history, catalog(), datetime.now(UTC).timestamp()))
+    elif store:
+        await store.start([])
     await present(message, repository, learner)
 
 

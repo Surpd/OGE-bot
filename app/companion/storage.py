@@ -60,7 +60,8 @@ async def open_storage(url: str, bot_id: int) -> TestRepository:
         command_timeout=15,
         server_settings={
             "search_path": schema, "application_name": "oge-companion",
-            "bop.adaptive": "on" if get_settings().oge_companion_adaptive_enabled else "off",
+            "bop.adaptive": "on" if (get_settings().oge_companion_adaptive_enabled or
+                                     get_settings().oge_companion_adaptive_capture_only) else "off",
         },
     )
     assert pool is not None
