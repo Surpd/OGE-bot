@@ -8,6 +8,7 @@ import pytest
 from aiogram.types import Message
 from PIL import Image, ImageDraw
 
+from app.bot.scenario_materials import answer_grid_photo, prepare_scenario_materials
 from app.bot.scenario_training import public_registry, render_session
 from app.math.scenario_engine import (
     PracticeMode,
@@ -126,6 +127,9 @@ async def test_public_card_sends_only_materials_needed_for_current_question(stor
     store.close_legacy_with_exposed_answer.return_value = False
     await render_session(message, store, session, show_assets=True, user_id_override=1)
     expected = scenario_photos_for_question(snapshot, session.current_position)
+    grid = answer_grid_photo(snapshot, session.current_position)
+    if grid is not None:
+        expected = (*expected, grid)
     assert message.answer_photo.await_count == len(expected)
     assert [call.args[0].data for call in message.answer_photo.await_args_list] == list(expected)
     card = message.answer.await_args.args[0]
@@ -146,6 +150,21 @@ async def test_public_card_sends_only_materials_needed_for_current_question(stor
         upload = call.args[0]
         assert upload.filename.endswith(".png")
         assert upload.data.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def test_delivered_flat_plan_makes_both_loggias_visible_without_area_labels():
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, 42, "FLAT"), public_registry(),
+    ).snapshot
+    context, photos = prepare_scenario_materials(snapshot, 3)
+    assert "Обе лоджии расположены в верхних углах плана." in context
+    assert len(photos) == 1
+    with Image.open(BytesIO(photos[0])) as plan:
+        # Both corner rectangles use the legend's swatch in the transmitted PNG.
+        swatch = plan.getpixel((40, 880))
+        assert plan.getpixel((75, 167)) == plan.getpixel((825, 167)) == swatch
+        assert all(plan.getpixel(point) != swatch for point in [(415, 167), (75, 268)])
+    assert "4,8" not in snapshot.questions[2].condition
 
 
 def test_paper_photo_bisects_the_remaining_sheet_along_its_long_side():

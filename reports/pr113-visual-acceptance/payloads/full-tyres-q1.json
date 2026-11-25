@@ -1,0 +1,97 @@
+{
+  "id": "full-tyres-q1",
+  "label": "Полный комплект · TYRES · вопрос 1",
+  "category": "full-scenario",
+  "story": "TYRES",
+  "seed": 42,
+  "position": 1,
+  "mode": "full",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Ситуация. Завод устанавливает на автомобили шины маркировки 195/70 R14. Первое число обозначает ширину шины в миллиметрах, второе — высоту боковины в процентах от ширины, а число после <tg-math>R</tg-math> — диаметр диска в дюймах (1 дюйм = 25,4 мм). Диаметр всего колеса равен диаметру диска в миллиметрах плюс две высоты боковины.</p><p> </p><p>Схема показывает величины <tg-math>B</tg-math>, <tg-math>H</tg-math>, <tg-math>d</tg-math> и <tg-math>D</tg-math>. Рисунок условный и не в масштабе.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №1",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa",
+          "bytes": 23857
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №1",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/18a278c31202cba79ba6bdd8c75feb674f8373d0b7dd3073da36f0bf9e70468d.png",
+          "source_filename": "scenario-2.png",
+          "sha256": "18a278c31202cba79ba6bdd8c75feb674f8373d0b7dd3073da36f0bf9e70468d",
+          "bytes": 45302
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:f773de37-3486-54bd-9c2f-00a180abad89:1:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:f773de37-3486-54bd-9c2f-00a180abad89:1:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:f773de37-3486-54bd-9c2f-00a180abad89:1:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:f773de37-3486-54bd-9c2f-00a180abad89:1:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:f773de37-3486-54bd-9c2f-00a180abad89:1:0:p"
+            },
+            {
+              "text": "⏹ Завершить",
+              "callback_data": "o:a:f773de37-3486-54bd-9c2f-00a180abad89:1:0:r"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Шины</b></p><p> </p><p><b>Задание №1 из 5</b></p><p> </p><p>Шины какой наименьшей ширины можно устанавливать на автомобиль, если диаметр диска равен 13 дюймам? Ответ дайте в миллиметрах.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

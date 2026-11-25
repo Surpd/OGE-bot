@@ -1,6 +1,8 @@
 """Presentation of owned training headings; never changes formula tokens."""
 
 import re
+from collections.abc import Callable, Iterable
+from typing import Literal
 
 from app.bot.explicit_math import formulas
 from app.bot.math_notation import math_spans
@@ -15,6 +17,60 @@ HEADING = re.compile(
     r"Разбор(?: \(самостоятельное решение не засчитывается\))?:|"
     r"Подсказка(?: №\d+)?:|Ответ:|Правильный ответ:|Правильный вариант:)"
 )
+
+Role = Literal[
+    "title", "position", "context", "question", "instruction", "reaction",
+    "hint", "solution", "steps", "answer", "stats", "section", "recommendation",
+]
+EMPHASIS = {"title", "position", "hint", "solution", "answer", "section"}
+
+
+class TrainingMessage(str):
+    """Text-compatible training blocks. Roles travel with them through presentation."""
+
+    blocks: tuple[tuple[Role, str], ...]
+
+    def __new__(cls, *blocks: tuple[Role, str]) -> "TrainingMessage":
+        visible = tuple((role, text) for role, text in blocks if text)
+        message = super().__new__(cls, "\n\n".join(text for _, text in visible))
+        message.blocks = visible
+        return message
+
+    def transform(self, render: Callable[[str], str]) -> "TrainingMessage":
+        return TrainingMessage(*((role, render(body)) for role, body in self.blocks))
+
+    def has_role(self, *roles: Role) -> bool:
+        return any(role in roles for role, _ in self.blocks)
+
+    def headings(self) -> frozenset[str]:
+        return frozenset(
+            line for role, body in self.blocks if role in EMPHASIS for line in body.splitlines()
+        )
+
+
+def heading_for(line: str, headings: frozenset[str] | None) -> str:
+    if headings is not None:
+        if line not in headings:
+            return ""
+        return "Ответ:" if line.startswith("Ответ:") else line
+    match = HEADING.match(line)
+    return match.group(0) if match else ""
+
+
+def question_message(
+    title: str, question: str, detail: str = "", *, position: str = "",
+) -> TrainingMessage:
+    return TrainingMessage(
+        ("title", title), ("position", position), ("question", question), ("instruction", detail),
+    )
+
+
+def solution_message(steps: Iterable[str], answer: str, intro: str = "") -> TrainingMessage:
+    return TrainingMessage(
+        ("reaction", intro), ("solution", "Разбор:"),
+        ("steps", "\n\n".join(steps)), ("answer", f"Ответ: {answer}" if answer else ""),
+    )
+
 
 def action_prefix(line: str) -> str | None:
     action, separator, _ = line.partition(":")

@@ -64,14 +64,14 @@ async def test_task6_wrong_first_attempt_does_not_reveal_answer_then_second_does
     first = _answer(repository, 777, "999")
     await task6_answer(first, repository)
     first_feedback = first.answer.await_args.args[0]
-    assert "Пока неверно" in first_feedback
+    assert "Попробуй ещё раз" in first_feedback
     assert correct_answer not in first_feedback
     assert repository.training[777]["state"]["attempts"] == 1
 
     second = _answer(repository, 777, "999")
     await task6_answer(second, repository)
     second_feedback = second.answer.await_args.args[0]
-    assert "Вторая попытка неверна" in second_feedback
+    assert "Разбор:" in second_feedback
     assert correct_answer in second_feedback
     assert repository.training[777]["state"]["attempts"] == 2
 
@@ -498,7 +498,7 @@ async def test_active_and_completed_task6_buttons_are_distinct() -> None:
     await task6_answer(correct, repository)
     completed_keyboard = correct.answer.await_args.kwargs["reply_markup"]
     assert {button.text for row in completed_keyboard.inline_keyboard for button in row} == {
-        "➡ Следующее",
+        "➡ Дальше",
         "↩ В меню",
     }
 

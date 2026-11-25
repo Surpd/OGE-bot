@@ -32,7 +32,9 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-VERSION = "garden-sosnovka-1.5"
+VERSION = "garden-sosnovka-1.7"
+PREVIOUS_VERSION = "garden-sosnovka-1.6"
+SOURCE_PLAN_VERSIONS = frozenset({VERSION, PREVIOUS_VERSION, "garden-sosnovka-1.5"})
 _PRE_HEAT_VERSION = "garden-sosnovka-1.3"
 _PRE_GEOMETRY_VERSION = "garden-sosnovka-1.4"
 POLICY_VERSION = "1"
@@ -231,7 +233,7 @@ def _svg_current(ctx: Mapping[str, JsonValue]) -> bytes:
 
 
 def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
-    if ctx.get("world_version") == VERSION:
+    if ctx.get("world_version") in SOURCE_PLAN_VERSIONS:
         return _svg_current(ctx)
     return _svg_legacy(ctx)
 
@@ -257,6 +259,29 @@ class _Generator:
         )
 
 
+def _modern_heat_solution(heat: Mapping[str, int]) -> tuple[str, tuple[str, ...]]:
+    gas_initial = heat["gas_heater_cost"] + heat["gas_installation_cost"]
+    electric_initial = heat["electric_heater_cost"] + heat["electric_installation_cost"]
+    gas_hourly = heat["gas_m3_per_hour_tenths"] * heat["gas_price_per_m3_tenths"]
+    electric_hourly = heat["electric_kw_tenths"] * heat["electric_price_per_kwh_tenths"]
+    numerator = (gas_initial - electric_initial) * 100
+    denominator = electric_hourly - gas_hourly
+    if denominator <= 0 or numerator <= 0 or numerator % denominator:
+        raise ValueError("Heating data has no positive whole-hour break-even point")
+    answer = str(numerator // denominator)
+    return answer, (
+        f"Начальные затраты: газ {heat['gas_heater_cost']} + {heat['gas_installation_cost']} = "
+        f"{gas_initial} руб.; электричество {heat['electric_heater_cost']} + "
+        f"{heat['electric_installation_cost']} = {electric_initial} руб.",
+        f"За час: газ {heat['gas_m3_per_hour_tenths'] / 10:.1f} × "
+        f"{heat['gas_price_per_m3_tenths'] / 10:.1f} = {gas_hourly / 100:.2f} руб.; "
+        f"электричество {heat['electric_kw_tenths'] / 10:.1f} × "
+        f"{heat['electric_price_per_kwh_tenths'] / 10:.1f} = {electric_hourly / 100:.2f} руб.",
+        f"Разница начальных затрат — {gas_initial - electric_initial} руб., экономия газа — "
+        f"{(electric_hourly - gas_hourly) / 100:.2f} руб./ч. Ответ: {answer} ч.",
+    )
+
+
 class _Builder:
     def build_question(self, scenario: ScenarioDraft, position: int) -> QuestionDraft:
         c = scenario.context
@@ -266,11 +291,8 @@ class _Builder:
         if position == 1:
             answer = "".join(str(labels[k]) for k in ("house", "bath", "garage", "greenhouse"))
             condition = (
-                "При входе на участок слева от единственных ворот находится гараж, "
-                "справа — сарай, а чуть дальше расположен жилой дом. Напротив дома "
-                "находятся яблоневые посадки; огород отмечен на плане цифрой 6, а "
-                "теплица расположена внутри огорода. Найдите номера жилого дома, бани, "
-                "гаража и теплицы и запишите четыре цифры в указанном порядке."
+                "Найдите на плане номера жилого дома, бани, гаража и теплицы. "
+                "Запишите четыре цифры в указанном порядке."
             )
         elif position == 2:
             answer = str(
@@ -288,23 +310,30 @@ class _Builder:
             condition = "Найдите по плану, сколько процентов площади участка занимают дом, баня, гараж и сарай. Это четыре бежевых строения. Сторона клетки 2 м. Ответ округлите до целого."
         elif position == 5:
             heat = cast(Mapping[str, int], c["heat"])
-            if scenario.generator_version == VERSION:
+            if scenario.generator_version in {VERSION, PREVIOUS_VERSION}:
                 gas_initial = heat["gas_heater_cost"] + heat["gas_installation_cost"]
                 electric_initial = heat["electric_heater_cost"] + heat["electric_installation_cost"]
                 gas_rate = heat["gas_m3_per_hour_tenths"] * heat["gas_price_per_m3_tenths"]
                 electric_rate = heat["electric_kw_tenths"] * heat["electric_price_per_kwh_tenths"]
                 answer = str((gas_initial - electric_initial) * 100 // (electric_rate - gas_rate))
-                condition = (
-                    "Для одного и того же дома выбирают отопление газом или электричеством. "
-                    f"Стоимость оборудования и установки: газовый котёл {heat['gas_heater_cost']} руб. "
-                    f"и монтаж {heat['gas_installation_cost']} руб.; электрический котёл "
-                    f"{heat['electric_heater_cost']} руб. и монтаж {heat['electric_installation_cost']} руб. "
-                    f"Расход газа — {heat['gas_m3_per_hour_tenths'] / 10:.1f} м³ в час, цена газа — "
-                    f"{heat['gas_price_per_m3_tenths'] / 10:.1f} руб. за м³; мощность электрического "
-                    f"котла — {heat['electric_kw_tenths'] / 10:.1f} кВт, цена электроэнергии — "
-                    f"{heat['electric_price_per_kwh_tenths'] / 10:.1f} руб. за кВт·ч. "
-                    "Через сколько часов суммарные затраты на оборудование, установку и топливо сравняются?"
-                )
+                if scenario.generator_version == VERSION:
+                    condition = (
+                        "Для одного и того же дома выбирают отопление газом или электричеством. "
+                        "Используйте таблицу исходных данных. Через сколько часов суммарные "
+                        "затраты на оборудование, установку и энергию сравняются?"
+                    )
+                else:
+                    condition = (
+                        "Для одного и того же дома выбирают отопление газом или электричеством. "
+                        f"Стоимость оборудования и установки: газовый котёл {heat['gas_heater_cost']} руб. "
+                        f"и монтаж {heat['gas_installation_cost']} руб.; электрический котёл "
+                        f"{heat['electric_heater_cost']} руб. и монтаж {heat['electric_installation_cost']} руб. "
+                        f"Расход газа — {heat['gas_m3_per_hour_tenths'] / 10:.1f} м³ в час, цена газа — "
+                        f"{heat['gas_price_per_m3_tenths'] / 10:.1f} руб. за м³; мощность электрического "
+                        f"котла — {heat['electric_kw_tenths'] / 10:.1f} кВт, цена электроэнергии — "
+                        f"{heat['electric_price_per_kwh_tenths'] / 10:.1f} руб. за кВт·ч. "
+                        "Через сколько часов суммарные затраты на оборудование, установку и топливо сравняются?"
+                    )
             else:
                 answer = str(heat["break_even_hours"])
                 condition = f"Сравните отопление газом и электричеством по плану и данным: начальные затраты газ — {heat['gas_upfront']} руб., электричество — {heat['electric_upfront']} руб.; расходы за час — {heat['gas_hourly_cents'] / 100:.2f} и {heat['electric_hourly_cents'] / 100:.2f} руб. Через сколько часов суммарные затраты сравняются?"
@@ -331,23 +360,10 @@ class _Builder:
         }
         if position == 5:
             heat = cast(Mapping[str, int], c["heat"])
-            if scenario.generator_version == VERSION:
-                difference = (heat["gas_heater_cost"] + heat["gas_installation_cost"]
-                              - heat["electric_heater_cost"] - heat["electric_installation_cost"])
-                gas_rate = heat["gas_m3_per_hour_tenths"] * heat["gas_price_per_m3_tenths"]
-                electric_rate = heat["electric_kw_tenths"] * heat["electric_price_per_kwh_tenths"]
-                solutions[5] = (
-                    f"Начальные затраты: газ {heat['gas_heater_cost']} + {heat['gas_installation_cost']} = "
-                    f"{heat['gas_heater_cost'] + heat['gas_installation_cost']} руб.; электричество "
-                    f"{heat['electric_heater_cost']} + {heat['electric_installation_cost']} = "
-                    f"{heat['electric_heater_cost'] + heat['electric_installation_cost']} руб.",
-                    f"За час: газ {heat['gas_m3_per_hour_tenths'] / 10:.1f} × "
-                    f"{heat['gas_price_per_m3_tenths'] / 10:.1f} = {gas_rate / 100:.2f} руб.; "
-                    f"электричество {heat['electric_kw_tenths'] / 10:.1f} × "
-                    f"{heat['electric_price_per_kwh_tenths'] / 10:.1f} = {electric_rate / 100:.2f} руб.",
-                    f"Разница начальных затрат — {difference} руб., экономия газа — "
-                    f"{(electric_rate - gas_rate) / 100:.2f} руб./ч. Ответ: {answer} ч.",
-                )
+            if scenario.generator_version in {VERSION, PREVIOUS_VERSION}:
+                checked_answer, solutions[5] = _modern_heat_solution(heat)
+                if answer != checked_answer:
+                    raise ValueError("Heating answer and source operands disagree")
             else:
                 difference = heat["gas_upfront"] - heat["electric_upfront"]
                 savings = (heat["electric_hourly_cents"] - heat["gas_hourly_cents"]) / 100
@@ -356,6 +372,13 @@ class _Builder:
                     f"За час оно экономит 20,58 − 7,84 = {savings:.2f} руб.",
                     f"Затраты сравняются через {difference} / {savings:.2f} = {answer} ч.",
                 )
+        model: dict[str, JsonValue] = {"position": position, "expected": answer}
+        if position == 1:
+            model["answer_grid"] = {
+                "columns": ("Жилой дом", "Баня", "Гараж", "Теплица"),
+                "header": "Объект",
+                "row": "Цифра на плане",
+            }
         return QuestionDraft(
             position,
             scenario.seed,
@@ -367,7 +390,7 @@ class _Builder:
             answer,
             (hints[position],),
             solutions[position],
-            {"position": position, "expected": answer},
+            model,
         )
 
 
@@ -375,9 +398,27 @@ class _Renderer:
     @staticmethod
     def _shared_context(scenario: ScenarioDraft) -> str:
         if scenario.generator_version == VERSION:
+            return (
+                "На плане изображён дачный участок в посёлке Сосновка. Единственные ворота "
+                "расположены на правой границе. При входе слева находится гараж, справа — сарай, "
+                "а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. "
+                "Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится "
+                "в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, "
+                "плитка — 1×1 м.\n"
+                "Отопление одного дома можно организовать газовым или электрическим котлом. "
+                "Для сравнения учитывают стоимость котла, монтажа и потребляемой энергии; "
+                "числовые исходные данные приведены в отдельной таблице.\n"
+                "Все пять вопросов относятся к одному плану. Аналог ОГЭ."
+            )
+        if scenario.generator_version == PREVIOUS_VERSION:
             h = cast(Mapping[str, int], scenario.context["heat"])
             return (
-                "План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.\n"
+                "На плане изображён дачный участок в посёлке Сосновка. Единственные ворота "
+                "расположены на правой границе. При входе слева находится гараж, справа — сарай, "
+                "а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. "
+                "Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится "
+                "в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, "
+                "плитка — 1×1 м.\n"
                 "Отопление одного дома (общие данные):\n"
                 f"Газ: котёл {h['gas_heater_cost']} руб., монтаж {h['gas_installation_cost']} руб.; "
                 f"{h['gas_m3_per_hour_tenths'] / 10:.1f} м³/ч, {h['gas_price_per_m3_tenths'] / 10:.1f} руб./м³.\n"
@@ -387,7 +428,12 @@ class _Renderer:
                 "Все пять вопросов относятся к одному плану. Аналог ОГЭ."
             )
         return (
-            "План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.\n"
+            "На плане изображён дачный участок в посёлке Сосновка. Единственные ворота "
+            "расположены на правой границе. При входе слева находится гараж, справа — сарай, "
+            "а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. "
+            "Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится "
+            "в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, "
+            "плитка — 1×1 м.\n"
             "Все пять вопросов относятся к одному плану. Аналог ОГЭ."
         )
 
@@ -449,13 +495,25 @@ class _Oracle:
             expected = "".join(str(labels[k]) for k in ("house", "bath", "garage", "greenhouse"))
             if question.canonical_answer != expected:
                 raise ValueError("Rendered object order differs from plan")
+            if question.math_model.get("answer_grid") != {
+                "columns": ("Жилой дом", "Баня", "Гараж", "Теплица"),
+                "header": "Объект",
+                "row": "Цифра на плане",
+            }:
+                raise ValueError("Garden matching grid differs from the requested object order")
             condition = question.condition.lower()
+            shared = rendered.shared_context.lower()
             for term in (
-                "дом", "бан", "гараж", "теплиц", "слева от единственных ворот",
-                "справа — сарай", "напротив дома", "цифрой 6", "указанном порядке",
+                "дом", "бан", "гараж", "теплиц", "указанном порядке",
             ):
                 if term not in condition:
                     raise ValueError("Identify wording does not match its answer order")
+            for term in (
+                "единственные ворота", "слева находится гараж", "справа — сарай",
+                "напротив дома", "цифрой 6", "теплица расположена внутри огорода",
+            ):
+                if term not in shared:
+                    raise ValueError("Shared garden narrative omits an identification clue")
         elif question.position == 2:
             pack = cast(int, scenario.context["tiles_per_pack"])
             if question.canonical_answer != str(ceil(65 / pack)):
@@ -477,6 +535,27 @@ class _Oracle:
         elif question.position == 5:
             heat = cast(Mapping[str, int], scenario.context["heat"])
             if scenario.generator_version == VERSION:
+                answer, expected_steps = _modern_heat_solution(heat)
+                if question.canonical_answer != answer:
+                    raise ValueError("Heating answer mismatch")
+                visible_operands = (
+                    str(heat["gas_heater_cost"]), str(heat["gas_installation_cost"]),
+                    str(heat["electric_heater_cost"]), str(heat["electric_installation_cost"]),
+                    f"{heat['gas_m3_per_hour_tenths'] / 10:.1f}",
+                    f"{heat['gas_price_per_m3_tenths'] / 10:.1f}",
+                    f"{heat['electric_kw_tenths'] / 10:.1f}",
+                    f"{heat['electric_price_per_kwh_tenths'] / 10:.1f}",
+                )
+                if any(
+                    value in rendered.shared_context or value in question.condition
+                    for value in visible_operands
+                ):
+                    raise ValueError("Heating operands must be shown only in the attached table")
+                if "таблицу исходных данных" not in question.condition:
+                    raise ValueError("Heating question must point to its presented data table")
+                if question.solution_steps != expected_steps:
+                    raise ValueError("Heating solution steps disagree with the source operands")
+            elif scenario.generator_version == PREVIOUS_VERSION:
                 gas_row = search(
                     r"Газ: котёл (\d+) руб\., монтаж (\d+) руб\.; ([\d.]+) м³/ч, ([\d.]+) руб\./м³",
                     rendered.shared_context,
@@ -501,8 +580,8 @@ class _Oracle:
                 denominator = electric_hourly - gas_hourly
                 if numerator % denominator:
                     raise ValueError("Displayed heating data has no whole-hour break-even point")
-                answer = numerator // denominator
-                if question.canonical_answer != str(answer):
+                parsed_answer = numerator // denominator
+                if question.canonical_answer != str(parsed_answer):
                     raise ValueError("Heating answer mismatch")
                 expected_operands = (
                     str(heat["gas_heater_cost"]), str(heat["gas_installation_cost"]),
@@ -527,7 +606,8 @@ class _Oracle:
                     f"электричество {electric_row[3]} × {electric_row[4]} = "
                     f"{rubles(electric_hourly)} руб.",
                     f"Разница начальных затрат — {gas_initial - electric_initial} руб., "
-                    f"экономия газа — {rubles(electric_hourly - gas_hourly)} руб./ч. Ответ: {answer} ч.",
+                    f"экономия газа — {rubles(electric_hourly - gas_hourly)} руб./ч. "
+                    f"Ответ: {parsed_answer} ч.",
                 )
                 if question.solution_steps != expected_steps:
                     raise ValueError("Heating solution steps disagree with the displayed table")

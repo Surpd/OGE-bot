@@ -32,7 +32,7 @@ from aiogram.utils.formatting import Text
 from app.bot.explicit_math import flatten_math_lines, formulas, plain_text
 from app.bot.family_display import formats, template_key, typeset_family_text
 from app.bot.math_fragments import MathFragment
-from app.bot.math_layout import HEADING, action_prefix, layout_text
+from app.bot.math_layout import TrainingMessage, action_prefix, heading_for, layout_text
 from app.bot.math_notation import (
     math_spans,
     parse_formula,
@@ -51,14 +51,14 @@ def format_math_message(text: str | MathFragment) -> str:
     tables, formula images, or interpreting arbitrary source text as HTML/LaTeX.
     """
     source = text if isinstance(text, str) else text.unicode()
-    if source.startswith(("Разбор:", "Вторая попытка неверна.")):
+    headings = text.transform(plain_text).headings() if isinstance(text, TrainingMessage) else None
+    if headings is not None or source.startswith(("Разбор:", "Вторая попытка неверна.")):
         source = layout_text(source)
     source = plain_text(source)
     lines = []
     for line in source.split("\n"):
-        match = HEADING.match(line)
-        if match:
-            title = match.group(0)
+        title = heading_for(line, headings)
+        if title:
             lines.append(f"<b>{escape(title)}</b>{escape(line[len(title) :])}")
         else:
             # Feedback can put the answer after its first sentence.
@@ -79,12 +79,12 @@ def render_math_fragment(fragment: MathFragment) -> str:
     return format_math_message(fragment.unicode())
 
 
-def hint_message(hint: str, problem: object = None, *, numbered: bool = True) -> str:
+def hint_message(hint: str, problem: object = None, *, numbered: bool = True) -> TrainingMessage:
     hints = problem.get("hints") if isinstance(problem, dict) else None
     number = ""
     if numbered and isinstance(hints, list | tuple) and len(hints) > 1 and hint in hints:
         number = f" №{hints.index(hint) + 1}"
-    return f"Подсказка{number}:\n\n{hint}"
+    return TrainingMessage(("hint", f"Подсказка{number}:"), ("context", hint))
 
 
 def format_rich_message(
@@ -96,6 +96,10 @@ def format_rich_message(
         return "<tg-math-block>" + escape(source.latex()) + "</tg-math-block>"
     lines = []
     solution = False
+    headings = (
+        source.transform(flatten_math_lines).headings()
+        if isinstance(source, TrainingMessage) else None
+    )
     source_lines = layout_text(flatten_math_lines(source)).split("\n")
     skipped = 0
     for index, line in enumerate(source_lines):
@@ -111,9 +115,12 @@ def format_rich_message(
                 lines.append("<tg-math-block>" + escape(latex) + "</tg-math-block>")
                 skipped = len(system_rows) - 1
                 continue
-        match = HEADING.match(line)
-        if match:
-            title = match.group(0)
+        if not line.strip() and headings is not None:
+            # An empty HTML paragraph can disappear in Rendered Rich HTML.
+            lines.append("<p>\u00a0</p>")
+            continue
+        title = heading_for(line, headings)
+        if title:
             lines.append(
                 "<p><b>" + escape(title) + "</b>" + rich_inline(line[len(title) :]) + "</p>"
             )
@@ -292,6 +299,12 @@ async def _bind_navigation(
         await bind_navigation(sent, repository, user_id, screen, navigation_revision(markup))
 
 
+def _typeset(source: str | MathFragment, family: object) -> str | MathFragment:
+    if isinstance(source, TrainingMessage):
+        return source.transform(lambda block: typeset_family_text(block, family))
+    return typeset_family_text(source, family) if isinstance(source, str) else source
+
+
 async def send_text(
     message: Message,
     repository: Repository,
@@ -328,7 +341,10 @@ async def send_text(
             key in {"OGE18-A06", "OGE18-A07", "OGE18-C01"}
             and isinstance(math_family, dict)
             and isinstance(text, str)
-            and any(s.startswith("Разбор") for s in text.splitlines())
+            and (
+                text.has_role("solution") if isinstance(text, TrainingMessage)
+                else any(line.startswith("Разбор") for line in text.splitlines())
+            )
         ):
             from app.math.oge18_render import polygon_construction
 
@@ -338,7 +354,7 @@ async def send_text(
         try:
             sent = await _send_mathematics(
                 message,
-                typeset_family_text(text, math_family) if isinstance(text, str) else text,
+                _typeset(text, math_family),
                 construction,
                 kwargs,
                 repository=repository,
@@ -413,7 +429,7 @@ async def send_photo(
     ):
         sent = await _send_mathematics(
             message,
-            typeset_family_text(caption, math_family) if isinstance(caption, str) else caption,
+            _typeset(caption, math_family),
             photo,
             kwargs,
             repository=repository,

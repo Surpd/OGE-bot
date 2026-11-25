@@ -597,8 +597,7 @@ async def test_task7_history_is_visible_in_detailed_progress(
     details = await training_insights(repository, user_id)
     number_text = render_progress(details, "number:7")
     assert "№7" in number_text
-    assert "Задач с ответом: 1" in number_text
-    assert "Решено правильно: 1" in number_text
+    assert "Решено правильно: 1 из 1" in number_text
     assert "Успешность: 100%" in number_text
 
     history_data = await load_progress_text_page(repository, user_id, "history:0")

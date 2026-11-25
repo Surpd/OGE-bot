@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import re
 import secrets
+from contextlib import suppress
 from dataclasses import replace
 from functools import lru_cache
 from types import SimpleNamespace
@@ -12,7 +13,7 @@ from typing import cast
 from uuid import UUID
 
 from aiogram.dispatcher.event.bases import SkipHandler
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -20,9 +21,11 @@ from aiogram.types import (
     Message,
 )
 
+from app.bot.bop_copy import LABELS, reply
 from app.bot.callbacks import answer_callback
+from app.bot.math_layout import TrainingMessage, question_message, solution_message
 from app.bot.menu import main_menu
-from app.bot.presentation import send_text
+from app.bot.presentation import format_math_message, hint_message, send_text
 from app.bot.scenario_materials import (
     scenario_context_for_question as scenario_context_for_question,
 )
@@ -194,7 +197,7 @@ def _story_keyboard(selected_number: int | None = None) -> InlineKeyboardMarkup:
             [_button(f"↩ К статистике №{selected_number}", f"oge15:return:{selected_number}")]
         )
     else:
-        rows.append([_button("↩ В меню", "nav:main")])
+        rows.append([_button(LABELS["menu"], "nav:main")])
     return _keyboard(rows)
 
 
@@ -396,11 +399,13 @@ async def _position_step(
 async def _show_data(
     message: Message, session: ScenarioSession, *, shared: bool, current: bool,
     repository: Repository | None = None, user_id: int | None = None,
+    previous_position: int | None = None,
 ) -> bool:
     if not (shared or current):
         return True
     return await send_scenario_materials(
         message, repository, session.snapshot, session.current_position, user_id=user_id,
+        previous_position=previous_position,
     )
 
 
@@ -423,6 +428,7 @@ async def render_session(
     *,
     show_assets: bool,
     show_current_asset: bool = False,
+    previous_position: int | None = None,
     edit_current: bool = False,
     result_text: str | None = None,
     user_id_override: int | None = None,
@@ -438,7 +444,8 @@ async def render_session(
     story = STORY_NAMES.get(snapshot.story_code, snapshot.story_code)
     if show_assets or show_current_asset:
         if not await _show_data(message, session, shared=show_assets, current=True,
-                                repository=repository, user_id=telegram_user_id):
+                                repository=repository, user_id=telegram_user_id,
+                                previous_position=previous_position):
             return
     progress = (
         f"Задание №{session.current_position} из 5"
@@ -459,12 +466,12 @@ async def render_session(
         rows.extend(
             [
                 [
-                    _button("💡 Подсказка", callback("hint")),
-                    _button("📘 Разбор", callback("solution")),
+                    _button(LABELS["hint"], callback("hint")),
+                    _button(LABELS["solution"], callback("solution")),
                 ],
                 [
-                    _button("⏭ Пропустить", callback("skip")),
-                    _button("📷 Схема / данные", callback("data")),
+                    _button(LABELS["skip"], callback("skip")),
+                    _button(LABELS["data"], callback("data")),
                 ],
             ]
         )
@@ -475,38 +482,36 @@ async def render_session(
         )
         rows.append(
             [
-                _button("↩ В меню", callback("pause")),
+                _button(LABELS["menu"], callback("pause")),
                 *([finish_button] if finish_button is not None else []),
             ]
         )
     else:
         if session.mode is PracticeMode.FULL and session.current_position < 5:
-            next_label = "➡ Следующий вопрос"
+            next_label = LABELS["next"]
         elif session.mode is PracticeMode.FULL:
-            next_label = "Завершить пятёрку"
+            next_label = "Завершить тренировку"
         else:
             next_label = "Завершить"
         rows.append(
             [
                 _button(next_label, callback("next")),
-                _button("📷 Схема / данные", callback("data")),
+                _button(LABELS["data"], callback("data")),
             ]
         )
-        rows.append([_button("↩ В меню", callback("pause"))])
-    title = f"{story} · {progress}"
+        rows.append([_button(LABELS["menu"], callback("pause"))])
     if session.question_status == "active":
-        body = (
-            f"{title}\n\n{question.condition}\n\n"
-            "Напишите ответ в чат."
-        )
+        detail = "Напиши ответ в чат."
     else:
-        body = f"{title}\n\n{question.condition}"
-        if result_text is None:
-            result_text = resumed_result(
-                session.question_status, {"correct_answer": question.canonical_answer}
-            )
-    if result_text:
-        body += f"\n\n{result_text}"
+        detail = result_text or resumed_result(
+            session.question_status, {"correct_answer": question.canonical_answer},
+        ) or ""
+    body = question_message(story, question.condition, detail, position=progress)
+    if isinstance(result_text, TrainingMessage):
+        body = TrainingMessage(
+            ("title", story), ("position", progress), ("question", question.condition),
+            *result_text.blocks,
+        )
     markup = _keyboard(rows)
     controls = None
     if edit_current and message.message_id == session.control_message_id and repository is None:
@@ -532,12 +537,20 @@ async def render_session(
         await store.set_condition_message(
             telegram_user_id, session.session_id, session.current_position, controls.message_id
         )
-    await store.set_control_message(
+    bound = await store.set_control_message(
         telegram_user_id,
         session.session_id,
         session.navigation_revision,
         controls.message_id,
     )
+    if (
+        bound and session.control_message_id is not None
+        and message.message_id != controls.message_id
+        and message.message_id == session.control_message_id
+        and message.from_user and message.from_user.is_bot
+    ):
+        with suppress(TelegramAPIError):
+            await message.edit_reply_markup(reply_markup=None)
 
 
 async def _render_finish_confirmation(
@@ -733,14 +746,15 @@ async def answer_message(
     if updated is None or updated.status != "active":
         return
     if is_correct:
-        result_text = "✅ Верно! Ответ засчитан."
+        result_text = reply(
+            "corrected" if session.attempt_count else "correct", message.message_id,
+        )
     elif updated.question_status == "failed":
-        result_text = (
-            f"Правильный ответ: {question.canonical_answer}.\n\n"
-            + "\n".join(question.solution_steps)
+        result_text = solution_message(
+            question.solution_steps, question.canonical_answer, reply("review", message.message_id),
         )
     else:
-        await message.answer("Пока неверно. Попробуйте ещё раз.")
+        await message.answer(reply("wrong", message.message_id))
         return
     await render_session(
         message, store, updated, show_assets=False, result_text=result_text, repository=repository
@@ -1030,19 +1044,16 @@ async def handle_callback(
                 if action == "finish":
                     heading = "Тренировка завершена досрочно."
                     note = "Невыданные вопросы не считаются ошибками или пропусками."
-                elif session.mode is PracticeMode.FULL:
-                    heading = "Пятёрка завершена!"
-                    note = "Все пять вопросов были выданы."
                 else:
-                    heading = "Одно задание завершено!"
+                    heading = reply("done", callback.message.message_id)
                     note = ""
-                terminal_text = (
-                    f"{heading}\n\n"
-                    f"Верно: {summary['correct']} · ошибок после двух попыток: "
-                    f"{summary['failed']}\n"
-                    f"Разборов: {summary['reviewed']} · пропусков: {summary['skipped']}\n"
-                    f"Задано вопросов: {summary['issued']}.\n{note}"
-                ).rstrip()
+                terminal_text = TrainingMessage(
+                    ("title", heading),
+                    ("stats", f"Решено верно: {summary['correct']} из {summary['issued']}\n"
+                     f"Самостоятельно: {summary['independent']} из {summary['issued']}\n"
+                     f"Пропущено: {summary['skipped']}"),
+                    ("instruction", note),
+                )
                 if repository is not None:
                     from app.bot.navigation import (
                         bind_navigation,
@@ -1054,7 +1065,8 @@ async def handle_callback(
                     markup = prepare_navigation_markup(main_menu())
                     try:
                         edited = await callback.message.edit_text(
-                            terminal_text, reply_markup=cast(InlineKeyboardMarkup, markup)
+                            format_math_message(terminal_text), parse_mode="HTML",
+                            reply_markup=cast(InlineKeyboardMarkup, markup),
                         )
                         target = edited if isinstance(edited, Message) else callback.message
                         await bind_navigation(
@@ -1076,14 +1088,15 @@ async def handle_callback(
         if action == "hint":
             q = next(q for q in updated.snapshot.questions if q.position == action_position)
             hint = q.hints[min(updated.hints_used - 1, len(q.hints) - 1)]
+            text = hint_message(hint, {"hints": q.hints})
             if repository is None:
-                await callback.message.answer(hint)
+                await callback.message.answer(text)
             else:
-                await send_text(callback.message, repository, hint,
+                await send_text(callback.message, repository, text,
                                 user_id_override=callback.from_user.id, math_family=q.family_id)
         elif action == "solution":
             q = next(q for q in updated.snapshot.questions if q.position == action_position)
-            result_text = "Разбор:\n" + "\n".join(q.solution_steps)
+            result_text = solution_message(q.solution_steps, q.canonical_answer)
         elif action == "pause":
             if repository is not None:
                 await repository.save_user_state(callback.from_user.id, "main_menu")
@@ -1103,6 +1116,12 @@ async def handle_callback(
             updated,
             show_assets=False,
             show_current_asset=action in {"next", "skip"},
+            previous_position=(
+                session.current_position
+                if session.mode is PracticeMode.FULL and session.prompt_message_id
+                and updated.current_position == session.current_position + 1
+                else None
+            ),
             edit_current=action in {"hint", "solution"},
             result_text=result_text,
             user_id_override=callback.from_user.id,

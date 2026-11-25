@@ -1,0 +1,78 @@
+{
+  "id": "single-stove-f09-direct-discount",
+  "label": "Одиночная выдача · STOVE-F09-DIRECT-DISCOUNT",
+  "category": "single-family",
+  "story": "STOVE",
+  "seed": 2,
+  "position": 4,
+  "family": "STOVE-F09-DIRECT-DISCOUNT",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>2{,}8 \\times 2{,}1 \\times 2{,}5</tg-math> м. Дверь: 57 см × 207 см; окон нет.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/93bfacf9a9ad24a80d7dc64f5a9ff765e6fb7c4b2ea307bc4f1d5e9ef2bfec7e.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "93bfacf9a9ad24a80d7dc64f5a9ff765e6fb7c4b2ea307bc4f1d5e9ef2bfec7e",
+          "bytes": 37058
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:518eecbc-f92a-534c-9f29-63a6825c3d00:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:518eecbc-f92a-534c-9f29-63a6825c3d00:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:518eecbc-f92a-534c-9f29-63a6825c3d00:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:518eecbc-f92a-534c-9f29-63a6825c3d00:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:518eecbc-f92a-534c-9f29-63a6825c3d00:4:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №4</b></p><p> </p><p>На дровяную печь массой 68 кг предоставлена скидка 10%. Сколько будет стоить печь после скидки?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

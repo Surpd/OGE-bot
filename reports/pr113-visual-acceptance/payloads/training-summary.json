@@ -1,0 +1,36 @@
+{
+  "id": "training-summary",
+  "label": "Итоги тренировки",
+  "category": "training-result",
+  "mode": "full",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "<b>Тренировка завершена!</b>\n\nРешено верно: 4 из 5\nСамостоятельно: 3 из 5\nПропущено: 1",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "К тренировкам",
+              "callback_data": "train:hub~b271334cb98c"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "train:progress~b271334cb98c"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~b271334cb98c"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -731,8 +731,7 @@ def test_progress_text_uses_answered_denominator_and_keeps_skips_separate():
         *[record(6, outcome="skipped") for _ in range(15)],
     ])
     text = render_progress(four_answered, "number:6")
-    assert "Задач с ответом: 4" in text
-    assert "Решено правильно: 4" in text
+    assert "Решено правильно: 4 из 4" in text
     assert "Успешность: 100%" in text
     assert "Пропущено: 15" in text
     assert "Данных недостаточно для оценки: нужно 5 задач с ответом." in text
@@ -742,6 +741,7 @@ def test_progress_text_uses_answered_denominator_and_keeps_skips_separate():
         record(6, outcome="failed", attempts=[{"attempt_no": 1, "is_correct": False}]),
     ])
     enough_text = render_progress(five_answered, "number:6")
+    assert "Решено правильно: 4 из 5" in enough_text
     assert "Успешность: 80%" in enough_text
     assert "Данных недостаточно для оценки" not in enough_text
 

@@ -28,7 +28,8 @@ from app.math.scenario_engine import (
 )
 
 LEGACY_VERSION = "flat-grid-1.0.0"
-GENERATOR_VERSION = "flat-grid-2.1.0"
+PREVIOUS_VERSION = "flat-grid-2.1.0"
+GENERATOR_VERSION = "flat-grid-2.2.0"
 COMPATIBILITY_VERSION = "flat-compat-1"
 CELL_M = Fraction(2, 5)
 SOURCE_VECTOR_SEED = 20220523
@@ -123,7 +124,7 @@ def plan_symbols(
 ]:
     if version == LEGACY_VERSION:
         return LEGACY_ROOM_PARTS, LEGACY_DOOR_MARKS, LEGACY_WINDOW_MARKS
-    if version == GENERATOR_VERSION:
+    if version in (PREVIOUS_VERSION, GENERATOR_VERSION):
         return ROOM_PARTS, DOOR_MARKS, WINDOW_MARKS
     raise ValueError("Unsupported FLAT geometry version")
 
@@ -345,14 +346,18 @@ class _QuestionBuilder:
             rooms = ("bathroom", "pantry", "bedroom", "living")
             answer = "".join(str(labels[name]) for name in rooms)
             condition = (
-                "Вход находится в коридоре. Слева от входа — санузел, в противоположном конце "
-                "коридора — кладовая. Рядом с кладовой находится спальня с выходом на лоджию. "
-                "Из гостиной можно попасть в коридор и на кухню, "
-                "из кухни — на другую лоджию. Гостиная — "
-                "самое большое помещение. Запишите номера в порядке: санузел, кладовая, "
-                "спальня, гостиная."
+                "Определите по плану номера помещений. Запишите номера в порядке: "
+                "санузел, кладовая, спальня, гостиная."
             )
-            model: dict[str, object] = {"rooms_in_order": list(rooms), "labels": dict(labels)}
+            model: dict[str, object] = {
+                "rooms_in_order": list(rooms),
+                "labels": dict(labels),
+                "answer_grid": {
+                    "columns": ["Санузел", "Кладовая", "Спальня", "Гостиная"],
+                    "header": "Помещение",
+                    "row": "Цифра на плане",
+                },
+            }
             solution = (
                 "Определите номера помещений по подписям на плане.",
                 f"В заданном порядке получаем {answer}.",
@@ -745,6 +750,7 @@ class _Renderer:
             "Коридор у входа; санузел слева от входа, кладовая в противоположном конце. "
             "Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; "
             "кухня выходит на другую лоджию. Гостиная — самое большое помещение. "
+            "Обе лоджии расположены в верхних углах плана. "
             "Синие штрихи обозначают двери, бирюзовые — окна, красный — вход. "
             "Это собственная SVG/PNG схема фиксированной топологии."
         )
@@ -754,6 +760,7 @@ class _Renderer:
         if snapshot.story_code != "FLAT" or snapshot.generator_version not in (
             LEGACY_VERSION,
             "flat-grid-2.0.0",
+            PREVIOUS_VERSION,
             GENERATOR_VERSION,
         ):
             raise ValueError("Unsupported FLAT snapshot renderer version")
@@ -852,10 +859,17 @@ class _Oracle:
             expected = "".join(str(labels[key]) for key in cast(list[str], model["rooms_in_order"]))
             if expected != question.canonical_answer or len(set(expected)) != 4:
                 raise ValueError("Room matching answer/order does not match visible label model")
+            if model.get("answer_grid") != {
+                "columns": ("Санузел", "Кладовая", "Спальня", "Гостиная"),
+                "header": "Помещение",
+                "row": "Цифра на плане",
+            }:
+                raise ValueError("Apartment matching grid differs from the requested room order")
             condition = question.condition.casefold()
             if (
-                "слева от входа — санузел" not in condition
-                or "самое большое помещение" not in condition
+                "санузел, кладовая, спальня, гостиная" not in condition
+                or "санузел слева от входа" not in rendered.shared_context.casefold()
+                or "самое большое помещение" not in rendered.shared_context.casefold()
             ):
                 raise ValueError("Room identity clues do not match the fixed plan")
         elif question.position == 2 and question.family_id == "FLAT-02-TILE-PACK":

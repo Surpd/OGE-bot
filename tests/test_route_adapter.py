@@ -219,12 +219,12 @@ def test_table_mutation_is_rejected() -> None:
         adapter.independent_oracle.validate_bundle(scenario, questions, mutated_render)
 
 
-def test_map_description_distance_mutation_is_rejected() -> None:
-    # RM07
+def test_map_description_keeps_lengths_in_the_map_material() -> None:
+    # RM07: edge lengths belong to the independently checked map, not duplicated prose.
     adapter, scenario, rendered, questions = _fixture()
-    altered = replace(rendered, shared_context=rendered.shared_context.replace("32 км", "23 км"))
-    with pytest.raises(ValueError, match="edge lengths"):
-        adapter.independent_oracle.validate_question(scenario, questions[1], altered)
+    assert "32 км" not in rendered.shared_context
+    assert "24 км" not in rendered.shared_context
+    adapter.independent_oracle.validate_question(scenario, questions[1], rendered)
 
 
 def test_topology_road_type_missing_edge_and_scale_mutations_are_rejected() -> None:

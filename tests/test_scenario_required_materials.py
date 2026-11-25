@@ -5,7 +5,7 @@ from dataclasses import replace
 from functools import lru_cache
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, call
 from uuid import UUID, uuid4
 
 import pytest
@@ -13,7 +13,15 @@ from aiogram.exceptions import TelegramNetworkError
 from aiogram.methods import SendPhoto
 from aiogram.types import Message
 
-from app.bot import error_replay, mixed_training, progress, scenario_materials, scenario_training
+from app.bot import (
+    adaptive,
+    error_replay,
+    mixed_training,
+    progress,
+    scenario_materials,
+    scenario_training,
+)
+from app.bot.presentation import MathDeliveryUncertain
 from app.math.scenario_engine import (
     PracticeMode,
     PracticeRequest,
@@ -54,6 +62,9 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
     assert question.family_id == case['family']
     all_photos = scenario_photos(snapshot)
     expected = [all_photos[int(i)] for i in case['indexes'].split()]
+    grid = scenario_materials.answer_grid_photo(snapshot, position)
+    if grid is not None:
+        expected.append(grid)
     before = snapshot.to_snapshot()
     events = []
 
@@ -88,7 +99,9 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
     )
     store = AsyncMock(spec=ScenarioPostgresRepository)
     store.close_legacy_with_exposed_answer.return_value = False
-    for path in ('single', 'full', 'resume', 'mix', 'mix-adjacent', 'replay', 'history'):
+    short_modes = ('personal', 'short-mixed', 'short-number', 'short-family')
+    for path in ('single', 'full', 'resume', 'mix', 'mix-adjacent', 'replay',
+                 'history', *short_modes):
         events.clear()
         if path in ('single', 'full', 'resume'):
             await scenario_training.render_session(
@@ -97,10 +110,18 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
                 )), show_assets=path != 'resume', show_current_asset=path == 'resume',
                 user_id_override=7,
             )
-        elif path.startswith('mix'):
+        elif path.startswith('mix') or path in short_modes:
             previous = {**problem, 'number': position - 1} if path == 'mix-adjacent' else None
+            keyboard = None
+            if path in short_modes:
+                keyboard = adaptive.keyboard({
+                    'problem': problem['problem_id'], 'outcome': 'issued', 'position': 0,
+                    'id': uuid4(), 'snapshot': json.dumps(problem),
+                    'plan': json.dumps([question.family_id]), 'hints_used': 0, 'prompt': None,
+                })
             await mixed_training._send_problem(
                 message, repository, AsyncMock(), problem, user_id=7, previous_problem=previous,
+                keyboard=keyboard,
             )
         elif path == 'replay':
             source = ReplaySource('scenario', uuid4(), position, position, problem,
@@ -130,6 +151,97 @@ async def test_required_payload_before_question_on_every_path(case, monkeypatch)
         labels = [b.text for row in events[-1][2].inline_keyboard for b in row]
         assert '📷 Схема / данные' in labels, path
         assert snapshot.to_snapshot() == before
+
+
+@pytest.mark.parametrize('family', [
+    'GARDEN-01-IDENTIFY', 'FLAT-01-ROOM-MATCH', 'PAPER-F01', 'TARIFF-F01-MONTHS-MINUTES',
+    'STOVE-F01-CAPACITY-LIMITS', 'STOVE-F02-ATTRIBUTE-MATCH',
+])
+def test_matching_grid_is_a_blank_student_response_form(family, monkeypatch):
+    from unittest.mock import Mock
+
+    table = Mock(return_value=b'blank png')
+    monkeypatch.setattr(scenario_materials, 'table', table)
+    case = next(c for c in CASES if c['family'] == family)
+    snapshot = saved(case['story'], case['seed'])
+    assert scenario_materials.answer_grid_photo(snapshot, 1) == b'blank png'
+    rows = table.call_args.args[1]
+    fields = snapshot.questions[0].math_model['answer_grid']['columns']
+    assert [cell.replace('\n', ' ') for cell in rows[0][1:]] == list(fields)
+    assert rows[1][1:] == [''] * len(fields)
+
+
+@pytest.mark.parametrize('story', ['TYRES', 'PAPER', 'STOVE', 'TARIFF', 'GARDEN', 'FLAT'])
+def test_linked_questions_keep_one_snapshot_and_repeat_complete_inputs_on_request(story):
+    snapshot = saved(story, '0')
+    before = snapshot.to_snapshot()
+    seen_contexts = []
+    seen_photos = []
+    for position in range(1, 6):
+        context, photos = scenario_materials.prepare_scenario_materials(
+            snapshot, position, previous_position=position - 1 if position > 1 else None,
+        )
+        full_context, full_photos = scenario_materials.prepare_scenario_materials(
+            snapshot, position,
+        )
+        if context:
+            seen_contexts.append(context)
+        assert full_context in seen_contexts
+        seen_photos.extend(photos)
+        assert all(photo in seen_photos for photo in full_photos)
+    if story not in {'GARDEN', 'TARIFF'}:
+        assert len(seen_contexts) == 1
+    assert snapshot.to_snapshot() == before
+
+
+@pytest.mark.parametrize('strategy', ['personal', 'mixed', 'number', 'family'])
+@pytest.mark.parametrize('stale', [False, True])
+async def test_short_training_data_callback_only_reads_the_current_snapshot(
+    strategy, stale, monkeypatch,
+):
+    from datetime import UTC, datetime
+
+    from aiogram.types import CallbackQuery, Chat, User
+
+    snapshot = saved('STOVE', '155')
+    problem = mixed_training._scenario_question(snapshot.to_snapshot(), 1)
+    problem_id = uuid4()
+    row = {
+        'strategy': strategy, 'id': uuid4(), 'problem': problem_id, 'position': 0,
+        'outcome': 'issued', 'snapshot': json.dumps(problem),
+        'plan': json.dumps([problem['family_id']]), 'hints_used': 1, 'prompt': 300,
+        'attempt_count': 1,
+    }
+    before = dict(row)
+    repository = MemoryRepository()
+    await repository.save_user_state(7, 'adaptive')
+    store = AsyncMock()
+    store.current.return_value = row
+    monkeypatch.setattr(
+        adaptive, 'get_settings', lambda: SimpleNamespace(oge_adaptive_enabled=True),
+    )
+    monkeypatch.setattr(adaptive, 'Session', lambda *_: store)
+    monkeypatch.setattr(adaptive, 'answer_callback', AsyncMock())
+    delivery = AsyncMock(return_value=True)
+    monkeypatch.setattr(adaptive, 'send_scenario_materials', delivery)
+    button = next(
+        b for line in adaptive.keyboard(row).inline_keyboard for b in line
+        if b.text == '📷 Схема / данные'
+    )
+    callback = CallbackQuery(
+        id='short-data', from_user=User(id=7, is_bot=False, first_name='Synthetic'),
+        chat_instance='synthetic', data=button.callback_data,
+        message=Message(message_id=299 if stale else 300, date=datetime.now(UTC),
+                        chat=Chat(id=7, type='private')),
+    )
+    await adaptive.callback(callback, repository)
+    if stale:
+        delivery.assert_not_awaited()
+    else:
+        assert delivery.await_args.args[2].to_snapshot() == snapshot.to_snapshot()
+        assert delivery.await_args.args[3] == 1
+    assert row == before
+    assert store.mock_calls == [call.current()]
 
 
 @pytest.mark.asyncio
@@ -174,7 +286,7 @@ def test_stove_catalogue_text_fallback_retains_every_operand_without_solution(mo
     monkeypatch.setattr(scenario_materials, 'scenario_photos_for_question',
                         lambda *a: (_ for _ in ()).throw(OSError('synthetic font failure')))
     context, photos = scenario_materials.prepare_scenario_materials(snapshot, 1)
-    assert photos == ()
+    assert photos == (scenario_materials.answer_grid_photo(snapshot, 1),)
     for row in snapshot.context['stoves']:
         assert f"Печь №{row['id']}" in context
         assert f"{row['min_m3']}–{row['max_m3']} м³" in context
@@ -206,7 +318,7 @@ async def test_screenshot_capacity_limits_23_12_20_gets_catalogue_before_questio
     problem.update(problem_id=str(uuid4()), number=1)
     await mixed_training._send_problem(AsyncMock(), MemoryRepository(), AsyncMock(), problem,
                                        user_id=7, previous_problem={'number': 19})
-    assert [kind for kind, _ in events] == ['text', 'photo', 'text']
+    assert [kind for kind, _ in events] == ['text', 'photo', 'photo', 'text']
     assert events[1][1] == scenario_photos(snapshot)[0]
     assert question.condition in events[-1][1]
 
@@ -297,22 +409,24 @@ async def test_replay_data_button_preserves_original_attempt_and_snapshot(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('path', ['mix', 'replay', 'history'])
-async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, monkeypatch):
+@pytest.mark.parametrize('path', ['mix', 'personal', 'replay', 'history'])
+@pytest.mark.parametrize('part', ['text', 'photo'])
+async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, part, monkeypatch):
     snapshot = saved('FLAT', '0')
     problem = mixed_training._scenario_question(snapshot.to_snapshot(), 1)
     problem.update(problem_id=str(uuid4()), number=1)
     source = ReplaySource('scenario', uuid4(), 1, 1, problem, snapshot.to_snapshot())
     replay = {'id': str(uuid4()), 'status': 'active', 'attempt_count': 1}
     texts = []
+    uncertain = True
 
     async def text(*args, **kwargs):
         texts.append(args[2])
+        if (uncertain and part == 'text' and args[2] != scenario_materials.MATERIALS_UNAVAILABLE):
+            raise MathDeliveryUncertain
         return SimpleNamespace(message_id=501)
 
-    photo = AsyncMock(side_effect=TelegramNetworkError(
-        method=SendPhoto(chat_id=7, photo='synthetic'), message='synthetic timeout',
-    ))
+    photo = AsyncMock(side_effect=MathDeliveryUncertain if part == 'photo' else None)
     for module in (scenario_materials, mixed_training, error_replay):
         monkeypatch.setattr(module, 'send_text', text)
     from app.bot import presentation
@@ -321,10 +435,24 @@ async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, monkey
     monkeypatch.setattr(scenario_materials, 'send_photo', photo)
     store = AsyncMock()
     repository = MemoryRepository()
+    family = problem['family_id']
+    store.current.return_value = {
+        'problem': problem['problem_id'], 'snapshot': json.dumps(problem),
+        'plan': json.dumps([family]), 'strategy': 'personal', 'position': 0,
+        'scope': {}, 'outcome': 'issued', 'prompt': None, 'hints_used': 0,
+    }
+    store.excluded_for_learner.return_value = []
+    generate = AsyncMock()
+    monkeypatch.setattr(adaptive, 'Session', lambda *_: store)
+    monkeypatch.setattr(adaptive, '_learner_inputs', AsyncMock(return_value=([], {})))
+    monkeypatch.setattr(adaptive, '_select', lambda *a, **kw: SimpleNamespace(slots=[family]))
+    monkeypatch.setattr(adaptive, 'generate', generate)
 
     async def deliver():
         if path == 'mix':
             await mixed_training._send_problem(AsyncMock(), repository, store, problem, user_id=7)
+        elif path == 'personal':
+            await adaptive.present(AsyncMock(), repository, 7)
         elif path == 'replay':
             await error_replay._render(AsyncMock(), repository, store, replay, source,
                                        user_id=7, materials=error_replay._materials(source))
@@ -344,17 +472,36 @@ async def test_media_timeout_and_explicit_retry_keep_the_same_issue(path, monkey
     assert texts[-1] == scenario_materials.MATERIALS_UNAVAILABLE
     assert all(snapshot.questions[0].condition not in body for body in texts)
     store.set_prompt.assert_not_awaited()
-    assert photo.await_count == 1  # No automatic duplicate after ambiguous delivery.
+    assert photo.await_count == int(part == 'photo')
+    assert sum(text != scenario_materials.MATERIALS_UNAVAILABLE for text in texts) == 1
+    store.act.assert_not_awaited()
+    store.save.assert_not_awaited()
+    generate.assert_not_called()
+    uncertain = False
     photo.side_effect = None
     await deliver()
     assert snapshot.questions[0].condition in texts[-1]
-    expected_id = problem['problem_id'] if path == 'mix' else UUID(replay['id'])
     if path == 'history':
         store.set_prompt.assert_not_awaited()
     else:
+        expected_id = UUID(replay['id']) if path == 'replay' else problem['problem_id']
         store.set_prompt.assert_awaited_once_with(7, expected_id, 501)
     assert replay['attempt_count'] == 1
     assert problem['scenario_snapshot'] == snapshot.to_snapshot()
+
+
+@pytest.mark.asyncio
+async def test_unconfirmed_recovery_notice_does_not_retry_materials(monkeypatch):
+    send_text = AsyncMock(side_effect=MathDeliveryUncertain)
+    send_photo = AsyncMock()
+    monkeypatch.setattr(scenario_materials, 'send_text', send_text)
+    monkeypatch.setattr(scenario_materials, 'send_photo', send_photo)
+    assert not await scenario_materials.send_scenario_materials(
+        AsyncMock(), MemoryRepository(), saved('FLAT', '0'), 1, user_id=7,
+    )
+    assert send_text.await_count == 2
+    assert send_text.await_args.args[2] == scenario_materials.MATERIALS_UNAVAILABLE
+    send_photo.assert_not_awaited()
 
 
 def test_missing_modern_heating_table_is_not_silently_ignored(monkeypatch):
@@ -364,6 +511,19 @@ def test_missing_modern_heating_table_is_not_silently_ignored(monkeypatch):
     monkeypatch.setattr(mobile_photos, 'scenario_photos', lambda s: (b'plan',))
     with pytest.raises(ValueError, match='Required scenario material is missing'):
         mobile_photos.scenario_photos_for_question(snapshot, 5)
+
+
+def test_tariff_context_mentions_isp_table_only_when_that_table_is_delivered():
+    snapshot = saved('TARIFF', '0')
+    chart_context, chart_photos = scenario_materials.prepare_scenario_materials(snapshot, 1)
+    isp_context, isp_photos = scenario_materials.prepare_scenario_materials(snapshot, 5)
+
+    assert 'приложенной таблице' not in chart_context
+    assert 'приложенной таблице' in isp_context
+    assert chart_photos[:1] == scenario_materials.scenario_photos_for_question(snapshot, 1)
+    assert isp_photos == scenario_materials.scenario_photos_for_question(snapshot, 5)
+    assert len(chart_photos) == 2  # chart plus blank response grid
+    assert len(isp_photos) == 1  # ISP table
 
 
 @pytest.mark.asyncio
@@ -404,7 +564,7 @@ async def test_replay_navigation_allows_two_consecutive_data_requests(monkeypatc
         # The callback from the preceding keyboard revision is now stale.
         await navigation_callback(callback, repository)
         assert replay['attempt_count'] == 1 and replay['status'] == 'active'
-        assert sum(c.__api_method__ == 'sendPhoto' for c in transport.calls) == 2
+        assert sum(c.__api_method__ == 'sendPhoto' for c in transport.calls) == 4
     finally:
         await bot.session.close()
 

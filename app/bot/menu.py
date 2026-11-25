@@ -1,5 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from app.bot.bop_copy import LABELS
+
 # Legacy reply text remains accepted by the router, but unavailable modes are hidden.
 MAIN_MENU = ("🧮 По номеру", "📊 Мой прогресс", "⚙️ Настройки", "▶ Продолжить")
 TASK6_MENU = ("💡 Подсказка", "📘 Разбор", "⏭ Пропустить", "↩ В меню")
@@ -19,7 +21,7 @@ def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
             [_button("🎲 Смешанная тренировка", "nav:mixed")],
             [_button("🧮 По номеру", "nav:numbers")],
         ]
-    rows.append([_button("📊 Мой прогресс", "nav:progress")])
+    rows.append([_button(LABELS["progress"], "nav:progress")])
     rows.append([_button("⚙️ Настройки", "nav:display")])
     if has_session:
         rows.insert(0, [_button("▶ Продолжить", "nav:resume")])
@@ -41,7 +43,7 @@ def trainings_hub(
         [
             [_button("📝 Свободная практика", "nav:numbers")],
             [_button("📚 Полный Mix №1–19", "nav:mixed")],
-            [_button("↩ В меню", "nav:main")],
+            [_button(LABELS["menu"], "nav:main")],
         ]
     )
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -79,7 +81,7 @@ def number_page(
         arrows.append(_button("→", f"nav:numbers:{page + 1}"))
     if arrows:
         rows.append(arrows)
-    rows.append([_button("↩ В меню", "nav:main")])
+    rows.append([_button(LABELS["menu"], "nav:main")])
     return (
         f"Выберите номер задания\n\n{text}\n\nСтраница {page + 1} из {pages}",
         InlineKeyboardMarkup(inline_keyboard=rows),
@@ -102,7 +104,7 @@ def number_menu(
 
 
 def progress_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
-    rows = [[_button("📊 Подробнее", "nav:details"), _button("↩ В меню", "nav:main")]]
+    rows = [[_button("📊 Подробнее", "nav:details"), _button(LABELS["menu"], "nav:main")]]
     if has_session:
         rows.insert(0, [_button("▶ Продолжить", "nav:resume")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -113,20 +115,20 @@ def training_menu(
 ) -> InlineKeyboardMarkup:
     prefix = f"t{number}"
     if completed:
-        rows = [[_button("➡ Следующее", f"{prefix}:next:{problem_id}")]]
+        rows = [[_button(LABELS["next"], f"{prefix}:next:{problem_id}")]]
     else:
         rows = [
             [
-                _button("💡 Подсказка", f"{prefix}:hint:{problem_id}"),
-                _button("📘 Разбор", f"{prefix}:solution:{problem_id}"),
+                _button(LABELS["hint"], f"{prefix}:hint:{problem_id}"),
+                _button(LABELS["solution"], f"{prefix}:solution:{problem_id}"),
             ],
-            [_button("⏭ Пропустить", f"{prefix}:skip:{problem_id}")],
+            [_button(LABELS["skip"], f"{prefix}:skip:{problem_id}")],
         ]
         if choices:
             rows.insert(
                 0, [_button(str(n), f"{prefix}:choose:{problem_id}:{n}") for n in range(1, 5)]
             )
-    rows.append([_button("↩ В меню", f"{prefix}:menu:{problem_id}")])
+    rows.append([_button(LABELS["menu"], f"{prefix}:menu:{problem_id}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 

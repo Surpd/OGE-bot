@@ -7,10 +7,12 @@ import base64
 import hashlib
 import secrets
 from collections.abc import Callable
+from contextlib import suppress
 from functools import partial
 from typing import Any, Protocol, cast
 
 from aiogram.dispatcher.event.bases import SkipHandler
+from aiogram.exceptions import TelegramAPIError
 from aiogram.types import (
     BufferedInputFile,
     CallbackQuery,
@@ -19,7 +21,9 @@ from aiogram.types import (
     Message,
 )
 
+from app.bot.bop_copy import LABELS, reply
 from app.bot.callbacks import answer_callback
+from app.bot.math_layout import question_message, solution_message
 from app.bot.menu import main_menu
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_materials import send_scenario_materials
@@ -58,31 +62,33 @@ def _mixed_menu(
         )
     if completed:
         rows.append(
-            [InlineKeyboardButton(text="➡ Следующее", callback_data=f"mixed:next:{problem_id}")]
+            [InlineKeyboardButton(text=LABELS["next"], callback_data=f"mixed:next:{problem_id}")]
         )
     else:
         rows.extend(
             [
                 [
                     InlineKeyboardButton(
-                        text="💡 Подсказка", callback_data=f"mixed:hint:{problem_id}"
+                        text=LABELS["hint"], callback_data=f"mixed:hint:{problem_id}"
                     ),
                     InlineKeyboardButton(
-                        text="📘 Разбор", callback_data=f"mixed:solution:{problem_id}"
+                        text=LABELS["solution"], callback_data=f"mixed:solution:{problem_id}"
                     ),
                 ],
                 [
                     InlineKeyboardButton(
-                        text="⏭ Пропустить", callback_data=f"mixed:skip:{problem_id}"
+                        text=LABELS["skip"], callback_data=f"mixed:skip:{problem_id}"
                     )
                 ],
             ]
         )
     if scenario:
         rows.append([InlineKeyboardButton(
-            text="📷 Схема / данные", callback_data=f"mixed:data:{problem_id}",
+            text=LABELS["data"], callback_data=f"mixed:data:{problem_id}",
         )])
-    rows.append([InlineKeyboardButton(text="↩ В меню", callback_data=f"mixed:menu:{problem_id}")])
+    rows.append([
+        InlineKeyboardButton(text=LABELS["menu"], callback_data=f"mixed:menu:{problem_id}"),
+    ])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -381,6 +387,7 @@ async def _send_problem(
     previous_problem: dict[str, object] | None = None,
     keyboard: InlineKeyboardMarkup | None = None,
     heading: str | None = None,
+    position_text: str = "",
 ) -> None:
     number_value = problem.get("number")
     if not isinstance(number_value, int):
@@ -423,12 +430,18 @@ async def _send_problem(
         if not isinstance(raw_scenario, dict):
             raise ValueError("Mixed scenario snapshot is missing")
         scenario = await asyncio.to_thread(ScenarioSnapshot.from_snapshot, raw_scenario)
+        previous_position = (
+            number - 1 if previous_problem and previous_problem.get("prompt_message_id")
+            and previous_problem.get("number") == number - 1
+            and previous_problem.get("scenario_snapshot") == raw_scenario else None
+        )
         if not await send_scenario_materials(
             message, repository, scenario, number, user_id=user_id,
+            previous_position=previous_position,
         ):
             return
     result = resumed_result(problem.get("outcome"), problem)
-    condition += "\n\n" + (result or answer_instruction(number, problem))
+    detail = result or answer_instruction(number, problem)
     image_data = (
         None if number <= 5 else await asyncio.to_thread(_render_image, number, problem)
     )
@@ -441,7 +454,9 @@ async def _send_problem(
         if completed
         else (_task19_button_choices(problem) if number == 19 else (4 if number == 13 else 0)),
     )
-    caption = f"{heading or f'Задание №{number}'}\n\n{condition}"
+    caption = question_message(
+        heading or f"Задание №{number}", condition, detail, position=position_text,
+    )
     math_system_rows = system_rows(number, problem)
     if image_data is not None:
         sent = await send_photo(
@@ -469,7 +484,14 @@ async def _send_problem(
         )
     prompt_id = getattr(sent, "message_id", None)
     if type(prompt_id) is int:
-        await store.set_prompt(user_id, str(problem["problem_id"]), prompt_id)
+        bound = await store.set_prompt(user_id, str(problem["problem_id"]), prompt_id)
+        if (
+            bound and previous_problem and prompt_id != message.message_id
+            and previous_problem.get("prompt_message_id") == message.message_id
+            and message.from_user and message.from_user.is_bot
+        ):
+            with suppress(TelegramAPIError):
+                await message.edit_reply_markup(reply_markup=None)
 
 
 async def start_mixed(message: Message, repository: Repository) -> None:
@@ -568,13 +590,13 @@ async def mixed_answer(message: Message, repository: Repository) -> None:
     updated = cast(dict[str, object], result.get("problem", problem))
     status = str(result.get("status"))
     if status == "active":
-        text = "Пока неверно. Попробуйте ещё раз."
+        text = reply("wrong", message.message_id)
     elif status == "solved":
-        text = "✅ Верно! Ответ засчитан."
+        text = reply("corrected" if problem.get("attempts") else "correct", message.message_id)
     elif status == "failed":
-        text = (
-            f"Вторая попытка неверна. Ответ: {updated.get('correct_answer')}\n\nРазбор:\n"
-            + "\n".join(_string_list(updated.get("solution")))
+        text = solution_message(
+            _string_list(updated.get("solution")), str(updated.get("correct_answer", "")),
+            reply("review", message.message_id),
         )
     else:
         return
@@ -652,13 +674,13 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
             return
         updated = cast(dict[str, object], result.get("problem", problem)) if result else problem
         if status == "active":
-            body = "Пока неверно. Попробуйте ещё раз."
+            body = reply("wrong")
         elif status == "solved":
-            body = "✅ Верно! Ответ засчитан."
+            body = reply("correct")
         else:
-            body = (
-                f"Вторая попытка неверна. Ответ: {updated.get('correct_answer')}\n\nРазбор:\n"
-                + "\n".join(_string_list(updated.get("solution")))
+            body = solution_message(
+                _string_list(updated.get("solution")), str(updated.get("correct_answer", "")),
+                reply("review"),
             )
         await send_text(
             message,
@@ -725,10 +747,10 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         return
     if action == "solution":
         await store.action(user_id, problem_id, "solution")
-        text = (
-            "Разбор (самостоятельное решение не засчитывается):\n"
-            + "\n".join(str(item) for item in problem.get("solution", []))
-            + f"\n\nОтвет: {problem.get('correct_answer')}"
+        steps = problem.get("solution")
+        text = solution_message(
+            list(map(str, steps)) if isinstance(steps, list) else (),
+            str(problem.get("correct_answer", "")),
         )
         await send_text(
             message,

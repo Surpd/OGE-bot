@@ -56,7 +56,7 @@ async def test_task10_two_attempts_hints_solution_and_progress() -> None:
     assert await repository.task10_hint(1001, problem_id)
     first = _reply(repository, 1001, "0,999")
     await task10_answer(first, repository)
-    assert "Попробуйте ещё раз" in first.answer.await_args.args[0]
+    assert "Попробуй ещё раз" in first.answer.await_args.args[0]
     assert str(problem["correct_answer"]) not in first.answer.await_args.args[0]
     assert repository.training10[1001]["state"]["attempts"] == 1
     second = _reply(repository, 1001, str(problem["correct_answer"]))
@@ -79,7 +79,7 @@ async def test_task10_accepts_plain_answer_and_current_reply_on_second_attempt()
     wrong.reply_to_message = None
     await task10_answer(wrong, repository)
     assert repository.training10[1005]["state"]["attempts"] == 1
-    assert "Попробуйте ещё раз" in wrong.answer.await_args.args[0]
+    assert "Попробуй ещё раз" in wrong.answer.await_args.args[0]
 
     correct = _message(1005, str(problem["correct_answer"]))
     correct.reply_to_message = SimpleNamespace(message_id=prompt_id)

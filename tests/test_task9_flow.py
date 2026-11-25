@@ -54,7 +54,7 @@ async def test_task9_two_attempts_solution_hints_and_progress_are_separate_from_
     wrong = _reply(repository, 901, "999")
     wrong.message_id = 61001
     await task9_answer(wrong, repository)
-    assert "Попробуйте ещё раз" in wrong.answer.await_args.args[0]
+    assert "Попробуй ещё раз" in wrong.answer.await_args.args[0]
     assert repository.training9[901]["state"]["attempts"] == 1
     assert repository.training.get(901) is None
 
@@ -134,7 +134,7 @@ async def test_task9_wrong_first_answer_does_not_show_correct_value() -> None:
     await task9_answer(message, repository)
     feedback = message.answer.await_args.args[0]
     correct = str(repository.training9[904]["problem"]["correct_answer"])
-    assert "Попробуйте ещё раз" in feedback
+    assert "Попробуй ещё раз" in feedback
     assert correct not in feedback
 
 
@@ -158,7 +158,7 @@ async def test_task9_accepts_plain_numeric_message_without_reply_and_updates_but
     await task9_answer(correct, repository)
     completed_keyboard = correct.answer.await_args.kwargs["reply_markup"]
     assert {button.text for row in completed_keyboard.inline_keyboard for button in row} == {
-        "➡ Следующее", "↩ В меню"
+        "➡ Дальше", "↩ В меню"
     }
 
 

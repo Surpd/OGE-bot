@@ -1,0 +1,18 @@
+{
+  "id": "correct-flat-q3",
+  "label": "Верный ответ · FLAT №3",
+  "category": "answer-correct",
+  "story": "FLAT",
+  "seed": 42,
+  "position": 3,
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendMessage",
+      "chat_id": 42,
+      "text": "Верно! Ответ засчитан.",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')"
+    }
+  ]
+}

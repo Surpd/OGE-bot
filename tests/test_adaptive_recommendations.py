@@ -45,7 +45,7 @@ async def test_progress_hub_summary_and_personal_plan_offer_the_same_focus(monke
     monkeypatch.setattr(adaptive, "_learner_inputs", AsyncMock(return_value=(history, insights)))
     sent = AsyncMock()
     monkeypatch.setattr(adaptive, "send_text", sent)
-    message = SimpleNamespace(from_user=SimpleNamespace(id=learner))
+    message = SimpleNamespace(message_id=1, from_user=SimpleNamespace(id=learner))
 
     plan = adaptive._mode_plan("personal", learner, history, insights)
     await adaptive.progress_target(repository, learner, insights)
@@ -89,8 +89,9 @@ async def test_all_independent_answers_do_not_invent_a_problem(monkeypatch, prof
     sent = AsyncMock()
     monkeypatch.setattr(adaptive, "send_text", sent)
     await adaptive.completion(object(), repository, store, {"id": "done"}, "Тренировка завершена!")
-    assert "Верно 5/5 · самостоятельно 5/5" in sent.await_args.args[2]
-    assert "Что дальше" not in sent.await_args.args[2]
+    assert "Решено верно: 5 из 5" in sent.await_args.args[2]
+    assert "Самостоятельно: 5 из 5" in sent.await_args.args[2]
+    assert "Что потренировать дальше" not in sent.await_args.args[2]
     assert [button.callback_data
             for row in sent.await_args.kwargs["reply_markup"].inline_keyboard
             for button in row] == ["train:personal", "train:progress", "nav:main"]

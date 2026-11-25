@@ -1,0 +1,20 @@
+{
+  "id": "solution-flat-q3",
+  "label": "Разбор · FLAT №3",
+  "category": "solution",
+  "story": "FLAT",
+  "seed": 42,
+  "position": 3,
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p><b>Разбор:</b></p><p> </p><p>1. Меньшая лоджия занимает <tg-math>3 \\times 10 = 30</tg-math> клеток; вторая — <tg-math>4 \\times 11 = 44</tg-math> клетки.</p><p> </p><p>2. <tg-math>30 \\cdot 0{,}16 = 4{,}8</tg-math> м².</p><p> </p><p><b>Ответ:</b> 4,8</p>",
+        "media": null
+      }
+    }
+  ]
+}

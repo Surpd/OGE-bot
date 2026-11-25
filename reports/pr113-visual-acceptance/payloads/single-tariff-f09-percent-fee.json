@@ -1,0 +1,62 @@
+{
+  "id": "single-tariff-f09-percent-fee",
+  "label": "Одиночная выдача · TARIFF-F09-PERCENT-FEE",
+  "category": "single-family",
+  "story": "TARIFF",
+  "seed": 0,
+  "position": 4,
+  "family": "TARIFF-F09-PERCENT-FEE",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>За каждый месяц года показаны расход минут исходящих вызовов и мобильного интернета.</p><p>На графике сплошная линия — минуты (левая шкала), пунктирная — интернет в ГБ (правая шкала).</p><p>Тариф «Стандартный»: абонентская плата 350 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.</p><p>Сверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.</p><p>Месяцы указаны в календарном порядке с января по декабрь.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:1b91b0aa-9a0a-5d6e-89e5-4f2a556c6164:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:1b91b0aa-9a0a-5d6e-89e5-4f2a556c6164:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:1b91b0aa-9a0a-5d6e-89e5-4f2a556c6164:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:1b91b0aa-9a0a-5d6e-89e5-4f2a556c6164:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:1b91b0aa-9a0a-5d6e-89e5-4f2a556c6164:4:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Тарифы</b></p><p> </p><p><b>Задание №4</b></p><p> </p><p>Абонентская плата выросла с 350 руб. до 525 руб. На сколько процентов она увеличилась?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

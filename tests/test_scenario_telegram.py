@@ -404,7 +404,7 @@ async def test_garden_heating_data_is_withheld_until_the_heating_question() -> N
     heating_context, heating_photos = await show(5)
     assert "Отопление одного дома" not in plan_context
     assert "Отопление одного дома" in heating_context
-    assert (plan_photos, heating_photos) == (1, 1)
+    assert (plan_photos, heating_photos) == (2, 1)
 
 
 @pytest.mark.asyncio
@@ -443,6 +443,11 @@ async def test_snapshot_materials_render_on_start_and_postgres_resume(
         )
 
     expected = scenario_photos_for_question(session.snapshot, session.current_position)
+    from app.bot.scenario_materials import answer_grid_photo
+
+    grid = answer_grid_photo(session.snapshot, session.current_position)
+    if grid is not None:
+        expected = (*expected, grid)
     initial = message_for_render()
     await scenario_training.render_session(initial, store, session, show_assets=True)
     assert initial.answer_photo.await_count == len(expected)
@@ -757,7 +762,7 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
             (item for item in transport.messages.values() if item.reply_markup is not None),
             key=lambda item: item.message_id,
         )
-        controls = await callback(controls, "➡ Следующий вопрос")
+        controls = await callback(controls, "➡ Дальше")
         second = await scenario_repository.resume_session(user_id)
         assert second is not None and second.current_position == 2
         old_prompt_id = second.prompt_message_id
@@ -869,7 +874,7 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
             (item for item in transport.messages.values() if item.reply_markup is not None),
             key=lambda item: item.message_id,
         )
-        controls = await callback(controls, "➡ Следующий вопрос")
+        controls = await callback(controls, "➡ Дальше")
         assert (await scenario_repository.resume_session(user_id)).current_position == 3
         controls = max(
             (item for item in transport.messages.values() if item.reply_markup is not None),
@@ -880,7 +885,7 @@ async def test_dispatcher_public_oge15_full_session_answers_pause_and_resume(
         assert_terminal_since(active_controls_id)
         terminal = await scenario_repository.resume_session(user_id)
         assert terminal is not None and terminal.question_status == "solution_viewed"
-        controls = await callback(controls, "➡ Следующий вопрос")
+        controls = await callback(controls, "➡ Дальше")
         for expected_position in (4, 5):
             controls = max(
                 (item for item in transport.messages.values() if item.reply_markup is not None),
@@ -1242,9 +1247,14 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
             else:
                 assert "Ответ засчитан" in (result.text or "")
             mode = await tap(
-                result, "➡ Следующий вопрос" if position < 5 else "Завершить пятёрку"
+                result, ("➡ Следующий вопрос" if position < 5 else "Завершить пятёрку")
+                if baseline else ("➡ Дальше" if position < 5 else "Завершить тренировку"),
             )
-        assert "Пятёрка завершена!" in (mode.text or "")
+        if baseline:
+            assert "Пятёрка завершена!" in (mode.text or "")
+        else:
+            assert "Тренировка завершена" in (mode.text or "")
+            assert "Решено верно: 5 из 5" in (mode.text or "")
         assert await scenario_repository.resume_session(user_id) is None
         assert (await scenario_repository.position_stats(user_id))[0]["correct"] == 5
         assert not any(call.__api_method__ == "sendDocument" for call in transport.calls)
@@ -1346,7 +1356,7 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
             await send_answer(question.canonical_answer)
             solved = await store.resume_session(user_id)
             assert solved is not None and solved.question_status == "solved"
-            await tap(latest_control(solved), "➡ Следующий вопрос")
+            await tap(latest_control(solved), "➡ Дальше")
         tyres = await store.find_open_session(user_id, "TYRES", PracticeMode.FULL)
         assert tyres is not None and tyres.current_position == 3
         old_controls = latest_control(tyres)
@@ -1382,7 +1392,7 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
             await send_answer(question.canonical_answer)
             solved = await store.resume_session(user_id)
             assert solved is not None and solved.question_status == "solved"
-            await tap(latest_control(solved), "➡ Следующий вопрос")
+            await tap(latest_control(solved), "➡ Дальше")
         paper = await store.find_open_session(user_id, "PAPER", PracticeMode.FULL)
         assert paper is not None and paper.current_position == 4
 
@@ -1516,7 +1526,7 @@ async def test_dispatcher_switches_full_sessions_without_losing_progress(oge15_n
         terminal_card = transport.messages[controls.message_id]
         assert "Напишите ответ" not in (terminal_card.text or "")
         assert "Тренировка завершена досрочно." in (terminal_card.text or "")
-        assert "Задано вопросов: 4." in (terminal_card.text or "")
+        assert "Решено верно: 3 из 4" in (terminal_card.text or "")
         assert "Невыданные вопросы не считаются ошибками или пропусками." in (
             terminal_card.text or ""
         )

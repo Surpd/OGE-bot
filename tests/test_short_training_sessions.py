@@ -100,6 +100,7 @@ async def test_finish_is_idempotent_and_summary_deltas_are_persisted(bank_pool):
         "solved": 0,
         "hinted": 0,
         "reviewed": 1,
+        "skipped": 0,
         "independent": 0,
         "fresh": 1,
     }

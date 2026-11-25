@@ -1,0 +1,78 @@
+{
+  "id": "single-stove-f07-fit-wood-delivery",
+  "label": "Одиночная выдача · STOVE-F07-FIT-WOOD-DELIVERY",
+  "category": "single-family",
+  "story": "STOVE",
+  "seed": 1,
+  "position": 3,
+  "family": "STOVE-F07-FIT-WOOD-DELIVERY",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}5 \\times 2{,}2 \\times 2{,}1</tg-math> м. Дверь: 82 см × 197 см; окон нет.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №3",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/7f6c54dd0db6def7cafc5dbda6586e0b3ac72602ccadd19bba0b68d2b785b7c9.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "7f6c54dd0db6def7cafc5dbda6586e0b3ac72602ccadd19bba0b68d2b785b7c9",
+          "bytes": 37462
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:ae32903d-5eef-5dfd-a7b3-ad7f4676afad:3:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:ae32903d-5eef-5dfd-a7b3-ad7f4676afad:3:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:ae32903d-5eef-5dfd-a7b3-ad7f4676afad:3:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:ae32903d-5eef-5dfd-a7b3-ad7f4676afad:3:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:ae32903d-5eef-5dfd-a7b3-ad7f4676afad:3:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №3</b></p><p> </p><p>Выберите подходящую дровяную печь по объёму парной и найдите её стоимость с доставкой в рублях. Доставка стоит 1 100 руб.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

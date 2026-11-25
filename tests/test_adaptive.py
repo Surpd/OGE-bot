@@ -370,7 +370,8 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
                 await h.click(f"ad:next:{current['problem']}")
         assert await session.current() is None
         done, _ = h.button("train:personal")
-        assert "Верно 1/5 · самостоятельно 1/5" in done.text
+        assert "Решено верно: 1 из 5" in done.text
+        assert "Самостоятельно: 1 из 5" in done.text
         await h.message("/start")
         await h.click("nav:trainings")
         await h.click("train:personal")
@@ -470,6 +471,172 @@ async def test_backfilled_ordinary_and_mixed_same_day_streak(bank_pool):
         )
         == "ordinary"
     )
+
+
+async def test_upgrade_queues_existing_archive_and_pool_reset_keeps_triggers(bank_pool):
+    """Upgrade recovery must use source history; callers never seed projections."""
+    import os
+    from pathlib import Path
+
+    import asyncpg
+
+    from app.adaptive.session import Session
+    from app.adaptive.store import overview
+    from app.bot.adaptive import generate
+    from app.persistence.repository import PostgresRepository
+
+    owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+    schema = await bank_pool.fetchval("SELECT current_schema()")
+    old_problem = uuid4()
+
+    # Model the production upgrade: source progress exists while the adaptive
+    # queue/projection is empty.  Running the migration is the only recovery act.
+    await bank_pool.execute("TRUNCATE adaptive_evidence, adaptive_skills CASCADE")
+    await bank_pool.execute(
+        """INSERT INTO issued_problems(id,user_id,family_id,fingerprint,
+        generator_version,snapshot,outcome) VALUES($1,$2,'OGE09-L1','old','v','{}','solved')""",
+        old_problem,
+        owner,
+    )
+    await bank_pool.execute(
+        """INSERT INTO attempts(problem_id,user_id,attempt_no,telegram_message_id,
+        raw_answer,is_correct) VALUES($1,$2,1,9001,'1',true)""",
+        old_problem,
+        owner,
+    )
+    # Model the deployed missed trigger outcome without manufacturing any
+    # adaptive row: authoritative source rows remain, the derived queue is empty.
+    await bank_pool.execute("TRUNCATE adaptive_dirty")
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_dirty") == 0
+
+    source_counts = await bank_pool.fetchrow(
+        "SELECT (SELECT count(*) FROM issued_problems), (SELECT count(*) FROM attempts)"
+    )
+    migration = Path("migrations/0032_adaptive_archive_recovery.sql").read_text()
+    await bank_pool.execute(migration)
+    await bank_pool.execute(migration)
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_dirty") == 1
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_evidence") == 0
+    assert await bank_pool.fetchrow(
+        "SELECT (SELECT count(*) FROM issued_problems), (SELECT count(*) FROM attempts)"
+    ) == source_counts
+
+    history = await overview(PostgresRepository(bank_pool), 1)
+    assert history and history[0][0:2] == (9, "OGE09-L1")
+    assert history[0][2].practice == 1
+
+    # Transaction-pool backends need not keep custom startup GUCs. Capture must
+    # work after reset without bop.adaptive.
+    production_pool = await asyncpg.create_pool(
+        os.environ["DATABASE_URL"],
+        min_size=1,
+        max_size=5,
+        server_settings={"search_path": schema},
+    )
+    try:
+        repo = PostgresRepository(production_pool)
+        session = Session(repo, 1)
+        family = "OGE09-L1"
+        await session.start([family] * 5)
+        backend = await production_pool.fetchval("SELECT pg_backend_pid()")
+        seen = ["old"]
+        for index in range(3):
+            assert await production_pool.fetchval("SELECT pg_backend_pid()") == backend
+            assert (
+                await production_pool.fetchval(
+                    "SELECT current_setting('bop.adaptive',true)"
+                )
+                != "on"
+            )
+            candidate = generate(family, seen)
+            assert candidate is not None
+            seen.append(candidate["fingerprint"])
+            slot = await session.current()
+            assert await session.save(slot, family, candidate)
+            issued = await session.current()
+            problem_id = issued["problem"]
+            prompt_id = 9200 + index
+            assert await session.set_prompt(1, str(problem_id), prompt_id)
+            outcome = await session.act(
+                problem_id, prompt_id, "answer", raw=str(candidate["correct_answer"]),
+                correct=True, message_id=9300 + index,
+            )
+            assert outcome == "solved"
+            assert await production_pool.fetchval(
+                "SELECT count(*) FROM adaptive_dirty WHERE owner=$1", owner,
+            ) == 1
+            history = await overview(repo, 1)
+            assert history[0][2].independent_count == index + 2
+            assert await session.act(problem_id, prompt_id, "next") == "next"
+        assert await production_pool.fetchval(
+            """SELECT count(*) FROM adaptive_evidence
+               WHERE owner=$1 AND source='personal' AND outcome='correct'""",
+            owner,
+        ) == 3
+    finally:
+        await production_pool.close()
+
+
+async def test_archive_recovery_read_does_not_mutate_written_history_or_budget(bank_pool):
+    """Queue reconstruction and projection are read-only for paid grading data."""
+    from pathlib import Path
+
+    from app.adaptive.store import overview
+    from app.persistence.repository import PostgresRepository
+
+    card = await bank_pool.fetchrow(
+        """SELECT c.task_id,c.subtype_id,v.version FROM part2_cards c
+        JOIN part2_versions v USING(task_id)
+        WHERE v.reviewed AND v.available ORDER BY c.task_id LIMIT 1"""
+    )
+    issue = await bank_pool.fetchval(
+        """INSERT INTO part2_issues(owner,number,task_id,version,subtype_id,closed)
+        VALUES(1,20,$1,$2,$3,true) RETURNING id""",
+        card["task_id"],
+        card["version"],
+        card["subtype_id"],
+    )
+    await bank_pool.execute(
+        """INSERT INTO part2_grades(issue_id,revision,model,prompt_version,
+        rubric_version,status,score,result,reserved_usd,cost_usd,input_tokens,
+        output_tokens,dispatched_at)
+        VALUES($1,1,'fixture','v1',1,'graded',1,
+        '{"status":"graded","score":1,"needs_review":false,
+        "criterion_evidence":[{"criterion":"answer","student_evidence":"x=2"}]}'::jsonb,
+        0.025,0.017,120,30,clock_timestamp())""",
+        issue,
+    )
+    await bank_pool.execute("TRUNCATE adaptive_dirty,adaptive_evidence,adaptive_skills")
+
+    snapshot_sql = """SELECT jsonb_build_object(
+      'issues',(SELECT jsonb_agg(to_jsonb(i) ORDER BY i.id)
+                FROM part2_issues i WHERE i.owner=1),
+      'grades',(SELECT jsonb_agg(to_jsonb(g) ORDER BY g.issue_id,g.revision)
+                FROM part2_grades g JOIN part2_issues i ON i.id=g.issue_id
+                WHERE i.owner=1),
+      'work',(SELECT jsonb_agg(to_jsonb(w) ORDER BY w.issue_id,w.message_id)
+              FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
+              WHERE i.owner=1),
+      'reviews',(SELECT jsonb_agg(to_jsonb(r) ORDER BY r.issue_id,r.revision)
+                 FROM adaptive_grade_reviews r JOIN part2_issues i ON i.id=r.issue_id
+                 WHERE i.owner=1),
+      'api_tests',(SELECT jsonb_agg(to_jsonb(t) ORDER BY t.confirmation)
+                   FROM part2_api_tests t WHERE t.owner=1))"""
+    before = await bank_pool.fetchval(snapshot_sql)
+    migration = Path("migrations/0032_adaptive_archive_recovery.sql").read_text()
+
+    await bank_pool.execute(migration)
+    await bank_pool.execute(migration)
+    assert await bank_pool.fetchval(
+        "SELECT count(*) FROM adaptive_dirty WHERE source='written' AND task=$1",
+        str(issue),
+    ) == 1
+    assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_evidence") == 0
+    assert await bank_pool.fetchval(snapshot_sql) == before
+
+    history = await overview(PostgresRepository(bank_pool), 1)
+    assert any(number == 20 and skill == card["subtype_id"] for number, skill, *_ in history)
+    assert await bank_pool.fetchval(snapshot_sql) == before
 
 
 async def test_mixed_oge19_correct_answers_do_not_claim_broad_family_success(bank_pool):

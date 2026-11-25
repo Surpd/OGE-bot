@@ -1,0 +1,78 @@
+{
+  "id": "single-flat-02-parquet-pack",
+  "label": "Одиночная выдача · FLAT-02-PARQUET-PACK",
+  "category": "single-family",
+  "story": "FLAT",
+  "seed": 0,
+  "position": 2,
+  "family": "FLAT-02-PARQUET-PACK",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №2",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/c02e2bbbae39fc5256fc4fabbd697934439f92571de0342c82f8216558ea542c.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "c02e2bbbae39fc5256fc4fabbd697934439f92571de0342c82f8216558ea542c",
+          "bytes": 36784
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:a0eaff9c-c8d2-5972-9d69-4c2e7179b4ac:2:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:a0eaff9c-c8d2-5972-9d69-4c2e7179b4ac:2:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:a0eaff9c-c8d2-5972-9d69-4c2e7179b4ac:2:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:a0eaff9c-c8d2-5972-9d69-4c2e7179b4ac:2:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:a0eaff9c-c8d2-5972-9d69-4c2e7179b4ac:2:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Квартиры</b></p><p> </p><p><b>Задание №2</b></p><p> </p><p>Пол гостиной покрывают паркетными досками <tg-math>0{,}2 \\times 0{,}8</tg-math> м без распила. В упаковке 14 досок. Сколько упаковок потребуется?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

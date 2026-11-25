@@ -1,4 +1,5 @@
 import io
+import json
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
@@ -176,6 +177,90 @@ def test_oge13_option_list_keeps_interval_edges_and_decimal_comma_visible():
     assert rich.count("∞") == 2
     assert r"\infty" not in rich
     assert "-33,54" in rich
+
+
+@pytest.mark.asyncio
+async def test_training_blocks_survive_in_serialized_rich_payload():
+    from app.bot.math_layout import question_message, solution_message
+
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=96, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock(return_value=sent)
+    repository = AsyncMock()
+    repository.math_display.return_value = "auto"
+    try:
+        question = question_message(
+            "Персональная тренировка", "Вычисли значение.\n1/2 + 1/4",
+            "Запиши ответ числом.", position="№6 — задание 4 из 5",
+        )
+        await send_text(incoming(bot), repository, question)
+        rendered = bot.send_rich_message.await_args.kwargs["rich_message"].html
+        assert "<p><b>Персональная тренировка</b></p><p>\u00a0</p>" in rendered
+        assert "<p><b>№6 — задание 4 из 5</b></p><p>\u00a0</p>" in rendered
+        assert "<p>Вычисли значение.</p><tg-math-block>" in rendered
+        assert "</tg-math-block><p>\u00a0</p><p>Запиши ответ числом.</p>" in rendered
+
+        review = solution_message(["Приведи к общему знаменателю.", "2/4 + 1/4"], "3/4")
+        await send_text(incoming(bot), repository, review)
+        rendered = bot.send_rich_message.await_args.kwargs["rich_message"].html
+        assert "<p><b>Разбор:</b></p><p>\u00a0</p>" in rendered
+        assert "<tg-math-block>" in rendered
+        assert "<b>Ответ:</b> <tg-math>" in rendered
+    finally:
+        await bot.session.close()
+
+
+@pytest.mark.parametrize("fallback", [False, True])
+async def test_adaptive_review_with_reaction_keeps_family_typesetting(monkeypatch, fallback):
+    from app.bot import adaptive
+
+    family = "OGE06-F006-MIXED-MINUS-DECIMAL"
+    problem = {
+        "number": 6, "family_id": family,
+        "solution": ["Вычислим: 2 1/2 − 0,8"], "correct_answer": "1,7",
+    }
+    row = {
+        "problem": "current-problem", "snapshot": json.dumps(problem),
+        "plan": json.dumps([family]), "position": 0, "outcome": "failed",
+        "prompt": 84, "hints_used": 0,
+    }
+    session = AsyncMock()
+    session.current.return_value = row
+    monkeypatch.setattr(adaptive, "Session", lambda *_: session)
+    bot = Bot("123456:TEST")
+    sent = Message(message_id=96, date=datetime.now(UTC), chat=Chat(id=42, type="private"))
+    bot.send_rich_message = AsyncMock(return_value=sent)
+    if fallback:
+        bot.send_rich_message.side_effect = TelegramBadRequest(
+            method=SendRichMessage(chat_id=42, rich_message={"html": "test"}),
+            message="Bad Request: can't parse entities: unsupported start tag",
+        )
+    bot.send_photo = AsyncMock(return_value=sent)
+    repository = AsyncMock()
+    repository.math_display.return_value = "auto"
+    repository.math_format.return_value = "auto"
+    reaction = "Давай разберёмся."
+    try:
+        await adaptive.feedback(incoming(bot), repository, 42,
+                                adaptive._solution(problem, reaction))
+        repository.math_display.assert_awaited_with(42, family)
+        sent_rich = bot.send_rich_message.await_args.kwargs
+        rich = sent_rich["rich_message"].html
+        assert rich.index(reaction) < rich.index("<b>Разбор:</b>")
+        assert r"2\frac{1}{2}" in rich
+        assert "<b>Ответ:</b>" in rich
+        if fallback:
+            bot.send_photo.assert_awaited_once()
+            sent_png = bot.send_photo.await_args.kwargs
+            with Image.open(io.BytesIO(sent_png["photo"].data)) as image:
+                assert image.format == "PNG" and image.width == 1200
+            assert sent_png["reply_markup"] == sent_rich["reply_markup"]
+            repository.remember_png_template.assert_awaited_once_with(family)
+        else:
+            bot.send_photo.assert_not_awaited()
+        session.set_prompt.assert_awaited_once_with(42, "current-problem", 96)
+    finally:
+        await bot.session.close()
 
 
 @pytest.mark.asyncio

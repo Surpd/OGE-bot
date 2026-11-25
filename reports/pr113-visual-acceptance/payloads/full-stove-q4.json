@@ -1,0 +1,81 @@
+{
+  "id": "full-stove-q4",
+  "label": "Полный комплект · STOVE · вопрос 4",
+  "category": "full-scenario",
+  "story": "STOVE",
+  "seed": 42,
+  "position": 4,
+  "mode": "full",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}6 \\times 2 \\times 2{,}3</tg-math> м. Дверь: 56 см × 210 см; окон нет.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/73b26473c865f6371ac025600496b03e6c492c0ab058c45507d3d89f11885e4b.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "73b26473c865f6371ac025600496b03e6c492c0ab058c45507d3d89f11885e4b",
+          "bytes": 39693
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:528534f9-623b-5a0f-a71d-95dae8c12e16:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:528534f9-623b-5a0f-a71d-95dae8c12e16:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:528534f9-623b-5a0f-a71d-95dae8c12e16:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:528534f9-623b-5a0f-a71d-95dae8c12e16:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:528534f9-623b-5a0f-a71d-95dae8c12e16:4:0:p"
+            },
+            {
+              "text": "⏹ Завершить",
+              "callback_data": "o:a:528534f9-623b-5a0f-a71d-95dae8c12e16:4:0:r"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №4 из 5</b></p><p> </p><p>Если цена покупки дороже 15 900 руб., на печь действует скидка 5%, а на доставку — скидка 20%. Сколько нужно заплатить за печь №2 с доставкой, если доставка стоит 800 руб.?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

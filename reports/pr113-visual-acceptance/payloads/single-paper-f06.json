@@ -1,0 +1,94 @@
+{
+  "id": "single-paper-f06",
+  "label": "Одиночная выдача · PAPER-F06",
+  "category": "single-family",
+  "story": "PAPER",
+  "seed": 0,
+  "position": 4,
+  "family": "PAPER-F06",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49",
+          "bytes": 16865
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/4f20060985ce2b3a4dc7484b4b7209dfdc394fef832fa264ec9c9162b6be9ac7.png",
+          "source_filename": "scenario-2.png",
+          "sha256": "4f20060985ce2b3a4dc7484b4b7209dfdc394fef832fa264ec9c9162b6be9ac7",
+          "bytes": 26448
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:f284a97a-3052-55a2-8659-88f57d5d84dd:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:f284a97a-3052-55a2-8659-88f57d5d84dd:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:f284a97a-3052-55a2-8659-88f57d5d84dd:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:f284a97a-3052-55a2-8659-88f57d5d84dd:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:f284a97a-3052-55a2-8659-88f57d5d84dd:4:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Бумага</b></p><p> </p><p><b>Задание №4</b></p><p> </p><p>Найдите отношение длины диагонали листа формата A2 к его меньшей стороне. Ответ округлите до десятых.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

@@ -33,7 +33,7 @@ from app.math.scenario_engine import (
 )
 
 STORY_CODE = "ROUTE"
-GENERATOR_VERSION = "route-grid4-v1"
+GENERATOR_VERSION = "route-grid4-v2"
 COMPATIBILITY_VERSION = "route-grid4-bundle-v1"
 POLICY_VERSION = "1"
 
@@ -230,7 +230,12 @@ class _RouteQuestionBuilder:
                 "Составьте выражение в требуемых единицах.",
             ),
             solution_steps=tuple(steps),
-            math_model=math_model,
+            math_model={
+                **math_model,
+                "source_ids": SOURCES_BY_POSITION[position],
+                "content_kind": "generated_analogue",
+                "visual_audit": "source_mismatch_publicly_excluded",
+            },
         )
 
 
@@ -261,6 +266,11 @@ def _question_data(
             {
                 "ordered_nodes": ("A", "B", "C"),
                 "ordered_names": tuple(name(n) for n in ("A", "B", "C")),
+                "answer_grid": {
+                    "columns": tuple(name(n) for n in ("A", "B", "C")),
+                    "header": "Посёлок",
+                    "row": "Цифра на схеме",
+                },
             },
         )
     if position == 2:
@@ -570,10 +580,10 @@ def _asset(data: bytes, content_type: str) -> ScenarioAssetRef:
 
 
 def _shared_text(scenario: ScenarioDraft) -> str:
-    values = _route_values(scenario)
     return (
         f"Карта: поселения GRID-4; масштаб — {scenario.context['scale_km_per_cell']} км на клетку. "
-        f"Шоссе: {values['ab']} км и {values['bc']} км; грунтовые дороги показаны пунктиром. "
+        "Длины дорог подписаны на схеме; шоссе показано сплошными линиями, "
+        "грунтовые дороги — пунктиром. "
         "Пересечение диагоналей обозначено мостом и не является развязкой. "
         "Таблица цен относится к тому же набору продуктов и тому же миру."
     )
@@ -707,10 +717,11 @@ class _RouteOracle:
                 for node in ("A", "B", "C")
             ):
                 raise ValueError("ROUTE route condition names a different or missing settlement")
+            visible_map = _svg(scenario.context).decode("utf-8")
             if question.position in (2, 3, 4) and not all(
-                str(value) in rendered.shared_context for value in (data["ab"], data["bc"])
+                f">{value} км</text>" in visible_map for value in (data["ab"], data["bc"])
             ):
-                raise ValueError("ROUTE visible map description is missing edge lengths")
+                raise ValueError("ROUTE visible map is missing edge lengths")
             if question.position == 4 and str(data["speed"]) not in question.condition:
                 raise ValueError("ROUTE visible speed differs from the time model")
         if question.canonical_answer != match:

@@ -1,0 +1,78 @@
+{
+  "id": "single-garden-07-percent-buildings",
+  "label": "Одиночная выдача · GARDEN-07-PERCENT-BUILDINGS",
+  "category": "single-family",
+  "story": "GARDEN",
+  "seed": 0,
+  "position": 4,
+  "family": "GARDEN-07-PERCENT-BUILDINGS",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>На плане изображён дачный участок в посёлке Сосновка. Единственные ворота расположены на правой границе. При входе слева находится гараж, справа — сарай, а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, плитка — <tg-math>1 \\times 1</tg-math> м.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/3fd39ad68a90353ec912ba1cf2d57a8b383e32d2de022adda0d05816ff678e29.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "3fd39ad68a90353ec912ba1cf2d57a8b383e32d2de022adda0d05816ff678e29",
+          "bytes": 23644
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:4f4b9087-d576-5c98-95f6-80e8e24944e0:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:4f4b9087-d576-5c98-95f6-80e8e24944e0:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:4f4b9087-d576-5c98-95f6-80e8e24944e0:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:4f4b9087-d576-5c98-95f6-80e8e24944e0:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:4f4b9087-d576-5c98-95f6-80e8e24944e0:4:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Участки</b></p><p> </p><p><b>Задание №4</b></p><p> </p><p>Найдите по плану, сколько процентов площади участка занимают дом, баня, гараж и сарай. Это четыре бежевых строения. Сторона клетки 2 м. Ответ округлите до целого.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

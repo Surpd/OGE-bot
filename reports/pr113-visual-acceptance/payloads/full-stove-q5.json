@@ -1,0 +1,81 @@
+{
+  "id": "full-stove-q5",
+  "label": "Полный комплект · STOVE · вопрос 5",
+  "category": "full-scenario",
+  "story": "STOVE",
+  "seed": 42,
+  "position": 5,
+  "mode": "full",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}6 \\times 2 \\times 2{,}3</tg-math> м. Дверь: 56 см × 210 см; окон нет.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №5",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/b0ded69dcd026e9b453e0bd134b93e33d7f0692f87b126cadb95dca03a667086.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "b0ded69dcd026e9b453e0bd134b93e33d7f0692f87b126cadb95dca03a667086",
+          "bytes": 18609
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:810f3807-d1a0-5228-bea7-a343a15b3568:5:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:810f3807-d1a0-5228-bea7-a343a15b3568:5:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:810f3807-d1a0-5228-bea7-a343a15b3568:5:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:810f3807-d1a0-5228-bea7-a343a15b3568:5:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:810f3807-d1a0-5228-bea7-a343a15b3568:5:0:p"
+            },
+            {
+              "text": "⏹ Завершить",
+              "callback_data": "o:a:810f3807-d1a0-5228-bea7-a343a15b3568:5:0:r"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №5 из 5</b></p><p> </p><p>Найдите радиус дуги арки кожуха печи. Размеры кожуха указаны на рисунке. Центр окружности находится в середине нижнего основания.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

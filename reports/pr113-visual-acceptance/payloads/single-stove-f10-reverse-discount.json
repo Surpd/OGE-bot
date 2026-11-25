@@ -1,0 +1,78 @@
+{
+  "id": "single-stove-f10-reverse-discount",
+  "label": "Одиночная выдача · STOVE-F10-REVERSE-DISCOUNT",
+  "category": "single-family",
+  "story": "STOVE",
+  "seed": 0,
+  "position": 4,
+  "family": "STOVE-F10-REVERSE-DISCOUNT",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3 \\times 2{,}6 \\times 2</tg-math> м. Дверь: 76 см × 190 см; окон нет.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №4",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/c27278178d17767cc2a6785de77d45b3887f84a05bfcd6c1e640d3b6baf14b30.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "c27278178d17767cc2a6785de77d45b3887f84a05bfcd6c1e640d3b6baf14b30",
+          "bytes": 36708
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:d3bf8d57-0b5b-54e7-9301-286482b265b4:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:d3bf8d57-0b5b-54e7-9301-286482b265b4:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:d3bf8d57-0b5b-54e7-9301-286482b265b4:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:d3bf8d57-0b5b-54e7-9301-286482b265b4:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:d3bf8d57-0b5b-54e7-9301-286482b265b4:4:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №4</b></p><p> </p><p>В таблице указана нынешняя цена печи №1. По сравнению с прошлым годом она снижена на 20%. Сколько рублей стоила эта печь в прошлом году?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

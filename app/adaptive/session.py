@@ -65,7 +65,8 @@ class Session:
 
     async def current(self) -> Any:
         return await self.pool.fetchrow(
-            """SELECT a.*,p.snapshot,p.outcome,p.hints_used,p.issued_at
+            """SELECT a.*,p.snapshot,p.outcome,p.hints_used,p.issued_at,
+            (SELECT count(*) FROM attempts t WHERE t.problem_id=p.id) AS attempt_count
             FROM adaptive_sessions a JOIN users u ON u.id=a.owner
             LEFT JOIN issued_problems p ON p.id=a.problem
             WHERE u.telegram_user_id=$1 AND a.finished IS NULL""",
@@ -158,6 +159,7 @@ class Session:
             """SELECT count(*) issued, count(*) FILTER(WHERE p.outcome<>'issued') completed,
             count(*) FILTER(WHERE EXISTS(SELECT FROM attempts a WHERE a.problem_id=p.id)) attempted,
             count(*) FILTER(WHERE p.outcome='solved') solved,
+            count(*) FILTER(WHERE p.outcome='skipped') skipped,
             count(*) FILTER(WHERE p.hints_used>0) hinted,
             count(*) FILTER(WHERE p.solution_viewed_at IS NOT NULL) reviewed,
             count(*) FILTER(WHERE EXISTS(SELECT FROM attempts t WHERE t.problem_id=p.id
@@ -355,7 +357,7 @@ class Session:
                 return None
             await sync(conn, owner)
             return await conn.fetchrow(
-                """SELECT d.reason,d.after_state FROM adaptive_session_deltas d
+                """SELECT d.reason,d.after_state,sl.selection FROM adaptive_session_deltas d
                 JOIN adaptive_slots sl USING (session_id,position)
                 JOIN attempts a ON a.problem_id=sl.problem AND a.attempt_no=d.ordinal
                 WHERE d.session_id=$1 AND a.telegram_message_id=$2 AND d.reason IN

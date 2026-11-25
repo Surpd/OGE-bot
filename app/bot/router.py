@@ -11,7 +11,9 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import BufferedInputFile, CallbackQuery, Message
 
+from app.bot.bop_copy import reply
 from app.bot.callbacks import answer_callback
+from app.bot.math_layout import question_message, solution_message
 from app.bot.menu import (
     MAIN_MENU,
     main_menu,
@@ -256,9 +258,10 @@ async def _send_problem(
             and saved_problem.get("_transitioned") is False
         ):
             return False
-    body = f"Задание №6\n\n{saved_problem['condition']}"
-    if terminal:
-        body += "\n\n" + (resumed_result(status, saved_problem) or "")
+    body = question_message(
+        "Задание №6", str(saved_problem["condition"]),
+        (resumed_result(status, saved_problem) or "") if terminal else "",
+    )
     sent = await send_text(
         message,
         repository,
@@ -642,9 +645,10 @@ async def _send_task9_problem(
             return False
         if action == "advance" and saved_problem.get("_transitioned") is False:
             return False
-    body = f"Задание №9\n\n{saved_problem['condition']}"
-    if terminal:
-        body += "\n\n" + (resumed_result(status, saved_problem) or "")
+    body = question_message(
+        "Задание №9", str(saved_problem["condition"]),
+        (resumed_result(status, saved_problem) or "") if terminal else "",
+    )
     sent = await send_text(
         message,
         repository,
@@ -815,13 +819,9 @@ async def _send_task11_problem(
             message, repository, "Сохранённое задание №11 повреждено; ответ не обработан."
         )
         return False
-    caption = (
-        "Задание №11\n"
-        f"{restored.condition}\n\n"
-        + (
-            (resumed_result(status, problem) or "") if terminal
-            else answer_instruction(11, problem)
-        )
+    caption = question_message(
+        "Задание №11", restored.condition,
+        (resumed_result(status, problem) or "") if terminal else answer_instruction(11, problem),
     )
     sent = await send_photo(
         message,
@@ -1004,14 +1004,14 @@ async def task11_answer(message: Message, repository: Repository) -> None:
         return
     status = outcome.get("status")
     if status == "solved":
-        text = "✅ Верно! Ответ засчитан."
+        text = reply("corrected" if outcome.get("attempt") == 2 else "correct", message.message_id)
     elif status == "active":
-        text = "Пока неверно. Попробуйте ещё раз."
+        text = reply("wrong", message.message_id)
     elif status == "failed":
         snapshot = cast(dict[str, object], outcome["problem"])
-        text = (
-            f"Вторая попытка неверна. Ответ: {snapshot['correct_answer']}\n\nРазбор:\n"
-            + "\n".join(map(str, cast(list[object], snapshot.get("solution", []))))
+        text = solution_message(
+            map(str, cast(list[object], snapshot.get("solution", []))),
+            str(snapshot["correct_answer"]), reply("review", message.message_id),
         )
     else:
         await send_text(message, repository, "Ответ уже обработан. Нажмите «Следующее».")
@@ -1485,7 +1485,7 @@ async def _send_task7_problem(
         )
         return False
     footer = resumed_result(status, problem) if terminal else answer_instruction(7, problem)
-    caption = f"Задание №7\n{question_text(7, problem)}\n\n{footer}"
+    caption = question_message("Задание №7", question_text(7, problem), footer or "")
 
     encoded = problem.get("graph_png_base64")
     if isinstance(encoded, str):
@@ -1710,14 +1710,14 @@ async def task7_answer(message: Message, repository: Repository) -> None:
         return
     status = outcome.get("status")
     if status == "solved":
-        text = "✅ Верно! Ответ засчитан."
+        text = reply("corrected" if outcome.get("attempt") == 2 else "correct", message.message_id)
     elif status == "active":
-        text = "Пока неверно. Попробуйте ещё раз."
+        text = reply("wrong", message.message_id)
     elif status == "failed":
         snapshot = cast(dict[str, object], outcome["problem"])
-        text = (
-            f"Вторая попытка неверна. Ответ: {snapshot['correct_answer']}\n\nРазбор:\n"
-            + "\n".join(map(str, cast(list[object], snapshot.get("solution", []))))
+        text = solution_message(
+            map(str, cast(list[object], snapshot.get("solution", []))),
+            str(snapshot["correct_answer"]), reply("review", message.message_id),
         )
     else:
         await send_text(message, repository, "Ответ уже обработан. Нажмите «Следующее».")
@@ -1836,7 +1836,7 @@ async def _send_task13_problem(
     footer = resumed_result(status, problem) if terminal else (
         "Выберите вариант кнопкой или напишите его номер в чат."
     )
-    caption = f"Задание №13\n{question_text(13, problem)}\n\n{footer}"
+    caption = question_message("Задание №13", question_text(13, problem), footer or "")
     markup = task13_menu(problem_id, completed=terminal, choices=True)
     math_system_rows = system_rows(13, problem)
     if image is not None:
@@ -2041,14 +2041,14 @@ async def _task13_record_answer(
         return
     status = outcome.get("status")
     if status == "solved":
-        text = "✅ Верно! Ответ засчитан."
+        text = reply("corrected" if outcome.get("attempt") == 2 else "correct", message.message_id)
     elif status == "active":
-        text = "Пока неверно. Попробуйте ещё раз."
+        text = reply("wrong", message.message_id)
     elif status == "failed":
         snapshot = cast(dict[str, object], outcome["problem"])
-        text = (
-            f"Вторая попытка неверна. Правильный вариант: {snapshot['correct_answer']}\n\nРазбор:\n"
-            + "\n".join(map(str, cast(list[object], snapshot.get("solution", []))))
+        text = solution_message(
+            map(str, cast(list[object], snapshot.get("solution", []))),
+            str(snapshot["correct_answer"]), reply("review", message.message_id),
         )
     else:
         await send_text(message, repository, "Ответ уже обработан. Нажмите «Следующее».")
@@ -2351,7 +2351,7 @@ async def task6_answer(message: Message, repository: Repository) -> None:
         sent = await send_text(
             message,
             repository,
-            "✅ Верно!\nОтвет засчитан.",
+            reply("corrected" if outcome.get("attempt") == 2 else "correct", message.message_id),
             reply_markup=task6_menu(expected_problem_id, completed=True),
         )
         result_id = getattr(sent, "message_id", None)
@@ -2364,7 +2364,7 @@ async def task6_answer(message: Message, repository: Repository) -> None:
         sent = await send_text(
             message,
             repository,
-            "Пока неверно. Попробуйте ещё раз.",
+            reply("wrong", message.message_id),
             reply_markup=task6_menu(expected_problem_id),
         )
         result_id = getattr(sent, "message_id", None)
@@ -2376,12 +2376,13 @@ async def task6_answer(message: Message, repository: Repository) -> None:
     elif outcome["status"] == "failed":
         saved_problem = cast(dict[str, object], outcome["problem"])
         solution = saved_problem.get("solution", [])
-        steps = "\n".join(str(step) for step in solution) if isinstance(solution, list) else ""
+        steps = list(map(str, solution)) if isinstance(solution, list) else []
         sent = await send_text(
             message,
             repository,
-            f"Вторая попытка неверна. Правильный ответ: {saved_problem['correct_answer']}.\n\n"
-            f"Разбор:\n{steps}",
+            solution_message(
+                steps, str(saved_problem["correct_answer"]), reply("review", message.message_id),
+            ),
             reply_markup=task6_menu(expected_problem_id, completed=True),
             math_family=saved_problem,
         )
@@ -2547,7 +2548,7 @@ async def task9_answer(message: Message, repository: Repository) -> None:
         sent = await send_text(
             message,
             repository,
-            "✅ Верно!\nОтвет засчитан.",
+            reply("corrected" if outcome.get("attempt") == 2 else "correct", message.message_id),
             reply_markup=task9_menu(problem_id, completed=True),
         )
         result_id = getattr(sent, "message_id", None)
@@ -2560,7 +2561,7 @@ async def task9_answer(message: Message, repository: Repository) -> None:
         sent = await send_text(
             message,
             repository,
-            "Пока неверно. Попробуйте ещё раз.",
+            reply("wrong", message.message_id),
             reply_markup=task9_menu(problem_id),
         )
         result_id = getattr(sent, "message_id", None)
@@ -2572,14 +2573,13 @@ async def task9_answer(message: Message, repository: Repository) -> None:
     elif outcome.get("status") == "failed":
         snapshot = cast(dict[str, object], outcome["problem"])
         solution = snapshot.get("solution", [])
-        rendered_steps = (
-            "\n".join(str(step) for step in solution) if isinstance(solution, list) else ""
-        )
+        steps = list(map(str, solution)) if isinstance(solution, list) else []
         sent = await send_text(
             message,
             repository,
-            f"Вторая попытка неверна. Правильный ответ: {snapshot['correct_answer']}.\n\n"
-            f"Разбор:\n{rendered_steps}",
+            solution_message(
+                steps, str(snapshot["correct_answer"]), reply("review", message.message_id),
+            ),
             reply_markup=task9_menu(problem_id, completed=True),
             math_family=problem,
         )

@@ -1,0 +1,78 @@
+{
+  "id": "single-tariff-f04-monthly-bill",
+  "label": "Одиночная выдача · TARIFF-F04-MONTHLY-BILL",
+  "category": "single-family",
+  "story": "TARIFF",
+  "seed": 0,
+  "position": 2,
+  "family": "TARIFF-F04-MONTHLY-BILL",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>За каждый месяц года показаны расход минут исходящих вызовов и мобильного интернета.</p><p>На графике сплошная линия — минуты (левая шкала), пунктирная — интернет в ГБ (правая шкала).</p><p>Тариф «Стандартный»: абонентская плата 350 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.</p><p>Сверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.</p><p>Месяцы указаны в календарном порядке с января по декабрь.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №2",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/f8c603351ceaeed213d10ac78666ae38dc55fb3465df6bc9025afbe24b72c7eb.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "f8c603351ceaeed213d10ac78666ae38dc55fb3465df6bc9025afbe24b72c7eb",
+          "bytes": 46186
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:df9a271c-da42-5e0f-b24a-8df782c90be6:2:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:df9a271c-da42-5e0f-b24a-8df782c90be6:2:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:df9a271c-da42-5e0f-b24a-8df782c90be6:2:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:df9a271c-da42-5e0f-b24a-8df782c90be6:2:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:df9a271c-da42-5e0f-b24a-8df782c90be6:2:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Тарифы</b></p><p> </p><p><b>Задание №2</b></p><p> </p><p>Определите плату за услуги связи за ноябрь при расходе, показанном на графике. Ответ укажите в рублях.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

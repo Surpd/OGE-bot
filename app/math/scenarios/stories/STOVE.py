@@ -34,7 +34,7 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "stove-v1.4"
+GENERATOR_VERSION = "stove-v1.5"
 COMPATIBILITY_MATRIX_VERSION = "stove-bundle-v1"
 LEGACY_RENDERER_VERSION = "stove-svg-png-v1"
 RENDERER_VERSION = "stove-svg-png-v2"
@@ -286,11 +286,16 @@ class StoveQuestionBuilder:
                 for val in displayed
             )
             condition = (
+                "Запишите номера печей подряд, без пробелов и запятых. "
                 f"Укажите номера печей, соответствующие значениям {'наименьших' if boundary == 'min_m3' else 'наибольших'} границ диапазона объёма, в таком же порядке: "  # noqa: E501
                 + ", ".join(map(str, displayed))
                 + "."
             )
-            model.update({"boundary": boundary, "displayed_values": displayed})
+            model.update({
+                "boundary": boundary, "displayed_values": displayed,
+                "answer_grid": {"header": "Объём, м³", "columns": tuple(map(str, displayed)),
+                                "row": "Номер печи"},
+            })
             hints = (
                 "Найдите в таблице столбец диапазона объёма.",
                 "Сопоставьте каждое значение с одной строкой таблицы.",
@@ -306,11 +311,16 @@ class StoveQuestionBuilder:
             label = "массы (кг)" if key == "mass_kg" else "цены (руб.)"
             answer = "".join(str(row["id"]) for row in displayed_rows)
             condition = (
+                "Запишите номера печей подряд, без пробелов и запятых. "
                 f"Укажите номера печей, соответствующие значениям {label} в указанном порядке: "
                 + ", ".join(_money(v) for v in displayed)
                 + "."
             )
-            model.update({"attribute": key, "displayed_values": displayed})
+            model.update({
+                "attribute": key, "displayed_values": displayed,
+                "answer_grid": {"header": "Масса, кг" if key == "mass_kg" else "Цена, руб.",
+                                "columns": tuple(map(_money, displayed)), "row": "Номер печи"},
+            })
             hints = (
                 f"Найдите в таблице столбец «{label}».",
                 "Для каждого значения запишите номер соответствующей строки.",
@@ -319,7 +329,7 @@ class StoveQuestionBuilder:
         elif family_id in (FAMILY_IDS[2], FAMILY_IDS[3], FAMILY_IDS[4]):
             if family_id == FAMILY_IDS[2]:
                 answer_fraction = room_volume
-                condition = f"Найдите объём парной. {_room_text(context)}"
+                condition = "Найдите объём парной в кубических метрах."
                 operation = "volume"
                 hints = (
                     "Объём прямоугольного помещения равен произведению длины, ширины и высоты.",
@@ -330,7 +340,7 @@ class StoveQuestionBuilder:
                 )
             elif family_id == FAMILY_IDS[3]:
                 answer_fraction = Fraction(length * width, 100)
-                condition = f"Найдите площадь пола парной. {_room_text(context)}"
+                condition = "Найдите площадь пола парной в квадратных метрах."
                 operation = "floor_area"
                 hints = (
                     "Площадь прямоугольного пола равна произведению длины на ширину.",
@@ -344,9 +354,7 @@ class StoveQuestionBuilder:
                     cast(int, context["door_height_cm"]), 100
                 )
                 answer_fraction = 2 * (Fraction(length + width, 10)) * Fraction(height, 10) - door
-                condition = (
-                    f"Найдите площадь всех стен парной без дверного проёма. {_room_text(context)}"
-                )
+                condition = "Найдите площадь стен парной без дверного проёма. Ответ дайте в м²."
                 operation = "walls_minus_door"
                 hints = (
                     "Найдите периметр основания и умножьте его на высоту.",
@@ -378,7 +386,10 @@ class StoveQuestionBuilder:
             wood = rows[1]
             delivery = cast(int, context["delivery_rub"])
             answer = str(cast(int, wood["price_rub"]) + delivery)
-            condition = f"Для парной из условия выберите подходящую дровяную печь по объёму и найдите её стоимость с доставкой. Доставка стоит {_money(delivery)} руб. {_room_text(context)}"  # noqa: E501
+            condition = (
+                "Выберите подходящую дровяную печь по объёму парной и найдите её стоимость "
+                f"с доставкой в рублях. Доставка стоит {_money(delivery)} руб."
+            )
             model.update({"operation": "wood_fit_delivery"})
             hints = (
                 "Сначала вычислите объём парной.",
@@ -407,7 +418,15 @@ class StoveQuestionBuilder:
             comparison = "дешевле" if wood_is_cheaper else "дороже"
             difference = abs(wood_total - electric_total)
             inclusion = "с учётом установки" if with_installation else "без учёта установки"
-            condition = f"Определите по объёму парной подходящую дровяную печь. На сколько рублей её покупка обойдётся {comparison} электрической {inclusion}? Установка электрической печи стоит {_money(cast(int, context['installation_rub']))} руб."  # noqa: E501
+            condition = (
+                "Определите по объёму парной подходящую дровяную печь. "
+                f"На сколько рублей её покупка обойдётся {comparison} электрической {inclusion}?"
+            )
+            if with_installation:
+                condition += (
+                    " Установка электрической печи стоит "
+                    f"{_money(cast(int, context['installation_rub']))} руб."
+                )
             answer = str(difference)
             model.update(
                 {
@@ -572,7 +591,12 @@ class StoveRenderer:
     def render_scenario(self, scenario: ScenarioDraft) -> RenderedScenario:
         context = _context_dict(scenario)
         shared = (
-            "Сюжет: печи для бани. Все пять вопросов относятся к одной парной и одному каталогу печей.\n"  # noqa: E501
+            "Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели "
+            "и одну электрическую. Чтобы печь могла прогреть помещение, объём парной "
+            "должен попадать в указанный производителем диапазон. Печь подходит и тогда, "
+            "когда объём равен одной из границ диапазона. В каталоге указаны характеристики "
+            "и цена каждой модели без дополнительных услуг.\n\n"
+            "Парная имеет форму прямоугольного параллелепипеда. "
             + _room_text(context)
             + "\n"
             + _table_text(context)
@@ -908,14 +932,14 @@ class StoveOracle:
                 raise ValueError("Each requested stove attribute must identify one row")
             return "".join(str(matches[0]) for matches in matching_ids)
         if family in FAMILY_IDS[2:5]:
-            dims = _parse_room_condition(condition)
+            dims = _parse_room_condition(shared)
             length_m, width_m, height_m = dims
             if family == FAMILY_IDS[2]:
                 return _decimal_text(length_m * width_m * height_m)
             if family == FAMILY_IDS[3]:
                 return _decimal_text(length_m * width_m)
-            dw_match = re.search(r"Дверь: (\d+) см × (\d+) см", condition)
-            if not dw_match or "окон нет" not in condition:
+            dw_match = re.search(r"Дверь: (\d+) см × (\d+) см", shared)
+            if not dw_match or "окон нет" not in shared:
                 raise ValueError(
                     "Wall question requires visible door dimensions and no-window statement"
                 )
@@ -929,7 +953,7 @@ class StoveOracle:
                 raise ValueError("Purchase question omits a required cost")
             return str(price + install + delivery)
         if family == FAMILY_IDS[6]:
-            length_m, width_m, height_m = _parse_room_condition(condition)
+            length_m, width_m, height_m = _parse_room_condition(shared)
             volume = length_m * width_m * height_m
             fitting = [
                 r for r in rows[:2] if cast(int, r["min_m3"]) <= volume <= cast(int, r["max_m3"])
@@ -952,12 +976,12 @@ class StoveOracle:
             ]
             if len(wood_fit) != 1:
                 raise ValueError("Comparison room must identify one suitable wood stove")
-            installation = _extract_money(condition, "Установка электрической печи стоит")
             includes_installation = "с учётом установки" in condition
             if not includes_installation and "без учёта установки" not in condition:
                 raise ValueError("Comparison must state whether installation is counted")
             electric = cast(int, rows[2]["price_rub"]) + (
-                installation if includes_installation else 0
+                _extract_money(condition, "Установка электрической печи стоит")
+                if includes_installation else 0
             )
             wood = cast(int, wood_fit[0]["price_rub"])
             comparison = "дешевле" if wood < electric else "дороже" if wood > electric else "равна"

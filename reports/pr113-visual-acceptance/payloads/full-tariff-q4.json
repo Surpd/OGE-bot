@@ -1,0 +1,65 @@
+{
+  "id": "full-tariff-q4",
+  "label": "Полный комплект · TARIFF · вопрос 4",
+  "category": "full-scenario",
+  "story": "TARIFF",
+  "seed": 42,
+  "position": 4,
+  "mode": "full",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>За каждый месяц года показаны расход минут исходящих вызовов и мобильного интернета.</p><p>На графике сплошная линия — минуты (левая шкала), пунктирная — интернет в ГБ (правая шкала).</p><p>Тариф «Стандартный»: абонентская плата 350 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.</p><p>Сверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.</p><p>Месяцы указаны в календарном порядке с января по декабрь.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:547c2f5f-32bb-5e0c-84a3-9337834ae4f5:4:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:547c2f5f-32bb-5e0c-84a3-9337834ae4f5:4:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:547c2f5f-32bb-5e0c-84a3-9337834ae4f5:4:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:547c2f5f-32bb-5e0c-84a3-9337834ae4f5:4:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:547c2f5f-32bb-5e0c-84a3-9337834ae4f5:4:0:p"
+            },
+            {
+              "text": "⏹ Завершить",
+              "callback_data": "o:a:547c2f5f-32bb-5e0c-84a3-9337834ae4f5:4:0:r"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Тарифы</b></p><p> </p><p><b>Задание №4 из 5</b></p><p> </p><p>Абонентская плата выросла с 350 руб. до 385 руб. На сколько процентов она увеличилась?</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

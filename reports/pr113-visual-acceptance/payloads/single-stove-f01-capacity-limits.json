@@ -1,0 +1,94 @@
+{
+  "id": "single-stove-f01-capacity-limits",
+  "label": "Одиночная выдача · STOVE-F01-CAPACITY-LIMITS",
+  "category": "single-family",
+  "story": "STOVE",
+  "seed": 1,
+  "position": 1,
+  "family": "STOVE-F01-CAPACITY-LIMITS",
+  "mode": "single",
+  "calls": [
+    {
+      "sequence": 1,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "rich_message": {
+        "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}5 \\times 2{,}2 \\times 2{,}1</tg-math> м. Дверь: 82 см × 197 см; окон нет.</p>",
+        "media": null
+      }
+    },
+    {
+      "sequence": 2,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №1",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/7f6c54dd0db6def7cafc5dbda6586e0b3ac72602ccadd19bba0b68d2b785b7c9.png",
+          "source_filename": "scenario-1.png",
+          "sha256": "7f6c54dd0db6def7cafc5dbda6586e0b3ac72602ccadd19bba0b68d2b785b7c9",
+          "bytes": 37462
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "method": "sendPhoto",
+      "chat_id": 42,
+      "caption": "Данные задачи №1",
+      "parse_mode": "HTML",
+      "protect_content": "Default('protect_content')",
+      "media": [
+        {
+          "file": "assets/png/6b0b0d32abc27d36378399e6337f256a2bbe5da2598337b782ed670b93e7fb04.png",
+          "source_filename": "scenario-2.png",
+          "sha256": "6b0b0d32abc27d36378399e6337f256a2bbe5da2598337b782ed670b93e7fb04",
+          "bytes": 15407
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "method": "sendRichMessage",
+      "chat_id": 42,
+      "protect_content": "Default('protect_content')",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "💡 Подсказка",
+              "callback_data": "o:a:842d7e8e-4777-5201-8b51-2b27d778213f:1:0:h"
+            },
+            {
+              "text": "📘 Разбор",
+              "callback_data": "o:a:842d7e8e-4777-5201-8b51-2b27d778213f:1:0:s"
+            }
+          ],
+          [
+            {
+              "text": "⏭ Пропустить",
+              "callback_data": "o:a:842d7e8e-4777-5201-8b51-2b27d778213f:1:0:k"
+            },
+            {
+              "text": "📷 Схема / данные",
+              "callback_data": "o:a:842d7e8e-4777-5201-8b51-2b27d778213f:1:0:d"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "o:a:842d7e8e-4777-5201-8b51-2b27d778213f:1:0:p"
+            }
+          ]
+        ]
+      },
+      "rich_message": {
+        "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №1</b></p><p> </p><p>Запишите номера печей подряд, без пробелов и запятых. Укажите номера печей, соответствующие значениям наибольших границ диапазона объёма, в таком же порядке: 22, 14, 25.</p><p> </p><p>Напиши ответ в чат.</p>",
+        "media": null
+      }
+    }
+  ]
+}

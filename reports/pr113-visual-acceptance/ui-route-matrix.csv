@@ -1,0 +1,10 @@
+﻿route,coverage,gallery_example,evidence
+full,Full public scenarios,index.html#full-scenario,tests/test_scenario_required_materials.py::test_required_payload_before_question_on_every_path
+single,Standalone public families,index.html#single-family,tests/test_scenario_required_materials.py::test_required_payload_before_question_on_every_path
+personal,Short personal training,index.html#short-personal-garden-q3,tests/test_scenario_required_materials.py::test_required_payload_before_question_on_every_path; test_short_training_data_callback_only_reads_the_current_snapshot
+mixed,Mixed and adjacent mixed training,index.html#short-mixed-garden-q3,tests/test_scenario_required_materials.py::test_required_payload_before_question_on_every_path; test_mixed_data_button_is_bound_to_saved_problem_without_regeneration
+number,Short training by OGE number,index.html#short-number-garden-q3,tests/test_scenario_required_materials.py::test_short_training_data_callback_only_reads_the_current_snapshot (number)
+family,Short training by family,index.html#short-family-garden-q3,tests/test_scenario_required_materials.py::test_short_training_data_callback_only_reads_the_current_snapshot (family)
+data,Saved data callback / reopen,index.html#reopen-flat-q3,tests/test_scenario_required_materials.py::test_short_training_data_callback_only_reads_the_current_snapshot; test_mixed_data_button_is_bound_to_saved_problem_without_regeneration
+replay,Error replay and history,index.html#error-replay-tyres-q1,tests/test_scenario_required_materials.py::test_required_payload_before_question_on_every_path; test_replay_data_button_preserves_original_attempt_and_snapshot
+closed-route,"ROUTE closed, no Telegram route",index.html#closed-route,closed-route.json documents synthetic prototype mismatch

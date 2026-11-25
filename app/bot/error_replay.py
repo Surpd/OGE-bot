@@ -17,7 +17,9 @@ from aiogram.types import (
     Message,
 )
 
+from app.bot.bop_copy import LABELS, reply
 from app.bot.callbacks import answer_callback
+from app.bot.math_layout import question_message, solution_message
 from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_materials import prepare_scenario_materials, send_scenario_materials
 from app.bot.task_view import answer_instruction, question_text, system_rows, verified_photo
@@ -48,18 +50,18 @@ def _keyboard(
     if not completed:
         rows.append(
             [
-                InlineKeyboardButton(text="💡 Подсказка", callback_data=f"replay:{token}:h"),
-                InlineKeyboardButton(text="📘 Разбор", callback_data=f"replay:{token}:s"),
+                InlineKeyboardButton(text=LABELS["hint"], callback_data=f"replay:{token}:h"),
+                InlineKeyboardButton(text=LABELS["solution"], callback_data=f"replay:{token}:s"),
             ]
         )
     if scenario and not completed:
         rows.append([InlineKeyboardButton(
-            text="📷 Схема / данные", callback_data=f"replay:{token}:d",
+            text=LABELS["data"], callback_data=f"replay:{token}:d",
         )])
     rows.extend(
         (
             [InlineKeyboardButton(text="↩ К ошибкам", callback_data="progress:errors:0")],
-            [InlineKeyboardButton(text="↩ В меню", callback_data="nav:main")],
+            [InlineKeyboardButton(text=LABELS["menu"], callback_data="nav:main")],
         )
     )
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -171,11 +173,13 @@ async def _render(
             reply_markup=_keyboard(token, completed=True), user_id_override=user_id,
         )
         return
-    body = f"Повтор исходной задачи №{source.number}\n\n{_condition(source)}"
-    if notice:
-        body = notice + "\n\n" + body
     attempt_count = int(cast(int, replay.get("attempt_count", 0)))
-    body += f"\n\nПопытка {attempt_count + 1} из 2. Повтор учитывается отдельно."
+    body = question_message(
+        f"Повтор исходной задачи №{source.number}",
+        _condition(source),
+        f"Попытка {attempt_count + 1} из 2. Повтор учитывается отдельно.",
+        position=notice,
+    )
     context, photos = materials
     if source.scenario_snapshot is not None:
         if not await send_scenario_materials(
@@ -245,11 +249,11 @@ async def start_from_progress(
             materials = await asyncio.to_thread(_materials, source)
             _condition(source)
             await store.set_screen(user_id, "error_replay")
-            notice = "Открыт ваш незавершённый повтор."
+            notice = "Продолжаем незавершённый повтор."
     except (ValueError, KeyError, TypeError, binascii.Error, RuntimeError):
         await send_text(
             message, repository, "Не удалось восстановить исходную задачу для повтора. "
-            "Повторите загрузку из списка ошибок.",
+            "Открой задачу ещё раз из списка ошибок.",
             reply_markup=_keyboard("", completed=True), user_id_override=user_id,
         )
         return
@@ -285,7 +289,7 @@ async def answer(message: Message, repository: Repository) -> None:
     store = ErrorReplayRepository(repository)
     active = await _active_replay(repository, user_id)
     if active is None:
-        await send_text(message, repository, "Откройте повтор из раздела «Мои ошибки».")
+        await send_text(message, repository, "Открой повтор из раздела «Мои ошибки».")
         return
     replay, source = active
     from app.bot.training_ux import matches_current_condition
@@ -300,7 +304,7 @@ async def answer(message: Message, repository: Repository) -> None:
         await send_text(message, repository, "Не удалось проверить ответ к исходной задаче.")
         return
     if correct is None:
-        await send_text(message, repository, "Введите ответ в формате, указанном в условии.")
+        await send_text(message, repository, "Введи ответ в формате из условия.")
         return
     result = await store.record_attempt(
         user_id,
@@ -313,14 +317,15 @@ async def answer(message: Message, repository: Repository) -> None:
     if result is None or result.get("event") in {"stale", "duplicate", "closed"}:
         return
     if result.get("status") == "active":
-        text = "Пока неверно. Попробуйте ещё раз."
+        text = reply("wrong", message.message_id)
     elif result.get("status") == "solved":
         text = "✅ Верно! Ошибка исправлена в учебном повторе."
     else:
-        text = f"Попытки закончились. Правильный ответ: {source.correct_answer}"
         solution = source.snapshot.get("solution_steps", source.snapshot.get("solution"))
-        if isinstance(solution, list) and solution:
-            text += "\n\nРазбор:\n\n" + "\n".join(map(str, solution))
+        text = solution_message(
+            list(map(str, solution)) if isinstance(solution, list) else (),
+            source.correct_answer, reply("review", message.message_id),
+        )
     await _feedback(
         message, repository, user_id, result, text,
         source.snapshot if result.get("status") == "failed" else None,
@@ -359,15 +364,11 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
             return
         await answer_callback(callback)
         if isinstance(callback.message, Message):
-            delivered = await send_scenario_materials(
+            await send_scenario_materials(
                 callback.message, repository,
                 ScenarioSnapshot.from_snapshot(source.scenario_snapshot), source.number,
                 user_id=callback.from_user.id,
-            )
-            await _feedback(
-                callback.message, repository, callback.from_user.id, replay,
-                "Данные исходной задачи показаны." if delivered else
-                "Повторите загрузку кнопкой «Схема / данные».", scenario=True,
+                reply_markup=_keyboard(parts[1], scenario=True),
             )
         return
     if parts[2] == "h":
@@ -393,7 +394,7 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
         if isinstance(callback.message, Message):
             await _feedback(
                 callback.message, repository, callback.from_user.id, replay,
-                "Разбор:\n\n" + solution, source.snapshot,
+                solution_message(solution.splitlines(), source.correct_answer), source.snapshot,
                 scenario=source.scenario_snapshot is not None,
             )
         return
