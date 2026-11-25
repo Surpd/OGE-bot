@@ -1097,7 +1097,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 assert all("Таблица размеров" not in text for text in text_payloads)
                 assert all("A0:" not in text and "1189" not in text and "841" not in text
                            for text in text_payloads)
-                expected_photos = scenario_photos_for_question(active.snapshot, 3)
+                expected_photos = scenario_photos(active.snapshot)
                 sent_photos = [
                     call.photo.data for call in data_calls if call.__api_method__ == "sendPhoto"
                 ]
@@ -1224,7 +1224,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 )
                 assert [
                     call.photo.data for call in single_calls if call.__api_method__ == "sendPhoto"
-                ] == list(scenario_photos_for_question(single.snapshot, 3))
+                ] == list(scenario_photos(single.snapshot))
                 saved_full = await scenario_repository.resume_session(user_id, active.session_id)
                 assert saved_full is not None and saved_full.status == "paused"
                 assert saved_full.current_position == 3

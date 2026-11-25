@@ -212,6 +212,11 @@ def _recommendation_text(item: SelectionReason) -> str:
     return f"{title(item.family)} · {item.reason}."
 
 
+def _scope(row: Any) -> dict[str, Any]:
+    value = row["scope"]
+    return cast(dict[str, Any], json.loads(value) if isinstance(value, str) else value or {})
+
+
 async def progress_target(repository: Any, learner: int, insights: dict[str, Any]) -> None:
     if not await repository.personal_enabled(learner):
         return
@@ -244,7 +249,7 @@ async def _pending_task(
         rows.append([button("🔁 Повторить вариант", f"ad:repeat:{token}")])
     else:
         rows.append([button("Попробовать ещё раз", f"ad:retry:{token}")])
-    scope = json.loads(row["scope"])
+    scope = _scope(row)
     if scope.get("similar_position") == row["position"]:
         rows.append([button("Вернуться к заданию", f"ad:back:{token}")])
     rows.append([button("Выбрать другой тип", "train:areas")])
@@ -279,7 +284,7 @@ async def present(
         row = await _issue_task(message, repository, store, row, skills, repeat=repeat)
     elif strategy == "personal":
         history, insights = await _learner_inputs(repository, learner)
-        scope = json.loads(row["scope"])
+        scope = _scope(row)
         updated = list(_select(
             strategy, learner, history, insights, prefix=skills[:row["position"] + 1],
             excluded=await store.excluded_for_learner(), size=len(skills),
@@ -317,7 +322,7 @@ async def _issue_task(
     *, repeat: bool,
 ) -> Any:
     position, strategy = row["position"], row["strategy"]
-    scope = json.loads(row["scope"])
+    scope = _scope(row)
     exact = strategy == "family" or scope.get("similar_position") == position
     excluded = [] if exact or repeat else await store.excluded_for_learner()
     history, insights = (
@@ -419,9 +424,7 @@ def _mode_plan(
 def _requested_mode(row: Any, strategy: str, number: int | None, family: str | None) -> bool:
     if str(row["strategy"]) != strategy:
         return False
-    scope = row["scope"] or {}
-    if isinstance(scope, str):
-        scope = json.loads(scope)
+    scope = _scope(row)
     return (strategy != "number" or scope.get("number") == number) and (
         strategy != "family" or scope.get("family") == family
     )
@@ -1067,7 +1070,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
         if result == "exhausted":
             await present(cb.message, repository, learner)
     elif action == "continue" and at_checkpoint(row):
-        scope = json.loads(row["scope"])
+        scope = _scope(row)
         strategy = row["strategy"]
         history, insights = (
             await _learner_inputs(repository, learner) if strategy == "number" else ([], {})

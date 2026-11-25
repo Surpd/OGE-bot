@@ -258,10 +258,12 @@ async def test_required_diagram_failure_blocks_question_and_retry_preserves_snap
     message.answer_photo = AsyncMock()
     store = AsyncMock(spec=ScenarioPostgresRepository)
     store.close_legacy_with_exposed_answer.return_value = False
-    renderer = scenario_materials.scenario_photos
+    renderer = scenario_materials.scenario_photos_for_question
     if failure == 'render':
-        monkeypatch.setattr(scenario_materials, 'scenario_photos',
-                            lambda *a: (_ for _ in ()).throw(OSError('synthetic render failure')))
+        monkeypatch.setattr(
+            scenario_materials, 'scenario_photos_for_question',
+            lambda *a, **kw: (_ for _ in ()).throw(OSError('synthetic render failure')),
+        )
     else:
         message.answer_photo.side_effect = TelegramNetworkError(
             method=SendPhoto(chat_id=7, photo='synthetic'), message='synthetic timeout',
@@ -272,7 +274,7 @@ async def test_required_diagram_failure_blocks_question_and_retry_preserves_snap
     assert all(snapshot.questions[0].condition not in c.args[0]
                for c in message.answer.await_args_list)
     store.set_condition_message.assert_not_awaited()
-    monkeypatch.setattr(scenario_materials, 'scenario_photos', renderer)
+    monkeypatch.setattr(scenario_materials, 'scenario_photos_for_question', renderer)
     message.answer_photo.side_effect = None
     message.answer.reset_mock()
     await scenario_training.render_session(message, store, session, show_assets=True,
