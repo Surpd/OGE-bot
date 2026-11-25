@@ -44,18 +44,22 @@ def plan(
         priority[k] = weight
     slots = list(prefix)
     counts = Counter(prefix)
-    while priority and len(slots) < size:
+    # Each standalone story position brings its own statement and visual materials.
+    load_group = {k: n if n > 5 else 1 for k, n in available.items()}
+    group_counts = Counter(load_group[k] for k in prefix if k in load_group)
+    ordered = sorted(priority)
+    while ordered and len(slots) < size:
 
         def rank(k: str) -> tuple[float, ...]:
             same = bool(slots and construction(k) == construction(slots[-1]))
-            same_number = sum(available.get(s) == available[k] for s in slots)
             recency = latest.get(k, 0)
             return (
-                priority[k] - 4 * counts[k] - 3 * same - same_number,
+                priority[k] - 4 * counts[k] - 3 * same - group_counts[load_group[k]],
                 recency if priority[k] >= 4 else -recency,
             )
 
-        choice = max(sorted(priority), key=rank)
+        choice = max(ordered, key=rank)
         slots.append(choice)
         counts[choice] += 1
+        group_counts[load_group[choice]] += 1
     return slots

@@ -63,6 +63,18 @@ def test_personal_selection():
     assert "f1" not in plan(history, keys, excluded=["f1"])
 
 
+def test_diagnostic_slots_spread_story_reading_load_without_quota():
+    from app.bot.adaptive import catalog
+    choices = catalog()
+    at = datetime(2026, 1, 1, tzinfo=UTC)
+    h = [(9, "OGE09-L1", State(stage=Stage.PRACTICE, practice=1), at)]
+    picked = plan(h, choices)
+    assert len(set(picked)) == 5 and sum(choices[k] <= 5 for k in picked) == 1
+    weak = [k for k, n in choices.items() if n <= 5][:5]
+    h = [(choices[k], k, State(stage=Stage.GAP, opened=1), at) for k in weak]
+    assert set(plan(h, choices)) == set(weak)
+
+
 async def test_pg_evidence_rebuild_session_resume_and_concurrent_updates(bank_pool):
     import asyncio
     import json
