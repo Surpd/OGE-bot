@@ -267,7 +267,7 @@ def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
     if insights["total"]["answered_tasks"] == 0:
         if get_settings().oge_adaptive_enabled:
             return "Смешанная пятёрка", "train:mixed"
-        return "🎲 Полный вариант №1–19", "nav:mixed"
+        return "🎲 Смешанная тренировка", "nav:mixed"
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is None:
         return None
