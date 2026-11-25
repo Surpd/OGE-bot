@@ -214,7 +214,7 @@ async def test_mixed_and_scenario_share_variant_and_only_fresh_results_count(ban
     from app.bot.adaptive import generate
     from app.math.scenario_engine import ScenarioSnapshot, snapshot_digest
 
-    p = generate("TYRES-DIAMETER", [])
+    p = generate("PAPER-F06", [])
     scene = ScenarioSnapshot.from_snapshot(p["scenario_snapshot"])
     pos = p["number"]
     owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
@@ -289,13 +289,11 @@ async def test_mixed_and_scenario_share_variant_and_only_fresh_results_count(ban
             owner,
             first.skill,
         )
-        await conn.execute(
-            "INSERT INTO adaptive_dirty(owner,source,task) "
-            "VALUES($1,'scenario',$2),($1,'mixed',$3)",
-            owner,
-            f"{session}:{pos}",
-            str(uid),
-        )
+        from pathlib import Path
+
+        migration = Path("migrations/0035_story_variant_inputs.sql").read_text()
+        # Already inside the fixture transaction.
+        await conn.execute(migration.removeprefix("BEGIN;").removesuffix("COMMIT;\n"))
         await sync(conn, owner)
         canonical = scenario_variant(scene, pos)
         assert await conn.fetchval(
@@ -765,16 +763,15 @@ async def test_mixed_oge19_correct_answers_do_not_claim_broad_family_success(ban
     assert state.stage == Stage.UNCHECKED and state.independent_count == 0
 
 
-def test_fixed_bank_and_unavailable_family_fail_closed():
+def test_expanded_family_offers_a_fresh_area_problem():
     from app.bot.adaptive import generate
-    from app.math.scenarios.recent_questions import NoFreshScenarioVariant
 
     assert generate("unsupported", []) is None
     f = "FLAT-03-RECT-AREA"
     first = generate(f, [])
     assert first
-    with pytest.raises(NoFreshScenarioVariant):
-        generate(f, [first["fingerprint"]])
+    second = generate(f, [first["fingerprint"]])
+    assert second and second["fingerprint"] != first["fingerprint"]
     assert trajectory(ev(1, 0, "ambiguous"), ev(1, 0, "ambiguous", 2)).stage == Stage.CHECK
 
 

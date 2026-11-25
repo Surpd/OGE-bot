@@ -1,0 +1,277 @@
+{
+  "schema_version": 1,
+  "story_code": "PAPER",
+  "seed": 42,
+  "generator_version": "paper-v4",
+  "compatibility_matrix_version": "paper-world-v1",
+  "context": {
+    "seed": 42,
+    "world_version": "paper-world-v1",
+    "rows": [
+      [
+        "A0",
+        1189,
+        841
+      ],
+      [
+        "A6",
+        148,
+        105
+      ],
+      [
+        "A4",
+        297,
+        210
+      ],
+      [
+        "A3",
+        420,
+        297
+      ]
+    ],
+    "target_order": [
+      "A0",
+      "A4",
+      "A3",
+      "A6"
+    ],
+    "asset_manifest": {
+      "diagram_asset_id": "paper-a0-a5-folding-v1",
+      "diagram_sha256": "43a20a8cb036471848bf88dad15c2b6e7384b33b9bdd914b4cf95a014423171f",
+      "table_asset_id": "paper-dimensions-v1",
+      "table_sha256": "01709efc0804624508b3f92a08efd7239f370eed4af57c3edff9df046b61d7e8"
+    },
+    "questions": {
+      "2": {
+        "source_index": 2,
+        "target_index": 4
+      },
+      "3": {
+        "format_index": 0,
+        "side": "short",
+        "multiple": 10
+      },
+      "4": {
+        "family_id": "PAPER-F04",
+        "format_index": 3
+      },
+      "5": {
+        "source_index": 4,
+        "target_index": 3,
+        "old_pt": 10
+      }
+    }
+  },
+  "shared_context": "Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.\nТаблица размеров (длина × ширина, мм):\n1. A0: 1189 × 841 мм\n2. A6: 148 × 105 мм\n3. A4: 297 × 210 мм\n4. A3: 420 × 297 мм",
+  "assets": [
+    {
+      "sha256": "43a20a8cb036471848bf88dad15c2b6e7384b33b9bdd914b4cf95a014423171f",
+      "content_type": "image/png",
+      "storage_key": "sha256/43a20a8cb036471848bf88dad15c2b6e7384b33b9bdd914b4cf95a014423171f.png"
+    },
+    {
+      "sha256": "01709efc0804624508b3f92a08efd7239f370eed4af57c3edff9df046b61d7e8",
+      "content_type": "image/png",
+      "storage_key": "sha256/01709efc0804624508b3f92a08efd7239f370eed4af57c3edff9df046b61d7e8.png"
+    }
+  ],
+  "questions": [
+    {
+      "position": 1,
+      "scenario_seed": 42,
+      "family_id": "PAPER-F01",
+      "generator_version": "paper-v4",
+      "condition": "Соотнесите форматы бумаги с размерами в общей таблице. Форматы в указанном порядке: A0, A4, A3, A6. Запишите номера соответствующих строк четырьмя цифрами, без пробелов.",
+      "answer_policy_id": "paper.mapping_four",
+      "answer_policy_version": "1",
+      "canonical_answer": "1342",
+      "hints": [
+        "Вспомните, как соседние форматы листа связаны друг с другом.",
+        "Сначала выпишите нужные размеры и единицы, затем выполните указанное действие."
+      ],
+      "solution_steps": [
+        "Площадь A0 близка к 1 000 000 мм². У каждого следующего формата площадь примерно вдвое меньше.",
+        "Строка 1: 1189 × 841 = 999949 мм², это формат A0.",
+        "Строка 2: 148 × 105 = 15540 мм², это формат A6.",
+        "Строка 3: 297 × 210 = 62370 мм², это формат A4.",
+        "Строка 4: 420 × 297 = 124740 мм², это формат A3.",
+        "В заданном порядке номера строк образуют код 1342."
+      ],
+      "math_model": {
+        "target_order": [
+          "A0",
+          "A4",
+          "A3",
+          "A6"
+        ],
+        "rows": [
+          [
+            "A0",
+            1189,
+            841
+          ],
+          [
+            "A6",
+            148,
+            105
+          ],
+          [
+            "A4",
+            297,
+            210
+          ],
+          [
+            "A3",
+            420,
+            297
+          ]
+        ],
+        "answer_grid": {
+          "columns": [
+            "A0",
+            "A4",
+            "A3",
+            "A6"
+          ],
+          "header": "Формат",
+          "row": "Номер строки"
+        },
+        "source_ids": [
+          "408268",
+          "SPB-2025-2502"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 2,
+      "scenario_seed": 42,
+      "family_id": "PAPER-F02",
+      "generator_version": "paper-v4",
+      "condition": "Из одного листа формата A2 последовательно получают листы формата A4. Сколько листов A4 получится из одного листа A2?",
+      "answer_policy_id": "paper.sheet_count",
+      "answer_policy_version": "1",
+      "canonical_answer": "4",
+      "hints": [
+        "Вспомните, как соседние форматы листа связаны друг с другом.",
+        "Сначала выпишите нужные размеры и единицы, затем выполните указанное действие."
+      ],
+      "solution_steps": [
+        "От A2 до A4 выполняется 2 последовательных делений пополам.",
+        "При каждом делении один лист даёт два листа следующего формата: 2^2 = 4."
+      ],
+      "math_model": {
+        "source_index": 2,
+        "target_index": 4,
+        "source_ids": [
+          "408281",
+          "408284"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 3,
+      "scenario_seed": 42,
+      "family_id": "PAPER-F03",
+      "generator_version": "paper-v4",
+      "condition": "Найдите ширину листа бумаги формата A0. Ответ дайте в миллиметрах и округлите до ближайшего целого числа, кратного 10.",
+      "answer_policy_id": "paper.rounded_mm",
+      "answer_policy_version": "1",
+      "canonical_answer": "840",
+      "hints": [
+        "Вспомните, как соседние форматы листа связаны друг с другом.",
+        "Сначала выпишите нужные размеры и единицы, затем выполните указанное действие."
+      ],
+      "solution_steps": [
+        "В общей таблице ширина листа A0 равна 841 мм.",
+        "Округляем эту ширину до кратного 10: 841 мм → 840 мм."
+      ],
+      "math_model": {
+        "format_index": 0,
+        "side": "short",
+        "value_mm": 841,
+        "multiple": 10,
+        "source_ids": [
+          "408300",
+          "408313"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 4,
+      "scenario_seed": 42,
+      "family_id": "PAPER-F04",
+      "generator_version": "paper-v4",
+      "condition": "Найдите отношение длины меньшей стороны листа формата A3 к большей. Ответ округлите до десятых.",
+      "answer_policy_id": "paper.ratio_tenths",
+      "answer_policy_version": "1",
+      "canonical_answer": "0,7",
+      "hints": [
+        "Вспомните, как соседние форматы листа связаны друг с другом.",
+        "Сначала выпишите нужные размеры и единицы, затем выполните указанное действие."
+      ],
+      "solution_steps": [
+        "В общей таблице A3 имеет размеры 420 × 297 мм.",
+        "Делим короткую сторону на длинную: 297 : 420 ≈ 0,7.",
+        "Ответ после округления до десятых: 0,7."
+      ],
+      "math_model": {
+        "family_id": "PAPER-F04",
+        "format_index": 3,
+        "short_mm": 297,
+        "long_mm": 420,
+        "source_ids": [
+          "408314"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 5,
+      "scenario_seed": 42,
+      "family_id": "PAPER-F07",
+      "generator_version": "paper-v4",
+      "condition": "Размер шрифта на листе A4 равен 10 пт. После изменения формата листа на A3 размер шрифта меняют пропорционально соответствующей стороне формата. Округлите новый размер до целого числа пунктов.",
+      "answer_policy_id": "paper.font_scale",
+      "answer_policy_version": "1",
+      "canonical_answer": "14",
+      "hints": [
+        "Вспомните, как соседние форматы листа связаны друг с другом.",
+        "Сначала выпишите нужные размеры и единицы, затем выполните указанное действие."
+      ],
+      "solution_steps": [
+        "В общей таблице длинные стороны A4 и A3 равны 297 и 420 мм. При переходе A4 → A3 масштаб равен 420/297.",
+        "Новый размер: 10 · 420/297 ≈ 14,14 пт.",
+        "Округляем до целого пункта: 14."
+      ],
+      "math_model": {
+        "source_index": 4,
+        "target_index": 3,
+        "old_pt": 10,
+        "source_long_mm": 297,
+        "target_long_mm": 420,
+        "source_ids": [
+          "408333",
+          "408343",
+          "460960"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    }
+  ],
+  "provenance": [
+    "PAPER-F01:408268:generated_analogue",
+    "PAPER-F01:SPB-2025-2502:generated_analogue",
+    "PAPER-F02:408281:generated_analogue",
+    "PAPER-F02:408284:generated_analogue",
+    "PAPER-F03:408300:generated_analogue",
+    "PAPER-F03:408313:generated_analogue",
+    "PAPER-F04:408314:generated_analogue",
+    "PAPER-F06:408320:generated_analogue",
+    "PAPER-F07:408333:generated_analogue",
+    "PAPER-F07:408343:generated_analogue",
+    "PAPER-F07:460960:generated_analogue"
+  ]
+}

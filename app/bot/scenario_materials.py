@@ -83,7 +83,7 @@ def scenario_context_for_question(
     if (
         snapshot.story_code == "GARDEN"
         and snapshot.generator_version in GARDEN.SOURCE_PLAN_VERSIONS
-        and snapshot.generator_version != GARDEN.VERSION
+        and snapshot.generator_version not in GARDEN.HEAT_TABLE_ONLY_VERSIONS
         and position == 3
     ):
         context += "\nЖилой дом — здание с выступом у верхней стороны плана."

@@ -141,8 +141,12 @@ def _accepts(source: ReplaySource, raw: str) -> bool | None:
     if source.number in range(1, 6):
         from app.bot.scenario_training import _valid_answer_format
 
-        if not _valid_answer_format(str(snapshot.get("story_code", "")),
-                                    str(snapshot.get("answer_policy_id", "")), raw):
+        if not _valid_answer_format(
+            str(snapshot.get("story_code", "")),
+            str(snapshot.get("answer_policy_id", "")),
+            raw,
+            policy_version=str(snapshot.get("answer_policy_version", "")),
+        ):
             return None
         return bool(policy.accepts(raw, answer))
     parsed = policy.parse(raw)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 from hashlib import sha256
+from math import ceil
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -245,6 +246,7 @@ def test_sosnovka_source_grid_roles_areas_and_path_tile_total() -> None:
 def test_quality_250_seeds_answers_unique_and_restorable() -> None:
     adapter = build_adapter(enabled_families=frozenset(FAMILIES))
     fingerprints: set[tuple[str, ...]] = set()
+    geometry_answers = tuple(set() for _ in range(3))
     for seed in range(250):
         plan = build_practice_plan(
             PracticeRequest(PracticeMode.FULL, seed, "GARDEN"), FamilyRegistry((adapter,))
@@ -252,5 +254,46 @@ def test_quality_250_seeds_answers_unique_and_restorable() -> None:
         conditions = tuple(q.condition for q in plan.snapshot.questions)
         fingerprints.add((*conditions, repr(plan.snapshot.context["heat"])))
         assert tuple(q.family_id for q in plan.snapshot.questions) == FAMILIES
-        assert restore_asset_bytes(adapter.renderer, plan.snapshot, plan.snapshot.assets[0])
+        svg = restore_asset_bytes(adapter.renderer, plan.snapshot, plan.snapshot.assets[0])
+        if seed < 100:
+            _check_geometry_answers(plan.snapshot, svg)
+            geometry_questions = plan.snapshot.questions[1:4]
+            for answers, question in zip(geometry_answers, geometry_questions, strict=True):
+                answers.add(question.canonical_answer)
     assert len(fingerprints) >= 200
+    assert all(len(answers) >= 10 for answers in geometry_answers)
+
+
+def _check_geometry_answers(snapshot: ScenarioSnapshot, svg: bytes) -> None:
+    root = ElementTree.fromstring(svg)
+
+    def rect_area(element: ElementTree.Element) -> int:
+        return int(element.attrib["width"]) * int(element.attrib["height"])
+
+    total_paved = sum(
+        rect_area(element)
+        for role in ("paving", "pad") for element in root.findall(f".//*[@data-role='{role}']")
+    )
+    perimeter = 0
+    doubled_house_area = 0
+    house = root.find(".//*[@data-role='house']")
+    assert house is not None
+    vertices = [tuple(map(int, point.split(","))) for point in house.attrib["points"].split()]
+    for (x1, y1), (x2, y2) in zip(vertices, vertices[1:] + vertices[:1], strict=True):
+        perimeter += abs(x2 - x1) + abs(y2 - y1)
+        doubled_house_area += x1 * y2 - x2 * y1
+    fence = root.find(".//*[@data-plot]")
+    assert fence is not None
+    right, bottom = map(int, fence.attrib["data-plot"].split(","))
+    lot_area = (right - 20) * (bottom - 20)
+    occupied = abs(doubled_house_area) // 2
+    for role in ("bath", "garage", "shed"):
+        building = root.find(f".//*[@data-role='{role}']")
+        assert building is not None
+        occupied += rect_area(building)
+    pack = int(snapshot.context["tiles_per_pack"])
+    assert tuple(q.canonical_answer for q in snapshot.questions[1:4]) == (
+        str(ceil(total_paved / (100 * pack))),
+        str(perimeter // 10),
+        str(int(100 * occupied / lot_area + 0.5)),
+    )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from hashlib import sha256
 
 from app.bot.scenario_materials import scenario_context_for_question
 from app.bot.scenario_training import public_registry
@@ -19,7 +20,7 @@ def _bundle(adapter, seed: int = 17):
 
 def test_garden_shared_story_makes_single_geometry_questions_determinate() -> None:
     scenario, rendered, questions = _bundle(GARDEN.build_adapter())
-    assert scenario.generator_version == "garden-sosnovka-1.7"
+    assert scenario.generator_version == "garden-sosnovka-1.8"
     assert "Единственные ворота" in rendered.shared_context
     assert "слева находится гараж" in rendered.shared_context
     assert "теплица расположена внутри огорода" in rendered.shared_context
@@ -39,19 +40,25 @@ def test_released_garden_snapshot_keeps_its_geometry_and_can_reopen_perimeter() 
     old_version = "garden-sosnovka-1.5"
     archived = replace(
         current, generator_version=old_version,
-        context={**current.context, "world_version": old_version},
+        context={**GARDEN._world(27), "world_version": old_version},
         shared_context="План участка: клетка 2 м; дорожки шириной 1 м. Плитка 1×1 м.",
     )
     before = archived.to_snapshot()
-    assert GARDEN._svg(current.context) == GARDEN._svg(archived.context)
-    assert garden_plan(current) == garden_plan(archived)
+    assert sha256(GARDEN._svg(archived.context)).hexdigest() == (
+        "e143957611eaed44836e07b9d1baa1aee243cb331636dc068147a9c84f5aecd5"
+    )
+    archived_v17 = replace(
+        archived, generator_version="garden-sosnovka-1.7", context=GARDEN._world(27),
+    )
+    assert garden_plan(archived) == garden_plan(archived_v17)
+    assert garden_plan(current) != garden_plan(archived)
     assert "здание с выступом" in scenario_context_for_question(archived, 3)
     assert archived.to_snapshot() == before
 
 
 def test_flat_narrative_is_shared_once_and_matching_grid_is_blank() -> None:
     scenario, rendered, questions = _bundle(FLAT.build_adapter())
-    assert scenario.generator_version == "flat-grid-2.2.0"
+    assert scenario.generator_version == FLAT.GENERATOR_VERSION
     q1 = questions[0]
     assert "Слева от входа" not in q1.condition
     assert "санузел слева от входа" in rendered.shared_context.casefold()

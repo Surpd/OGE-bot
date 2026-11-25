@@ -3,7 +3,7 @@ from dataclasses import replace
 from app.bot.scenario_training import public_registry
 from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
 from app.math.scenarios.recent_questions import (
-    is_recent_fixed_single,
+    is_recent_single,
     prefer_unseen,
     question_signature,
 )
@@ -26,7 +26,7 @@ def test_retry_is_bounded_and_prefers_a_different_selected_question():
     assert len(calls) == 3
 
 
-def test_garden_full_bundle_changes_three_questions_without_changing_geometry():
+def test_garden_full_bundle_varies_geometry_and_costs():
     registry = public_registry()
     first, second = (
         build_practice_plan(PracticeRequest(PracticeMode.FULL, seed, "GARDEN"), registry)
@@ -37,7 +37,7 @@ def test_garden_full_bundle_changes_three_questions_without_changing_geometry():
         for q, other in zip(first.snapshot.questions, second.snapshot.questions, strict=True)
         if question_signature(first.snapshot, q) != question_signature(second.snapshot, other)
     ]
-    assert changes == [1, 2, 5]
+    assert changes == [1, 2, 3, 4, 5]
 
 
 def test_tariff_signature_tracks_month_usage_without_hashing_the_whole_snapshot():
@@ -61,14 +61,14 @@ def test_tariff_signature_tracks_month_usage_without_hashing_the_whole_snapshot(
     assert question_signature(unrelated, question) == original
 
 
-def test_recent_fixed_question_is_restricted_only_in_single_mode():
+def test_recent_question_is_restricted_only_in_single_mode():
     registry = public_registry()
     single = build_practice_plan(PracticeRequest(PracticeMode.SINGLE, 0, "GARDEN", 3), registry)
     full = build_practice_plan(PracticeRequest(PracticeMode.FULL, 0, "GARDEN"), registry)
     recent = frozenset({question_signature(single.snapshot, single.snapshot.questions[2])})
-    assert is_recent_fixed_single(single, recent)
-    assert not is_recent_fixed_single(single, frozenset())
-    assert not is_recent_fixed_single(full, recent)
+    assert is_recent_single(single, recent)
+    assert not is_recent_single(single, frozenset())
+    assert not is_recent_single(full, recent)
 
 
 def test_shared_heating_operands_affect_signature_but_derived_answer_does_not():
@@ -90,14 +90,14 @@ def test_shared_heating_operands_affect_signature_but_derived_answer_does_not():
     )
 
 
-def test_source_fixed_paper_rounding_is_not_reissued_as_a_new_single():
+def test_identical_paper_rounding_is_not_reissued_as_a_new_single():
     request = PracticeRequest(PracticeMode.SINGLE, 0, "PAPER", 3)
     single = build_practice_plan(request, public_registry())
     question = single.snapshot.questions[2]
     recent = frozenset({question_signature(single.snapshot, question)})
     assert question.family_id == "PAPER-F03"
-    assert is_recent_fixed_single(single, recent)
-    assert not is_recent_fixed_single(replace(single, mode=PracticeMode.FULL), recent)
+    assert is_recent_single(single, recent)
+    assert not is_recent_single(replace(single, mode=PracticeMode.FULL), recent)
 
 
 def test_rotated_random_story_visits_each_available_world_before_returning():

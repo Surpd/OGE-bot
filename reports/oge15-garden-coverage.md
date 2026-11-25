@@ -1,9 +1,13 @@
 # GARDEN adapter coverage and QA
 
 Исторический отчёт первоначальной реализации (garden-sosnovka-1.1); прежние числовые
-пробы и версии изображений ниже не описывают текущую V2. Актуальная
-структура и ограничения — в [матрице](OGE15_V2_FAMILY_REVIEW.md),
-[приёмке](OGE15_V2_SOURCE_ACCEPTANCE.md) и [пробе 64 seed](OGE15_V2_DIVERSITY.md).
+пробы и версии изображений ниже не описывают текущую V2. Актуальные источники и границы семей описаны в [матрице](OGE15_V2_FAMILY_REVIEW.md)
+и [приёмке](OGE15_V2_SOURCE_ACCEPTANCE.md).
+
+В `garden-sosnovka-1.8` сохраняется расположение объектов Сосновки, а размеры строений,
+покрытия и участка меняются. Первые 100 seed дают 21 ответ на число пачек, 11 на
+периметр и 18 на долю построек. Результат проверки 250 seed и восстановления
+материалов записан в [отчёте качества](oge15-garden-quality.json).
 
 
 Research source: `OGE_1_5_ALL_STORIES_RESEARCH_V1.zip`, `STORIES/GARDEN/`.
@@ -37,8 +41,9 @@ answer text, and asset restoration are checked by the adapter oracle and tests.
 ## QA
 
 `python scripts/oge15_garden_quality.py` checks 250 deterministic seeds. The
-current artifact `reports/oge15-garden-quality.json` records 235 unique full
-conditions, at least 200 required, and zero oracle/restoration failures. The
+gate requires at least 200 unique full mathematical input signatures, at least
+10 distinct answers for each of the three geometry questions, and zero
+oracle/restoration failures. The
 pytest suite includes fixed source vectors, single/full snapshot identity,
 blocked-family status, answer mutations, graphic movement/scale/path-width/label
 mutations, and exact image restoration.

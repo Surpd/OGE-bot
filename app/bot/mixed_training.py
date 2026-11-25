@@ -235,7 +235,12 @@ def _is_correct(number: int, problem: dict[str, object], raw: str) -> bool | Non
             return None
         from app.bot.scenario_training import _valid_answer_format
 
-        if not _valid_answer_format(restored.story_code, question.answer_policy_id, raw):
+        if not _valid_answer_format(
+            restored.story_code,
+            question.answer_policy_id,
+            raw,
+            policy_version=question.answer_policy_version,
+        ):
             return None
         return bool(scenario_policy.accepts(raw, question.canonical_answer))
     policy: Any = None

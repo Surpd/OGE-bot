@@ -5,6 +5,7 @@ from dataclasses import replace
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
+from uuid import UUID
 
 import pytest
 from PIL import Image
@@ -24,10 +25,9 @@ from app.math.scenarios.stories.PAPER import (
     _SOURCE_IDS,
     DIMENSIONS_MM,
     _font_answer,
-    _make_world,
     _round_multiple_half_up,
-    _round_ratio_tenths,
-    _round_sqrt_ratio_tenths,
+    _round_ratio,
+    _round_sqrt_ratio,
     build_adapter,
 )
 
@@ -105,50 +105,76 @@ def test_single_and_full_practice_plans_share_the_same_snapshot_and_restore_asse
         )
 
 
-def test_f03_and_f06_derive_dimensions_from_visible_shared_table(adapter) -> None:
-    seed = next(
-        candidate
-        for candidate in range(100)
-        if _make_world(candidate)["questions"]["4"]["family_id"] == "PAPER-F06"
-    )
-    scenario, rendered, questions = _bundle(adapter, seed)
-    q3, q4 = questions[2], questions[3]
-    assert "841" not in q3.condition
-    assert q3.canonical_answer == "840"
-    assert "1189 × 841 мм" in rendered.shared_context
-    assert "420" not in q4.condition and "594" not in q4.condition
-    assert q4.canonical_answer == "1,7"
-    assert "A3: 420 × 297 мм" in rendered.shared_context
+def test_paper_questions_use_unlabeled_dimensions_from_the_visible_table(adapter) -> None:
+    for family in ("PAPER-F04", "PAPER-F06"):
+        scenario = adapter.generator.generate_scenario_for_family(0, 4, family)
+        rendered = adapter.renderer.render_scenario(scenario)
+        assert not re.search(r"(?m)^\d+\. A[0-7]:", rendered.shared_context)
+        assert len(re.findall(r"(?m)^\d+\. \d+ × \d+ мм$", rendered.shared_context)) == 4
+        for position in (3, 4, 5):
+            question = adapter.question_builder.build_question(scenario, position)
+            adapter.independent_oracle.validate_question(scenario, question, rendered)
+            for name in ("value_mm", "long_mm", "short_mm", "source_long_mm", "target_long_mm"):
+                if name in question.math_model:
+                    assert str(question.math_model[name]) not in question.condition
+        altered_table = replace(
+            rendered,
+            shared_context=re.sub(
+                r"(\d+) × (\d+) мм", r"999 × \2 мм", rendered.shared_context, count=1
+            ),
+        )
+        with pytest.raises(ValueError, match="rendered table"):
+            adapter.independent_oracle.validate_question(scenario, question, altered_table)
 
-    changed = replace(
-        rendered,
-        shared_context=rendered.shared_context.replace("1189 × 841", "1189 × 840", 1),
-    )
-    with pytest.raises(ValueError, match="PAPER"):
-        adapter.independent_oracle.validate_question(scenario, q3, changed)
+
+def test_historical_paper_snapshot_restores_labeled_assets_and_policy(adapter) -> None:
+    registry = FamilyRegistry((adapter,))
+    snapshot = build_practice_plan(
+        PracticeRequest(PracticeMode.FULL, seed=0, story_code="PAPER"), registry
+    ).snapshot
+    legacy = replace(snapshot, generator_version="paper-v4")
+    scenario = replace(adapter.generator.generate_scenario(0), generator_version="paper-v4")
+    old_render = adapter.renderer.render_scenario(scenario)
+    assert re.search(r"(?m)^\d+\. A[0-7]:", old_render.shared_context)
+    legacy = replace(legacy, assets=old_render.assets, shared_context=old_render.shared_context)
+    for asset in legacy.assets:
+        assert (
+            sha256(restore_asset_bytes(adapter.renderer, legacy, asset)).hexdigest() == asset.sha256
+        )
+    old_policy = adapter.answer_policies[("paper.ratio_tenths", "1")]
+    assert old_policy.accepts("0,7", "0,7")
+    assert not old_policy.accepts("0,70", "0,7")
+    new_policy = adapter.answer_policies[("paper.ratio_tenths", "2")]
+    assert new_policy.accepts("0.71", "0,71")
 
 
-def test_f04_and_f07_derive_dimensions_from_visible_shared_table(adapter) -> None:
-    seed = next(
-        candidate
-        for candidate in range(100)
-        if _make_world(candidate)["questions"]["4"]["family_id"] == "PAPER-F04"
-    )
-    scenario, rendered, questions = _bundle(adapter, seed)
-    q4, q5 = questions[3], questions[4]
-    assert "A3" in q4.condition and "420" not in q4.condition and "297" not in q4.condition
-    assert "A4" in q5.condition and "A3" in q5.condition
-    assert "420" not in q5.condition and "297" not in q5.condition
-    assert q5.math_model["old_pt"] in (10, 15)
-    assert "A3: 420 × 297 мм" in rendered.shared_context
-    assert "A4: 297 × 210 мм" in rendered.shared_context
+def test_all_telegram_modes_accept_hundredths_for_the_new_paper_policy(adapter) -> None:
+    from app.bot.error_replay import _accepts
+    from app.bot.mixed_training import _is_correct
+    from app.bot.scenario_training import _valid_answer_format
+    from app.persistence.error_replay import ReplaySource
+    from app.persistence.mixed_training import _scenario_question
 
-    changed = replace(
-        rendered,
-        shared_context=rendered.shared_context.replace("297 × 210", "297 × 211", 1),
+    registry = FamilyRegistry((adapter,))
+    for seed in range(20):
+        snapshot = build_practice_plan(
+            PracticeRequest(PracticeMode.FULL, seed, "PAPER"), registry
+        ).snapshot
+        question = snapshot.questions[3]
+        if question.math_model["decimal_places"] == 2:
+            break
+    else:
+        pytest.fail("No hundredths variant found in the checked seeds")
+    answer = question.canonical_answer.replace(",", ".")
+    assert _valid_answer_format(
+        "PAPER", question.answer_policy_id, answer, policy_version=question.answer_policy_version
     )
-    with pytest.raises(ValueError, match="PAPER"):
-        adapter.independent_oracle.validate_question(scenario, q5, changed)
+    assert not _valid_answer_format("PAPER", question.answer_policy_id, answer, policy_version="1")
+    serialized = snapshot.to_snapshot()
+    problem = _scenario_question(serialized, 4)
+    assert _is_correct(4, problem, answer) is True
+    source = ReplaySource("scenario", UUID(int=1), 4, 4, problem, serialized)
+    assert _accepts(source, answer) is True
 
 
 def test_research_positive_vectors_recompute_exact_answers(adapter) -> None:
@@ -165,8 +191,8 @@ def test_research_positive_vectors_recompute_exact_answers(adapter) -> None:
     assert 2 ** (5 - 0) == 32
     assert _round_multiple_half_up(841, 10) == 840
     assert _round_multiple_half_up(105, 5) == 105
-    assert _round_ratio_tenths(297, 420) == "0,7"
-    assert _round_sqrt_ratio_tenths(594**2 + 420**2, 420) == "1,7"
+    assert _round_ratio(297, 420) == "0,7"
+    assert _round_sqrt_ratio(594**2 + 420**2, 420) == "1,7"
     assert _font_answer(15, 297, 420) == "21"
     assert _font_answer(10, 297, 420) == "14"
     assert _font_answer(16, 297, 210) == "11"
@@ -188,10 +214,10 @@ def test_answer_policies_reject_wrong_shape_and_ambiguous_inputs(adapter) -> Non
 def test_exact_rounding_handles_half_boundaries_without_binary_float() -> None:
     assert _round_multiple_half_up(125, 10) == 130
     assert _round_multiple_half_up(124, 10) == 120
-    assert _round_ratio_tenths(1, 16) == "0,1"
-    assert _round_ratio_tenths(3, 16) == "0,2"
-    assert _round_sqrt_ratio_tenths(49, 20) == "0,4"
-    assert _round_sqrt_ratio_tenths(121, 20) == "0,6"
+    assert _round_ratio(1, 16) == "0,1"
+    assert _round_ratio(3, 16) == "0,2"
+    assert _round_sqrt_ratio(49, 20) == "0,4"
+    assert _round_sqrt_ratio(121, 20) == "0,6"
 
 
 @pytest.mark.parametrize("field", ["canonical_answer", "condition", "hints", "solution_steps"])
@@ -200,7 +226,7 @@ def test_oracle_rejects_mutated_answer_condition_hint_or_solution(adapter, field
     question = questions[2]
     mutation = {
         "canonical_answer": "999",
-        "condition": question.condition.replace("A0", "A1", 1),
+        "condition": re.sub(r"A[0-7]", "A8", question.condition, count=1),
         "hints": ("Готовый ответ: 999",),
         "solution_steps": ("Подменённое решение: ответ 999",),
     }[field]
@@ -220,7 +246,7 @@ def test_oracle_rejects_mutated_dimensions_labels_and_table_values(adapter) -> N
 
     changed_rendered = replace(
         rendered,
-        shared_context=rendered.shared_context.replace("1. A", "4. A", 1),
+        shared_context=rendered.shared_context.replace("\n1. ", "\n4. ", 1),
     )
     with pytest.raises(ValueError, match="rendered table|visible table"):
         adapter.independent_oracle.validate_question(scenario, questions[0], changed_rendered)
@@ -295,44 +321,30 @@ def test_static_diagram_source_preserves_the_a0_to_a5_ratio_and_half_area_chain(
         assert abs(area_ratio - 2) < 0.02
 
 
-@pytest.mark.mass
-def test_seed_space_has_expected_structural_capacity() -> None:
-    fingerprints: dict[str, set[str]] = {family_id: set() for family_id in _SOURCE_IDS}
-    for seed in range(1200):
-        world = _make_world(seed)
-        rows = world["rows"]
-        target_order = world["target_order"]
-        questions = world["questions"]
-        assert (
-            isinstance(rows, list)
-            and isinstance(target_order, list)
-            and isinstance(questions, dict)
-        )
-        fingerprints["PAPER-F01"].add(repr((target_order, rows)))
-        q2 = questions["2"]
-        q3 = questions["3"]
-        q4 = questions["4"]
-        q5 = questions["5"]
-        assert (
-            isinstance(q2, dict)
-            and isinstance(q3, dict)
-            and isinstance(q4, dict)
-            and isinstance(q5, dict)
-        )
-        fingerprints["PAPER-F02"].add(repr((q2["source_index"], q2["target_index"])))
-        fingerprints["PAPER-F03"].add(repr((q3["format_index"], q3["side"], q3["multiple"])))
-        if q4["family_id"] == "PAPER-F04":
-            fingerprints["PAPER-F04"].add(repr(q4["format_index"]))
-        else:
-            fingerprints["PAPER-F06"].add("A2:diagonal_over_short")
-        fingerprints["PAPER-F07"].add(repr((q5["source_index"], q5["target_index"], q5["old_pt"])))
-
-    assert len(fingerprints["PAPER-F01"]) >= 200
-    assert len(fingerprints["PAPER-F07"]) == 2
-    assert len(fingerprints["PAPER-F02"]) <= 21
-    assert len(fingerprints["PAPER-F03"]) <= 2
-    assert len(fingerprints["PAPER-F04"]) == 1
-    assert len(fingerprints["PAPER-F06"]) == 1
+def test_independent_oracle_gates_one_hundred_connected_paper_worlds(adapter) -> None:
+    inputs = {family: set() for family in _SOURCE_IDS}
+    answers = {family: set() for family in _SOURCE_IDS}
+    for seed in range(100):
+        _, _, questions = _bundle(adapter, seed)
+        for question in questions:
+            model = question.math_model
+            family = question.family_id
+            answers[family].add(question.canonical_answer)
+            keys = {
+                "PAPER-F01": ("target_order", "rows"),
+                "PAPER-F03": ("value_mm", "multiple"),
+                "PAPER-F04": ("long_mm", "short_mm", "decimal_places"),
+                "PAPER-F06": ("long_mm", "short_mm", "decimal_places", "denominator_side"),
+                "PAPER-F07": ("old_pt", "source_long_mm", "target_long_mm"),
+            }
+            if family == "PAPER-F02":
+                signature = (model["source_count"], model["target_index"] - model["source_index"])
+            else:
+                signature = tuple(model[key] for key in keys[family])
+            inputs[family].add(signature)
+    assert all(len(variants) >= 10 for variants in inputs.values())
+    assert answers["PAPER-F04"] == {"0,7", "0,70", "0,71"}
+    assert answers["PAPER-F06"] == {"1,2", "1,22", "1,23", "1,7", "1,73", "1,74"}
 
 
 def test_snapshot_asset_tampering_is_rejected(adapter) -> None:
@@ -357,6 +369,6 @@ def test_question_snapshot_keeps_family_policy_and_source_provenance(adapter) ->
     )
     restored = ScenarioSnapshot.from_snapshot(plan.snapshot.to_snapshot())
     for question in restored.questions:
-        assert question.answer_policy_version == "1"
+        assert question.answer_policy_version == ("2" if question.position == 4 else "1")
         assert question.math_model["source_ids"]
         assert question.math_model["content_kind"] == "generated_analogue"

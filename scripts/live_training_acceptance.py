@@ -27,6 +27,7 @@ from test_inline_dispatcher_postgres import TelegramSession
 from app.adaptive.session import Session
 from app.bot.adaptive import problem_data
 from app.companion.storage import open_storage
+from app.math.scenarios.recent_questions import _FINITE_FAMILY_SEEDS
 from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
@@ -158,7 +159,7 @@ async def access_family(h: Harness, number: int, family: str) -> None:
     raise AssertionError(f"Family unavailable: {family}")
 
 
-async def main() -> None:
+async def run_with_synthetic_user(exercise_flow) -> None:
     dsn = os.environ["DATABASE_URL"]
     if urlsplit(dsn).hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise ValueError("Use a disposable local PostgreSQL instance")
@@ -169,7 +170,7 @@ async def main() -> None:
     try:
         await harness.message("/start")
         await harness.click("exit")
-        await exercise(harness)
+        await exercise_flow(harness)
     finally:
         await harness.bot.session.close()
         await repo._pool.close()
@@ -240,24 +241,26 @@ async def exercise(h: Harness) -> None:
     await h.click("train:areas")
     await access_family(h, 5, SMALL_POOL)
     await h.click(f"train:family:{SMALL_POOL}")
-    for position in range(2):
+    capacity = len(_FINITE_FAMILY_SEEDS[SMALL_POOL])
+    for position in range(capacity):
         active = await session.current()
         assert active["position"] == position and problem_data(active)["family_id"] == SMALL_POOL
         await h.message(str(problem_data(active)["correct_answer"]))
         report.cursor = len(h.transport.calls)
-        await h.click(f"ad:next:{active['problem']}")
+        advance = "continue" if (position + 1) % 5 == 0 else "next"
+        await h.click(f"ad:{advance}:{active['problem']}")
     active = await session.current()
     token = f"{active['id']}.{active['position']}"
-    assert active["position"] == 2 and active["problem"] is None
+    assert active["position"] == capacity and active["problem"] is None
     h.button(f"ad:repeat:{token}")
-    await report.mark("exhausted", "Исчерпаны оба числовых варианта PAPER-F07")
+    await report.mark("exhausted", f"Исчерпаны все {capacity} вариантов {SMALL_POOL}")
     await h.click(f"ad:repeat:{token}")
     active = await session.current()
-    assert active["problem"] is not None and active["position"] == 2
+    assert active["problem"] is not None and active["position"] == capacity
     await report.mark("repeat", "Осознанный повтор варианта")
     await h.message(str(problem_data(active)["correct_answer"]))
     totals = await session.totals(active["id"])
-    assert (totals["solved"], totals["independent"]) == (3, 2)
+    assert (totals["solved"], totals["independent"]) == (capacity + 1, capacity)
     await h.click(f"ad:finish:{active['problem']}")
 
     await h.message("/start")
@@ -282,4 +285,4 @@ async def exercise(h: Harness) -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_with_synthetic_user(exercise))

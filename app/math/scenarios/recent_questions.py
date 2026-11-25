@@ -43,17 +43,20 @@ def _paper_inputs(
     context: Mapping[str, object], model: Mapping[str, object], family: str,
 ) -> object:
     rows = cast(tuple[tuple[str, int, int], ...], context["rows"])
-    dimensions = {label: (long, short) for label, long, short in rows}
     if family == "PAPER-F01":
         return context["target_order"], [row[1:] for row in rows]
     if family == "PAPER-F02":
-        return cast(int, model["target_index"]) - cast(int, model["source_index"])
+        gap = cast(int, model["target_index"]) - cast(int, model["source_index"])
+        return model.get("source_count", 1), gap
     if family == "PAPER-F03":
-        return dimensions["A0"][1], model["multiple"]
+        return model["value_mm"], model["multiple"]
     if family in {"PAPER-F04", "PAPER-F06"}:
-        return dimensions["A3"]
+        return (
+            model["short_mm"], model["long_mm"], model.get("decimal_places", 1),
+            model.get("denominator_side", "long" if family == "PAPER-F04" else "short"),
+        )
     if family == "PAPER-F07":
-        return model["old_pt"], dimensions["A4"][0], dimensions["A3"][0]
+        return _fields(model, "old_pt", "source_long_mm", "target_long_mm")
     raise ValueError("Unaudited PAPER family")
 
 
@@ -256,32 +259,32 @@ def question_signature(
     return question.family_id, "math-v2", operands
 
 
-_FIXED_SINGLE_FAMILIES = frozenset(
-    {
-        "GARDEN-04-PERIMETER-POLYGON",
-        "GARDEN-07-PERCENT-BUILDINGS",
-        "FLAT-03-RECT-AREA",
-        "FLAT-04-RECT-PERCENT",
-        "FLAT-05-WASHER-MIN",
-        "PAPER-F03",
-        "PAPER-F04",
-        "PAPER-F06",
-    }
-)
-
-
 # One seed per reachable input in the certified finite generator domains.
 # The acceptance tests verify these witnesses with the same independent oracle
 # that gates issuance. Seed values are a way to reach inputs, never their identity.
 _FINITE_FAMILY_SEEDS: Mapping[str, tuple[int, ...]] = {
-    **dict.fromkeys(_FIXED_SINGLE_FAMILIES, (0,)),
-    "PAPER-F02": (0, 1, 4, 10, 44, 67),
-    "PAPER-F07": (0, 1),
-    "FLAT-02-TILE-PACK": (0, 1, 2, 5, 10),
-    "FLAT-02-PARQUET-PACK": (0, 3, 4, 5),
-    "FLAT-05-INTERNET-MIN": (0, 1, 3, 4, 5, 7),
-    "GARDEN-02-TILES-PACKS": (0, 1, 2, 3, 5, 7, 8, 13),
-    "TARIFF-F09-PERCENT-FEE": (0, 2, 3, 12),
+    "FLAT-03-RECT-AREA": (0, 1, 2, 3, 7, 9, 10, 12, 14, 16, 17, 21, 22, 24, 34, 65),
+    "FLAT-04-RECT-PERCENT": (
+        0, 2, 3, 4, 5, 6, 8, 11, 14, 15, 16, 19, 20, 23, 24, 30, 32, 33, 34, 37, 44, 74, 76,
+    ),
+    "PAPER-F02": (
+        0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 17, 18, 19, 21, 22, 27, 28, 29,
+        43, 54, 58, 76, 79, 87, 120, 139,
+    ),
+    "PAPER-F03": (0, 1, 2, 3, 4, 5, 8, 11, 14, 17, 21, 28, 38),
+    "PAPER-F04": (0, 1, 2, 3, 4, 5, 6, 10, 12, 17, 18, 20, 21, 23, 57, 64),
+    "PAPER-F06": (0, 2, 3, 5, 6, 8, 9, 10, 11, 12, 14, 16, 20, 41, 57, 67),
+    "PAPER-F07": (
+        0, 1, 2, 3, 4, 5, 6, 8, 9, 12, 14, 15, 16, 17, 19, 20, 21, 23, 24, 25, 27, 28,
+        35, 43, 44, 46, 47, 61, 63, 75, 82, 88, 110, 132,
+    ),
+    "TARIFF-F09-PERCENT-FEE": (
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 22, 23, 24,
+        26, 30, 32, 33, 34, 35, 36, 38, 40, 46, 47, 48, 50, 51, 53, 54, 55, 56, 57,
+        60, 62, 71, 75, 77, 81, 89, 90, 95, 97, 105, 111, 117, 118, 130, 135, 139,
+        164, 170, 182, 258, 278,
+    ),
+    "GARDEN-04-PERIMETER-POLYGON": (26, 10, 0, 6, 16, 2, 3, 11, 5, 21, 1),
     "TYRES-SIDEWALL": (
         0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14, 16, 17,
         21, 22, 25, 26, 28, 29, 32, 33, 36, 42, 47, 49, 54, 58, 76,
@@ -341,6 +344,10 @@ def fresh_family_plan(
     if recent or recent_hashes:
         if witnesses is None:
             seeds.extend(rng.getrandbits(63) for _ in range(4))
+            if family.startswith(("FLAT-", "GARDEN-", "PAPER-", "TARIFF-")):
+                # Deterministic reserve for small, non-uniform geometry domains.
+                # A miss in this sample cannot certify exhaustion.
+                seeds.extend(range(64))
         else:
             ordered = list(witnesses)
             rng.shuffle(ordered)
@@ -352,7 +359,7 @@ def fresh_family_plan(
             raise ScenarioVariantIdentityError(family) from error
         return signature not in recent and signature_fingerprint(signature) not in recent_hashes
 
-    for seed in seeds:
+    for seed in dict.fromkeys(seeds):
         try:
             return build_practice_plan(
                 replace(request, seed=seed), registry, accept_exact_candidate=accept,
@@ -364,14 +371,11 @@ def fresh_family_plan(
     raise ScenarioVariantSearchFailed(family)
 
 
-def is_recent_fixed_single(plan: PracticePlan, recent: frozenset[QuestionSignature]) -> bool:
+def is_recent_single(plan: PracticePlan, recent: frozenset[QuestionSignature]) -> bool:
     if plan.mode is not PracticeMode.SINGLE:
         return False
     question = plan.snapshot.questions[plan.selected_positions[0] - 1]
-    return (
-        question.family_id in _FIXED_SINGLE_FAMILIES
-        and question_signature(plan.snapshot, question) in recent
-    )
+    return question_signature(plan.snapshot, question) in recent
 
 
 def prefer_unseen(

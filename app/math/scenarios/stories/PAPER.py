@@ -32,9 +32,10 @@ from app.math.scenario_engine import (
     ScenarioSnapshot,
 )
 
-GENERATOR_VERSION = "paper-v4"
-WORLD_VERSION = "paper-world-v1"
+GENERATOR_VERSION = "paper-v5"
+WORLD_VERSION = "paper-world-v2"
 ANSWER_POLICY_VERSION = "1"
+RATIO_POLICY_VERSION = "2"
 
 # Rounded ISO 216 dimensions in millimetres.  The order is always long, short.
 DIMENSIONS_MM: Mapping[int, tuple[int, int]] = MappingProxyType(
@@ -49,6 +50,29 @@ DIMENSIONS_MM: Mapping[int, tuple[int, int]] = MappingProxyType(
         7: (105, 74),
     }
 )
+
+_ROUNDING_OPTIONS = tuple(
+    (index, side, multiple)
+    for index, sizes in DIMENSIONS_MM.items()
+    for side, value in zip(("long", "short"), sizes, strict=True)
+    for multiple in (5, 10)
+    if value % multiple
+)
+# Only reconstruct a larger sheet where doubling the shorter side of the
+# next format reproduces the rounded ISO dimensions exactly.
+_DIAGONAL_FORMATS = tuple(
+    index
+    for index in range(7)
+    if DIMENSIONS_MM[index]
+    == (
+        2 * DIMENSIONS_MM[index + 1][1],
+        DIMENSIONS_MM[index + 1][0],
+    )
+)
+_FONT_SIZES = range(8, 25)
+_PRECISION_NAMES = {1: "десятых", 2: "сотых"}
+_FONT_TRANSITIONS = ((4, 3), (3, 4))
+
 
 _SOURCE_IDS: Mapping[str, tuple[str, ...]] = MappingProxyType(
     {
@@ -111,6 +135,7 @@ _GLYPHS: Mapping[str, tuple[str, ...]] = MappingProxyType(
         "Д": ("00110", "01010", "01010", "01010", "10001", "11111", "10001"),
         "Е": ("11111", "10000", "10000", "11110", "10000", "10000", "11111"),
         "И": ("10001", "10011", "10101", "10101", "11001", "10001", "10001"),
+        "К": ("10001", "10010", "10100", "11000", "10100", "10010", "10001"),
         "Л": ("00111", "01001", "01001", "01001", "10001", "10001", "10001"),
         "М": ("10001", "11011", "10101", "10101", "10001", "10001", "10001"),
         "Н": ("10001", "10001", "10001", "11111", "10001", "10001", "10001"),
@@ -171,7 +196,7 @@ _DIAGRAM_DIGEST = sha256(_DIAGRAM_PNG).hexdigest()
 
 
 @lru_cache(maxsize=1024)
-def _table_png(rows: tuple[tuple[str, int, int], ...]) -> bytes:
+def _table_png(rows: tuple[tuple[str, int, int], ...], *, labeled: bool = True) -> bytes:
     """Render the four-row dimensions table without host-font dependencies."""
     if len(rows) != 4 or len({row[0] for row in rows}) != 4:
         raise ValueError("PAPER table requires four distinct formats")
@@ -182,7 +207,7 @@ def _table_png(rows: tuple[tuple[str, int, int], ...]) -> bytes:
     x0, y0, width, header_h, row_h = 24, 24, 976, 112, 88
     col_widths = (270, 353, 353)
     draw.rectangle((x0, y0, x0 + width, y0 + header_h), fill=pale)
-    headings = ("НОМЕР ЛИСТА", "ДЛИНА (мм)", "ШИРИНА (мм)")
+    headings = ("НОМЕР ЛИСТА" if labeled else "СТРОКА", "ДЛИНА (мм)", "ШИРИНА (мм)")
     x = x0
     for heading, col_width in zip(headings, col_widths, strict=True):
         _draw_bitmap_text(draw, (x + 20, y0 + 44), heading, 3, ink)
@@ -191,7 +216,7 @@ def _table_png(rows: tuple[tuple[str, int, int], ...]) -> bytes:
     for index, (label, long_mm, short_mm) in enumerate(rows, start=1):
         x = x0
         draw.rectangle((x0, y, x0 + width, y + row_h), fill="white")
-        values = (f"{index}. {label}", str(long_mm), str(short_mm))
+        values = (f"{index}. {label}" if labeled else str(index), str(long_mm), str(short_mm))
         for value, col_width in zip(values, col_widths, strict=True):
             draw.rectangle((x, y, x + col_width, y + row_h), outline=ink, width=2)
             _draw_bitmap_text(draw, (x + 40, y + 24), value, 5 if value.startswith("A") else 6, ink)
@@ -211,33 +236,35 @@ def _round_multiple_half_up(value: int, multiple: int) -> int:
     return (quotient + (2 * remainder >= multiple)) * multiple
 
 
-def _round_ratio_tenths(numerator: int, denominator: int) -> str:
+def _round_ratio(numerator: int, denominator: int, places: int = 1) -> str:
     if numerator < 0 or denominator <= 0:
         raise ValueError("Ratio must be non-negative with a positive denominator")
-    scaled, remainder = divmod(numerator * 10, denominator)
-    tenths = scaled + (2 * remainder >= denominator)
-    return f"{tenths // 10},{tenths % 10}"
+    factor = 10**places
+    scaled, remainder = divmod(numerator * factor, denominator)
+    whole, fraction = divmod(scaled + (2 * remainder >= denominator), factor)
+    return f"{whole},{fraction:0{places}d}"
 
 
-def _decimal_round_ratio_tenths(numerator: int, denominator: int) -> str:
+def _decimal_round_ratio(numerator: int, denominator: int, places: int = 1) -> str:
     value = Decimal(numerator) / Decimal(denominator)
-    rounded = value.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    rounded = value.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
     return str(rounded).replace(".", ",")
 
 
-def _decimal_round_sqrt_ratio_tenths(square_sum: int, denominator: int) -> str:
+def _decimal_round_sqrt_ratio(square_sum: int, denominator: int, places: int = 1) -> str:
     value = Decimal(square_sum).sqrt() / Decimal(denominator)
-    rounded = value.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    rounded = value.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
     return str(rounded).replace(".", ",")
 
 
-def _round_sqrt_ratio_tenths(square_sum: int, denominator: int) -> str:
+def _round_sqrt_ratio(square_sum: int, denominator: int, places: int = 1) -> str:
     """Round sqrt(square_sum)/denominator using exact integer comparisons."""
-    scaled_floor = isqrt(square_sum * 100) // denominator
-    # Compare the unrounded ratio to the exact half-tenth threshold.
-    rounds_up = 400 * square_sum >= (2 * scaled_floor + 1) ** 2 * denominator**2
-    tenths = scaled_floor + rounds_up
-    return f"{tenths // 10},{tenths % 10}"
+    factor = 10**places
+    scaled_square = square_sum * factor**2
+    scaled_floor = isqrt(scaled_square) // denominator
+    rounds_up = 4 * scaled_square >= (2 * scaled_floor + 1) ** 2 * denominator**2
+    whole, fraction = divmod(scaled_floor + rounds_up, factor)
+    return f"{whole},{fraction:0{places}d}"
 
 
 def _font_answer(old_pt: int, source_long: int, target_long: int) -> str:
@@ -247,25 +274,27 @@ def _font_answer(old_pt: int, source_long: int, target_long: int) -> str:
 
 def _make_world(seed: int, ratio_family: str | None = None) -> dict[str, object]:
     rng = Random(seed ^ 0x5041504552)
-    # The common table supplies the dimensions needed by positions 3 and 4.
-    selected_formats = [0, 3, 4, *rng.sample((1, 2, 5, 6), 1)]
-    row_formats = selected_formats.copy()
-    rng.shuffle(row_formats)
-    rows = [
-        (f"A{index}", DIMENSIONS_MM[index][0], DIMENSIONS_MM[index][1]) for index in row_formats
-    ]
-    target_order = rng.sample(selected_formats, 4)
-    table_rows = tuple(rows)
-    table_digest = sha256(_table_png(table_rows)).hexdigest()
-
-    source_index = rng.randrange(6)
-    target_index = rng.randrange(source_index + 1, 7)
-    round_format, round_side, round_multiple = (0, "short", 10)
+    source_index, target_index = sorted(rng.sample(range(7), 2))
+    source_count = rng.randint(1, 5)
+    round_format, round_side, round_multiple = rng.choice(_ROUNDING_OPTIONS)
     default_ratio_family = rng.choice(("PAPER-F04", "PAPER-F06"))
     ratio_kind = ratio_family or default_ratio_family
-    ratio_index = 3 if ratio_kind == "PAPER-F04" else 2
-    font_source, font_target = 4, 3
-    font_old_pt = rng.choice((10, 15))
+    ratio_index = rng.choice(
+        tuple(DIMENSIONS_MM) if ratio_kind == "PAPER-F04" else _DIAGONAL_FORMATS
+    )
+    ratio_places = rng.choice((1, 2))
+    diagonal_side = rng.choice(("short", "long"))
+    font_source, font_target = rng.choice(_FONT_TRANSITIONS)
+    font_old_pt = rng.choice(_FONT_SIZES)
+
+    needed = {font_source, font_target, round_format}
+    needed.add(ratio_index if ratio_kind == "PAPER-F04" else ratio_index + 1)
+    row_formats = sorted(needed)
+    row_formats.extend(rng.sample(sorted(DIMENSIONS_MM.keys() - needed), 4 - len(needed)))
+    rng.shuffle(row_formats)
+    rows = [(f"A{index}", *DIMENSIONS_MM[index]) for index in row_formats]
+    target_order = rng.sample(row_formats, 4)
+    table_digest = sha256(_table_png(tuple(rows), labeled=False)).hexdigest()
 
     return {
         "seed": seed,
@@ -275,17 +304,26 @@ def _make_world(seed: int, ratio_family: str | None = None) -> dict[str, object]
         "asset_manifest": {
             "diagram_asset_id": "paper-a0-a5-folding-v1",
             "diagram_sha256": _DIAGRAM_DIGEST,
-            "table_asset_id": "paper-dimensions-v1",
+            "table_asset_id": "paper-dimensions-v2",
             "table_sha256": table_digest,
         },
         "questions": {
-            "2": {"source_index": source_index, "target_index": target_index},
+            "2": {
+                "source_index": source_index,
+                "target_index": target_index,
+                "source_count": source_count,
+            },
             "3": {
                 "format_index": round_format,
                 "side": round_side,
                 "multiple": round_multiple,
             },
-            "4": {"family_id": ratio_kind, "format_index": ratio_index},
+            "4": {
+                "family_id": ratio_kind,
+                "format_index": ratio_index,
+                "decimal_places": ratio_places,
+                "denominator_side": diagonal_side if ratio_kind == "PAPER-F06" else "long",
+            },
             "5": {
                 "source_index": font_source,
                 "target_index": font_target,
@@ -358,14 +396,17 @@ def _new_question(
         "source_ids": list(_SOURCE_IDS[family_id]),
         "content_kind": "generated_analogue",
     }
+    policy_version = (
+        RATIO_POLICY_VERSION if family_id in {"PAPER-F04", "PAPER-F06"} else ANSWER_POLICY_VERSION
+    )
     return QuestionDraft(
         position=position,
         scenario_seed=scenario.seed,
         family_id=family_id,
-        generator_version=GENERATOR_VERSION,
+        generator_version=scenario.generator_version,
         condition=condition,
         answer_policy_id=policy_id,
-        answer_policy_version=ANSWER_POLICY_VERSION,
+        answer_policy_version=policy_version,
         canonical_answer=canonical_answer,
         hints=(
             "Вспомните, как соседние форматы листа связаны друг с другом.",
@@ -403,8 +444,10 @@ def _build_mapping_question(
                 "row": "Номер строки",
             },
         },
-        ("Площадь A0 близка к 1 000 000 мм². У каждого следующего формата "
-         "площадь примерно вдвое меньше.",)
+        (
+            "Площадь A0 близка к 1 000 000 мм². У каждого следующего формата "
+            "площадь примерно вдвое меньше.",
+        )
         + tuple(
             f"Строка {index}: {length} × {width} = {length * width} мм², это формат {label}."
             for index, (label, length, width) in enumerate(rows, 1)
@@ -450,10 +493,12 @@ def _build_count_question(scenario: ScenarioDraft, model: Mapping[str, object]) 
     i, j = _get_int(model, "source_index"), _get_int(model, "target_index")
     if not 0 <= i < j <= 6:
         raise ValueError("PAPER sheet-count indices must satisfy 0 <= i < j <= 6")
-    answer = str(2 ** (j - i))
+    count = _get_int(model, "source_count")
+    answer = str(count * 2 ** (j - i))
     condition = (
-        f"Из одного листа формата A{i} последовательно получают листы формата A{j}. "
-        "Сколько листов A" + str(j) + " получится из одного листа A" + str(i) + "?"
+        f"Есть листы формата A{i} в количестве {count} шт. Каждый лист разрезают "
+        f"пополам и продолжают разрезать полученные листы до формата A{j}. "
+        f"Сколько листов формата A{j} получится всего?"
     )
     return _new_question(
         scenario,
@@ -462,11 +507,12 @@ def _build_count_question(scenario: ScenarioDraft, model: Mapping[str, object]) 
         condition,
         answer,
         "paper.sheet_count",
-        {"source_index": i, "target_index": j},
+        {"source_index": i, "target_index": j, "source_count": count},
         (
             f"От A{i} до A{j} выполняется {j - i} последовательных делений пополам.",
             f"При каждом делении один лист даёт два листа следующего формата: "
-            f"2^{j - i} = {answer}.",
+            f"2^{j - i} = {2 ** (j - i)} листов из одного.",
+            f"Всего: {count} · {2 ** (j - i)} = {answer}.",
         ),
     )
 
@@ -475,15 +521,19 @@ def _build_rounding_question(scenario: ScenarioDraft, model: Mapping[str, object
     index, multiple = _get_int(model, "format_index"), _get_int(model, "multiple")
     side = model.get("side")
     rows = _get_rows(scenario.context)
-    a0 = next((row for row in rows if row[0] == "A0"), None)
-    if (index, side, multiple) != (0, "short", 10) or a0 is None:
-        raise ValueError("PAPER rounding parameters are outside the individually checked examples")
-    exact_value = a0[2]
+    row = next((row for row in rows if row[0] == f"A{index}"), None)
+    if (index, side, multiple) not in _ROUNDING_OPTIONS or row is None:
+        raise ValueError("PAPER rounding parameters are outside the supported dimension cases")
+    exact_value = row[1] if side == "long" else row[2]
+    quantity = "длина" if side == "long" else "ширина"
+    requested = "длину" if side == "long" else "ширину"
     answer = str(_round_multiple_half_up(exact_value, multiple))
     condition = (
-        f"Найдите ширину листа бумаги формата A0. Ответ дайте в миллиметрах и округлите "
-        f"до ближайшего целого числа, кратного {multiple}."
+        f"Найдите {requested} листа бумаги формата A{index}. "
+        f"Ответ дайте в миллиметрах и округлите до ближайшего целого числа, кратного {multiple}."
     )
+    if 2 * (exact_value % multiple) == multiple:
+        condition += " Если два кратных одинаково близки, выберите большее."
     return _new_question(
         scenario,
         3,
@@ -493,8 +543,8 @@ def _build_rounding_question(scenario: ScenarioDraft, model: Mapping[str, object
         "paper.rounded_mm",
         {"format_index": index, "side": side, "value_mm": exact_value, "multiple": multiple},
         (
-            f"В общей таблице ширина листа A0 равна {exact_value} мм.",
-            f"Округляем эту ширину до кратного {multiple}: {exact_value} мм → {answer} мм.",
+            f"По общей таблице {quantity} листа A{index} равна {exact_value} мм.",
+            f"Округляем до кратного {multiple}: {exact_value} мм → {answer} мм.",
         ),
     )
 
@@ -502,21 +552,23 @@ def _build_rounding_question(scenario: ScenarioDraft, model: Mapping[str, object
 def _build_ratio_question(scenario: ScenarioDraft, model: Mapping[str, object]) -> QuestionDraft:
     family_id = model.get("family_id")
     index = _get_int(model, "format_index")
+    places = _get_int(model, "decimal_places")
+    precision = _PRECISION_NAMES[places]
     if family_id == "PAPER-F04":
-        a3 = next((row for row in _get_rows(scenario.context) if row[0] == "A3"), None)
-        if index != 3 or a3 is None or a3[1:] != DIMENSIONS_MM[3]:
-            raise ValueError("PAPER F04 requires verified A3 dimensions in the shared table")
-        long_mm, short_mm = a3[1], a3[2]
-        answer = _round_ratio_tenths(short_mm, long_mm)
+        row = next((row for row in _get_rows(scenario.context) if row[0] == f"A{index}"), None)
+        if row is None or row[1:] != DIMENSIONS_MM[index]:
+            raise ValueError("PAPER F04 requires the requested dimensions in the shared table")
+        long_mm, short_mm = row[1], row[2]
+        answer = _round_ratio(short_mm, long_mm, places)
         condition = (
-            "Найдите отношение длины меньшей стороны листа формата A3 к большей. "
-            "Ответ округлите до десятых."
+            f"Найдите отношение длины меньшей стороны листа формата A{index} к большей. "
+            f"Ответ округлите до {precision}."
         )
         solution = (
-            f"В общей таблице A3 имеет размеры {long_mm} × {short_mm} мм.",
+            f"По общей таблице A{index} имеет размеры {long_mm} × {short_mm} мм.",
             f"Делим короткую сторону на длинную: {short_mm} : {long_mm} ≈ "
-            f"{_decimal_round_ratio_tenths(short_mm, long_mm)}.",
-            f"Ответ после округления до десятых: {answer}.",
+            f"{_decimal_round_ratio(short_mm, long_mm, places)}.",
+            f"Ответ после округления до {precision}: {answer}.",
         )
         return _new_question(
             scenario,
@@ -530,30 +582,37 @@ def _build_ratio_question(scenario: ScenarioDraft, model: Mapping[str, object]) 
                 "format_index": index,
                 "short_mm": short_mm,
                 "long_mm": long_mm,
+                "decimal_places": places,
             },
             solution,
         )
     if family_id == "PAPER-F06":
-        index = 2
-        long_mm, short_mm = DIMENSIONS_MM[index]
-        a3 = next((row for row in _get_rows(scenario.context) if row[0] == "A3"), None)
-        if a3 is None or a3[1:] != DIMENSIONS_MM[3]:
-            raise ValueError("PAPER F06 requires verified A3 dimensions in the shared table")
-        short_mm, long_mm = a3[1], 2 * a3[2]
+        next_index = index + 1
+        next_row = next(
+            (row for row in _get_rows(scenario.context) if row[0] == f"A{next_index}"), None
+        )
+        if index not in _DIAGONAL_FORMATS or next_row is None:
+            raise ValueError("PAPER F06 requires an exact reversible cut and its visible next row")
+        short_mm, long_mm = next_row[1], 2 * next_row[2]
         square_sum = long_mm**2 + short_mm**2
-        answer = _decimal_round_sqrt_ratio_tenths(square_sum, short_mm)
+        side = model.get("denominator_side")
+        side_name = "меньшей" if side == "short" else "большей"
+        denominator = short_mm if side == "short" else long_mm
+        answer = _decimal_round_sqrt_ratio(square_sum, denominator, places)
         condition = (
-            "Найдите отношение длины диагонали листа формата A2 к его меньшей стороне. "
-            "Ответ округлите до десятых."
+            f"Найдите отношение длины диагонали листа формата A{index} к его {side_name} стороне. "
+            f"Используйте размеры листа A{next_index} из таблицы. "
+            f"Ответ округлите до {precision}."
         )
         diagonal = Decimal(square_sum).sqrt()
         diagonal_value = diagonal.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
         solution_steps: tuple[str, ...] = (
-            f"В общей таблице A3 равен {a3[1]} × {a3[2]} мм. Поэтому меньшая сторона A2 равна "
-            f"{short_mm} мм, а большая — 2 × {a3[2]} = {long_mm} мм.",
+            f"По таблице A{next_index} имеет размеры {next_row[1]} × {next_row[2]} мм. "
+            f"Меньшая сторона A{index} равна {short_mm} мм, "
+            f"а большая — 2 × {next_row[2]} = {long_mm} мм.",
             f"По теореме Пифагора диагональ равна √({long_mm}² + {short_mm}²) ≈ "
             f"{str(diagonal_value).replace('.', ',')} мм.",
-            f"Делим диагональ на меньшую сторону A2 ({short_mm} мм): ответ {answer}.",
+            f"Делим диагональ на {denominator} мм и округляем до {precision}: {answer}.",
         )
         return _new_question(
             scenario,
@@ -567,6 +626,8 @@ def _build_ratio_question(scenario: ScenarioDraft, model: Mapping[str, object]) 
                 "format_index": index,
                 "short_mm": short_mm,
                 "long_mm": long_mm,
+                "decimal_places": places,
+                "denominator_side": side,
             },
             solution_steps,
         )
@@ -578,28 +639,27 @@ def _build_font_question(scenario: ScenarioDraft, model: Mapping[str, object]) -
     target_index = _get_int(model, "target_index")
     old_pt = _get_int(model, "old_pt")
     rows = _get_rows(scenario.context)
-    a4 = next((row for row in rows if row[0] == "A4"), None)
-    a3 = next((row for row in rows if row[0] == "A3"), None)
+    source = next((row for row in rows if row[0] == f"A{source_index}"), None)
+    target = next((row for row in rows if row[0] == f"A{target_index}"), None)
     if (
-        (source_index, target_index) != (4, 3)
-        or old_pt not in (10, 15)
-        or a4 is None
-        or a3 is None
-        or a4[1:] != DIMENSIONS_MM[4]
-        or a3[1:] != DIMENSIONS_MM[3]
+        (source_index, target_index) not in _FONT_TRANSITIONS
+        or old_pt not in _FONT_SIZES
+        or source is None
+        or target is None
     ):
-        raise ValueError("PAPER font scaling requires verified A4→A3 dimensions and point size")
-    source_long, target_long = a4[1], a3[1]
+        raise ValueError("PAPER font scaling requires verified formats, dimensions and point size")
+    source_long, target_long = source[1], target[1]
     answer = _font_answer(old_pt, source_long, target_long)
     condition = (
         f"Размер шрифта на листе A{source_index} равен {old_pt} пт. "
         f"После изменения формата листа на A{target_index} размер шрифта меняют "
-        "пропорционально соответствующей стороне формата. "
+        "пропорционально длине большей стороны листа. "
         "Округлите новый размер до целого числа пунктов."
     )
     exact = Decimal(old_pt * target_long) / Decimal(source_long)
     solution = (
-        f"В общей таблице длинные стороны A4 и A3 равны {source_long} и {target_long} мм. "
+        f"По таблице длинные стороны A{source_index} и A{target_index} равны "
+        f"{source_long} и {target_long} мм. "
         f"При переходе A{source_index} → A{target_index} масштаб равен "
         f"{target_long}/{source_long}.",
         f"Новый размер: {old_pt} · {target_long}/{source_long} ≈ "
@@ -624,9 +684,9 @@ def _build_font_question(scenario: ScenarioDraft, model: Mapping[str, object]) -
     )
 
 
-def _table_text(rows: tuple[tuple[str, int, int], ...]) -> str:
+def _table_text(rows: tuple[tuple[str, int, int], ...], *, labeled: bool = False) -> str:
     return "\n".join(
-        f"{row_id}. {label}: {long_mm} × {short_mm} мм"
+        f"{row_id}. {label + ': ' if labeled else ''}{long_mm} × {short_mm} мм"
         for row_id, (label, long_mm, short_mm) in enumerate(rows, start=1)
     )
 
@@ -634,7 +694,8 @@ def _table_text(rows: tuple[tuple[str, int, int], ...]) -> str:
 class PaperRenderer:
     def render_scenario(self, scenario: ScenarioDraft) -> RenderedScenario:
         rows = _get_rows(scenario.context)
-        table_bytes = _table_png(rows)
+        labeled = scenario.generator_version != GENERATOR_VERSION
+        table_bytes = _table_png(rows, labeled=labeled)
         assets = (
             _asset_ref(_DIAGRAM_PNG, "image/png"),
             _asset_ref(table_bytes, "image/png"),
@@ -645,7 +706,7 @@ class PaperRenderer:
             "Схема показывает последовательное деление A0–A5 и является схемой "
             "отношений, а не чертежом в масштабе.\n"
             "Таблица размеров (длина × ширина, мм):\n"
-            f"{_table_text(rows)}"
+            f"{_table_text(rows, labeled=labeled)}"
         )
         return RenderedScenario(shared_context=context, assets=assets)
 
@@ -657,7 +718,7 @@ class PaperRenderer:
         if asset.sha256 == _DIAGRAM_DIGEST:
             return _DIAGRAM_PNG
         rows = _get_rows(snapshot.context)
-        table_bytes = _table_png(rows)
+        table_bytes = _table_png(rows, labeled=snapshot.generator_version != GENERATOR_VERSION)
         if sha256(table_bytes).hexdigest() != asset.sha256:
             raise ValueError("PAPER PNG digest is not reproducible from the snapshot")
         return table_bytes
@@ -687,6 +748,9 @@ class _TextNumberPolicy:
             return bool(re.fullmatch(r"[1-9]\d*", raw)) and raw == canonical_answer
         if self.kind == "nonnegative_integer":
             return bool(re.fullmatch(r"\d+", raw)) and raw == canonical_answer
+        if self.kind == "variable_decimal":
+            normalized = raw.replace(".", ",")
+            return bool(re.fullmatch(r"\d+,\d{1,2}", normalized)) and normalized == canonical_answer
         if self.kind == "one_decimal":
             normalized = raw.replace(".", ",")
             return bool(re.fullmatch(r"\d+,\d", normalized)) and normalized == canonical_answer
@@ -707,8 +771,6 @@ class PaperOracle:
         labels = [label for label, _, _ in rows]
         if len(rows) != 4 or len(set(labels)) != 4:
             raise ValueError("PAPER table must contain four distinct format rows")
-        if not {"A0", "A3", "A4"}.issubset(labels):
-            raise ValueError("PAPER common table must include the A0, A3, and A4 source inputs")
         for label, long_mm, short_mm in rows:
             match = re.fullmatch(r"A([0-7])", label)
             if match is None or DIMENSIONS_MM[int(match.group(1))] != (long_mm, short_mm):
@@ -723,16 +785,16 @@ class PaperOracle:
             raise ValueError("PAPER scenario references an unknown diagram asset version")
         if manifest.get("diagram_sha256") != _DIAGRAM_DIGEST:
             raise ValueError("PAPER diagram manifest hash is not the supported static asset")
-        if manifest.get("table_asset_id") != "paper-dimensions-v1":
+        if manifest.get("table_asset_id") != "paper-dimensions-v2":
             raise ValueError("PAPER scenario references an unknown dimensions table version")
-        if manifest.get("table_sha256") != sha256(_table_png(rows)).hexdigest():
+        if manifest.get("table_sha256") != sha256(_table_png(rows, labeled=False)).hexdigest():
             raise ValueError("PAPER table manifest hash does not match its stored rows")
         questions = scenario.context.get("questions")
         if not isinstance(questions, Mapping) or set(questions) != {"2", "3", "4", "5"}:
             raise ValueError(
                 "PAPER world must contain exactly the shared parameters for positions 2–5"
             )
-        _validate_question_parameters(questions)
+        _validate_question_parameters(questions, set(labels))
 
     def validate_question(
         self, scenario: ScenarioDraft, question: QuestionDraft, rendered: RenderedScenario
@@ -746,7 +808,7 @@ class PaperOracle:
         expected = PaperQuestionBuilder().build_question(scenario, question.position)
         if question.family_id != expected.family_id:
             raise ValueError("PAPER question family does not match the shared scenario")
-        answer, model = _independent_visible_answer(scenario, question, rendered)
+        answer, model = _independent_visible_answer(question, rendered)
         if answer != question.canonical_answer or answer != expected.canonical_answer:
             raise ValueError("PAPER answer does not match the visible mathematical condition")
         plain_model = _plain_json(question.math_model)
@@ -754,19 +816,15 @@ class PaperOracle:
             plain_model.get(key) != value for key, value in model.items()
         ):
             raise ValueError("PAPER question math model does not match its visible condition")
-        if not isinstance(plain_model, dict) or plain_model.get("source_ids") != list(
-            _SOURCE_IDS[question.family_id]
-        ):
-            raise ValueError("PAPER question source references differ from its registered family")
-        if question.math_model.get("content_kind") != "generated_analogue":
-            raise ValueError("PAPER generated task is missing its analogue provenance")
+        if plain_model != _plain_json(expected.math_model):
+            raise ValueError("PAPER question model differs from its registered family and inputs")
         if question.condition != expected.condition:
             raise ValueError("PAPER question condition differs from the source-bounded renderer")
         if question.hints != expected.hints or question.solution_steps != expected.solution_steps:
             raise ValueError("PAPER hints or solution do not match the visible calculation")
         if (
             question.answer_policy_id != expected.answer_policy_id
-            or question.answer_policy_version != ANSWER_POLICY_VERSION
+            or question.answer_policy_version != expected.answer_policy_version
         ):
             raise ValueError("PAPER question uses the wrong answer policy")
 
@@ -786,31 +844,38 @@ class PaperOracle:
             self.validate_question(scenario, question, rendered)
 
 
-def _validate_question_parameters(questions: Mapping[str, object]) -> None:
+def _validate_question_parameters(questions: Mapping[str, object], labels: set[str]) -> None:
     q2, q3, q4, q5 = (questions.get(str(i)) for i in (2, 3, 4, 5))
     if not all(isinstance(value, Mapping) for value in (q2, q3, q4, q5)):
         raise ValueError("PAPER question parameters must be objects")
     assert isinstance(q2, Mapping) and isinstance(q3, Mapping)
     assert isinstance(q4, Mapping) and isinstance(q5, Mapping)
     i, j = _get_int(q2, "source_index"), _get_int(q2, "target_index")
-    if not 0 <= i < j <= 6:
-        raise ValueError("PAPER question 2 has invalid format direction")
-    r_index, multiple = _get_int(q3, "format_index"), _get_int(q3, "multiple")
-    if (r_index, q3.get("side"), multiple) not in ((0, "short", 10), (7, "long", 5)):
-        raise ValueError("PAPER question 3 uses an unverified rounded-dimension combination")
+    if not 0 <= i < j <= 6 or not 1 <= _get_int(q2, "source_count") <= 5:
+        raise ValueError("PAPER question 2 has invalid cutting inputs")
+    index, multiple = _get_int(q3, "format_index"), _get_int(q3, "multiple")
+    if (index, q3.get("side"), multiple) not in _ROUNDING_OPTIONS or f"A{index}" not in labels:
+        raise ValueError("PAPER question 3 requires a supported rounding case and a visible row")
     family_id, ratio_index = q4.get("family_id"), _get_int(q4, "format_index")
-    if family_id == "PAPER-F04" and ratio_index != 3:
-        raise ValueError("PAPER side-ratio question must use the verified A3 case")
-    if family_id == "PAPER-F06" and ratio_index != 2:
-        raise ValueError("PAPER diagonal-ratio question must use the verified A2 case")
-    if family_id not in ("PAPER-F04", "PAPER-F06"):
+    if _get_int(q4, "decimal_places") not in _PRECISION_NAMES:
+        raise ValueError("PAPER ratio question has unsupported precision")
+    if q4.get("denominator_side") not in ("short", "long"):
+        raise ValueError("PAPER ratio question has an invalid denominator")
+    if family_id == "PAPER-F04":
+        if f"A{ratio_index}" not in labels or q4.get("denominator_side") != "long":
+            raise ValueError(
+                "PAPER side-ratio question requires smaller over larger and a visible row"
+            )
+    elif family_id == "PAPER-F06":
+        if ratio_index not in _DIAGONAL_FORMATS or f"A{ratio_index + 1}" not in labels:
+            raise ValueError("PAPER diagonal-ratio question requires an exact cut and visible row")
+    else:
         raise ValueError("PAPER question 4 uses a non-candidate family")
     f_source, f_target = _get_int(q5, "source_index"), _get_int(q5, "target_index")
-    font = _get_int(q5, "old_pt")
-    if (f_source, f_target) != (4, 3):
-        raise ValueError("PAPER font formats must match the verified A4-to-A3 direction")
-    if font not in (10, 15):
-        raise ValueError("PAPER font point size is outside the individually verified examples")
+    if (f_source, f_target) not in _FONT_TRANSITIONS or not {"A3", "A4"}.issubset(labels):
+        raise ValueError("PAPER font scaling requires the verified A4-to-A3 direction and rows")
+    if _get_int(q5, "old_pt") not in _FONT_SIZES:
+        raise ValueError("PAPER font point size is outside the supported range")
 
 
 def _validate_rendered_context(scenario: ScenarioDraft, rendered: RenderedScenario) -> None:
@@ -840,19 +905,23 @@ def _plain_json(value: object) -> object:
 
 
 def _parse_visible_rows(rendered: RenderedScenario) -> tuple[tuple[str, int, int], ...]:
-    matches = re.findall(r"(?m)^(\d+)\. (A[0-7]): (\d+) × (\d+) мм$", rendered.shared_context)
+    matches = re.findall(r"(?m)^(\d+)\. (\d+) × (\d+) мм$", rendered.shared_context)
     if len(matches) != 4:
-        raise ValueError("PAPER visible table must contain exactly four complete rows")
+        raise ValueError("PAPER visible table must contain exactly four complete unlabeled rows")
     rows: list[tuple[str, int, int]] = []
-    for expected_row, (row_id, label, long_mm, short_mm) in enumerate(matches, start=1):
+    # Infer the format by its area relative to the ideal A0 area. ISO sides
+    # are rounded, but no supported area is near the boundary between formats.
+    for expected_row, (row_id, long_mm, short_mm) in enumerate(matches, start=1):
         if int(row_id) != expected_row:
             raise ValueError("PAPER visible table row labels are not consecutive")
-        rows.append((label, int(long_mm), int(short_mm)))
+        length, width = int(long_mm), int(short_mm)
+        index = min(range(8), key=lambda n: abs((length * width << n) - 1_000_000))
+        rows.append((f"A{index}", length, width))
     return tuple(rows)
 
 
 def _independent_visible_answer(
-    scenario: ScenarioDraft, expected: QuestionDraft, rendered: RenderedScenario
+    expected: QuestionDraft, rendered: RenderedScenario
 ) -> tuple[str, Mapping[str, object]]:
     position = expected.position
     if position == 1:
@@ -869,36 +938,45 @@ def _independent_visible_answer(
         answer = "".join(str(row_ids[label]) for label in order)
         return answer, {"target_order": list(order), "rows": [list(row) for row in rows]}
     if position == 2:
-        match = re.search(
-            r"из одного листа формата A([0-6]).*?формата A([1-6])",
+        match = re.fullmatch(
+            r"Есть листы формата A([0-6]) в количестве ([1-5]) шт\. Каждый лист разрезают "
+            r"пополам и продолжают разрезать полученные листы до формата A([1-6])\. "
+            r"Сколько листов формата A\3 получится всего\?",
             expected.condition,
-            flags=re.IGNORECASE,
         )
         if match is None:
-            raise ValueError("PAPER question 2 omits a format or has unsupported wording")
-        i, j = int(match.group(1)), int(match.group(2))
+            raise ValueError(
+                "PAPER question 2 cutting condition omits an input or has unsupported wording"
+            )
+        i, count, j = map(int, match.groups())
         if not i < j:
             raise ValueError("PAPER question 2 reverses the supported cutting direction")
         # Independent repeated-doubling oracle, intentionally not 2**(j-i).
-        sheets = 1
+        sheets = count
         for _ in range(j - i):
             sheets *= 2
-        return str(sheets), {"source_index": i, "target_index": j}
+        return str(sheets), {"source_index": i, "target_index": j, "source_count": count}
     if position == 3:
-        match = re.search(
-            r"Найдите ширину листа бумаги формата A0\. Ответ дайте в миллиметрах и округлите "
-            r"до ближайшего целого числа, кратного (10)\.",
+        match = re.fullmatch(
+            r"Найдите (ширину|длину) листа бумаги формата A([0-7])\. "
+            r"Ответ дайте в миллиметрах и округлите до ближайшего целого числа, кратного (5|10)\."
+            r"( Если два кратных одинаково близки, выберите большее\.)?",
             expected.condition,
         )
         if match is None:
-            raise ValueError("PAPER question 3 does not match a verified dimension-rounding form")
-        a0 = next((row for row in _parse_visible_rows(rendered) if row[0] == "A0"), None)
-        if a0 is None:
-            raise ValueError("PAPER question 3 has no visible A0 width in the common table")
-        index, value, multiple, side = 0, a0[2], int(match.group(1)), "short"
+            raise ValueError("PAPER question 3 does not match a dimension-rounding form")
+        word, index_text, step, tie_rule = match.groups()
+        index, multiple = int(index_text), int(step)
+        row = next((row for row in _parse_visible_rows(rendered) if row[0] == f"A{index}"), None)
+        if row is None:
+            raise ValueError("PAPER question 3 has no visible dimensions in the common table")
+        side = "short" if word == "ширину" else "long"
+        value = row[2] if side == "short" else row[1]
         # Independent nearest-multiple check by exact integer distance.
         lower = (value // multiple) * multiple
         upper = lower + multiple
+        if value - lower == upper - value and not tie_rule:
+            raise ValueError("PAPER question 3 needs a tie-breaking rule")
         answer = str(upper if value - lower >= upper - value else lower)
         return answer, {
             "format_index": index,
@@ -907,57 +985,70 @@ def _independent_visible_answer(
             "multiple": multiple,
         }
     if position == 4:
-        f04_condition = (
-            "Найдите отношение длины меньшей стороны листа формата A3 к большей. "
-            "Ответ округлите до десятых."
+        direct = re.fullmatch(
+            r"Найдите отношение длины меньшей стороны листа формата A([0-7]) к большей\. "
+            r"Ответ округлите до (десятых|сотых)\.",
+            expected.condition,
         )
-        if expected.condition == f04_condition:
-            a3 = next((row for row in _parse_visible_rows(rendered) if row[0] == "A3"), None)
-            if a3 is None or a3[1:] != DIMENSIONS_MM[3]:
-                raise ValueError("PAPER side-ratio question has no valid visible A3 dimensions")
-            index, long_mm, short_mm = 3, a3[1], a3[2]
-            answer = _decimal_round_ratio_tenths(short_mm, long_mm)
+        rows = {label: (length, width) for label, length, width in _parse_visible_rows(rendered)}
+        if direct:
+            index = int(direct.group(1))
+            pair = rows.get(f"A{index}")
+            if pair is None:
+                raise ValueError("PAPER side-ratio question has no valid visible dimensions")
+            long_mm, short_mm = pair
+            places = 1 if direct.group(2) == "десятых" else 2
+            answer = _decimal_round_ratio(short_mm, long_mm, places)
             return answer, {
                 "family_id": "PAPER-F04",
                 "format_index": index,
                 "short_mm": short_mm,
                 "long_mm": long_mm,
+                "decimal_places": places,
             }
-        if expected.condition != (
-            "Найдите отношение длины диагонали листа формата A2 к его меньшей стороне. "
-            "Ответ округлите до десятых."
-        ):
+        diagonal = re.fullmatch(
+            r"Найдите отношение длины диагонали листа формата A([0-6]) "
+            r"к его (меньшей|большей) стороне\. "
+            r"Используйте размеры листа A([1-7]) из таблицы\. "
+            r"Ответ округлите до (десятых|сотых)\.",
+            expected.condition,
+        )
+        if diagonal is None:
             raise ValueError("PAPER diagonal-ratio condition has mutated format or direction")
-        a3 = next((row for row in _parse_visible_rows(rendered) if row[0] == "A3"), None)
-        if a3 is None or a3[1:] != DIMENSIONS_MM[3]:
-            raise ValueError("PAPER diagonal-ratio question has no valid visible A3 dimensions")
-        long_mm, short_mm = 2 * a3[2], a3[1]
+        index, next_index = int(diagonal.group(1)), int(diagonal.group(3))
+        side = "short" if diagonal.group(2) == "меньшей" else "long"
+        places = 1 if diagonal.group(4) == "десятых" else 2
+        pair = rows.get(f"A{next_index}")
+        if next_index != index + 1 or pair is None:
+            raise ValueError("PAPER diagonal-ratio question requires the next format in its table")
+        long_mm, short_mm = pair[1] + pair[1], pair[0]
+        if (long_mm, short_mm) != DIMENSIONS_MM[index]:
+            raise ValueError("PAPER diagonal-ratio reconstruction does not match exact ISO sides")
         square_sum = long_mm**2 + short_mm**2
-        answer = _round_sqrt_ratio_tenths(square_sum, short_mm)
+        answer = _round_sqrt_ratio(square_sum, short_mm if side == "short" else long_mm, places)
         return answer, {
             "family_id": "PAPER-F06",
-            "format_index": 2,
+            "format_index": index,
             "short_mm": short_mm,
             "long_mm": long_mm,
+            "decimal_places": places,
+            "denominator_side": side,
         }
     if position == 5:
         match = re.search(
-            r"Размер шрифта на листе A4 равен (10|15) пт\. "
-            r"После изменения формата листа на A3 размер шрифта меняют "
-            r"пропорционально соответствующей стороне формата\. "
+            r"Размер шрифта на листе A([34]) равен (\d+) пт\. "
+            r"После изменения формата листа на A([34]) размер шрифта меняют "
+            r"пропорционально длине большей стороны листа\. "
             r"Округлите новый размер до целого числа пунктов\.",
             expected.condition,
         )
         if match is None:
             raise ValueError("PAPER font condition is missing its formats, units, or rounding rule")
-        old_pt = int(match.group(1))
-        rows = _parse_visible_rows(rendered)
-        a4 = next((row for row in rows if row[0] == "A4"), None)
-        a3 = next((row for row in rows if row[0] == "A3"), None)
-        if a4 is None or a3 is None or a4[1:] != DIMENSIONS_MM[4] or a3[1:] != DIMENSIONS_MM[3]:
-            raise ValueError("PAPER font condition has no valid visible A4/A3 dimensions")
-        source_index, target_index = 4, 3
-        source_long, target_long = a4[1], a3[1]
+        source_index, old_pt, target_index = map(int, match.groups())
+        visible = {label: length for label, length, _ in _parse_visible_rows(rendered)}
+        source_long, target_long = visible.get(f"A{source_index}"), visible.get(f"A{target_index}")
+        if source_long is None or target_long is None or source_index == target_index:
+            raise ValueError("PAPER font condition has no valid visible format transition")
         # Independent exact half-up rounding using quotient/remainder.
         numerator = old_pt * target_long
         quotient, remainder = divmod(numerator, source_long)
@@ -986,6 +1077,10 @@ def _make_policies() -> Mapping[tuple[str, str], AnswerPolicy]:
         policies[(policy_id, ANSWER_POLICY_VERSION)] = _TextNumberPolicy(
             policy_id, ANSWER_POLICY_VERSION, kind
         )
+    for policy_id in ("paper.ratio_tenths", "paper.diagonal_ratio_tenths"):
+        policies[(policy_id, RATIO_POLICY_VERSION)] = _TextNumberPolicy(
+            policy_id, RATIO_POLICY_VERSION, "variable_decimal"
+        )
     return MappingProxyType(policies)
 
 
@@ -1009,7 +1104,11 @@ def _registrations(
             position=position,
             status=status,
             answer_policy_id=policy_id,
-            answer_policy_version=ANSWER_POLICY_VERSION,
+            answer_policy_version=(
+                RATIO_POLICY_VERSION
+                if family_id in {"PAPER-F04", "PAPER-F06"}
+                else ANSWER_POLICY_VERSION
+            ),
             enabled=family_id in enabled_families,
             source_ids=_ALL_SOURCE_IDS[family_id],
         )

@@ -1,0 +1,458 @@
+{
+  "schema_version": 1,
+  "story_code": "FLAT",
+  "seed": 42,
+  "generator_version": "flat-grid-2.2.0",
+  "compatibility_matrix_version": "flat-compat-1",
+  "context": {
+    "grid_cell_m": "0.4",
+    "topology_id": "flat_2room_8label_v2",
+    "room_parts": {
+      "bedroom": [
+        [
+          22,
+          4,
+          33,
+          13
+        ]
+      ],
+      "kitchen": [
+        [
+          0,
+          3,
+          10,
+          12
+        ]
+      ],
+      "living": [
+        [
+          10,
+          0,
+          22,
+          13
+        ]
+      ],
+      "hall": [
+        [
+          5,
+          13,
+          29,
+          18
+        ],
+        [
+          5,
+          12,
+          10,
+          13
+        ]
+      ],
+      "pantry": [
+        [
+          29,
+          13,
+          33,
+          18
+        ]
+      ],
+      "bathroom": [
+        [
+          0,
+          12,
+          5,
+          18
+        ]
+      ],
+      "loggia_1": [
+        [
+          0,
+          0,
+          10,
+          3
+        ]
+      ],
+      "loggia_2": [
+        [
+          22,
+          0,
+          33,
+          4
+        ]
+      ]
+    },
+    "room_labels": {
+      "bedroom": 8,
+      "kitchen": 4,
+      "living": 1,
+      "hall": 6,
+      "pantry": 7,
+      "bathroom": 3,
+      "loggia_1": 2,
+      "loggia_2": 5
+    },
+    "door_graph": [
+      [
+        "living",
+        "kitchen"
+      ],
+      [
+        "hall",
+        "kitchen"
+      ],
+      [
+        "hall",
+        "bedroom"
+      ],
+      [
+        "hall",
+        "living"
+      ],
+      [
+        "hall",
+        "pantry"
+      ],
+      [
+        "hall",
+        "bathroom"
+      ],
+      [
+        "kitchen",
+        "loggia_1"
+      ],
+      [
+        "bedroom",
+        "loggia_2"
+      ]
+    ],
+    "tile": {
+      "room": "bathroom",
+      "tile_cells": 1,
+      "pack": 20,
+      "count": 30
+    },
+    "parquet": {
+      "room": "living",
+      "width_cells": 12,
+      "height_cells": 13,
+      "board_m": [
+        "0.2",
+        "0.8"
+      ],
+      "pack": 8,
+      "count": 156
+    },
+    "area_room": "loggia_1",
+    "percent": {
+      "base": 20,
+      "delta": 10
+    },
+    "washers": [
+      {
+        "model": "А",
+        "type": "фронтальная",
+        "capacity": 6,
+        "height": 85,
+        "price": 28000,
+        "install": 1000,
+        "delivery_pct": 10
+      },
+      {
+        "model": "Б",
+        "type": "фронтальная",
+        "capacity": 7,
+        "height": 84,
+        "price": 31000,
+        "install": 0,
+        "delivery_pct": 0
+      },
+      {
+        "model": "В",
+        "type": "вертикальная",
+        "capacity": 8,
+        "height": 86,
+        "price": 30000,
+        "install": 1500,
+        "delivery_pct": 0
+      },
+      {
+        "model": "Г",
+        "type": "фронтальная",
+        "capacity": 7,
+        "height": 82,
+        "price": 33000,
+        "install": 0,
+        "delivery_pct": 0
+      },
+      {
+        "model": "Д",
+        "type": "фронтальная",
+        "capacity": 8,
+        "height": 84,
+        "price": 31900,
+        "install": 500,
+        "delivery_pct": 15
+      },
+      {
+        "model": "Е",
+        "type": "вертикальная",
+        "capacity": 7,
+        "height": 82,
+        "price": 29500,
+        "install": 500,
+        "delivery_pct": 0
+      }
+    ],
+    "internet": {
+      "traffic_mb": 1300,
+      "plans": [
+        {
+          "name": "Базовый",
+          "included_mb": 600,
+          "fee": 650,
+          "overage": "2"
+        },
+        {
+          "name": "Оптимальный",
+          "included_mb": 900,
+          "fee": 820,
+          "overage": "1.5"
+        },
+        {
+          "name": "Безлимитный",
+          "included_mb": null,
+          "fee": 950,
+          "overage": "0"
+        }
+      ]
+    }
+  },
+  "shared_context": "План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход. Это собственная SVG/PNG схема фиксированной топологии.",
+  "assets": [
+    {
+      "sha256": "0bbd0054b2cabdbd6447ff4469a30a223d4057f4ab9497bc67204cf0033ab2a8",
+      "content_type": "image/png",
+      "storage_key": "sha256/0bbd0054b2cabdbd6447ff4469a30a223d4057f4ab9497bc67204cf0033ab2a8.png"
+    },
+    {
+      "sha256": "a2faac839bc7d6c18ed031db7e6e83623c7851edff05acf8d54d6c4d2bade3a9",
+      "content_type": "image/svg+xml",
+      "storage_key": "sha256/a2faac839bc7d6c18ed031db7e6e83623c7851edff05acf8d54d6c4d2bade3a9.svg"
+    }
+  ],
+  "questions": [
+    {
+      "position": 1,
+      "scenario_seed": 42,
+      "family_id": "FLAT-01-ROOM-MATCH",
+      "generator_version": "flat-grid-2.2.0",
+      "condition": "Определите по плану номера помещений. Запишите номера в порядке: санузел, кладовая, спальня, гостиная.",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "3781",
+      "hints": [
+        "Начните с коридора у входа и проверьте связи помещений по дверным проёмам.",
+        "Санузел находится слева от входа, а кладовая — в противоположном конце коридора."
+      ],
+      "solution_steps": [
+        "Определите номера помещений по подписям на плане.",
+        "В заданном порядке получаем 3781."
+      ],
+      "math_model": {
+        "rooms_in_order": [
+          "bathroom",
+          "pantry",
+          "bedroom",
+          "living"
+        ],
+        "labels": {
+          "bedroom": 8,
+          "kitchen": 4,
+          "living": 1,
+          "hall": 6,
+          "pantry": 7,
+          "bathroom": 3,
+          "loggia_1": 2,
+          "loggia_2": 5
+        },
+        "answer_grid": {
+          "columns": [
+            "Санузел",
+            "Кладовая",
+            "Спальня",
+            "Гостиная"
+          ],
+          "header": "Помещение",
+          "row": "Цифра на плане"
+        }
+      }
+    },
+    {
+      "position": 2,
+      "scenario_seed": 42,
+      "family_id": "FLAT-02-TILE-PACK",
+      "generator_version": "flat-grid-2.2.0",
+      "condition": "Пол санузла выложен плитками 0,4×0,4 м. В упаковке 20 плиток. Сколько упаковок потребуется? Резка не нужна.",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "2",
+      "hints": [
+        "Измерьте санузел по клеткам плана и переведите длины в метры.",
+        "Сравните размеры клетки с плиткой, затем посчитайте упаковки с округлением вверх."
+      ],
+      "solution_steps": [
+        "На плане помещение занимает 30 клеток; столько плиток требуется.",
+        "30 : 20 с округлением вверх = 2 упаковок."
+      ],
+      "math_model": {
+        "family_alternatives": [
+          "FLAT-02-TILE-PACK",
+          "FLAT-02-PARQUET-PACK"
+        ],
+        "room_cells": 30,
+        "tile_cells": 1,
+        "pack": 20,
+        "count": 30
+      }
+    },
+    {
+      "position": 3,
+      "scenario_seed": 42,
+      "family_id": "FLAT-03-RECT-AREA",
+      "generator_version": "flat-grid-2.2.0",
+      "condition": "Найдите площадь меньшей лоджии, если сторона клетки плана равна 0,4 м. Ответ дайте в квадратных метрах.",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "4,8",
+      "hints": [
+        "Найдите ширину и длину лоджии в клетках плана.",
+        "Сначала умножьте число клеток на площадь одной клетки в квадратных метрах."
+      ],
+      "solution_steps": [
+        "Меньшая лоджия занимает 3×10 = 30 клеток; вторая — 4×11 = 44 клетки.",
+        "30 · 0,16 = 4,8 м²."
+      ],
+      "math_model": {
+        "room": "loggia_1",
+        "area_cells": 30,
+        "cell_area": "0.16"
+      }
+    },
+    {
+      "position": 4,
+      "scenario_seed": 42,
+      "family_id": "FLAT-04-RECT-PERCENT",
+      "generator_version": "flat-grid-2.2.0",
+      "condition": "По плану определите, на сколько процентов площадь санузла больше площади кладовой?",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "50",
+      "hints": [
+        "Найдите разность площадей санузла и кладовой.",
+        "Для процента увеличения разделите разность на площадь кладовой."
+      ],
+      "solution_steps": [
+        "Разность площадей равна 10 клеткам.",
+        "10/20 · 100% = 50%."
+      ],
+      "math_model": {
+        "base_cells": 20,
+        "delta_cells": 10,
+        "denominator": "кладовая"
+      }
+    },
+    {
+      "position": 5,
+      "scenario_seed": 42,
+      "family_id": "FLAT-05-WASHER-MIN",
+      "generator_version": "flat-grid-2.2.0",
+      "condition": "Нужна машина с вертикальной загрузкой вместимостью не менее 6 кг. Сравните модели с учётом цены, установки и доставки: А: фронтальная, загрузка 6 кг, высота 85 см, цена 28000 руб., установка 1000 руб., доставка 10%; Б: фронтальная, загрузка 7 кг, высота 84 см, цена 31000 руб., установка 0 руб., доставка 0%; В: вертикальная, загрузка 8 кг, высота 86 см, цена 30000 руб., установка 1500 руб., доставка 0%; Г: фронтальная, загрузка 7 кг, высота 82 см, цена 33000 руб., установка 0 руб., доставка 0%; Д: фронтальная, загрузка 8 кг, высота 84 см, цена 31900 руб., установка 500 руб., доставка 15%; Е: вертикальная, загрузка 7 кг, высота 82 см, цена 29500 руб., установка 500 руб., доставка 0%. Доставка указана в процентах от цены машины. Найдите минимальную полную стоимость.",
+      "answer_policy_id": "oge15.flat.numeric",
+      "answer_policy_version": "1",
+      "canonical_answer": "30000",
+      "hints": [
+        "Оставьте модели с вертикальной загрузкой и вместимостью не менее 6 кг.",
+        "К цене каждой подходящей модели прибавьте установку и доставку, рассчитанную от цены машины."
+      ],
+      "solution_steps": [
+        "После ограничений подходят модели В, Е.",
+        "В: 30000 + 1500 + 30000 · 0 / 100 = 31500 руб.",
+        "Е: 29500 + 500 + 29500 · 0 / 100 = 30000 руб.",
+        "Минимальная полная стоимость — 30000 руб."
+      ],
+      "math_model": {
+        "models": [
+          {
+            "model": "А",
+            "type": "фронтальная",
+            "capacity": 6,
+            "height": 85,
+            "price": 28000,
+            "install": 1000,
+            "delivery_pct": 10
+          },
+          {
+            "model": "Б",
+            "type": "фронтальная",
+            "capacity": 7,
+            "height": 84,
+            "price": 31000,
+            "install": 0,
+            "delivery_pct": 0
+          },
+          {
+            "model": "В",
+            "type": "вертикальная",
+            "capacity": 8,
+            "height": 86,
+            "price": 30000,
+            "install": 1500,
+            "delivery_pct": 0
+          },
+          {
+            "model": "Г",
+            "type": "фронтальная",
+            "capacity": 7,
+            "height": 82,
+            "price": 33000,
+            "install": 0,
+            "delivery_pct": 0
+          },
+          {
+            "model": "Д",
+            "type": "фронтальная",
+            "capacity": 8,
+            "height": 84,
+            "price": 31900,
+            "install": 500,
+            "delivery_pct": 15
+          },
+          {
+            "model": "Е",
+            "type": "вертикальная",
+            "capacity": 7,
+            "height": 82,
+            "price": 29500,
+            "install": 500,
+            "delivery_pct": 0
+          }
+        ],
+        "eligible": [
+          "В",
+          "Е"
+        ],
+        "costs": [
+          31500,
+          30000
+        ],
+        "winner": "Е"
+      }
+    }
+  ],
+  "provenance": [
+    "sdamgia:424898",
+    "sdamgia:424899",
+    "sdamgia:424900",
+    "sdamgia:424901",
+    "sdamgia:424902",
+    "catalog-attributed; not independently verified as FIPI originals"
+  ]
+}

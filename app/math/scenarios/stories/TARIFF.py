@@ -35,7 +35,9 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-GENERATOR_VERSION = "tariff-v3"
+GENERATOR_VERSION = "tariff-v4"
+_BASE_FEE_CENTS = (30_000, 35_000, 40_000)
+_FEE_INCREASE_PERCENTS = range(10, 51, 2)
 MATRIX_VERSION = "tariff-compatible-71946582-v1"
 WORLD_VERSION = "tariff-world-v1"
 MONTHS = (
@@ -189,8 +191,10 @@ class TariffGenerator:
         # The researched scales allow 17 distinct values per graph series.
         minutes = rng.sample(list(range(0, 401, 25)), 12)
         gb_quarters = rng.sample(list(range(17)), 12)
-        old_fee_cents = 35_000
-        increase_percent = rng.choice((10, 20, 40, 50))
+        # Independent fee parameters yield exact whole rubles and percentages.
+        fee_rng = Random(seed ^ 0x464545)
+        old_fee_cents = fee_rng.choice(_BASE_FEE_CENTS)
+        increase_percent = fee_rng.choice(_FEE_INCREASE_PERCENTS)
         new_fee_cents = old_fee_cents * (100 + increase_percent) // 100
         plans = [
             {"name": "Поминутный", "monthly_fee_cents": 0, "included_mb": 0, "per_mb_cents": 150},
@@ -881,6 +885,12 @@ class TariffOracle:
             if len(found) != 4:
                 raise ValueError("Visible month-matching prompt must show four minute values")
             targets = [_as_int(v) for v in found]
+            if question.math_model.get("answer_grid") != {
+                "columns": tuple(f"{value} мин" for value in targets),
+                "header": "Расход",
+                "row": "Номер месяца",
+            }:
+                raise ValueError("Visible month-matching answer grid must show only target labels")
             indexes = [minutes.index(value) for value in targets] if len(set(targets)) == 4 else []
             if len(indexes) != 4:
                 raise ValueError("Visible target values do not have a unique month mapping")
@@ -906,6 +916,9 @@ class TariffOracle:
         elif question.position == 3:
             answer = str(min(minutes))
         elif question.position == 4:
+            tariff_world = scenario.context["tariff"]
+            if not isinstance(tariff_world, Mapping):
+                raise ValueError("Missing fee increase inputs")
             increase = re.fullmatch(
                 r"Абонентская плата выросла с ([\d,]+) руб\. до ([\d,]+) руб\. На сколько процентов она увеличилась\?",  # noqa: E501
                 question.condition,
@@ -913,9 +926,20 @@ class TariffOracle:
             if increase is not None:
                 old_fee, new_fee = (_parse_rubles(value) for value in increase.groups())
                 numerator = (new_fee - old_fee) * 100
-                if old_fee <= 0 or new_fee < old_fee or numerator % old_fee:
-                    raise ValueError("Visible fee increase does not yield an exact percentage")
-                answer = str(numerator // old_fee)
+                if (
+                    old_fee not in _BASE_FEE_CENTS
+                    or new_fee <= old_fee
+                    or numerator % old_fee
+                    or old_fee != visible_tariff["monthly_fee_cents"]
+                    or new_fee != _as_int(tariff_world["fee_after_increase_cents"])
+                ):
+                    raise ValueError("Visible fee increase does not match the tariff world")
+                percentage = numerator // old_fee
+                if percentage not in _FEE_INCREASE_PERCENTS or percentage != _as_int(
+                    tariff_world["increase_percent"]
+                ):
+                    raise ValueError("Visible fee increase is outside the supported range")
+                answer = str(percentage)
             else:
                 raise ValueError("Visible fee prompt does not match compatible source task 461834")
             if answer != question.canonical_answer:

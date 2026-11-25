@@ -22,20 +22,23 @@ PUBLIC = sorted(
     (code, family) for code, families in PUBLIC_FAMILIES.items() for family in families
 )
 CAPACITIES = {
-    **dict.fromkeys(identity._FIXED_SINGLE_FAMILIES, 1),
-    "FLAT-02-TILE-PACK": 5,
-    "FLAT-02-PARQUET-PACK": 4,
-    "FLAT-05-INTERNET-MIN": 6,
-    "GARDEN-02-TILES-PACKS": 8,
-    "PAPER-F02": 6,
-    "PAPER-F07": 2,
+    # Four loggia widths, two depths, and two independent scales.
+    "FLAT-03-RECT-AREA": 4 * 2 * 2,
+    "FLAT-04-RECT-PERCENT": len({
+        (pantry, bath - pantry)
+        for bw, pw, depth in product(range(4, 8), range(3, 7), range(4, 9))
+        for bath, pantry in ((bw * (depth + 1), pw * depth),)
+        if 0 < 100 * (bath - pantry) <= 150 * pantry and 100 * bath % pantry == 0
+    }),
+    "TARIFF-F09-PERCENT-FEE": 63,
+    "PAPER-F02": 30, "PAPER-F03": 13, "PAPER-F04": 16, "PAPER-F06": 16, "PAPER-F07": 34,
+    "GARDEN-04-PERIMETER-POLYGON": 11,
     "STOVE-F04-FLOOR-AREA": len({
         tuple(sorted((length, width)))
         for length, width, height in product(range(24, 39), range(19, 30), range(19, 28))
         if 13000 <= length * width * height <= 20000
     }),
     "STOVE-F12-ARCH-RADIUS": len(_PYTHAGOREAN_PAIRS),
-    "TARIFF-F09-PERCENT-FEE": 4,
     "TYRES-SIDEWALL": len(_WIDTHS) * len(_ASPECTS),
     # The first and last occupied widths span at least three steps. Two spans
     # of three steps have two optional interior widths; one span of four has three.
@@ -52,7 +55,7 @@ UNRELATED_BY_STORY = {
 }
 UNRELATED_EXCEPTIONS = {
     "FLAT-05-INTERNET-MIN": ("washers", 0, "height"),
-    "PAPER-F07": ("rows", "A0", 2),
+    "PAPER-F07": ("questions", "3", "multiple"),
     "STOVE-F12-ARCH-RADIUS": ("stoves", 0, "price_rub"),
 }
 
@@ -71,9 +74,9 @@ OPERAND_PATHS = {
     "GARDEN-09-HEAT-BREAKEVEN": ("heat", "gas_installation_cost"),
     "PAPER-F01": ("rows", 0, 1),
     "PAPER-F02": ("model", "target_index"),
-    "PAPER-F03": ("rows", "A0", 2),
-    "PAPER-F04": ("rows", "A3", 1),
-    "PAPER-F06": ("rows", "A3", 2),
+    "PAPER-F03": ("model", "value_mm"),
+    "PAPER-F04": ("model", "long_mm"),
+    "PAPER-F06": ("model", "short_mm"),
     "PAPER-F07": ("model", "old_pt"),
     "STOVE-F01-CAPACITY-LIMITS": ("model", "displayed_values", 0),
     "STOVE-F02-ATTRIBUTE-MATCH": ("model", "displayed_values", 0),
@@ -125,12 +128,12 @@ def _mathematical_mutation(scene, position, path):
 
 
 @pytest.mark.parametrize("story,family", PUBLIC, ids=[family for _, family in PUBLIC])
-def test_public_mathematical_inputs_and_five_issue_cycle(story, family):
+def test_public_mathematical_inputs_and_ten_issue_cycle(story, family):
     registry = public_registry()
     request = _request(story, family, registry)
     position = request.position
     seen = set()
-    for index in range(min(CAPACITIES.get(family, 5), 5)):
+    for index in range(min(CAPACITIES.get(family, 10), 10)):
         # Each subsequent issue starts on a known repeat.
         plan = identity.fresh_family_plan(request, registry, recent_fingerprints=seen)
         scene = plan.snapshot
