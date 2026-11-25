@@ -369,6 +369,7 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
                 ScenarioSnapshot.from_snapshot(source.scenario_snapshot), source.number,
                 user_id=callback.from_user.id,
                 reply_markup=_keyboard(parts[1], scenario=True),
+                full_story=True,
             )
         return
     if parts[2] == "h":

@@ -245,7 +245,7 @@ def progress_keyboard(
     else:
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     if section in {"number", "family"} and insights and get_settings().oge_adaptive_enabled:
-        rows[0] = [_button(f"Пять задач №{number}", f"train:number:{number}")]
+        rows[0] = [_button(f"Тренировать №{number}", f"train:number:{number}")]
         start = (
             int(parts[2]) if section == "family" and len(parts) > 2 and parts[2].isdigit() else 0
         )
@@ -273,7 +273,7 @@ def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
     if number is None:
         return None
     if get_settings().oge_adaptive_enabled:
-        return f"Пять задач №{number}", f"train:number:{number}"
+        return f"Тренировать №{number}", f"train:number:{number}"
     route = "nav:oge15" if number <= 5 else "nav:task"
     return f"▶ Тренировать №{number}", f"{route}:{number}"
 
@@ -636,7 +636,7 @@ async def progress_navigation(
 
     math_family: object = None
     math_system_rows: tuple[str, ...] | None = None
-    if section in {"item"} and len(parts) == 3:
+    if section in {"item", "data"} and len(parts) == 3:
         from aiogram.types import BufferedInputFile
 
         from app.bot.diagram_layout import mobile_diagram
@@ -669,11 +669,11 @@ async def progress_navigation(
                         if not await send_scenario_materials(
                             message, repository,
                             ScenarioSnapshot.from_snapshot(source.scenario_snapshot),
-                            source.number, user_id=user_id,
+                            source.number, user_id=user_id, full_story=section == "data",
                         ):
                             return
                         context, photos = "", ()
-                        scenario_data_action = f"progress:{page}"
+                        scenario_data_action = f"progress:data:{parts[1]}:{parts[2]}"
                     else:
                         context, photos = await asyncio.to_thread(_materials, source)
                 except (ValueError, KeyError, TypeError, RuntimeError):

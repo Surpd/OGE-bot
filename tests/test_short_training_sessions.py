@@ -323,7 +323,8 @@ async def test_five_voluntary_similar_tasks_close_gap_or_report_five_failures(ba
             assert result == outcome
             assert await session.choose_similar(row["id"], position, row["problem"]) == "next"
         else:
-            assert result == f"completed_{outcome}"
+            assert result == outcome
+            assert await session.act(row["problem"], None, "finish") == "finished"
     assert await session.current() is None
     totals = await session.totals(row["id"])
     assert (totals["completed"], totals["independent"], totals["reviewed"]) == (
@@ -334,6 +335,60 @@ async def test_five_voluntary_similar_tasks_close_gap_or_report_five_failures(ba
     deltas = await session.summary_deltas(row["id"])
     closures = [d["position"] for d in deltas if d["reason"] == "gap_closed"]
     assert closures == ([4] if failures == 2 else [])
+
+
+@pytest.mark.parametrize("strategy", ["family", "number"])
+async def test_open_practice_preserves_checkpoints_and_cumulative_results(bank_pool, strategy):
+    from app.adaptive.session import Session, at_checkpoint
+    from app.persistence.repository import PostgresRepository
+
+    family = "OGE09-L1"
+    block = [family] * 5
+    scope = {"family": family} if strategy == "family" else {"number": 9}
+    session = Session(PostgresRepository(bank_pool), 1)
+    await session.start(block, strategy=strategy, scope=scope)
+    for position in range(16):
+        row = await session.current()
+        assert row["position"] == position
+        assert await session.save(row, family, candidate(family, f"task-{position}"))
+        row = await session.current()
+        solved = position % 5 != 4
+        if solved:
+            assert await session.act(
+                row["problem"], None, "answer", raw="1", correct=True, message_id=position + 100,
+            ) == "solved"
+        else:
+            assert await session.act(row["problem"], None, "skip") == "skip"
+        row = await session.current()
+        if solved and position < 15:
+            assert await session.act(row["problem"], None, "next") == "next"
+            continue
+        if position == 15:
+            assert await session.act(row["problem"], None, "finish") == "finished"
+            break
+        assert at_checkpoint(row)
+        assert await session.act(row["problem"], None, "next") == "stale"
+        totals = await session.totals(row["id"], from_position=position - 4)
+        assert (totals["issued"], totals["solved"], totals["independent"], totals["skipped"]) == (
+            5, 4, 4, 1,
+        )
+        assert await session.act(row["problem"], None, "menu") == "paused"
+        session = Session(PostgresRepository(bank_pool), 1)
+        await session.start([])
+        resumed = await session.current()
+        assert resumed["id"] == row["id"] and at_checkpoint(resumed)
+        results = await asyncio.gather(*(
+            session.act(
+                row["problem"], None, "continue", revision=row["revision"], next_block=block,
+            )
+            for _ in range(2)
+        ))
+        assert sorted(results) == ["next", "stale"]
+    assert await session.current() is None
+    totals = await session.totals(row["id"])
+    assert (totals["issued"], totals["solved"], totals["independent"], totals["skipped"]) == (
+        16, 13, 13, 3,
+    )
 
 async def test_continue_follows_last_mode_and_ignores_personal_toggle_for_mixed(
     bank_pool, monkeypatch,

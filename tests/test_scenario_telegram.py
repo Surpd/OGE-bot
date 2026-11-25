@@ -158,6 +158,15 @@ def test_oge15_public_number_menu_and_story_exclusions() -> None:
         for row in selected.inline_keyboard
         for button in row
     )
+    linked = scenario_training._story_keyboard(linked_only=True)
+    linked_callbacks = {
+        button.callback_data
+        for row in linked.inline_keyboard
+        for button in row
+    }
+    assert {f"oge15:linked:{code}" for code in scenario_training.STORY_NAMES} <= linked_callbacks
+    assert "oge15:linked:RANDOM" in linked_callbacks
+    assert "train:areas" in linked_callbacks
     saved_id = UUID("12345678-1234-5678-1234-567812345678")
     compact_confirmation = prepare_navigation_markup(
         _keyboard(
@@ -1088,7 +1097,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 assert all("Таблица размеров" not in text for text in text_payloads)
                 assert all("A0:" not in text and "1189" not in text and "841" not in text
                            for text in text_payloads)
-                expected_photos = scenario_photos_for_question(active.snapshot, 3)
+                expected_photos = scenario_photos(active.snapshot)
                 sent_photos = [
                     call.photo.data for call in data_calls if call.__api_method__ == "sendPhoto"
                 ]
@@ -1215,7 +1224,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 )
                 assert [
                     call.photo.data for call in single_calls if call.__api_method__ == "sendPhoto"
-                ] == list(scenario_photos_for_question(single.snapshot, 3))
+                ] == list(scenario_photos(single.snapshot))
                 saved_full = await scenario_repository.resume_session(user_id, active.session_id)
                 assert saved_full is not None and saved_full.status == "paused"
                 assert saved_full.current_position == 3

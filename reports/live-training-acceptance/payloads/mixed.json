@@ -1,0 +1,51 @@
+{
+  "case": "mixed",
+  "label": "Смешанная тренировка",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Смешанная тренировка</b></p><p> </p><p><b>№6 — задание 1 из 5</b></p><p> </p><p>Найдите значение выражения: <tg-math>2{,}8 \\cdot 3{,}4</tg-math></p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:6f77f140-8858-40dc-a959-94450c918f9c"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:6f77f140-8858-40dc-a959-94450c918f9c"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:6f77f140-8858-40dc-a959-94450c918f9c"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:6f77f140-8858-40dc-a959-94450c918f9c"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:6f77f140-8858-40dc-a959-94450c918f9c"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "c8889e65-5a29-4221-bae8-b65908c0273b"
+      }
+    }
+  ]
+}

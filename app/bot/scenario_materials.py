@@ -13,7 +13,12 @@ from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, Message
 from app.bot.math_layout import TrainingMessage
 from app.bot.presentation import MathDeliveryUncertain, send_photo, send_text
 from app.math.scenario_engine import ScenarioSnapshot
-from app.math.scenarios.mobile_photos import _photo_indexes, scenario_photos_for_question, table
+from app.math.scenarios.mobile_photos import (
+    _photo_indexes,
+    scenario_photos,
+    scenario_photos_for_question,
+    table,
+)
 from app.math.scenarios.stories import FLAT, GARDEN, STOVE
 from app.persistence.repository import Repository
 
@@ -24,7 +29,9 @@ MATERIALS_UNAVAILABLE = (
 )
 
 
-def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> str:
+def scenario_context_for_question(
+    snapshot: ScenarioSnapshot, position: int, *, full_story: bool = False,
+) -> str:
     context = snapshot.shared_context
     question = next(
         item for item in snapshot.questions if item.position == position
@@ -46,10 +53,17 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
                 "Минуты по месяцам:", "Мобильный интернет по месяцам:",
             ))
         )
-        if question.family_id != "TARIFF-F12-HOME-ISP":
+        if not full_story and question.family_id != "TARIFF-F12-HOME-ISP":
             context = "\n".join(
                 line for line in context.splitlines()
                 if "приложенной таблице" not in line
+            )
+        if not full_story and question.family_id == "TARIFF-F09-PERCENT-FEE":
+            context = "\n".join(
+                line for line in context.splitlines()
+                if not line.startswith((
+                    "За каждый месяц года показаны", "На графике сплошная линия",
+                ))
             )
     elif snapshot.story_code == "GARDEN" and snapshot.generator_version in {
         "garden-sosnovka-1.0", "garden-sosnovka-1.1",
@@ -58,7 +72,7 @@ def scenario_context_for_question(snapshot: ScenarioSnapshot, position: int) -> 
             "\nДом с выступом у верхней границы. Баня ниже яблонь слева, "
             "гараж ниже ворот справа, теплица внутри огорода."
         )
-    elif snapshot.story_code == "GARDEN" and (
+    elif snapshot.story_code == "GARDEN" and not full_story and (
         question.family_id != "GARDEN-09-HEAT-BREAKEVEN"
         or snapshot.generator_version in {"garden-sosnovka-1.5", "garden-sosnovka-1.6"}
     ):
@@ -108,14 +122,15 @@ def answer_grid_photo(snapshot: ScenarioSnapshot, position: int) -> bytes | None
 
 def prepare_scenario_materials(
     snapshot: ScenarioSnapshot, position: int, *, previous_position: int | None = None,
+    full_story: bool = False,
 ) -> tuple[str, tuple[bytes, ...]]:
-    context = scenario_context_for_question(snapshot, position)
-    if previous_position is not None:
+    context = scenario_context_for_question(snapshot, position, full_story=full_story)
+    if previous_position is not None and not full_story:
         if context == scenario_context_for_question(snapshot, previous_position):
             context = ""
     grid = answer_grid_photo(snapshot, position)
     try:
-        photos = (
+        photos = scenario_photos(snapshot) if full_story else (
             scenario_photos_for_question(snapshot, position)
             if previous_position is None
             else scenario_photos_for_question(
@@ -127,7 +142,10 @@ def prepare_scenario_materials(
         # A catalogue can be transcribed without doing any student calculation.
         # Plans/charts and PAPER's unlabeled matching table cannot be replaced
         # with derived answers or the labeled internal shared_context.
-        if snapshot.story_code != "STOVE" or _photo_indexes(snapshot, position) != (0,):
+        if (
+            full_story or snapshot.story_code != "STOVE"
+            or _photo_indexes(snapshot, position) != (0,)
+        ):
             raise
         rows = [
             f"Печь №{r['id']}: {r['kind']}; объём {r['min_m3']}–{r['max_m3']} м³; "
@@ -141,6 +159,7 @@ async def send_scenario_materials(
     message: Message, repository: Repository | None, snapshot: ScenarioSnapshot,
     position: int, *, user_id: int | None, previous_position: int | None = None,
     reply_markup: InlineKeyboardMarkup | None = None,
+    full_story: bool = False,
 ) -> bool:
     async def text(body: str, markup: InlineKeyboardMarkup | None = None) -> None:
         if repository is None:
@@ -152,7 +171,8 @@ async def send_scenario_materials(
 
     try:
         context, photos = await asyncio.to_thread(
-            prepare_scenario_materials, snapshot, position, previous_position=previous_position,
+            prepare_scenario_materials, snapshot, position,
+            previous_position=previous_position, full_story=full_story,
         )
         if context:
             await text(TrainingMessage(("context", context)), reply_markup if not photos else None)

@@ -1,0 +1,53 @@
+{
+  "case": "floor-data",
+  "label": "Площадь пола · схема и полный каталог печей",
+  "calls": [
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "71c0ee43-4f40-4807-bf8e-d376d6c23894"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}6 \\times 2 \\times 2{,}5</tg-math> м. Дверь: 84 см × 189 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://Q-BEPpFSnTMTGg",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "Q-BEPpFSnTMTGg": {
+          "path": "assets/167227c1ff4c7f401269d89c2ff791a2a22da57786c16a33a3cd6f63ca9be27a.png",
+          "filename": "scenario-1.png",
+          "sha256": "167227c1ff4c7f401269d89c2ff791a2a22da57786c16a33a3cd6f63ca9be27a"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://rW1iqBnmuSPWbQ",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "rW1iqBnmuSPWbQ": {
+          "path": "assets/adc6910b304570253ac5aacece3356ab3e9c877211c9c70ec1c55204d01ee6fa.png",
+          "filename": "scenario-2.png",
+          "sha256": "adc6910b304570253ac5aacece3356ab3e9c877211c9c70ec1c55204d01ee6fa"
+        }
+      }
+    }
+  ]
+}

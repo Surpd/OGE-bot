@@ -1,0 +1,79 @@
+{
+  "case": "linked-picker",
+  "label": "Выбор связанного сюжета №1–5",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "№1–5 · Связанный сюжет\nВыберите сюжет:",
+        "chat_id": "42",
+        "message_id": "117",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Шины",
+                "callback_data": "oge15:linked:TYRES~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "Бумага",
+                "callback_data": "oge15:linked:PAPER~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "Печи",
+                "callback_data": "oge15:linked:STOVE~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "Тарифы",
+                "callback_data": "oge15:linked:TARIFF~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "Участки",
+                "callback_data": "oge15:linked:GARDEN~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "Квартиры",
+                "callback_data": "oge15:linked:FLAT~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "🎲 Случайный сюжет",
+                "callback_data": "oge15:linked:RANDOM~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "📂 Незавершённые тренировки",
+                "callback_data": "oge15:unfinished~a1a37ce051e7"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "train:areas~a1a37ce051e7"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "67d572b4-fecc-4d68-94dc-0d1707887f2e"
+      }
+    }
+  ]
+}

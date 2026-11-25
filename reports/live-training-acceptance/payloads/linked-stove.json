@@ -1,0 +1,96 @@
+{
+  "case": "linked-stove",
+  "label": "Печи · общий сюжет и первый вопрос",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}4 \\times 2{,}7 \\times 1{,}9</tg-math> м. Дверь: 68 см × 184 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://pw-d3XI5C20yzQ",
+        "caption": "Данные задачи №1",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "pw-d3XI5C20yzQ": {
+          "path": "assets/30cb4407e456c8255cc38015d073595f2a1127b61d3bc65d33ded4d9beeb6513.png",
+          "filename": "scenario-1.png",
+          "sha256": "30cb4407e456c8255cc38015d073595f2a1127b61d3bc65d33ded4d9beeb6513"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://MVpfPXaEThKuxQ",
+        "caption": "Данные задачи №1",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "MVpfPXaEThKuxQ": {
+          "path": "assets/775b04870d80d7e134046bbaf1978b7b44ee10edfee870a1d861dcdfff6a9f52.png",
+          "filename": "scenario-2.png",
+          "sha256": "775b04870d80d7e134046bbaf1978b7b44ee10edfee870a1d861dcdfff6a9f52"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Печи</b></p><p> </p><p><b>Задание №1 из 5</b></p><p> </p><p>Запишите номера печей подряд, без пробелов и запятых. Укажите номера печей, соответствующие значениям наибольших границ диапазона объёма, в таком же порядке: 15, 26, 23.</p><p> </p><p>Напиши ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "o:a:6597bb4e-d3a0-49fa-867f-31add4abe316:1:0:h"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "o:a:6597bb4e-d3a0-49fa-867f-31add4abe316:1:0:s"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "o:a:6597bb4e-d3a0-49fa-867f-31add4abe316:1:0:k"
+              },
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "o:a:6597bb4e-d3a0-49fa-867f-31add4abe316:1:0:d"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "o:a:6597bb4e-d3a0-49fa-867f-31add4abe316:1:0:p"
+              },
+              {
+                "text": "⏹ Завершить",
+                "callback_data": "o:a:6597bb4e-d3a0-49fa-867f-31add4abe316:1:0:r"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "cc18a44c-2cf9-4ada-a508-cf61d175b3c1"
+      }
+    }
+  ]
+}

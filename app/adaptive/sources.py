@@ -1,6 +1,5 @@
 """Read compact facts for one changed source record in the learner's own schema."""
 
-import hashlib
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -9,7 +8,10 @@ from uuid import UUID
 import asyncpg
 
 from app.math.scenario_engine import ScenarioSnapshot
-from app.math.scenarios.recent_questions import question_signature
+from app.math.scenarios.recent_questions import (
+    question_signature,
+    signature_fingerprint,
+)
 
 
 @dataclass(frozen=True)
@@ -37,7 +39,7 @@ class Item:
 
 def scenario_variant(scene: ScenarioSnapshot, number: int) -> str:
     signature = question_signature(scene, scene.questions[number - 1])
-    return hashlib.sha256(json.dumps(signature, ensure_ascii=False).encode()).hexdigest()
+    return signature_fingerprint(signature)
 
 
 async def item(conn: asyncpg.Connection, owner: UUID, source: str, task: str) -> Item | None:

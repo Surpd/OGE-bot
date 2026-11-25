@@ -43,6 +43,10 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
 
         repo = PostgresRepository(pool)
         store = MixedTrainingRepository(repo)
+        ordered = [1, *range(6, 20)]
+        ordered_session = await store.start(user_id + 500, ordered)
+        assert ordered_session["state"]["queue"] == ordered
+        assert await store.expected_number(user_id + 500) == (1, 0)
         started = await store.start(user_id, [6])
         expected = await store.expected_number(user_id)
         assert expected is not None
@@ -310,12 +314,6 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
         monkeypatch.setattr(mixed_training, "send_text", capture_text)
         monkeypatch.setattr(mixed_training, "send_photo", capture_photo)
         monkeypatch.setattr(mixed_training, "answer_callback", ack_callback)
-        monkeypatch.setattr(
-            mixed_training.secrets,
-            "SystemRandom",
-            lambda: SimpleNamespace(shuffle=lambda sequence: None),
-        )
-
         # Find one text-only and one graphical №13 family using a fixed bounded
         # seed scan; this verifies both presentation branches without random retries.
         task13_text = {"OGE13-L01", "OGE13-Q01", "OGE13-Q02", "OGE13-Q03"}

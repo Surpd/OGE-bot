@@ -119,6 +119,14 @@ class ExactSequencePolicy:
 
 class StoveGenerator:
     def generate_scenario(self, seed: int) -> ScenarioDraft:
+        return self._generate(seed)
+
+    def generate_scenario_for_family(
+        self, seed: int, position: int, family_id: str
+    ) -> ScenarioDraft:
+        return self._generate(seed, (position, family_id))
+
+    def _generate(self, seed: int, selected: tuple[int, str] | None = None) -> ScenarioDraft:
         if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 2**63:
             raise ValueError("STOVE seed must be a non-negative PostgreSQL bigint")
         rng = Random(seed ^ 0x5707E)
@@ -179,6 +187,9 @@ class StoveGenerator:
             "4": FAMILY_IDS[8 + rng.randrange(3)],
             "5": FAMILY_IDS[11],
         }
+        if selected is not None:
+            position, family_id = selected
+            family_plan[str(position)] = family_id
         context: dict[str, object] = {
             "renderer_version": RENDERER_VERSION,
             "room": room_view,

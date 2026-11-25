@@ -1,10 +1,22 @@
-"""A finite session uses normal issued problems/attempts and owns only its cursor."""
+"""Training sessions use ordinary issued problems and attempts."""
 
 import json
 from typing import Any
 from uuid import UUID
 
 import asyncpg
+
+OPEN_PRACTICE = {"number", "family"}
+BLOCK_SIZE = 5
+
+
+def at_checkpoint(row: Any) -> bool:
+    return (
+        row.get("strategy") in OPEN_PRACTICE
+        and row["problem"] is not None
+        and row["outcome"] != "issued"
+        and row["position"] + 1 == len(json.loads(row["plan"]))
+    )
 
 
 class Session:
@@ -21,8 +33,8 @@ class Session:
     ) -> None:
         if strategy not in {"personal", "mixed", "number", "family"}:
             raise ValueError("unknown short-training strategy")
-        if skills and len(skills) != 5:
-            raise ValueError("a short training must contain exactly five positions")
+        if skills and len(skills) != BLOCK_SIZE:
+            raise ValueError("a training block must contain exactly five positions")
         scope = scope or {}
         if strategy == "number" and not isinstance(scope.get("number"), int):
             raise ValueError("number strategy requires scope.number")
@@ -58,7 +70,8 @@ class Session:
                     owner, fallback,
                 )
             await conn.execute(
-                """UPDATE users SET current_state=current_state ||
+                """UPDATE users SET current_state=
+                (current_state-'navigation_message_id'-'navigation_revision') ||
                 '{"screen":"adaptive","resume_mode":"adaptive"}'::jsonb WHERE id=$1""",
                 owner,
             )
@@ -145,45 +158,64 @@ class Session:
                 """UPDATE adaptive_sessions a SET plan=$5 FROM users u WHERE a.owner=u.id
             AND u.telegram_user_id=$1 AND u.current_state->>'screen'='adaptive'
             AND a.id=$2 AND a.position=$3 AND a.problem IS NOT DISTINCT FROM $4
-            AND a.finished IS NULL RETURNING true""",
+            AND a.revision=$6 AND a.finished IS NULL RETURNING true""",
                 self.learner,
                 row["id"],
                 row["position"],
                 row["problem"],
                 json.dumps(skills),
+                row["revision"],
             )
         )
 
-    async def totals(self, session_id: UUID) -> Any:
+    async def totals(self, session_id: UUID, *, from_position: int = 0) -> Any:
         return await self.pool.fetchrow(
-            """SELECT count(*) issued, count(*) FILTER(WHERE p.outcome<>'issued') completed,
+            """WITH problems AS (
+              SELECT p.*,s.selection<>'repeat'
+              AND NOT EXISTS(SELECT FROM issued_problems old WHERE old.user_id=p.user_id
+              AND old.id<>p.id AND old.fingerprint=p.fingerprint AND old.issued_at<=p.issued_at
+              AND (old.family_id=p.family_id OR p.family_id LIKE 'OGE19-%'
+                AND old.family_id LIKE 'OGE19-%'))
+              AND NOT EXISTS(SELECT FROM adaptive_evidence e
+                JOIN adaptive_evidence old ON old.owner=e.owner
+                  AND old.skill=e.skill AND old.variant=e.variant AND old.outcome='issued'
+                  AND old.occurred<=e.occurred AND (old.source,old.task)<>(e.source,e.task)
+                WHERE e.owner=p.user_id AND e.source='personal' AND e.task=p.id::text
+                  AND e.outcome='issued' AND e.variant<>'') AS fresh
+              FROM adaptive_slots s JOIN issued_problems p ON p.id=s.problem
+              JOIN users u ON u.id=p.user_id
+              WHERE s.session_id=$1 AND u.telegram_user_id=$2 AND s.position >= $3
+            )
+            SELECT count(*) issued, count(*) FILTER(WHERE p.outcome<>'issued') completed,
             count(*) FILTER(WHERE EXISTS(SELECT FROM attempts a WHERE a.problem_id=p.id)) attempted,
             count(*) FILTER(WHERE p.outcome='solved') solved,
             count(*) FILTER(WHERE p.outcome='skipped') skipped,
             count(*) FILTER(WHERE p.hints_used>0) hinted,
             count(*) FILTER(WHERE p.solution_viewed_at IS NOT NULL) reviewed,
-            count(*) FILTER(WHERE EXISTS(SELECT FROM attempts t WHERE t.problem_id=p.id
-            AND t.attempt_no=1 AND t.is_correct AND t.used_hint IS FALSE
-            AND (p.solution_viewed_at IS NULL OR p.solution_viewed_at>t.created_at))
-            AND NOT EXISTS(SELECT FROM issued_problems old WHERE old.user_id=p.user_id
-              AND old.id<>p.id AND old.fingerprint=p.fingerprint AND old.issued_at<=p.issued_at
-              AND (old.family_id=p.family_id OR p.family_id LIKE 'OGE19-%'
-                AND old.family_id LIKE 'OGE19-%'))) independent,
-            count(*) FILTER(WHERE NOT EXISTS(SELECT FROM issued_problems old
-              WHERE old.user_id=p.user_id AND old.id<>p.id AND old.fingerprint=p.fingerprint
-              AND old.issued_at<=p.issued_at AND (old.family_id=p.family_id
-                OR p.family_id LIKE 'OGE19-%' AND old.family_id LIKE 'OGE19-%'))) fresh
-            FROM adaptive_slots s JOIN issued_problems p ON p.id=s.problem
-            JOIN users u ON u.id=p.user_id
-            WHERE s.session_id=$1 AND u.telegram_user_id=$2""",
+            count(*) FILTER(WHERE p.fresh AND EXISTS(SELECT FROM attempts t WHERE t.problem_id=p.id
+              AND t.attempt_no=1 AND t.is_correct AND t.used_hint IS FALSE
+              AND (p.solution_viewed_at IS NULL OR p.solution_viewed_at>t.created_at))
+              AND NOT EXISTS(SELECT FROM adaptive_evidence e
+                JOIN adaptive_evidence old ON old.owner=e.owner
+                  AND old.skill=e.skill AND old.variant=e.variant AND old.outcome='issued'
+                  AND old.occurred<=e.occurred AND (old.source,old.task)<>(e.source,e.task)
+                WHERE e.owner=p.user_id AND e.source='personal' AND e.task=p.id::text
+                  AND e.outcome='correct' AND e.ordinal=1 AND e.variant<>'')) independent,
+            count(*) FILTER(WHERE p.fresh) fresh FROM problems p""",
             session_id,
             self.learner,
+            from_position,
         )
 
     async def seen(self, owner: UUID, family: str) -> list[str]:
-        return [
-            r["variant"]
-            for r in await self.pool.fetch(
+        from app.adaptive.store import sync
+
+        async with self.pool.acquire() as conn, conn.transaction():
+            if await conn.fetchval(
+                "SELECT EXISTS(SELECT FROM adaptive_dirty WHERE owner=$1)", owner,
+            ):
+                await sync(conn, owner)
+            rows = await conn.fetch(
                 """SELECT DISTINCT fingerprint variant FROM issued_problems
                 WHERE user_id=$1 AND (family_id=$2 OR $2 LIKE 'OGE19-%'
                 AND family_id LIKE 'OGE19-%')
@@ -193,15 +225,18 @@ class Session:
                 owner,
                 family,
             )
-        ]
+        return [row["variant"] for row in rows if row["variant"]]
 
-    async def save(self, row: Any, family: str, candidate: dict[str, Any]) -> bool:
+    async def save(
+        self, row: Any, family: str, candidate: dict[str, Any], *, repeat: bool = False,
+    ) -> bool:
         pid = UUID(candidate["problem_id"])
         async with self.pool.acquire() as conn, conn.transaction():
             claimed = await conn.fetchval(
                 """SELECT a.id FROM adaptive_sessions a JOIN users u
                 ON u.id=a.owner WHERE a.id=$1 AND u.telegram_user_id=$2 AND a.position=$3
                 AND a.problem IS NULL AND a.finished IS NULL AND a.plan->>a.position::int=$4
+                AND a.revision=$5 AND a.prompt IS NOT DISTINCT FROM $6
                 AND u.current_state->>'screen'='adaptive'
                 AND (a.strategy<>'personal' OR
                   u.preferences->>'personal_training' IS DISTINCT FROM 'false')
@@ -210,6 +245,8 @@ class Session:
                 self.learner,
                 row["position"],
                 family,
+                row["revision"],
+                row["prompt"],
             )
             if not claimed:
                 return False
@@ -232,7 +269,7 @@ class Session:
                 )""",
                 row["owner"], family, candidate["fingerprint"],
             )
-            if duplicate:
+            if duplicate != repeat:
                 return False
             await conn.execute(
                 """INSERT INTO issued_problems(id,user_id,family_id,generator_version,
@@ -247,20 +284,24 @@ class Session:
             )
             await conn.execute(
                 """INSERT INTO adaptive_slots(session_id,position,problem,selection)
-                SELECT $1,$2,$3,CASE WHEN a.scope->>'similar_position'=a.position::text
+                SELECT $1,$2,$3,CASE WHEN $4 THEN 'repeat'
+                WHEN a.scope->>'similar_position'=a.position::text
                 THEN 'similar' ELSE 'strategy' END FROM adaptive_sessions a WHERE a.id=$1""",
                 claimed,
                 row["position"],
                 pid,
+                repeat,
             )
             await conn.execute(
                 """UPDATE adaptive_sessions SET problem=$2,prompt=NULL,
-                scope=scope-'similar_position' WHERE id=$1""", claimed, pid
+                scope=scope-'similar_position'-'similar_replaced_family' WHERE id=$1""",
+                claimed, pid,
             )
             return True
 
     async def choose_similar(
-        self, session_id: UUID, position: int, problem: UUID, *, revision: int | None = None
+        self, session_id: UUID, position: int, problem: UUID, *, revision: int | None = None,
+        prompt: int | None = None,
     ) -> str:
         """Reserve the next real slot for a fresh variant of the completed family."""
         async with self.pool.acquire() as conn, conn.transaction():
@@ -268,10 +309,12 @@ class Session:
                 """SELECT a.*,p.family_id,p.outcome FROM adaptive_sessions a
                 JOIN users u ON u.id=a.owner JOIN issued_problems p ON p.id=a.problem
                 WHERE a.id=$1 AND u.telegram_user_id=$2 AND a.position=$3 AND a.problem=$4
-                AND a.finished IS NULL AND (a.strategy<>'personal' OR
+                AND a.finished IS NULL AND u.current_state->>'screen'='adaptive'
+                AND ($5::bigint IS NULL OR a.prompt=$5)
+                AND (a.strategy<>'personal' OR
                   u.preferences->>'personal_training' IS DISTINCT FROM 'false')
                 FOR UPDATE OF a""",
-                session_id, self.learner, position, problem,
+                session_id, self.learner, position, problem, prompt,
             )
             if not row or revision is not None and row["revision"] != revision:
                 return "stale"
@@ -296,7 +339,7 @@ class Session:
             return "next"
 
     async def cancel_similar(
-        self, session_id: UUID, position: int, *, revision: int
+        self, session_id: UUID, position: int, *, revision: int, prompt: int | None = None,
     ) -> str:
         """Roll back an exhausted similar reservation without consuming its slot."""
         async with self.pool.acquire() as conn, conn.transaction():
@@ -304,10 +347,11 @@ class Session:
                 """SELECT a.* FROM adaptive_sessions a JOIN users u ON u.id=a.owner
                 WHERE a.id=$1 AND u.telegram_user_id=$2 AND a.position=$3
                 AND a.problem IS NULL AND a.revision=$4 AND a.finished IS NULL
+                AND ($5::bigint IS NULL OR a.prompt=$5) AND u.current_state->>'screen'='adaptive'
                 AND (a.strategy<>'personal' OR
                   u.preferences->>'personal_training' IS DISTINCT FROM 'false')
                 FOR UPDATE OF a""",
-                session_id, self.learner, position, revision,
+                session_id, self.learner, position, revision, prompt,
             )
             if not row:
                 return "stale"
@@ -325,7 +369,7 @@ class Session:
             plan[position] = scope.pop("similar_replaced_family")
             scope.pop("similar_position", None)
             await conn.execute(
-                """UPDATE adaptive_sessions SET position=$2,problem=$3,plan=$4,scope=$5,
+                """UPDATE adaptive_sessions SET position=$2,problem=$3,plan=$4,scope=$5,prompt=NULL,
                 revision=revision+1 WHERE id=$1""",
                 session_id, previous, problem, json.dumps(plan), json.dumps(scope),
             )
@@ -365,14 +409,14 @@ class Session:
                 session_id, message_id,
             )
 
-    async def summary_deltas(self, session_id: UUID) -> list[Any]:
-        """Persist and return only projection changes caused by this five-slot session."""
+    async def summary_deltas(self, session_id: UUID, *, from_position: int = 0) -> list[Any]:
+        """Persist and return only projection changes caused by the requested session slots."""
         from app.adaptive.store import sync
 
         async with self.pool.acquire() as conn, conn.transaction():
             row = await conn.fetchrow(
                 """SELECT a.owner FROM adaptive_sessions a JOIN users u ON u.id=a.owner
-                WHERE a.id=$1 AND u.telegram_user_id=$2 AND a.finished IS NOT NULL""",
+                WHERE a.id=$1 AND u.telegram_user_id=$2""",
                 session_id, self.learner,
             )
             if not row:
@@ -380,8 +424,9 @@ class Session:
             await sync(conn, row["owner"])
             rows: list[Any] = await conn.fetch(
                 """SELECT position,ordinal,skill,before_state,after_state,reason
-                FROM adaptive_session_deltas WHERE session_id=$1 ORDER BY position,ordinal""",
-                session_id,
+                FROM adaptive_session_deltas WHERE session_id=$1 AND position >= $2
+                ORDER BY position,ordinal""",
+                session_id, from_position,
             )
             return rows
 
@@ -397,6 +442,15 @@ class Session:
             )
         )
 
+    async def set_pending_prompt(self, row: Any, message_id: int) -> None:
+        await self.pool.execute(
+            """UPDATE adaptive_sessions a SET prompt=$5 FROM users u WHERE a.owner=u.id
+            AND u.telegram_user_id=$1 AND u.current_state->>'screen'='adaptive'
+            AND a.id=$2 AND a.position=$3 AND a.revision=$4 AND a.problem IS NULL
+            AND a.finished IS NULL AND (a.prompt IS NULL OR a.prompt<$5)""",
+            self.learner, row["id"], row["position"], row["revision"], message_id,
+        )
+
     async def act(
         self,
         problem: UUID | None,
@@ -409,6 +463,7 @@ class Session:
         session_id: UUID | None = None,
         position: int | None = None,
         revision: int | None = None,
+        next_block: list[str] | None = None,
     ) -> str:
         async with self.pool.acquire() as conn, conn.transaction():
             row = await conn.fetchrow(
@@ -442,14 +497,17 @@ class Session:
                 fallback = scope.get("resume_fallback")
                 if action == "menu":
                     await conn.execute(
-                        """UPDATE users SET current_state=current_state ||
+                        """UPDATE users SET current_state=
+                        (current_state-'navigation_message_id'-'navigation_revision') ||
                         '{"screen":"main_menu"}'::jsonb WHERE id=$1""", row["owner"]
                     )
                 else:
                     await conn.execute(
                         """UPDATE users SET current_state=CASE WHEN $2::text IS NULL THEN
-                        (current_state || '{"screen":"main_menu"}'::jsonb)-'resume_mode'
-                        ELSE current_state || '{"screen":"main_menu"}'::jsonb ||
+                        (current_state-'navigation_message_id'-'navigation_revision'-'resume_mode')
+                        || '{"screen":"main_menu"}'::jsonb
+                        ELSE (current_state-'navigation_message_id'-'navigation_revision')
+                        || '{"screen":"main_menu"}'::jsonb ||
                         jsonb_build_object('resume_mode',$2::text) END WHERE id=$1""",
                         row["owner"], fallback,
                     )
@@ -466,6 +524,15 @@ class Session:
                     row["id"],
                 )
                 return "finished"
+            if at_checkpoint(row):
+                if action != "continue" or not next_block or len(next_block) != BLOCK_SIZE:
+                    return "stale"
+                await conn.execute(
+                    """UPDATE adaptive_sessions SET position=position+1,problem=NULL,prompt=NULL,
+                    plan=plan || $2::jsonb,revision=revision+1 WHERE id=$1""",
+                    row["id"], json.dumps(next_block),
+                )
+                return "next"
             advance = action == "next" and problem and row["outcome"] != "issued"
             if advance:
                 done = row["position"] + 1 >= len(json.loads(row["plan"]))
@@ -505,7 +572,10 @@ class Session:
                     problem,
                     "skipped" if action == "skip" else "solution_viewed",
                 )
-                if row["position"] + 1 >= len(json.loads(row["plan"])):
+                if (
+                    row["strategy"] not in OPEN_PRACTICE
+                    and row["position"] + 1 >= len(json.loads(row["plan"]))
+                ):
                     await conn.execute(
                         """UPDATE adaptive_sessions SET completed=true,finished=now(),
                         revision=revision+1 WHERE id=$1""", row["id"]
@@ -549,7 +619,10 @@ class Session:
                 problem,
                 outcome,
             )
-            if outcome != "issued" and row["position"] + 1 >= len(json.loads(row["plan"])):
+            if (
+                outcome != "issued" and row["strategy"] not in OPEN_PRACTICE
+                and row["position"] + 1 >= len(json.loads(row["plan"]))
+            ):
                 await conn.execute(
                     """UPDATE adaptive_sessions SET completed=true,finished=now(),
                     revision=revision+1 WHERE id=$1""", row["id"]

@@ -82,7 +82,10 @@ async def sync(
                 """INSERT INTO adaptive_evidence(owner,skill,number,source,task,ordinal,
                    variant,occurred,outcome,assisted,attempt,score,grade_status,used_hint,solution_before)
                    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-                   ON CONFLICT DO NOTHING RETURNING true""",
+                   ON CONFLICT(owner,source,task,ordinal) DO UPDATE SET
+                   variant=excluded.variant,reason=NULL,stage_after=NULL,policy=NULL
+                   WHERE adaptive_evidence.variant IS DISTINCT FROM excluded.variant
+                   RETURNING true""",
                 owner,
                 result.skill,
                 result.number,
@@ -123,7 +126,11 @@ async def _project(
            AND prev.variant=e.variant AND prev.outcome='issued'
            AND (prev.source,prev.task)<>(e.source,e.task)
            AND prev.occurred<=e.occurred)
-           AND issued.task IS NOT NULL AS fresh
+           AND issued.task IS NOT NULL
+           AND NOT (e.source='personal' AND EXISTS(
+               SELECT FROM adaptive_slots sl
+               WHERE sl.problem=CASE WHEN e.source='personal' THEN e.task::uuid END
+               AND sl.selection='repeat')) AS fresh
            FROM adaptive_evidence e LEFT JOIN adaptive_evidence issued
            ON (issued.owner,issued.source,issued.task,issued.ordinal)=(e.owner,e.source,e.task,0)
            WHERE e.owner=$1 AND e.skill=$2 AND ($3::timestamptz IS NULL OR e.occurred>$3)

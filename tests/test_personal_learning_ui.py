@@ -8,17 +8,17 @@ def _callbacks(markup):
     return [button.callback_data for row in markup.inline_keyboard for button in row]
 
 
-def test_training_hub_keeps_short_and_existing_modes_distinct():
+def test_training_hub_offers_exactly_four_directions_and_contextual_resume():
     callbacks = _callbacks(menu.trainings_hub())
     assert callbacks == [
         "train:personal",
         "train:areas",
         "train:mixed",
-        "nav:numbers",
         "nav:mixed",
         "nav:main",
     ]
     assert "train:personal" not in _callbacks(menu.trainings_hub(personal_enabled=False))
+    assert _callbacks(menu.trainings_hub(has_session=True)) == ["nav:resume", *callbacks]
 
 
 def test_short_training_result_offers_similar_and_next():
@@ -54,6 +54,26 @@ def test_area_filters_use_public_names_and_deep_link_route():
     longest = max(adaptive.catalog(), key=lambda value: len(value.encode()))
     switch = adaptive._switch_callback("family", None, longest) + "~" + "a" * 12
     assert len(switch.encode()) <= 64
+    grid = adaptive.area_keyboard().inline_keyboard
+    assert grid[0][0].text == "№1–5 · Связанный сюжет"
+    assert grid[0][0].callback_data == "nav:linked"
+    assert {button.callback_data for row in grid[1:-1] for button in row} == {
+        f"train:area:{n}" for n in range(1, 20)
+    }
+
+
+def test_unified_area_preserves_existing_written_menu_when_enabled(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.bot.navigation import navigation_screen
+
+    settings = SimpleNamespace(oge_part2_enabled=True)
+    monkeypatch.setattr(adaptive, "get_settings", lambda: settings)
+    keyboard = adaptive.area_keyboard()
+    assert {c for c in _callbacks(keyboard) if c.startswith("p2:")} == {
+        f"p2:menu:{n}" for n in range(20, 26)
+    }
+    assert navigation_screen(keyboard) == "trainings"
 
 
 async def test_companion_transport_short_training_hub_and_completion(bank_pool, monkeypatch):
@@ -129,6 +149,50 @@ async def test_companion_transport_short_training_hub_and_completion(bank_pool, 
         connection = await asyncpg.connect(url)
         await connection.execute(f'DROP SCHEMA "{schema}" CASCADE')
         await connection.close()
+
+
+async def test_generation_failure_leaves_retriable_session_and_no_empty_summary(
+    bank_pool, monkeypatch,
+):
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from app.adaptive.session import Session
+    from app.math.scenarios.recent_questions import ScenarioVariantSearchFailed
+    from app.persistence.repository import PostgresRepository
+
+    family = "STOVE-F04-FLOOR-AREA"
+    repository = PostgresRepository(bank_pool)
+    store = Session(repository, 1)
+    await store.start([family] * 5, strategy="family", scope={"family": family})
+    settings = SimpleNamespace(oge_adaptive_enabled=True)
+    monkeypatch.setattr(adaptive, "get_settings", lambda: settings)
+    real_generate = adaptive.generate
+
+    def fail(*_):
+        raise ScenarioVariantSearchFailed(family)
+
+    monkeypatch.setattr(adaptive, "generate", fail)
+    sent = AsyncMock(return_value=SimpleNamespace(message_id=12))
+    monkeypatch.setattr(adaptive, "send_text", sent)
+    await adaptive.present(object(), repository, 1)
+    row = await store.current()
+    assert row["problem"] is None and row["prompt"] == 12
+    assert sent.await_args.args[2] == "Не получилось подготовить задачу. Попробуй ещё раз."
+    assert not any(
+        button.startswith("ad:repeat")
+        for button in _callbacks(sent.await_args.kwargs["reply_markup"])
+    )
+
+    monkeypatch.setattr(adaptive, "generate", real_generate)
+    problem_sent = AsyncMock()
+    monkeypatch.setattr(adaptive, "_send_problem", problem_sent)
+    await adaptive.present(object(), repository, 1, expected_prompt=11)  # Stale retry.
+    assert not problem_sent.await_count
+    await adaptive.present(object(), repository, 1, expected_prompt=12)
+    assert problem_sent.await_count == 1
+    current = await store.current()
+    assert current["id"] == row["id"] and current["position"] == 0 and current["problem"]
 
 
 async def test_disabled_personal_switch_and_progress_family_conflict(bank_pool):

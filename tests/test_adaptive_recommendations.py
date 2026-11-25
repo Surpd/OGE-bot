@@ -27,13 +27,15 @@ def profile(monkeypatch):
     return history, insights
 
 
-async def test_progress_hub_summary_and_personal_plan_offer_the_same_focus(monkeypatch, profile):
+async def test_progress_and_summary_match_personal_plan(monkeypatch, profile):
     history, insights = profile
     learner = 42
     monkeypatch.setattr(adaptive, "get_settings",
                         lambda: SimpleNamespace(oge_adaptive_enabled=True))
-    repository = SimpleNamespace(personal_enabled=AsyncMock(return_value=True),
-                                 save_user_state=AsyncMock())
+    repository = SimpleNamespace(
+        personal_enabled=AsyncMock(return_value=True), save_user_state=AsyncMock(),
+        last_training_mode=AsyncMock(return_value=None),
+    )
     store = SimpleNamespace(
         learner=learner, current=AsyncMock(return_value=None),
         excluded_for_learner=AsyncMock(return_value=[]),
@@ -56,12 +58,15 @@ async def test_progress_hub_summary_and_personal_plan_offer_the_same_focus(monke
     label, route = _summary_action(insights)
     assert plan[0] == GAP and route == f"train:family:{GAP}"
     assert _recommendation(insights) == image_tip(insights) == insights["personal_tip"]
-    for call in (hub, summary):
-        assert insights["personal_tip"] in call.args[2]
-        assert (label, route) in [
-            (b.text, b.callback_data)
-            for row in call.kwargs["reply_markup"].inline_keyboard for b in row
-        ]
+    assert hub.args[2] == "Тренировки"
+    assert not any(
+        b.callback_data == route for row in hub.kwargs["reply_markup"].inline_keyboard for b in row
+    )
+    assert insights["personal_tip"] in summary.args[2]
+    assert (label, route) in [
+        (b.text, b.callback_data)
+        for row in summary.kwargs["reply_markup"].inline_keyboard for b in row
+    ]
 
 
 def test_mixed_plan_ignores_personal_inputs_on_start_and_reselection(profile):
@@ -97,7 +102,7 @@ async def test_all_independent_answers_do_not_invent_a_problem(monkeypatch, prof
             for button in row] == ["train:personal", "train:progress", "nav:main"]
 
 
-def test_number_focus_links_to_five_tasks_and_session_help_outranks_recent_success(profile):
+def test_number_focus_links_to_practice_and_session_help_outranks_recent_success(profile):
     history, insights = profile
     ranked = adaptive._select("personal", 42, [], insights, recommendations_only=True, size=1)
     assert adaptive._recommendation_action(ranked.reasons[0])[1] == "train:number:13"

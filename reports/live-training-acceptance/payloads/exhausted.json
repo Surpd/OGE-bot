@@ -1,0 +1,46 @@
+{
+  "case": "exhausted",
+  "label": "Исчерпаны оба числовых варианта PAPER-F07",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Ты уже видел все варианты этого типа. Можно повторить один из них.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Повторить вариант",
+                "callback_data": "ad:repeat:e413d798-4b66-43cc-9bf4-2a724c699f36.2~345e8993f2e1"
+              }
+            ],
+            [
+              {
+                "text": "Выбрать другой тип",
+                "callback_data": "train:areas~345e8993f2e1"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:e413d798-4b66-43cc-9bf4-2a724c699f36.2~345e8993f2e1"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:e413d798-4b66-43cc-9bf4-2a724c699f36.2~345e8993f2e1"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "6f08fe92-faa2-4b29-89a1-81a2482d42e0"
+      }
+    }
+  ]
+}

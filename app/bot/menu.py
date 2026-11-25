@@ -29,23 +29,20 @@ def main_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:
 
 
 def trainings_hub(
-    *, personal_enabled: bool = True, short_enabled: bool = True
+    *, personal_enabled: bool = True, short_enabled: bool = True, has_session: bool = False,
 ) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
+    if has_session:
+        rows.append([_button("Продолжить тренировку", "nav:resume")])
     if short_enabled and personal_enabled:
-        rows.append([_button("Персональная тренировка", "train:personal")])
+        rows.append([_button("🎯 Персональная тренировка", "train:personal")])
+    areas = "train:areas" if short_enabled else "nav:numbers"
+    rows.append([_button("🔢 По номеру или типу", areas)])
     if short_enabled:
-        rows.extend([
-            [_button("🧮 По номеру или типу · 5 задач", "train:areas")],
-            [_button("Смешанная тренировка · 5 задач", "train:mixed")],
-        ])
-    rows.extend(
-        [
-            [_button("📝 Свободная практика", "nav:numbers")],
-            [_button("📚 Полный Mix №1–19", "nav:mixed")],
-            [_button(LABELS["menu"], "nav:main")],
-        ]
-    )
+        rows.append([_button("🔀 Смешанная тренировка", "train:mixed")])
+    rows.extend([
+        [_button("📝 Первая часть целиком", "nav:mixed")], [_button(LABELS["menu"], "nav:main")],
+    ])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
