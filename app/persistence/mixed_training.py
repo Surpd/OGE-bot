@@ -383,50 +383,57 @@ class MixedTrainingRepository:
                 state["scenario_snapshot"] = scenario_snapshot
                 state["scenario_snapshot_sha256"] = _digest(scenario_snapshot)
                 state["scenario_position"] = 1
-            snapshot = _capture_scheduler_state(state, number, snapshot)
-            try:
-                problem_uuid = UUID(str(snapshot.get("problem_id") or uuid4()))
-            except ValueError:
-                problem_uuid = uuid4()
-            problem_id_pg = problem_uuid
-            family = str(snapshot.get("family_id", f"OGE{number:02}-MIXED"))
-            fingerprint = str(snapshot.get("fingerprint", problem_id_pg))
-            stored_snapshot = _stored_question(
-                state, number, {**snapshot, "problem_id": str(problem_id_pg)}
-            )
-            await connection.execute(
-                """INSERT INTO mixed_training_problems
-                   (id,session_id,number,family_id,fingerprint,snapshot,snapshot_sha256)
-                   VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7)""",
-                problem_id_pg,
-                row["id"],
-                number,
-                family,
-                fingerprint,
-                json.dumps(stored_snapshot, ensure_ascii=False),
-                _digest(stored_snapshot),
-            )
-            state["active_problem_id"] = str(problem_id_pg)
-            await connection.execute(
-                """UPDATE mixed_training_sessions SET state=$2::jsonb,revision=revision+1,
-                   updated_at=now() WHERE id=$1""",
-                row["id"],
-                json.dumps(state, ensure_ascii=False),
-            )
-            return {
-                **stored_snapshot,
-                "number": number,
-                "family_id": family,
-                "fingerprint": fingerprint,
-                "outcome": "issued",
-                "attempts": 0,
-                "hints_used": 0,
-                **(
-                    {"scenario_snapshot": state["scenario_snapshot"]}
-                    if number <= 5 and isinstance(state.get("scenario_snapshot"), dict)
-                    else {}
-                ),
-            }
+            return await self._issue_pg(connection, row["id"], state, number, snapshot)
+
+    async def _issue_pg(
+        self, connection: Any, session_id: UUID, state: dict[str, object],
+        number: int, snapshot: dict[str, object],
+    ) -> dict[str, object]:
+        """Commit an already selected slot using the caller's session lock/transaction."""
+        snapshot = _capture_scheduler_state(state, number, snapshot)
+        try:
+            problem_uuid = UUID(str(snapshot.get("problem_id") or uuid4()))
+        except ValueError:
+            problem_uuid = uuid4()
+        problem_id_pg = problem_uuid
+        family = str(snapshot.get("family_id", f"OGE{number:02}-MIXED"))
+        fingerprint = str(snapshot.get("fingerprint", problem_id_pg))
+        stored_snapshot = _stored_question(
+            state, number, {**snapshot, "problem_id": str(problem_id_pg)}
+        )
+        await connection.execute(
+            """INSERT INTO mixed_training_problems
+               (id,session_id,number,family_id,fingerprint,snapshot,snapshot_sha256)
+               VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7)""",
+            problem_id_pg,
+            session_id,
+            number,
+            family,
+            fingerprint,
+            json.dumps(stored_snapshot, ensure_ascii=False),
+            _digest(stored_snapshot),
+        )
+        state["active_problem_id"] = str(problem_id_pg)
+        await connection.execute(
+            """UPDATE mixed_training_sessions SET state=$2::jsonb,revision=revision+1,
+               updated_at=now() WHERE id=$1""",
+            session_id,
+            json.dumps(state, ensure_ascii=False),
+        )
+        return {
+            **stored_snapshot,
+            "number": number,
+            "family_id": family,
+            "fingerprint": fingerprint,
+            "outcome": "issued",
+            "attempts": 0,
+            "hints_used": 0,
+            **(
+                {"scenario_snapshot": state["scenario_snapshot"]}
+                if number <= 5 and isinstance(state.get("scenario_snapshot"), dict)
+                else {}
+            ),
+        }
 
     async def set_prompt(self, user_id: int, problem_id: str, message_id: int) -> bool:
         if self._pool is None:
@@ -769,6 +776,77 @@ class MixedTrainingRepository:
                 "pending_snapshot": next_snapshot,
                 "scenario_snapshot": scenario_snapshot if number == 1 else None,
             }
+
+    async def skip_story(
+        self, user_id: int, problem_id: str, expected_revision: int, prompt_id: int,
+        next_queue: list[int], next_snapshot: dict[str, object],
+    ) -> dict[str, object] | None:
+        """Skip only the issued position; never issue the unseen remainder of its story."""
+        def valid(session: dict[str, object], problem: dict[str, object]) -> bool:
+            state = _object(session.get("state"))
+            return bool(
+                session.get("status") == "active"
+                and session.get("revision") == expected_revision
+                and state.get("active_problem_id") == problem_id
+                and isinstance(state.get("scenario_snapshot"), dict)
+                and 1 <= _as_int(problem.get("number")) <= 5
+                and problem.get("outcome") == "issued"
+                and problem.get("prompt_message_id") == prompt_id
+                and next_queue and 6 <= next_queue[0] <= 19
+                and len(set(next_queue)) == len(next_queue)
+                and all((n == 1 or 6 <= n <= 19)
+                        and n in _int_list(state.get("available_numbers"))
+                        for n in next_queue)
+            )
+
+        def leave(state: dict[str, object], number: int) -> None:
+            state.update(
+                queue=next_queue[1:], current_number=next_queue[0], active_problem_id=None,
+                last_number=number, scenario_snapshot=None,
+                scenario_snapshot_sha256=None, scenario_position=None,
+            )
+
+        if self._pool is None:
+            session = self._repository._mixed_training_sessions.get(user_id)
+            problem = session.get("problem") if session else None
+            if (not session or not problem or not valid(session, problem)
+                    or await self._repository.user_state(user_id) != "mixed"):
+                return None
+            problem["outcome"] = "skipped"
+            for record in self._repository._mixed_training_records[user_id]:
+                if record["problem_id"] == problem_id:
+                    record["outcome"] = "skipped"
+            leave(session["state"], problem["number"])
+            session["problem"] = None
+            return await self.issue_current(
+                user_id, expected_revision, next_queue[0], next_snapshot,
+            )
+        async with self._pool.acquire() as connection, connection.transaction():
+            # Match start()'s user -> session lock order and keep the screen guard
+            # valid until the new issue has committed.
+            owner = await connection.fetchval(
+                """SELECT id FROM users WHERE telegram_user_id=$1
+                   AND current_state->>'screen'='mixed' FOR UPDATE""", user_id,
+            )
+            if owner is None:
+                return None
+            row = await connection.fetchrow(
+                """SELECT s.id,s.status,s.revision,s.state,p.number,p.outcome,p.prompt_message_id
+                   FROM mixed_training_sessions s JOIN users u ON u.id=s.user_id
+                   JOIN mixed_training_problems p ON p.id=(s.state->>'active_problem_id')::uuid
+                   WHERE u.telegram_user_id=$1 AND s.status='active' AND p.id=$2::uuid
+                     AND u.current_state->>'screen'='mixed'
+                   FOR UPDATE OF s,p""", user_id, problem_id,
+            )
+            if row is None or not valid(dict(row), dict(row)):
+                return None
+            state = _object(row["state"])
+            await connection.execute(
+                "UPDATE mixed_training_problems SET outcome='skipped' WHERE id=$1::uuid",
+                problem_id,
+            )
+            leave(state, int(row["number"]))
+            return await self._issue_pg(connection, row["id"], state, next_queue[0], next_snapshot)
 
     async def pause(self, user_id: int) -> None:
         if self._pool is None:

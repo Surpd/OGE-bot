@@ -1,0 +1,12 @@
+requirement,test,evidence
+random Mix actual nav entry,test_random_mix_jump_memory,default available numbers plus controlled shuffle to13/17
+positions1/3/5 stats and exact resume,test_random_mix_jump_postgres,isolated PostgreSQL17 and fresh repository
+ordinary single skip and stale same-position message,test_single_skip_and_old_message_guard,position1 to2 then direct13
+normal Rich/PNG standard next6,test_standard_next_six_keeps_normal_math_delivery,shared student presentation
+atomic double click skip answer race,test_postgres_story_skip_races,one winner never beyond first ordinary slot
+terminal and paused source,test_terminal_source_and_pause_do_not_accept_old_story_skip,no mutation
+new cycle future story retained,test_cycle_boundary_keeps_future_story_slot_and_settings,no permanent exclusion
+story-only combination,test_story_only_combination_is_not_finished_or_replaced,no forced6 or session completion
+candidate failure,test_failed_candidate_does_not_skip_or_change_queue,original active task and retry
+atomic insert rollback,test_postgres_new_issue_failure_rolls_back_skip,source skip and destination both rolled back
+uncertain Telegram delivery,test_delivery_failure_resumes_the_committed_ordinary_snapshot,exact resume no second advance

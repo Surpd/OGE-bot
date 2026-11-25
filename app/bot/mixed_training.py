@@ -78,6 +78,10 @@ def _mixed_menu(
                 ],
             ]
         )
+    if scenario and not completed:
+        rows.append([InlineKeyboardButton(
+            text="Пропустить сюжет", callback_data=f"mixed:skip_story:{problem_id}",
+        )])
     if scenario:
         rows.append([InlineKeyboardButton(
             text="📷 Схема / данные", callback_data=f"mixed:data:{problem_id}",
@@ -154,6 +158,17 @@ def _scenario_question(snapshot: dict[str, object], position: int) -> dict[str, 
 def _callback_dedupe_id(callback: CallbackQuery) -> int:
     digest = hashlib.sha256(callback.id.encode()).digest()
     return int.from_bytes(digest[:8], "big") & ((1 << 63) - 1) or 1
+
+
+def _next_numbers(state: dict[str, object], last: int) -> list[int]:
+    """The existing Mix queue/cycle policy, shared by ordinary and whole-story skips."""
+    queue = _number_list(state.get("queue", []))
+    if not queue:
+        queue = _number_list(state.get("available_numbers", []))
+        secrets.SystemRandom().shuffle(queue)
+        if len(queue) > 1 and queue[0] == last:
+            queue[0], queue[1] = queue[1], queue[0]
+    return queue
 
 
 def _number_list(value: object) -> list[int]:
@@ -627,6 +642,46 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         await answer_callback(callback, "Сохранённое задание повреждено.")
         return
     number = number_value
+    if action == "skip_story":
+        if (len(parts) != 3 or not 1 <= number <= 5 or problem.get("outcome") != "issued"
+                or message.message_id != problem.get("prompt_message_id")):
+            await answer_callback(callback, "Эта кнопка уже не действует.")
+            return
+        data = cast(dict[str, object], state.get("state", {}))
+        revision = cast(int, state["revision"])
+        available = set(available_numbers()) & set(_number_list(data.get("available_numbers", [])))
+        next_numbers = [n for n in _next_numbers(data, number) if n in available]
+        ordinary_index = next((i for i, n in enumerate(next_numbers) if 6 <= n <= 19), None)
+        if ordinary_index is None:
+            await answer_callback(callback, "В этой тренировке нет доступных обычных заданий.")
+            return
+        # If a new random cycle starts with another story, keep that future slot
+        # queued, but deliver its first ordinary task now. Do not disable stories.
+        next_numbers.insert(0, next_numbers.pop(ordinary_index))
+        story_next_number = next_numbers[0]
+        generators = data.get("generator_states", {})
+        local = generators.get(str(story_next_number)) if isinstance(generators, dict) else None
+        try:
+            story_snapshot = await asyncio.to_thread(
+                _candidate, story_next_number,
+                await store.candidate_state(user_id, story_next_number, local),
+            )
+        except Exception:
+            await answer_callback(
+                callback, "Не удалось подготовить задание. Повторите пропуск сюжета."
+            )
+            return
+        issued = await store.skip_story(
+            user_id, problem_id, revision, message.message_id, next_numbers, story_snapshot,
+        )
+        if issued is None:
+            await answer_callback(callback, "Задание уже изменилось. Используйте текущие кнопки.")
+            return
+        await _send_problem(
+            message, repository, store, issued, user_id=user_id, previous_problem=problem,
+        )
+        await answer_callback(callback)
+        return
     if action == "pick" and len(parts) == 4:
         if number == 19 and not _task19_button_choices(problem):
             await answer_callback(callback, "Введите номера выбранных утверждений сообщением.")
@@ -747,7 +802,6 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
         await store.action(user_id, problem_id, "skip")
     state_data_raw = state.get("state", {}) if state else {}
     state_data = cast(dict[str, object], state_data_raw) if isinstance(state_data_raw, dict) else {}
-    queue = state_data.get("queue", [])
     if (
         state_data.get("scenario_snapshot") is not None
         and isinstance(state_data.get("scenario_position", 1), int)
@@ -755,13 +809,7 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
     ):
         result = await store.advance(user_id, problem_id, None, None)
     else:
-        next_numbers = _number_list(queue)
-        if not next_numbers:
-            next_numbers = _number_list(state_data.get("available_numbers", []))
-            secrets.SystemRandom().shuffle(next_numbers)
-            last = number
-            if len(next_numbers) > 1 and next_numbers[0] == last:
-                next_numbers[0], next_numbers[1] = next_numbers[1], next_numbers[0]
+        next_numbers = _next_numbers(state_data, number)
         next_number = int(next_numbers[0]) if next_numbers else None
         try:
             scenario = None
