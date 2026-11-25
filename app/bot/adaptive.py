@@ -10,7 +10,14 @@ from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.adaptive.engine import CURRENT, Stage, State, family_status
-from app.adaptive.planner import History, NumberPerformance, plan, unlocked
+from app.adaptive.planner import (
+    History,
+    NumberPerformance,
+    PlanResult,
+    SelectionReason,
+    plan_with_trace,
+    unlocked,
+)
 from app.adaptive.session import Session
 from app.adaptive.skills import title
 from app.adaptive.sources import scenario_variant
@@ -120,7 +127,7 @@ def _solution_text(problem: dict[str, Any]) -> str:
     return str(raw)
 
 
-def progress_weights(insights: dict[str, Any]) -> dict[str, float]:
+def _family_support(insights: dict[str, Any]) -> dict[str, float]:
     from app.persistence.training_insights import MIN_ANSWERED_SAMPLE
 
     def difficulty(row: dict[str, Any]) -> float:
@@ -132,35 +139,88 @@ def progress_weights(insights: dict[str, Any]) -> dict[str, float]:
         assisted = max(0, known - row.get("unassisted_correct", 0))
         return float((n - row.get("correct", 0) + 0.5 * assisted) / (n + MIN_ANSWERED_SAMPLE))
 
-    families = {r["family_id"]: difficulty(r) for r in insights.get("families", [])}
-    return {
-        k: difficulty(insights["numbers"].get(n, {})) + families.get(k, 0.0)
-        for k, n in catalog().items()
+    return {r["family_id"]: difficulty(r) for r in insights.get("families", [])}
+
+
+async def _learner_inputs(
+    repository: Any, learner: int, insights: dict[str, Any] | None = None
+) -> tuple[History, dict[str, Any]]:
+    from app.persistence.training_insights import training_insights
+
+    history = await overview(repository, learner)
+    if insights is None:
+        insights = await training_insights(repository, learner, "numbers")
+    return history, insights
+
+
+def _select(
+    strategy: str,
+    learner: int,
+    history: History,
+    insights: dict[str, Any],
+    *,
+    prefix: list[str] | None = None,
+    excluded: list[str] | None = None,
+    number: int | None = None,
+    seed: str | None = None,
+    as_of: datetime | None = None,
+    size: int = 5,
+    recommendations_only: bool = False,
+    difficulties: dict[str, int] | None = None,
+    include_practice: bool = True,
+) -> PlanResult:
+    choices = catalog()
+    if number is not None:
+        choices = {f: n for f, n in choices.items() if n == number}
+    if strategy == "mixed":
+        return plan_with_trace([], choices, prefix=prefix or (), excluded=excluded or (), size=size,
+                    seed=seed or "0")
+    performance = {
+        int(number): NumberPerformance(int(row["answered_tasks"]), int(row["correct"]))
+        for number, row in insights.get("numbers", {}).items()
     }
+    return plan_with_trace(
+        history, choices, prefix=prefix or (), excluded=excluded or (), size=size,
+        number_performance=performance, support=_family_support(insights),
+        seed=seed or str(learner), as_of=as_of or datetime.now(UTC),
+        recommendations_only=recommendations_only, difficulties=difficulties,
+        include_practice=include_practice,
+    )
+
+
+def _recommendation_action(item: SelectionReason) -> tuple[str, str]:
+    if item.by_number:
+        return f"Пять задач №{item.number}", f"train:number:{item.number}"
+    return title(item.family), f"train:family:{item.family}"
+
+
+def _recommendation_text(item: SelectionReason) -> str:
+    if item.by_number:
+        return f"{item.reason.capitalize()}. Стоит потренироваться."
+    return f"{title(item.family)} · {item.reason}."
 
 
 async def progress_target(repository: Any, learner: int, insights: dict[str, Any]) -> None:
     if not await repository.personal_enabled(learner):
         return
-    history = await overview(repository, learner)
+    history, insights = await _learner_inputs(repository, learner, insights)
     store = Session(repository, learner)
     current = await store.current()
-    if current and current["problem"]:
-        skill = json.loads(current["plan"])[current["position"]]
-        insights["personal_tip"] = f"Продолжить тренировку · №{catalog().get(skill)}"
-    elif unlocked(history):
-        prefix = json.loads(current["plan"])[: current["position"]] if current else []
-        slots = plan(
-            history,
-            catalog(),
-            prefix=prefix,
-            excluded=await store.excluded_for_learner(),
-            support=progress_weights(insights),
-            as_of=datetime.now(UTC),
-        )
-        if len(slots) > len(prefix):
-            skill = slots[len(prefix)]
-            insights["personal_tip"] = f"Для практики · №{catalog()[skill]} · {title(skill)}"
+    if current and current["strategy"] == "personal" and current["problem"]:
+        insights["personal_tip"] = "Можно продолжить сохранённую персональную тренировку."
+        insights["personal_action"] = ("Продолжить", "train:resume")
+        return
+    recommendations = _select(
+        "personal", learner, history, insights,
+        excluded=await store.excluded_for_learner(), size=1, recommendations_only=True,
+    ).reasons
+    if recommendations:
+        item = recommendations[0]
+        insights["personal_tip"] = _recommendation_text(item)
+        insights["personal_action"] = _recommendation_action(item)
+    else:
+        insights["personal_tip"] = "Выбери персональную тренировку, чтобы попробовать новые задачи."
+        insights["personal_action"] = ("Персональная тренировка", "train:personal")
 
 
 async def present(message: Message, repository: Any, learner: int) -> None:
@@ -169,39 +229,28 @@ async def present(message: Message, repository: Any, learner: int) -> None:
     if row is None:
         return
     skills = json.loads(row["plan"])
-    history = await overview(repository, learner)
     prefix = skills[: row["position"] + int(row["problem"] is not None)]
     excluded = await store.excluded_for_learner()
     strategy = str(row.get("strategy", "personal"))
-    support: dict[str, float] = {}
-    performance: dict[int, NumberPerformance] = {}
-    if strategy == "personal":
-        from app.persistence.training_insights import training_insights
-
-        insights = await training_insights(repository, learner, "numbers")
-        support = progress_weights(insights)
-        performance = {
-            int(key): NumberPerformance(
-                int(value.get("answered_tasks", 0)), int(value.get("correct", 0))
-            )
-            for key, value in insights.get("numbers", {}).items()
-        }
+    history, insights = (
+        await _learner_inputs(repository, learner)
+        if strategy in {"personal", "number"}
+        else ([], {})
+    )
     scope = row["scope"] or {}
     if isinstance(scope, str):
         scope = json.loads(scope)
-    available = catalog()
-    if strategy == "number":
-        available = {f: n for f, n in available.items() if n == scope.get("number")}
     exact_family = strategy == "family" or scope.get("similar_position") == row["position"]
     for _ in range(8):
         updated = skills
-        if not exact_family and (strategy == "personal" or skills[row["position"]] in excluded):
-            updated = plan(
-                history if strategy != "mixed" else [], available, prefix=prefix, excluded=excluded,
-                size=len(skills), support=support, number_performance=performance,
-                seed=str(scope.get("plan_seed", row["id"])),
-                as_of=datetime.now(UTC),
-            )
+        if not exact_family and (
+            strategy == "personal" or skills[row["position"]] in excluded
+        ):
+            updated = list(_select(
+                strategy, learner, history, insights, prefix=prefix, excluded=excluded,
+                number=scope.get("number"), size=len(skills),
+                seed=str(scope.get("plan_seed", learner)),
+            ).slots)
         if len(updated) <= row["position"]:
             break
         if updated != skills and not await store.refresh(row, updated):
@@ -242,7 +291,7 @@ async def present(message: Message, repository: Any, learner: int) -> None:
             if result == "exhausted":
                 await feedback(
                     message, repository, learner,
-                    "Новых похожих вариантов сейчас нет. Нажмите «Дальше».",
+                    "Новых похожих вариантов сейчас нет. Нажми «Дальше».",
                 )
             return
         result = await store.act(
@@ -256,8 +305,8 @@ async def present(message: Message, repository: Any, learner: int) -> None:
         return
     data = problem_data(row)
     mode_name = {
-        "personal": "Персональная",
-        "mixed": "Смешанная",
+        "personal": "Персональная тренировка",
+        "mixed": "Смешанная тренировка",
         "number": f"По номеру · №{data['number']}",
         "family": title(json.loads(row["plan"])[row["position"]]),
     }.get(strategy, "Тренировка")
@@ -274,27 +323,20 @@ async def present(message: Message, repository: Any, learner: int) -> None:
 
 def _mode_plan(
     strategy: str,
+    learner: int,
     history: History,
+    insights: dict[str, Any],
     *,
     number: int | None = None,
     family: str | None = None,
     excluded: list[str] | None = None,
-    performance: dict[int, NumberPerformance] | None = None,
-    seed: str = "0",
-    as_of: datetime | None = None,
+    seed: str | None = None,
 ) -> list[str]:
-    choices = catalog()
     if strategy == "family":
-        return [family] * 5 if family in choices else []
-    if strategy == "number":
-        choices = {skill: n for skill, n in choices.items() if n == number}
-    # The common planner also supplies a diverse diagnostic five for a new learner.
-    source = [] if strategy == "mixed" else history
-    return plan(
-        source, choices, excluded=excluded or [], size=5,
-        number_performance=performance, seed=seed,
-        as_of=as_of,
-    )
+        return [family] * 5 if family is not None and family in catalog() else []
+    return list(_select(
+        strategy, learner, history, insights, number=number, excluded=excluded, seed=seed,
+    ).slots)
 
 
 def _requested_mode(row: Any, strategy: str, number: int | None, family: str | None) -> bool:
@@ -364,28 +406,21 @@ async def start(
     if current is None:
         if store is None:
             return
-        history = await overview(repository, learner)
-        from app.persistence.training_insights import training_insights
-
-        insights = await training_insights(repository, learner, "numbers")
-        performance = {
-            int(key): NumberPerformance(
-                int(value.get("answered_tasks", 0)), int(value.get("correct", 0))
-            )
-            for key, value in insights.get("numbers", {}).items()
-        }
-        plan_seed = secrets.token_hex(8)
+        history, insights = (
+            await _learner_inputs(repository, learner)
+            if strategy in {"personal", "number"}
+            else ([], {})
+        )
+        plan_seed = str(learner) if strategy == "personal" else secrets.token_hex(8)
         skills = _mode_plan(
-            strategy, history, number=number, family=family,
-            excluded=await store.excluded_for_learner(),
-            performance=performance, seed=plan_seed,
-            as_of=datetime.now(UTC),
+            strategy, learner, history, insights, number=number, family=family,
+            excluded=await store.excluded_for_learner(), seed=plan_seed,
         )
         if not skills:
             await send_text(
                 message,
                 repository,
-                "Сейчас нет свежих вариантов для персональной тренировки.",
+                "Сейчас нет свежих задач для этой тренировки.",
                 reply_markup=main_menu(),
                 user_id_override=learner,
             )
@@ -404,49 +439,28 @@ async def trainings(message: Message, repository: Any) -> None:
     if not message.from_user:
         return
     learner = message.from_user.id
-    personal_available = await repository.personal_enabled(learner)
-    history = await overview(repository, learner)
-    from app.persistence.training_insights import training_insights
-
-    insights = await training_insights(repository, learner, "numbers")
-    recommendations = sorted(
-        (item for item in history if item[1] in catalog()
-         and item[2].stage in {Stage.CHECK, Stage.GAP, Stage.PRACTICE, Stage.REOPENED}),
-        key=lambda item: (
-            item[2].opened <= item[2].closed,
-            item[2].stage not in {Stage.GAP, Stage.PRACTICE, Stage.CHECK, Stage.REOPENED},
-            -item[3].timestamp(),
-        ),
-    )[:2] if personal_available else []
+    short_enabled = get_settings().oge_adaptive_enabled
+    personal_available = short_enabled and await repository.personal_enabled(learner)
+    recommendations: tuple[SelectionReason, ...] = ()
     lines = ["Тренировки", "", "Короткая тренировка — 5 задач."]
-    if recommendations:
-        lines.extend(["", "Рекомендую:"])
-        for number, skill, state, _ in recommendations:
-            reason = stage_line(state).lower()
-            number_row = insights.get("numbers", {}).get(number) or insights.get(
-                "numbers", {}
-            ).get(str(number), {})
-            answered = int(number_row.get("answered_tasks", 0))
-            if answered:
-                reason += f", по №{number} верно {int(number_row.get('correct', 0))} из {answered}"
-            if state.practice:
-                reason += f", самостоятельное закрепление {state.practice}/{CURRENT.practice_count}"
-            lines.append(f"• №{number} · {title(skill)} — {reason}.")
-    elif not history and personal_available:
-        lines.extend(["", "Начните с персональной диагностической пятёрки — история не требуется."])
-    elif personal_available:
-        lines.append("Попробуйте новые типы в персональной тренировке.")
+    if personal_available:
+        history, insights = await _learner_inputs(repository, learner)
+        recommendations = _select(
+            "personal", learner, history, insights,
+            excluded=await Session(repository, learner).excluded_for_learner(),
+            size=2, recommendations_only=True,
+        ).reasons
+        if recommendations:
+            lines.extend(("", "Что потренировать"))
+            lines.extend(f"• {_recommendation_text(item)}" for item in recommendations)
+        elif not history:
+            lines.extend(("", "Начни с персональной тренировки, чтобы проверить разные темы."))
     await repository.save_user_state(learner, "trainings")
-    markup = trainings_hub(
-        personal_enabled=personal_available,
-        short_enabled=get_settings().oge_adaptive_enabled,
-    )
-    if get_settings().oge_adaptive_enabled and recommendations:
-        quick = [
-            button(f"№{number} · {title(skill)}", f"train:family:{skill}")
-            for number, skill, _, _ in recommendations
+    markup = trainings_hub(personal_enabled=personal_available, short_enabled=short_enabled)
+    if recommendations:
+        markup.inline_keyboard[1:1] = [
+            [button(*_recommendation_action(item))] for item in recommendations
         ]
-        markup.inline_keyboard.insert(1, quick[:2])
     await send_text(
         message, repository, "\n".join(lines),
         reply_markup=markup,
@@ -509,10 +523,10 @@ def stage_line(s: State) -> str:
 
 def summary(history: History, offset: int = 0) -> str:
     if not history:
-        return "Пока нет проверенных навыков. Начни с задания по номеру."
+        return "Здесь появятся результаты по типам задач."
     first = [s for n, _, s, _ in history if n <= 19]
     lines = [
-        "Навыки и пробелы",
+        "Сводка по типам задач",
         f"Открыто пробелов · {sum(s.opened > s.closed for s in first)}",
         f"На закреплении · {sum(s.stage == Stage.PRACTICE for s in first)}",
         f"Закрыто пробелов сейчас · {sum(s.closed > 0 and s.opened == s.closed for s in first)}",
@@ -681,15 +695,14 @@ async def answer(message: Message, repository: Any) -> None:
         "issued": "Пока неверно. Попробуй ещё раз.",
         "failed": "Разбор:\n\n" + _solution_text(problem),
     }[terminal_result]
-    if terminal_result == "solved":
-        states = {skill: state for _, skill, state, _ in await overview(repository, learner)}
-        skill = json.loads(row["plan"])[row["position"]]
-        state = states.get(skill)
-        if state is not None and state.practice:
-            text += (
-                f" Самостоятельное закрепление: "
-                f"{state.practice}/{CURRENT.practice_count}."
-            )
+    if terminal_result == "solved" and not result.startswith("completed_"):
+        delta = await store.answer_delta(row["id"], message.message_id)
+        if delta is not None:
+            if delta["reason"] == "independent_review":
+                text += " Ты снова решил задачу этого типа после перерыва."
+            else:
+                state = json.loads(delta["after_state"])
+                text += f" Серия этого типа {state['practice']}/{CURRENT.practice_count}."
     if result.startswith("completed_"):
         await send_text(
             message, repository, text, user_id_override=learner,
@@ -715,89 +728,79 @@ async def feedback(message: Message, repository: Any, learner: int, text: str) -
         await store.set_prompt(learner, str(row["problem"]), sent.message_id)
 
 
+def _summary_changes(deltas: list[Any]) -> list[str]:
+    # Combine contiguous series changes only when the projection really connects them.
+    streaks: dict[str, list[tuple[int, int]]] = {}
+    reviews: set[str] = set()
+    gap_changes: dict[str, str] = {}
+    for delta in deltas:
+        family = delta["skill"]
+        if delta["reason"] == "independent_review":
+            reviews.add(family)
+            continue
+        if delta["reason"] in {"gap_opened", "gap_reopened", "gap_closed"}:
+            gap_changes[family] = (
+                "серия восстановлена" if delta["reason"] == "gap_closed"
+                else "этот тип стоит потренировать"
+            )
+        before = json.loads(delta["before_state"]) if delta["before_state"] else {"practice": 0}
+        after = json.loads(delta["after_state"])
+        if before["practice"] != after["practice"]:
+            segments = streaks.setdefault(family, [])
+            if segments and segments[-1][1] == before["practice"]:
+                segments[-1] = (segments[-1][0], after["practice"])
+            else:
+                segments.append((before["practice"], after["practice"]))
+    changes = []
+    for family, segments in streaks.items():
+        series = ", ".join(
+            f"{before}/{CURRENT.practice_count} → {after}/{CURRENT.practice_count}"
+            for before, after in segments if before != after
+        )
+        if series:
+            changes.append(f"• {title(family)} · серия {series}.")
+    changes.extend(f"• {title(family)} · {detail}." for family, detail in gap_changes.items()
+                   if family not in streaks)
+    changes.extend(f"• {title(family)} · снова получилось после перерыва."
+                   for family in sorted(reviews))
+    return changes
+
+
 async def completion(
     message: Message, repository: Any, store: Session, row: Any, heading: str
 ) -> None:
-    totals = await store.totals(row["id"])
     deltas = await store.summary_deltas(row["id"])
+    totals = await store.totals(row["id"])
     lines = [
         heading,
         f"Пройдено задач: {totals['completed']} из 5.",
-        f"Решено верно: {totals['solved']}/{totals['issued']}.",
-        f"Самостоятельно: {totals['independent']}/{totals['issued']}.",
+        f"Верно {totals['solved']}/{totals['issued']} · самостоятельно "
+        f"{totals['independent']}/{totals['issued']}.",
     ]
-    if deltas:
-        lines.extend(["", "Что изменилось"])
-        collapsed: list[dict[str, Any]] = []
-        for delta in deltas:
-            item = dict(delta)
-            before = item["before_state"] or {}
-            previous_after = collapsed[-1]["after_state"] if collapsed else None
-            if isinstance(before, str):
-                before = json.loads(before)
-            if isinstance(previous_after, str):
-                previous_after = json.loads(previous_after)
-            if (
-                collapsed
-                and collapsed[-1]["skill"] == item["skill"]
-                and previous_after == before
-            ):
-                collapsed[-1]["after_state"] = item["after_state"]
-            else:
-                collapsed.append(item)
-        for delta in collapsed[:5]:
-            before = delta["before_state"] or {}
-            after = delta["after_state"] or {}
-            if isinstance(before, str):
-                before = json.loads(before)
-            if isinstance(after, str):
-                after = json.loads(after)
-            old = int(before.get("practice", 0))
-            new = int(after.get("practice", 0))
-            detail = (
-                f"самостоятельное закрепление {old}/{CURRENT.practice_count} "
-                f"→ {new}/{CURRENT.practice_count}"
-            )
-            if before.get("stage") != after.get("stage"):
-                status = stage_line(State(
-                    stage=after.get("stage", Stage.UNCHECKED),
-                    practice=int(after.get("practice", 0)),
-                    opened=int(after.get("opened", 0)),
-                    closed=int(after.get("closed", 0)),
-                ))
-                detail = f"{status}; {detail}"
-            lines.append(f"• {title(delta['skill'])}: {detail}.")
-    lines.extend(["", "Что дальше"])
+    changes = _summary_changes(deltas)
+    if changes:
+        lines.extend(("", *changes))
     personal_available = await repository.personal_enabled(store.learner)
-    final_history = await overview(repository, store.learner) if personal_available else []
-    remaining = sorted(
-        (item for item in final_history if item[1] in catalog()
-         and item[2].stage in {Stage.CHECK, Stage.GAP, Stage.PRACTICE, Stage.REOPENED}),
-        key=lambda item: (
-            item[2].opened <= item[2].closed,
-            item[2].stage not in {Stage.GAP, Stage.REOPENED, Stage.PRACTICE, Stage.CHECK},
-            -item[3].timestamp(),
-        ),
-    )
-    focus = remaining[0][1] if remaining else None
-    if remaining:
-        lines.append(
-            f"Рекомендую: {title(remaining[0][1])} — {stage_line(remaining[0][2]).lower()}."
-        )
-    elif personal_available:
-        lines.append("Можно начать новую персональную тренировку или выбрать номер.")
+    recommendations: tuple[SelectionReason, ...] = ()
+    if personal_available:
+        history, insights = await _learner_inputs(repository, store.learner)
+        recommendations = _select(
+            "personal", store.learner, history, insights,
+            excluded=await store.excluded_for_learner(), size=1, recommendations_only=True,
+            difficulties=await store.difficulties(row["id"]),
+            include_practice=totals["independent"] < totals["issued"],
+        ).reasons
+    rows = []
+    if recommendations:
+        item = recommendations[0]
+        lines.extend(("", "Что дальше", _recommendation_text(item)))
+        rows.append([button(*_recommendation_action(item))])
+    if personal_available:
+        rows.append([button("Персональная тренировка", "train:personal")])
     else:
-        lines.append("Можно выбрать короткую тренировку по номеру или смешанную пятёрку.")
+        rows.append([button("К тренировкам", "train:hub")])
+    rows.append([button("Мой прогресс", "train:progress"), button("В меню", "nav:main")])
     text = "\n".join(lines)
-    rows = [
-            *([[button("Потренировать этот тип", f"train:family:{focus}")]] if focus else []),
-            [button("Мой прогресс", "train:progress")],
-            [button("В меню", "nav:main")],
-    ]
-    rows.insert(0, [button(
-        "Новая персональная" if personal_available else "Смешанная · 5 задач",
-        "train:personal" if personal_available else "train:mixed",
-    )])
     keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
     await repository.save_user_state(store.learner, "trainings")
     await send_text(
@@ -831,7 +834,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             await show_progress(actor_message, repository)
         elif action == "areas" and (len(parts) == 2 or parts[2].isdigit()):
             page = int(parts[2]) if len(parts) == 3 else 0
-            await send_text(actor_message, repository, "Выберите номер для короткой тренировки.",
+            await send_text(actor_message, repository, "Выбери номер для короткой тренировки.",
                             reply_markup=area_keyboard(page), user_id_override=learner)
         elif action == "area" and len(parts) in {3, 4} and parts[2].isdigit():
             number = int(parts[2])
@@ -854,7 +857,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
                 learner
             ):
                 await answer_callback(
-                    cb, "Персональная тренировка выключена. Выберите другой режим."
+                    cb, "Персональная тренировка выключена. Выбери другой режим."
                 )
                 return
             await store.start([])

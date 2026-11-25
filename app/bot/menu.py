@@ -31,11 +31,11 @@ def trainings_hub(
 ) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
     if short_enabled and personal_enabled:
-        rows.append([_button("✨ Персональная · 5 задач", "train:personal")])
+        rows.append([_button("Персональная тренировка", "train:personal")])
     if short_enabled:
         rows.extend([
             [_button("🧮 По номеру или типу · 5 задач", "train:areas")],
-            [_button("🎲 Смешанная · 5 задач", "train:mixed")],
+            [_button("Смешанная тренировка · 5 задач", "train:mixed")],
         ])
     rows.extend(
         [

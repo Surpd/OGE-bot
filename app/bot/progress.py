@@ -153,7 +153,7 @@ def progress_keyboard(
 
     if section == "summary":
         if get_settings().oge_adaptive_enabled:
-            rows.append([_button("Навыки и пробелы", "nav:gaps:0")])
+            rows.append([_button("Сводка по типам задач", "nav:gaps:0")])
         action = _summary_action(insights) if insights is not None else None
         if action is not None:
             rows.append([_button(*action)])
@@ -262,11 +262,11 @@ def progress_keyboard(
 def _summary_action(insights: dict[str, Any]) -> tuple[str, str] | None:
     from app.config import get_settings
 
-    if insights.get("personal_tip"):
-        return "Персональная тренировка", "nav:adaptive"
+    if action := insights.get("personal_action"):
+        return str(action[0]), str(action[1])
     if insights["total"]["answered_tasks"] == 0:
         if get_settings().oge_adaptive_enabled:
-            return "Смешанная пятёрка", "train:mixed"
+            return "Смешанная тренировка · 5 задач", "train:mixed"
         return "🎲 Смешанная тренировка", "nav:mixed"
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is None:
@@ -281,7 +281,7 @@ def _recommendation(insights: dict[str, Any]) -> str:
     if insights.get("personal_tip"):
         return str(insights["personal_tip"])
     if insights["total"]["answered_tasks"] == 0:
-        return "Начните со смешанной тренировки или выберите номер."
+        return "Начни со смешанной тренировки или выбери номер."
     number = recommended_number(insights["numbers"], insights.get("families"))
     if number is not None:
         return f"Можно потренировать №{number}: у него сейчас самая низкая успешность."
@@ -545,7 +545,7 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
         elif replay_status == "unavailable":
             lines.extend(("", "Исходное задание недоступно для точного восстановления."))
         return "\n".join(lines)
-    return "Страница прогресса недоступна. Откройте «Мой прогресс»."
+    return "Страница прогресса недоступна. Открой «Мой прогресс»."
 
 
 def _record_has_error(record: dict[str, Any]) -> bool:

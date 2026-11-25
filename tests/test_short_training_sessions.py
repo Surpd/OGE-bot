@@ -359,3 +359,59 @@ async def test_continue_follows_last_mode_and_ignores_personal_toggle_for_mixed(
         assert await _resume_mode(repo, 1) == "task9"
     finally:
         get_settings.cache_clear()
+
+@pytest.mark.parametrize("backfill", [False, True])
+async def test_summary_records_delayed_review_and_drops_it_after_backfill(bank_pool, backfill):
+    from datetime import UTC, datetime, timedelta
+
+    from app.adaptive.session import Session
+    from app.adaptive.store import sync
+    from app.bot.adaptive import _summary_changes
+    from app.persistence.repository import PostgresRepository
+
+    family = "OGE09-L1"
+    store = Session(PostgresRepository(bank_pool), 1)
+    await store.start([family] * 5)
+    row = await store.current()
+    owner = row["owner"]
+    past = datetime.now(UTC) - timedelta(days=8)
+    async with bank_pool.acquire() as conn, conn.transaction():
+        await conn.execute("SET LOCAL bop.adaptive='on'")
+        for i in range(3):
+            p = await conn.fetchval(
+                """INSERT INTO issued_problems(user_id,family_id,fingerprint,generator_version,
+                snapshot,issued_at,outcome) VALUES($1,$2,$3,'b','{}',$4,'solved') RETURNING id""",
+                owner, family, f"earlier-{i}", past + timedelta(minutes=i),
+            )
+            await conn.execute(
+                """INSERT INTO attempts(user_id,problem_id,attempt_no,raw_answer,is_correct,
+                used_hint,telegram_message_id,created_at) VALUES($1,$2,1,'1',true,false,$3,$4)""",
+                owner, p, 100 + i, past + timedelta(minutes=i, seconds=1),
+            )
+    assert await store.save(row, family, candidate(family, "later-review"))
+    row = await store.current()
+    assert await store.act(
+        row["problem"], None, "answer", raw="1", correct=True, message_id=200
+    ) == "solved"
+    assert await store.act(row["problem"], None, "finish") == "finished"
+    # The generic bank fixture does not enable the production capture trigger.
+    await bank_pool.execute(
+        "INSERT INTO adaptive_dirty VALUES($1,'ordinary',$2) ON CONFLICT DO NOTHING",
+        owner, str(row["problem"]),
+    )
+    before = await store.summary_deltas(row["id"])
+    assert [delta["reason"] for delta in before] == ["independent_review"]
+    assert "снова получилось после перерыва" in _summary_changes(before)[0]
+    if backfill:
+        async with bank_pool.acquire() as conn, conn.transaction():
+            await conn.execute("SET LOCAL bop.adaptive='on'")
+            await conn.execute(
+                """INSERT INTO issued_problems(user_id,family_id,fingerprint,generator_version,
+                snapshot,issued_at) VALUES($1,$2,'later-review','b','{}',$3)""",
+                owner, family, past,
+            )
+        assert await store.summary_deltas(row["id"]) == []
+    async with bank_pool.acquire() as conn, conn.transaction():
+        await sync(conn, owner, rebuild=True)
+    after = await store.summary_deltas(row["id"])
+    assert [delta["reason"] for delta in after] == ([] if backfill else ["independent_review"])

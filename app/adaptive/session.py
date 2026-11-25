@@ -329,6 +329,40 @@ class Session:
             )
             return "exhausted"
 
+    async def difficulties(self, session_id: UUID) -> dict[str, int]:
+        rows = await self.pool.fetch(
+            """SELECT p.family_id,count(*) AS total
+            FROM adaptive_slots sl JOIN issued_problems p ON p.id=sl.problem
+            JOIN users u ON u.id=p.user_id
+            WHERE sl.session_id=$1 AND u.telegram_user_id=$2
+            AND (p.outcome IN ('failed','solution_viewed') OR EXISTS(
+                SELECT FROM attempts t WHERE t.problem_id=p.id
+                AND (NOT t.is_correct OR t.used_hint IS TRUE)
+            ))
+            GROUP BY p.family_id""", session_id, self.learner,
+        )
+        return {row["family_id"]: row["total"] for row in rows}
+
+    async def answer_delta(self, session_id: UUID, message_id: int) -> Any:
+        from app.adaptive.store import sync
+
+        async with self.pool.acquire() as conn, conn.transaction():
+            owner = await conn.fetchval(
+                """SELECT s.owner FROM adaptive_sessions s JOIN users u ON u.id=s.owner
+                WHERE s.id=$1 AND u.telegram_user_id=$2""", session_id, self.learner,
+            )
+            if owner is None:
+                return None
+            await sync(conn, owner)
+            return await conn.fetchrow(
+                """SELECT d.reason,d.after_state FROM adaptive_session_deltas d
+                JOIN adaptive_slots sl USING (session_id,position)
+                JOIN attempts a ON a.problem_id=sl.problem AND a.attempt_no=d.ordinal
+                WHERE d.session_id=$1 AND a.telegram_message_id=$2 AND d.reason IN
+                ('independent_success','skill_confirmed','gap_closed','independent_review')""",
+                session_id, message_id,
+            )
+
     async def summary_deltas(self, session_id: UUID) -> list[Any]:
         """Persist and return only projection changes caused by this five-slot session."""
         from app.adaptive.store import sync

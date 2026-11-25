@@ -370,7 +370,7 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
                 await h.click(f"ad:next:{current['problem']}")
         assert await session.current() is None
         done, _ = h.button("train:personal")
-        assert "Решено верно: 1/5" in done.text and "Самостоятельно: 1/5" in done.text
+        assert "Верно 1/5 · самостоятельно 1/5" in done.text
         await h.message("/start")
         await h.click("nav:trainings")
         await h.click("train:personal")
@@ -749,18 +749,19 @@ async def test_exhausted_families_are_bounded_and_never_leave_issued_or_active_t
 
 
 def test_progress_signals_use_sample_accuracy_and_assistance():
-    from app.bot.adaptive import catalog, progress_weights
+    from app.bot.adaptive import _family_support, catalog
     from app.bot.progress import _recommendation, _summary_action
     from app.bot.progress_image import _recommendation as image_tip
 
     family = next(k for k,n in catalog().items() if n == 9)
     scores = {"answered_tasks": 10, "correct": 8, "unassisted_correct": 6}
     data = {"numbers": {9: scores}, "families": []}
-    base = progress_weights(data)[family]
+    base = _family_support(data).get(family, 0)
     data["families"] = [dict(scores, family_id=family, answered_tasks=4)]
-    assert progress_weights(data)[family] == base
+    assert _family_support(data)[family] == base
     data["families"] = [dict(scores, family_id=family)]
-    assert progress_weights(data)[family] > base > 0
+    assert _family_support(data)[family] > base == 0
     data["personal_tip"] = "Для практики · №9"
     assert _recommendation(data) == image_tip(data) == data["personal_tip"]
-    assert _summary_action(data)[1] == "nav:adaptive"
+    data["personal_action"] = ("Пять задач №9", "train:number:9")
+    assert _summary_action(data)[1] == "train:number:9"

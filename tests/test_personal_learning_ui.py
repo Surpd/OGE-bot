@@ -39,10 +39,10 @@ def test_all_short_mode_plans_have_five_positions():
     choices = adaptive.catalog()
     family, number = next(iter(choices.items()))
     history = [(number, family, State(stage=Stage.GAP, opened=1), datetime.now(UTC))]
-    assert len(adaptive._mode_plan("personal", history)) == 5
-    assert len(adaptive._mode_plan("mixed", history)) == 5
-    assert len(adaptive._mode_plan("number", history, number=number)) == 5
-    assert adaptive._mode_plan("family", history, family=family) == [family] * 5
+    assert len(adaptive._mode_plan("personal", 42, history, {})) == 5
+    assert len(adaptive._mode_plan("mixed", 42, history, {})) == 5
+    assert len(adaptive._mode_plan("number", 42, history, {}, number=number)) == 5
+    assert adaptive._mode_plan("family", 42, history, {}, family=family) == [family] * 5
 
 
 def test_area_filters_use_public_names_and_deep_link_route():
@@ -69,11 +69,9 @@ async def test_companion_transport_short_training_hub_and_completion(bank_pool, 
     from app.companion.storage import open_storage
     from app.persistence.scenario_repository import ScenarioPostgresRepository
 
-    # Stable family selection, while fingerprints and navigation revisions remain fresh.
-    token_hex = adaptive.secrets.token_hex
-    monkeypatch.setattr(
-        adaptive.secrets, "token_hex", lambda size: "73" if size == 8 else token_hex(size)
-    )
+    # Use public numeric families with a valid wrong answer and fresh analogues.
+    choices = {family: n for family, n in adaptive.catalog().items() if n in {6, 8, 9}}
+    monkeypatch.setattr(adaptive, "catalog", lambda: choices)
     url = os.environ["DATABASE_URL"]
     repo = await open_storage(url, 300_000_000 + int(uuid4().hex[:7], 16))
     harness = Harness(

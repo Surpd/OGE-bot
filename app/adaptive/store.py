@@ -132,6 +132,12 @@ async def _project(
         skill,
         after,
     )
+    if saved and not incremental:
+        # A backfilled event can make an old transition disappear entirely.
+        await conn.execute(
+            """DELETE FROM adaptive_session_deltas d USING adaptive_sessions s
+            WHERE d.session_id=s.id AND s.owner=$1 AND d.skill=$2""", owner, skill
+        )
     milestones = []
     updates = []
     for row in rows:
@@ -153,7 +159,7 @@ async def _project(
             row["issued_at"].timestamp() if row["issued_at"] else None,
         )
         state, reason = (apply_written if row["number"] >= 20 else apply)(state, evidence)
-        if reason and row["policy"] is None:
+        if reason and row["policy"] is None and row["source"] != "personal":
             milestones.append((skill, reason))
         before_compact = {
             key: getattr(before, key) for key in ("stage", "practice", "opened", "closed")
@@ -161,7 +167,9 @@ async def _project(
         after_compact = {
             key: getattr(state, key) for key in ("stage", "practice", "opened", "closed")
         }
-        if row["source"] == "personal" and before_compact != after_compact:
+        if row["source"] == "personal" and (
+            before_compact != after_compact or reason == "independent_review"
+        ):
             await conn.execute(
                 """INSERT INTO adaptive_session_deltas(session_id,position,ordinal,skill,
                 before_state,after_state,reason)
