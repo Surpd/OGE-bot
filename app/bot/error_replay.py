@@ -18,7 +18,7 @@ from aiogram.types import (
 )
 
 from app.bot.callbacks import answer_callback
-from app.bot.presentation import send_photo, send_text
+from app.bot.presentation import hint_message, send_photo, send_text
 from app.bot.scenario_materials import prepare_scenario_materials, send_scenario_materials
 from app.bot.task_view import answer_instruction, question_text, system_rows, verified_photo
 from app.math.scenario_engine import ScenarioSnapshot
@@ -320,7 +320,7 @@ async def answer(message: Message, repository: Repository) -> None:
         text = f"Попытки закончились. Правильный ответ: {source.correct_answer}"
         solution = source.snapshot.get("solution_steps", source.snapshot.get("solution"))
         if isinstance(solution, list) and solution:
-            text += "\n\nРазбор\n" + "\n".join(map(str, solution))
+            text += "\n\nРазбор:\n\n" + "\n".join(map(str, solution))
     await _feedback(
         message, repository, user_id, result, text,
         source.snapshot if result.get("status") == "failed" else None,
@@ -376,7 +376,8 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
         if isinstance(callback.message, Message):
             await _feedback(
                 callback.message, repository, callback.from_user.id, replay,
-                "Подсказка:\n" + text if text is not None else "Подсказок больше нет.",
+                hint_message(text, source.snapshot) if text is not None
+                else "Подсказок больше нет.",
                 source.snapshot if text is not None else None,
                 scenario=source.scenario_snapshot is not None,
             )
@@ -392,7 +393,7 @@ async def callback(callback: CallbackQuery, repository: Repository) -> None:
         if isinstance(callback.message, Message):
             await _feedback(
                 callback.message, repository, callback.from_user.id, replay,
-                "Разбор\n" + solution, source.snapshot,
+                "Разбор:\n\n" + solution, source.snapshot,
                 scenario=source.scenario_snapshot is not None,
             )
         return

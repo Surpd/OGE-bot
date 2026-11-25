@@ -17,7 +17,7 @@ from app.bot.explicit_math import (
     local_tex,
 )
 from app.bot.math_fragments import MathFragment, System
-from app.bot.math_layout import action_prefix, layout_text
+from app.bot.math_layout import HEADING, action_prefix, layout_text
 from app.bot.math_notation import Span, math_spans, parse_formula
 
 _RENDER_LOCK = threading.Lock()
@@ -224,9 +224,7 @@ def _render(
     line_row_starts = []
     for line_index, line in enumerate(source_lines):
         line_row_starts.append(len(rows))
-        heading = line.startswith(
-            ("Задание №", "Подсказка", "Разбор", "Ответ:", "Правильный", "Оценка")
-        ) or (line.startswith("№") and " · " in line)
+        heading = HEADING.match(line) is not None
         font = bold if heading else regular
         prefix = None if heading else action_prefix(line)
         spans = (

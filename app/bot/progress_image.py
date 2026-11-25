@@ -134,6 +134,8 @@ def dashboard_tile_accent(correct: int, answered: int) -> str:
 
 
 def _recommendation(insights: dict[str, Any]) -> str:
+    if insights.get("personal_tip"):
+        return str(insights["personal_tip"])
     if insights["total"]["answered_tasks"] == 0:
         return "Начните со смешанной тренировки."
     number = recommended_number(insights["numbers"], insights.get("families"))

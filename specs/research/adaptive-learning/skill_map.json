@@ -1,0 +1,188 @@
+{
+  "version": "research-1",
+  "skills": [
+    {
+      "id": "fraction.add",
+      "title": "Сложить обыкновенные дроби",
+      "primary_families": [
+        "OGE06-F001-ADD"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "fraction.subtract",
+      "title": "Вычесть обыкновенные дроби",
+      "primary_families": [
+        "OGE06-F001-SUB"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "fraction.divide",
+      "title": "Разделить обыкновенные дроби",
+      "primary_families": [
+        "OGE06-F002-DIV"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "fraction.reciprocal_sum",
+      "title": "Найти обратную величину суммы единичных дробей",
+      "primary_families": [
+        "OGE06-F003-UNIT-SUM"
+      ],
+      "diagnostic_prerequisites": [
+        "fraction.add",
+        "fraction.divide"
+      ]
+    },
+    {
+      "id": "decimal.add",
+      "title": "Сложить десятичные дроби",
+      "primary_families": [
+        "OGE06-F004-DEC-ADD"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "decimal.subtract",
+      "title": "Вычесть десятичные дроби",
+      "primary_families": [
+        "OGE06-F004-DEC-SUB"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "decimal.multiply",
+      "title": "Перемножить десятичные дроби",
+      "primary_families": [
+        "OGE06-F004-DEC-MUL"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "decimal.divide",
+      "title": "Разделить десятичные дроби",
+      "primary_families": [
+        "OGE06-F004-DEC-DIV"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "eq.linear",
+      "title": "Решить линейное уравнение",
+      "primary_families": [
+        "OGE09-L1",
+        "OGE09-L2"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "eq.parentheses",
+      "title": "Решить линейное уравнение со скобками",
+      "primary_families": [
+        "OGE09-L3",
+        "OGE09-L4A",
+        "OGE09-L4B"
+      ],
+      "diagnostic_prerequisites": [
+        "eq.linear"
+      ]
+    },
+    {
+      "id": "formula.substitute",
+      "title": "Подставить число в линейную формулу",
+      "primary_families": [
+        "OGE12-R003"
+      ],
+      "diagnostic_prerequisites": [
+        "decimal.multiply",
+        "decimal.add"
+      ]
+    },
+    {
+      "id": "formula.factor",
+      "title": "Найти неизвестный множитель в физической формуле",
+      "primary_families": [
+        "OGE12-R001",
+        "OGE12-R002"
+      ],
+      "diagnostic_prerequisites": [
+        "decimal.divide",
+        "eq.linear"
+      ]
+    },
+    {
+      "id": "inequality.linear",
+      "title": "Решить линейное неравенство и выбрать промежуток",
+      "primary_families": [
+        "OGE13-L01",
+        "OGE13-L02"
+      ],
+      "diagnostic_prerequisites": [
+        "eq.linear"
+      ]
+    },
+    {
+      "id": "graph.parabola",
+      "title": "Определить знаки a и c по графику параболы",
+      "primary_families": [
+        "OGE11-F04"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "root.bound",
+      "title": "Найти целые границы корня",
+      "primary_families": [
+        "OGE07-C02"
+      ],
+      "diagnostic_prerequisites": []
+    },
+    {
+      "id": "root.choose",
+      "title": "Выбрать корень на указанном отрезке",
+      "primary_families": [
+        "OGE07-C03"
+      ],
+      "diagnostic_prerequisites": [
+        "root.bound"
+      ]
+    },
+    {
+      "id": "root.plot",
+      "title": "Указать точку заданного корня на прямой",
+      "primary_families": [
+        "OGE07-N01"
+      ],
+      "diagnostic_prerequisites": [
+        "root.bound"
+      ]
+    },
+    {
+      "id": "root.read",
+      "title": "Выбрать корень по отмеченной точке",
+      "primary_families": [
+        "OGE07-N04"
+      ],
+      "diagnostic_prerequisites": [
+        "root.choose"
+      ]
+    }
+  ],
+  "coverage_scope": "Proposed pilot only, not a publication allowlist",
+  "display_groups_without_mastery": {
+    "decimal.calculate": [
+      "decimal.add",
+      "decimal.subtract",
+      "decimal.multiply",
+      "decimal.divide"
+    ],
+    "root.bounds": [
+      "root.bound",
+      "root.choose",
+      "root.plot",
+      "root.read"
+    ]
+  }
+}

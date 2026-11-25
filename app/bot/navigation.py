@@ -50,6 +50,8 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
+    if "nav:trainings" in callbacks:
+        return "main_menu"
     if any(c and c.startswith("nav:numbers:") for c in callbacks) or (
         "nav:oge15" in callbacks and "nav:task:6" in callbacks
     ):
@@ -74,10 +76,16 @@ def navigation_screen(markup: object) -> str | None:
             return f"family_selection:{value.split(':')[2]}"
     if any(value and value.startswith("replay:") for value in callbacks):
         return "error_replay"
+    if callbacks == {"nav:adaptive", "nav:main"}:
+        return "main_menu"
+    if "nav:progress" in callbacks and "nav:numbers" not in callbacks:
+        return "progress"
     if "nav:details" in callbacks or "nav:progress_text" in callbacks or any(
         value and value.startswith("progress:") for value in callbacks
     ):
         return "progress"
+    if any(value and value.startswith("train:") for value in callbacks):
+        return "trainings"
     if "nav:task:6" in callbacks:
         return "number_selection"
     if any(
@@ -156,11 +164,22 @@ async def show_display_options(message: Message, repository: Repository) -> None
     user_id = message.from_user.id
     await repository.save_user_state(user_id, "display_settings")
     mode = await repository.math_display(user_id)
+    from app.config import get_settings
+
+    personal_rows = []
+    status = ""
+    if get_settings().oge_adaptive_enabled:
+        enabled = await repository.personal_enabled(user_id)
+        status = "Персональная тренировка " + ("включена" if enabled else "выключена") + ".\n\n"
+        personal_rows = [[InlineKeyboardButton(
+            text=("Выключить" if enabled else "Включить") + " персональную тренировку",
+            callback_data="nav:personal:" + ("off" if enabled else "on"),
+        )]]
     label = "картинкой" if mode == "png" else "обычное оформление"
     await send_text(
         message,
         repository,
-        f"Вид формул: {label}.\n\n"
+        f"Настройки\n\n{status}Вид формул: {label}.\n\n"
         "Если формулы не видны в вашем Telegram, выберите «Картинкой», "
         "затем продолжите сохранённое задание из меню.",
         reply_markup=InlineKeyboardMarkup(
@@ -169,6 +188,7 @@ async def show_display_options(message: Message, repository: Repository) -> None
                     InlineKeyboardButton(text="Обычное оформление", callback_data="nav:math:auto"),
                     InlineKeyboardButton(text="Картинкой", callback_data="nav:math:png"),
                 ],
+                *personal_rows,
                 [InlineKeyboardButton(text="В меню", callback_data="nav:main")],
             ]
         ),
@@ -181,6 +201,7 @@ async def navigation_callback(
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> None:
     from app.bot import router as handlers
+    from app.bot.adaptive import trainings as show_trainings
 
     if not isinstance(callback.message, Message) or not callback.data:
         await answer_callback(callback)
@@ -188,6 +209,7 @@ async def navigation_callback(
     data, _, revision = callback.data.partition("~")
     targets = {
         "nav:main": handlers.return_to_menu,
+        "nav:trainings": show_trainings,
         "nav:numbers": handlers.choose_number,
         "nav:resume": handlers.continue_session,
         "nav:mixed": handlers.start_mixed,
@@ -196,6 +218,17 @@ async def navigation_callback(
         "nav:details": handlers.show_progress_details,
         "nav:display": show_display_options,
     }
+    from app.config import get_settings
+
+    gaps_offset = None
+    if get_settings().oge_adaptive_enabled:
+        from app.bot.adaptive import gaps, start
+
+        targets["nav:personal:on"] = targets["nav:personal:off"] = show_display_options
+        targets["nav:adaptive"] = start
+        if data.startswith("nav:gaps:") and data[9:].isdigit() and len(data[9:]) <= 6:
+            gaps_offset = int(data[9:])
+            targets[data] = gaps
     target = targets.get(data)
     number_page = None
     if data.startswith("nav:numbers:"):
@@ -278,7 +311,8 @@ async def navigation_callback(
     if oge15_repository is not None and (
         data
         in {
-            "nav:main", "nav:numbers", "nav:mixed", "nav:progress", "nav:progress_text",
+            "nav:adaptive", "nav:main", "nav:numbers", "nav:mixed",
+            "nav:progress", "nav:progress_text",
             "nav:details", "nav:display",
             "nav:settings",
         }
@@ -295,7 +329,12 @@ async def navigation_callback(
         await answer_callback(callback)
         await part2_action(message, repository, callback.from_user.id, data)
         return
-    if display_mode is not None:
+    if data in {"nav:personal:on", "nav:personal:off"}:
+        await repository.set_personal_enabled(callback.from_user.id, data.endswith(":on"))
+        await show_display_options(message, repository)
+    elif gaps_offset is not None:
+        await gaps(message, repository, gaps_offset)
+    elif display_mode is not None:
         await repository.set_math_display(callback.from_user.id, display_mode)
         await show_display_options(message, repository)
     elif family_action is not None:

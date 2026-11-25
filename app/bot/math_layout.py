@@ -1,8 +1,20 @@
 """Presentation of owned training headings; never changes formula tokens."""
 
+import re
+
 from app.bot.explicit_math import formulas
 from app.bot.math_notation import math_spans
 
+HEADING = re.compile(
+    r"^(Персональная · [^\n]+|Настройки$|Повтор исходной задачи №\d+|"
+    r"(?:.+ · )?Задание №[^\n]+|Мой прогресс[^\n]*|Подробнее о номере|"
+    r"Практика №[^\n]*|Оценка:[^\n]*|Что правильно:|Где ошибка:|Как исправить:|"
+    r"Почему именно [^:]+:|Оценка не выставлена\.|Письменные работы|"
+    r"История(?: · №\d+)?|Мои ошибки(?: · №\d+)?|"
+    r"№\d+ · [^\n]+|Исходное условие:|Результат:|Попытки:|По семействам:|"
+    r"Разбор(?: \(самостоятельное решение не засчитывается\))?:|"
+    r"Подсказка(?: №\d+)?:|Ответ:|Правильный ответ:|Правильный вариант:)"
+)
 
 def action_prefix(line: str) -> str | None:
     action, separator, _ = line.partition(":")

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="510" viewBox="0 0 900 510">
+<rect width="900" height="510" fill="#fff"/>
+<g font-family="Arial" fill="#18252c"><text x="45" y="38" font-size="23">День 90 · базовый сценарий</text>
+<text x="45" y="66" font-size="15">Ложные подтверждения среди новых переходов в confirmed, %</text>
+<rect x="70" y="85" width="15" height="15" fill="#184d66"/><text x="92" y="98">rules</text>
+<rect x="270" y="85" width="15" height="15" fill="#c05e27"/><text x="292" y="98">weighted</text>
+<rect x="470" y="85" width="15" height="15" fill="#4f7965"/><text x="492" y="98">bkt</text>
+<path d="M 65 425 H 865" stroke="#dedede"/><text x="25" y="430">0</text>
+<path d="M 65 365 H 865" stroke="#dedede"/><text x="25" y="370">20</text>
+<path d="M 65 305 H 865" stroke="#dedede"/><text x="25" y="310">40</text>
+<path d="M 65 245 H 865" stroke="#dedede"/><text x="25" y="250">60</text>
+<path d="M 65 185 H 865" stroke="#dedede"/><text x="25" y="190">80</text>
+<path d="M 65 125 H 865" stroke="#dedede"/><text x="25" y="130">100</text>
+<rect x="75" y="423.03" height="1.97" width="15" fill="#184d66"/>
+<rect x="92" y="419.74" height="5.26" width="15" fill="#c05e27"/>
+<rect x="109" y="419.59" height="5.41" width="15" fill="#4f7965"/>
+<text x="94" y="454" font-size="16">A</text>
+<rect x="154" y="333.08" height="91.92" width="15" fill="#184d66"/>
+<rect x="171" y="347.46" height="77.54" width="15" fill="#c05e27"/>
+<rect x="188" y="314.12" height="110.88" width="15" fill="#4f7965"/>
+<text x="173" y="454" font-size="16">B</text>
+<rect x="233" y="173.30" height="251.70" width="15" fill="#184d66"/>
+<rect x="250" y="206.82" height="218.18" width="15" fill="#c05e27"/>
+<rect x="267" y="183.33" height="241.67" width="15" fill="#4f7965"/>
+<text x="252" y="454" font-size="16">C</text>
+<rect x="312" y="193.20" height="231.80" width="15" fill="#184d66"/>
+<rect x="329" y="216.82" height="208.18" width="15" fill="#c05e27"/>
+<rect x="346" y="196.24" height="228.76" width="15" fill="#4f7965"/>
+<text x="331" y="454" font-size="16">D</text>
+<rect x="391" y="295.08" height="129.92" width="15" fill="#184d66"/>
+<rect x="408" y="281.95" height="143.05" width="15" fill="#c05e27"/>
+<rect x="425" y="268.07" height="156.93" width="15" fill="#4f7965"/>
+<text x="410" y="454" font-size="16">E</text>
+<rect x="470" y="418.34" height="6.66" width="15" fill="#184d66"/>
+<rect x="487" y="416.99" height="8.01" width="15" fill="#c05e27"/>
+<rect x="504" y="415.05" height="9.95" width="15" fill="#4f7965"/>
+<text x="489" y="454" font-size="16">F</text>
+<rect x="549" y="165.86" height="259.14" width="15" fill="#184d66"/>
+<rect x="566" y="183.24" height="241.76" width="15" fill="#c05e27"/>
+<rect x="583" y="158.11" height="266.89" width="15" fill="#4f7965"/>
+<text x="568" y="454" font-size="16">G</text>
+<rect x="628" y="411.89" height="13.11" width="15" fill="#184d66"/>
+<rect x="645" y="378.85" height="46.15" width="15" fill="#c05e27"/>
+<rect x="662" y="390.12" height="34.88" width="15" fill="#4f7965"/>
+<text x="647" y="454" font-size="16">H</text>
+<rect x="707" y="249.02" height="175.98" width="15" fill="#184d66"/>
+<rect x="724" y="277.89" height="147.11" width="15" fill="#c05e27"/>
+<rect x="741" y="241.27" height="183.73" width="15" fill="#4f7965"/>
+<text x="726" y="454" font-size="16">I</text>
+<rect x="786" y="289.71" height="135.29" width="15" fill="#184d66"/>
+<rect x="803" y="253.12" height="171.88" width="15" fill="#c05e27"/>
+<rect x="820" y="238.08" height="186.92" width="15" fill="#4f7965"/>
+<text x="805" y="454" font-size="16">J</text>
+<text x="65" y="490">Истинный порог в модели — 0,75. Профили A–J описаны в README.</text></g></svg>

@@ -111,6 +111,16 @@ async def load_original_source(
             str(source_id),
         )
         number = int(row["number"] or _number_from_snapshot(snapshot))
+        scene = snapshot.get("scenario_snapshot")
+        if number <= 5 and isinstance(scene, dict):
+            _check_scenario_snapshot(scene, snapshot.get("scenario_digest"))
+            expected = _scenario_question(scene,number)
+            from app.adaptive.sources import scenario_variant
+            from app.math.scenario_engine import ScenarioSnapshot
+
+            expected["fingerprint"] = scenario_variant(ScenarioSnapshot.from_snapshot(scene),number)
+            _same_question(expected,snapshot)
+            return ReplaySource(source_type, source_id, 0, number, snapshot, scene)
         return ReplaySource(source_type, source_id, 0, number, snapshot)
 
     if source_type == "mixed":

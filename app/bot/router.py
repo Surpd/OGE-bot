@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import json
 import logging
 import secrets
 from collections.abc import Awaitable, Callable
@@ -135,12 +136,33 @@ def _has_resumable_task9(state: dict[str, object] | None) -> bool:
     }
 
 
+async def _resume_mode(repository: Repository, user_id: int) -> str | None:
+    from app.adaptive.session import Session
+    from app.config import get_settings
+
+    mode = await repository.last_training_mode(user_id)
+    if mode not in {None, "adaptive"} or getattr(repository, "_pool", None) is None:
+        return mode
+    row = await Session(repository, user_id).current()
+    if row is None:
+        return None
+    if get_settings().oge_adaptive_enabled and (
+        row["strategy"] != "personal" or await repository.personal_enabled(user_id)
+    ):
+        return "adaptive"
+    scope = json.loads(row["scope"])
+    fallback = scope.get("resume_fallback")
+    return fallback if isinstance(fallback, str) else None
+
+
 async def _has_resumable_session(
     repository: Repository,
     user_id: int,
     oge15_repository: ScenarioPostgresRepository | None = None,
 ) -> bool:
-    mode = await repository.last_training_mode(user_id)
+    mode = await _resume_mode(repository, user_id)
+    if mode == "adaptive":
+        return True
     if mode == "part2":
         from app.bot.part2 import store
 
@@ -330,6 +352,15 @@ async def continue_session(
         return
     user_id: int = actor_id
 
+    last = await _resume_mode(repository, user_id)
+    if last == "adaptive":
+        from app.adaptive.session import Session
+        from app.bot.adaptive import present
+
+        await Session(repository, user_id).start([])
+        await present(message, repository, user_id)
+        return
+
     async def resume_pilot() -> bool:
         if oge15_repository is None:
             return False
@@ -351,7 +382,6 @@ async def continue_session(
         await repository.save_user_state(user_id, "oge15")
         return True
 
-    last = await repository.last_training_mode(user_id)
     if last == "part2":
         from app.bot.part2 import resume
 
@@ -2708,11 +2738,18 @@ async def unknown_message(message: Message, repository: Repository) -> None:
 
 
 def build_router() -> Router:
+    from app.bot.adaptive_feedback import AdaptiveFeedback
+
     router = Router()
+    router.message.middleware(AdaptiveFeedback())
+    router.callback_query.middleware(AdaptiveFeedback())
     router.callback_query.register(
         navigation_callback,
         F.data.startswith(("nav:", "p2:", "progress:", "replay:")),
     )
+    from app.bot import adaptive
+
+    router.callback_query.register(adaptive.callback, F.data.startswith(("ad:", "train:")))
     router.callback_query.register(mixed_callback, F.data.startswith("mixed:"))
     router.message.register(start, CommandStart())
     from app.bot.api_diagnostics import api_status, api_test
@@ -2751,6 +2788,7 @@ def build_router() -> Router:
     from app.bot.part2 import collect
 
     router.message.register(collect, F.text | F.photo)
+    router.message.register(adaptive.answer, F.text)
     router.message.register(mixed_answer, F.text)
     router.message.register(task17_or_scenario_answer)
     router.message.register(menu_section, F.text.in_(MAIN_MENU))
