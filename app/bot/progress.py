@@ -335,8 +335,9 @@ def _date_label(value: Any) -> str:
 def _correct_attempt(record: dict[str, Any]) -> tuple[int | None, bool | None]:
     if "correct_attempt_no" in record:
         return record["correct_attempt_no"], record.get("correct_used_hint")
-    correct = next((a for a in (record.get("attempt_records") or ())
-                    if a.get("is_correct") is True), {})
+    correct: dict[str, Any] = next(
+        (a for a in (record.get("attempt_records") or ()) if a.get("is_correct") is True), {}
+    )
     return correct.get("attempt_no"), correct.get("used_hint")
 
 
