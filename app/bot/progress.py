@@ -812,17 +812,19 @@ async def load_progress_text_page(
 
 
 def _progress_callbacks(message: Message) -> set[str]:
-    if message.reply_markup is None:
+    markup = getattr(message, "reply_markup", None)
+    if not isinstance(markup, InlineKeyboardMarkup):
         return set()
     return {
         (button.callback_data or "").partition("~")[0]
-        for row in message.reply_markup.inline_keyboard for button in row
+        for row in markup.inline_keyboard for button in row
     }
 
 
 def _is_overview(message: Message) -> bool:
-    callbacks = _progress_callbacks(message)
-    return bool(message.photo) and {"progress:details", "progress:history:0"} <= callbacks
+    if not getattr(message, "photo", None):
+        return False
+    return {"progress:details", "progress:history:0"} <= _progress_callbacks(message)
 
 
 def _is_record_view(message: Message) -> bool:
