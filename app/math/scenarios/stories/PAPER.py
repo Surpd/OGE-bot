@@ -294,7 +294,6 @@ def _make_world(seed: int, ratio_family: str | None = None) -> dict[str, object]
     rng.shuffle(row_formats)
     rows = [(f"A{index}", *DIMENSIONS_MM[index]) for index in row_formats]
     target_order = rng.sample(row_formats, 4)
-    table_digest = sha256(_table_png(tuple(rows), labeled=False)).hexdigest()
 
     return {
         "seed": seed,
@@ -305,7 +304,6 @@ def _make_world(seed: int, ratio_family: str | None = None) -> dict[str, object]
             "diagram_asset_id": "paper-a0-a5-folding-v1",
             "diagram_sha256": _DIAGRAM_DIGEST,
             "table_asset_id": "paper-dimensions-v2",
-            "table_sha256": table_digest,
         },
         "questions": {
             "2": {
@@ -695,11 +693,7 @@ class PaperRenderer:
     def render_scenario(self, scenario: ScenarioDraft) -> RenderedScenario:
         rows = _get_rows(scenario.context)
         labeled = scenario.generator_version != GENERATOR_VERSION
-        table_bytes = _table_png(rows, labeled=labeled)
-        assets = (
-            _asset_ref(_DIAGRAM_PNG, "image/png"),
-            _asset_ref(table_bytes, "image/png"),
-        )
+        assets = (_asset_ref(_DIAGRAM_PNG, "image/png"), _table_asset_ref(rows, labeled=labeled))
         context = (
             "Форматы бумаги серии A: площадь A0 принята равной 1 м²; "
             "при переходе к следующему формату площадь листа делится пополам. "
@@ -728,6 +722,11 @@ def _asset_ref(content: bytes, content_type: str) -> ScenarioAssetRef:
     digest = sha256(content).hexdigest()
     extension = "png" if content_type == "image/png" else "svg"
     return ScenarioAssetRef(digest, content_type, f"sha256/{digest}.{extension}")
+
+
+@lru_cache(maxsize=1024)
+def _table_asset_ref(rows: tuple[tuple[str, int, int], ...], *, labeled: bool) -> ScenarioAssetRef:
+    return _asset_ref(_table_png(rows, labeled=labeled), "image/png")
 
 
 @dataclass(frozen=True, slots=True)
@@ -787,8 +786,6 @@ class PaperOracle:
             raise ValueError("PAPER diagram manifest hash is not the supported static asset")
         if manifest.get("table_asset_id") != "paper-dimensions-v2":
             raise ValueError("PAPER scenario references an unknown dimensions table version")
-        if manifest.get("table_sha256") != sha256(_table_png(rows, labeled=False)).hexdigest():
-            raise ValueError("PAPER table manifest hash does not match its stored rows")
         questions = scenario.context.get("questions")
         if not isinstance(questions, Mapping) or set(questions) != {"2", "3", "4", "5"}:
             raise ValueError(
@@ -891,8 +888,10 @@ def _validate_rendered_context(scenario: ScenarioDraft, rendered: RenderedScenar
     manifest = scenario.context.get("asset_manifest")
     if not isinstance(manifest, Mapping):
         raise ValueError("PAPER scenario is missing its graphic digest manifest")
-    expected_digests = {manifest.get("diagram_sha256"), manifest.get("table_sha256")}
-    if {asset.sha256 for asset in rendered.assets} != expected_digests:
+    table_ref = _table_asset_ref(rows, labeled=False)
+    if "table_sha256" in manifest and manifest["table_sha256"] != table_ref.sha256:
+        raise ValueError("PAPER table manifest hash does not match its stored rows")
+    if rendered.assets != (_asset_ref(_DIAGRAM_PNG, "image/png"), table_ref):
         raise ValueError("PAPER PNG references do not match the shared table and diagram")
 
 

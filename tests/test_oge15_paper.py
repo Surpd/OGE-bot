@@ -5,6 +5,7 @@ from dataclasses import replace
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 from uuid import UUID
 
 import pytest
@@ -15,11 +16,15 @@ from app.math.scenario_engine import (
     FamilyStatus,
     PracticeMode,
     PracticeRequest,
+    ScenarioCandidateExcluded,
     ScenarioSnapshot,
     build_practice_plan,
     discover_story_registry,
+    finalize_practice_plan,
+    prepare_practice_plan,
     restore_asset_bytes,
 )
+from app.math.scenarios.stories import PAPER
 from app.math.scenarios.stories.PAPER import (
     _DIAGRAM_PNG,
     _SOURCE_IDS,
@@ -102,6 +107,23 @@ def test_single_and_full_practice_plans_share_the_same_snapshot_and_restore_asse
         assert image.format == "PNG"
         assert image.size == (
             (960, 640) if asset.sha256 == sha256(_DIAGRAM_PNG).hexdigest() else (1024, 520)
+        )
+
+
+def test_rejected_paper_candidates_do_not_render_the_table(adapter) -> None:
+    registry = FamilyRegistry((adapter,))
+    request = PracticeRequest(PracticeMode.SINGLE, 2037, "PAPER", 3, "PAPER-F03")
+    PAPER._table_asset_ref.cache_clear()
+    with patch.object(PAPER, "_table_png", wraps=PAPER._table_png) as table_png:
+        with pytest.raises(ScenarioCandidateExcluded):
+            prepare_practice_plan(request, registry, accept_exact_candidate=lambda *_: False)
+        prepared = prepare_practice_plan(request, registry, accept_exact_candidate=lambda *_: True)
+        table_png.assert_not_called()
+        snapshot = finalize_practice_plan(prepared).snapshot
+        table_png.assert_called_once()
+        table = snapshot.assets[1]
+        assert sha256(restore_asset_bytes(adapter.renderer, snapshot, table)).hexdigest() == (
+            table.sha256
         )
 
 

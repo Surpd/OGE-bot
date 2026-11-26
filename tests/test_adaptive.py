@@ -319,6 +319,109 @@ async def test_mixed_and_scenario_share_variant_and_only_fresh_results_count(ban
         assert practice == "0"
 
 
+@pytest.mark.parametrize(("selection", "independent_count"), [("strategy", "1"), ("repeat", "0")])
+async def test_story_upgrade_reprojects_solved_personal_pr115_snapshot(
+    bank_pool, monkeypatch, selection, independent_count,
+):
+    import json
+    from pathlib import Path
+
+    from app.adaptive import sources
+    from app.adaptive.store import sync
+    from app.math.scenario_engine import ScenarioSnapshot
+    from app.math.scenarios.recent_questions import signature_fingerprint
+
+    archive = Path(__file__).parent / "fixtures" / "story_diversity" / "FLAT.json"
+    original = json.loads(archive.read_text(encoding="utf-8"))
+    scene = ScenarioSnapshot.from_snapshot(original)
+    question = scene.questions[1]
+    family = "FLAT-02-TILE-PACK"
+    assert question.family_id == family
+    model = question.math_model
+    legacy_key = signature_fingerprint((family, "math-v2", json.dumps([
+        scene.context["grid_cell_m"], [model["room_cells"], model["tile_cells"], model["pack"]],
+    ])))
+    new_key = sources.scenario_variant(scene, 2)
+    assert legacy_key != new_key
+
+    owner = await bank_pool.fetchval("SELECT id FROM users WHERE telegram_user_id=1")
+    async with bank_pool.acquire() as conn, conn.transaction():
+        problem = await conn.fetchval(
+            """INSERT INTO issued_problems(user_id,family_id,fingerprint,
+               generator_version,snapshot,issued_at,outcome)
+               VALUES($1,$2,$3,$4,$5,now()-interval '1 minute','solved') RETURNING id""",
+            owner, family, legacy_key, scene.generator_version,
+            json.dumps({"number": 2, "scenario_snapshot": original}),
+        )
+        session = await conn.fetchval(
+            """INSERT INTO adaptive_sessions(owner,plan,strategy)
+               VALUES($1,$2,'personal') RETURNING id""",
+            owner, json.dumps([family]),
+        )
+        await conn.execute(
+            """INSERT INTO adaptive_slots(session_id,position,problem,selection)
+               VALUES($1,1,$2,$3)""",
+            session, problem, selection,
+        )
+        await conn.execute(
+            """INSERT INTO attempts(user_id,problem_id,attempt_no,raw_answer,
+               is_correct,used_hint,telegram_message_id)
+               VALUES($1,$2,1,$3,true,false,23)""",
+            owner, problem, question.canonical_answer,
+        )
+        await conn.execute(
+            """INSERT INTO adaptive_dirty VALUES($1,'ordinary',$2) ON CONFLICT DO NOTHING""",
+            owner, str(problem),
+        )
+        with monkeypatch.context() as legacy:
+            legacy.setattr(sources, "scenario_variant", lambda _, __: legacy_key)
+            await sync(conn, owner)
+        assert await conn.fetchval(
+            """SELECT bool_and(variant=$3) FROM adaptive_evidence
+               WHERE owner=$1 AND source='personal' AND task=$2""",
+            owner, str(problem), legacy_key,
+        )
+        assert await conn.fetchval(
+            "SELECT state->>'independent_count' FROM adaptive_skills WHERE owner=$1 AND skill=$2",
+            owner, family,
+        ) == independent_count
+        assert not await conn.fetchval(
+            "SELECT EXISTS(SELECT FROM adaptive_dirty WHERE owner=$1)", owner
+        )
+        migration = Path("migrations/0035_story_variant_inputs.sql").read_text()
+        await conn.execute(migration.removeprefix("BEGIN;").removesuffix("COMMIT;\n"))
+        dirty = await conn.fetch(
+            "SELECT source,task FROM adaptive_dirty WHERE owner=$1", owner,
+        )
+        assert [(row["source"], row["task"]) for row in dirty] == [("ordinary", str(problem))]
+        await sync(conn, owner)
+        await sync(conn, owner)
+
+        evidence = await conn.fetch(
+            """SELECT source,variant,outcome,policy FROM adaptive_evidence
+               WHERE owner=$1 AND task=$2 ORDER BY ordinal""",
+            owner, str(problem),
+        )
+        assert [(row["source"], row["variant"], row["outcome"], row["policy"])
+                for row in evidence] == [
+            ("personal", new_key, "issued", CURRENT.version),
+            ("personal", new_key, "correct", CURRENT.version),
+        ]
+        assert await conn.fetchval(
+            "SELECT state->>'independent_count' FROM adaptive_skills WHERE owner=$1 AND skill=$2",
+            owner, family,
+        ) == independent_count
+        restored = await conn.fetchrow(
+            """SELECT fingerprint,snapshot->'scenario_snapshot' AS scene,
+               (SELECT count(*) FROM attempts WHERE problem_id=$1) AS attempts
+               FROM issued_problems WHERE id=$1""",
+            problem,
+        )
+        assert (restored["fingerprint"], json.loads(restored["scene"]), restored["attempts"]) == (
+            legacy_key, original, 1,
+        )
+
+
 async def test_explicit_repeat_slot_cannot_supply_independent_adaptive_evidence(bank_pool):
     import json
 
