@@ -72,3 +72,4 @@ class VisualCard:
     hint: str = ""
     breakdown: VisualBreakdown | None = None
     practice: tuple[VisualPractice, ...] = ()
+    personalized: bool = False

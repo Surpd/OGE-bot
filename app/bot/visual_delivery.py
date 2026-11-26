@@ -18,16 +18,19 @@ from aiogram.types import (
 )
 
 from app.bot.visual_models import VisualCard
+from app.bot.visual_static import is_static, static_path
 from app.config import get_settings
 from app.persistence.repository import Repository
 
 logger = logging.getLogger(__name__)
 PHOTO_LIMIT = 10 * 1024 * 1024
-_MENU_CARDS = frozenset({"welcome", "numbers", "part2", "stories", "types"})
 _PROGRESS_CARDS = frozenset({"progress_numbers", "number_progress", "progress_journal"})
 _SCREEN_FLAGS = {
     screen: f"oge_visual_{screen}_enabled"
-    for screen in (*_MENU_CARDS, "number_progress", "progress_journal", "training_result")
+    for screen in (
+        "welcome", "numbers", "part2", "stories", "types",
+        "number_progress", "progress_journal", "training_result",
+    )
 }
 _SCREEN_FLAGS["progress_numbers"] = _SCREEN_FLAGS["number_progress"]
 
@@ -52,7 +55,8 @@ def visual_enabled(screen: str, message: Message, user_id_override: int | None =
     flag = _SCREEN_FLAGS.get(screen)
     if (
         flag is None
-        or not getattr(settings, flag)
+        or not (getattr(settings, flag)
+                or screen == "part2" and settings.oge_visual_numbers_enabled)
         or settings.oge_visual_companion_only
         or (screen == "part2" and not settings.oge_part2_enabled)
         or message.chat.type != "private"
@@ -80,14 +84,30 @@ def build_visual[T](screen: str, factory: Callable[[], T]) -> T | None:
 def _render_png(card: VisualCard) -> bytes:
     from app.bot.visual_cards import render_card
 
-    png = render_card(card)
+    return _checked_png(render_card(card))
+
+
+def _checked_png(png: bytes) -> bytes:
     if not png.startswith(b"\x89PNG\r\n\x1a\n") or len(png) > PHOTO_LIMIT:
         raise ValueError("Invalid visual PNG")
     return png
 
 
+@lru_cache(maxsize=128)
+def _read_static_png(path: Path) -> bytes:
+    return _checked_png(path.read_bytes())
+
+
 @lru_cache(maxsize=48)
-def _render_menu_png(card: VisualCard) -> bytes:
+def _render_preference_png(card: VisualCard) -> bytes:
+    return _render_png(card)
+
+
+def _card_png(card: VisualCard) -> bytes:
+    if is_static(card):
+        return _read_static_png(static_path(card))
+    if card.personalized:
+        return _render_preference_png(card)
     return _render_png(card)
 
 
@@ -125,8 +145,7 @@ async def try_send_visual(
     )
 
     try:
-        render = _render_menu_png if card.screen in _MENU_CARDS else _render_png
-        png = await asyncio.to_thread(render, card)
+        png = await asyncio.to_thread(_card_png, card)
     except Exception as error:
         logger.warning(
             "visual_png_render_failed screen=%s type=%s", card.screen, type(error).__name__

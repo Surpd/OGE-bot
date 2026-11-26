@@ -76,6 +76,7 @@ jobs:
       - run: uv sync --frozen --all-extras
       - run: uv run ruff check .
       - run: uv run mypy app
+      - run: uv run python scripts/build_static_visual_cards.py --check
       - name: Core contracts and changed modules
         env:
           BASE_SHA: ${{ needs.changes.outputs.base }}

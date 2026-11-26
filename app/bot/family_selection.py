@@ -91,6 +91,7 @@ async def show_families(
                 for index, family in enumerate(entries, page * PAGE_SIZE + 1)
             )),),
             note=f"Сейчас: {current} · Страница {page + 1} из {pages}",
+            personalized=True,
         )) if visual_enabled("types", message) else None,
     )
 
