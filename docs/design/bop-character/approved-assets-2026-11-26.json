@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-26",
+  "repository": "Surpd/OGE-bot",
+  "branch": "design/bop-character-library",
+  "pull_request": 114,
+  "github_binary_status": "pending_import",
+  "assets": [
+    {
+      "filename": "phone-happy.png",
+      "repository_path": "docs/design/bop-character/poses/approved/phone-happy.png",
+      "status": "approved",
+      "note": "Пользователь принял исправленный вариант со смартфоном 26.11.2026.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 1609052,
+      "sha256": "551ca54284737883ac15e57818f38f5a88a0dfae34c6ab6d5785879246bc973d"
+    },
+    {
+      "filename": "headphones-adjust.png",
+      "repository_path": "docs/design/bop-character/poses/approved/headphones-adjust.png",
+      "status": "preferred",
+      "note": "Ранее выбранная удачная поза; оригинал без перерисовки.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 1748956,
+      "sha256": "b1c2820b79d09d0201937620fbb1739da09816896d8bfc2a5bc24fec7ce71109"
+    },
+    {
+      "filename": "edge-sit.png",
+      "repository_path": "docs/design/bop-character/poses/candidates/edge-sit.png",
+      "status": "preferred_reference",
+      "note": "Ранее выбранная сидячая поза; не финальная техническая приёмка. Принт местами пересекает шнурки.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 898767,
+      "sha256": "e0b33ff9524d4929f9884aed2c0ae8d3d3eaf9832dcca8b3c3f10d0cd9471ff1"
+    },
+    {
+      "filename": "avatar-selected.png",
+      "repository_path": "docs/design/bop-character/references/telegram/avatar-414.png",
+      "status": "preferred_reference",
+      "note": "Выбранная ранее аватарка; RGB, не прозрачный ассет.",
+      "width": 414,
+      "height": 414,
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "bytes": 141933,
+      "sha256": "dade2908317304170d8ddcf6bf444294670248430d605c61830c132f9af344f3"
+    }
+  ]
+}
