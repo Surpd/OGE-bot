@@ -191,6 +191,21 @@
       "note": "Пользователь принял позу с руками на голове, недоумением и цифровым вопросительным знаком на визоре. Оригинал сохраняется.",
       "library_file_id": "libfile_a90cf2e71ff88191a3e5a0ae6732d731",
       "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "shrug-skeptical.jpeg",
+      "repository_path": "docs/design/bop-character/poses/approved/shrug-skeptical.jpeg",
+      "status": "approved",
+      "note": "Выбран пользователем именно присланный фронтальный вариант с ладонями вверх и скептической цифровой мимикой. Оригинал JPEG на белом фоне; для карточек нужна отдельная версия PNG RGBA с удалённым фоном. Не заменять другими генерациями.",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "bytes": 418910,
+      "sha256": "5f833e0517209f7989684c0628f933e050446d49dfd85ea4a284841dcb278b2a",
+      "library_file_id": "libfile_167ef97905dc81919b5f27f753d4cc98",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
     }
   ],
   "current_telegram": {
