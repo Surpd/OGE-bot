@@ -139,18 +139,18 @@ class Companion:
         # One owner operation at a time. Bounded HTTP processing; primary has its own pool.
         async with asyncio.timeout(45), self.lock:
             repo = self.repository
-            if not await repo.claim_update(update.update_id):
+            if not await repo.claim_update(update.update_id, bot_id=self.bot.id):
                 return
             try:
                 await self.dispatcher.feed_update(
                     self.bot,
                     update,
                     repository=repo,
-                    oge15_repository=ScenarioPostgresRepository(repo._pool),
+                    oge15_repository=ScenarioPostgresRepository(repo._pool, bot_id=self.bot.id),
                 )
             finally:
                 # Do not replay an uncertain Telegram send automatically. Exact retry is explicit.
-                await repo.finish_update(update.update_id)
+                await repo.finish_update(update.update_id, bot_id=self.bot.id)
 
     async def close_resources(self) -> None:
         if self.bot:

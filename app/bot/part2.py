@@ -17,7 +17,7 @@ from app.persistence.repository import PostgresRepository, Repository
 
 def store(repository: Repository) -> Part2Training | None:
     if get_settings().oge_part2_enabled and isinstance(repository, PostgresRepository):
-        return Part2Training(repository._pool)
+        return Part2Training(repository._pool, bot_id=getattr(repository, "bot_id", 0))
     return None
 
 

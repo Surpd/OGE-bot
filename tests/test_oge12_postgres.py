@@ -5,6 +5,7 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
+from app.main import _run_schema_migrations
 from app.math.oge12_scheduler import build_task12_candidate_batch
 from app.persistence.repository import PostgresRepository, read_migration
 
@@ -26,6 +27,7 @@ async def test_task12_postgres_hints_answer_and_snapshot_survive_repository_rest
             "migrations/0006_task12_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
+        await _run_schema_migrations(pool)
         repository = PostgresRepository(pool)
         await repository.ensure_task12_session(user_id)
         first = build_task12_candidate_batch({}, 17101)[0]
@@ -77,6 +79,7 @@ async def test_task12_postgres_concurrent_next_after_solution_viewed_advances_on
             "migrations/0006_task12_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
+        await _run_schema_migrations(pool)
         repository = PostgresRepository(pool)
         await repository.ensure_task12_session(user_id)
         first = build_task12_candidate_batch({}, 17102)[0]
@@ -131,6 +134,7 @@ async def _new_task12_repository(database_url: str) -> tuple[asyncpg.Pool, Postg
         "migrations/0006_task12_sessions.sql",
     ):
         await pool.execute(await read_migration(migration))
+    await _run_schema_migrations(pool)
     repository = PostgresRepository(pool)
     await repository.ensure_task12_session(user_id)
     return pool, repository, user_id

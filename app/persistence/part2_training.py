@@ -29,8 +29,9 @@ def _rotation_groups(number: int) -> str:
 
 
 class Part2Training:
-    def __init__(self, pool: asyncpg.Pool) -> None:
+    def __init__(self, pool: asyncpg.Pool, *, bot_id: int = 0) -> None:
         self.pool = pool
+        self.bot_id = bot_id
 
     async def choices(self, number: int, owner: int) -> list[asyncpg.Record]:
         return list(
@@ -292,20 +293,24 @@ class Part2Training:
                 return "stale"
             if await conn.fetchval(
                 """SELECT EXISTS(SELECT 1 FROM part2_work w JOIN part2_issues i ON i.id=w.issue_id
-                   WHERE i.owner=$1 AND w.message_id=$2)""",
+                   WHERE i.owner=$1 AND w.message_id=$2 AND w.bot_id=$3)""",
                 owner,
                 message,
+                self.bot_id,
             ):
                 return "duplicate"
             work = await conn.fetch(
-                """SELECT message_id,photo FROM part2_work
+                """SELECT message_id,photo,bot_id FROM part2_work
                 WHERE issue_id=$1 AND revision=$2 AND NOT superseded""",
                 issue,
                 revision,
             )
             replacing = bool(
                 photo
-                and any(item["photo"] and item["message_id"] == replace_photo for item in work)
+                and any(
+                    item["photo"] and item["message_id"] == replace_photo
+                    and item["bot_id"] == self.bot_id for item in work
+                )
             )
             if photo and replace_photo is not None and not replacing:
                 return "stale"
@@ -313,12 +318,14 @@ class Part2Training:
                 # Remember the rejected message without retaining student content.
                 # A delayed redelivery must not become the first photo of the next draft.
                 await conn.execute(
-                    """INSERT INTO part2_work(issue_id,revision,message_id,media_group,superseded)
-                    VALUES ($1,$2,$3,$4,true)""",
+                    """INSERT INTO part2_work
+                    (issue_id,revision,message_id,media_group,superseded,bot_id)
+                    VALUES ($1,$2,$3,$4,true,$5)""",
                     issue,
                     revision,
                     message,
                     media_group,
+                    self.bot_id,
                 )
                 return "photo_limit"
             if len(work) >= 12 and not replacing:
@@ -332,13 +339,15 @@ class Part2Training:
                     revision,
                 )
             await conn.execute(
-                """INSERT INTO part2_work(issue_id,revision,message_id,body,photo,media_group)
-                VALUES ($1,$2,$3,$4,$5,$6)""",
+                """INSERT INTO part2_work
+                (issue_id,revision,message_id,body,photo,media_group,bot_id)
+                VALUES ($1,$2,$3,$4,$5,$6,$7)""",
                 issue,
                 revision,
                 message,
                 body,
                 photo,
                 media_group,
+                self.bot_id,
             )
             return "saved"

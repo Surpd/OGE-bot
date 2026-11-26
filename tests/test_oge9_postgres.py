@@ -5,6 +5,7 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
+from app.main import _run_schema_migrations
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.oge10_scheduler import build_task10_candidate_batch
 from app.math.scheduler import build_candidate_batch
@@ -27,6 +28,7 @@ async def test_task9_postgres_hints_answers_and_snapshots_survive_repository_res
             "migrations/0005_task10_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
+        await _run_schema_migrations(pool)
         repository = PostgresRepository(pool)
         await repository.ensure_task9_session(user_id)
         batch = build_task9_candidate_batch({}, 76543)
@@ -85,6 +87,7 @@ async def test_postgres_mixed_sessions_are_independent_and_stale_actions_are_ser
             "migrations/0005_task10_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
+        await _run_schema_migrations(pool)
         repo = PostgresRepository(pool)
         await repo.register_user(user_id)
         await repo.ensure_task6_session(user_id)

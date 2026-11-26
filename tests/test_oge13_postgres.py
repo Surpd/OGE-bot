@@ -7,6 +7,7 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
+from app.main import _run_schema_migrations
 from app.math import oge13_scheduler
 from app.math.oge13_scheduler import build_task13_candidate_batch
 from app.persistence.repository import PostgresRepository, read_migration
@@ -40,6 +41,7 @@ async def test_task13_postgres_choice_callback_is_idempotent_and_snapshot_surviv
             if migration.endswith("0008_task13_sessions.sql"):
                 await pool.execute(sql)
 
+        await _run_schema_migrations(pool)
         repository = PostgresRepository(pool)
         await repository.ensure_task13_session(user_id)
         first = build_task13_candidate_batch({}, 131301)[0]
@@ -94,6 +96,7 @@ async def test_task13_postgres_concurrent_answer_and_skip_have_one_outcome(
             "migrations/0008_task13_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
+        await _run_schema_migrations(pool)
         repository = PostgresRepository(pool)
         await repository.ensure_task13_session(user_id)
         first = build_task13_candidate_batch({}, 131302)[0]

@@ -26,6 +26,7 @@ class Session:
     def __init__(self, repository: Any, learner: int) -> None:
         self.pool: asyncpg.Pool = repository._pool
         self.learner = learner
+        self.bot_id: int = getattr(repository, "bot_id", 0)
 
     async def start(
         self,
@@ -458,9 +459,9 @@ class Session:
                 """SELECT d.reason,d.after_state,sl.selection FROM adaptive_session_deltas d
                 JOIN adaptive_slots sl USING (session_id,position)
                 JOIN attempts a ON a.problem_id=sl.problem AND a.attempt_no=d.ordinal
-                WHERE d.session_id=$1 AND a.telegram_message_id=$2 AND d.reason IN
+                WHERE d.session_id=$1 AND a.telegram_message_id=$2 AND a.bot_id=$3 AND d.reason IN
                 ('independent_success','skill_confirmed','gap_closed','independent_review')""",
-                session_id, message_id,
+                session_id, message_id, self.bot_id,
             )
 
     async def summary_deltas(self, session_id: UUID, *, from_position: int = 0) -> list[Any]:
@@ -660,7 +661,8 @@ class Session:
             )
             saved = await conn.fetchval(
                 """INSERT INTO attempts(user_id,problem_id,attempt_no,
-                raw_answer,is_correct,used_hint,telegram_message_id) VALUES($1,$2,$3,$4,$5,$6,$7)
+                raw_answer,is_correct,used_hint,telegram_message_id,bot_id)
+                VALUES($1,$2,$3,$4,$5,$6,$7,$8)
                 ON CONFLICT DO NOTHING RETURNING true""",
                 row["owner"],
                 problem,
@@ -669,6 +671,7 @@ class Session:
                 correct,
                 bool(row["hints_used"]),
                 message_id,
+                self.bot_id,
             )
             if not saved:
                 return "stale"
