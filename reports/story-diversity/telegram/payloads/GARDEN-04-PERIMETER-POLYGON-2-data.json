@@ -1,0 +1,53 @@
+{
+  "case": "GARDEN-04-PERIMETER-POLYGON-2-data",
+  "label": "GARDEN-04-PERIMETER-POLYGON · повторное открытие данных",
+  "calls": [
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "ab22f22f-fa34-4ee6-9933-967ff9a10f66"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>На плане изображён дачный участок в посёлке Сосновка. Единственные ворота расположены на правой границе. При входе слева находится гараж, справа — сарай, а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, плитка — <tg-math>1 \\times 1</tg-math> м.</p><p>Отопление одного дома можно организовать газовым или электрическим котлом. Для сравнения учитывают стоимость котла, монтажа и потребляемой энергии; числовые исходные данные приведены в отдельной таблице.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://j-yd0WoRH-gE2w",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "j-yd0WoRH-gE2w": {
+          "path": "assets/ad35a246e71f38d8c3e74cee8a3c08fdfce4954dc2a6f9e3b164a9f1368d595b.png",
+          "filename": "scenario-1.png",
+          "sha256": "ad35a246e71f38d8c3e74cee8a3c08fdfce4954dc2a6f9e3b164a9f1368d595b"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://5wiLpoFzo_ldUg",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "5wiLpoFzo_ldUg": {
+          "path": "assets/e8a97f74ce577c32706b805ab3e02b47d47c38a179c8b41134bce903c26abc66.png",
+          "filename": "scenario-2.png",
+          "sha256": "e8a97f74ce577c32706b805ab3e02b47d47c38a179c8b41134bce903c26abc66"
+        }
+      }
+    }
+  ]
+}

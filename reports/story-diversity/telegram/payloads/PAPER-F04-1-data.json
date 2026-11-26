@@ -1,0 +1,53 @@
+{
+  "case": "PAPER-F04-1-data",
+  "label": "PAPER-F04 · повторное открытие данных",
+  "calls": [
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "2dccaf0a-3d22-49b0-953d-efc8e3280b1b"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://FARCET291_bRIg",
+        "caption": "Данные задачи №4",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "FARCET291_bRIg": {
+          "path": "assets/d1b113c4d0122debe80df9faa78adac822b354a58d5f2fe10fde731de15e20d2.png",
+          "filename": "scenario-1.png",
+          "sha256": "d1b113c4d0122debe80df9faa78adac822b354a58d5f2fe10fde731de15e20d2"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://PB4u207TyZjmQA",
+        "caption": "Данные задачи №4",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "PB4u207TyZjmQA": {
+          "path": "assets/a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49.png",
+          "filename": "scenario-2.png",
+          "sha256": "a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "case": "TARIFF-F09-PERCENT-FEE-2",
+  "label": "TARIFF-F09-PERCENT-FEE · выдача 2",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Тариф «Стандартный»: абонентская плата 400 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.</p><p>Сверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.</p><p>Месяцы указаны в календарном порядке с января по декабрь.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Изменение абонентской платы</b></p><p> </p><p><b>№4 — задание 2</b></p><p> </p><p>Абонентская плата выросла с 400 руб. до 568 руб. На сколько процентов она увеличилась?</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:cd0693f1-1d82-42d7-adef-9f417baa1e85"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:cd0693f1-1d82-42d7-adef-9f417baa1e85"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:cd0693f1-1d82-42d7-adef-9f417baa1e85"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:cd0693f1-1d82-42d7-adef-9f417baa1e85"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:cd0693f1-1d82-42d7-adef-9f417baa1e85"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:cd0693f1-1d82-42d7-adef-9f417baa1e85"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "79051899-b6bd-46b7-85a0-320dc7dd5141"
+      }
+    }
+  ]
+}
