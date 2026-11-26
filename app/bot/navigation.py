@@ -141,9 +141,12 @@ class NavigationMessage:
     def __getattr__(self, name: str) -> Any:
         return getattr(self._message, name)
 
-    def visual_edit_target(self) -> Message | None:
+    def visual_edit_target(self, *, progress: bool = False) -> Message | None:
         screen = navigation_screen(self._message.reply_markup)
-        if self._edit_navigation and self._message.photo and screen not in {None, "progress"}:
+        if (
+            self._edit_navigation and self._message.photo and screen is not None
+            and (screen != "progress" or progress)
+        ):
             return self._message
         return None
 

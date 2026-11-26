@@ -11,6 +11,7 @@ class VisualEntry:
     value: str = ""
     tone: str = "neutral"
     icon: str = ""
+    index: str = ""
 
 
 @dataclass(frozen=True)

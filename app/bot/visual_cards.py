@@ -29,6 +29,7 @@ _RIGHT = _WIDTH - _PAD
 _CONTENT = _RIGHT - _PAD
 _MAX_HEIGHT = 900
 _MAX_FIELD_LENGTH = 1200
+_PROGRESS_SCREENS = {"progress_numbers", "progress_journal", "number_progress"}
 _PALETTE = {
     "paper": "#F8F4E9", "ink": "#1F3531", "muted": "#4A6157", "line": "#CBD2C2",
     "orange": "#F15E45", "sage": "#E6EBDF", "sage_deep": "#D9E2D0", "peach": "#F6DDD0",
@@ -69,6 +70,7 @@ _TILE_STYLES = {
     "numbers": _TileStyle(48, 14, 16, 35, 6, 4),
     "part2": _TileStyle(11, 14, 16, 79, 43, 8),
     "stories": _TileStyle(56, 17, 20, 73, 10, 8),
+    "progress_numbers": _TileStyle(34, 14, 15, 24, 0, 2),
 }
 
 
@@ -164,8 +166,8 @@ class _Canvas:
         self.draw.ellipse(bounds, fill=_PALETTE[fill] if fill else None,
                           outline=_PALETTE[fill or outline], width=round(1.5 * _SCALE))
 
-    def png(self, bottom: int) -> bytes:
-        height = (bottom + _PAD) * _SCALE
+    def png(self, bottom: int, *, padding: int = _PAD) -> bytes:
+        height = (bottom + padding) * _SCALE
         if height > self.image.height:
             raise CardLayoutError("Visual card exceeds the maximum height")
         with BytesIO() as output:
@@ -174,8 +176,10 @@ class _Canvas:
 
 
 def _heading(canvas: _Canvas, card: VisualCard) -> int:
-    canvas.text(_PAD, 16, "bop Math", 16, bold=True)
-    canvas.rect((_PAD, 37, _PAD + 30, 40), "orange", 2)
+    compact = card.screen in _PROGRESS_SCREENS
+    canvas.text(_PAD, 13 if compact else 16, "bop Math", 15 if compact else 16, bold=True)
+    line_y = 31 if compact else 37
+    canvas.rect((_PAD, line_y, _PAD + 30, line_y + 3), "orange", 2)
     if card.screen == "welcome":
         x = _PAD + 14
         title = canvas.wrap(card.title, 245, 31, True)
@@ -190,29 +194,51 @@ def _heading(canvas: _Canvas, card: VisualCard) -> int:
                      (_RIGHT - 89, 134)), "ink", 2)
         canvas.line(((_RIGHT - 69, 134), (_RIGHT - 69, 104)), "good", 1.4)
         return 56 + height
-    size = canvas.fit(card.title, _CONTENT, 31, 25)
+    size = canvas.fit(card.title, _CONTENT, 28 if compact else 31, 23 if compact else 25)
     title = canvas.wrap(card.title, _CONTENT, size, True)
-    y = 51 + canvas.paragraph(_PAD, 51, title, size, 37, bold=True)
-    return y + canvas.paragraph(_PAD, y, canvas.wrap(card.subtitle, _CONTENT, 15),
-                                15, 19, fill="muted")
+    title_y = 39 if compact else 51
+    y = title_y + canvas.paragraph(_PAD, title_y, title, size, 30 if compact else 37, bold=True)
+    subtitle_size = 14 if compact else 15
+    return y + canvas.paragraph(_PAD, y, canvas.wrap(card.subtitle, _CONTENT, subtitle_size),
+                                subtitle_size, subtitle_size + (3 if compact else 4), fill="muted")
 
 
-def _practical(canvas: _Canvas, y: int, section: VisualSection) -> int:
+def _practical(
+    canvas: _Canvas, y: int, section: VisualSection, *, compact: bool = False,
+) -> int:
     names = canvas.wrap(section.title, _CONTENT - 24, 16, True)
-    label_height = len(names) * 20
-    height = 45 + label_height
+    label_step = 16 if compact else 20
+    size = 18 if compact else 25
+    label_height = len(names) * label_step
+    height = (27 if compact else 45) + label_height
     canvas.rect((_PAD, y, _RIGHT, y + height), "peach", 13)
-    canvas.paragraph(_PAD + 12, y + 8, names, 16, 20, bold=True)
-    number_y = y + 11 + label_height
+    canvas.paragraph(_PAD + 12, y + (4 if compact else 8), names, 16, label_step, bold=True)
+    number_y = y + (5 if compact else 11) + label_height
     width = _CONTENT / len(section.entries)
     for index, entry in enumerate(section.entries):
         x = _PAD + index * width
         number = (entry.key or entry.label).removeprefix("№")
-        if len(canvas.wrap(number, width - 8, 25, True)) != 1:
+        if len(canvas.wrap(number, width - 8, size, True)) != 1:
             raise CardLayoutError("Visual card practical number must fit on one line")
-        canvas.text(x + width / 2, number_y, number, 25, bold=True, align="m")
+        canvas.text(x + width / 2, number_y, number, size, bold=True, align="m")
         if index:
-            canvas.line(((x, number_y + 2), (x, number_y + 26)))
+            canvas.line(((x, number_y + 2), (x, number_y + size + 1)))
+    return y + height
+
+
+def _number_range(canvas: _Canvas, y: int, section: VisualSection) -> int:
+    title = canvas.wrap(section.title, 166, 13, True)
+    height = max(29, 7 + len(title) * 15)
+    canvas.rect((_PAD, y, _RIGHT, y + height), "cool", 8)
+    canvas.paragraph(_PAD + 9, y + (height - len(title) * 15) / 2, title, 13, 15, bold=True)
+    start = _PAD + 180
+    width = (_RIGHT - 3 - start) / len(section.entries)
+    for index, entry in enumerate(section.entries):
+        number = entry.key.removeprefix("№")
+        if len(canvas.wrap(number, width - 3, 15, True)) != 1:
+            raise CardLayoutError("Visual card range number must fit on one line")
+        center = start + (index + 0.5) * width
+        canvas.text(center, y + (height - 17) / 2, number, 15, bold=True, align="m")
     return y + height
 
 
@@ -262,7 +288,8 @@ def _tiles(
     style = _TILE_STYLES.get(screen)
     if style is None:
         raise CardLayoutError("Visual card screen does not support tiles")
-    gap = 7 if screen == "numbers" else 8
+    picker = screen == "progress_numbers"
+    gap = 5 if picker else 7 if screen == "numbers" else 8
     wide_last = screen == "numbers" and entries[-1].key.removeprefix("№") == "19"
     rows = list(batched(entries[:-1] if wide_last else entries, 2))
     if wide_last:
@@ -270,8 +297,10 @@ def _tiles(
     for row in rows:
         keys = tuple(entry.key.removeprefix("№") for entry in row)
         width = (_CONTENT - gap) // 2
-        if screen == "numbers" and "17" in keys:
+        if (screen == "numbers" or picker) and "17" in keys:
             width = 211 if keys[0] == "17" else _CONTENT - gap - 211
+        if picker and "19" in keys:
+            width = 209 if keys[0] == "19" else _CONTENT - gap - 209
         widths: tuple[int, ...]
         if len(row) == 2:
             widths = (width, _CONTENT - width - gap)
@@ -288,17 +317,21 @@ def _tiles(
             x += tile_width + gap
         height = max(style.min_height, max(block[-1] for block in blocks) + style.top + 6)
         for entry, x, tile_width, lines, detail, text_height in blocks:
+            number = entry.key.removeprefix("№")
             fill = _STORY_SURFACE.get(entry.icon, surface)
-            if screen == "part2" and entry.key.removeprefix("№") in {"23", "24", "25"}:
+            if (screen == "part2" and number in {"23", "24", "25"}) or (
+                picker and number in {"15", "16", "17", "18", "19"}
+            ):
                 fill = "cool"
             canvas.rect((x, y, x + tile_width, y + height), fill, 9)
-            number = entry.key.removeprefix("№")
             label_y = y + (height - text_height) / 2
             if screen == "part2":
                 canvas.text(x + 11, y + 9, number, 26, bold=True)
                 label_y = y + 43
             elif screen == "stories":
                 _miniature(canvas, entry.icon, x + 11, y + (height - 36) / 2)
+            elif picker:
+                canvas.text(x + 27, y + (height - 18) / 2, number, 17, bold=True, align="r")
             else:
                 canvas.text(x + 37, y + (height - 24) / 2, number, 22, bold=True, align="r")
             used = canvas.paragraph(x + style.indent, label_y, lines, style.size, style.leading,
@@ -309,7 +342,8 @@ def _tiles(
 
 
 def _metrics(
-    canvas: _Canvas, y: int, metrics: tuple[VisualMetric, ...], *, equal_columns: bool = False,
+    canvas: _Canvas, y: int, metrics: tuple[VisualMetric, ...], *,
+    equal_columns: bool = False, compact: bool = False,
 ) -> int:
     for row in batched(metrics, 3):
         font = _font(13, True)
@@ -323,22 +357,24 @@ def _metrics(
             raise CardLayoutError("Visual card metric labels exceed the available width")
         widths = ([_CONTENT / len(row)] * len(row) if equal_columns
                   else [minimum + slack for minimum in minimums])
-        sizes = [canvas.fit(metric.value, width - 18, 30, 20)
+        sizes = [canvas.fit(metric.value, width - 18, 24 if compact else 30, 20)
                  for metric, width in zip(row, widths, strict=True)]
         values = [canvas.wrap(metric.value, width - 18, size, True)
                   for metric, width, size in zip(row, widths, sizes, strict=True)]
         labels = [canvas.wrap(metric.label, width - 18, 13, True)
                   for metric, width in zip(row, widths, strict=True)]
-        text_top = max(36, max((size + 3) * len(lines)
-                               for size, lines in zip(sizes, values, strict=True))) + 8
-        height = max(65, text_top + 4 + 16 * max(map(len, labels)))
+        inset_y = 5 if compact else 8
+        text_top = max(27 if compact else 36, max((size + 3) * len(lines)
+                       for size, lines in zip(sizes, values, strict=True))) + inset_y
+        label_bottom = text_top + 16 * max(map(len, labels))
+        height = max(52, label_bottom + 1) if compact else max(65, label_bottom + 4)
         canvas.rect((_PAD, y, _RIGHT, y + height), "sage", 12)
         x: float = _PAD
         columns = zip(row, values, sizes, labels, widths, strict=True)
         for metric, value, size, label, width in columns:
             if x > _PAD:
                 canvas.line(((x, y + 10), (x, y + height - 11)))
-            canvas.paragraph(x + 9, y + 8, value, size, size + 3, bold=True,
+            canvas.paragraph(x + 9, y + inset_y, value, size, size + 3, bold=True,
                              fill=_TEXT_TONE[metric.tone])
             canvas.paragraph(x + 9, y + text_top, label, 13, 16, bold=True, fill="muted")
             x += width
@@ -347,30 +383,96 @@ def _metrics(
 
 
 def _list(canvas: _Canvas, y: int, section: VisualSection, screen: str) -> int:
+    compact = screen == "number_progress"
+    label_size = 14 if compact else 15
+    label_step = 16 if compact else 18
+    detail_step = 15 if compact else 17
+    inset_y = 4 if compact else 7
     for entry in section.entries:
         inset = 10 if screen == "training_result" else 0
-        start = _PAD + inset + (30 if entry.key else 0)
+        start = _PAD + inset + ((27 if compact else 30) if entry.key else 0)
         values = canvas.wrap(entry.value, 110, 14, True)
         width = _RIGHT - inset - start - (116 if values else 0)
-        labels = canvas.wrap(entry.label, width, 15, True)
+        labels = canvas.wrap(entry.label, width, label_size, True)
         detail = canvas.wrap(entry.detail, _RIGHT - inset - start, 13)
-        primary_height = max(len(labels) * 18, len(values) * 17)
-        height = max(34, 14 + primary_height + len(detail) * 17)
+        primary_height = max(len(labels) * label_step, len(values) * 17)
+        content_height = primary_height + len(detail) * detail_step
+        height = max(24 if compact else 34, 2 * inset_y + content_height)
         if inset:
             canvas.rect((_PAD, y, _RIGHT, y + height), "cool", 8)
         else:
             canvas.line(((_PAD, y), (_RIGHT, y)))
         if entry.key:
-            if len(canvas.wrap(entry.key, 24, 15, True)) != 1:
+            if len(canvas.wrap(entry.key, 24, label_size, True)) != 1:
                 raise CardLayoutError("Visual card row number must fit on one line")
-            canvas.text(start - 10, y + 7, entry.key, 15, bold=True, fill="muted", align="r")
-        canvas.paragraph(start, y + 7, labels, 15, 18, bold=True)
-        canvas.paragraph(start, y + 7 + primary_height, detail, 13, 17,
+            canvas.text(start - 8, y + inset_y, entry.key, label_size, bold=True,
+                        fill="muted", align="r")
+        canvas.paragraph(start, y + inset_y, labels, label_size, label_step, bold=True)
+        canvas.paragraph(start, y + inset_y + primary_height, detail, 13, detail_step,
                          fill=_TEXT_TONE[entry.tone])
         for index, value in enumerate(values):
-            canvas.text(_RIGHT - inset, y + 7 + index * 17, value, 14, bold=True, align="r")
+            canvas.text(_RIGHT - inset, y + inset_y + index * 17, value, 14, bold=True, align="r")
         y += height + (4 if inset else 0)
     return y - (4 if screen == "training_result" else 0)
+
+
+def _compact_list(canvas: _Canvas, y: int, entries: tuple[VisualEntry, ...]) -> int:
+    for entry in entries:
+        content = " · ".join(part for part in (entry.label, entry.value, entry.detail) if part)
+        lines = canvas.wrap(content, _CONTENT, 13)
+        y += canvas.paragraph(_PAD, y, lines, 13, 16, fill=_TEXT_TONE[entry.tone])
+    return y
+
+
+def _journal(canvas: _Canvas, y: int, entries: tuple[VisualEntry, ...]) -> int:
+    for entry in entries:
+        badge = entry.index
+        index_size = 16
+        index_width = ceil(_measure(badge, _font(index_size, True))) if badge else 0
+        left = _PAD + max(28, index_width + 12) if badge else _PAD + 10
+        right = _RIGHT - 8
+        heading = " · ".join(part for part in (entry.key, entry.label) if part)
+        title = canvas.wrap(heading, right - left, 14, True)
+        date = canvas.wrap(entry.detail, right - _PAD - 10, 13)
+        date_width = ceil(_measure(date[0], _font(13))) if len(date) == 1 else right - _PAD
+        error = entry.icon in {"had_error", "retry"}
+        error_label = "Была ошибка"
+        error_width = ceil(_measure(error_label, _font(13)))
+        status_width = ceil(_measure(entry.value, _font(13)))
+        required = date_width + status_width + 18 + (error_width + 6 if error else 0)
+        meta_left = left if required <= right - left else _PAD + 10
+        inline = date_width + status_width + 18 <= right - meta_left
+        status_x = meta_left + date_width + 18 if inline else meta_left + 12
+        status = canvas.wrap(entry.value, right - status_x, 13)
+        error_end = status_x + status_width + 6 + error_width
+        error_row = error and (len(status) != 1 or error_end > right)
+        date_height = len(date) * 15
+        status_height = len(status) * 15
+        meta_height = (max(date_height, status_height) if inline else date_height + status_height)
+        height = 9 + len(title) * 16 + meta_height + (15 if error_row else 0)
+        canvas.rect((_PAD, y, _RIGHT, y + height), "sage", 8)
+        if badge:
+            canvas.text(left - 6, y + 4, badge, index_size, bold=True, fill="muted", align="r")
+        used = canvas.paragraph(left, y + 4, title, 14, 16, bold=True)
+        meta_y = y + 5 + used
+        canvas.paragraph(meta_left, meta_y, date, 13, 15, fill="muted")
+        status_y = meta_y if inline else meta_y + date_height
+        if status:
+            icon = entry.icon if entry.icon in _OUTCOME_ICONS else {
+                "good": "retry", "bad": "wrong",
+            }.get(entry.tone, "")
+            if icon:
+                _outcome_mark(canvas, status_x - 8, status_y + 6, icon, entry.tone)
+            else:
+                canvas.circle(status_x - 8, status_y + 6, 2, _TEXT_TONE[entry.tone])
+            canvas.paragraph(status_x, status_y, status, 13, 15, fill=_TEXT_TONE[entry.tone])
+        if error:
+            if error_row:
+                canvas.text(status_x, status_y + status_height, error_label, 13, fill="warn")
+            else:
+                canvas.text(status_x + status_width + 6, status_y, error_label, 13, fill="warn")
+        y += height + 3
+    return y - 3
 
 
 def _outcome_mark(canvas: _Canvas, x: float, y: float, icon: str, tone: str) -> None:
@@ -505,20 +607,23 @@ def render_card(card: VisualCard) -> bytes:
     """Render a complete, opaque 1200px wide PNG or raise a layout error."""
     canvas = _Canvas()
     y = _heading(canvas, card)
+    compact = card.screen in _PROGRESS_SCREENS
+    gap = {"progress_numbers": 6, "progress_journal": 8, "number_progress": 5}.get(card.screen, 12)
     if card.screen == "training_result" and card.breakdown is not None:
-        y = _result_breakdown(canvas, y + 12, card.breakdown)
+        y = _result_breakdown(canvas, y + gap, card.breakdown)
     elif card.metrics:
-        y = _metrics(canvas, y + 12, card.metrics)
+        y = _metrics(canvas, y + gap, card.metrics, compact=compact)
     if card.note:
-        y += 10
-        lines = canvas.wrap(card.note, _CONTENT, 14)
-        y += canvas.paragraph(_PAD, y, lines, 14, 18, fill="muted")
+        y += 5 if compact else 10
+        size = 13 if compact else 14
+        lines = canvas.wrap(card.note, _CONTENT, size)
+        y += canvas.paragraph(_PAD, y, lines, size, size + (3 if compact else 4), fill="muted")
     if card.hint and card.screen == "number_progress":
-        y += 12
-        lines = canvas.wrap(card.hint, _CONTENT - 22, 14)
-        height = len(lines) * 18 + 20
+        y += 6
+        lines = canvas.wrap(card.hint, _CONTENT - 20, 13)
+        height = len(lines) * 16 + 10
         canvas.rect((_PAD, y, _RIGHT, y + height), "warn_bg", 9)
-        canvas.paragraph(_PAD + 11, y + 10, lines, 14, 18, fill="warn")
+        canvas.paragraph(_PAD + 10, y + 5, lines, 13, 16, fill="warn")
         y += height
     if card.screen == "training_result" and card.practice:
         y = _result_practice(canvas, y + 12, card.practice)
@@ -526,24 +631,33 @@ def render_card(card: VisualCard) -> bytes:
     for section in card.sections:
         if not section.entries:
             continue
-        y += 12
+        y += gap
         if section.layout == "practical":
-            y = _practical(canvas, y, section)
+            y = _practical(canvas, y, section, compact=compact)
+            continue
+        if section.layout == "range":
+            y = _number_range(canvas, y, section)
             continue
         if section.title:
             lines = canvas.wrap(section.title, _CONTENT, 15, True)
-            y += canvas.paragraph(_PAD, y, lines, 15, 19, bold=True) + 5
+            y += canvas.paragraph(_PAD, y, lines, 15, 17 if compact else 19, bold=True)
+            if card.screen != "number_progress":
+                y += 2 if compact else 5
         if section.layout == "tiles":
             y = _tiles(canvas, y, section.entries, card.screen, tile_surface)
             tile_surface = "cool"
         elif section.layout == "outcomes":
             y = _outcomes(canvas, y, section.entries)
+        elif section.layout == "journal":
+            y = _journal(canvas, y, section.entries)
+        elif section.layout == "compact":
+            y = _compact_list(canvas, y, section.entries)
         elif section.layout == "list":
             y = _list(canvas, y, section, card.screen)
         else:
             raise CardLayoutError("Visual card section uses an unsupported layout")
     if card.hint and card.screen != "number_progress":
-        y += 10
+        y += 6 if compact else 10
         lines = canvas.wrap(card.hint, _CONTENT, 13)
-        y += canvas.paragraph(_PAD, y, lines, 13, 17, fill="muted")
-    return canvas.png(y)
+        y += canvas.paragraph(_PAD, y, lines, 13, 16 if compact else 17, fill="muted")
+    return canvas.png(y, padding=12 if compact else _PAD)

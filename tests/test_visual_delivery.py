@@ -28,6 +28,7 @@ from app.persistence.repository import MemoryRepository
 CARD = VisualCard("numbers", "Выбери номер")
 CHECKPOINT = VisualCard("training_result", "Результат тренировки")
 FINISHED = VisualCard("training_result", "Тренировка завершена")
+JOURNAL = VisualCard("progress_journal", "История и ошибки")
 VIEWER = User(id=42, is_bot=False, first_name="QA")
 
 
@@ -196,6 +197,69 @@ async def test_menu_photo_does_not_replace_existing_progress_dashboard(flags, sy
                              reply_markup=keyboard("Номера"))
     assert [method.__api_method__ for method in transport.calls] == ["sendPhoto", "sendPhoto"]
     assert first.message_id != second.message_id
+
+
+@pytest.mark.parametrize("edit_rejected", [False, True])
+async def test_progress_photo_edit_retains_summary_reply_and_revises_keyboard(
+    flags, synthetic_png, edit_rejected,
+):
+    current_settings.set(Settings(
+        _env_file=None, oge_visual_progress_journal_enabled=True, oge_visual_user_ids="42",
+    ))
+    transport = CardSession()
+    bot = Bot("123456:TEST", session=transport)
+    repository = MemoryRepository()
+    await repository.save_user_state(42, "progress")
+    summary = await send_text(source(bot), repository, "Твой прогресс")
+    anchor = ReplyParameters(message_id=summary.message_id)
+
+    def journal_keyboard(label, page):
+        return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=label, callback_data=f"progress:{page}")],
+        ])
+
+    first = await send_text(
+        source(bot), repository, "Все задания", visual=JOURNAL, reply_parameters=anchor,
+        reply_markup=journal_keyboard("С ошибками", "errors:0"),
+    )
+    proxy = cast(Message, NavigationMessage(first, CallbackQuery(
+        id="qa", from_user=VIEWER, chat_instance="qa", message=first,
+    ), repository))
+    if edit_rejected:
+        transport.media_error = TelegramBadRequest
+    before = len(transport.calls)
+    second = await send_text(
+        proxy, repository, "Задания с ошибками", visual=JOURNAL, reply_parameters=anchor,
+        reply_markup=journal_keyboard("Все задания", "history:0"), edit_progress=True,
+    )
+    expected = ["editMessageMedia"]
+    if edit_rejected:
+        expected.append("sendPhoto")
+    assert [method.__api_method__ for method in transport.calls[before:]] == expected
+    assert (first.message_id != second.message_id) == edit_rejected
+    assert second.reply_to_message.message_id == summary.message_id
+    assert second.reply_markup.inline_keyboard[0][0].text == "Все задания"
+    assert not await repository.claim_navigation_message(
+        42, first.message_id, navigation_revision(first.reply_markup),
+    )
+    assert await repository.claim_navigation_message(
+        42, second.message_id, navigation_revision(second.reply_markup),
+    )
+
+
+@pytest.mark.parametrize("allowlist", ["", "43", "42,broken", "42,43", "42"])
+def test_progress_route_requires_explicit_viewer_without_affecting_other_cards(flags, allowlist):
+    current_settings.set(Settings(
+        _env_file=None, oge_visual_number_progress_enabled=True,
+        oge_visual_progress_journal_enabled=True, oge_visual_numbers_enabled=True,
+        oge_visual_training_result_enabled=True, oge_visual_user_ids=allowlist,
+    ))
+    message = source(None)
+    for screen in ("progress_numbers", "number_progress", "progress_journal"):
+        assert delivery.visual_enabled(screen, message) == (allowlist == "42")
+        assert not delivery.visual_enabled(screen, message, 44)
+    for screen in ("numbers", "training_result"):
+        assert delivery.visual_enabled(screen, message) == (allowlist in {"", "42", "42,43"})
 
 
 def test_second_part_requires_both_flags_and_private_viewer(flags):

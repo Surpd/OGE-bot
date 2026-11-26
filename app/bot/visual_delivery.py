@@ -24,10 +24,12 @@ from app.persistence.repository import Repository
 logger = logging.getLogger(__name__)
 PHOTO_LIMIT = 10 * 1024 * 1024
 _MENU_CARDS = frozenset({"welcome", "numbers", "part2", "stories", "types"})
+_PROGRESS_CARDS = frozenset({"progress_numbers", "number_progress", "progress_journal"})
 _SCREEN_FLAGS = {
     screen: f"oge_visual_{screen}_enabled"
-    for screen in (*_MENU_CARDS, "number_progress", "training_result")
+    for screen in (*_MENU_CARDS, "number_progress", "progress_journal", "training_result")
 }
+_SCREEN_FLAGS["progress_numbers"] = _SCREEN_FLAGS["number_progress"]
 
 
 def _viewer_id(message: Message, override: int | None) -> int | None:
@@ -58,7 +60,10 @@ def visual_enabled(screen: str, message: Message, user_id_override: int | None =
         return False
     user_id = _viewer_id(message, user_id_override)
     allowlist = settings.oge_visual_user_ids.strip()
-    return user_id is not None and (not allowlist or user_id in _allowed_users(allowlist))
+    viewers = _allowed_users(allowlist)
+    if screen in _PROGRESS_CARDS:
+        return len(viewers) == 1 and user_id in viewers
+    return user_id is not None and (not allowlist or user_id in viewers)
 
 
 def build_visual[T](screen: str, factory: Callable[[], T]) -> T | None:
@@ -108,6 +113,7 @@ async def try_send_visual(
     reply_parameters: ReplyParameters | None = None,
     caption: str | None = None,
     edit_existing: bool = False,
+    edit_progress: bool = False,
 ) -> Message | None:
     """Return None for the legacy path when the card cannot be created or accepted."""
     if not visual_enabled(card.screen, message, user_id_override):
@@ -130,11 +136,15 @@ async def try_send_visual(
     prepared = cast(InlineKeyboardMarkup | None, prepare_navigation_markup(markup))
     screen = navigation_screen(prepared)
     photo = BufferedInputFile(png, filename=f"bop-{card.screen.replace('_', '-')}.png")
+    edit_progress = edit_progress and card.screen in _PROGRESS_CARDS
     edit_target = message if edit_existing else (
-        message.visual_edit_target() if isinstance(message, NavigationMessage) else None
+        message.visual_edit_target(progress=edit_progress)
+        if isinstance(message, NavigationMessage) else None
     )
     sent = None
-    if edit_target is not None and (edit_existing or (screen and reply_parameters is None)):
+    if edit_target is not None and (
+        edit_existing or (screen and (reply_parameters is None or edit_progress))
+    ):
         try:
             edited = await edit_target.edit_media(
                 InputMediaPhoto(media=photo, caption=caption, parse_mode=None),

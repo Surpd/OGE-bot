@@ -229,7 +229,13 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
         for target in (total, numbers[number], bucket):
             for metric, value in metrics.items():
                 target[metric] += value
-        history.append({**record, "family_name": bucket["name"], "has_error": has_error})
+        history.append({
+            **record,
+            "family_name": bucket["name"],
+            "has_error": has_error,
+            "correct_attempt_no": successful.get("attempt_no") if successful else None,
+            "correct_used_hint": used_hint,
+        })
     return _with_success_rates({"total": total, "numbers": numbers,
             "families": list(families.values()), "history": history,
             "errors": [r for r in history if r["has_error"]]})
@@ -400,10 +406,12 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
     history_cte = _BASE + _SCENARIO_EVENTS + ", history_rows AS ("
     history_cte += """
       SELECT 'o:'||p.id::text AS record_id, p.id, p.number, p.family_id,
-             NULL::text AS story_code, p.outcome, p.issued_at,
+             i.snapshot->>'story_code' AS story_code, p.outcome, p.issued_at,
              EXISTS (SELECT 1 FROM attempts_all a WHERE a.problem_id=p.id
                      AND a.user_id=p.user_id AND a.source='ordinary'
-                     AND NOT a.is_correct) AS has_error
+                     AND NOT a.is_correct) AS has_error,
+             p.source, p.user_id, NULL::uuid AS scenario_session_id,
+             NULL::text AS question_family
       FROM relevant p JOIN issued_problems i ON i.id=p.id
       WHERE p.source='ordinary'
       UNION ALL
@@ -411,7 +419,8 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
              problem.family_id,problem.snapshot->>'story_code',
              problem.outcome,problem.issued_at, EXISTS (
                  SELECT 1 FROM mixed_training_attempts attempt
-                 WHERE attempt.problem_id=problem.id AND NOT attempt.is_correct)
+                 WHERE attempt.problem_id=problem.id AND NOT attempt.is_correct),
+             'mixed'::text, user_row.id, NULL::uuid, NULL::text
       FROM mixed_training_problems problem
       JOIN mixed_training_sessions mixed ON mixed.id=problem.session_id
       JOIN users user_row ON user_row.id=mixed.user_id
@@ -421,7 +430,8 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
              event.number,event.family_id,scenario.story_code,event.outcome,event.updated_at,
              EXISTS (
                  SELECT 1 FROM oge15_attempts a WHERE a.session_id=event.session_id
-                   AND a.position=event.number AND NOT a.is_correct)
+                   AND a.position=event.number AND NOT a.is_correct),
+             'scenario'::text, NULL::uuid, event.session_id, event.question_family
       FROM scenario_events event JOIN oge15_scenarios scenario
         ON scenario.id=event.scenario_id
     ) """
@@ -437,9 +447,23 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
     limit_position = len(filter_args) + 1
     offset_position = len(filter_args) + 2
     rows = await repository._pool.fetch(
-        history_cte + "SELECT * FROM history_rows" + where +
+        history_cte + ", page AS (SELECT * FROM history_rows" + where +
         f" ORDER BY issued_at DESC,record_id DESC "
-        f"LIMIT ${limit_position} OFFSET ${offset_position}",
+        f"LIMIT ${limit_position} OFFSET ${offset_position})" + """
+        SELECT page.record_id,page.id,page.number,page.family_id,page.story_code,
+               page.outcome,page.issued_at,page.has_error,page.question_family,
+               correct.attempt_no AS correct_attempt_no, correct.used_hint AS correct_used_hint
+        FROM page LEFT JOIN LATERAL (
+          SELECT a.attempt_no,a.used_hint FROM attempts_all a
+          WHERE a.source=page.source AND a.problem_id=page.id AND a.user_id=page.user_id
+            AND a.is_correct
+          UNION ALL
+          SELECT a.attempt_no,a.used_hint FROM oge15_attempts a
+          WHERE a.session_id=page.scenario_session_id AND a.position=page.number AND a.is_correct
+          ORDER BY attempt_no LIMIT 1
+        ) correct ON page.outcome='solved'
+        ORDER BY page.issued_at DESC,page.record_id DESC
+        """,
         *filter_args, limit, offset)
     result[section] = [
         {**dict(row), "family_name": family_name(row["family_id"])} for row in rows

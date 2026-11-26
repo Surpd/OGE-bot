@@ -1,0 +1,137 @@
+{
+  "key": "types-dense",
+  "title": "№13 · типы с длинными названиями",
+  "projection": {
+    "screen": "number_progress",
+    "title": "№13 · Типы задач",
+    "subtitle": "Неравенства",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Решить линейное неравенство, выбрать текстовый промежуток",
+            "key": "1",
+            "detail": "1/1 верно · Нужно проверить",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Произведение x и x+r, нестрогое объединение лучей",
+            "key": "2",
+            "detail": "0/1 верно · Нужно проверить",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Разложенное произведение двух линейных множителей",
+            "key": "3",
+            "detail": "Нужно проверить",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Квадратное неравенство с корнем 0, строгий промежуток",
+            "key": "4",
+            "detail": "1/1 верно · Нет данных",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          }
+        ],
+        "layout": "list"
+      }
+    ],
+    "metrics": [],
+    "note": "Типы 1–4 из 9",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://Ni5_5VDP2sKReA\"}",
+      "chat_id": "42",
+      "message_id": "105",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №13",
+              "callback_data": "train:number:13~213d29498dc2"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 1",
+              "callback_data": "train:family:OGE13-L01~213d29498dc2"
+            },
+            {
+              "text": "Тренировать тип 2",
+              "callback_data": "train:family:OGE13-Q02~213d29498dc2"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 3",
+              "callback_data": "train:family:OGE13-Q04~213d29498dc2"
+            },
+            {
+              "text": "Тренировать тип 4",
+              "callback_data": "train:family:OGE13-Q01~213d29498dc2"
+            }
+          ],
+          [
+            {
+              "text": "Дальше →",
+              "callback_data": "progress:family:13:4~213d29498dc2"
+            }
+          ],
+          [
+            {
+              "text": "↩ К №13",
+              "callback_data": "progress:number:13~213d29498dc2"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~213d29498dc2"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "Ni5_5VDP2sKReA": {
+        "path": "assets/fa02572f14bb437f445216d13c7a4d6469564aa1971b8aa9b757133b431a446f.png",
+        "filename": "bop-number-progress.png",
+        "sha256": "fa02572f14bb437f445216d13c7a4d6469564aa1971b8aa9b757133b431a446f"
+      }
+    }
+  },
+  "asset": "assets/fa02572f14bb437f445216d13c7a4d6469564aa1971b8aa9b757133b431a446f.png",
+  "raw_size": [
+    1200,
+    1032
+  ],
+  "mobile_heights": {
+    "360": 310,
+    "390": 335,
+    "430": 370
+  },
+  "desktop_fit": [
+    500,
+    430
+  ],
+  "message_id": 105,
+  "overview_id": 104
+}
