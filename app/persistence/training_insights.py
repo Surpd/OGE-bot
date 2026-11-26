@@ -454,9 +454,12 @@ async def _postgres_insights(repository: Any, user_id: int, page: str,
                page.outcome,page.issued_at,page.has_error,page.question_family,
                correct.attempt_no AS correct_attempt_no, correct.used_hint AS correct_used_hint
         FROM page LEFT JOIN LATERAL (
-          SELECT a.attempt_no,a.used_hint FROM attempts_all a
-          WHERE a.source=page.source AND a.problem_id=page.id AND a.user_id=page.user_id
+          SELECT a.attempt_no,a.used_hint FROM attempts a
+          WHERE page.source='ordinary' AND a.problem_id=page.id AND a.user_id=page.user_id
             AND a.is_correct
+          UNION ALL
+          SELECT a.attempt_no,a.used_hint FROM mixed_training_attempts a
+          WHERE page.source='mixed' AND a.problem_id=page.id AND a.is_correct
           UNION ALL
           SELECT a.attempt_no,a.used_hint FROM oge15_attempts a
           WHERE a.session_id=page.scenario_session_id AND a.position=page.number AND a.is_correct
