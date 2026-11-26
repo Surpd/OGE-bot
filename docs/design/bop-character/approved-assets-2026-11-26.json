@@ -183,6 +183,14 @@
       "library_file_id": "libfile_792c40037cb88191ae780a04d5ddf81e",
       "github_binary_status": "pending_import",
       "runtime_ready": false
+    },
+    {
+      "filename": "hands-on-head-confused.png",
+      "repository_path": "docs/design/bop-character/poses/approved/hands-on-head-confused.png",
+      "status": "approved",
+      "note": "Пользователь принял позу с руками на голове, недоумением и цифровым вопросительным знаком на визоре. Оригинал сохраняется.",
+      "library_file_id": "libfile_a90cf2e71ff88191a3e5a0ae6732d731",
+      "github_binary_status": "pending_import"
     }
   ],
   "current_telegram": {
