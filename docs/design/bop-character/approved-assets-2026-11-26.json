@@ -157,6 +157,23 @@
       "library_file_id": "libfile_b9c45c6be9588191aa073266edd76efe",
       "github_binary_status": "pending_import",
       "runtime_ready": false
+    },
+    {
+      "filename": "thinking.png",
+      "repository_path": "docs/design/bop-character/poses/approved/thinking.png",
+      "status": "approved",
+      "note": "Задумчивая поза, рука у подбородка, асимметричная цифровая мимика, взгляд влево-вверх. Пользователь принял изображение. На куртке есть вариация принта bop MATH, не переносить её автоматически в другие позы.",
+      "library_file_id": "libfile_dccb8f38cec081919af72da6d909c60f",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "arms-crossed-confident.jpeg",
+      "repository_path": "docs/design/bop-character/poses/approved/arms-crossed-confident.jpeg",
+      "status": "approved",
+      "note": "Ранее принятая поза со скрещёнными руками и уверенной мимикой, исправлен принт MATH. Сохранён оригинальный JPEG, для карточек требуется удалить белый фон.",
+      "library_file_id": "libfile_8f28779869fc8191bd206fe69f964977",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
     }
   ],
   "current_telegram": {
