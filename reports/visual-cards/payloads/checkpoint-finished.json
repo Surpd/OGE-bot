@@ -1,0 +1,95 @@
+{
+  "name": "checkpoint-finished",
+  "label": "Завершение первых пяти в том же сообщении",
+  "call": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://Cp7KKvK-6Agatg\"}",
+      "chat_id": "42",
+      "message_id": "189",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "К тренировкам",
+              "callback_data": "train:hub~70482108bf7e"
+            }
+          ],
+          [
+            {
+              "text": "Мой прогресс",
+              "callback_data": "train:progress~70482108bf7e"
+            },
+            {
+              "text": "В меню",
+              "callback_data": "nav:main~70482108bf7e"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "Cp7KKvK-6Agatg": {
+        "path": "assets/c9159c0dd2c3f948759c8a07f724d8def054b54b5874993aa3c111c67de7e9ba.png",
+        "filename": "bop-training-result.png",
+        "sha256": "c9159c0dd2c3f948759c8a07f724d8def054b54b5874993aa3c111c67de7e9ba"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 488,
+    "390": 528,
+    "430": 583
+  },
+  "checks": {
+    "actual_message_id": 189,
+    "issued": 5,
+    "checkpoint": false,
+    "inline_labels": [
+      "К тренировкам",
+      "Мой прогресс",
+      "В меню"
+    ],
+    "caption": ""
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Тренировка завершена",
+    "subtitle": "№6 · Вычисления",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "5/5",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "5/5",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 5,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 0
+    },
+    "practice": [
+      {
+        "label": "Умножение двух обыкновенных дробей",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      },
+      {
+        "label": "Вычислить разность, сократить дробь, указать числитель",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      }
+    ]
+  }
+}

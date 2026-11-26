@@ -319,6 +319,8 @@ async def send_text(
     text_on_photo_rejection: bool = False,
     visual: VisualCard | None = None,
     visual_reply_markup: InlineKeyboardMarkup | None = None,
+    visual_caption: str | None = None,
+    edit_existing: bool = False,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
@@ -330,9 +332,19 @@ async def send_text(
             message, repository, visual, visual_reply_markup or kwargs.get("reply_markup"),
             user_id_override=user_id_override,
             reply_parameters=kwargs.get("reply_parameters"),
+            caption=visual_caption,
+            edit_existing=edit_existing,
         )
         if sent_visual is not None:
             return sent_visual
+    if edit_existing:
+        from app.bot.visual_delivery import edit_visual_fallback
+
+        return await edit_visual_fallback(
+            message, repository,
+            text.as_html() if isinstance(text, Text) else format_math_message(text),
+            kwargs.get("reply_markup"), user_id_override=user_id_override,
+        )
 
     has_navigation = navigation_screen(kwargs.get("reply_markup")) is not None
     key = template_key(math_family)

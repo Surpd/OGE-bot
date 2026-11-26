@@ -1,0 +1,70 @@
+{
+  "name": "text-checkpoint-finished",
+  "label": "Текстовый промежуточный итог заменён финалом",
+  "call": {
+    "method": "editMessageText",
+    "payload": {
+      "text": "<b>Тренировка завершена</b>\n\n<b>№6 · Вычисления</b>\n\nРешено верно: 5 из 5\nСамостоятельно: 5 из 5\nДругие верные: 0 · Не решено: 0 · Пропущено: 0\n\nС подсказками: 0 · Открыто разборов: 0\n\n<b>Закрепление типа</b>\n\nДеление обыкновенных дробей\nТип закреплён.\n\nПривести разность к указанному знаменателю и записать числитель\nТип закреплён.",
+      "chat_id": "42",
+      "message_id": "722",
+      "parse_mode": "HTML",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "К тренировкам",
+              "callback_data": "train:hub~a211409a5d71"
+            }
+          ],
+          [
+            {
+              "text": "Мой прогресс",
+              "callback_data": "train:progress~a211409a5d71"
+            },
+            {
+              "text": "В меню",
+              "callback_data": "nav:main~a211409a5d71"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "transition_calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>Тренировка завершена</b>\n\n<b>№6 · Вычисления</b>\n\nРешено верно: 5 из 5\nСамостоятельно: 5 из 5\nДругие верные: 0 · Не решено: 0 · Пропущено: 0\n\nС подсказками: 0 · Открыто разборов: 0\n\n<b>Закрепление типа</b>\n\nДеление обыкновенных дробей\nТип закреплён.\n\nПривести разность к указанному знаменателю и записать числитель\nТип закреплён.",
+        "chat_id": "42",
+        "message_id": "722",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "К тренировкам",
+                "callback_data": "train:hub~a211409a5d71"
+              }
+            ],
+            [
+              {
+                "text": "Мой прогресс",
+                "callback_data": "train:progress~a211409a5d71"
+              },
+              {
+                "text": "В меню",
+                "callback_data": "nav:main~a211409a5d71"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "checks": {
+    "same_message_id": 722,
+    "no_sendPhoto": true,
+    "issued": 5
+  },
+  "displayed_heights": {}
+}

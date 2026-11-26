@@ -4,7 +4,10 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
-from aiogram.types import CallbackQuery, Chat, Message, PhotoSize, User
+import pytest
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.methods import EditMessageReplyMarkup
+from aiogram.types import CallbackQuery, Chat, InlineKeyboardMarkup, Message, PhotoSize, User
 
 from app.adaptive.planner import PlanResult, SelectionReason
 from app.bot import adaptive, mixed_training, progress
@@ -61,6 +64,9 @@ async def test_checkpoint_keeps_slot_range_values_and_prompt(monkeypatch):
     monkeypatch.setattr(adaptive, "visual_enabled", lambda *_: True)
     send = AsyncMock(return_value=_message(71))
     monkeypatch.setattr(adaptive, "send_text", send)
+    selected = SelectionReason(0, "OGE19-LINES-ANGLES", 19, "Неочевидная причина", 3)
+    monkeypatch.setattr(adaptive, "_learner_inputs", AsyncMock(return_value=([], {})))
+    monkeypatch.setattr(adaptive, "_select", lambda *args, **kwargs: PlanResult((), (selected,)))
     problem_id = uuid4()
     delta = {
         "skill": "OGE09-L1", "reason": "independent_success", "before_state": None,
@@ -72,33 +78,52 @@ async def test_checkpoint_keeps_slot_range_values_and_prompt(monkeypatch):
         totals=AsyncMock(return_value={
             "solved": 3, "independent": 1, "skipped": 1, "issued": 5, "hinted": 2, "reviewed": 1,
         }),
+        excluded_for_learner=AsyncMock(return_value=[]),
+        difficulties=AsyncMock(return_value={}),
         set_prompt=AsyncMock(),
     )
-    row = {"position": 9, "id": "training", "problem": problem_id}
-    await adaptive.checkpoint(_message(70), object(), store, row)
+    repository = SimpleNamespace(personal_enabled=AsyncMock(return_value=True))
+    row = {
+        "position": 9, "id": "training", "problem": problem_id, "strategy": "number",
+        "scope": json.dumps({"number": 3, "story": "TYRES"}),
+    }
+    await adaptive.checkpoint(_message(70), repository, store, row)
     store.summary_deltas.assert_awaited_once_with("training", from_position=5)
     store.totals.assert_awaited_once_with("training", from_position=5)
+    store.difficulties.assert_awaited_once_with("training", from_position=5)
     card = send.await_args.kwargs["visual"]
-    assert card.subtitle == "Задания 6–10"
+    assert card.title == "Результат тренировки"
+    assert card.subtitle == "№3 · Шины\nЗадания 6–10"
     assert [m.value for m in card.metrics] == ["3/5", "1/5"]
     assert card.note == "С подсказками: 2 · Открыто разборов: 1"
     assert card.breakdown.total == 5
     assert (card.breakdown.independent, card.breakdown.assisted, card.breakdown.unsolved,
             card.breakdown.skipped) == (1, 2, 1, 1)
-    assert card.sections == ()
+    assert card.sections[0].entries[0].label == "№19 · Прямые и углы"
     assert [(item.count, item.target) for item in card.practice] == [(2, 3)]
     assert "Ещё 1 самостоятельное решение для закрепления" in send.await_args.args[2]
     assert "0/3" not in send.await_args.args[2]
+    assert send.await_args.kwargs["visual_caption"] == "Хочешь продолжить?"
+    assert send.await_args.args[2].endswith("Хочешь продолжить?")
     markup = send.await_args.kwargs["reply_markup"]
     controls = [b.callback_data for row in markup.inline_keyboard for b in row]
     assert controls == [
         f"ad:continue:{problem_id}", f"ad:finish:{problem_id}", f"ad:menu:{problem_id}",
     ]
+    assert [b.text for row in markup.inline_keyboard for b in row] == [
+        "Ещё 5 заданий →", "Завершить", "В меню",
+    ]
     store.set_prompt.assert_awaited_once_with(42, str(problem_id), 71)
 
+    store.difficulties.side_effect = RuntimeError("fixture detail")
+    await adaptive.checkpoint(_message(70), repository, store, row)
+    assert send.await_args.kwargs["visual"].sections == ()
+    assert send.await_args.kwargs["visual_caption"] == "Хочешь продолжить?"
+
     monkeypatch.setattr(adaptive, "visual_enabled", lambda *_: False)
-    await adaptive.checkpoint(_message(70), object(), store, row)
+    await adaptive.checkpoint(_message(70), repository, store, row)
     assert send.await_args.kwargs["visual"] is None
+    assert send.await_args.kwargs["visual_caption"] is None
     assert "Самостоятельно: 1 из 5" in send.await_args.args[2]
     assert "серия 0/3 → 2/3" in send.await_args.args[2]
 
@@ -133,6 +158,103 @@ async def test_completion_keeps_recommendation_action_and_uses_short_fallback(mo
     assert selected.reason not in fallback
     buttons = send.await_args.kwargs["reply_markup"].inline_keyboard
     assert buttons[0][0].callback_data == f"train:family:{family}"
+    assert [button.text for row in buttons[1:] for button in row] == [
+        "К тренировкам", "Мой прогресс", "В меню",
+    ]
+    assert send.await_args.kwargs["edit_existing"] is False
+
+
+def _checkpoint_fixture(action, *, checkpoint=True):
+    problem = uuid4()
+    row = {
+        "id": uuid4(), "strategy": "family", "scope": {"family": "OGE09-L1"},
+        "plan": json.dumps(["OGE09-L1"] * 10), "position": 9 if checkpoint else 6,
+        "problem": problem, "prompt": 100, "outcome": "solved", "revision": 2,
+    }
+    buttons = [[adaptive.button("Завершить", f"ad:finish:{problem}")]]
+    if checkpoint:
+        buttons[0].insert(0, adaptive.button("Ещё 5 заданий →", f"ad:continue:{problem}"))
+    callback = CallbackQuery(
+        id="checkpoint", from_user=User(id=42, is_bot=False, first_name="Student"),
+        chat_instance="checkpoint", message=_message(100, reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=buttons,
+        )), data=f"ad:{action}:{problem}",
+    )
+    return row, callback
+
+
+@pytest.mark.parametrize("edit_rejected", [False, True])
+async def test_checkpoint_continue_retires_old_keyboard_after_claim(monkeypatch, edit_rejected):
+    row, callback = _checkpoint_fixture("continue")
+    following = {**row, "problem": uuid4(), "position": 10, "prompt": 101}
+    store = SimpleNamespace(current=AsyncMock(side_effect=[row, following]),
+                            act=AsyncMock(return_value="next"))
+    settings = SimpleNamespace(oge_adaptive_enabled=True)
+    monkeypatch.setattr(adaptive, "get_settings", lambda: settings)
+    monkeypatch.setattr(adaptive, "visual_enabled", lambda *_: False)
+    monkeypatch.setattr(adaptive, "Session", lambda *_: store)
+    monkeypatch.setattr(adaptive, "_mode_plan", lambda *_args, **_kwargs: ["OGE09-L1"] * 5)
+    present = AsyncMock()
+    monkeypatch.setattr(adaptive, "present", present)
+    reject = TelegramBadRequest(
+        method=EditMessageReplyMarkup(chat_id=42, message_id=100),
+        message="message is not editable",
+    )
+    edit = AsyncMock(side_effect=reject if edit_rejected else None)
+    monkeypatch.setattr(Message, "edit_reply_markup", edit)
+    answer = AsyncMock()
+    monkeypatch.setattr(adaptive, "answer_callback", answer)
+    repository = SimpleNamespace(user_state=AsyncMock(return_value="adaptive"))
+
+    await adaptive.callback(callback, repository)
+    await adaptive.callback(callback, repository)
+
+    store.act.assert_awaited_once_with(
+        row["problem"], 100, "continue", session_id=row["id"],
+        position=9, revision=2, next_block=["OGE09-L1"] * 5,
+    )
+    edit.assert_awaited_once_with(reply_markup=None)
+    present.assert_awaited_once_with(callback.message, repository, 42)
+    answer.assert_awaited_with(callback, "Это задание уже сменилось.")
+
+
+@pytest.mark.parametrize(("checkpoint", "enabled"), [(True, True), (True, False), (False, True)])
+async def test_finish_edits_only_checkpoint_and_reports_all_issued_slots(
+    monkeypatch, checkpoint, enabled,
+):
+    row, callback = _checkpoint_fixture("finish", checkpoint=checkpoint)
+    issued = 10 if checkpoint else 7
+    store = SimpleNamespace(
+        learner=42, current=AsyncMock(side_effect=[row, None]),
+        act=AsyncMock(return_value="finished"),
+        totals=AsyncMock(return_value={"issued": issued, "solved": 4, "independent": 2}),
+        summary_deltas=AsyncMock(return_value=[]),
+    )
+    settings = SimpleNamespace(oge_adaptive_enabled=True)
+    monkeypatch.setattr(adaptive, "get_settings", lambda: settings)
+    monkeypatch.setattr(adaptive, "visual_enabled", lambda *_: enabled)
+    monkeypatch.setattr(adaptive, "Session", lambda *_: store)
+    monkeypatch.setattr(adaptive, "answer_callback", AsyncMock())
+    send = AsyncMock(return_value=callback.message)
+    monkeypatch.setattr(adaptive, "send_text", send)
+    repository = SimpleNamespace(
+        user_state=AsyncMock(return_value="adaptive"), save_user_state=AsyncMock(),
+        personal_enabled=AsyncMock(return_value=False),
+    )
+
+    await adaptive.callback(callback, repository)
+    await adaptive.callback(callback, repository)
+
+    send.assert_awaited_once()
+    store.totals.assert_awaited_once_with(row["id"])
+    assert send.await_args.args[0] is callback.message
+    assert send.await_args.kwargs["edit_existing"] is checkpoint
+    assert send.await_args.args[2].startswith("Тренировка завершена\n")
+    assert f"Решено верно: 4 из {issued}" in send.await_args.args[2]
+    if enabled:
+        assert send.await_args.kwargs["visual"].breakdown.total == issued
+    else:
+        assert send.await_args.kwargs["visual"] is None
 
 
 def test_practice_result_omits_reset_and_prior_review_and_keeps_confirmed_type():

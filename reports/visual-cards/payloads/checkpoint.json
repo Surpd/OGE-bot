@@ -1,43 +1,95 @@
 {
   "name": "checkpoint",
-  "label": "Длительная практика · первые пять",
+  "label": "Первые пять · действующие подпись и кнопки",
   "call": {
     "method": "sendPhoto",
     "payload": {
       "chat_id": "42",
-      "photo": "attach://jXQ1bl--BiXngw",
+      "photo": "attach://o_HjG7h7_KEgTw",
+      "caption": "Хочешь продолжить?",
       "reply_markup": {
         "inline_keyboard": [
           [
             {
-              "text": "➡ Продолжить",
-              "callback_data": "ad:continue:06d9505a-16d1-4419-9f99-9cfd42fba651"
+              "text": "Ещё 5 заданий →",
+              "callback_data": "ad:continue:df9f5503-49cb-4fcf-aef0-51c41e8a3b5c"
             },
             {
               "text": "Завершить",
-              "callback_data": "ad:finish:06d9505a-16d1-4419-9f99-9cfd42fba651"
+              "callback_data": "ad:finish:df9f5503-49cb-4fcf-aef0-51c41e8a3b5c"
             }
           ],
           [
             {
-              "text": "↩ В меню",
-              "callback_data": "ad:menu:06d9505a-16d1-4419-9f99-9cfd42fba651"
+              "text": "В меню",
+              "callback_data": "ad:menu:df9f5503-49cb-4fcf-aef0-51c41e8a3b5c"
             }
           ]
         ]
       }
     },
     "attachments": {
-      "jXQ1bl--BiXngw": {
-        "path": "assets/5cbe46e951ff1927fdb41124d05619f969da4cadf0e2fddc75d583370de730a3.png",
+      "o_HjG7h7_KEgTw": {
+        "path": "assets/f7f334251b6d3dfdcb114367d715ac155fe5f300cb63aa1c5147066eb63d789f.png",
         "filename": "bop-training-result.png",
-        "sha256": "5cbe46e951ff1927fdb41124d05619f969da4cadf0e2fddc75d583370de730a3"
+        "sha256": "f7f334251b6d3dfdcb114367d715ac155fe5f300cb63aa1c5147066eb63d789f"
       }
     }
   },
   "displayed_heights": {
-    "360": 488,
-    "390": 528,
-    "430": 583
+    "360": 505,
+    "390": 547,
+    "430": 603
+  },
+  "checks": {
+    "actual_message_id": 189,
+    "issued": 5,
+    "checkpoint": true,
+    "inline_labels": [
+      "Ещё 5 заданий →",
+      "Завершить",
+      "В меню"
+    ],
+    "caption": "Хочешь продолжить?"
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Результат тренировки",
+    "subtitle": "№6 · Вычисления\nЗадания 1–5",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "5/5",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "5/5",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 5,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 0
+    },
+    "practice": [
+      {
+        "label": "Умножение двух обыкновенных дробей",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      },
+      {
+        "label": "Вычислить разность, сократить дробь, указать числитель",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      }
+    ]
   }
 }

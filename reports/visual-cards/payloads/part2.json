@@ -5,54 +5,54 @@
     "method": "sendPhoto",
     "payload": {
       "chat_id": "42",
-      "photo": "attach://CQ7V_Icg9MEtFA",
+      "photo": "attach://j8vgnJnhjkWLcQ",
       "reply_markup": {
         "inline_keyboard": [
           [
             {
               "text": "№20",
-              "callback_data": "p2:menu:20~17e1e2310b40"
+              "callback_data": "p2:menu:20~3eb472a4ef8a"
             },
             {
               "text": "№21",
-              "callback_data": "p2:menu:21~17e1e2310b40"
+              "callback_data": "p2:menu:21~3eb472a4ef8a"
             },
             {
               "text": "№22",
-              "callback_data": "p2:menu:22~17e1e2310b40"
+              "callback_data": "p2:menu:22~3eb472a4ef8a"
             }
           ],
           [
             {
               "text": "№23",
-              "callback_data": "p2:menu:23~17e1e2310b40"
+              "callback_data": "p2:menu:23~3eb472a4ef8a"
             },
             {
               "text": "№24",
-              "callback_data": "p2:menu:24~17e1e2310b40"
+              "callback_data": "p2:menu:24~3eb472a4ef8a"
             },
             {
               "text": "№25",
-              "callback_data": "p2:menu:25~17e1e2310b40"
+              "callback_data": "p2:menu:25~3eb472a4ef8a"
             }
           ],
           [
             {
               "text": "← Первая часть",
-              "callback_data": "train:areas:0~17e1e2310b40"
+              "callback_data": "train:areas:0~3eb472a4ef8a"
             }
           ],
           [
             {
               "text": "↩ К тренировкам",
-              "callback_data": "nav:trainings~17e1e2310b40"
+              "callback_data": "nav:trainings~3eb472a4ef8a"
             }
           ]
         ]
       }
     },
     "attachments": {
-      "CQ7V_Icg9MEtFA": {
+      "j8vgnJnhjkWLcQ": {
         "path": "assets/ef5891bd4b868435710cf38ce41fb65af91832bc10cfd731973ec9ce5667b142.png",
         "filename": "bop-part2.png",
         "sha256": "ef5891bd4b868435710cf38ce41fb65af91832bc10cfd731973ec9ce5667b142"
@@ -63,5 +63,74 @@
     "360": 374,
     "390": 406,
     "430": 447
+  },
+  "checks": {
+    "actual_message_id": 118
+  },
+  "projection": {
+    "screen": "part2",
+    "title": "Выбери номер",
+    "subtitle": "Вторая часть · №20–25",
+    "sections": [
+      {
+        "title": "Развёрнутые решения",
+        "entries": [
+          {
+            "label": "Уравнения и неравенства",
+            "key": "20",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Текстовые задачи",
+            "key": "21",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Графики",
+            "key": "22",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Геометрические вычисления",
+            "key": "23",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Доказательства",
+            "key": "24",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Сложная геометрия",
+            "key": "25",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "tiles"
+      }
+    ],
+    "metrics": [],
+    "note": "",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
   }
 }

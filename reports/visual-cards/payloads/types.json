@@ -5,62 +5,62 @@
     "method": "sendPhoto",
     "payload": {
       "chat_id": "42",
-      "photo": "attach://-TKH3hmGWSfOrg",
+      "photo": "attach://VU-ZIxh9Dc7dQA",
       "reply_markup": {
         "inline_keyboard": [
           [
             {
               "text": "Весь №6",
-              "callback_data": "train:number:6~690aafca42e1"
+              "callback_data": "train:number:6~98c9d5e2e1a8"
             }
           ],
           [
             {
               "text": "Вычислить разность, сократить дробь, указать числитель",
-              "callback_data": "train:family:OGE06-F008-REDUCED-NUMERATOR~690aafca42e1"
+              "callback_data": "train:family:OGE06-F008-REDUCED-NUMERATOR~98c9d5e2e1a8"
             }
           ],
           [
             {
               "text": "Вычитание двух обыкновенных дробей, отрицательный результат",
-              "callback_data": "train:family:OGE06-F001-SUB~690aafca42e1"
+              "callback_data": "train:family:OGE06-F001-SUB~98c9d5e2e1a8"
             }
           ],
           [
             {
               "text": "Вычитание десятичной дроби из смешанного числа",
-              "callback_data": "train:family:OGE06-F006-MIXED-MINUS-DECIMAL~690aafca42e1"
+              "callback_data": "train:family:OGE06-F006-MIXED-MINUS-DECIMAL~98c9d5e2e1a8"
             }
           ],
           [
             {
               "text": "Вычитание десятичных дробей",
-              "callback_data": "train:family:OGE06-F004-DEC-SUB~690aafca42e1"
+              "callback_data": "train:family:OGE06-F004-DEC-SUB~98c9d5e2e1a8"
             }
           ],
           [
             {
               "text": "Деление десятичных дробей, записанных дробной чертой",
-              "callback_data": "train:family:OGE06-F004-DEC-DIV~690aafca42e1"
+              "callback_data": "train:family:OGE06-F004-DEC-DIV~98c9d5e2e1a8"
             }
           ],
           [
             {
               "text": "→",
-              "callback_data": "train:area:6:1~690aafca42e1"
+              "callback_data": "train:area:6:1~98c9d5e2e1a8"
             }
           ],
           [
             {
               "text": "↩ К номерам",
-              "callback_data": "train:areas~690aafca42e1"
+              "callback_data": "train:areas~98c9d5e2e1a8"
             }
           ]
         ]
       }
     },
     "attachments": {
-      "-TKH3hmGWSfOrg": {
+      "VU-ZIxh9Dc7dQA": {
         "path": "assets/c72f3ff8b1d52840730341a2036b5cc00ce28e214435e0da80cfcd32250a5b67.png",
         "filename": "bop-types.png",
         "sha256": "c72f3ff8b1d52840730341a2036b5cc00ce28e214435e0da80cfcd32250a5b67"
@@ -71,5 +71,66 @@
     "360": 357,
     "390": 387,
     "430": 427
+  },
+  "checks": {
+    "actual_message_id": 124
+  },
+  "projection": {
+    "screen": "types",
+    "title": "Выбери тип",
+    "subtitle": "№6",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Вычислить разность, сократить дробь, указать числитель",
+            "key": "1",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Вычитание двух обыкновенных дробей, отрицательный результат",
+            "key": "2",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Вычитание десятичной дроби из смешанного числа",
+            "key": "3",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Вычитание десятичных дробей",
+            "key": "4",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Деление десятичных дробей, записанных дробной чертой",
+            "key": "5",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "list"
+      }
+    ],
+    "metrics": [],
+    "note": "Страница 1 из 3",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
   }
 }

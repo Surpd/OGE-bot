@@ -5,32 +5,32 @@
     "method": "sendPhoto",
     "payload": {
       "chat_id": "42",
-      "photo": "attach://65PARerOXicMvA",
+      "photo": "attach://mjGHL6FmC4Feuw",
       "reply_markup": {
         "inline_keyboard": [
           [
             {
               "text": "🎯 Тренировки",
-              "callback_data": "nav:trainings~48d86ca8260f"
+              "callback_data": "nav:trainings~566b1afe701e"
             }
           ],
           [
             {
               "text": "📊 Мой прогресс",
-              "callback_data": "nav:progress~48d86ca8260f"
+              "callback_data": "nav:progress~566b1afe701e"
             }
           ],
           [
             {
               "text": "⚙️ Настройки",
-              "callback_data": "nav:display~48d86ca8260f"
+              "callback_data": "nav:display~566b1afe701e"
             }
           ]
         ]
       }
     },
     "attachments": {
-      "65PARerOXicMvA": {
+      "mjGHL6FmC4Feuw": {
         "path": "assets/a5eda10ee1639c6c13887cb21987d1812d0d44f85306347a2e1b3693b0daf909.png",
         "filename": "bop-welcome.png",
         "sha256": "a5eda10ee1639c6c13887cb21987d1812d0d44f85306347a2e1b3693b0daf909"
@@ -41,5 +41,19 @@
     "360": 174,
     "390": 188,
     "430": 207
+  },
+  "checks": {
+    "actual_message_id": 116
+  },
+  "projection": {
+    "screen": "welcome",
+    "title": "Математика для ОГЭ",
+    "subtitle": "Задания №1–25",
+    "sections": [],
+    "metrics": [],
+    "note": "",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
   }
 }

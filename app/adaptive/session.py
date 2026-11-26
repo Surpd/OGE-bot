@@ -430,17 +430,17 @@ class Session:
             )
             return "exhausted"
 
-    async def difficulties(self, session_id: UUID) -> dict[str, int]:
+    async def difficulties(self, session_id: UUID, *, from_position: int = 0) -> dict[str, int]:
         rows = await self.pool.fetch(
             """SELECT p.family_id,count(*) AS total
             FROM adaptive_slots sl JOIN issued_problems p ON p.id=sl.problem
             JOIN users u ON u.id=p.user_id
-            WHERE sl.session_id=$1 AND u.telegram_user_id=$2
+            WHERE sl.session_id=$1 AND u.telegram_user_id=$2 AND sl.position >= $3
             AND (p.outcome IN ('failed','solution_viewed') OR EXISTS(
                 SELECT FROM attempts t WHERE t.problem_id=p.id
                 AND (NOT t.is_correct OR t.used_hint IS TRUE)
             ))
-            GROUP BY p.family_id""", session_id, self.learner,
+            GROUP BY p.family_id""", session_id, self.learner, from_position,
         )
         return {row["family_id"]: row["total"] for row in rows}
 

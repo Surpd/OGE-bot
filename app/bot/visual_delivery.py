@@ -3,10 +3,12 @@
 import asyncio
 import logging
 from collections.abc import Callable
+from contextlib import suppress
 from functools import lru_cache
+from pathlib import Path
 from typing import cast
 
-from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
+from aiogram.exceptions import TelegramAPIError, TelegramBadRequest, TelegramNotFound
 from aiogram.types import (
     BufferedInputFile,
     InlineKeyboardMarkup,
@@ -84,6 +86,18 @@ def _render_menu_png(card: VisualCard) -> bytes:
     return _render_png(card)
 
 
+async def _bind_visual(
+    source: Message, repository: Repository, sent: Message,
+    markup: InlineKeyboardMarkup | None, user_id_override: int | None,
+) -> None:
+    from app.bot.navigation import bind_navigation, navigation_revision, navigation_screen
+
+    screen = navigation_screen(markup)
+    user_id = _viewer_id(source, user_id_override)
+    if screen is not None and user_id is not None:
+        await bind_navigation(sent, repository, user_id, screen, navigation_revision(markup))
+
+
 async def try_send_visual(
     message: Message,
     repository: Repository,
@@ -92,14 +106,14 @@ async def try_send_visual(
     *,
     user_id_override: int | None = None,
     reply_parameters: ReplyParameters | None = None,
+    caption: str | None = None,
+    edit_existing: bool = False,
 ) -> Message | None:
     """Return None for the legacy path when the card cannot be created or accepted."""
     if not visual_enabled(card.screen, message, user_id_override):
         return None
     from app.bot.navigation import (
         NavigationMessage,
-        bind_navigation,
-        navigation_revision,
         navigation_screen,
         prepare_navigation_markup,
     )
@@ -116,21 +130,29 @@ async def try_send_visual(
     prepared = cast(InlineKeyboardMarkup | None, prepare_navigation_markup(markup))
     screen = navigation_screen(prepared)
     photo = BufferedInputFile(png, filename=f"bop-{card.screen.replace('_', '-')}.png")
-    edit_target = message.visual_edit_target() if isinstance(message, NavigationMessage) else None
+    edit_target = message if edit_existing else (
+        message.visual_edit_target() if isinstance(message, NavigationMessage) else None
+    )
     sent = None
-    if screen is not None and reply_parameters is None and edit_target is not None:
+    if edit_target is not None and (edit_existing or (screen and reply_parameters is None)):
         try:
             edited = await edit_target.edit_media(
-                InputMediaPhoto(media=photo), reply_markup=prepared
+                InputMediaPhoto(media=photo, caption=caption, parse_mode=None),
+                reply_markup=prepared,
             )
             sent = edited if isinstance(edited, Message) else edit_target
-        except (TelegramBadRequest, TelegramNotFound):
+        except (TelegramBadRequest, TelegramNotFound) as error:
+            if edit_existing:
+                logger.warning(
+                    "visual_png_edit_rejected screen=%s type=%s", card.screen, type(error).__name__
+                )
+                return None
             # A rejected edit has no delivery side effect. Try a fresh photo once.
-            pass
     if sent is None:
         try:
             sent = await message.answer_photo(
-                photo, reply_markup=prepared, reply_parameters=reply_parameters
+                photo, caption=caption, parse_mode=None, reply_markup=prepared,
+                reply_parameters=reply_parameters,
             )
         except (TelegramBadRequest, TelegramNotFound) as error:
             logger.warning(
@@ -139,7 +161,47 @@ async def try_send_visual(
             return None
     # Network errors are ambiguous. Never issue a second message or bind a menu
     # until Telegram returns the actual message ID.
-    user_id = _viewer_id(message, user_id_override)
-    if screen is not None and user_id is not None:
-        await bind_navigation(sent, repository, user_id, screen, navigation_revision(prepared))
+    await _bind_visual(message, repository, sent, prepared, user_id_override)
+    return sent
+
+
+@lru_cache(maxsize=1)
+def _finished_cover() -> bytes:
+    return Path(__file__).with_name("visual_assets").joinpath("finished-result.png").read_bytes()
+
+
+async def edit_visual_fallback(
+    message: Message, repository: Repository, text_html: str,
+    markup: InlineKeyboardMarkup | None, *, user_id_override: int | None = None,
+) -> Message:
+    """Replace a checkpoint in place. Never publish another message for this action."""
+    from app.bot.navigation import prepare_navigation_markup
+
+    prepared = cast(InlineKeyboardMarkup | None, prepare_navigation_markup(markup))
+    edited: Message | bool
+    try:
+        if message.photo:
+            # The caption carries the complete cumulative result. A prebuilt cover
+            # removes the old block's figures even when the renderer is unavailable.
+            try:
+                cover = BufferedInputFile(_finished_cover(), filename="bop-finished-result.png")
+                edited = await message.edit_media(
+                    InputMediaPhoto(media=cover, caption=text_html, parse_mode="HTML"),
+                    reply_markup=prepared,
+                )
+            except (OSError, TelegramBadRequest, TelegramNotFound):
+                edited = await message.edit_caption(
+                    caption=text_html, parse_mode="HTML", show_caption_above_media=True,
+                    reply_markup=prepared,
+                )
+        else:
+            edited = await message.edit_text(text_html, parse_mode="HTML", reply_markup=prepared)
+    except (TelegramBadRequest, TelegramNotFound) as error:
+        logger.warning("visual_result_edit_unavailable type=%s", type(error).__name__)
+        with suppress(TelegramAPIError, OSError):
+            await message.edit_reply_markup(reply_markup=None)
+        return message
+
+    sent = edited if isinstance(edited, Message) else message
+    await _bind_visual(message, repository, sent, prepared, user_id_override)
     return sent

@@ -5,29 +5,35 @@
     "method": "sendMessage",
     "payload": {
       "chat_id": "42",
-      "text": "<b>Тренировка завершена.</b>\n\n<b>Тренировка по номеру</b>\n\nРешено верно: 1 из 1\nСамостоятельно: 1 из 1\nДругие верные: 0 · Не решено: 0 · Пропущено: 0\n\nС подсказками: 0 · Открыто разборов: 0\n\n<b>Закрепление типа</b>\n\nОбратная величина суммы двух единичных дробей\nТип закреплён.",
+      "text": "<b>Тренировка завершена</b>\n\n<b>№6 · Вычисления</b>\n\nРешено верно: 1 из 1\nСамостоятельно: 1 из 1\nДругие верные: 0 · Не решено: 0 · Пропущено: 0\n\nС подсказками: 0 · Открыто разборов: 0\n\n<b>Закрепление типа</b>\n\nОбратная величина суммы двух единичных дробей\nТип закреплён.",
       "parse_mode": "HTML",
       "reply_markup": {
         "inline_keyboard": [
           [
             {
-              "text": "Персональная тренировка",
-              "callback_data": "train:personal~52f425de8a3a"
+              "text": "К тренировкам",
+              "callback_data": "train:hub~565c5034ba4c"
             }
           ],
           [
             {
-              "text": "📊 Мой прогресс",
-              "callback_data": "train:progress~52f425de8a3a"
+              "text": "Мой прогресс",
+              "callback_data": "train:progress~565c5034ba4c"
             },
             {
-              "text": "↩ В меню",
-              "callback_data": "nav:main~52f425de8a3a"
+              "text": "В меню",
+              "callback_data": "nav:main~565c5034ba4c"
             }
           ]
         ]
       }
     }
   },
-  "displayed_heights": {}
+  "displayed_heights": {},
+  "checks": {
+    "issued": 1,
+    "checkpoint": false,
+    "no_sendPhoto": true,
+    "actual_message_id": 753
+  }
 }

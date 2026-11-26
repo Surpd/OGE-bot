@@ -67,6 +67,16 @@ class TelegramSession(BaseSession):
                 update={"reply_markup": method.reply_markup}
             )
             return True
+        if method.__api_method__ == "editMessageCaption":
+            message = self.messages[method.message_id].model_copy(
+                update={
+                    "caption": method.caption,
+                    "reply_markup": method.reply_markup,
+                    "show_caption_above_media": method.show_caption_above_media,
+                }
+            )
+            self.messages[method.message_id] = message
+            return message
         message_id = getattr(method, "message_id", None)
         if message_id is None:
             message_id = self.next_message_id
@@ -110,7 +120,10 @@ class TelegramSession(BaseSession):
                 if is_photo
                 else None
             ),
-            caption=getattr(method, "caption", None),
+            caption=(
+                method.media.caption if method.__api_method__ == "editMessageMedia"
+                else getattr(method, "caption", None)
+            ),
             reply_markup=markup if isinstance(markup, InlineKeyboardMarkup) else None,
         ).as_(bot)
         self.messages[message_id] = message

@@ -1,0 +1,95 @@
+{
+  "name": "fallback-checkpoint-source",
+  "label": "Фото до отказа рендера",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://paXoIHEmCW69DA",
+      "caption": "Хочешь продолжить?",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Ещё 5 заданий →",
+              "callback_data": "ad:continue:4cefa292-ebe8-44e7-9aef-d774b9da1135"
+            },
+            {
+              "text": "Завершить",
+              "callback_data": "ad:finish:4cefa292-ebe8-44e7-9aef-d774b9da1135"
+            }
+          ],
+          [
+            {
+              "text": "В меню",
+              "callback_data": "ad:menu:4cefa292-ebe8-44e7-9aef-d774b9da1135"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "paXoIHEmCW69DA": {
+        "path": "assets/5f4ee3fd498a6e238601e7823697673a320b8bc543d8efb937dcf8840663d33e.png",
+        "filename": "bop-training-result.png",
+        "sha256": "5f4ee3fd498a6e238601e7823697673a320b8bc543d8efb937dcf8840663d33e"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 487,
+    "390": 527,
+    "430": 582
+  },
+  "checks": {
+    "actual_message_id": 640,
+    "issued": 5,
+    "checkpoint": true,
+    "inline_labels": [
+      "Ещё 5 заданий →",
+      "Завершить",
+      "В меню"
+    ],
+    "caption": "Хочешь продолжить?"
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Результат тренировки",
+    "subtitle": "№6 · Вычисления\nЗадания 1–5",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "5/5",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "5/5",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 5,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 0
+    },
+    "practice": [
+      {
+        "label": "Деление обыкновенных дробей",
+        "count": 2,
+        "target": 3,
+        "confirmed": false
+      },
+      {
+        "label": "Привести разность к указанному знаменателю и записать числитель",
+        "count": 2,
+        "target": 3,
+        "confirmed": false
+      }
+    ]
+  }
+}

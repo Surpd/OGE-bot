@@ -9,6 +9,7 @@ from typing import Any, cast
 from uuid import uuid4
 
 from aiogram.dispatcher.event.bases import SkipHandler
+from aiogram.exceptions import TelegramAPIError
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.adaptive.engine import CURRENT, Stage
@@ -33,7 +34,7 @@ from app.bot.result_cards import result_card, result_fallback
 from app.bot.scenario_materials import send_scenario_materials
 from app.bot.scenario_training import STORY_NAMES, public_registry
 from app.bot.similar_practice import targeted_candidates
-from app.bot.trainings import PART2_TRAININGS, TRAININGS
+from app.bot.trainings import BY_NUMBER, PART2_TRAININGS, TRAININGS
 from app.bot.visual_delivery import build_visual, visual_enabled
 from app.bot.visual_models import VisualCard, VisualEntry, VisualPractice, VisualSection
 from app.config import get_settings
@@ -48,6 +49,8 @@ from app.persistence.rotation_history import enabled, story_family_recency
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 logger = logging.getLogger(__name__)
+_MORE_TASKS = "Ещё 5 заданий →"
+_CONTINUE_PROMPT = "Хочешь продолжить?"
 
 
 class VariantIdentityError(ValueError):
@@ -954,92 +957,165 @@ def _result_card(
     )
 
 
+def _result_training_name(row: Any) -> str:
+    strategy = row.get("strategy")
+    scope = _scope(row) if row.get("scope") else {}
+    if strategy == "family" and (family := scope.get("family")):
+        return title(family)
+    if strategy == "number" and (number := scope.get("number")):
+        registered = BY_NUMBER.get(number)
+        name = STORY_NAMES.get(scope.get("story", "")) or (
+            registered.title if registered else "Практические задания"
+        )
+        return f"№{number} · {name}"
+    return {
+        "personal": "Персональная тренировка",
+        "mixed": "Смешанная тренировка",
+        "number": "Тренировка по номеру",
+        "family": "Тренировка по типу",
+    }.get(strategy, "")
+
+
+async def _result_recommendation(
+    repository: Any, store: Session, session_id: Any, totals: Any, *, from_position: int = 0,
+) -> SelectionReason | None:
+    history, insights = await _learner_inputs(repository, store.learner)
+    reasons = _select(
+        "personal", store.learner, history, insights,
+        excluded=await store.excluded_for_learner(), size=1, recommendations_only=True,
+        difficulties=await store.difficulties(session_id, from_position=from_position),
+        include_practice=totals["independent"] < totals["issued"],
+    ).reasons
+    return reasons[0] if reasons else None
+
+
+def _compact_recommendation(item: SelectionReason | None) -> str:
+    if item is None:
+        return ""
+    if item.by_number:
+        return f"№{item.number}"
+    topic = "Прямые и углы" if item.family == "OGE19-LINES-ANGLES" else title(item.family)
+    return f"№{item.number} · {topic}"
+
+
+def _checkpoint_button(message: Message, problem_id: Any) -> InlineKeyboardButton | None:
+    if message.reply_markup is None:
+        return None
+    return next((
+        button for row in message.reply_markup.inline_keyboard for button in row
+        if button.callback_data == f"ad:continue:{problem_id}"
+    ), None)
+
+
 async def checkpoint(message: Message, repository: Any, store: Session, row: Any) -> None:
     completed = row["position"] + 1
     start_position = completed - BLOCK_SIZE
     deltas = await store.summary_deltas(row["id"], from_position=start_position)
     totals = await store.totals(row["id"], from_position=start_position)
     positions = f"Задания {start_position + 1}–{completed}"
-    blocks: list[tuple[Role, str]] = [
-        ("title", "Промежуточный итог"),
-        ("position", positions),
-        ("stats", _result_lines(totals)),
-    ]
-    changes = _summary_changes(deltas)
-    if changes:
-        blocks.extend((("section", "Твой прогресс"), ("stats", "\n".join(changes))))
+    visual_active = visual_enabled("training_result", message, store.learner)
     pid = row["problem"]
     markup = InlineKeyboardMarkup(inline_keyboard=[
-        [button("➡ Продолжить", f"ad:continue:{pid}"), button("Завершить", f"ad:finish:{pid}")],
-        [button(LABELS["menu"], f"ad:menu:{pid}")],
+        [button(_MORE_TASKS if visual_active else "➡ Продолжить", f"ad:continue:{pid}"),
+         button("Завершить", f"ad:finish:{pid}")],
+        [button("В меню" if visual_active else LABELS["menu"], f"ad:menu:{pid}")],
     ])
-    card = build_visual("training_result", lambda: _result_card(
-        "Промежуточный итог", totals, deltas, subtitle=positions,
-    )) if visual_enabled("training_result", message, store.learner) else None
+    card = None
+    if visual_active:
+        heading = "Результат тренировки"
+        subtitle = "\n".join(filter(None, (_result_training_name(row), positions)))
+        recommendation = None
+        try:
+            if await repository.personal_enabled(store.learner):
+                recommendation = await _result_recommendation(
+                    repository, store, row["id"], totals, from_position=start_position,
+                )
+        except Exception as error:
+            logger.warning(
+                "checkpoint_recommendation_unavailable type=%s", type(error).__name__,
+            )
+        card = build_visual("training_result", lambda: _result_card(
+            heading, totals, deltas, subtitle=subtitle,
+            recommendation=_compact_recommendation(recommendation),
+        ))
+        body: tuple[tuple[Role, str], ...] = result_fallback(card).blocks if card else (
+            ("title", heading), ("position", subtitle), ("stats", _result_lines(totals)),
+        )
+        text = TrainingMessage(*body, ("instruction", _CONTINUE_PROMPT))
+    else:
+        blocks: list[tuple[Role, str]] = [
+            ("title", "Промежуточный итог"),
+            ("position", positions),
+            ("stats", _result_lines(totals)),
+        ]
+        if changes := _summary_changes(deltas):
+            blocks.extend((("section", "Твой прогресс"), ("stats", "\n".join(changes))))
+        text = TrainingMessage(*blocks)
     sent = await send_text(
-        message, repository, result_fallback(card) if card else TrainingMessage(*blocks),
+        message, repository, text,
         reply_markup=markup,
         user_id_override=store.learner,
-        visual=card,
+        visual=card, visual_caption=_CONTINUE_PROMPT if card else None,
     )
     await store.set_prompt(store.learner, str(pid), sent.message_id)
 
 
 async def completion(
-    message: Message, repository: Any, store: Session, row: Any, heading: str
+    message: Message, repository: Any, store: Session, row: Any, heading: str,
+    *, edit_existing: bool = False,
 ) -> None:
     deltas = await store.summary_deltas(row["id"])
     totals = await store.totals(row["id"])
     if not totals["issued"]:
         await trainings(message, repository)
         return
-    blocks: list[tuple[Role, str]] = [("title", heading), ("stats", _result_lines(totals))]
-    changes = _summary_changes(deltas)
-    if changes:
-        blocks.extend((("section", "Твой прогресс"), ("stats", "\n".join(changes))))
+    visual_active = visual_enabled("training_result", message, store.learner)
+    compact = visual_active or edit_existing
     personal_available = await repository.personal_enabled(store.learner)
-    recommendations: tuple[SelectionReason, ...] = ()
-    if personal_available:
-        history, insights = await _learner_inputs(repository, store.learner)
-        recommendations = _select(
-            "personal", store.learner, history, insights,
-            excluded=await store.excluded_for_learner(), size=1, recommendations_only=True,
-            difficulties=await store.difficulties(row["id"]),
-            include_practice=totals["independent"] < totals["issued"],
-        ).reasons
-    rows = []
-    compact_recommendation = ""
-    if recommendations:
-        item = recommendations[0]
-        detail = _recommendation_text(item)
-        if not item.by_number:
-            detail = f"№{item.number} · {detail}"
-        if item.by_number:
-            compact_recommendation = f"№{item.number}"
-        else:
-            topic = "Прямые и углы" if item.family == "OGE19-LINES-ANGLES" else title(item.family)
-            compact_recommendation = f"№{item.number} · {topic}"
-        blocks.extend((("section", "Что потренировать дальше"), ("recommendation", detail)))
-        rows.append([button(*_recommendation_action(item))])
-    if personal_available:
+    item = (
+        await _result_recommendation(repository, store, row["id"], totals)
+        if personal_available else None
+    )
+    rows = [[button(*_recommendation_action(item))]] if item else []
+    if compact:
+        rows.extend([
+            [button("К тренировкам", "train:hub")],
+            [button("Мой прогресс", "train:progress"), button("В меню", "nav:main")],
+        ])
+    elif personal_available:
         rows.append([button("Персональная тренировка", "train:personal")])
     else:
         rows.append([button("К тренировкам", "train:hub")])
-    rows.append([button(LABELS["progress"], "train:progress"), button(LABELS["menu"], "nav:main")])
+    if not compact:
+        rows.append([
+            button(LABELS["progress"], "train:progress"), button(LABELS["menu"], "nav:main"),
+        ])
     keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
     await repository.save_user_state(store.learner, "trainings")
-    subtitle = {
-        "personal": "Персональная тренировка",
-        "mixed": "Смешанная тренировка",
-        "number": "Тренировка по номеру",
-        "family": "Тренировка по типу",
-    }.get(row.get("strategy"), "")
-    card = build_visual("training_result", lambda: _result_card(
-        heading, totals, deltas, subtitle=subtitle, recommendation=compact_recommendation,
-    )) if visual_enabled("training_result", message, store.learner) else None
+    card = None
+    if compact:
+        heading = "Тренировка завершена"
+        subtitle = _result_training_name(row)
+        card = build_visual("training_result", lambda: _result_card(
+            heading, totals, deltas, subtitle=subtitle,
+            recommendation=_compact_recommendation(item),
+        ))
+        text = result_fallback(card) if card else TrainingMessage(
+            ("title", heading), ("position", subtitle), ("stats", _result_lines(totals)),
+        )
+    else:
+        blocks: list[tuple[Role, str]] = [("title", heading), ("stats", _result_lines(totals))]
+        if changes := _summary_changes(deltas):
+            blocks.extend((("section", "Твой прогресс"), ("stats", "\n".join(changes))))
+        if item:
+            detail = _recommendation_text(item)
+            if not item.by_number:
+                detail = f"№{item.number} · {detail}"
+            blocks.extend((("section", "Что потренировать дальше"), ("recommendation", detail)))
+        text = TrainingMessage(*blocks)
     await send_text(
-        message, repository, result_fallback(card) if card else TrainingMessage(*blocks),
-        reply_markup=keyboard, user_id_override=store.learner, visual=card,
+        message, repository, text, reply_markup=keyboard, user_id_override=store.learner,
+        visual=card if visual_active else None, edit_existing=edit_existing,
     )
 
 
@@ -1251,6 +1327,14 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             position=row["position"], revision=row["revision"], next_block=next_block,
         )
         if result == "next":
+            old_button = _checkpoint_button(cb.message, row["problem"])
+            if (old_button and old_button.text == _MORE_TASKS) or visual_enabled(
+                "training_result", cb.message, learner,
+            ):
+                try:
+                    await cb.message.edit_reply_markup(reply_markup=None)
+                except (TelegramAPIError, OSError) as error:
+                    logger.info("checkpoint_markup_edit_failed type=%s", type(error).__name__)
             await present(cb.message, repository, learner)
         elif not next_block:
             await answer_callback(
@@ -1306,7 +1390,18 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             await answer_callback(cb)
             return
         if result in {"finished", "completed"}:
-            await completion(cb.message, repository, store, row, "Тренировка завершена.")
+            old_button = (
+                _checkpoint_button(cb.message, row["problem"])
+                if action == "finish" and at_checkpoint(row) else None
+            )
+            edit_existing = old_button is not None and (
+                old_button.text == _MORE_TASKS
+                or visual_enabled("training_result", cb.message, learner)
+            )
+            await completion(
+                cb.message, repository, store, row, "Тренировка завершена.",
+                edit_existing=edit_existing,
+            )
         elif result == "next":
             await present(cb.message, repository, learner)
         elif result in {"hint", "skip", "solution", "no_hint"}:

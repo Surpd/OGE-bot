@@ -1,43 +1,95 @@
 {
   "name": "long-result",
-  "label": "Длительная практика · завершение",
+  "label": "Длинная практика · суммарные десять в том же сообщении",
   "call": {
-    "method": "sendPhoto",
+    "method": "editMessageMedia",
     "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://819QrogKthJ4_g\"}",
       "chat_id": "42",
-      "photo": "attach://t1hIbU7-vshSMQ",
+      "message_id": "336",
       "reply_markup": {
         "inline_keyboard": [
           [
             {
-              "text": "Персональная тренировка",
-              "callback_data": "train:personal~4d8bf953bab6"
+              "text": "К тренировкам",
+              "callback_data": "train:hub~eb5196070abb"
             }
           ],
           [
             {
-              "text": "📊 Мой прогресс",
-              "callback_data": "train:progress~4d8bf953bab6"
+              "text": "Мой прогресс",
+              "callback_data": "train:progress~eb5196070abb"
             },
             {
-              "text": "↩ В меню",
-              "callback_data": "nav:main~4d8bf953bab6"
+              "text": "В меню",
+              "callback_data": "nav:main~eb5196070abb"
             }
           ]
         ]
       }
     },
     "attachments": {
-      "t1hIbU7-vshSMQ": {
-        "path": "assets/5db5acf894bd67af9437012c9463e7967108c1ac3aefe1e60b26178b0a963108.png",
+      "819QrogKthJ4_g": {
+        "path": "assets/0492e29bee6f123dac34fcc5255694ec28f904584175b5c49f7fca22b60c7ccc.png",
         "filename": "bop-training-result.png",
-        "sha256": "5db5acf894bd67af9437012c9463e7967108c1ac3aefe1e60b26178b0a963108"
+        "sha256": "0492e29bee6f123dac34fcc5255694ec28f904584175b5c49f7fca22b60c7ccc"
       }
     }
   },
   "displayed_heights": {
-    "360": 472,
-    "390": 511,
-    "430": 563
+    "360": 455,
+    "390": 493,
+    "430": 544
+  },
+  "checks": {
+    "actual_message_id": 336,
+    "issued": 10,
+    "checkpoint": false,
+    "inline_labels": [
+      "К тренировкам",
+      "Мой прогресс",
+      "В меню"
+    ],
+    "caption": ""
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Тренировка завершена",
+    "subtitle": "№6 · Вычисления",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "10/10",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "10/10",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 10,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 0
+    },
+    "practice": [
+      {
+        "label": "Умножение двух обыкновенных дробей",
+        "count": 3,
+        "target": 3,
+        "confirmed": true
+      },
+      {
+        "label": "Вычислить разность, сократить дробь, указать числитель",
+        "count": 3,
+        "target": 3,
+        "confirmed": true
+      }
+    ]
   }
 }

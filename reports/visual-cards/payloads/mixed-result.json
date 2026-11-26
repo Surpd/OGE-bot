@@ -1,43 +1,94 @@
 {
   "name": "mixed-result",
-  "label": "Смешанная тренировка · итог",
+  "label": "Смешанная тренировка · автоматический итог пяти",
   "call": {
     "method": "sendPhoto",
     "payload": {
       "chat_id": "42",
-      "photo": "attach://JBdBpVGKwhDkGA",
+      "photo": "attach://O6jglEznRRHP1g",
       "reply_markup": {
         "inline_keyboard": [
           [
             {
-              "text": "Персональная тренировка",
-              "callback_data": "train:personal~d6e9ecb951b9"
+              "text": "К тренировкам",
+              "callback_data": "train:hub~f5aa3dd2e35b"
             }
           ],
           [
             {
-              "text": "📊 Мой прогресс",
-              "callback_data": "train:progress~d6e9ecb951b9"
+              "text": "Мой прогресс",
+              "callback_data": "train:progress~f5aa3dd2e35b"
             },
             {
-              "text": "↩ В меню",
-              "callback_data": "nav:main~d6e9ecb951b9"
+              "text": "В меню",
+              "callback_data": "nav:main~f5aa3dd2e35b"
             }
           ]
         ]
       }
     },
     "attachments": {
-      "JBdBpVGKwhDkGA": {
-        "path": "assets/afc975cc92452e9ee93ecba6ce84f03090b81c2356593a3e0a6add00a6fffe9d.png",
+      "O6jglEznRRHP1g": {
+        "path": "assets/ab72180ffb76fed0e787c6795944c43d587ab9e5d60153f3d57879ee93360bf4.png",
         "filename": "bop-training-result.png",
-        "sha256": "afc975cc92452e9ee93ecba6ce84f03090b81c2356593a3e0a6add00a6fffe9d"
+        "sha256": "ab72180ffb76fed0e787c6795944c43d587ab9e5d60153f3d57879ee93360bf4"
       }
     }
   },
   "displayed_heights": {
-    "360": 488,
-    "390": 528,
-    "430": 583
+    "360": 470,
+    "390": 509,
+    "430": 561
+  },
+  "checks": {
+    "actual_message_id": 433,
+    "issued": 5,
+    "checkpoint": false,
+    "inline_labels": [
+      "К тренировкам",
+      "Мой прогресс",
+      "В меню"
+    ],
+    "caption": ""
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Тренировка завершена",
+    "subtitle": "Смешанная тренировка",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "5/5",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "5/5",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 5,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 0
+    },
+    "practice": [
+      {
+        "label": "Между какими целыми лежит дробь",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      },
+      {
+        "label": "Остаточная категория при выборе одного объекта",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      }
+    ]
   }
 }

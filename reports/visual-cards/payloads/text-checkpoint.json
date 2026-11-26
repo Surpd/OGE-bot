@@ -1,0 +1,39 @@
+{
+  "name": "text-checkpoint",
+  "label": "Текстовый резерв при отказе рендера",
+  "call": {
+    "method": "sendMessage",
+    "payload": {
+      "chat_id": "42",
+      "text": "<b>Результат тренировки</b>\n\n<b>№6 · Вычисления</b>\n<b>Задания 1–5</b>\n\nРешено верно: 5 из 5\nСамостоятельно: 5 из 5\nДругие верные: 0 · Не решено: 0 · Пропущено: 0\n\nС подсказками: 0 · Открыто разборов: 0\n\n<b>Закрепление типа</b>\n\nДеление обыкновенных дробей\nТип закреплён.\n\nПривести разность к указанному знаменателю и записать числитель\nТип закреплён.\n\nХочешь продолжить?",
+      "parse_mode": "HTML",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Ещё 5 заданий →",
+              "callback_data": "ad:continue:f4a09a38-d6b8-4a70-8a3a-ff1bd660c76f"
+            },
+            {
+              "text": "Завершить",
+              "callback_data": "ad:finish:f4a09a38-d6b8-4a70-8a3a-ff1bd660c76f"
+            }
+          ],
+          [
+            {
+              "text": "В меню",
+              "callback_data": "ad:menu:f4a09a38-d6b8-4a70-8a3a-ff1bd660c76f"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "displayed_heights": {},
+  "checks": {
+    "issued": 5,
+    "checkpoint": true,
+    "no_sendPhoto": true,
+    "actual_message_id": 722
+  }
+}

@@ -26,22 +26,34 @@ from app.config import test_settings as current_settings
 from app.persistence.repository import MemoryRepository
 
 CARD = VisualCard("numbers", "Выбери номер")
+CHECKPOINT = VisualCard("training_result", "Результат тренировки")
+FINISHED = VisualCard("training_result", "Тренировка завершена")
 VIEWER = User(id=42, is_bot=False, first_name="QA")
 
 
 class CardSession(TelegramSession):
     photo_error = None
+    media_error = None
 
     async def make_request(self, bot, method, timeout=None):  # noqa: ASYNC109
-        if method.__api_method__ == "sendPhoto" and self.photo_error is not None:
+        error = {"sendPhoto": self.photo_error, "editMessageMedia": self.media_error}.get(
+            method.__api_method__
+        )
+        if error is not None:
             self.calls.append(method)
-            raise self.photo_error(method=method, message="synthetic delivery failure")
+            raise error(method=method, message="synthetic delivery failure")
         return await super().make_request(bot, method, timeout)
 
 
 def keyboard(label):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=label, callback_data="nav:numbers:0")],
+    ])
+
+
+def result_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="К тренировкам", callback_data="train:hub")],
     ])
 
 
@@ -207,3 +219,66 @@ def test_adaptive_written_picker_returns_to_training_number_selection(flags):
     current_settings.set(Settings(_env_file=None, oge_part2_enabled=True))
     _, markup = area_card(1)
     assert navigation_screen(markup) == "trainings"
+
+
+@pytest.mark.parametrize("transport_path", ["photo", "cover", "caption", "text"])
+async def test_finish_replaces_checkpoint_in_place(
+    flags, synthetic_png, monkeypatch, transport_path,
+):
+    current_settings.set(Settings(_env_file=None, oge_visual_training_result_enabled=True))
+    transport = CardSession()
+    bot = Bot("123456:TEST", session=transport)
+    repository = MemoryRepository()
+    await repository.save_user_state(42, "trainings")
+
+    def failed(card):
+        raise OSError("synthetic render failure")
+
+    if transport_path == "text":
+        monkeypatch.setattr(delivery, "_render_png", failed)
+    first = await send_text(
+        source(bot), repository, "Результат тренировки\n\nХочешь продолжить?",
+        visual=CHECKPOINT, visual_caption="Хочешь продолжить?",
+    )
+    if transport_path == "cover":
+        monkeypatch.setattr(delivery, "_render_png", failed)
+    elif transport_path == "caption":
+        transport.media_error = TelegramBadRequest
+
+    finished = await send_text(
+        first, repository, "Тренировка завершена\nРешено верно: 8 из 10",
+        visual=FINISHED, edit_existing=True, reply_markup=result_keyboard(), user_id_override=42,
+    )
+    methods = {
+        "photo": ["sendPhoto", "editMessageMedia"],
+        "cover": ["sendPhoto", "editMessageMedia"],
+        "caption": ["sendPhoto", "editMessageMedia", "editMessageMedia", "editMessageCaption"],
+        "text": ["sendMessage", "editMessageText"],
+    }
+    assert [method.__api_method__ for method in transport.calls] == methods[transport_path]
+    assert finished.message_id == first.message_id
+    assert finished.reply_markup.inline_keyboard[0][0].text == "К тренировкам"
+    assert "Хочешь продолжить?" in (first.caption or first.text)
+    assert "Хочешь продолжить?" not in (finished.caption or finished.text or "")
+    if transport_path == "cover":
+        assert transport.calls[-1].media.media.filename == "bop-finished-result.png"
+    if transport_path != "photo":
+        assert "8 из 10" in (finished.caption or finished.text)
+    assert await repository.claim_navigation_message(
+        42, finished.message_id, navigation_revision(finished.reply_markup)
+    )
+
+
+async def test_ambiguous_finish_edit_does_not_retry(flags, synthetic_png):
+    current_settings.set(Settings(_env_file=None, oge_visual_training_result_enabled=True))
+    transport = CardSession()
+    bot = Bot("123456:TEST", session=transport)
+    repository = MemoryRepository()
+    first = await send_text(source(bot), repository, "Результат тренировки", visual=CHECKPOINT)
+    transport.media_error = TelegramNetworkError
+
+    with pytest.raises(TelegramNetworkError):
+        await send_text(first, repository, "Тренировка завершена", visual=FINISHED,
+                        edit_existing=True, user_id_override=42)
+
+    assert [call.__api_method__ for call in transport.calls] == ["sendPhoto", "editMessageMedia"]
