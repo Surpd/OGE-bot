@@ -140,6 +140,14 @@
       "note": "Выглядывает справа, с любопытством смотрит влево-вниз. Пользователь одобрил сохранение как дополнительного варианта. Основной следующий вариант должен смотреть горизонтально влево; отдельно запланирован вариант выглядывания снизу со взглядом вверх.",
       "library_file_id": "libfile_89a975677eec81919b6908c1850823e3",
       "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "peek-right-horizontal.png",
+      "repository_path": "docs/design/bop-character/poses/approved/peek-right-horizontal.png",
+      "status": "approved",
+      "note": "Выглядывает справа, смотрит горизонтально влево с любопытством. Пользователь перешёл к следующей позе.",
+      "library_file_id": "libfile_1719a4dcb82c8191b90106ed8fea1c3c",
+      "github_binary_status": "pending_import"
     }
   ],
   "current_telegram": {
