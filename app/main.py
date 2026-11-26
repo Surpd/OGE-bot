@@ -226,6 +226,7 @@ def create_app(
         application.state.repository = repo
         application.state.oge15_repository = oge15_repo
         application.state.bot = telegram_bot
+        application.state.bot_id = telegram_bot.id
         application.state.dispatcher = dispatcher
         maintenance = None
         if pool is not None and await pool.fetchval(
@@ -302,7 +303,7 @@ def create_app(
             raise HTTPException(status_code=400, detail="Invalid update")
         repo: Repository = request.app.state.repository
         telegram_bot: Bot = request.app.state.bot
-        bot_id = telegram_bot.id
+        bot_id: int = request.app.state.bot_id
         if not await repo.claim_update(update_id, bot_id=bot_id):
             return Response(status_code=200)
         try:
