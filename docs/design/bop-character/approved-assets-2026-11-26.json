@@ -148,6 +148,15 @@
       "note": "Выглядывает справа, смотрит горизонтально влево с любопытством. Пользователь перешёл к следующей позе.",
       "library_file_id": "libfile_1719a4dcb82c8191b90106ed8fea1c3c",
       "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "peek-bottom-up.png",
+      "repository_path": "docs/design/bop-character/poses/approved/peek-bottom-up.png",
+      "status": "approved",
+      "note": "Пользователь принял вариант с сильно поднятой головой, смотрит прямо вверх. Художественная приёмка; для использования в карточках требуется отдельно убрать фон и нарисованную нижнюю планку, сохранив персонажа и кисти. Оригинал хранить без изменений.",
+      "library_file_id": "libfile_b9c45c6be9588191aa073266edd76efe",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
     }
   ],
   "current_telegram": {
