@@ -1,0 +1,330 @@
+{
+  "key": "journal-filter",
+  "title": "Журнал · выбор номера",
+  "projection": {
+    "screen": "progress_numbers",
+    "title": "Выбери номер",
+    "subtitle": "История и ошибки · Все задания",
+    "sections": [
+      {
+        "title": "Практические задания",
+        "entries": [
+          {
+            "label": "Практические задания",
+            "key": "№1",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Практические задания",
+            "key": "№2",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Практические задания",
+            "key": "№3",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Практические задания",
+            "key": "№4",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Практические задания",
+            "key": "№5",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          }
+        ],
+        "layout": "practical"
+      },
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Вычисления",
+            "key": "№6",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Координатная прямая",
+            "key": "№7",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Степени и корни",
+            "key": "№8",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Уравнения",
+            "key": "№9",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Вероятность",
+            "key": "№10",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Графики функций",
+            "key": "№11",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Формулы",
+            "key": "№12",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Неравенства",
+            "key": "№13",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Прогрессии",
+            "key": "№14",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Треугольники",
+            "key": "№15",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Окружности",
+            "key": "№16",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Четырёхугольники",
+            "key": "№17",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Фигуры на клетках",
+            "key": "№18",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Геометрические утверждения",
+            "key": "№19",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          }
+        ],
+        "layout": "tiles"
+      }
+    ],
+    "metrics": [],
+    "note": "",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://aEAL2f1yPZbD0w\"}",
+      "chat_id": "42",
+      "message_id": "105",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Все номера",
+              "callback_data": "progress:history:0~c1a75b1a6752"
+            }
+          ],
+          [
+            {
+              "text": "№1",
+              "callback_data": "progress:numhist:1:0~c1a75b1a6752"
+            },
+            {
+              "text": "№2",
+              "callback_data": "progress:numhist:2:0~c1a75b1a6752"
+            },
+            {
+              "text": "№3",
+              "callback_data": "progress:numhist:3:0~c1a75b1a6752"
+            },
+            {
+              "text": "№4",
+              "callback_data": "progress:numhist:4:0~c1a75b1a6752"
+            },
+            {
+              "text": "№5",
+              "callback_data": "progress:numhist:5:0~c1a75b1a6752"
+            }
+          ],
+          [
+            {
+              "text": "№6",
+              "callback_data": "progress:numhist:6:0~c1a75b1a6752"
+            },
+            {
+              "text": "№7",
+              "callback_data": "progress:numhist:7:0~c1a75b1a6752"
+            },
+            {
+              "text": "№8",
+              "callback_data": "progress:numhist:8:0~c1a75b1a6752"
+            },
+            {
+              "text": "№9",
+              "callback_data": "progress:numhist:9:0~c1a75b1a6752"
+            },
+            {
+              "text": "№10",
+              "callback_data": "progress:numhist:10:0~c1a75b1a6752"
+            }
+          ],
+          [
+            {
+              "text": "№11",
+              "callback_data": "progress:numhist:11:0~c1a75b1a6752"
+            },
+            {
+              "text": "№12",
+              "callback_data": "progress:numhist:12:0~c1a75b1a6752"
+            },
+            {
+              "text": "№13",
+              "callback_data": "progress:numhist:13:0~c1a75b1a6752"
+            },
+            {
+              "text": "№14",
+              "callback_data": "progress:numhist:14:0~c1a75b1a6752"
+            },
+            {
+              "text": "№15",
+              "callback_data": "progress:numhist:15:0~c1a75b1a6752"
+            }
+          ],
+          [
+            {
+              "text": "№16",
+              "callback_data": "progress:numhist:16:0~c1a75b1a6752"
+            },
+            {
+              "text": "№17",
+              "callback_data": "progress:numhist:17:0~c1a75b1a6752"
+            },
+            {
+              "text": "№18",
+              "callback_data": "progress:numhist:18:0~c1a75b1a6752"
+            },
+            {
+              "text": "№19",
+              "callback_data": "progress:numhist:19:0~c1a75b1a6752"
+            }
+          ],
+          [
+            {
+              "text": "↩ В журнал",
+              "callback_data": "progress:numhist:13:0~c1a75b1a6752"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "aEAL2f1yPZbD0w": {
+        "path": "assets/ecaa4d56edaba3d0dc02352dacbb17798abf008b67a76f906d9169c8f84c15d0.png",
+        "filename": "bop-progress-numbers.png",
+        "sha256": "ecaa4d56edaba3d0dc02352dacbb17798abf008b67a76f906d9169c8f84c15d0"
+      }
+    }
+  },
+  "asset": "assets/ecaa4d56edaba3d0dc02352dacbb17798abf008b67a76f906d9169c8f84c15d0.png",
+  "raw_size": [
+    1200,
+    1107
+  ],
+  "mobile_heights": {
+    "360": 332,
+    "390": 360,
+    "430": 397
+  },
+  "desktop_fit": [
+    477,
+    440
+  ],
+  "message_id": 105,
+  "overview_id": 104
+}

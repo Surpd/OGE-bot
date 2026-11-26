@@ -1,0 +1,142 @@
+{
+  "key": "journal-all",
+  "title": "История · все задания",
+  "projection": {
+    "screen": "progress_journal",
+    "title": "История и ошибки",
+    "subtitle": "Все задания · Все номера",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Обратная величина суммы двух единичных дробей",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "1"
+          },
+          {
+            "label": "Вычитание десятичной дроби из смешанного числа",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно",
+            "tone": "good",
+            "icon": "",
+            "index": "2"
+          },
+          {
+            "label": "Деление десятичных дробей, записанных дробной чертой",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно с подсказкой",
+            "tone": "good",
+            "icon": "",
+            "index": "3"
+          },
+          {
+            "label": "Вычислить разность, сократить дробь, указать числитель",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Открыт разбор",
+            "tone": "muted",
+            "icon": "",
+            "index": "4"
+          }
+        ],
+        "layout": "journal"
+      }
+    ],
+    "metrics": [],
+    "note": "Записи 1–4 из 18",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://xZ0Tsb1jzMj2-g",
+      "reply_parameters": {
+        "message_id": 104,
+        "allow_sending_without_reply": true
+      },
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "✓ Все задания",
+              "callback_data": "progress:history:0~45347c8e8935"
+            },
+            {
+              "text": "С ошибками",
+              "callback_data": "progress:errors:0~45347c8e8935"
+            }
+          ],
+          [
+            {
+              "text": "Номер · Все номера",
+              "callback_data": "progress:filter:h0~45347c8e8935"
+            }
+          ],
+          [
+            {
+              "text": "1",
+              "callback_data": "progress:item:bzR5E99piFbXoYUVBEM8qQQA:h0~45347c8e8935"
+            },
+            {
+              "text": "2",
+              "callback_data": "progress:item:b7ejOtH_DVVKpcUubkpTalsA:h0~45347c8e8935"
+            },
+            {
+              "text": "3",
+              "callback_data": "progress:item:b-kdTdFOYFs0h-62c4foneQA:h0~45347c8e8935"
+            },
+            {
+              "text": "4",
+              "callback_data": "progress:item:by3tKee8PFHWiUm9bXbFAzIA:h0~45347c8e8935"
+            }
+          ],
+          [
+            {
+              "text": "Дальше →",
+              "callback_data": "progress:history:4~45347c8e8935"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~45347c8e8935"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "xZ0Tsb1jzMj2-g": {
+        "path": "assets/cb474e1dc1d7e02303486be27ba487eb99b7a1ab1c649141bf71f95bbbf26928.png",
+        "filename": "bop-progress-journal.png",
+        "sha256": "cb474e1dc1d7e02303486be27ba487eb99b7a1ab1c649141bf71f95bbbf26928"
+      }
+    }
+  },
+  "asset": "assets/cb474e1dc1d7e02303486be27ba487eb99b7a1ab1c649141bf71f95bbbf26928.png",
+  "raw_size": [
+    1200,
+    1080
+  ],
+  "mobile_heights": {
+    "360": 324,
+    "390": 351,
+    "430": 387
+  },
+  "desktop_fit": [
+    489,
+    440
+  ],
+  "message_id": 106,
+  "overview_id": 104
+}

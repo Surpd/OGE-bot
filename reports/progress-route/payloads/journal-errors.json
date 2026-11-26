@@ -1,0 +1,139 @@
+{
+  "key": "journal-errors",
+  "title": "Журнал · с ошибками",
+  "projection": {
+    "screen": "progress_journal",
+    "title": "История и ошибки",
+    "subtitle": "С ошибками · Все номера",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Обратная величина суммы двух единичных дробей",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "1"
+          },
+          {
+            "label": "Привести разность к указанному знаменателю и записать числитель",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "2"
+          },
+          {
+            "label": "Обратная величина суммы двух единичных дробей",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "3"
+          },
+          {
+            "label": "Вычитание десятичной дроби из смешанного числа",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "4"
+          }
+        ],
+        "layout": "journal"
+      }
+    ],
+    "metrics": [],
+    "note": "Записи 1–4 из 10",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://f3_UXnyKxgEVAg\"}",
+      "chat_id": "42",
+      "message_id": "106",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Все задания",
+              "callback_data": "progress:history:0~78a9c86ad482"
+            },
+            {
+              "text": "✓ С ошибками",
+              "callback_data": "progress:errors:0~78a9c86ad482"
+            }
+          ],
+          [
+            {
+              "text": "Номер · Все номера",
+              "callback_data": "progress:filter:e0~78a9c86ad482"
+            }
+          ],
+          [
+            {
+              "text": "1",
+              "callback_data": "progress:item:bzR5E99piFbXoYUVBEM8qQQA:e0~78a9c86ad482"
+            },
+            {
+              "text": "2",
+              "callback_data": "progress:item:b9GtPAzJIltLvBdBAh2SwqMA:e0~78a9c86ad482"
+            },
+            {
+              "text": "3",
+              "callback_data": "progress:item:b0ujdfRZNVRNhpY5hdhzoPAA:e0~78a9c86ad482"
+            },
+            {
+              "text": "4",
+              "callback_data": "progress:item:b8E29tmUwllpi7IBSW8ceIgA:e0~78a9c86ad482"
+            }
+          ],
+          [
+            {
+              "text": "Дальше →",
+              "callback_data": "progress:errors:4~78a9c86ad482"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~78a9c86ad482"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "f3_UXnyKxgEVAg": {
+        "path": "assets/2c6c432df5796b2dbb7e096d4289325435ef6814366e8d406dca16a9fcc227a2.png",
+        "filename": "bop-progress-journal.png",
+        "sha256": "2c6c432df5796b2dbb7e096d4289325435ef6814366e8d406dca16a9fcc227a2"
+      }
+    }
+  },
+  "asset": "assets/2c6c432df5796b2dbb7e096d4289325435ef6814366e8d406dca16a9fcc227a2.png",
+  "raw_size": [
+    1200,
+    1080
+  ],
+  "mobile_heights": {
+    "360": 324,
+    "390": 351,
+    "430": 387
+  },
+  "desktop_fit": [
+    489,
+    440
+  ],
+  "message_id": 106,
+  "overview_id": 104
+}

@@ -1,0 +1,155 @@
+{
+  "key": "number-dense",
+  "title": "№13 · заполненный прогресс",
+  "projection": {
+    "screen": "number_progress",
+    "title": "№13 · Прогресс",
+    "subtitle": "Неравенства",
+    "sections": [
+      {
+        "title": "Верные ответы",
+        "entries": [
+          {
+            "label": "Попытка: 1-я — 2, 2-я — 1, неизвестно — 1",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Подсказка: была — 1, не было — 2, неизвестно — 1",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          }
+        ],
+        "layout": "compact"
+      },
+      {
+        "title": "Типы задач",
+        "entries": [
+          {
+            "label": "Решить линейное неравенство, выбрать текстовый промежуток",
+            "key": "1",
+            "detail": "1/1 верно · Нужно проверить",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Произведение x и x+r, нестрогое объединение лучей",
+            "key": "2",
+            "detail": "0/1 верно · Нужно проверить",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          }
+        ],
+        "layout": "list"
+      }
+    ],
+    "metrics": [
+      {
+        "value": "4/5",
+        "label": "Верно",
+        "tone": "neutral"
+      },
+      {
+        "value": "80%",
+        "label": "Успешность",
+        "tone": "neutral"
+      },
+      {
+        "value": "0",
+        "label": "Новых самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "Выдано 6 · Пропущено 0 · Подсказки 2 · Разборы 2",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://2qWCOlBk9709yg\"}",
+      "chat_id": "42",
+      "message_id": "105",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №13",
+              "callback_data": "train:number:13~dfcd707857b5"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 1",
+              "callback_data": "train:family:OGE13-L01~dfcd707857b5"
+            },
+            {
+              "text": "Тренировать тип 2",
+              "callback_data": "train:family:OGE13-Q02~dfcd707857b5"
+            }
+          ],
+          [
+            {
+              "text": "История и ошибки №13",
+              "callback_data": "progress:numhist:13:0~dfcd707857b5"
+            }
+          ],
+          [
+            {
+              "text": "Все типы задач",
+              "callback_data": "progress:family:13:0~dfcd707857b5"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "progress:details~dfcd707857b5"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~dfcd707857b5"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "2qWCOlBk9709yg": {
+        "path": "assets/ca570e7ebacaff9c17ea1708c10fe5960fadd023de649196eadc26575b27251c.png",
+        "filename": "bop-number-progress.png",
+        "sha256": "ca570e7ebacaff9c17ea1708c10fe5960fadd023de649196eadc26575b27251c"
+      }
+    }
+  },
+  "asset": "assets/ca570e7ebacaff9c17ea1708c10fe5960fadd023de649196eadc26575b27251c.png",
+  "raw_size": [
+    1200,
+    1125
+  ],
+  "mobile_heights": {
+    "360": 338,
+    "390": 366,
+    "430": 403
+  },
+  "desktop_fit": [
+    469,
+    440
+  ],
+  "message_id": 105,
+  "overview_id": 104
+}

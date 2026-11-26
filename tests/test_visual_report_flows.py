@@ -46,7 +46,10 @@ async def test_number_progress_keeps_overview_anchor_and_real_stats(monkeypatch)
     assert [(m.value, m.label) for m in card.metrics] == [
         ("4/6", "Верно"), ("67%", "Успешность"), ("1", "Новых самостоятельно"),
     ]
-    assert any("неизвестно: 2" in entry.label for entry in card.sections[0].entries)
+    assert any(
+        entry.label.startswith("Подсказка:") and "неизвестно — 2" in entry.label
+        for entry in card.sections[0].entries
+    )
     kwargs = capture.await_args.kwargs
     assert kwargs["reply_parameters"].message_id == overview.message_id
     actions = [b.callback_data for row in kwargs["reply_markup"].inline_keyboard for b in row]

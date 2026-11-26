@@ -1,0 +1,96 @@
+{
+  "key": "number-empty",
+  "title": "№7 · задач пока нет",
+  "projection": {
+    "screen": "number_progress",
+    "title": "№7 · Прогресс",
+    "subtitle": "Числа и координатная прямая",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "0/0",
+        "label": "Верно",
+        "tone": "neutral"
+      },
+      {
+        "value": "—",
+        "label": "Успешность",
+        "tone": "neutral"
+      },
+      {
+        "value": "0",
+        "label": "Новых самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "Выдано 0 · Пропущено 0",
+    "hint": "Для оценки нужно 5 задач с ответом.",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://4tt_nRteEpsr1g\"}",
+      "chat_id": "42",
+      "message_id": "105",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №7",
+              "callback_data": "train:number:7~94fccac14daf"
+            }
+          ],
+          [
+            {
+              "text": "История и ошибки №7",
+              "callback_data": "progress:numhist:7:0~94fccac14daf"
+            }
+          ],
+          [
+            {
+              "text": "Все типы задач",
+              "callback_data": "progress:family:7:0~94fccac14daf"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "progress:details~94fccac14daf"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~94fccac14daf"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "4tt_nRteEpsr1g": {
+        "path": "assets/6fb0b55fdd101ef41dcf7938de33e27daf8ae6c7fd747e7d2e3e0aebe43447e5.png",
+        "filename": "bop-number-progress.png",
+        "sha256": "6fb0b55fdd101ef41dcf7938de33e27daf8ae6c7fd747e7d2e3e0aebe43447e5"
+      }
+    }
+  },
+  "asset": "assets/6fb0b55fdd101ef41dcf7938de33e27daf8ae6c7fd747e7d2e3e0aebe43447e5.png",
+  "raw_size": [
+    1200,
+    663
+  ],
+  "mobile_heights": {
+    "360": 199,
+    "390": 215,
+    "430": 238
+  },
+  "desktop_fit": [
+    500,
+    276
+  ],
+  "message_id": 105,
+  "overview_id": 104
+}

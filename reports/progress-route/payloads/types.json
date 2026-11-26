@@ -1,0 +1,137 @@
+{
+  "key": "types",
+  "title": "№6 · все типы",
+  "projection": {
+    "screen": "number_progress",
+    "title": "№6 · Типы задач",
+    "subtitle": "Вычисления",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Обратная величина суммы двух единичных дробей",
+            "key": "1",
+            "detail": "2/2 верно · Нужно потренировать, 0/3",
+            "value": "",
+            "tone": "warn",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Привести разность к указанному знаменателю и записать числитель",
+            "key": "2",
+            "detail": "2/2 верно · Нужно потренировать, 0/3",
+            "value": "",
+            "tone": "warn",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Вычитание десятичной дроби из смешанного числа",
+            "key": "3",
+            "detail": "2/2 верно · Нужно проверить",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          },
+          {
+            "label": "Деление десятичных дробей, записанных дробной чертой",
+            "key": "4",
+            "detail": "2/2 верно · Нужно проверить",
+            "value": "",
+            "tone": "neutral",
+            "icon": "",
+            "index": ""
+          }
+        ],
+        "layout": "list"
+      }
+    ],
+    "metrics": [],
+    "note": "Типы 1–4 из 12",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://0djk2Dtl35ws9Q\"}",
+      "chat_id": "42",
+      "message_id": "105",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №6",
+              "callback_data": "train:number:6~ac1dc5142335"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 1",
+              "callback_data": "train:family:OGE06-F003-UNIT-SUM~ac1dc5142335"
+            },
+            {
+              "text": "Тренировать тип 2",
+              "callback_data": "train:family:OGE06-F009-PRESCRIBED-NUMERATOR~ac1dc5142335"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 3",
+              "callback_data": "train:family:OGE06-F006-MIXED-MINUS-DECIMAL~ac1dc5142335"
+            },
+            {
+              "text": "Тренировать тип 4",
+              "callback_data": "train:family:OGE06-F004-DEC-DIV~ac1dc5142335"
+            }
+          ],
+          [
+            {
+              "text": "Дальше →",
+              "callback_data": "progress:family:6:4~ac1dc5142335"
+            }
+          ],
+          [
+            {
+              "text": "↩ К №6",
+              "callback_data": "progress:number:6~ac1dc5142335"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~ac1dc5142335"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "0djk2Dtl35ws9Q": {
+        "path": "assets/698c630735006abb2a8228bf7f11eba10362625d753111b84e194d331999995c.png",
+        "filename": "bop-number-progress.png",
+        "sha256": "698c630735006abb2a8228bf7f11eba10362625d753111b84e194d331999995c"
+      }
+    }
+  },
+  "asset": "assets/698c630735006abb2a8228bf7f11eba10362625d753111b84e194d331999995c.png",
+  "raw_size": [
+    1200,
+    1032
+  ],
+  "mobile_heights": {
+    "360": 310,
+    "390": 335,
+    "430": 370
+  },
+  "desktop_fit": [
+    500,
+    430
+  ],
+  "message_id": 105,
+  "overview_id": 104
+}

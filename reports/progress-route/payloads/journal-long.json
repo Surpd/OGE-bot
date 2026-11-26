@@ -1,0 +1,145 @@
+{
+  "key": "journal-long",
+  "title": "История №13 · длинные названия",
+  "projection": {
+    "screen": "progress_journal",
+    "title": "История и ошибки",
+    "subtitle": "Все задания · №13",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Разложенное произведение двух линейных множителей",
+            "key": "№13",
+            "detail": "26.11.2026",
+            "value": "Открыт разбор",
+            "tone": "muted",
+            "icon": "",
+            "index": "1"
+          },
+          {
+            "label": "Произведение x и x+r, нестрогое объединение лучей",
+            "key": "№13",
+            "detail": "26.11.2026",
+            "value": "Неверно",
+            "tone": "bad",
+            "icon": "",
+            "index": "2"
+          },
+          {
+            "label": "Квадратное неравенство с корнем 0, строгий промежуток",
+            "key": "№13",
+            "detail": "26.11.2026",
+            "value": "Верно",
+            "tone": "good",
+            "icon": "",
+            "index": "3"
+          },
+          {
+            "label": "Система двух линейных неравенств: ограниченный отрезок",
+            "key": "№13",
+            "detail": "26.11.2026",
+            "value": "Верно с подсказкой",
+            "tone": "good",
+            "icon": "",
+            "index": "4"
+          }
+        ],
+        "layout": "journal"
+      }
+    ],
+    "metrics": [],
+    "note": "Записи 1–4 из 6",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://BAzZfQEWs2F0pg\"}",
+      "chat_id": "42",
+      "message_id": "105",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "✓ Все задания",
+              "callback_data": "progress:numhist:13:0~6dece1005314"
+            },
+            {
+              "text": "С ошибками",
+              "callback_data": "progress:numerr:13:0~6dece1005314"
+            }
+          ],
+          [
+            {
+              "text": "Номер · 13",
+              "callback_data": "progress:filter:ad.0~6dece1005314"
+            }
+          ],
+          [
+            {
+              "text": "1",
+              "callback_data": "progress:item:b89pmV_YUlsktAuzavBLls0A:ad.0~6dece1005314"
+            },
+            {
+              "text": "2",
+              "callback_data": "progress:item:b3Hk8p9TDlp6kOf6iAe_nroA:ad.0~6dece1005314"
+            },
+            {
+              "text": "3",
+              "callback_data": "progress:item:bzZaPJWioVUdsDLxs1LZib0A:ad.0~6dece1005314"
+            },
+            {
+              "text": "4",
+              "callback_data": "progress:item:b4VgcahFn1y6po9Hf6u7EVoA:ad.0~6dece1005314"
+            }
+          ],
+          [
+            {
+              "text": "Дальше →",
+              "callback_data": "progress:numhist:13:4~6dece1005314"
+            }
+          ],
+          [
+            {
+              "text": "↩ К №13",
+              "callback_data": "progress:number:13~6dece1005314"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~6dece1005314"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "BAzZfQEWs2F0pg": {
+        "path": "assets/570826a0e41839ed339510abb61714699067835e9a80d5eca9cc1abdfbea1d08.png",
+        "filename": "bop-progress-journal.png",
+        "sha256": "570826a0e41839ed339510abb61714699067835e9a80d5eca9cc1abdfbea1d08"
+      }
+    }
+  },
+  "asset": "assets/570826a0e41839ed339510abb61714699067835e9a80d5eca9cc1abdfbea1d08.png",
+  "raw_size": [
+    1200,
+    1080
+  ],
+  "mobile_heights": {
+    "360": 324,
+    "390": 351,
+    "430": 387
+  },
+  "desktop_fit": [
+    489,
+    440
+  ],
+  "message_id": 105,
+  "overview_id": 104
+}

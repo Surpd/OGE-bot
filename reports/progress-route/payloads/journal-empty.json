@@ -1,0 +1,78 @@
+{
+  "key": "journal-empty",
+  "title": "История №7 · пустой список",
+  "projection": {
+    "screen": "progress_journal",
+    "title": "История и ошибки",
+    "subtitle": "Все задания · №7",
+    "sections": [],
+    "metrics": [],
+    "note": "Здесь появятся выданные вам задания.",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "editMessageMedia",
+    "payload": {
+      "media": "{\"type\": \"photo\", \"media\": \"attach://A_vioi1mYf-vPQ\"}",
+      "chat_id": "42",
+      "message_id": "105",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "✓ Все задания",
+              "callback_data": "progress:numhist:7:0~35829ccbc6db"
+            },
+            {
+              "text": "С ошибками",
+              "callback_data": "progress:numerr:7:0~35829ccbc6db"
+            }
+          ],
+          [
+            {
+              "text": "Номер · 7",
+              "callback_data": "progress:filter:a7.0~35829ccbc6db"
+            }
+          ],
+          [
+            {
+              "text": "↩ К №7",
+              "callback_data": "progress:number:7~35829ccbc6db"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~35829ccbc6db"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "A_vioi1mYf-vPQ": {
+        "path": "assets/3bb8e0424e505b777ad8e81ee2678ea4401c4c5fe220a51d76fb53ad4d128bae.png",
+        "filename": "bop-progress-journal.png",
+        "sha256": "3bb8e0424e505b777ad8e81ee2678ea4401c4c5fe220a51d76fb53ad4d128bae"
+      }
+    }
+  },
+  "asset": "assets/3bb8e0424e505b777ad8e81ee2678ea4401c4c5fe220a51d76fb53ad4d128bae.png",
+  "raw_size": [
+    1200,
+    357
+  ],
+  "mobile_heights": {
+    "360": 107,
+    "390": 116,
+    "430": 128
+  },
+  "desktop_fit": [
+    500,
+    149
+  ],
+  "message_id": 105,
+  "overview_id": 104
+}

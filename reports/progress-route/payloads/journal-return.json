@@ -1,0 +1,146 @@
+{
+  "key": "journal-return",
+  "title": "Возврат на страницу 2 ошибок",
+  "projection": {
+    "screen": "progress_journal",
+    "title": "История и ошибки",
+    "subtitle": "С ошибками · Все номера",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Деление десятичных дробей, записанных дробной чертой",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "5"
+          },
+          {
+            "label": "Вычислить разность, сократить дробь, указать числитель",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "6"
+          },
+          {
+            "label": "Вычитание двух обыкновенных дробей, отрицательный результат",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "7"
+          },
+          {
+            "label": "Привести разность к указанному знаменателю и записать числитель",
+            "key": "№6",
+            "detail": "26.11.2026",
+            "value": "Верно со 2-й попытки",
+            "tone": "good",
+            "icon": "had_error",
+            "index": "8"
+          }
+        ],
+        "layout": "journal"
+      }
+    ],
+    "metrics": [],
+    "note": "Записи 5–8 из 10",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  },
+  "bot_api": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://HpQ23SJeGm5MGQ",
+      "reply_parameters": {
+        "message_id": 104,
+        "allow_sending_without_reply": true
+      },
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Все задания",
+              "callback_data": "progress:history:0~3dcbd59e51e6"
+            },
+            {
+              "text": "✓ С ошибками",
+              "callback_data": "progress:errors:0~3dcbd59e51e6"
+            }
+          ],
+          [
+            {
+              "text": "Номер · Все номера",
+              "callback_data": "progress:filter:e4~3dcbd59e51e6"
+            }
+          ],
+          [
+            {
+              "text": "5",
+              "callback_data": "progress:item:bwhyE2JGMFXvgK2B9AoIA3IA:e4~3dcbd59e51e6"
+            },
+            {
+              "text": "6",
+              "callback_data": "progress:item:b2PUbZX8c1FwrxBuhrjGucwA:e4~3dcbd59e51e6"
+            },
+            {
+              "text": "7",
+              "callback_data": "progress:item:b5qn6AaZWFQepz7Dve69OgsA:e4~3dcbd59e51e6"
+            },
+            {
+              "text": "8",
+              "callback_data": "progress:item:bwjzJcCgpFuXmPG4ywE_HpMA:e4~3dcbd59e51e6"
+            }
+          ],
+          [
+            {
+              "text": "← Назад",
+              "callback_data": "progress:errors:0~3dcbd59e51e6"
+            },
+            {
+              "text": "Дальше →",
+              "callback_data": "progress:errors:8~3dcbd59e51e6"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~3dcbd59e51e6"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "HpQ23SJeGm5MGQ": {
+        "path": "assets/4ebd28d7a0e57728cd8715b3778da2d77db61aaec7527e861206ee80c550c205.png",
+        "filename": "bop-progress-journal.png",
+        "sha256": "4ebd28d7a0e57728cd8715b3778da2d77db61aaec7527e861206ee80c550c205"
+      }
+    }
+  },
+  "asset": "assets/4ebd28d7a0e57728cd8715b3778da2d77db61aaec7527e861206ee80c550c205.png",
+  "raw_size": [
+    1200,
+    1080
+  ],
+  "mobile_heights": {
+    "360": 324,
+    "390": 351,
+    "430": 387
+  },
+  "desktop_fit": [
+    489,
+    440
+  ],
+  "message_id": 108,
+  "overview_id": 104
+}

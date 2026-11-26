@@ -321,6 +321,7 @@ async def send_text(
     visual_reply_markup: InlineKeyboardMarkup | None = None,
     visual_caption: str | None = None,
     edit_existing: bool = False,
+    edit_progress: bool = False,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
@@ -334,6 +335,7 @@ async def send_text(
             reply_parameters=kwargs.get("reply_parameters"),
             caption=visual_caption,
             edit_existing=edit_existing,
+            edit_progress=edit_progress,
         )
         if sent_visual is not None:
             return sent_visual

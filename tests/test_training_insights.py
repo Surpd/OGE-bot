@@ -239,6 +239,8 @@ async def test_postgres_insights_survive_restart_and_isolate_user(insights_pool)
     errors = await training_insights(repository, 123, "errors")
     assert errors["page_total"] == 2
     assert len(errors["errors"]) == 2
+    retry = next(row for row in errors["errors"] if row["number"] == 6)
+    assert retry["correct_attempt_no"] == 2 and retry["correct_used_hint"] is True
     assert all("snapshot" not in row and "answer" not in row for row in errors["errors"])
     families = await training_insights(repository, 123, "families")
     assert families["page_total"] == 5
@@ -285,7 +287,8 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
            snapshot_schema_version,snapshot,snapshot_sha256)
            VALUES($1,'PAPER',1,'fixture',1,$2::jsonb,repeat('a',64)) RETURNING id""",
         user_id, json.dumps({"questions": [
-            {"condition": f"Практическое условие {position}"} for position in range(1, 6)
+            {"condition": f"Практическое условие {position}", "family_id": f"PAPER-F{position:02}"}
+            for position in range(1, 6)
         ]}),
     )
     session_id = await pool.fetchval(
@@ -323,6 +326,10 @@ async def test_postgres_widget_unifies_practical_and_ordinary_outcomes(insights_
     assert await training_record_detail(
         repository, telegram_user_id + 1, f"s:{session_id}:3"
     ) is None
+    journal = await training_insights(repository, telegram_user_id, "history", number_filter=3)
+    (story_row,) = journal["history"]
+    assert story_row["story_code"] == "PAPER" and story_row["question_family"] == "PAPER-F03"
+    assert story_row["correct_attempt_no"] == 2 and story_row["correct_used_hint"] is True
     total = (await training_insights(repository, telegram_user_id))["total"]
     assert total["issued"] == 9  # five individual questions share one scenario snapshot
     assert total["completed"] == 7

@@ -28,6 +28,8 @@ from app.persistence.training_insights import (
 )
 
 PAGE_SIZE = 6
+VISUAL_PAGE_SIZE = 4
+VISUAL_FAMILY_SUMMARY = 2
 _JOURNAL = {"history", "errors", "numhist", "numerr"}
 _ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz"
 OUTCOMES = {
@@ -156,6 +158,8 @@ def progress_keyboard(
     replay_action: tuple[str, str] | None = None,
     similar_action: str | None = None,
     insights: dict[str, Any] | None = None,
+    page_size: int = PAGE_SIZE,
+    summary_family_limit: int = PAGE_SIZE,
 ) -> InlineKeyboardMarkup:
     """Build one revision-bound keyboard for the current text/photo screen."""
     parts = page.split(":")
@@ -184,7 +188,7 @@ def progress_keyboard(
         else:
             rows.append([_button(f"Тренировать №{number}", f"nav:task:{number}")])
         rows.append([_button(f"История и ошибки №{number}", f"progress:numhist:{number}:0")])
-        if family_total > PAGE_SIZE:
+        if family_total > summary_family_limit:
             rows.append([_button("Все типы задач", f"progress:family:{number}:0")])
         rows.append([_button("↩ К номерам", "progress:details")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
@@ -196,9 +200,9 @@ def progress_keyboard(
             rows.append([_button(f"Тренировать №{number}", f"nav:task:{number}")])
         nav: list[InlineKeyboardButton] = []
         if offset:
-            nav.append(_button("← Назад", f"progress:family:{number}:{max(0, offset - PAGE_SIZE)}"))
-        if offset + PAGE_SIZE < family_total:
-            nav.append(_button("Дальше →", f"progress:family:{number}:{offset + PAGE_SIZE}"))
+            nav.append(_button("← Назад", f"progress:family:{number}:{max(0, offset - page_size)}"))
+        if offset + page_size < family_total:
+            nav.append(_button("Дальше →", f"progress:family:{number}:{offset + page_size}"))
         if nav:
             rows.append(nav)
         rows.append([_button(f"↩ К №{number}", f"progress:number:{number}")])
@@ -228,13 +232,15 @@ def progress_keyboard(
             callback = f"progress:item:{token}:{origin}"
             if len(callback.encode("utf-8")) <= 64:
                 numbered_buttons.append(_button(str(index), callback))
-        rows.extend(numbered_buttons[i : i + 3] for i in range(0, len(numbered_buttons), 3))
+        columns = VISUAL_PAGE_SIZE if page_size == VISUAL_PAGE_SIZE else 3
+        rows.extend(numbered_buttons[i : i + columns]
+                    for i in range(0, len(numbered_buttons), columns))
         navigation: list[InlineKeyboardButton] = []
         prefix = "progress:" + ":".join(parts[:-1]) + ":"
         if offset:
-            navigation.append(_button("← Назад", f"{prefix}{max(0, offset - PAGE_SIZE)}"))
-        if offset + PAGE_SIZE < total:
-            navigation.append(_button("Дальше →", f"{prefix}{offset + PAGE_SIZE}"))
+            navigation.append(_button("← Назад", f"{prefix}{max(0, offset - page_size)}"))
+        if offset + page_size < total:
+            navigation.append(_button("Дальше →", f"{prefix}{offset + page_size}"))
         if navigation:
             rows.append(navigation)
         if number is not None:
@@ -258,7 +264,10 @@ def progress_keyboard(
         start = (
             int(parts[2]) if section == "family" and len(parts) > 2 and parts[2].isdigit() else 0
         )
-        families = _visible_families(insights, number, full=section == "family", offset=start)
+        families = _visible_families(
+            insights, number, full=section == "family", offset=start,
+            limit=page_size if section == "family" else summary_family_limit,
+        )
         available = insights.get("available_families", {})
         practice = [
             _button(f"Тренировать тип {index}", available[row["family_id"]])
@@ -323,7 +332,22 @@ def _date_label(value: Any) -> str:
     return value.strftime("%d.%m.%Y") if isinstance(value, date | datetime) else "дата неизвестна"
 
 
+def _correct_attempt(record: dict[str, Any]) -> tuple[int | None, bool | None]:
+    if "correct_attempt_no" in record:
+        return record["correct_attempt_no"], record.get("correct_used_hint")
+    correct: dict[str, Any] = next(
+        (a for a in (record.get("attempt_records") or ()) if a.get("is_correct") is True), {}
+    )
+    return correct.get("attempt_no"), correct.get("used_hint")
+
+
 def _outcome_label(record: dict[str, Any]) -> str:
+    if record.get("outcome") == "solved":
+        attempt_no, _ = _correct_attempt(record)
+        if attempt_no == 2:
+            return "Верно со 2-й попытки"
+        if _record_has_error(record):
+            return "Верно после ошибки"
     return OUTCOMES.get(str(record.get("outcome")), "результат неизвестен")
 
 
@@ -340,6 +364,89 @@ def _progress_page_parts(page: str) -> tuple[str, list[str]]:
     return parts[0], parts[1:]
 
 
+def _numbers_card(*, journal_origin: str | None = None) -> VisualCard:
+    from app.bot.menu import picker_title
+    from app.bot.trainings import PART2_TRAININGS
+    from app.config import get_settings
+
+    sections = [
+        VisualSection("Практические задания", tuple(
+            VisualEntry("Практические задания", key=f"№{n}") for n in range(1, 6)
+        ), layout="practical"),
+        VisualSection("", tuple(
+            VisualEntry(picker_title(n, _number_title(n)), key=f"№{n}") for n in range(6, 20)
+        ), layout="tiles"),
+    ]
+    if journal_origin is None and get_settings().oge_part2_enabled:
+        sections.append(VisualSection("Письменные задания", tuple(
+            VisualEntry(t.title, key=f"№{t.number}") for t in PART2_TRAININGS
+        ), layout="range"))
+    subtitle = "Подробнее по номерам"
+    if journal_origin is not None:
+        subtitle = "История и ошибки · " + (
+            "С ошибками" if journal_origin.partition(":")[0] in {"errors", "numerr"}
+            else "Все задания"
+        )
+    return VisualCard(
+        "progress_numbers", "Выбери номер", subtitle,
+        sections=tuple(sections),
+    )
+
+
+def _journal_outcome(record: dict[str, Any]) -> tuple[str, str]:
+    outcome = record.get("outcome")
+    if outcome == "solved":
+        attempt_no, used_hint = _correct_attempt(record)
+        if attempt_no == 2:
+            return "Верно со 2-й попытки", "good"
+        if _record_has_error(record):
+            return "Верно после ошибки", "good"
+        if used_hint is True:
+            return "Верно с подсказкой", "good"
+        if attempt_no == 1 and used_hint is False:
+            return "Самостоятельно", "good"
+        return "Верно", "good"
+    return {
+        "failed": ("Неверно", "bad"),
+        "skipped": ("Пропущено", "muted"),
+        "solution_viewed": ("Открыт разбор", "muted"),
+        "issued": ("В процессе", "muted"),
+        "active": ("В процессе", "muted"),
+    }.get(str(outcome), ("Результат неизвестен", "muted"))
+
+
+def _journal_card(insights: dict[str, Any], page: str) -> VisualCard:
+    section, parts = _progress_page_parts(page)
+    errors = section in {"errors", "numerr"}
+    records = insights.get("errors" if errors else "history", [])
+    offset = int(parts[-1])
+    subtitle = ("С ошибками" if errors else "Все задания") + (
+        f" · №{parts[0]}" if section in {"numhist", "numerr"} else " · Все номера"
+    )
+    entries = []
+    for index, record in enumerate(records, offset + 1):
+        family = str(record.get("question_family") or record.get("family_id", ""))
+        topic = str(family_name(family) if record.get("question_family") else
+                    record.get("family_name") or family_name(family))
+        story_code = record_story_code(record)
+        if story_code in _STORY_NAMES and topic.casefold() != _STORY_NAMES[story_code].casefold():
+            topic = f"{_STORY_NAMES[story_code]} · {topic}"
+        outcome, tone = _journal_outcome(record)
+        entries.append(VisualEntry(
+            topic, key="№" + str(record.get("number", "?")).removeprefix("№"),
+            detail=_date_label(record.get("issued_at")), value=outcome, tone=tone,
+            icon=("had_error" if record.get("outcome") != "failed" and _record_has_error(record)
+                  else ""), index=str(index),
+        ))
+    total = int(insights.get("page_total", len(records)))
+    return VisualCard(
+        "progress_journal", "История и ошибки", subtitle,
+        sections=(VisualSection("", tuple(entries), layout="journal"),) if entries else (),
+        note=(f"Записи {offset + 1}–{offset + len(entries)} из {total}" if entries else
+              "Пока нет задач с ошибками." if errors else "Здесь появятся выданные вам задания."),
+    )
+
+
 def _record_list(insights: dict[str, Any], page: str) -> Text:
     section, parts = _progress_page_parts(page)
     errors = section in {"errors", "numerr"}
@@ -354,11 +461,8 @@ def _record_list(insights: dict[str, Any], page: str) -> Text:
     rows = []
     for index, record in enumerate(records, offset + 1):
         result = _outcome_label(record)
-        if record.get("has_error"):
-            if record.get("outcome") == "solved":
-                result = "решено после ошибки"
-            elif record.get("outcome") != "failed":
-                result += " · была ошибка"
+        if _record_has_error(record) and record.get("outcome") != "failed":
+            result += " · была ошибка"
         rows.append(Text(Bold(f"{index}. {_record_title(record)}"), "\n",
                          _date_label(record.get("issued_at")), " · ", result))
     count = int(insights.get("page_total", len(records)))
@@ -390,11 +494,12 @@ def _has_family_results(row: dict[str, Any]) -> bool:
 
 def _visible_families(
     insights: dict[str, Any], number: int, *, full: bool = False, offset: int = 0,
+    limit: int = PAGE_SIZE,
 ) -> list[dict[str, Any]]:
     families = _number_families(insights, number)
-    if not full and len(families) > PAGE_SIZE:
+    if not full and len(families) > limit:
         families = [row for row in families if _has_family_results(row)]
-    return families[offset : offset + PAGE_SIZE]
+    return families[offset : offset + limit]
 
 
 def _family_line(index: int, row: dict[str, Any]) -> str:
@@ -410,8 +515,9 @@ def _family_line(index: int, row: dict[str, Any]) -> str:
 
 def _number_card(
     insights: dict[str, Any], number: int, *, families_only: bool = False, offset: int = 0,
+    limit: int = PAGE_SIZE,
 ) -> VisualCard:
-    visible = _visible_families(insights, number, full=families_only, offset=offset)
+    visible = _visible_families(insights, number, full=families_only, offset=offset, limit=limit)
     entries = tuple(
         VisualEntry(
             label=str(row["name"]),
@@ -427,7 +533,9 @@ def _number_card(
         )
         for index, row in enumerate(visible, start=offset + 1)
     )
-    family_section = (VisualSection("Типы задач", entries),) if entries else ()
+    family_section = (
+        (VisualSection("" if families_only else "Типы задач", entries),) if entries else ()
+    )
     if families_only:
         total = len(_number_families(insights, number))
         return VisualCard(
@@ -446,36 +554,32 @@ def _number_card(
         metrics.append(VisualMetric(str(insights["independent_count"]), "Новых самостоятельно"))
     sections = []
     if answered:
-        attempts = [
-            VisualEntry(
-                f"Верно с первой: {values.get('first_correct', 0)} · "
-                f"Со второй: {values.get('second_correct', 0)}"
-            ),
-            VisualEntry(
-                f"С подсказкой: {values.get('assisted_correct', 0)} · "
-                f"Без подсказки: {values.get('unassisted_correct', 0)}"
-            ),
-        ]
+        attempt_line = (
+            f"Попытка: 1-я — {values.get('first_correct', 0)}, "
+            f"2-я — {values.get('second_correct', 0)}"
+        )
+        assistance_line = (
+            f"Подсказка: была — {values.get('assisted_correct', 0)}, "
+            f"не было — {values.get('unassisted_correct', 0)}"
+        )
         if values.get("unknown_correct_attempt"):
-            attempts.append(VisualEntry(
-                f"Номер верной попытки неизвестен: {values['unknown_correct_attempt']}"
-            ))
+            attempt_line += f", неизвестно — {values['unknown_correct_attempt']}"
         if values.get("unknown_assistance"):
-            attempts.append(VisualEntry(
-                f"Использование подсказки неизвестно: {values['unknown_assistance']}"
-            ))
-        sections.append(VisualSection("Попытки", tuple(attempts)))
-    activity = f"Выдано: {values.get('issued', 0)} · Пропущено: {values.get('skipped', 0)}"
+            assistance_line += f", неизвестно — {values['unknown_assistance']}"
+        sections.append(VisualSection("Верные ответы", (
+            VisualEntry(attempt_line), VisualEntry(assistance_line),
+        ), layout="compact"))
+    activity = f"Выдано {values.get('issued', 0)} · Пропущено {values.get('skipped', 0)}"
     if values.get("hints_used") or values.get("solutions_viewed"):
         activity += (
-            f"\nПодсказок: {values.get('hints_used', 0)} · "
-            f"Открыто разборов: {values.get('solutions_viewed', 0)}"
+            f" · Подсказки {values.get('hints_used', 0)} · "
+            f"Разборы {values.get('solutions_viewed', 0)}"
         )
     if any(insights.get(key) for key in ("open_gaps", "in_practice", "closed_gaps")):
         activity += (
-            f"\nОткрыто пробелов: {insights.get('open_gaps', 0)} · "
-            f"На закреплении: {insights.get('in_practice', 0)} · "
-            f"Закрыто пробелов: {insights.get('closed_gaps', 0)}"
+            f"\nПробелы · Открыто {insights.get('open_gaps', 0)} · "
+            f"Закрепляются {insights.get('in_practice', 0)} · "
+            f"Закрыто {insights.get('closed_gaps', 0)}"
         )
     return VisualCard(
         "number_progress", f"№{number} · Прогресс", _number_title(number),
@@ -556,7 +660,9 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
     if section == "number" and parts and parts[0].isdigit():
         number = int(parts[0])
         values = insights["numbers"].get(number, {})
-        families = _visible_families(insights, number)
+        families = _visible_families(
+            insights, number, limit=int(insights.get("summary_family_limit", PAGE_SIZE)),
+        )
         answered = values.get("answered_tasks", 0)
         lines = [
             f"№{number} · {_number_title(number)}", "",
@@ -599,10 +705,11 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
         number = int(parts[0]) if parts[0].isdigit() else 0
         offset = int(parts[1]) if parts[1].isdigit() else 0
         families = _number_families(insights, number)
-        visible = _visible_families(insights, number, full=True, offset=offset)
+        page_size = int(insights.get("family_page_size", PAGE_SIZE))
+        visible = _visible_families(insights, number, full=True, offset=offset, limit=page_size)
         lines = [f"№{number} · Типы задач", ""]
         lines.extend(_family_line(i, row) for i, row in enumerate(visible, start=offset + 1))
-        if len(families) > PAGE_SIZE:
+        if len(families) > page_size:
             lines.append(f"\nТипы {offset + 1}–{offset + len(visible)} из {len(families)}")
         return "\n".join(lines)
     if section == "filter":
@@ -686,6 +793,7 @@ async def load_progress_text_page(
     page: str,
     *,
     number_filter: int | None = None,
+    page_size: int = PAGE_SIZE,
 ) -> dict[str, Any]:
     section = page.partition(":")[0]
     query_page = page
@@ -697,10 +805,34 @@ async def load_progress_text_page(
         repository,
         user_id,
         query_page if section in _JOURNAL else "summary",
-        PAGE_SIZE,
+        page_size,
         number_filter=number_filter,
     )
     return insights
+
+
+def _progress_callbacks(message: Message) -> set[str]:
+    markup = getattr(message, "reply_markup", None)
+    if not isinstance(markup, InlineKeyboardMarkup):
+        return set()
+    return {
+        (button.callback_data or "").partition("~")[0]
+        for row in markup.inline_keyboard for button in row
+    }
+
+
+def _is_overview(message: Message) -> bool:
+    if not getattr(message, "photo", None):
+        return False
+    return {"progress:details", "progress:history:0"} <= _progress_callbacks(message)
+
+
+def _is_record_view(message: Message) -> bool:
+    callbacks = _progress_callbacks(message)
+    return any(value.startswith("progress:return:") for value in callbacks) or (
+        any(value.startswith("progress:item:") for value in callbacks)
+        and not any(value.startswith("progress:filter:") for value in callbacks)
+    )
 
 
 async def progress_navigation(
@@ -724,14 +856,12 @@ async def progress_navigation(
     old_message = getattr(message, "_message", message)
     was_photo = bool(getattr(old_message, "photo", None))
     reply = getattr(old_message, "reply_to_message", None)
-    overview = reply if isinstance(reply, Message) and reply.photo else None
-    old_markup = getattr(old_message, "reply_markup", None)
-    is_overview = was_photo and overview is None and (
-        old_markup is None or any(
-            (button.callback_data or "").partition("~")[0] == "progress:details"
-            for row in old_markup.inline_keyboard for button in row
-        )
-    )
+    # Telegram may omit a replied-to message's own reply_to_message. Recognize
+    # the overview by its controls, never by that missing nesting alone.
+    overview = reply if isinstance(reply, Message) and reply.photo and (
+        reply.reply_markup is None or _is_overview(reply)
+    ) else None
+    is_overview = _is_overview(old_message)
     if section in {"summary", "refresh"}:
         if overview is not None and await send_progress_image(
             overview, repository, user_id, "summary", edit_existing=True, viewer=message.from_user
@@ -787,14 +917,25 @@ async def progress_navigation(
         steps = source.snapshot.get("solution_steps") or source.snapshot.get("solution")
         if not isinstance(steps, list) or not steps:
             return await progress_navigation(message, repository, user_id, origin)
-        await send_text(
+        solution_reply: _ReplyOptions = {}
+        if overview is not None:
+            solution_reply["reply_parameters"] = ReplyParameters(
+                message_id=overview.message_id, allow_sending_without_reply=True,
+            )
+        sent = await send_text(
             message, repository, solution_message(list(map(str, steps)), source.correct_answer),
             math_family=source.snapshot, user_id_override=user_id, rich_with_navigation=True,
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                 [_button("↩ К записи", f"progress:item:{parts[1]}:{parts[2]}")],
                 [_button("↩ В журнал", "progress:" + origin)],
             ]),
+            **solution_reply,
         )
+        if sent.message_id != old_message.message_id:
+            try:
+                await old_message.edit_reply_markup(reply_markup=None)
+            except (TelegramBadRequest, TelegramNotFound):
+                pass
         return
     if section in {"item", "data"} and len(parts) == 3:
         from aiogram.types import BufferedInputFile
@@ -922,6 +1063,8 @@ async def progress_navigation(
         insights = await training_insights(repository, user_id, "summary")
         output_page = "details"
         markup = progress_keyboard(output_page)
+        if visual_enabled("progress_numbers", message, user_id):
+            visual = build_visual("progress_numbers", _numbers_card)
     elif section == "number" and len(parts) >= 2 and parts[1].isdigit():
         number = int(parts[1])
         if number not in range(1, 20):
@@ -930,13 +1073,19 @@ async def progress_navigation(
         insights = await training_insights(repository, user_id, "summary")
         await _include_family_states(insights, repository, user_id, number)
         family_total = sum(int(row["number"]) == number for row in insights["families"])
+        visual_active = visual_enabled("number_progress", message, user_id)
+        summary_limit = VISUAL_FAMILY_SUMMARY if visual_active else PAGE_SIZE
+        insights["summary_family_limit"] = summary_limit
         output_page = f"number:{number}:{offset}"
         markup = progress_keyboard(
             output_page, number=number, family_total=family_total,
             insights=insights,
+            summary_family_limit=summary_limit,
         )
-        if visual_enabled("number_progress", message, user_id):
-            visual = build_visual("number_progress", lambda: _number_card(insights, number))
+        if visual_active:
+            visual = build_visual("number_progress", lambda: _number_card(
+                insights, number, limit=summary_limit,
+            ))
     elif section == "family" and len(parts) == 3 and all(p.isdigit() for p in parts[1:]):
         number, offset = map(int, parts[1:])
         if number not in range(1, 20):
@@ -944,15 +1093,20 @@ async def progress_navigation(
         insights = await training_insights(repository, user_id, "summary")
         await _include_family_states(insights, repository, user_id, number)
         family_total = sum(int(row["number"]) == number for row in insights["families"])
-        if family_total <= PAGE_SIZE:
+        visual_active = visual_enabled("number_progress", message, user_id)
+        page_size = VISUAL_PAGE_SIZE if visual_active else PAGE_SIZE
+        summary_limit = VISUAL_FAMILY_SUMMARY if visual_active else PAGE_SIZE
+        insights["family_page_size"] = page_size
+        if family_total <= summary_limit:
             return await progress_navigation(message, repository, user_id, f"number:{number}")
         output_page = f"family:{number}:{offset}"
         markup = progress_keyboard(
-            output_page, number=number, family_total=family_total, insights=insights
+            output_page, number=number, family_total=family_total, insights=insights,
+            page_size=page_size,
         )
-        if visual_enabled("number_progress", message, user_id):
+        if visual_active:
             visual = build_visual("number_progress", lambda: _number_card(
-                insights, number, families_only=True, offset=offset,
+                insights, number, families_only=True, offset=offset, limit=page_size,
             ))
     elif section == "filter" and len(parts) == 2:
         try:
@@ -967,19 +1121,28 @@ async def progress_navigation(
         markup = InlineKeyboardMarkup(inline_keyboard=rows)
         output_page = page
         insights = {}
+        if visual_enabled("progress_numbers", message, user_id):
+            visual = build_visual("progress_numbers", lambda: _numbers_card(journal_origin=origin))
     elif section in _JOURNAL:
         numbered = section in {"numhist", "numerr"}
         if (len(parts) != (3 if numbered else 2) or not all(p.isdigit() for p in parts[1:])
                 or numbered and int(parts[1]) not in range(1, 20)):
             return await progress_navigation(message, repository, user_id, "history:0")
         output_page = page
-        insights = await load_progress_text_page(repository, user_id, page)
+        visual_active = visual_enabled("progress_journal", message, user_id)
+        page_size = VISUAL_PAGE_SIZE if visual_active else PAGE_SIZE
+        insights = await load_progress_text_page(repository, user_id, page, page_size=page_size)
         key = "errors" if section in {"errors", "numerr"} else "history"
-        markup = progress_keyboard(page, insights.get("page_total", 0), records=insights[key])
+        markup = progress_keyboard(
+            page, insights.get("page_total", 0), records=insights[key], page_size=page_size,
+        )
+        if visual_active:
+            visual = build_visual("progress_journal", lambda: _journal_card(insights, page))
     else:
         return await progress_navigation(message, repository, user_id, "summary")
 
-    open_below_overview = section == "details" and is_overview
+    editable_sections = {"details", "number", "family", "filter", *_JOURNAL}
+    open_below_overview = is_overview and section in editable_sections
     reply_options: _ReplyOptions = {}
     if open_below_overview:
         overview = old_message
@@ -1006,6 +1169,8 @@ async def progress_navigation(
         math_system_rows=math_system_rows,
         user_id_override=user_id,
         visual=visual,
+        edit_progress=(visual is not None and not is_overview and not open_below_overview
+                       and not _is_record_view(old_message) and section in editable_sections),
         **reply_options,
     )
     if not open_below_overview and sent.message_id != old_message.message_id:
