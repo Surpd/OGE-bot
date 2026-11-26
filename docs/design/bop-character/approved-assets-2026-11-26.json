@@ -132,6 +132,14 @@
       "bytes": 1466616,
       "sha256": "940e133bdb97d5ad2abf3698cea2f6a9410612bcc235b1b5ecd43c4ffd78e3cf",
       "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "peek-right-down.png",
+      "repository_path": "docs/design/bop-character/poses/approved/peek-right-down.png",
+      "status": "approved",
+      "note": "Выглядывает справа, с любопытством смотрит влево-вниз. Пользователь одобрил сохранение как дополнительного варианта. Основной следующий вариант должен смотреть горизонтально влево; отдельно запланирован вариант выглядывания снизу со взглядом вверх.",
+      "library_file_id": "libfile_89a975677eec81919b6908c1850823e3",
+      "github_binary_status": "pending_import"
     }
   ],
   "current_telegram": {
