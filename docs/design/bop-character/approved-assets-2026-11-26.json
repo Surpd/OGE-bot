@@ -206,6 +206,15 @@
       "library_file_id": "libfile_167ef97905dc81919b5f27f753d4cc98",
       "github_binary_status": "pending_import",
       "runtime_ready": false
+    },
+    {
+      "filename": "fist-bump-confident.png",
+      "repository_path": "docs/design/bop-character/poses/candidates/fist-bump-confident.png",
+      "status": "preferred_candidate",
+      "note": "Второй вариант fist bump, спокойный уверенный прищур вместо детской гримасы. Пользователь продолжил работу, отдельного явного утверждения не было. Сохранён для дальнейшего отбора. Для карточек нужно убрать фон; облачка и реплики рисуются отдельно программно.",
+      "library_file_id": "libfile_ee446fbcf8a881919bab7facb07dc4c0",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
     }
   ],
   "current_telegram": {
