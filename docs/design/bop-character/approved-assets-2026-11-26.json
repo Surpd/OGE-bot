@@ -53,14 +53,58 @@
     {
       "filename": "avatar-selected.png",
       "repository_path": "docs/design/bop-character/references/telegram/avatar-414.png",
-      "status": "preferred_reference",
-      "note": "Выбранная ранее аватарка; RGB, не прозрачный ассет.",
+      "status": "superseded",
+      "note": "Заменена новой утверждённой аватаркой 26.11.2026; только архив.",
       "width": 414,
       "height": 414,
       "mode": "RGB",
       "alpha_extrema": null,
       "bytes": 141933,
       "sha256": "dade2908317304170d8ddcf6bf444294670248430d605c61830c132f9af344f3"
+    },
+    {
+      "filename": "avatar.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1991489,
+      "sha256": "81250e299ad2f66d0494bf8f2c711f3ee9a03e24d5ab13df529cf7e4f8dd81d4",
+      "note": "Новая действующая аватарка Telegram; утверждена пользователем.",
+      "repository_path": "docs/design/bop-character/references/telegram/avatar.png",
+      "status": "approved",
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "welcome-original.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1910868,
+      "sha256": "c8031008f9b3299b847df691072b90082f1b371e0b02168e39555b8aa89bfe50",
+      "note": "Утверждённая приветственная обложка, оригинал.",
+      "repository_path": "docs/design/bop-character/references/telegram/welcome-original.png",
+      "status": "approved",
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "welcome-640x360.png",
+      "width": 640,
+      "height": 360,
+      "bytes": 309486,
+      "sha256": "6bba8ea22602ed28457946ca0a8eea6d03e4f224d818db0a1e8715e61c857b69",
+      "note": "Действующая обложка для BotFather Edit Description Picture.",
+      "repository_path": "docs/design/bop-character/references/telegram/welcome-640x360.png",
+      "status": "approved",
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "github_binary_status": "pending_import"
     }
-  ]
+  ],
+  "current_telegram": {
+    "avatar": "avatar.png",
+    "description_picture": "welcome-640x360.png",
+    "master": "welcome-original.png"
+  }
 }
