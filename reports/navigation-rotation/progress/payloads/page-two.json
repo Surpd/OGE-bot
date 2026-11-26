@@ -1,0 +1,65 @@
+{
+  "case": "page-two",
+  "label": "Вторая страница ошибок №6",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "История и ошибки · С ошибками · №6\nЗаписи 7–7 из 7\n\n7. №6 · Сложение десятичных дробей\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
+        "chat_id": "42",
+        "message_id": "325",
+        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 34}, {\"type\": \"bold\", \"offset\": 52, \"length\": 34}]",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Все задания",
+                "callback_data": "progress:numhist:6:0~69241d4d43bb"
+              },
+              {
+                "text": "✓ С ошибками",
+                "callback_data": "progress:numerr:6:0~69241d4d43bb"
+              }
+            ],
+            [
+              {
+                "text": "Номер · 6",
+                "callback_data": "progress:filter:n6.6~69241d4d43bb"
+              }
+            ],
+            [
+              {
+                "text": "7",
+                "callback_data": "progress:item:b78TeNaTXkEBtsmnxGdmp5AA:n6.6~69241d4d43bb"
+              }
+            ],
+            [
+              {
+                "text": "← Назад",
+                "callback_data": "progress:numerr:6:0~69241d4d43bb"
+              }
+            ],
+            [
+              {
+                "text": "↩ К №6",
+                "callback_data": "progress:number:6~69241d4d43bb"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~69241d4d43bb"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "2c0c5768-28ae-4ca8-bd6c-ed65a048bbeb"
+      }
+    }
+  ]
+}

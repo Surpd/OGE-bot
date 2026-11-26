@@ -1,0 +1,121 @@
+{
+  "case": "filters",
+  "label": "Выбор номера журнала",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>История</b> и ошибки · Выберите номер",
+        "chat_id": "42",
+        "message_id": "327",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Все номера",
+                "callback_data": "progress:errors:0~b9c70420b25d"
+              }
+            ],
+            [
+              {
+                "text": "№1",
+                "callback_data": "progress:numerr:1:0~b9c70420b25d"
+              },
+              {
+                "text": "№2",
+                "callback_data": "progress:numerr:2:0~b9c70420b25d"
+              },
+              {
+                "text": "№3",
+                "callback_data": "progress:numerr:3:0~b9c70420b25d"
+              },
+              {
+                "text": "№4",
+                "callback_data": "progress:numerr:4:0~b9c70420b25d"
+              },
+              {
+                "text": "№5",
+                "callback_data": "progress:numerr:5:0~b9c70420b25d"
+              }
+            ],
+            [
+              {
+                "text": "№6",
+                "callback_data": "progress:numerr:6:0~b9c70420b25d"
+              },
+              {
+                "text": "№7",
+                "callback_data": "progress:numerr:7:0~b9c70420b25d"
+              },
+              {
+                "text": "№8",
+                "callback_data": "progress:numerr:8:0~b9c70420b25d"
+              },
+              {
+                "text": "№9",
+                "callback_data": "progress:numerr:9:0~b9c70420b25d"
+              },
+              {
+                "text": "№10",
+                "callback_data": "progress:numerr:10:0~b9c70420b25d"
+              }
+            ],
+            [
+              {
+                "text": "№11",
+                "callback_data": "progress:numerr:11:0~b9c70420b25d"
+              },
+              {
+                "text": "№12",
+                "callback_data": "progress:numerr:12:0~b9c70420b25d"
+              },
+              {
+                "text": "№13",
+                "callback_data": "progress:numerr:13:0~b9c70420b25d"
+              },
+              {
+                "text": "№14",
+                "callback_data": "progress:numerr:14:0~b9c70420b25d"
+              },
+              {
+                "text": "№15",
+                "callback_data": "progress:numerr:15:0~b9c70420b25d"
+              }
+            ],
+            [
+              {
+                "text": "№16",
+                "callback_data": "progress:numerr:16:0~b9c70420b25d"
+              },
+              {
+                "text": "№17",
+                "callback_data": "progress:numerr:17:0~b9c70420b25d"
+              },
+              {
+                "text": "№18",
+                "callback_data": "progress:numerr:18:0~b9c70420b25d"
+              },
+              {
+                "text": "№19",
+                "callback_data": "progress:numerr:19:0~b9c70420b25d"
+              }
+            ],
+            [
+              {
+                "text": "↩ В журнал",
+                "callback_data": "progress:numerr:6:6~b9c70420b25d"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "b6aa5d85-6b53-484c-b1d7-d3ec195f8ac1"
+      }
+    }
+  ]
+}

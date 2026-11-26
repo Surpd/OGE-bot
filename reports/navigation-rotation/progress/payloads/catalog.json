@@ -1,0 +1,79 @@
+{
+  "case": "catalog",
+  "label": "Каталог типов №6",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>№6 · Типы задач</b>\n\n1. Вычитание двух обыкновенных дробей, отрицательный результат · 2/2 верно · Нужно потренировать, 0/3\n2. Умножение десятичных дробей · 2/2 верно · Нужно потренировать, 0/3\n3. Вычитание десятичных дробей · 1/1 верно · Нужно проверить\n4. Сложение десятичных дробей · 1/1 верно · Нужно проверить\n5. Умножение двух обыкновенных дробей · 2/2 верно · Закрепляется, 1/3\n6. Вычислить разность, сократить дробь, указать числитель · Нет данных\n\nТипы 1–6 из 12",
+        "chat_id": "42",
+        "message_id": "325",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Тренировать №6",
+                "callback_data": "train:number:6~bef8fe7c9ac6"
+              }
+            ],
+            [
+              {
+                "text": "Тренировать тип 1",
+                "callback_data": "train:family:OGE06-F001-SUB~bef8fe7c9ac6"
+              },
+              {
+                "text": "Тренировать тип 2",
+                "callback_data": "train:family:OGE06-F004-DEC-MUL~bef8fe7c9ac6"
+              }
+            ],
+            [
+              {
+                "text": "Тренировать тип 3",
+                "callback_data": "train:family:OGE06-F004-DEC-SUB~bef8fe7c9ac6"
+              },
+              {
+                "text": "Тренировать тип 4",
+                "callback_data": "train:family:OGE06-F004-DEC-ADD~bef8fe7c9ac6"
+              }
+            ],
+            [
+              {
+                "text": "Тренировать тип 5",
+                "callback_data": "train:family:OGE06-F002-MUL~bef8fe7c9ac6"
+              },
+              {
+                "text": "Тренировать тип 6",
+                "callback_data": "train:family:OGE06-F008-REDUCED-NUMERATOR~bef8fe7c9ac6"
+              }
+            ],
+            [
+              {
+                "text": "Дальше →",
+                "callback_data": "progress:family:6:6~bef8fe7c9ac6"
+              }
+            ],
+            [
+              {
+                "text": "↩ К №6",
+                "callback_data": "progress:number:6~bef8fe7c9ac6"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~bef8fe7c9ac6"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "a2b4ad41-5d9b-47a0-8257-d66bfbc8d28a"
+      }
+    }
+  ]
+}

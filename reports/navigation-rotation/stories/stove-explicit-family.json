@@ -1,0 +1,482 @@
+{
+  "case": "stove-explicit-family",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Тренировка завершена.</b>\n\nРешено верно: 0 из 6\nСамостоятельно: 0 из 6\nПропущено: 6",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Персональная тренировка",
+                "callback_data": "train:personal~134064b951c0"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "train:progress~134064b951c0"
+              },
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~134064b951c0"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "9149d5fd-89ab-4a30-a743-63740ed04333"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Режим ученика · только тестовая история. Фото: явная имитация, без модели."
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Привет! Здесь можно тренировать задания ОГЭ по математике №1–25.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "remove_keyboard": true
+        }
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Выберите раздел в меню.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🎯 Тренировки",
+                "callback_data": "nav:trainings~bd1060119359"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "nav:progress~bd1060119359"
+              }
+            ],
+            [
+              {
+                "text": "⚙️ Настройки",
+                "callback_data": "nav:display~bd1060119359"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Вернуться к точным проверкам можно кнопкой под полем ввода.",
+        "reply_markup": {
+          "keyboard": [
+            [
+              {
+                "text": "🔬 Проверки"
+              }
+            ]
+          ],
+          "is_persistent": true,
+          "resize_keyboard": true
+        }
+      }
+    },
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>Тренировки</b>",
+        "chat_id": "42",
+        "message_id": "197",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🎯 Персональная тренировка",
+                "callback_data": "train:personal~619527fdc28f"
+              }
+            ],
+            [
+              {
+                "text": "🔢 По номеру или типу",
+                "callback_data": "train:areas~619527fdc28f"
+              }
+            ],
+            [
+              {
+                "text": "🔀 Смешанная тренировка",
+                "callback_data": "train:mixed~619527fdc28f"
+              }
+            ],
+            [
+              {
+                "text": "📝 Первая часть целиком",
+                "callback_data": "nav:mixed~619527fdc28f"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~619527fdc28f"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "5633612c-5cee-4058-955d-a09bc7667512"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Выбери номер</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "№1–5 · Связанный сюжет",
+                "callback_data": "nav:linked~9c1b539e1ed3"
+              }
+            ],
+            [
+              {
+                "text": "№1",
+                "callback_data": "train:area:1~9c1b539e1ed3"
+              },
+              {
+                "text": "№2",
+                "callback_data": "train:area:2~9c1b539e1ed3"
+              },
+              {
+                "text": "№3",
+                "callback_data": "train:area:3~9c1b539e1ed3"
+              },
+              {
+                "text": "№4",
+                "callback_data": "train:area:4~9c1b539e1ed3"
+              },
+              {
+                "text": "№5",
+                "callback_data": "train:area:5~9c1b539e1ed3"
+              }
+            ],
+            [
+              {
+                "text": "№6",
+                "callback_data": "train:area:6~9c1b539e1ed3"
+              },
+              {
+                "text": "№7",
+                "callback_data": "train:area:7~9c1b539e1ed3"
+              },
+              {
+                "text": "№8",
+                "callback_data": "train:area:8~9c1b539e1ed3"
+              },
+              {
+                "text": "№9",
+                "callback_data": "train:area:9~9c1b539e1ed3"
+              },
+              {
+                "text": "№10",
+                "callback_data": "train:area:10~9c1b539e1ed3"
+              }
+            ],
+            [
+              {
+                "text": "№11",
+                "callback_data": "train:area:11~9c1b539e1ed3"
+              },
+              {
+                "text": "№12",
+                "callback_data": "train:area:12~9c1b539e1ed3"
+              },
+              {
+                "text": "№13",
+                "callback_data": "train:area:13~9c1b539e1ed3"
+              },
+              {
+                "text": "№14",
+                "callback_data": "train:area:14~9c1b539e1ed3"
+              },
+              {
+                "text": "№15",
+                "callback_data": "train:area:15~9c1b539e1ed3"
+              }
+            ],
+            [
+              {
+                "text": "№16",
+                "callback_data": "train:area:16~9c1b539e1ed3"
+              },
+              {
+                "text": "№17",
+                "callback_data": "train:area:17~9c1b539e1ed3"
+              },
+              {
+                "text": "№18",
+                "callback_data": "train:area:18~9c1b539e1ed3"
+              },
+              {
+                "text": "№19",
+                "callback_data": "train:area:19~9c1b539e1ed3"
+              }
+            ],
+            [
+              {
+                "text": "№20",
+                "callback_data": "p2:menu:20~9c1b539e1ed3"
+              },
+              {
+                "text": "№21",
+                "callback_data": "p2:menu:21~9c1b539e1ed3"
+              },
+              {
+                "text": "№22",
+                "callback_data": "p2:menu:22~9c1b539e1ed3"
+              }
+            ],
+            [
+              {
+                "text": "№23",
+                "callback_data": "p2:menu:23~9c1b539e1ed3"
+              },
+              {
+                "text": "№24",
+                "callback_data": "p2:menu:24~9c1b539e1ed3"
+              },
+              {
+                "text": "№25",
+                "callback_data": "p2:menu:25~9c1b539e1ed3"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "nav:trainings~9c1b539e1ed3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "6961346b-b5fc-4662-ba77-ea0f29b0da2a"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№3: весь номер или сюжет?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №3",
+                "callback_data": "train:number:3~287cb4d15417"
+              }
+            ],
+            [
+              {
+                "text": "Шины",
+                "callback_data": "train:story:3:TYRES~287cb4d15417"
+              }
+            ],
+            [
+              {
+                "text": "Бумага",
+                "callback_data": "train:story:3:PAPER~287cb4d15417"
+              }
+            ],
+            [
+              {
+                "text": "Печи",
+                "callback_data": "train:story:3:STOVE~287cb4d15417"
+              }
+            ],
+            [
+              {
+                "text": "Тарифы",
+                "callback_data": "train:story:3:TARIFF~287cb4d15417"
+              }
+            ],
+            [
+              {
+                "text": "Участки",
+                "callback_data": "train:story:3:GARDEN~287cb4d15417"
+              }
+            ],
+            [
+              {
+                "text": "Квартиры",
+                "callback_data": "train:story:3:FLAT~287cb4d15417"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~287cb4d15417"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "4b0334bb-92a6-48f9-b62e-d537ed0af30f"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>№3 · Печи</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Все типы",
+                "callback_data": "train:story-all:3:STOVE~430e32a9e4e8"
+              }
+            ],
+            [
+              {
+                "text": "Выбор печи с доставкой",
+                "callback_data": "train:family:STOVE-F07-FIT-WOOD-DELIVERY~430e32a9e4e8"
+              }
+            ],
+            [
+              {
+                "text": "Дополнительные расходы на печь",
+                "callback_data": "train:family:STOVE-F06-PURCHASE-EXTRA-COSTS~430e32a9e4e8"
+              }
+            ],
+            [
+              {
+                "text": "Площадь пола",
+                "callback_data": "train:family:STOVE-F04-FLOOR-AREA~430e32a9e4e8"
+              }
+            ],
+            [
+              {
+                "text": "Площадь стен с проёмами",
+                "callback_data": "train:family:STOVE-F05-WALL-AREA-NET~430e32a9e4e8"
+              }
+            ],
+            [
+              {
+                "text": "Сравнение стоимости печей",
+                "callback_data": "train:family:STOVE-F08-COST-COMPARISON~430e32a9e4e8"
+              }
+            ],
+            [
+              {
+                "text": "↩ К сюжетам",
+                "callback_data": "train:area:3~430e32a9e4e8"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "70612850-0f1a-4ff4-a660-71a48af0d304"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}6 \\times 2 \\times 2{,}1</tg-math> м. Дверь: 83 см × 198 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Площадь пола</b></p><p> </p><p><b>№3 — задание 1</b></p><p> </p><p>Найдите площадь пола парной в квадратных метрах.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:e70aa9b6-89da-4525-bd19-e77c718ddbef"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:e70aa9b6-89da-4525-bd19-e77c718ddbef"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:e70aa9b6-89da-4525-bd19-e77c718ddbef"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:e70aa9b6-89da-4525-bd19-e77c718ddbef"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:e70aa9b6-89da-4525-bd19-e77c718ddbef"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:e70aa9b6-89da-4525-bd19-e77c718ddbef"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "1b3c7976-b50c-452d-8554-8e64f30b135f"
+      }
+    }
+  ]
+}

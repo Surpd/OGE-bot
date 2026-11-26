@@ -1,0 +1,438 @@
+{
+  "case": "whole-number-issued",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Тренировка завершена.</b>\n\nРешено верно: 0 из 1\nСамостоятельно: 0 из 1\nПропущено: 1",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Персональная тренировка",
+                "callback_data": "train:personal~04f218feb0a5"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "train:progress~04f218feb0a5"
+              },
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~04f218feb0a5"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "fd13f243-f9f1-4dd2-8a7c-a5eb521e62cf"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Режим ученика · только тестовая история. Фото: явная имитация, без модели."
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Привет! Здесь можно тренировать задания ОГЭ по математике №1–25.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "remove_keyboard": true
+        }
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Выберите раздел в меню.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🎯 Тренировки",
+                "callback_data": "nav:trainings~8093df679ab6"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "nav:progress~8093df679ab6"
+              }
+            ],
+            [
+              {
+                "text": "⚙️ Настройки",
+                "callback_data": "nav:display~8093df679ab6"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Вернуться к точным проверкам можно кнопкой под полем ввода.",
+        "reply_markup": {
+          "keyboard": [
+            [
+              {
+                "text": "🔬 Проверки"
+              }
+            ]
+          ],
+          "is_persistent": true,
+          "resize_keyboard": true
+        }
+      }
+    },
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>Тренировки</b>",
+        "chat_id": "42",
+        "message_id": "218",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🎯 Персональная тренировка",
+                "callback_data": "train:personal~df569c6acc2f"
+              }
+            ],
+            [
+              {
+                "text": "🔢 По номеру или типу",
+                "callback_data": "train:areas~df569c6acc2f"
+              }
+            ],
+            [
+              {
+                "text": "🔀 Смешанная тренировка",
+                "callback_data": "train:mixed~df569c6acc2f"
+              }
+            ],
+            [
+              {
+                "text": "📝 Первая часть целиком",
+                "callback_data": "nav:mixed~df569c6acc2f"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~df569c6acc2f"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "6ac34604-0095-43c9-a9bf-c3367ca04a90"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Выбери номер</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "№1–5 · Связанный сюжет",
+                "callback_data": "nav:linked~e84182ae21b6"
+              }
+            ],
+            [
+              {
+                "text": "№1",
+                "callback_data": "train:area:1~e84182ae21b6"
+              },
+              {
+                "text": "№2",
+                "callback_data": "train:area:2~e84182ae21b6"
+              },
+              {
+                "text": "№3",
+                "callback_data": "train:area:3~e84182ae21b6"
+              },
+              {
+                "text": "№4",
+                "callback_data": "train:area:4~e84182ae21b6"
+              },
+              {
+                "text": "№5",
+                "callback_data": "train:area:5~e84182ae21b6"
+              }
+            ],
+            [
+              {
+                "text": "№6",
+                "callback_data": "train:area:6~e84182ae21b6"
+              },
+              {
+                "text": "№7",
+                "callback_data": "train:area:7~e84182ae21b6"
+              },
+              {
+                "text": "№8",
+                "callback_data": "train:area:8~e84182ae21b6"
+              },
+              {
+                "text": "№9",
+                "callback_data": "train:area:9~e84182ae21b6"
+              },
+              {
+                "text": "№10",
+                "callback_data": "train:area:10~e84182ae21b6"
+              }
+            ],
+            [
+              {
+                "text": "№11",
+                "callback_data": "train:area:11~e84182ae21b6"
+              },
+              {
+                "text": "№12",
+                "callback_data": "train:area:12~e84182ae21b6"
+              },
+              {
+                "text": "№13",
+                "callback_data": "train:area:13~e84182ae21b6"
+              },
+              {
+                "text": "№14",
+                "callback_data": "train:area:14~e84182ae21b6"
+              },
+              {
+                "text": "№15",
+                "callback_data": "train:area:15~e84182ae21b6"
+              }
+            ],
+            [
+              {
+                "text": "№16",
+                "callback_data": "train:area:16~e84182ae21b6"
+              },
+              {
+                "text": "№17",
+                "callback_data": "train:area:17~e84182ae21b6"
+              },
+              {
+                "text": "№18",
+                "callback_data": "train:area:18~e84182ae21b6"
+              },
+              {
+                "text": "№19",
+                "callback_data": "train:area:19~e84182ae21b6"
+              }
+            ],
+            [
+              {
+                "text": "№20",
+                "callback_data": "p2:menu:20~e84182ae21b6"
+              },
+              {
+                "text": "№21",
+                "callback_data": "p2:menu:21~e84182ae21b6"
+              },
+              {
+                "text": "№22",
+                "callback_data": "p2:menu:22~e84182ae21b6"
+              }
+            ],
+            [
+              {
+                "text": "№23",
+                "callback_data": "p2:menu:23~e84182ae21b6"
+              },
+              {
+                "text": "№24",
+                "callback_data": "p2:menu:24~e84182ae21b6"
+              },
+              {
+                "text": "№25",
+                "callback_data": "p2:menu:25~e84182ae21b6"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "nav:trainings~e84182ae21b6"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "f9acbc40-34ac-473d-a336-06b0f3cab7fe"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№3: весь номер или сюжет?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №3",
+                "callback_data": "train:number:3~802072952ecc"
+              }
+            ],
+            [
+              {
+                "text": "Шины",
+                "callback_data": "train:story:3:TYRES~802072952ecc"
+              }
+            ],
+            [
+              {
+                "text": "Бумага",
+                "callback_data": "train:story:3:PAPER~802072952ecc"
+              }
+            ],
+            [
+              {
+                "text": "Печи",
+                "callback_data": "train:story:3:STOVE~802072952ecc"
+              }
+            ],
+            [
+              {
+                "text": "Тарифы",
+                "callback_data": "train:story:3:TARIFF~802072952ecc"
+              }
+            ],
+            [
+              {
+                "text": "Участки",
+                "callback_data": "train:story:3:GARDEN~802072952ecc"
+              }
+            ],
+            [
+              {
+                "text": "Квартиры",
+                "callback_data": "train:story:3:FLAT~802072952ecc"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~802072952ecc"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "f841da3e-8b61-4237-8a8e-3002605d03e0"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>На плане изображён дачный участок в посёлке Сосновка. Единственные ворота расположены на правой границе. При входе слева находится гараж, справа — сарай, а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, плитка — <tg-math>1 \\times 1</tg-math> м.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://Xmg0RJgoklrprg",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "Xmg0RJgoklrprg": {
+          "path": "assets/d1328c75a1e8c993f8af355b4183ef524114bfd6b366dbac1ef6c104bd89ee2a.png",
+          "filename": "scenario-1.png",
+          "sha256": "d1328c75a1e8c993f8af355b4183ef524114bfd6b366dbac1ef6c104bd89ee2a"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 1</b></p><p> </p><p>Дом имеет ломаную форму по сторонам клеток плана. Найдите периметр его внешнего контура в метрах, если сторона клетки 2 м.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:96267419-7212-4d9d-b28e-b5f92b64910a"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:96267419-7212-4d9d-b28e-b5f92b64910a"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:96267419-7212-4d9d-b28e-b5f92b64910a"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:96267419-7212-4d9d-b28e-b5f92b64910a"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:96267419-7212-4d9d-b28e-b5f92b64910a"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:96267419-7212-4d9d-b28e-b5f92b64910a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "d64c700a-f500-4465-bca9-239df30a119c"
+      }
+    }
+  ]
+}

@@ -48,6 +48,22 @@ async def page(
                 message_text += (
                     f"\n{item['title']}: {item['first_full']}/{item['first_graded']} на 2 балла"
                 )
+            from app.config import get_settings
+
+            if get_settings().oge_adaptive_enabled:
+                from app.adaptive.engine import Stage, family_status
+                from app.adaptive.skills import title as skill_title
+                from app.adaptive.store import overview
+
+                states = [
+                    (skill, state) for n, skill, state, _ in await overview(repo, owner)
+                    if n == number and state.stage != Stage.UNCHECKED
+                ]
+                for index, (skill, state) in enumerate(states, start=1):
+                    status = family_status(state).label
+                    message_text += f"\n{index}. {skill_title(skill)} · {status}"
+                    if state.stage != Stage.CONFIRMED:
+                        rows.append([(f"Тренировать тип {index}", f"p2:open:{number}:{skill}")])
             rows.append([("История письменных работ", "progress:works:0")])
         elif parts[0] == "works" and len(parts) == 2:
             offset = min(2**31 - 1, int(parts[1]))

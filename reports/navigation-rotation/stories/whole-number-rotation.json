@@ -1,0 +1,1321 @@
+{
+  "case": "whole-number-rotation",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:96267419-7212-4d9d-b28e-b5f92b64910a"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:96267419-7212-4d9d-b28e-b5f92b64910a"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:96267419-7212-4d9d-b28e-b5f92b64910a"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:96267419-7212-4d9d-b28e-b5f92b64910a"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:96267419-7212-4d9d-b28e-b5f92b64910a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "327f10e2-1942-4bad-8f6f-3ab0fd5ca2b8"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>За каждый месяц года показаны расход минут исходящих вызовов и мобильного интернета.</p><p>На графике сплошная линия — минуты (левая шкала), пунктирная — интернет в ГБ (правая шкала).</p><p>Тариф «Стандартный»: абонентская плата 300 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.</p><p>Сверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.</p><p>Месяцы указаны в календарном порядке с января по декабрь.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://BpLFg_qpymqISw",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "BpLFg_qpymqISw": {
+          "path": "assets/76ff1f92b5344922ee812c97b58100051f4361b77e858642ef154b63d2b4cec2.png",
+          "filename": "scenario-1.png",
+          "sha256": "76ff1f92b5344922ee812c97b58100051f4361b77e858642ef154b63d2b4cec2"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 2</b></p><p> </p><p>Определите наименьшее количество минут исходящих вызовов за один месяц по графику.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:2485f728-7bfb-4187-aebc-f5d563135335"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:2485f728-7bfb-4187-aebc-f5d563135335"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:2485f728-7bfb-4187-aebc-f5d563135335"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:2485f728-7bfb-4187-aebc-f5d563135335"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:2485f728-7bfb-4187-aebc-f5d563135335"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:2485f728-7bfb-4187-aebc-f5d563135335"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "9b7d8254-19ff-4053-aaf3-96cc7d3bd3db"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:2485f728-7bfb-4187-aebc-f5d563135335"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:2485f728-7bfb-4187-aebc-f5d563135335"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:2485f728-7bfb-4187-aebc-f5d563135335"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:2485f728-7bfb-4187-aebc-f5d563135335"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:2485f728-7bfb-4187-aebc-f5d563135335"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "1ada9b90-cbb2-4e0c-9c83-6641bdd9142b"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,5 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://GR2TJQIekO5i5A",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "GR2TJQIekO5i5A": {
+          "path": "assets/b2753f7432d36928ced4f4fc1e9649b1d13ff9aee792e9df3ef867dfd98fc706.png",
+          "filename": "scenario-1.png",
+          "sha256": "b2753f7432d36928ced4f4fc1e9649b1d13ff9aee792e9df3ef867dfd98fc706"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 3</b></p><p> </p><p>Найдите площадь меньшей лоджии, если сторона клетки плана равна 0,5 м. Ответ дайте в квадратных метрах.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "985ee7a5-202e-4e85-acf7-52eb084238b8"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:e007049a-2fbb-40ff-a183-a80deae23dc3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "5857d9cc-17b3-4f70-a575-29a92399d795"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Ситуация. Завод устанавливает на автомобили шины маркировки 165/60 R17. Первое число обозначает ширину шины в миллиметрах, второе — высоту боковины в процентах от ширины, а число после <tg-math>R</tg-math> — диаметр диска в дюймах (1 дюйм = 25,4 мм). Диаметр всего колеса равен диаметру диска в миллиметрах плюс две высоты боковины.</p><p> </p><p>Схема показывает величины <tg-math>B</tg-math>, <tg-math>H</tg-math>, <tg-math>d</tg-math> и <tg-math>D</tg-math>. Рисунок условный и не в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://HfvrluD6pkZxvQ",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "HfvrluD6pkZxvQ": {
+          "path": "assets/684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa.png",
+          "filename": "scenario-1.png",
+          "sha256": "684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 4</b></p><p> </p><p>Найдите диаметр колеса автомобиля, выходящего с завода. Ответ дайте в миллиметрах.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "e6924dcc-28f7-4167-aa71-bd77f30d74ba"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:3b045f89-0996-4775-9d04-a3a6ab3035f0"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "866d0292-4e81-4800-97b0-5925d11f6584"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://D-YwYbGX2lxRCQ",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "D-YwYbGX2lxRCQ": {
+          "path": "assets/a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49.png",
+          "filename": "scenario-1.png",
+          "sha256": "a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://k2yopJodr2lp-g",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "k2yopJodr2lp-g": {
+          "path": "assets/63809c46da8a43ec72f9694e16fec3630f7b72d0257126b1f53c2051b5f686b3.png",
+          "filename": "scenario-2.png",
+          "sha256": "63809c46da8a43ec72f9694e16fec3630f7b72d0257126b1f53c2051b5f686b3"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 5</b></p><p> </p><p>Найдите длину листа бумаги формата A6. Ответ дайте в миллиметрах и округлите до ближайшего целого числа, кратного 10.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "9816f9c4-edc6-4020-822d-fae501dfc6a7"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Промежуточный итог</b>\n\n<b>Задания 1–5</b>\n\nРешено верно: 0 из 5\nСамостоятельно: 0 из 5\nПропущено: 5",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "➡ Продолжить",
+                "callback_data": "ad:continue:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:db93c0fb-11db-4e07-994e-9c4c524f53cf"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "05c22a5a-0b87-48dd-b3c4-b4e0065e165b"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>2{,}4 \\times 2{,}7 \\times 2{,}1</tg-math> м. Дверь: 81 см × 177 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://f9D_u6Z0D5kKsA",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "f9D_u6Z0D5kKsA": {
+          "path": "assets/e1a079bae6ff2f5567e1ed2d4c0a22649ac0ee2e6246a961d7c494067eb9584d.png",
+          "filename": "scenario-1.png",
+          "sha256": "e1a079bae6ff2f5567e1ed2d4c0a22649ac0ee2e6246a961d7c494067eb9584d"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 6</b></p><p> </p><p>Выберите подходящую дровяную печь по объёму парной и найдите её стоимость с доставкой в рублях. Доставка стоит 1 200 руб.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "4466119d-6c73-4991-b97a-1a77f3802c29"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:5c2d02b9-d31e-422e-83ab-bd0ebe8da7aa"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "c9de7f2e-e752-43b6-a8c5-f505fed00a45"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>На плане изображён дачный участок в посёлке Сосновка. Единственные ворота расположены на правой границе. При входе слева находится гараж, справа — сарай, а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, плитка — <tg-math>1 \\times 1</tg-math> м.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://EVZyP8C1gHNKrw",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "EVZyP8C1gHNKrw": {
+          "path": "assets/4bcf0cadd238e54e0787be788eaee4d3baa9ae5f41fdbc798c67ce60859849b1.png",
+          "filename": "scenario-1.png",
+          "sha256": "4bcf0cadd238e54e0787be788eaee4d3baa9ae5f41fdbc798c67ce60859849b1"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 7</b></p><p> </p><p>Дом имеет ломаную форму по сторонам клеток плана. Найдите периметр его внешнего контура в метрах, если сторона клетки 2 м.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "d264ecee-e04c-4080-9abd-30c9cf360044"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:6403a321-7d49-4bda-93a7-befc9250dbc2"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "15f639c3-f08c-42ea-b119-a492d83da4f3"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>За каждый месяц года показаны расход минут исходящих вызовов и мобильного интернета.</p><p>На графике сплошная линия — минуты (левая шкала), пунктирная — интернет в ГБ (правая шкала).</p><p>Тариф «Стандартный»: абонентская плата 400 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.</p><p>Сверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.</p><p>Месяцы указаны в календарном порядке с января по декабрь.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://gze8gNoR4SNeLg",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "gze8gNoR4SNeLg": {
+          "path": "assets/bac11e4a590484143011d7564e19d33fa0fef01ab9c969e6af19bde4f2d3df3f.png",
+          "filename": "scenario-1.png",
+          "sha256": "bac11e4a590484143011d7564e19d33fa0fef01ab9c969e6af19bde4f2d3df3f"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 8</b></p><p> </p><p>Определите наименьшее количество минут исходящих вызовов за один месяц по графику.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "cf98311b-f486-45f8-ae37-9e1966972738"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:1aa63589-a5ca-4432-89bb-16e0cbef9251"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "9abe52ec-2d5c-43ea-a039-2a464c457929"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://Uc-o0IWpEyvOHQ",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "Uc-o0IWpEyvOHQ": {
+          "path": "assets/200a98d19055fe1d06500094724b173da8dce6860c07276e18b168ca6efc6a43.png",
+          "filename": "scenario-1.png",
+          "sha256": "200a98d19055fe1d06500094724b173da8dce6860c07276e18b168ca6efc6a43"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 9</b></p><p> </p><p>Найдите площадь меньшей лоджии, если сторона клетки плана равна 0,4 м. Ответ дайте в квадратных метрах.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "543f0e61-d302-4880-a0d4-059604725522"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:98baf423-9fee-4e0c-94d0-f313d88b76ad"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "9739760f-d35e-42fe-8d82-48ba0fffd63d"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Ситуация. Завод устанавливает на автомобили шины маркировки 205/70 R14. Первое число обозначает ширину шины в миллиметрах, второе — высоту боковины в процентах от ширины, а число после <tg-math>R</tg-math> — диаметр диска в дюймах (1 дюйм = 25,4 мм). Диаметр всего колеса равен диаметру диска в миллиметрах плюс две высоты боковины.</p><p> </p><p>Схема показывает величины <tg-math>B</tg-math>, <tg-math>H</tg-math>, <tg-math>d</tg-math> и <tg-math>D</tg-math>. Рисунок условный и не в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://Y4TPaCq5UOLsFA",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "Y4TPaCq5UOLsFA": {
+          "path": "assets/684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa.png",
+          "filename": "scenario-1.png",
+          "sha256": "684cacc022f1bbf7b5733a29002a15f2725b50e8cc4f4ce92ceeef261697a7aa"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 10</b></p><p> </p><p>Найдите диаметр колеса автомобиля, выходящего с завода. Ответ дайте в миллиметрах.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:105c755b-4dc8-479f-9424-33c1cd873019"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:105c755b-4dc8-479f-9424-33c1cd873019"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:105c755b-4dc8-479f-9424-33c1cd873019"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:105c755b-4dc8-479f-9424-33c1cd873019"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:105c755b-4dc8-479f-9424-33c1cd873019"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:105c755b-4dc8-479f-9424-33c1cd873019"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "27e99fec-a3db-43f6-8880-0c49fc3f2434"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Промежуточный итог</b>\n\n<b>Задания 6–10</b>\n\nРешено верно: 0 из 5\nСамостоятельно: 0 из 5\nПропущено: 5",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "➡ Продолжить",
+                "callback_data": "ad:continue:105c755b-4dc8-479f-9424-33c1cd873019"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:105c755b-4dc8-479f-9424-33c1cd873019"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:105c755b-4dc8-479f-9424-33c1cd873019"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "4794d156-7644-4864-a45f-ffd105c5c27d"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://kJCAM6bhoXQoDw",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "kJCAM6bhoXQoDw": {
+          "path": "assets/a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49.png",
+          "filename": "scenario-1.png",
+          "sha256": "a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://mSnduQANWbcFDA",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "mSnduQANWbcFDA": {
+          "path": "assets/506d5042e22793a5c6e8ba19cd21142247ca69230853128f8bf43d55d2a10057.png",
+          "filename": "scenario-2.png",
+          "sha256": "506d5042e22793a5c6e8ba19cd21142247ca69230853128f8bf43d55d2a10057"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 11</b></p><p> </p><p>Найдите ширину листа бумаги формата A0. Ответ дайте в миллиметрах и округлите до ближайшего целого числа, кратного 5.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "cfc77fa4-d56c-4142-8583-00464ac7a5f7"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:4a84e654-4169-4aa1-ada2-adf9ea88f42b"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "b34dd088-9ada-4fb7-a865-b7219ebd3de4"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}3 \\times 2{,}1 \\times 1{,}9</tg-math> м. Дверь: 58 см × 168 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Тренировка по номеру</b></p><p> </p><p><b>№3 — задание 12</b></p><p> </p><p>Найдите площадь стен парной без дверного проёма. Ответ дайте в м².</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:b5b4f233-4059-4aa2-ac99-a9d6efebc67a"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:b5b4f233-4059-4aa2-ac99-a9d6efebc67a"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:b5b4f233-4059-4aa2-ac99-a9d6efebc67a"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:b5b4f233-4059-4aa2-ac99-a9d6efebc67a"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:b5b4f233-4059-4aa2-ac99-a9d6efebc67a"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:b5b4f233-4059-4aa2-ac99-a9d6efebc67a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "1224bcb9-cf77-4f4a-9b74-b71708600d2e"
+      }
+    }
+  ]
+}

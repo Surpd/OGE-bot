@@ -1,0 +1,2031 @@
+{
+  "simulation": "PostgreSQL, actual public catalogue and persistent selector",
+  "generation": "synthetic unique snapshots isolate number and family selection",
+  "restart": {
+    "training": 1,
+    "before_position": 3
+  },
+  "completed_cycles": 26,
+  "first_cycle": [
+    15,
+    13,
+    3,
+    16,
+    18,
+    12,
+    19,
+    2,
+    5,
+    9,
+    8,
+    7,
+    17,
+    1,
+    6,
+    11,
+    4,
+    10,
+    14
+  ],
+  "first_four_trainings": [
+    {
+      "training": 1,
+      "numbers": [
+        15,
+        13,
+        3,
+        16,
+        18
+      ],
+      "families": [
+        "OGE15-F07",
+        "OGE13-S01",
+        "FLAT-03-RECT-AREA",
+        "OGE16-D01",
+        "OGE18-A01"
+      ]
+    },
+    {
+      "training": 2,
+      "numbers": [
+        12,
+        19,
+        2,
+        5,
+        9
+      ],
+      "families": [
+        "OGE12-R005",
+        "OGE19-CIRCLES",
+        "TARIFF-F04-MONTHLY-BILL",
+        "PAPER-F07",
+        "OGE09-K6"
+      ]
+    },
+    {
+      "training": 3,
+      "numbers": [
+        8,
+        7,
+        17,
+        1,
+        6
+      ],
+      "families": [
+        "OGE08-R02",
+        "OGE07-C02",
+        "OGE17-T02",
+        "PAPER-F01",
+        "OGE06-F004-DEC-ADD"
+      ]
+    },
+    {
+      "training": 4,
+      "numbers": [
+        11,
+        4,
+        10,
+        14,
+        19
+      ],
+      "families": [
+        "OGE11-F03",
+        "FLAT-04-RECT-PERCENT",
+        "OGE10-F005-WEIGHTED-POINTS",
+        "OGE14-G04",
+        "OGE19-AREAS-METRICS"
+      ]
+    }
+  ],
+  "training_sequences": [
+    {
+      "training": 1,
+      "numbers": [
+        15,
+        13,
+        3,
+        16,
+        18
+      ],
+      "families": [
+        "OGE15-F07",
+        "OGE13-S01",
+        "FLAT-03-RECT-AREA",
+        "OGE16-D01",
+        "OGE18-A01"
+      ]
+    },
+    {
+      "training": 2,
+      "numbers": [
+        12,
+        19,
+        2,
+        5,
+        9
+      ],
+      "families": [
+        "OGE12-R005",
+        "OGE19-CIRCLES",
+        "TARIFF-F04-MONTHLY-BILL",
+        "PAPER-F07",
+        "OGE09-K6"
+      ]
+    },
+    {
+      "training": 3,
+      "numbers": [
+        8,
+        7,
+        17,
+        1,
+        6
+      ],
+      "families": [
+        "OGE08-R02",
+        "OGE07-C02",
+        "OGE17-T02",
+        "PAPER-F01",
+        "OGE06-F004-DEC-ADD"
+      ]
+    },
+    {
+      "training": 4,
+      "numbers": [
+        11,
+        4,
+        10,
+        14,
+        19
+      ],
+      "families": [
+        "OGE11-F03",
+        "FLAT-04-RECT-PERCENT",
+        "OGE10-F005-WEIGHTED-POINTS",
+        "OGE14-G04",
+        "OGE19-AREAS-METRICS"
+      ]
+    },
+    {
+      "training": 5,
+      "numbers": [
+        4,
+        11,
+        6,
+        5,
+        1
+      ],
+      "families": [
+        "STOVE-F09-DIRECT-DISCOUNT",
+        "OGE11-F01",
+        "OGE06-F008-REDUCED-NUMERATOR",
+        "GARDEN-09-HEAT-BREAKEVEN",
+        "GARDEN-01-IDENTIFY"
+      ]
+    },
+    {
+      "training": 6,
+      "numbers": [
+        7,
+        14,
+        8,
+        13,
+        12
+      ],
+      "families": [
+        "OGE07-C04",
+        "OGE14-A01",
+        "OGE08-R06",
+        "OGE13-Q04",
+        "OGE12-R003"
+      ]
+    },
+    {
+      "training": 7,
+      "numbers": [
+        18,
+        17,
+        3,
+        10,
+        16
+      ],
+      "families": [
+        "OGE18-A03",
+        "OGE17-E03",
+        "GARDEN-04-PERIMETER-POLYGON",
+        "OGE10-F005-EQUAL-POINTS",
+        "OGE16-A04"
+      ]
+    },
+    {
+      "training": 8,
+      "numbers": [
+        9,
+        2,
+        15,
+        7,
+        16
+      ],
+      "families": [
+        "OGE09-L4B",
+        "STOVE-F03-VOLUME",
+        "OGE15-F17",
+        "OGE07-C06",
+        "OGE16-B04"
+      ]
+    },
+    {
+      "training": 9,
+      "numbers": [
+        6,
+        11,
+        17,
+        3,
+        2
+      ],
+      "families": [
+        "OGE06-F009-PRESCRIBED-NUMERATOR",
+        "OGE11-F04",
+        "OGE17-R03",
+        "STOVE-F04-FLOOR-AREA",
+        "FLAT-02-PARQUET-PACK"
+      ]
+    },
+    {
+      "training": 10,
+      "numbers": [
+        14,
+        19,
+        5,
+        12,
+        10
+      ],
+      "families": [
+        "OGE14-G03",
+        "OGE19-TRIANGLES",
+        "TARIFF-F12-HOME-ISP",
+        "OGE12-R014",
+        "OGE10-F007-DISJOINT-UNION-RESIDUAL"
+      ]
+    },
+    {
+      "training": 11,
+      "numbers": [
+        13,
+        15,
+        4,
+        9,
+        8
+      ],
+      "families": [
+        "OGE13-L01",
+        "OGE15-F20",
+        "PAPER-F04",
+        "OGE09-K2",
+        "OGE08-R08"
+      ]
+    },
+    {
+      "training": 12,
+      "numbers": [
+        1,
+        18,
+        17,
+        10,
+        3
+      ],
+      "families": [
+        "TARIFF-F01-MONTHS-MINUTES",
+        "OGE18-A05",
+        "OGE17-P01",
+        "OGE10-F009-OVERLAPPING-GROUPS",
+        "PAPER-F03"
+      ]
+    },
+    {
+      "training": 13,
+      "numbers": [
+        18,
+        15,
+        9,
+        14,
+        8
+      ],
+      "families": [
+        "OGE18-M02",
+        "OGE15-F02",
+        "OGE09-L4A",
+        "OGE14-A05",
+        "OGE08-R04"
+      ]
+    },
+    {
+      "training": 14,
+      "numbers": [
+        6,
+        16,
+        7,
+        4,
+        11
+      ],
+      "families": [
+        "OGE06-F006-MIXED-MINUS-DECIMAL",
+        "OGE16-A05",
+        "OGE07-C03",
+        "STOVE-F10-REVERSE-DISCOUNT",
+        "OGE11-F02"
+      ]
+    },
+    {
+      "training": 15,
+      "numbers": [
+        13,
+        19,
+        12,
+        5,
+        2
+      ],
+      "families": [
+        "OGE13-Q03",
+        "OGE19-QUADRILATERALS",
+        "OGE12-R002",
+        "FLAT-05-INTERNET-MIN",
+        "PAPER-F02"
+      ]
+    },
+    {
+      "training": 16,
+      "numbers": [
+        1,
+        11,
+        7,
+        13,
+        15
+      ],
+      "families": [
+        "STOVE-F01-CAPACITY-LIMITS",
+        "OGE11-F05",
+        "OGE07-C01",
+        "OGE13-S02",
+        "OGE15-F22"
+      ]
+    },
+    {
+      "training": 17,
+      "numbers": [
+        1,
+        14,
+        6,
+        4,
+        16
+      ],
+      "families": [
+        "TYRES-TABLE-EXTREME",
+        "OGE14-A02",
+        "OGE06-F002-MUL",
+        "GARDEN-07-PERCENT-BUILDINGS",
+        "OGE16-D06"
+      ]
+    },
+    {
+      "training": 18,
+      "numbers": [
+        3,
+        5,
+        19,
+        12,
+        8
+      ],
+      "families": [
+        "TYRES-DIAMETER",
+        "TYRES-PERCENT-ROTATION",
+        "OGE19-MIXED",
+        "OGE12-R011",
+        "OGE08-R01"
+      ]
+    },
+    {
+      "training": 19,
+      "numbers": [
+        18,
+        2,
+        10,
+        9,
+        17
+      ],
+      "families": [
+        "OGE18-L01",
+        "FLAT-02-TILE-PACK",
+        "OGE10-F008-REMAINDER-CATEGORY",
+        "OGE09-L2",
+        "OGE17-R02"
+      ]
+    },
+    {
+      "training": 20,
+      "numbers": [
+        9,
+        18,
+        10,
+        16,
+        13
+      ],
+      "families": [
+        "OGE09-K5",
+        "OGE18-A07",
+        "OGE10-F002-COMPLEMENT",
+        "OGE16-C06",
+        "OGE13-Q01"
+      ]
+    },
+    {
+      "training": 21,
+      "numbers": [
+        5,
+        8,
+        15,
+        3,
+        11
+      ],
+      "families": [
+        "STOVE-F12-ARCH-RADIUS",
+        "OGE08-R05",
+        "OGE15-F13",
+        "STOVE-F07-FIT-WOOD-DELIVERY",
+        "OGE11-F08"
+      ]
+    },
+    {
+      "training": 22,
+      "numbers": [
+        4,
+        6,
+        17,
+        1,
+        14
+      ],
+      "families": [
+        "TARIFF-F09-PERCENT-FEE",
+        "OGE06-F004-DEC-SUB",
+        "OGE17-T06",
+        "FLAT-01-ROOM-MATCH",
+        "OGE14-A07"
+      ]
+    },
+    {
+      "training": 23,
+      "numbers": [
+        19,
+        2,
+        12,
+        7,
+        16
+      ],
+      "families": [
+        "OGE19-LINES-ANGLES",
+        "GARDEN-02-TILES-PACKS",
+        "OGE12-R001",
+        "OGE07-N04",
+        "OGE16-C01"
+      ]
+    },
+    {
+      "training": 24,
+      "numbers": [
+        12,
+        14,
+        17,
+        5,
+        10
+      ],
+      "families": [
+        "OGE12-R004",
+        "OGE14-G02",
+        "OGE17-E02",
+        "FLAT-05-WASHER-MIN",
+        "OGE10-F005-EULER-MASSES"
+      ]
+    },
+    {
+      "training": 25,
+      "numbers": [
+        18,
+        8,
+        3,
+        9,
+        7
+      ],
+      "families": [
+        "OGE18-H01",
+        "OGE08-R09",
+        "STOVE-F05-WALL-AREA-NET",
+        "OGE09-K3",
+        "OGE07-N01"
+      ]
+    },
+    {
+      "training": 26,
+      "numbers": [
+        6,
+        15,
+        1,
+        11,
+        19
+      ],
+      "families": [
+        "OGE06-F004-DEC-MUL",
+        "OGE15-F11",
+        "STOVE-F02-ATTRIBUTE-MATCH",
+        "OGE11-F07",
+        "OGE19-CIRCLES"
+      ]
+    },
+    {
+      "training": 27,
+      "numbers": [
+        4,
+        13,
+        2,
+        12,
+        1
+      ],
+      "families": [
+        "PAPER-F06",
+        "OGE13-Q02",
+        "TYRES-SIDEWALL",
+        "OGE12-R012",
+        "PAPER-F01"
+      ]
+    },
+    {
+      "training": 28,
+      "numbers": [
+        5,
+        16,
+        18,
+        3,
+        4
+      ],
+      "families": [
+        "PAPER-F07",
+        "OGE16-B03",
+        "OGE18-M01",
+        "TARIFF-F05-EXTREMUM",
+        "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS"
+      ]
+    },
+    {
+      "training": 29,
+      "numbers": [
+        9,
+        6,
+        2,
+        11,
+        7
+      ],
+      "families": [
+        "OGE09-L3",
+        "OGE06-F002-DIV",
+        "TARIFF-F04-MONTHLY-BILL",
+        "OGE11-F06",
+        "OGE07-C02"
+      ]
+    },
+    {
+      "training": 30,
+      "numbers": [
+        14,
+        10,
+        19,
+        17,
+        15
+      ],
+      "families": [
+        "OGE14-G01",
+        "OGE10-F001-DRAW-CATEGORY",
+        "OGE19-AREAS-METRICS",
+        "OGE17-P03",
+        "OGE15-F10"
+      ]
+    },
+    {
+      "training": 31,
+      "numbers": [
+        13,
+        8,
+        18,
+        16,
+        9
+      ],
+      "families": [
+        "OGE13-S03",
+        "OGE08-R03",
+        "OGE18-C01",
+        "OGE16-D02",
+        "OGE09-L1"
+      ]
+    },
+    {
+      "training": 32,
+      "numbers": [
+        1,
+        5,
+        4,
+        7,
+        11
+      ],
+      "families": [
+        "GARDEN-01-IDENTIFY",
+        "GARDEN-09-HEAT-BREAKEVEN",
+        "TYRES-RADIUS-DELTA",
+        "OGE07-C04",
+        "OGE11-F03"
+      ]
+    },
+    {
+      "training": 33,
+      "numbers": [
+        12,
+        10,
+        15,
+        3,
+        19
+      ],
+      "families": [
+        "OGE12-R010",
+        "OGE10-F006-EMPIRICAL-FREQUENCY",
+        "OGE15-F01",
+        "STOVE-F08-COST-COMPARISON",
+        "OGE19-TRIANGLES"
+      ]
+    },
+    {
+      "training": 34,
+      "numbers": [
+        14,
+        6,
+        17,
+        8,
+        13
+      ],
+      "families": [
+        "OGE14-A03",
+        "OGE06-F001-SUB",
+        "OGE17-E01",
+        "OGE08-R02",
+        "OGE13-L02"
+      ]
+    },
+    {
+      "training": 35,
+      "numbers": [
+        2,
+        6,
+        11,
+        16,
+        19
+      ],
+      "families": [
+        "STOVE-F03-VOLUME",
+        "OGE06-F003-UNIT-SUM",
+        "OGE11-F01",
+        "OGE16-D04",
+        "OGE19-QUADRILATERALS"
+      ]
+    },
+    {
+      "training": 36,
+      "numbers": [
+        5,
+        1,
+        3,
+        18,
+        14
+      ],
+      "families": [
+        "TARIFF-F12-HOME-ISP",
+        "TARIFF-F01-MONTHS-MINUTES",
+        "STOVE-F06-PURCHASE-EXTRA-COSTS",
+        "OGE18-L02",
+        "OGE14-A09"
+      ]
+    },
+    {
+      "training": 37,
+      "numbers": [
+        15,
+        7,
+        2,
+        4,
+        10
+      ],
+      "families": [
+        "OGE15-F15",
+        "OGE07-C06",
+        "FLAT-02-PARQUET-PACK",
+        "FLAT-04-RECT-PERCENT",
+        "OGE10-F005-TREE"
+      ]
+    },
+    {
+      "training": 38,
+      "numbers": [
+        8,
+        9,
+        12,
+        13,
+        17
+      ],
+      "families": [
+        "OGE08-R06",
+        "OGE09-K6",
+        "OGE12-R005",
+        "OGE13-S01",
+        "OGE17-T08"
+      ]
+    },
+    {
+      "training": 39,
+      "numbers": [
+        14,
+        18,
+        15,
+        7,
+        13
+      ],
+      "families": [
+        "OGE14-A06",
+        "OGE18-D05",
+        "OGE15-F12",
+        "OGE07-C03",
+        "OGE13-Q04"
+      ]
+    },
+    {
+      "training": 40,
+      "numbers": [
+        11,
+        19,
+        5,
+        4,
+        1
+      ],
+      "families": [
+        "OGE11-F04",
+        "OGE19-MIXED",
+        "FLAT-05-INTERNET-MIN",
+        "STOVE-F09-DIRECT-DISCOUNT",
+        "STOVE-F01-CAPACITY-LIMITS"
+      ]
+    },
+    {
+      "training": 41,
+      "numbers": [
+        9,
+        8,
+        3,
+        2,
+        6
+      ],
+      "families": [
+        "OGE09-L4B",
+        "OGE08-R08",
+        "FLAT-03-RECT-AREA",
+        "PAPER-F02",
+        "OGE06-F004-DEC-DIV"
+      ]
+    },
+    {
+      "training": 42,
+      "numbers": [
+        12,
+        17,
+        10,
+        16,
+        6
+      ],
+      "families": [
+        "OGE12-R003",
+        "OGE17-P07",
+        "OGE10-F005-EULER-COUNTS",
+        "OGE16-B02",
+        "OGE06-F001-ADD"
+      ]
+    },
+    {
+      "training": 43,
+      "numbers": [
+        10,
+        11,
+        17,
+        7,
+        16
+      ],
+      "families": [
+        "OGE10-F005-WEIGHTED-POINTS",
+        "OGE11-F02",
+        "OGE17-T07",
+        "OGE07-C01",
+        "OGE16-D03"
+      ]
+    },
+    {
+      "training": 44,
+      "numbers": [
+        9,
+        8,
+        5,
+        15,
+        1
+      ],
+      "families": [
+        "OGE09-K2",
+        "OGE08-R04",
+        "TYRES-PERCENT-ROTATION",
+        "OGE15-F09",
+        "TYRES-TABLE-EXTREME"
+      ]
+    },
+    {
+      "training": 45,
+      "numbers": [
+        18,
+        3,
+        19,
+        4,
+        14
+      ],
+      "families": [
+        "OGE18-A04",
+        "GARDEN-04-PERIMETER-POLYGON",
+        "OGE19-LINES-ANGLES",
+        "PAPER-F04",
+        "OGE14-A08"
+      ]
+    },
+    {
+      "training": 46,
+      "numbers": [
+        2,
+        12,
+        13,
+        6,
+        4
+      ],
+      "families": [
+        "FLAT-02-TILE-PACK",
+        "OGE12-R014",
+        "OGE13-L01",
+        "OGE06-F004-DEC-ADD",
+        "STOVE-F10-REVERSE-DISCOUNT"
+      ]
+    },
+    {
+      "training": 47,
+      "numbers": [
+        15,
+        12,
+        13,
+        11,
+        7
+      ],
+      "families": [
+        "OGE15-F03",
+        "OGE12-R002",
+        "OGE13-Q03",
+        "OGE11-F05",
+        "OGE07-N04"
+      ]
+    },
+    {
+      "training": 48,
+      "numbers": [
+        18,
+        14,
+        2,
+        3,
+        9
+      ],
+      "families": [
+        "OGE18-A06",
+        "OGE14-A10",
+        "GARDEN-02-TILES-PACKS",
+        "STOVE-F04-FLOOR-AREA",
+        "OGE09-L4A"
+      ]
+    },
+    {
+      "training": 49,
+      "numbers": [
+        1,
+        10,
+        8,
+        16,
+        19
+      ],
+      "families": [
+        "FLAT-01-ROOM-MATCH",
+        "OGE10-F005-EQUAL-POINTS",
+        "OGE08-R01",
+        "OGE16-B05",
+        "OGE19-CIRCLES"
+      ]
+    },
+    {
+      "training": 50,
+      "numbers": [
+        17,
+        5,
+        2,
+        10,
+        4
+      ],
+      "families": [
+        "OGE17-R04",
+        "STOVE-F12-ARCH-RADIUS",
+        "TYRES-SIDEWALL",
+        "OGE10-F007-DISJOINT-UNION-RESIDUAL",
+        "GARDEN-07-PERCENT-BUILDINGS"
+      ]
+    },
+    {
+      "training": 51,
+      "numbers": [
+        5,
+        16,
+        6,
+        14,
+        19
+      ],
+      "families": [
+        "FLAT-05-WASHER-MIN",
+        "OGE16-A03",
+        "OGE06-F008-REDUCED-NUMERATOR",
+        "OGE14-G04",
+        "OGE19-AREAS-METRICS"
+      ]
+    },
+    {
+      "training": 52,
+      "numbers": [
+        12,
+        18,
+        7,
+        17,
+        13
+      ],
+      "families": [
+        "OGE12-R011",
+        "OGE18-A01",
+        "OGE07-N01",
+        "OGE17-T05",
+        "OGE13-S02"
+      ]
+    },
+    {
+      "training": 53,
+      "numbers": [
+        9,
+        15,
+        11,
+        3,
+        1
+      ],
+      "families": [
+        "OGE09-L2",
+        "OGE15-F14",
+        "OGE11-F08",
+        "PAPER-F03",
+        "STOVE-F02-ATTRIBUTE-MATCH"
+      ]
+    },
+    {
+      "training": 54,
+      "numbers": [
+        8,
+        15,
+        6,
+        7,
+        3
+      ],
+      "families": [
+        "OGE08-R05",
+        "OGE15-F19",
+        "OGE06-F009-PRESCRIBED-NUMERATOR",
+        "OGE07-C02",
+        "TYRES-DIAMETER"
+      ]
+    },
+    {
+      "training": 55,
+      "numbers": [
+        1,
+        8,
+        2,
+        11,
+        5
+      ],
+      "families": [
+        "PAPER-F01",
+        "OGE08-R09",
+        "TARIFF-F04-MONTHLY-BILL",
+        "OGE11-F07",
+        "PAPER-F07"
+      ]
+    },
+    {
+      "training": 56,
+      "numbers": [
+        16,
+        19,
+        10,
+        4,
+        18
+      ],
+      "families": [
+        "OGE16-B01",
+        "OGE19-TRIANGLES",
+        "OGE10-F009-OVERLAPPING-GROUPS",
+        "TARIFF-F09-PERCENT-FEE",
+        "OGE18-A03"
+      ]
+    },
+    {
+      "training": 57,
+      "numbers": [
+        17,
+        13,
+        9,
+        14,
+        12
+      ],
+      "families": [
+        "OGE17-T04",
+        "OGE13-Q01",
+        "OGE09-K5",
+        "OGE14-A01",
+        "OGE12-R001"
+      ]
+    },
+    {
+      "training": 58,
+      "numbers": [
+        16,
+        11,
+        5,
+        9,
+        8
+      ],
+      "families": [
+        "OGE16-A01",
+        "OGE11-F06",
+        "GARDEN-09-HEAT-BREAKEVEN",
+        "OGE09-K3",
+        "OGE08-R03"
+      ]
+    },
+    {
+      "training": 59,
+      "numbers": [
+        4,
+        7,
+        6,
+        13,
+        1
+      ],
+      "families": [
+        "PAPER-F06",
+        "OGE07-C04",
+        "OGE06-F006-MIXED-MINUS-DECIMAL",
+        "OGE13-Q02",
+        "GARDEN-01-IDENTIFY"
+      ]
+    },
+    {
+      "training": 60,
+      "numbers": [
+        2,
+        15,
+        3,
+        12,
+        18
+      ],
+      "families": [
+        "STOVE-F03-VOLUME",
+        "OGE15-F05",
+        "STOVE-F07-FIT-WOOD-DELIVERY",
+        "OGE12-R004",
+        "OGE18-A05"
+      ]
+    },
+    {
+      "training": 61,
+      "numbers": [
+        14,
+        19,
+        17,
+        10,
+        11
+      ],
+      "families": [
+        "OGE14-G03",
+        "OGE19-QUADRILATERALS",
+        "OGE17-P06",
+        "OGE10-F008-REMAINDER-CATEGORY",
+        "OGE11-F03"
+      ]
+    },
+    {
+      "training": 62,
+      "numbers": [
+        18,
+        19,
+        10,
+        15,
+        3
+      ],
+      "families": [
+        "OGE18-M02",
+        "OGE19-MIXED",
+        "OGE10-F002-COMPLEMENT",
+        "OGE15-F04",
+        "STOVE-F05-WALL-AREA-NET"
+      ]
+    },
+    {
+      "training": 63,
+      "numbers": [
+        7,
+        14,
+        6,
+        8,
+        12
+      ],
+      "families": [
+        "OGE07-C06",
+        "OGE14-A05",
+        "OGE06-F002-MUL",
+        "OGE08-R02",
+        "OGE12-R012"
+      ]
+    },
+    {
+      "training": 64,
+      "numbers": [
+        2,
+        13,
+        4,
+        1,
+        5
+      ],
+      "families": [
+        "FLAT-02-PARQUET-PACK",
+        "OGE13-S03",
+        "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS",
+        "TARIFF-F01-MONTHS-MINUTES",
+        "TARIFF-F12-HOME-ISP"
+      ]
+    },
+    {
+      "training": 65,
+      "numbers": [
+        16,
+        17,
+        9,
+        4,
+        18
+      ],
+      "families": [
+        "OGE16-C04",
+        "OGE17-T02",
+        "OGE09-L3",
+        "TYRES-RADIUS-DELTA",
+        "OGE18-L01"
+      ]
+    },
+    {
+      "training": 66,
+      "numbers": [
+        5,
+        8,
+        16,
+        12,
+        2
+      ],
+      "families": [
+        "FLAT-05-INTERNET-MIN",
+        "OGE08-R06",
+        "OGE16-A06",
+        "OGE12-R010",
+        "PAPER-F02"
+      ]
+    },
+    {
+      "training": 67,
+      "numbers": [
+        1,
+        6,
+        15,
+        17,
+        19
+      ],
+      "families": [
+        "STOVE-F01-CAPACITY-LIMITS",
+        "OGE06-F004-DEC-SUB",
+        "OGE15-F18",
+        "OGE17-E03",
+        "OGE19-LINES-ANGLES"
+      ]
+    },
+    {
+      "training": 68,
+      "numbers": [
+        9,
+        7,
+        3,
+        13,
+        10
+      ],
+      "families": [
+        "OGE09-L1",
+        "OGE07-C03",
+        "TARIFF-F05-EXTREMUM",
+        "OGE13-L02",
+        "OGE10-F005-EULER-MASSES"
+      ]
+    },
+    {
+      "training": 69,
+      "numbers": [
+        14,
+        11,
+        7,
+        18,
+        3
+      ],
+      "families": [
+        "OGE14-A02",
+        "OGE11-F01",
+        "OGE07-C01",
+        "OGE18-A07",
+        "STOVE-F08-COST-COMPARISON"
+      ]
+    },
+    {
+      "training": 70,
+      "numbers": [
+        6,
+        14,
+        10,
+        13,
+        12
+      ],
+      "families": [
+        "OGE06-F004-DEC-MUL",
+        "OGE14-A07",
+        "OGE10-F001-DRAW-CATEGORY",
+        "OGE13-S01",
+        "OGE12-R005"
+      ]
+    },
+    {
+      "training": 71,
+      "numbers": [
+        11,
+        19,
+        17,
+        15,
+        16
+      ],
+      "families": [
+        "OGE11-F04",
+        "OGE19-CIRCLES",
+        "OGE17-R03",
+        "OGE15-F08",
+        "OGE16-D05"
+      ]
+    },
+    {
+      "training": 72,
+      "numbers": [
+        9,
+        8,
+        2,
+        5,
+        1
+      ],
+      "families": [
+        "OGE09-K6",
+        "OGE08-R08",
+        "FLAT-02-TILE-PACK",
+        "TYRES-PERCENT-ROTATION",
+        "TYRES-TABLE-EXTREME"
+      ]
+    },
+    {
+      "training": 73,
+      "numbers": [
+        4,
+        5,
+        12,
+        3,
+        14
+      ],
+      "families": [
+        "FLAT-04-RECT-PERCENT",
+        "STOVE-F12-ARCH-RADIUS",
+        "OGE12-R003",
+        "STOVE-F06-PURCHASE-EXTRA-COSTS",
+        "OGE14-G02"
+      ]
+    },
+    {
+      "training": 74,
+      "numbers": [
+        17,
+        2,
+        9,
+        7,
+        19
+      ],
+      "families": [
+        "OGE17-P01",
+        "GARDEN-02-TILES-PACKS",
+        "OGE09-L4B",
+        "OGE07-N04",
+        "OGE19-AREAS-METRICS"
+      ]
+    },
+    {
+      "training": 75,
+      "numbers": [
+        11,
+        13,
+        15,
+        8,
+        4
+      ],
+      "families": [
+        "OGE11-F02",
+        "OGE13-Q04",
+        "OGE15-F21",
+        "OGE08-R04",
+        "STOVE-F09-DIRECT-DISCOUNT"
+      ]
+    },
+    {
+      "training": 76,
+      "numbers": [
+        16,
+        10,
+        6,
+        18,
+        1
+      ],
+      "families": [
+        "OGE16-C03",
+        "OGE10-F006-EMPIRICAL-FREQUENCY",
+        "OGE06-F002-DIV",
+        "OGE18-H01",
+        "FLAT-01-ROOM-MATCH"
+      ]
+    },
+    {
+      "training": 77,
+      "numbers": [
+        18,
+        3,
+        8,
+        13,
+        11
+      ],
+      "families": [
+        "OGE18-M01",
+        "FLAT-03-RECT-AREA",
+        "OGE08-R01",
+        "OGE13-L01",
+        "OGE11-F05"
+      ]
+    },
+    {
+      "training": 78,
+      "numbers": [
+        9,
+        16,
+        15,
+        4,
+        12
+      ],
+      "families": [
+        "OGE09-K2",
+        "OGE16-C05",
+        "OGE15-F06",
+        "PAPER-F04",
+        "OGE12-R014"
+      ]
+    },
+    {
+      "training": 79,
+      "numbers": [
+        6,
+        1,
+        17,
+        2,
+        19
+      ],
+      "families": [
+        "OGE06-F001-SUB",
+        "STOVE-F02-ATTRIBUTE-MATCH",
+        "OGE17-R02",
+        "TYRES-SIDEWALL",
+        "OGE19-TRIANGLES"
+      ]
+    },
+    {
+      "training": 80,
+      "numbers": [
+        5,
+        10,
+        14,
+        7,
+        9
+      ],
+      "families": [
+        "FLAT-05-WASHER-MIN",
+        "OGE10-F005-TREE",
+        "OGE14-G01",
+        "OGE07-N01",
+        "OGE09-L4A"
+      ]
+    },
+    {
+      "training": 81,
+      "numbers": [
+        4,
+        5,
+        7,
+        15,
+        10
+      ],
+      "families": [
+        "STOVE-F10-REVERSE-DISCOUNT",
+        "PAPER-F07",
+        "OGE07-C02",
+        "OGE15-F16",
+        "OGE10-F005-EULER-COUNTS"
+      ]
+    },
+    {
+      "training": 82,
+      "numbers": [
+        6,
+        17,
+        13,
+        19,
+        12
+      ],
+      "families": [
+        "OGE06-F003-UNIT-SUM",
+        "OGE17-T06",
+        "OGE13-Q03",
+        "OGE19-QUADRILATERALS",
+        "OGE12-R002"
+      ]
+    },
+    {
+      "training": 83,
+      "numbers": [
+        8,
+        3,
+        16,
+        11,
+        18
+      ],
+      "families": [
+        "OGE08-R05",
+        "GARDEN-04-PERIMETER-POLYGON",
+        "OGE16-C02",
+        "OGE11-F08",
+        "OGE18-C01"
+      ]
+    },
+    {
+      "training": 84,
+      "numbers": [
+        2,
+        14,
+        1,
+        9,
+        4
+      ],
+      "families": [
+        "TARIFF-F04-MONTHLY-BILL",
+        "OGE14-A03",
+        "PAPER-F01",
+        "OGE09-L2",
+        "GARDEN-07-PERCENT-BUILDINGS"
+      ]
+    },
+    {
+      "training": 85,
+      "numbers": [
+        19,
+        7,
+        16,
+        14,
+        3
+      ],
+      "families": [
+        "OGE19-MIXED",
+        "OGE07-C04",
+        "OGE16-A02",
+        "OGE14-A09",
+        "STOVE-F04-FLOOR-AREA"
+      ]
+    },
+    {
+      "training": 86,
+      "numbers": [
+        17,
+        13,
+        2,
+        1,
+        12
+      ],
+      "families": [
+        "OGE17-E02",
+        "OGE13-S02",
+        "STOVE-F03-VOLUME",
+        "GARDEN-01-IDENTIFY",
+        "OGE12-R011"
+      ]
+    },
+    {
+      "training": 87,
+      "numbers": [
+        8,
+        15,
+        18,
+        10,
+        11
+      ],
+      "families": [
+        "OGE08-R09",
+        "OGE15-F07",
+        "OGE18-L02",
+        "OGE10-F005-WEIGHTED-POINTS",
+        "OGE11-F07"
+      ]
+    },
+    {
+      "training": 88,
+      "numbers": [
+        5,
+        6,
+        18,
+        16,
+        19
+      ],
+      "families": [
+        "GARDEN-09-HEAT-BREAKEVEN",
+        "OGE06-F004-DEC-DIV",
+        "OGE18-D05",
+        "OGE16-D01",
+        "OGE19-LINES-ANGLES"
+      ]
+    },
+    {
+      "training": 89,
+      "numbers": [
+        3,
+        5,
+        4,
+        8,
+        17
+      ],
+      "families": [
+        "PAPER-F03",
+        "TARIFF-F12-HOME-ISP",
+        "TARIFF-F09-PERCENT-FEE",
+        "OGE08-R03",
+        "OGE17-P03"
+      ]
+    },
+    {
+      "training": 90,
+      "numbers": [
+        7,
+        13,
+        9,
+        2,
+        11
+      ],
+      "families": [
+        "OGE07-C06",
+        "OGE13-Q01",
+        "OGE09-K5",
+        "FLAT-02-PARQUET-PACK",
+        "OGE11-F06"
+      ]
+    },
+    {
+      "training": 91,
+      "numbers": [
+        10,
+        12,
+        6,
+        14,
+        15
+      ],
+      "families": [
+        "OGE10-F005-EQUAL-POINTS",
+        "OGE12-R001",
+        "OGE06-F001-ADD",
+        "OGE14-A06",
+        "OGE15-F17"
+      ]
+    },
+    {
+      "training": 92,
+      "numbers": [
+        1,
+        6,
+        13,
+        10,
+        4
+      ],
+      "families": [
+        "TARIFF-F01-MONTHS-MINUTES",
+        "OGE06-F004-DEC-ADD",
+        "OGE13-Q02",
+        "OGE10-F007-DISJOINT-UNION-RESIDUAL",
+        "PAPER-F06"
+      ]
+    },
+    {
+      "training": 93,
+      "numbers": [
+        9,
+        11,
+        7,
+        8,
+        19
+      ],
+      "families": [
+        "OGE09-K3",
+        "OGE11-F03",
+        "OGE07-C03",
+        "OGE08-R02",
+        "OGE19-CIRCLES"
+      ]
+    },
+    {
+      "training": 94,
+      "numbers": [
+        1,
+        17,
+        5,
+        16,
+        12
+      ],
+      "families": [
+        "STOVE-F01-CAPACITY-LIMITS",
+        "OGE17-E01",
+        "FLAT-05-INTERNET-MIN",
+        "OGE16-A04",
+        "OGE12-R004"
+      ]
+    },
+    {
+      "training": 95,
+      "numbers": [
+        2,
+        3,
+        18,
+        14,
+        15
+      ],
+      "families": [
+        "PAPER-F02",
+        "TYRES-DIAMETER",
+        "OGE18-A04",
+        "OGE14-A08",
+        "OGE15-F20"
+      ]
+    },
+    {
+      "training": 96,
+      "numbers": [
+        17,
+        8,
+        16,
+        12,
+        11
+      ],
+      "families": [
+        "OGE17-T08",
+        "OGE08-R06",
+        "OGE16-B04",
+        "OGE12-R012",
+        "OGE11-F01"
+      ]
+    },
+    {
+      "training": 97,
+      "numbers": [
+        6,
+        1,
+        15,
+        3,
+        5
+      ],
+      "families": [
+        "OGE06-F008-REDUCED-NUMERATOR",
+        "TYRES-TABLE-EXTREME",
+        "OGE15-F02",
+        "STOVE-F07-FIT-WOOD-DELIVERY",
+        "TYRES-PERCENT-ROTATION"
+      ]
+    },
+    {
+      "training": 98,
+      "numbers": [
+        10,
+        9,
+        18,
+        7,
+        13
+      ],
+      "families": [
+        "OGE10-F009-OVERLAPPING-GROUPS",
+        "OGE09-L3",
+        "OGE18-A06",
+        "OGE07-C01",
+        "OGE13-S03"
+      ]
+    },
+    {
+      "training": 99,
+      "numbers": [
+        4,
+        2,
+        19,
+        14,
+        11
+      ],
+      "families": [
+        "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS",
+        "FLAT-02-TILE-PACK",
+        "OGE19-AREAS-METRICS",
+        "OGE14-A10",
+        "OGE11-F04"
+      ]
+    },
+    {
+      "training": 100,
+      "numbers": [
+        10,
+        16,
+        19,
+        9,
+        13
+      ],
+      "families": [
+        "OGE10-F008-REMAINDER-CATEGORY",
+        "OGE16-A05",
+        "OGE19-TRIANGLES",
+        "OGE09-L1",
+        "OGE13-L02"
+      ]
+    }
+  ],
+  "number_distribution": {
+    "1": 26,
+    "2": 26,
+    "3": 26,
+    "4": 26,
+    "5": 26,
+    "6": 26,
+    "7": 26,
+    "8": 26,
+    "9": 27,
+    "10": 27,
+    "11": 27,
+    "12": 26,
+    "13": 27,
+    "14": 26,
+    "15": 26,
+    "16": 27,
+    "17": 26,
+    "18": 26,
+    "19": 27
+  },
+  "family_distribution": {
+    "FLAT-01-ROOM-MATCH": 3,
+    "FLAT-02-PARQUET-PACK": 4,
+    "FLAT-02-TILE-PACK": 4,
+    "FLAT-03-RECT-AREA": 3,
+    "FLAT-04-RECT-PERCENT": 3,
+    "FLAT-05-INTERNET-MIN": 4,
+    "FLAT-05-WASHER-MIN": 3,
+    "GARDEN-01-IDENTIFY": 4,
+    "GARDEN-02-TILES-PACKS": 3,
+    "GARDEN-04-PERIMETER-POLYGON": 3,
+    "GARDEN-07-PERCENT-BUILDINGS": 3,
+    "GARDEN-09-HEAT-BREAKEVEN": 4,
+    "OGE06-F001-ADD": 2,
+    "OGE06-F001-SUB": 2,
+    "OGE06-F002-DIV": 2,
+    "OGE06-F002-MUL": 2,
+    "OGE06-F003-UNIT-SUM": 2,
+    "OGE06-F004-DEC-ADD": 3,
+    "OGE06-F004-DEC-DIV": 2,
+    "OGE06-F004-DEC-MUL": 2,
+    "OGE06-F004-DEC-SUB": 2,
+    "OGE06-F006-MIXED-MINUS-DECIMAL": 2,
+    "OGE06-F008-REDUCED-NUMERATOR": 3,
+    "OGE06-F009-PRESCRIBED-NUMERATOR": 2,
+    "OGE07-C01": 4,
+    "OGE07-C02": 4,
+    "OGE07-C03": 4,
+    "OGE07-C04": 4,
+    "OGE07-C06": 4,
+    "OGE07-N01": 3,
+    "OGE07-N04": 3,
+    "OGE08-R01": 3,
+    "OGE08-R02": 4,
+    "OGE08-R03": 3,
+    "OGE08-R04": 3,
+    "OGE08-R05": 3,
+    "OGE08-R06": 4,
+    "OGE08-R08": 3,
+    "OGE08-R09": 3,
+    "OGE09-K2": 3,
+    "OGE09-K3": 3,
+    "OGE09-K5": 3,
+    "OGE09-K6": 3,
+    "OGE09-L1": 3,
+    "OGE09-L2": 3,
+    "OGE09-L3": 3,
+    "OGE09-L4A": 3,
+    "OGE09-L4B": 3,
+    "OGE10-F001-DRAW-CATEGORY": 2,
+    "OGE10-F002-COMPLEMENT": 2,
+    "OGE10-F005-EQUAL-POINTS": 3,
+    "OGE10-F005-EULER-COUNTS": 2,
+    "OGE10-F005-EULER-MASSES": 2,
+    "OGE10-F005-TREE": 2,
+    "OGE10-F005-WEIGHTED-POINTS": 3,
+    "OGE10-F006-EMPIRICAL-FREQUENCY": 2,
+    "OGE10-F007-DISJOINT-UNION-RESIDUAL": 3,
+    "OGE10-F008-REMAINDER-CATEGORY": 3,
+    "OGE10-F009-OVERLAPPING-GROUPS": 3,
+    "OGE11-F01": 4,
+    "OGE11-F02": 3,
+    "OGE11-F03": 4,
+    "OGE11-F04": 4,
+    "OGE11-F05": 3,
+    "OGE11-F06": 3,
+    "OGE11-F07": 3,
+    "OGE11-F08": 3,
+    "OGE12-R001": 3,
+    "OGE12-R002": 3,
+    "OGE12-R003": 3,
+    "OGE12-R004": 3,
+    "OGE12-R005": 3,
+    "OGE12-R010": 2,
+    "OGE12-R011": 3,
+    "OGE12-R012": 3,
+    "OGE12-R014": 3,
+    "OGE13-L01": 3,
+    "OGE13-L02": 3,
+    "OGE13-Q01": 3,
+    "OGE13-Q02": 3,
+    "OGE13-Q03": 3,
+    "OGE13-Q04": 3,
+    "OGE13-S01": 3,
+    "OGE13-S02": 3,
+    "OGE13-S03": 3,
+    "OGE14-A01": 2,
+    "OGE14-A02": 2,
+    "OGE14-A03": 2,
+    "OGE14-A05": 2,
+    "OGE14-A06": 2,
+    "OGE14-A07": 2,
+    "OGE14-A08": 2,
+    "OGE14-A09": 2,
+    "OGE14-A10": 2,
+    "OGE14-G01": 2,
+    "OGE14-G02": 2,
+    "OGE14-G03": 2,
+    "OGE14-G04": 2,
+    "OGE15-F01": 1,
+    "OGE15-F02": 2,
+    "OGE15-F03": 1,
+    "OGE15-F04": 1,
+    "OGE15-F05": 1,
+    "OGE15-F06": 1,
+    "OGE15-F07": 2,
+    "OGE15-F08": 1,
+    "OGE15-F09": 1,
+    "OGE15-F10": 1,
+    "OGE15-F11": 1,
+    "OGE15-F12": 1,
+    "OGE15-F13": 1,
+    "OGE15-F14": 1,
+    "OGE15-F15": 1,
+    "OGE15-F16": 1,
+    "OGE15-F17": 2,
+    "OGE15-F18": 1,
+    "OGE15-F19": 1,
+    "OGE15-F20": 2,
+    "OGE15-F21": 1,
+    "OGE15-F22": 1,
+    "OGE16-A01": 1,
+    "OGE16-A02": 1,
+    "OGE16-A03": 1,
+    "OGE16-A04": 2,
+    "OGE16-A05": 2,
+    "OGE16-A06": 1,
+    "OGE16-B01": 1,
+    "OGE16-B02": 1,
+    "OGE16-B03": 1,
+    "OGE16-B04": 2,
+    "OGE16-B05": 1,
+    "OGE16-C01": 1,
+    "OGE16-C02": 1,
+    "OGE16-C03": 1,
+    "OGE16-C04": 1,
+    "OGE16-C05": 1,
+    "OGE16-C06": 1,
+    "OGE16-D01": 2,
+    "OGE16-D02": 1,
+    "OGE16-D03": 1,
+    "OGE16-D04": 1,
+    "OGE16-D05": 1,
+    "OGE16-D06": 1,
+    "OGE17-E01": 2,
+    "OGE17-E02": 2,
+    "OGE17-E03": 2,
+    "OGE17-P01": 2,
+    "OGE17-P03": 2,
+    "OGE17-P06": 1,
+    "OGE17-P07": 1,
+    "OGE17-R02": 2,
+    "OGE17-R03": 2,
+    "OGE17-R04": 1,
+    "OGE17-T02": 2,
+    "OGE17-T04": 1,
+    "OGE17-T05": 1,
+    "OGE17-T06": 2,
+    "OGE17-T07": 1,
+    "OGE17-T08": 2,
+    "OGE18-A01": 2,
+    "OGE18-A03": 2,
+    "OGE18-A04": 2,
+    "OGE18-A05": 2,
+    "OGE18-A06": 2,
+    "OGE18-A07": 2,
+    "OGE18-C01": 2,
+    "OGE18-D05": 2,
+    "OGE18-H01": 2,
+    "OGE18-L01": 2,
+    "OGE18-L02": 2,
+    "OGE18-M01": 2,
+    "OGE18-M02": 2,
+    "OGE19-AREAS-METRICS": 5,
+    "OGE19-CIRCLES": 5,
+    "OGE19-LINES-ANGLES": 4,
+    "OGE19-MIXED": 4,
+    "OGE19-QUADRILATERALS": 4,
+    "OGE19-TRIANGLES": 5,
+    "PAPER-F01": 4,
+    "PAPER-F02": 4,
+    "PAPER-F03": 3,
+    "PAPER-F04": 3,
+    "PAPER-F06": 3,
+    "PAPER-F07": 4,
+    "STOVE-F01-CAPACITY-LIMITS": 4,
+    "STOVE-F02-ATTRIBUTE-MATCH": 3,
+    "STOVE-F03-VOLUME": 4,
+    "STOVE-F04-FLOOR-AREA": 3,
+    "STOVE-F05-WALL-AREA-NET": 2,
+    "STOVE-F06-PURCHASE-EXTRA-COSTS": 2,
+    "STOVE-F07-FIT-WOOD-DELIVERY": 3,
+    "STOVE-F08-COST-COMPARISON": 2,
+    "STOVE-F09-DIRECT-DISCOUNT": 3,
+    "STOVE-F10-REVERSE-DISCOUNT": 3,
+    "STOVE-F11-CONDITIONAL-TWO-DISCOUNTS": 3,
+    "STOVE-F12-ARCH-RADIUS": 3,
+    "TARIFF-F01-MONTHS-MINUTES": 4,
+    "TARIFF-F04-MONTHLY-BILL": 4,
+    "TARIFF-F05-EXTREMUM": 2,
+    "TARIFF-F09-PERCENT-FEE": 3,
+    "TARIFF-F12-HOME-ISP": 4,
+    "TYRES-DIAMETER": 3,
+    "TYRES-PERCENT-ROTATION": 4,
+    "TYRES-RADIUS-DELTA": 2,
+    "TYRES-SIDEWALL": 3,
+    "TYRES-TABLE-EXTREME": 4
+  }
+}

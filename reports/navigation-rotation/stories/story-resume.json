@@ -1,0 +1,123 @@
+{
+  "case": "story-resume",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Тренировка сохранена.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "▶ Продолжить",
+                "callback_data": "nav:resume~dd6d7a124f13"
+              }
+            ],
+            [
+              {
+                "text": "🎯 Тренировки",
+                "callback_data": "nav:trainings~dd6d7a124f13"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "nav:progress~dd6d7a124f13"
+              }
+            ],
+            [
+              {
+                "text": "⚙️ Настройки",
+                "callback_data": "nav:display~dd6d7a124f13"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "9a45c59f-d750-4e22-b481-0c9d7f5d184f"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}7 \\times 2{,}2 \\times 2{,}2</tg-math> м. Дверь: 81 см × 194 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://ek73Cw1zJO_mlA",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "ek73Cw1zJO_mlA": {
+          "path": "assets/082ada81865f5a8edb531aa6c54001c55262c16a77da79b86301d136ad467209.png",
+          "filename": "scenario-1.png",
+          "sha256": "082ada81865f5a8edb531aa6c54001c55262c16a77da79b86301d136ad467209"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Печи</b></p><p> </p><p><b>№3 — задание 1</b></p><p> </p><p>Определите по объёму парной подходящую дровяную печь. На сколько рублей её покупка обойдётся дешевле электрической с учётом установки? Установка электрической печи стоит 6 200 руб.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "f21cd78d-80b2-4c32-bd6f-baac0e7ed1bd"
+      }
+    }
+  ]
+}

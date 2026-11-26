@@ -1,0 +1,60 @@
+{
+  "case": "home",
+  "label": "Мой прогресс",
+  "calls": [
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://urcSURrHlFN61w",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Подробнее по номерам",
+                "callback_data": "progress:details~1fb70bbaf115"
+              }
+            ],
+            [
+              {
+                "text": "История и ошибки",
+                "callback_data": "progress:history:0~1fb70bbaf115"
+              }
+            ],
+            [
+              {
+                "text": "Письменные работы",
+                "callback_data": "progress:works:0~1fb70bbaf115"
+              }
+            ],
+            [
+              {
+                "text": "Умножение десятичных дробей",
+                "callback_data": "train:family:OGE06-F004-DEC-MUL~1fb70bbaf115"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~1fb70bbaf115"
+              }
+            ]
+          ]
+        }
+      },
+      "attachments": {
+        "urcSURrHlFN61w": {
+          "path": "assets/d2f77019f3b55e09e4a6330df5cde0c66796ead0f6189e23b92c5747cae8199f.png",
+          "filename": "progress.png",
+          "sha256": "d2f77019f3b55e09e4a6330df5cde0c66796ead0f6189e23b92c5747cae8199f"
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "0a14e2c8-c434-4582-8e32-0a59df13f528"
+      }
+    }
+  ]
+}

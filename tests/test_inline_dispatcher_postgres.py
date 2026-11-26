@@ -291,29 +291,29 @@ async def exercise_navigation(
         assert overview_photo.photo
         assert not any(call.__api_method__ == "sendWidget" for call in session.calls)
         keyboard = overview_photo.reply_markup.inline_keyboard
-        assert [[button.text for button in row] for row in keyboard[:4]] == [
+        assert [[button.text for button in row] for row in keyboard] == [
+            ["Подробнее по номерам"],
+            ["История и ошибки"],
             ["🎲 Смешанная тренировка"],
-            ["📊 Подробнее о номере"],
-            ["⚠️ Мои ошибки", "🕘 История"],
-            ["🔄 Обновить", "↩ В меню"],
+            ["↩ В меню"],
         ]
-        before_edits = sum(call.__api_method__ == "editMessageMedia" for call in session.calls)
-        await click("progress:refresh", overview_photo)
-        edit_count = sum(call.__api_method__ == "editMessageMedia" for call in session.calls)
-        assert edit_count == before_edits + 1
-        overview_photo = session.messages[overview_photo.message_id]
         await click("progress:details", overview_photo)
         number_picker = list(session.messages.values())[-1]
         assert number_picker.reply_to_message.message_id == overview_photo.message_id
         assert session.messages[overview_photo.message_id].photo == overview_photo.photo
         assert session.messages[overview_photo.message_id].reply_markup is None
-        await click("progress:refresh", overview_photo)
+        await click("progress:details", overview_photo)
         assert list(session.messages.values())[-1].message_id == number_picker.message_id
         await click("progress:number:6")
         number_detail = list(session.messages.values())[-1]
         assert "№6" in (number_detail.text or "")
         assert any(
             (button.callback_data or "").partition("~")[0] == "nav:task:6"
+            for row in number_detail.reply_markup.inline_keyboard
+            for button in row
+        )
+        assert any(
+            (button.callback_data or "").partition("~")[0] == "progress:numhist:6:0"
             for row in number_detail.reply_markup.inline_keyboard
             for button in row
         )
@@ -326,7 +326,6 @@ async def exercise_navigation(
         assert list(session.messages.values())[-1].message_id == overview_photo.message_id
         assert sum(call.__api_method__ == "sendPhoto" for call in session.calls) == photos_sent
         await click("progress:history:0")
-        await click("progress:summary")
         await click("progress:errors:0")
         assert await repository.user_state(42) == "progress"
         await click("progress:summary")
@@ -429,6 +428,7 @@ async def exercise_navigation(
         from app.persistence.training_insights import training_insights
 
         before_history_view = await training_insights(repository, 42)
+        await click("progress:history:0")
         await click("progress:errors:0")
         error_list = list(session.messages.values())[-1]
         item_action = next(
@@ -508,7 +508,7 @@ async def exercise_navigation(
                 for button in row
             )
         await click(return_action)
-        assert "Мои ошибки" in (list(session.messages.values())[-1].text or "")
+        assert "С ошибками" in (list(session.messages.values())[-1].text or "")
         after_history_view = await training_insights(repository, 42)
         assert before_history_view["total"] == after_history_view["total"]
         assert before_history_view["numbers"] == after_history_view["numbers"]

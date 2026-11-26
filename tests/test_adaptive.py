@@ -579,9 +579,16 @@ async def test_companion_dispatcher_personal_path_and_repeated_callbacks(monkeyp
         assert (await repo.task6_state(42))["problem"] == ordinary["problem"]
         await h.message("/start")
         await h.message("/progress")
-        await h.click("nav:gaps:0")
+        message, detail = h.button("progress:details")
+        revision = detail.partition("~")[2]
+        await h.click(saved=(message, f"nav:gaps:0~{revision}"))
         assert any(
-            "Последние свидетельства" in (m.text or "") for m in h.transport.messages.values()
+            "Подробнее по номерам" in (m.text or "") for m in h.transport.messages.values()
+        )
+        await h.click("progress:number:6")
+        assert any(
+            "Новых вариантов самостоятельно:" in (m.text or "")
+            for m in h.transport.messages.values()
         )
         assert await bank_pool.fetchval("SELECT count(*) FROM adaptive_sessions") == 0
     finally:

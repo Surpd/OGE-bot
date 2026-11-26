@@ -89,9 +89,9 @@ def test_dashboard_handles_large_counts_and_long_recommendation_without_overflow
 def test_summary_buttons_and_all_callback_payloads_fit_telegram_limit() -> None:
     markup = prepare_navigation_markup(progress_image_keyboard())
     assert [[button.text for button in row] for row in markup.inline_keyboard] == [
-        ["📊 Подробнее о номере"],
-        ["⚠️ Мои ошибки", "🕘 История"],
-        ["🔄 Обновить", "↩ В меню"],
+        ["Подробнее по номерам"],
+        ["История и ошибки"],
+        ["↩ В меню"],
     ]
     callbacks = [button.callback_data for row in markup.inline_keyboard for button in row]
     assert all(
@@ -166,7 +166,7 @@ def test_history_buttons_are_compact_and_follow_numbered_records_on_each_page() 
         markup = prepare_navigation_markup(
             progress_keyboard(page, 20, records=records[:6])
         )
-        rows = markup.inline_keyboard
+        rows = [row for row in markup.inline_keyboard if row[0].text.isdecimal()]
         assert [[button.text for button in row] for row in rows[:2]] == [
             ["7", "8", "9"], ["10", "11", "12"]
         ]
@@ -200,8 +200,8 @@ def test_dashboard_uses_existing_summary_values_without_changing_metrics() -> No
 def test_dashboard_action_starts_practice_without_scoring_an_empty_history() -> None:
     empty = demo_insights("empty")
     markup = prepare_navigation_markup(progress_image_keyboard(empty))
-    first = markup.inline_keyboard[0][0]
-    assert first.callback_data.partition("~")[0] == "nav:mixed"
+    action = markup.inline_keyboard[-2][0]
+    assert action.callback_data.partition("~")[0] == "nav:mixed"
     assert empty["total"]["answered_tasks"] == 0
 
 
@@ -210,9 +210,9 @@ def test_dashboard_action_uses_existing_recommendation_route(monkeypatch) -> Non
 
     insights = demo_insights("full")
     monkeypatch.setattr(progress, "recommended_number", lambda *_: 3)
-    assert progress_image_keyboard(insights).inline_keyboard[0][0].callback_data == "nav:oge15:3"
+    assert progress_image_keyboard(insights).inline_keyboard[-2][0].callback_data == "nav:oge15:3"
     monkeypatch.setattr(progress, "recommended_number", lambda *_: 13)
-    assert progress_image_keyboard(insights).inline_keyboard[0][0].callback_data == "nav:task:13"
+    assert progress_image_keyboard(insights).inline_keyboard[-2][0].callback_data == "nav:task:13"
     monkeypatch.setattr(progress, "recommended_number", lambda *_: None)
     first = progress_image_keyboard(insights).inline_keyboard[0][0]
     assert first.callback_data == "progress:details"

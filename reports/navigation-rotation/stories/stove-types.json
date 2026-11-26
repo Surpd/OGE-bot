@@ -1,0 +1,273 @@
+{
+  "case": "stove-types",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Выбери номер</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "№1–5 · Связанный сюжет",
+                "callback_data": "nav:linked~6fdc069e7087"
+              }
+            ],
+            [
+              {
+                "text": "№1",
+                "callback_data": "train:area:1~6fdc069e7087"
+              },
+              {
+                "text": "№2",
+                "callback_data": "train:area:2~6fdc069e7087"
+              },
+              {
+                "text": "№3",
+                "callback_data": "train:area:3~6fdc069e7087"
+              },
+              {
+                "text": "№4",
+                "callback_data": "train:area:4~6fdc069e7087"
+              },
+              {
+                "text": "№5",
+                "callback_data": "train:area:5~6fdc069e7087"
+              }
+            ],
+            [
+              {
+                "text": "№6",
+                "callback_data": "train:area:6~6fdc069e7087"
+              },
+              {
+                "text": "№7",
+                "callback_data": "train:area:7~6fdc069e7087"
+              },
+              {
+                "text": "№8",
+                "callback_data": "train:area:8~6fdc069e7087"
+              },
+              {
+                "text": "№9",
+                "callback_data": "train:area:9~6fdc069e7087"
+              },
+              {
+                "text": "№10",
+                "callback_data": "train:area:10~6fdc069e7087"
+              }
+            ],
+            [
+              {
+                "text": "№11",
+                "callback_data": "train:area:11~6fdc069e7087"
+              },
+              {
+                "text": "№12",
+                "callback_data": "train:area:12~6fdc069e7087"
+              },
+              {
+                "text": "№13",
+                "callback_data": "train:area:13~6fdc069e7087"
+              },
+              {
+                "text": "№14",
+                "callback_data": "train:area:14~6fdc069e7087"
+              },
+              {
+                "text": "№15",
+                "callback_data": "train:area:15~6fdc069e7087"
+              }
+            ],
+            [
+              {
+                "text": "№16",
+                "callback_data": "train:area:16~6fdc069e7087"
+              },
+              {
+                "text": "№17",
+                "callback_data": "train:area:17~6fdc069e7087"
+              },
+              {
+                "text": "№18",
+                "callback_data": "train:area:18~6fdc069e7087"
+              },
+              {
+                "text": "№19",
+                "callback_data": "train:area:19~6fdc069e7087"
+              }
+            ],
+            [
+              {
+                "text": "№20",
+                "callback_data": "p2:menu:20~6fdc069e7087"
+              },
+              {
+                "text": "№21",
+                "callback_data": "p2:menu:21~6fdc069e7087"
+              },
+              {
+                "text": "№22",
+                "callback_data": "p2:menu:22~6fdc069e7087"
+              }
+            ],
+            [
+              {
+                "text": "№23",
+                "callback_data": "p2:menu:23~6fdc069e7087"
+              },
+              {
+                "text": "№24",
+                "callback_data": "p2:menu:24~6fdc069e7087"
+              },
+              {
+                "text": "№25",
+                "callback_data": "p2:menu:25~6fdc069e7087"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "nav:trainings~6fdc069e7087"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "b0014092-97f8-481c-8f61-32bfae6655f4"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№3: весь номер или сюжет?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №3",
+                "callback_data": "train:number:3~f70d50387c9e"
+              }
+            ],
+            [
+              {
+                "text": "Шины",
+                "callback_data": "train:story:3:TYRES~f70d50387c9e"
+              }
+            ],
+            [
+              {
+                "text": "Бумага",
+                "callback_data": "train:story:3:PAPER~f70d50387c9e"
+              }
+            ],
+            [
+              {
+                "text": "Печи",
+                "callback_data": "train:story:3:STOVE~f70d50387c9e"
+              }
+            ],
+            [
+              {
+                "text": "Тарифы",
+                "callback_data": "train:story:3:TARIFF~f70d50387c9e"
+              }
+            ],
+            [
+              {
+                "text": "Участки",
+                "callback_data": "train:story:3:GARDEN~f70d50387c9e"
+              }
+            ],
+            [
+              {
+                "text": "Квартиры",
+                "callback_data": "train:story:3:FLAT~f70d50387c9e"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~f70d50387c9e"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "0512449a-d741-453a-9b43-e08232892339"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>№3 · Печи</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Все типы",
+                "callback_data": "train:story-all:3:STOVE~7637ad0a8e0c"
+              }
+            ],
+            [
+              {
+                "text": "Выбор печи с доставкой",
+                "callback_data": "train:family:STOVE-F07-FIT-WOOD-DELIVERY~7637ad0a8e0c"
+              }
+            ],
+            [
+              {
+                "text": "Дополнительные расходы на печь",
+                "callback_data": "train:family:STOVE-F06-PURCHASE-EXTRA-COSTS~7637ad0a8e0c"
+              }
+            ],
+            [
+              {
+                "text": "Площадь пола",
+                "callback_data": "train:family:STOVE-F04-FLOOR-AREA~7637ad0a8e0c"
+              }
+            ],
+            [
+              {
+                "text": "Площадь стен с проёмами",
+                "callback_data": "train:family:STOVE-F05-WALL-AREA-NET~7637ad0a8e0c"
+              }
+            ],
+            [
+              {
+                "text": "Сравнение стоимости печей",
+                "callback_data": "train:family:STOVE-F08-COST-COMPARISON~7637ad0a8e0c"
+              }
+            ],
+            [
+              {
+                "text": "↩ К сюжетам",
+                "callback_data": "train:area:3~7637ad0a8e0c"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "385990f6-9373-48a7-996a-ded8a42f2981"
+      }
+    }
+  ]
+}

@@ -1,0 +1,487 @@
+{
+  "case": "story-checkpoint",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:d5f64f08-80c5-451d-b44a-75df7ecff6ab"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "2971584d-a175-4edd-98dc-fd9cba13294e"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}4 \\times 2{,}8 \\times 1{,}9</tg-math> м. Дверь: 57 см × 171 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://T9y7Nvh_YStGJw",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "T9y7Nvh_YStGJw": {
+          "path": "assets/6e44101ba188bb23131ff3a143920cdfb92d9decc1aab2b789b0b1cc5857857a.png",
+          "filename": "scenario-1.png",
+          "sha256": "6e44101ba188bb23131ff3a143920cdfb92d9decc1aab2b789b0b1cc5857857a"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Печи</b></p><p> </p><p><b>№3 — задание 2</b></p><p> </p><p>Выберите подходящую дровяную печь по объёму парной и найдите её стоимость с доставкой в рублях. Доставка стоит 1 500 руб.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "88e80dec-515b-4585-951f-99b96a04853a"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:265e9bd3-060a-45e1-8f11-292a1659d1c3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "ae9d5d68-690c-4359-b929-46a9b42395cf"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}7 \\times 1{,}9 \\times 2{,}6</tg-math> м. Дверь: 69 см × 191 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Печи</b></p><p> </p><p><b>№3 — задание 3</b></p><p> </p><p>Найдите площадь стен парной без дверного проёма. Ответ дайте в м².</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "9f4ce42f-d030-471a-812f-d3e9528e265a"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:34040682-4224-4d93-bffb-2b8af5b64d5c"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "66be5893-2280-4fdf-8f41-caba62cecc52"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}1 \\times 2 \\times 2{,}5</tg-math> м. Дверь: 72 см × 206 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://5NKF73wQRt76pg",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "5NKF73wQRt76pg": {
+          "path": "assets/eceb336a0b99202c493b92df90b3592c9b0d2ba9218b1175ec528bf7c19cc365.png",
+          "filename": "scenario-1.png",
+          "sha256": "eceb336a0b99202c493b92df90b3592c9b0d2ba9218b1175ec528bf7c19cc365"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Печи</b></p><p> </p><p><b>№3 — задание 4</b></p><p> </p><p>Сколько рублей будет стоить электрическая печь №3 с установкой и доставкой? Установка стоит 6 400 руб., доставка — 1 300 руб.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:09814d7d-4109-448f-b25a-059a572bd962"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:09814d7d-4109-448f-b25a-059a572bd962"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:09814d7d-4109-448f-b25a-059a572bd962"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:09814d7d-4109-448f-b25a-059a572bd962"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:09814d7d-4109-448f-b25a-059a572bd962"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:09814d7d-4109-448f-b25a-059a572bd962"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "0e696641-2e40-4f0d-a383-ddf943b45bf3"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "🔁 Похожее",
+                "callback_data": "ad:similar:09814d7d-4109-448f-b25a-059a572bd962"
+              },
+              {
+                "text": "➡ Дальше",
+                "callback_data": "ad:next:09814d7d-4109-448f-b25a-059a572bd962"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:09814d7d-4109-448f-b25a-059a572bd962"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:09814d7d-4109-448f-b25a-059a572bd962"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:09814d7d-4109-448f-b25a-059a572bd962"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "f58aa08a-aaf2-44db-b942-9369fbebde3f"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}6 \\times 1{,}9 \\times 2{,}2</tg-math> м. Дверь: 68 см × 184 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Печи</b></p><p> </p><p><b>№3 — задание 5</b></p><p> </p><p>Найдите площадь пола парной в квадратных метрах.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:44749cea-889e-41cf-902a-761b14e89900"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:44749cea-889e-41cf-902a-761b14e89900"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:44749cea-889e-41cf-902a-761b14e89900"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:44749cea-889e-41cf-902a-761b14e89900"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:44749cea-889e-41cf-902a-761b14e89900"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:44749cea-889e-41cf-902a-761b14e89900"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "fb26d2f8-bfe2-449c-9d1c-a345067b088f"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Промежуточный итог</b>\n\n<b>Задания 1–5</b>\n\nРешено верно: 0 из 5\nСамостоятельно: 0 из 5\nПропущено: 5",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "➡ Продолжить",
+                "callback_data": "ad:continue:44749cea-889e-41cf-902a-761b14e89900"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:44749cea-889e-41cf-902a-761b14e89900"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:44749cea-889e-41cf-902a-761b14e89900"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "4ae54031-797b-438d-baa7-05f01f87ad2e"
+      }
+    }
+  ]
+}

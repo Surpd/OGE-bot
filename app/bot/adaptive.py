@@ -4,20 +4,20 @@ import logging
 import secrets
 from datetime import UTC, datetime
 from functools import lru_cache
+from random import Random
 from typing import Any, cast
 from uuid import uuid4
 
 from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from app.adaptive.engine import CURRENT, Stage, State, family_status
+from app.adaptive.engine import CURRENT
 from app.adaptive.planner import (
     History,
     NumberPerformance,
     PlanResult,
     SelectionReason,
     plan_with_trace,
-    unlocked,
 )
 from app.adaptive.session import BLOCK_SIZE, OPEN_PRACTICE, Session, at_checkpoint
 from app.adaptive.skills import title
@@ -30,7 +30,7 @@ from app.bot.menu import main_menu, trainings_hub
 from app.bot.mixed_training import _is_correct, _scenario_question, _send_problem
 from app.bot.presentation import hint_message, send_text
 from app.bot.scenario_materials import send_scenario_materials
-from app.bot.scenario_training import public_registry
+from app.bot.scenario_training import STORY_NAMES, public_registry
 from app.bot.similar_practice import targeted_candidates
 from app.bot.trainings import PART2_TRAININGS, TRAININGS
 from app.config import get_settings
@@ -41,7 +41,7 @@ from app.math.scenario_engine import (
     snapshot_digest,
 )
 from app.math.scenarios.recent_questions import NoFreshScenarioVariant, fresh_family_plan
-from app.persistence.rotation_history import enabled
+from app.persistence.rotation_history import enabled, story_family_recency
 from app.persistence.scenario_repository import ScenarioPostgresRepository
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,61 @@ def catalog() -> dict[str, int]:
             if f.available:
                 available[f.family_id] = f.position
     return available
+
+
+def story_families(number: int) -> dict[str, tuple[str, ...]]:
+    if not 1 <= number <= 5:
+        return {}
+    registry = public_registry()
+    available_stories = registry.available_stories(PracticeMode.SINGLE, position=number)
+    groups: dict[str, tuple[str, ...]] = {}
+    for story in STORY_NAMES:
+        if story not in available_stories:
+            continue
+        families = tuple(sorted((
+            family.family_id for family in registry.adapter(story).family_registry
+            if family.position == number and family.available
+        ), key=title))
+        if families:
+            groups[story] = families
+    return groups
+
+
+def _story_slots(
+    number: int, *, story: str | None, recent: list[str], excluded: list[str],
+    size: int, seed: str,
+) -> list[str]:
+    groups = {
+        code: available
+        for code, families in story_families(number).items()
+        if (story is None or code == story)
+        and (available := tuple(f for f in families if f not in excluded))
+    }
+    rng = Random(seed)
+    slots = []
+    for _ in range(size):
+        if not groups:
+            break
+        age = {family: -index for index, family in enumerate(dict.fromkeys(recent), start=1)}
+        unseen = -len(age) - 1
+
+        # Choose a story by its last issuance first, independent of catalogue size.
+        # Use all recent families, including families that are currently excluded.
+        story_age = {
+            code: max(
+                (value for family, value in age.items() if family.partition("-")[0] == code),
+                default=unseen,
+            )
+            for code in groups
+        }
+        oldest = min(story_age.values())
+        selected = rng.choice([code for code, rank in story_age.items() if rank == oldest])
+        family_age = {family: age.get(family, unseen) for family in groups[selected]}
+        oldest = min(family_age.values())
+        family = rng.choice([family for family, rank in family_age.items() if rank == oldest])
+        slots.append(family)
+        recent = [family, *recent]
+    return slots
 
 
 def generate(skill: str, seen: list[str]) -> dict[str, Any] | None:
@@ -302,6 +357,8 @@ async def present(
         "number": "Тренировка по номеру",
         "family": title(json.loads(row["plan"])[row["position"]]),
     }.get(strategy, "Тренировка")
+    if strategy == "number" and (story_label := STORY_NAMES.get(_scope(row).get("story", ""))):
+        mode_name = story_label
     position = f"№{data['number']} — задание {row['position'] + 1}"
     if strategy not in OPEN_PRACTICE:
         position += f" из {len(skills)}"
@@ -324,16 +381,54 @@ async def _issue_task(
     position, strategy = row["position"], row["strategy"]
     scope = _scope(row)
     exact = strategy == "family" or scope.get("similar_position") == position
-    excluded = [] if exact or repeat else await store.excluded_for_learner()
+    mixed_options: list[str] | None = None
+    mixed_claim = None
+    if strategy == "mixed" and not exact and "mixed_rotation" in scope:
+        mixed_number, mixed_options, next_rotation = await store.mixed_choices(
+            row, catalog(), scope,
+        )
+        mixed_claim = mixed_number, next_rotation
+    excluded = (
+        [] if exact or repeat or mixed_options is not None else await store.excluded_for_learner()
+    )
+    number = scope.get("number")
+    story_number = (
+        number if strategy == "number" and isinstance(number, int) and 1 <= number <= 5 else None
+    )
+    recent_story = (
+        await story_family_recency(repository, store.learner, story_number)
+        if story_number and not exact and not repeat else []
+    )
     history, insights = (
         await _learner_inputs(repository, store.learner)
-        if not exact and not repeat and strategy in {"personal", "number"} else ([], {})
+        if not exact and not repeat and (
+            strategy == "personal" or strategy == "number" and not story_number
+        ) else ([], {})
     )
     exhausted_plan = None
     technical_failure = bool(excluded)
-    for _ in range(8):  # Try different eligible families, never random families within one search.
+    attempts = 8
+    if mixed_options is not None and not repeat:
+        attempts = len(mixed_options)
+    elif story_number:
+        attempts = sum(map(len, story_families(story_number).values())) + 1
+    for _ in range(attempts):  # Search the selected number's available families on mixed retries.
         updated = skills
-        if not exact and not repeat and (strategy == "personal" or skills[position] in excluded):
+        if mixed_options is not None:
+            if repeat:
+                if skills[position] not in mixed_options:
+                    break
+            elif mixed_options:
+                updated = [*skills[:position], mixed_options[0], *skills[position + 1:]]
+            else:
+                break
+        elif story_number and not exact and not repeat:
+            rotated = _story_slots(
+                story_number, story=scope.get("story"), recent=recent_story, excluded=excluded,
+                size=len(skills) - position, seed=str(scope.get("plan_seed", store.learner)),
+            )
+            updated = [*skills[:position], *rotated]
+        elif not exact and not repeat and (strategy == "personal" or skills[position] in excluded):
             updated = list(_select(
                 strategy, store.learner, history, insights, prefix=skills[:position],
                 excluded=excluded, number=scope.get("number"), size=len(skills),
@@ -365,7 +460,10 @@ async def _issue_task(
                 candidate = None
             technical_failure |= candidate is None
         if candidate:
-            if not await store.save(row, skill, candidate, repeat=repeat):
+            save_kwargs: dict[str, Any] = {"repeat": repeat}
+            if mixed_claim is not None:
+                save_kwargs["mixed_claim"] = mixed_claim
+            if not await store.save(row, skill, candidate, **save_kwargs):
                 # A competing update can reserve the cursor or issue this very variant.
                 # Neither case proves that the family is exhausted.
                 current = await store.current()
@@ -379,9 +477,12 @@ async def _issue_task(
             return None
         if exact or repeat:
             break
-        excluded.append(skill)
+        if mixed_options is not None:
+            mixed_options.pop(0)
+        else:
+            excluded.append(skill)
     else:
-        technical_failure = True
+        technical_failure |= mixed_options is None or bool(mixed_options)
     current = await store.current()
     if _same_pending(current, row, skills) and (
         await repository.user_state(store.learner) == "adaptive"
@@ -413,7 +514,14 @@ def _mode_plan(
     family: str | None = None,
     excluded: list[str] | None = None,
     seed: str | None = None,
+    story: str | None = None,
+    recent_story: list[str] | None = None,
 ) -> list[str]:
+    if strategy == "number" and number is not None and 1 <= number <= 5:
+        return _story_slots(
+            number, story=story, recent=recent_story or [], excluded=excluded or [],
+            size=BLOCK_SIZE, seed=seed or str(learner),
+        )
     if strategy == "family":
         return [family] * 5 if family is not None and family in catalog() else []
     return list(_select(
@@ -421,16 +529,22 @@ def _mode_plan(
     ).slots)
 
 
-def _requested_mode(row: Any, strategy: str, number: int | None, family: str | None) -> bool:
+def _requested_mode(
+    row: Any, strategy: str, number: int | None, family: str | None, story: str | None = None,
+) -> bool:
     if str(row["strategy"]) != strategy:
         return False
     scope = _scope(row)
-    return (strategy != "number" or scope.get("number") == number) and (
-        strategy != "family" or scope.get("family") == family
-    )
+    if strategy == "number":
+        return scope.get("number") == number and scope.get("story") == story
+    return strategy != "family" or scope.get("family") == family
 
 
-def _switch_callback(strategy: str, number: int | None, family: str | None) -> str:
+def _switch_callback(
+    strategy: str, number: int | None, family: str | None, story: str | None = None,
+) -> str:
+    if strategy == "number" and story is not None:
+        return f"train:x:s:{number}:{story}"
     codes = {"personal": "p", "mixed": "m", "number": "n", "family": "f"}
     value = family if strategy == "family" else str(number) if strategy == "number" else ""
     return f"train:x:{codes[strategy]}" + (f":{value}" if value else "")
@@ -443,6 +557,7 @@ async def start(
     strategy: str = "personal",
     number: int | None = None,
     family: str | None = None,
+    story: str | None = None,
 ) -> None:
     if not get_settings().oge_adaptive_enabled or not message.from_user:
         return
@@ -459,7 +574,7 @@ async def start(
     pool = getattr(repository, "_pool", None)
     store = Session(repository, learner) if pool is not None else None
     current = await store.current() if store else None
-    if current is not None and not _requested_mode(current, strategy, number, family):
+    if current is not None and not _requested_mode(current, strategy, number, family, story):
         personal_available = await repository.personal_enabled(learner)
         current_name = {
             "personal": "персональная",
@@ -469,7 +584,7 @@ async def start(
         }.get(str(current["strategy"]), "короткая")
         rows = [
             [button("Завершить и переключиться", _switch_callback(
-                strategy, number, family,
+                strategy, number, family, story,
             ))],
             [button("↩ К тренировкам", "train:hub")],
         ]
@@ -486,17 +601,24 @@ async def start(
     if current is None:
         if store is None:
             return
+        story_number = strategy == "number" and number is not None and 1 <= number <= 5
         history, insights = (
             await _learner_inputs(repository, learner)
-            if strategy in {"personal", "number"}
+            if strategy == "personal" or strategy == "number" and not story_number
             else ([], {})
         )
+        recent_story = (
+            await story_family_recency(repository, learner, number)
+            if story_number and number is not None else []
+        )
         plan_seed = str(learner) if strategy == "personal" else secrets.token_hex(8)
-        skills = _mode_plan(
+        mixed_catalog = catalog() if strategy == "mixed" else None
+        skills = [] if mixed_catalog else _mode_plan(
             strategy, learner, history, insights, number=number, family=family,
             excluded=await store.excluded_for_learner(), seed=plan_seed,
+            story=story, recent_story=recent_story,
         )
-        if not skills:
+        if not skills and not mixed_catalog:
             await send_text(
                 message,
                 repository,
@@ -508,8 +630,13 @@ async def start(
         scope: dict[str, Any] = {"number": number} if strategy == "number" else (
             {"family": family} if strategy == "family" else {}
         )
+        if story is not None:
+            scope["story"] = story
         scope["plan_seed"] = plan_seed
-        await store.start(skills, strategy=strategy, scope=scope)
+        if mixed_catalog:
+            await store.start(skills, strategy=strategy, scope=scope, mixed_catalog=mixed_catalog)
+        else:
+            await store.start(skills, strategy=strategy, scope=scope)
     elif store:
         await store.start([])
     await present(message, repository, learner)
@@ -550,6 +677,14 @@ def area_keyboard() -> InlineKeyboardMarkup:
 
 
 def family_area_keyboard(number: int, page: int = 0) -> InlineKeyboardMarkup:
+    if 1 <= number <= 5:
+        rows = [[button(f"Весь №{number}", f"train:number:{number}")]]
+        rows.extend([
+            [button(STORY_NAMES[story], f"train:story:{number}:{story}")]
+            for story in story_families(number)
+        ])
+        rows.append([button("↩ К номерам", "train:areas")])
+        return InlineKeyboardMarkup(inline_keyboard=rows)
     families = sorted((skill for skill, n in catalog().items() if n == number), key=title)
     page_count = max(1, (len(families) + 4) // 5)
     page = min(max(0, page), page_count - 1)
@@ -567,6 +702,13 @@ def family_area_keyboard(number: int, page: int = 0) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+def story_area_keyboard(number: int, story: str, families: tuple[str, ...]) -> InlineKeyboardMarkup:
+    rows = [[button("Все типы", f"train:story-all:{number}:{story}")]]
+    rows.extend([[button(title(family), f"train:family:{family}")] for family in families])
+    rows.append([button("↩ К сюжетам", f"train:area:{number}")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 _REASON_NAMES = {
     "calculation": "вычислительная ошибка",
     "lost_root": "потерян корень",
@@ -578,152 +720,6 @@ _REASON_NAMES = {
     "graph": "ошибка построения графика",
     "model": "ошибка в математической модели",
 }
-
-
-def stage_line(s: State) -> str:
-    return family_status(s).label
-
-
-def summary(history: History, offset: int = 0) -> str:
-    if not history:
-        return "Здесь появятся результаты по типам задач."
-    first = [s for n, _, s, _ in history if n <= 19]
-    lines = [
-        "Сводка по типам задач",
-        f"Открыто пробелов · {sum(s.opened > s.closed for s in first)}",
-        f"На закреплении · {sum(s.stage == Stage.PRACTICE for s in first)}",
-        f"Закрыто пробелов сейчас · {sum(s.closed > 0 and s.opened == s.closed for s in first)}",
-    ]
-    for number, skill, s, _ in history[offset : offset + 1]:
-        lines.extend(["", f"№{number} · {title(skill)}"])
-        if number >= 20:
-            if s.stage == Stage.CHECK:
-                lines.append("Можно потренироваться на новой письменной работе этого подтипа.")
-            continue
-        lines.append(stage_line(s))
-        if s.opened > s.closed or s.practice:
-            lines.append(
-                f"Новые варианты подряд без помощи · {s.practice}/{CURRENT.practice_count}"
-            )
-    return "\n".join(lines)
-
-
-async def gaps(message: Message, repository: Any, offset: int = 0) -> None:
-    if not get_settings().oge_adaptive_enabled or not message.from_user:
-        return
-    learner = message.from_user.id
-    from app.bot.progress import _FAMILY_PRIORITY
-
-    projected, insights = await _learner_inputs(repository, learner)
-    answered = {row["family_id"]: row["answered_tasks"] for row in insights.get("families", [])}
-    history = sorted(
-        (row for row in projected if row[2].stage != Stage.UNCHECKED),
-        key=lambda h: (
-            h[0] >= 20,
-            _FAMILY_PRIORITY.get(h[2].stage, 4),
-            -answered.get(h[1], 0),
-            h[0],
-            h[1],
-        ),
-    )
-    rows = []
-    for number, skill, state, _ in history[offset : offset + 1]:
-        if (
-            number >= 20
-            and state.stage not in {Stage.UNCHECKED, Stage.CONFIRMED}
-            and get_settings().oge_part2_enabled
-        ):
-            rows.append([button(f"Письменная работа №{number}", f"p2:open:{number}:{skill}")])
-    if unlocked(projected) and await repository.personal_enabled(learner):
-        rows.append([button("Персональная тренировка", "nav:adaptive")])
-    body = summary(history, offset)
-    if history[offset : offset + 1]:
-        from app.bot.progress import encode_record_ref
-
-        number, skill, state, _ = history[offset]
-        log = await repository._pool.fetch(
-            """SELECT source,task,outcome,attempt,reason,occurred,confirmed_error_reasons
-            FROM adaptive_learning_events e JOIN users u ON u.id=e.owner
-            WHERE u.telegram_user_id=$1 AND e.skill=$2 AND e.reason IS NOT NULL
-            ORDER BY occurred DESC,ordinal DESC LIMIT 4""",
-            learner,
-            skill,
-        )
-        previous = await repository._pool.fetchval(
-            """SELECT max(m.occurred) FROM adaptive_past_milestones m JOIN users u ON u.id=m.owner
-            WHERE u.telegram_user_id=$1 AND m.skill=$2 AND m.reason='gap_closed'""",
-            learner,
-            skill,
-        )
-        if previous:
-            body += f"\nПробел закрывался по прежним правилам · {previous:%d.%m.%Y}"
-        if log:
-            body += "\n\nПоследние свидетельства"
-        refs = []
-        for r in log:
-            what = {
-                "correct": "верный ответ",
-                "wrong": "ошибка",
-                "solution": "просмотр разбора",
-            }.get(r["outcome"], "проверка")
-            detail = {
-                "gap_opened": "пробел обнаружен",
-                "gap_reopened": "пробел открыт снова",
-                "independent_success": "самостоятельное решение",
-                "written_recommended": "рекомендация по подтипу",
-                "gap_closed": "пробел закрыт",
-                "skill_confirmed": "три самостоятельных решения подряд",
-                "thematic_check_needed": "нужна проверка на одной теме",
-                "independent_check_needed": "нужен новый вариант без помощи",
-            }.get(r["reason"], "")
-            body += f"\n{r['occurred']:%d.%m} · {what}"
-            if r["attempt"]:
-                body += f", попытка {r['attempt']}"
-            if detail:
-                body += f" · {detail}"
-            if r["confirmed_error_reasons"]:
-                labels = [_REASON_NAMES[code] for code in r["confirmed_error_reasons"]]
-                body += "\nПреподаватель отметил: " + ", ".join(labels)
-            source = {"ordinary": "o", "personal": "o", "mixed": "m", "scenario": "s"}.get(
-                r["source"]
-            )
-            if source:
-                token = encode_record_ref(f"{source}:{r['task']}")
-                if token not in refs:
-                    refs.append(token)
-        if refs:
-            rows.append(
-                [
-                    button(f"Задача {i}", f"progress:item:{token}:h0")
-                    for i, token in enumerate(refs, 1)
-                ]
-            )
-        if number >= 20:
-            remaining = await repository._pool.fetchval(
-                """SELECT count(DISTINCT v.task_id)
-                FROM part2_versions v JOIN part2_cards c USING(task_id)
-                WHERE c.subtype_id=$1 AND v.available AND v.reviewed AND NOT EXISTS(
-                SELECT FROM part2_issues i WHERE i.task_id=v.task_id AND i.owner=$2)""",
-                skill,
-                learner,
-            )
-            body += f"\nНовых проверенных карточек подтипа · {remaining}"
-    arrows = []
-    if offset:
-        arrows.append(button("Назад", f"nav:gaps:{max(0, offset - 1)}"))
-    if offset + 1 < len(history):
-        arrows.append(button("Дальше", f"nav:gaps:{offset + 1}"))
-    if arrows:
-        rows.append(arrows)
-    rows.append([button("Мой прогресс", "nav:progress"), button("В меню", "nav:main")])
-    await repository.save_user_state(learner, "progress")
-    await send_text(
-        message,
-        repository,
-        body,
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
-        user_id_override=learner,
-    )
 
 
 async def answer(message: Message, repository: Any) -> None:
@@ -959,9 +955,28 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             if number not in catalog().values():
                 await answer_callback(cb, "Этот номер пока недоступен.")
                 return
-            await send_text(actor_message, repository, f"№{number}: весь номер или конкретный тип?",
+            choice = "сюжет" if number <= 5 else "конкретный тип"
+            await send_text(actor_message, repository, f"№{number}: весь номер или {choice}?",
                             reply_markup=family_area_keyboard(number, page),
                             user_id_override=learner)
+        elif action in {"story", "story-all"} and len(parts) == 4 and parts[2].isdigit():
+            number, story = int(parts[2]), parts[3]
+            families = story_families(number).get(story, ())
+            if not families:
+                await answer_callback(cb, "Этот сюжет недоступен для выбранного номера.")
+                return
+            if len(families) == 1:
+                await start(actor_message, repository, strategy="family", family=families[0])
+            elif action == "story-all":
+                await start(
+                    actor_message, repository, strategy="number", number=number, story=story,
+                )
+            else:
+                await send_text(
+                    actor_message, repository, f"№{number} · {STORY_NAMES[story]}",
+                    reply_markup=story_area_keyboard(number, story, families),
+                    user_id_override=learner,
+                )
         elif action in {"personal", "mixed"} and len(parts) == 2:
             await start(actor_message, repository, strategy=action)
         elif action == "resume" and len(parts) == 2:
@@ -983,15 +998,22 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             await start(actor_message, repository, strategy="number", number=int(parts[2]))
         elif action == "family" and len(parts) == 3:
             await start(actor_message, repository, strategy="family", family=parts[2])
-        elif action == "x" and len(parts) in {3, 4}:
+        elif action == "x" and len(parts) in {3, 4, 5}:
             requested_strategy = {
-                "p": "personal", "m": "mixed", "n": "number", "f": "family",
+                "p": "personal", "m": "mixed", "n": "number", "f": "family", "s": "number",
             }.get(
                 parts[2], ""
             )
             requested_number = int(parts[3]) if (
-                requested_strategy == "number" and len(parts) == 4 and parts[3].isdigit()
+                requested_strategy == "number" and len(parts) >= 4 and parts[3].isdigit()
             ) else None
+            requested_story = parts[4] if parts[2] == "s" and len(parts) == 5 else None
+            if (parts[2] == "s" and (
+                requested_number is None
+                or requested_story not in story_families(requested_number)
+            )) or (len(parts) == 5 and parts[2] != "s"):
+                await answer_callback(cb, "Это направление недоступно.")
+                return
             requested_family = (
                 parts[3] if requested_strategy == "family" and len(parts) == 4 else None
             )
@@ -1028,7 +1050,7 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
                 )
             await start(
                 actor_message, repository, strategy=requested_strategy,
-                number=requested_number, family=requested_family,
+                number=requested_number, family=requested_family, story=requested_story,
             )
         else:
             await answer_callback(cb, "Это направление недоступно.")
@@ -1072,12 +1094,22 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
     elif action == "continue" and at_checkpoint(row):
         scope = _scope(row)
         strategy = row["strategy"]
+        practice_number = scope.get("number")
+        story_number = (
+            strategy == "number" and isinstance(practice_number, int) and 1 <= practice_number <= 5
+        )
         history, insights = (
-            await _learner_inputs(repository, learner) if strategy == "number" else ([], {})
+            await _learner_inputs(repository, learner)
+            if strategy == "number" and not story_number else ([], {})
+        )
+        recent_story = (
+            await story_family_recency(repository, learner, practice_number)
+            if story_number and practice_number is not None else []
         )
         next_block = _mode_plan(
-            strategy, learner, history, insights, number=scope.get("number"),
+            strategy, learner, history, insights, number=practice_number,
             family=scope.get("family"), seed=secrets.token_hex(8),
+            story=scope.get("story"), recent_story=recent_story,
         )
         result = await store.act(
             row["problem"], row["prompt"], action, session_id=row["id"],

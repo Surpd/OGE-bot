@@ -1,0 +1,280 @@
+{
+  "case": "PG-backed dispatcher, actual candidate generation after transient error",
+  "numbers": [
+    10,
+    18,
+    6,
+    4,
+    19
+  ],
+  "technical_failure": [
+    {
+      "method": "sendMessage",
+      "body": {
+        "chat_id": "1",
+        "text": "Не получилось подготовить задачу. Попробуй ещё раз.",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\u041f\\u043e\\u043f\\u0440\\u043e\\u0431\\u043e\\u0432\\u0430\\u0442\\u044c \\u0435\\u0449\\u0451 \\u0440\\u0430\\u0437\", \"callback_data\": \"ad:retry:49fc9ace-63ed-4cb7-905d-5bc50e406a71.0~mixed-dispatch\"}], [{\"text\": \"\\u0412\\u044b\\u0431\\u0440\\u0430\\u0442\\u044c \\u0434\\u0440\\u0443\\u0433\\u043e\\u0439 \\u0442\\u0438\\u043f\", \"callback_data\": \"train:areas~mixed-dispatch\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:49fc9ace-63ed-4cb7-905d-5bc50e406a71.0~mixed-dispatch\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:49fc9ace-63ed-4cb7-905d-5bc50e406a71.0~mixed-dispatch\"}]]}"
+      },
+      "attachments": {}
+    }
+  ],
+  "initial": [
+    {
+      "method": "sendRichMessage",
+      "body": {
+        "chat_id": "1",
+        "rich_message": "{\"html\": \"<p><b>\\u0421\\u043c\\u0435\\u0448\\u0430\\u043d\\u043d\\u0430\\u044f \\u0442\\u0440\\u0435\\u043d\\u0438\\u0440\\u043e\\u0432\\u043a\\u0430</b></p><p>\\u00a0</p><p><b>\\u211610 \\u2014 \\u0437\\u0430\\u0434\\u0430\\u043d\\u0438\\u0435 1 \\u0438\\u0437 5</b></p><p>\\u00a0</p><p>\\u0412 \\u043d\\u0430\\u0431\\u043e\\u0440\\u0435 40 \\u0444\\u0438\\u0448\\u0435\\u043a: 27 \\u043a\\u0440\\u0430\\u0441\\u043d\\u044b\\u0445 \\u0444\\u0438\\u0448\\u0435\\u043a, 10 \\u0441\\u0438\\u043d\\u0438\\u0445 \\u0444\\u0438\\u0448\\u0435\\u043a \\u0438 3 \\u0437\\u0435\\u043b\\u0451\\u043d\\u044b\\u0435 \\u0444\\u0438\\u0448\\u043a\\u0438. \\u041d\\u0430\\u0443\\u0433\\u0430\\u0434 \\u0432\\u044b\\u0431\\u0438\\u0440\\u0430\\u044e\\u0442 \\u043e\\u0434\\u043d\\u0443 \\u0444\\u0438\\u0448\\u043a\\u0443. \\u041d\\u0430\\u0439\\u0434\\u0438\\u0442\\u0435 \\u0432\\u0435\\u0440\\u043e\\u044f\\u0442\\u043d\\u043e\\u0441\\u0442\\u044c \\u0432\\u044b\\u0431\\u0440\\u0430\\u0442\\u044c \\u0441\\u0438\\u043d\\u044e\\u044e \\u0444\\u0438\\u0448\\u043a\\u0443.</p><p>\\u00a0</p><p>\\u041d\\u0430\\u043f\\u0438\\u0448\\u0438\\u0442\\u0435 \\u043e\\u0442\\u0432\\u0435\\u0442 \\u0432 \\u0447\\u0430\\u0442.</p>\"}",
+        "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udca1 \\u041f\\u043e\\u0434\\u0441\\u043a\\u0430\\u0437\\u043a\\u0430\", \"callback_data\": \"ad:hint:d3ca0ade-f269-4a79-a123-037de360cabb\"}, {\"text\": \"\\ud83d\\udcd8 \\u0420\\u0430\\u0437\\u0431\\u043e\\u0440\", \"callback_data\": \"ad:solution:d3ca0ade-f269-4a79-a123-037de360cabb\"}], [{\"text\": \"\\u23ed \\u041f\\u0440\\u043e\\u043f\\u0443\\u0441\\u0442\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:skip:d3ca0ade-f269-4a79-a123-037de360cabb\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:d3ca0ade-f269-4a79-a123-037de360cabb\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:d3ca0ade-f269-4a79-a123-037de360cabb\"}]]}"
+      },
+      "attachments": {}
+    },
+    {
+      "method": "answerCallbackQuery",
+      "body": {
+        "callback_query_id": "retry"
+      },
+      "attachments": {}
+    }
+  ],
+  "transitions": [
+    {
+      "position": 1,
+      "action": "skip",
+      "calls": [
+        {
+          "method": "sendMessage",
+          "body": {
+            "chat_id": "1",
+            "text": "Задание пропущено.",
+            "parse_mode": "HTML",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udd01 \\u041f\\u043e\\u0445\\u043e\\u0436\\u0435\\u0435\", \"callback_data\": \"ad:similar:d3ca0ade-f269-4a79-a123-037de360cabb\"}, {\"text\": \"\\u27a1 \\u0414\\u0430\\u043b\\u044c\\u0448\\u0435\", \"callback_data\": \"ad:next:d3ca0ade-f269-4a79-a123-037de360cabb\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:d3ca0ade-f269-4a79-a123-037de360cabb\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:d3ca0ade-f269-4a79-a123-037de360cabb\"}]]}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "0:skip"
+          },
+          "attachments": {}
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "action": "next",
+      "calls": [
+        {
+          "method": "sendRichMessage",
+          "body": {
+            "chat_id": "1",
+            "rich_message": "{\"html\": \"<img src=\\\"tg://photo?id=diagram\\\"/><p><b>\\u0421\\u043c\\u0435\\u0448\\u0430\\u043d\\u043d\\u0430\\u044f \\u0442\\u0440\\u0435\\u043d\\u0438\\u0440\\u043e\\u0432\\u043a\\u0430</b></p><p>\\u00a0</p><p><b>\\u211618 \\u2014 \\u0437\\u0430\\u0434\\u0430\\u043d\\u0438\\u0435 2 \\u0438\\u0437 5</b></p><p>\\u00a0</p><p>\\u041d\\u0430 \\u043a\\u043b\\u0435\\u0442\\u0447\\u0430\\u0442\\u043e\\u0439 \\u0431\\u0443\\u043c\\u0430\\u0433\\u0435 \\u0438\\u0437\\u043e\\u0431\\u0440\\u0430\\u0436\\u0435\\u043d\\u044b \\u0434\\u0432\\u0430 \\u043a\\u0440\\u0443\\u0433\\u0430. \\u041d\\u0430\\u0439\\u0434\\u0438\\u0442\\u0435, \\u0432\\u043e \\u0441\\u043a\\u043e\\u043b\\u044c\\u043a\\u043e \\u0440\\u0430\\u0437 \\u043f\\u043b\\u043e\\u0449\\u0430\\u0434\\u044c \\u0431\\u043e\\u043b\\u044c\\u0448\\u0435\\u0433\\u043e \\u043a\\u0440\\u0443\\u0433\\u0430 \\u0431\\u043e\\u043b\\u044c\\u0448\\u0435 \\u043f\\u043b\\u043e\\u0449\\u0430\\u0434\\u0438 \\u043c\\u0435\\u043d\\u044c\\u0448\\u0435\\u0433\\u043e.</p><p>\\u00a0</p><p>\\u041d\\u0430\\u043f\\u0438\\u0448\\u0438\\u0442\\u0435 \\u043e\\u0442\\u0432\\u0435\\u0442 \\u0432 \\u0447\\u0430\\u0442.</p>\", \"media\": [{\"id\": \"diagram\", \"media\": {\"type\": \"photo\", \"media\": \"attach://JaWG7zg-nYU_bg\"}}]}",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udca1 \\u041f\\u043e\\u0434\\u0441\\u043a\\u0430\\u0437\\u043a\\u0430\", \"callback_data\": \"ad:hint:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}, {\"text\": \"\\ud83d\\udcd8 \\u0420\\u0430\\u0437\\u0431\\u043e\\u0440\", \"callback_data\": \"ad:solution:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}], [{\"text\": \"\\u23ed \\u041f\\u0440\\u043e\\u043f\\u0443\\u0441\\u0442\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:skip:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}]]}"
+          },
+          "attachments": {
+            "JaWG7zg-nYU_bg": {
+              "path": "mixed-media-845b7b94aa5c5160.png",
+              "filename": "oge18.png",
+              "bytes": 19124
+            }
+          }
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "0:next"
+          },
+          "attachments": {}
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "action": "skip",
+      "calls": [
+        {
+          "method": "sendMessage",
+          "body": {
+            "chat_id": "1",
+            "text": "Задание пропущено.",
+            "parse_mode": "HTML",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udd01 \\u041f\\u043e\\u0445\\u043e\\u0436\\u0435\\u0435\", \"callback_data\": \"ad:similar:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}, {\"text\": \"\\u27a1 \\u0414\\u0430\\u043b\\u044c\\u0448\\u0435\", \"callback_data\": \"ad:next:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:e8502a5b-9668-52c8-81c1-58f5956eebf2\"}]]}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "1:skip"
+          },
+          "attachments": {}
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "action": "next",
+      "calls": [
+        {
+          "method": "sendRichMessage",
+          "body": {
+            "chat_id": "1",
+            "rich_message": "{\"html\": \"<p><b>\\u0421\\u043c\\u0435\\u0448\\u0430\\u043d\\u043d\\u0430\\u044f \\u0442\\u0440\\u0435\\u043d\\u0438\\u0440\\u043e\\u0432\\u043a\\u0430</b></p><p>\\u00a0</p><p><b>\\u21166 \\u2014 \\u0437\\u0430\\u0434\\u0430\\u043d\\u0438\\u0435 3 \\u0438\\u0437 5</b></p><p>\\u00a0</p><p>\\u041d\\u0430\\u0439\\u0434\\u0438\\u0442\\u0435 \\u0437\\u043d\\u0430\\u0447\\u0435\\u043d\\u0438\\u0435 \\u0432\\u044b\\u0440\\u0430\\u0436\\u0435\\u043d\\u0438\\u044f: <tg-math>1 \\\\div \\\\left(\\\\frac{1}{30} + \\\\frac{1}{42}\\\\right)</tg-math></p><p>\\u00a0</p><p>\\u041d\\u0430\\u043f\\u0438\\u0448\\u0438\\u0442\\u0435 \\u043e\\u0442\\u0432\\u0435\\u0442 \\u0432 \\u0447\\u0430\\u0442.</p>\"}",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udca1 \\u041f\\u043e\\u0434\\u0441\\u043a\\u0430\\u0437\\u043a\\u0430\", \"callback_data\": \"ad:hint:20811832-9fac-403d-af3f-44e30622cd65\"}, {\"text\": \"\\ud83d\\udcd8 \\u0420\\u0430\\u0437\\u0431\\u043e\\u0440\", \"callback_data\": \"ad:solution:20811832-9fac-403d-af3f-44e30622cd65\"}], [{\"text\": \"\\u23ed \\u041f\\u0440\\u043e\\u043f\\u0443\\u0441\\u0442\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:skip:20811832-9fac-403d-af3f-44e30622cd65\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:20811832-9fac-403d-af3f-44e30622cd65\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:20811832-9fac-403d-af3f-44e30622cd65\"}]]}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "1:next"
+          },
+          "attachments": {}
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "action": "skip",
+      "calls": [
+        {
+          "method": "sendMessage",
+          "body": {
+            "chat_id": "1",
+            "text": "Задание пропущено.",
+            "parse_mode": "HTML",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udd01 \\u041f\\u043e\\u0445\\u043e\\u0436\\u0435\\u0435\", \"callback_data\": \"ad:similar:20811832-9fac-403d-af3f-44e30622cd65\"}, {\"text\": \"\\u27a1 \\u0414\\u0430\\u043b\\u044c\\u0448\\u0435\", \"callback_data\": \"ad:next:20811832-9fac-403d-af3f-44e30622cd65\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:20811832-9fac-403d-af3f-44e30622cd65\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:20811832-9fac-403d-af3f-44e30622cd65\"}]]}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "2:skip"
+          },
+          "attachments": {}
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "action": "next",
+      "calls": [
+        {
+          "method": "sendRichMessage",
+          "body": {
+            "chat_id": "1",
+            "rich_message": "{\"html\": \"<p>\\u0421\\u0438\\u0442\\u0443\\u0430\\u0446\\u0438\\u044f. \\u0417\\u0430\\u0432\\u043e\\u0434 \\u0443\\u0441\\u0442\\u0430\\u043d\\u0430\\u0432\\u043b\\u0438\\u0432\\u0430\\u0435\\u0442 \\u043d\\u0430 \\u0430\\u0432\\u0442\\u043e\\u043c\\u043e\\u0431\\u0438\\u043b\\u0438 \\u0448\\u0438\\u043d\\u044b \\u043c\\u0430\\u0440\\u043a\\u0438\\u0440\\u043e\\u0432\\u043a\\u0438 195/70 R12. \\u041f\\u0435\\u0440\\u0432\\u043e\\u0435 \\u0447\\u0438\\u0441\\u043b\\u043e \\u043e\\u0431\\u043e\\u0437\\u043d\\u0430\\u0447\\u0430\\u0435\\u0442 \\u0448\\u0438\\u0440\\u0438\\u043d\\u0443 \\u0448\\u0438\\u043d\\u044b \\u0432 \\u043c\\u0438\\u043b\\u043b\\u0438\\u043c\\u0435\\u0442\\u0440\\u0430\\u0445, \\u0432\\u0442\\u043e\\u0440\\u043e\\u0435 \\u2014 \\u0432\\u044b\\u0441\\u043e\\u0442\\u0443 \\u0431\\u043e\\u043a\\u043e\\u0432\\u0438\\u043d\\u044b \\u0432 \\u043f\\u0440\\u043e\\u0446\\u0435\\u043d\\u0442\\u0430\\u0445 \\u043e\\u0442 \\u0448\\u0438\\u0440\\u0438\\u043d\\u044b, \\u0430 \\u0447\\u0438\\u0441\\u043b\\u043e \\u043f\\u043e\\u0441\\u043b\\u0435 <tg-math>R</tg-math> \\u2014 \\u0434\\u0438\\u0430\\u043c\\u0435\\u0442\\u0440 \\u0434\\u0438\\u0441\\u043a\\u0430 \\u0432 \\u0434\\u044e\\u0439\\u043c\\u0430\\u0445 (1 \\u0434\\u044e\\u0439\\u043c = 25,4 \\u043c\\u043c). \\u0414\\u0438\\u0430\\u043c\\u0435\\u0442\\u0440 \\u0432\\u0441\\u0435\\u0433\\u043e \\u043a\\u043e\\u043b\\u0435\\u0441\\u0430 \\u0440\\u0430\\u0432\\u0435\\u043d \\u0434\\u0438\\u0430\\u043c\\u0435\\u0442\\u0440\\u0443 \\u0434\\u0438\\u0441\\u043a\\u0430 \\u0432 \\u043c\\u0438\\u043b\\u043b\\u0438\\u043c\\u0435\\u0442\\u0440\\u0430\\u0445 \\u043f\\u043b\\u044e\\u0441 \\u0434\\u0432\\u0435 \\u0432\\u044b\\u0441\\u043e\\u0442\\u044b \\u0431\\u043e\\u043a\\u043e\\u0432\\u0438\\u043d\\u044b.</p><p>\\u00a0</p><p>\\u0421\\u0445\\u0435\\u043c\\u0430 \\u043f\\u043e\\u043a\\u0430\\u0437\\u044b\\u0432\\u0430\\u0435\\u0442 \\u0432\\u0435\\u043b\\u0438\\u0447\\u0438\\u043d\\u044b <tg-math>B</tg-math>, <tg-math>H</tg-math>, <tg-math>d</tg-math> \\u0438 <tg-math>D</tg-math>. \\u0420\\u0438\\u0441\\u0443\\u043d\\u043e\\u043a \\u0443\\u0441\\u043b\\u043e\\u0432\\u043d\\u044b\\u0439 \\u0438 \\u043d\\u0435 \\u0432 \\u043c\\u0430\\u0441\\u0448\\u0442\\u0430\\u0431\\u0435.</p>\"}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "sendPhoto",
+          "body": {
+            "chat_id": "1",
+            "photo": "attach://HE_K6vvec2JdHQ",
+            "caption": "Данные задачи №4",
+            "parse_mode": "HTML"
+          },
+          "attachments": {
+            "HE_K6vvec2JdHQ": {
+              "path": "mixed-media-684cacc022f1bbf7.png",
+              "filename": "scenario-1.png",
+              "bytes": 23857
+            }
+          }
+        },
+        {
+          "method": "sendRichMessage",
+          "body": {
+            "chat_id": "1",
+            "rich_message": "{\"html\": \"<p><b>\\u0421\\u043c\\u0435\\u0448\\u0430\\u043d\\u043d\\u0430\\u044f \\u0442\\u0440\\u0435\\u043d\\u0438\\u0440\\u043e\\u0432\\u043a\\u0430</b></p><p>\\u00a0</p><p><b>\\u21164 \\u2014 \\u0437\\u0430\\u0434\\u0430\\u043d\\u0438\\u0435 4 \\u0438\\u0437 5</b></p><p>\\u00a0</p><p>\\u041d\\u0430 \\u0441\\u043a\\u043e\\u043b\\u044c\\u043a\\u043e \\u043c\\u0438\\u043b\\u043b\\u0438\\u043c\\u0435\\u0442\\u0440\\u043e\\u0432 \\u0440\\u0430\\u0434\\u0438\\u0443\\u0441 \\u043a\\u043e\\u043b\\u0435\\u0441\\u0430 \\u0441 \\u0448\\u0438\\u043d\\u043e\\u0439 185/65 R16 \\u043c\\u0435\\u043d\\u044c\\u0448\\u0435, \\u0447\\u0435\\u043c \\u0440\\u0430\\u0434\\u0438\\u0443\\u0441 \\u043a\\u043e\\u043b\\u0435\\u0441\\u0430 \\u0441 \\u0448\\u0438\\u043d\\u043e\\u0439 205/60 R16?</p><p>\\u00a0</p><p>\\u041d\\u0430\\u043f\\u0438\\u0448\\u0438\\u0442\\u0435 \\u043e\\u0442\\u0432\\u0435\\u0442 \\u0432 \\u0447\\u0430\\u0442.</p>\"}",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udca1 \\u041f\\u043e\\u0434\\u0441\\u043a\\u0430\\u0437\\u043a\\u0430\", \"callback_data\": \"ad:hint:60c51e37-7d94-4cdd-a857-675f32056c36\"}, {\"text\": \"\\ud83d\\udcd8 \\u0420\\u0430\\u0437\\u0431\\u043e\\u0440\", \"callback_data\": \"ad:solution:60c51e37-7d94-4cdd-a857-675f32056c36\"}], [{\"text\": \"\\u23ed \\u041f\\u0440\\u043e\\u043f\\u0443\\u0441\\u0442\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:skip:60c51e37-7d94-4cdd-a857-675f32056c36\"}], [{\"text\": \"\\ud83d\\udcf7 \\u0421\\u0445\\u0435\\u043c\\u0430 / \\u0434\\u0430\\u043d\\u043d\\u044b\\u0435\", \"callback_data\": \"ad:data:60c51e37-7d94-4cdd-a857-675f32056c36\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:60c51e37-7d94-4cdd-a857-675f32056c36\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:60c51e37-7d94-4cdd-a857-675f32056c36\"}]]}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "2:next"
+          },
+          "attachments": {}
+        }
+      ]
+    },
+    {
+      "position": 4,
+      "action": "skip",
+      "calls": [
+        {
+          "method": "sendMessage",
+          "body": {
+            "chat_id": "1",
+            "text": "Задание пропущено.",
+            "parse_mode": "HTML",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udd01 \\u041f\\u043e\\u0445\\u043e\\u0436\\u0435\\u0435\", \"callback_data\": \"ad:similar:60c51e37-7d94-4cdd-a857-675f32056c36\"}, {\"text\": \"\\u27a1 \\u0414\\u0430\\u043b\\u044c\\u0448\\u0435\", \"callback_data\": \"ad:next:60c51e37-7d94-4cdd-a857-675f32056c36\"}], [{\"text\": \"\\ud83d\\udcf7 \\u0421\\u0445\\u0435\\u043c\\u0430 / \\u0434\\u0430\\u043d\\u043d\\u044b\\u0435\", \"callback_data\": \"ad:data:60c51e37-7d94-4cdd-a857-675f32056c36\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:60c51e37-7d94-4cdd-a857-675f32056c36\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:60c51e37-7d94-4cdd-a857-675f32056c36\"}]]}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "3:skip"
+          },
+          "attachments": {}
+        }
+      ]
+    },
+    {
+      "position": 4,
+      "action": "next",
+      "calls": [
+        {
+          "method": "sendRichMessage",
+          "body": {
+            "chat_id": "1",
+            "rich_message": "{\"html\": \"<p><b>\\u0421\\u043c\\u0435\\u0448\\u0430\\u043d\\u043d\\u0430\\u044f \\u0442\\u0440\\u0435\\u043d\\u0438\\u0440\\u043e\\u0432\\u043a\\u0430</b></p><p>\\u00a0</p><p><b>\\u211619 \\u2014 \\u0437\\u0430\\u0434\\u0430\\u043d\\u0438\\u0435 5 \\u0438\\u0437 5</b></p><p>\\u00a0</p><p>\\u041a\\u0430\\u043a\\u0438\\u0435 \\u0438\\u0437 \\u0441\\u043b\\u0435\\u0434\\u0443\\u044e\\u0449\\u0438\\u0445 \\u0443\\u0442\\u0432\\u0435\\u0440\\u0436\\u0434\\u0435\\u043d\\u0438\\u0439 \\u0432\\u0435\\u0440\\u043d\\u044b? \\u0412 \\u043e\\u0442\\u0432\\u0435\\u0442 \\u0437\\u0430\\u043f\\u0438\\u0448\\u0438\\u0442\\u0435 \\u0438\\u0445 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0430.</p><p>\\u00a0</p><p>1. \\u0412 \\u043b\\u044e\\u0431\\u043e\\u043c \\u0442\\u0440\\u0435\\u0443\\u0433\\u043e\\u043b\\u044c\\u043d\\u0438\\u043a\\u0435 \\u0441\\u0438\\u043d\\u0443\\u0441 \\u0443\\u0433\\u043b\\u0430 \\u0440\\u0430\\u0432\\u0435\\u043d \\u043e\\u0442\\u043d\\u043e\\u0448\\u0435\\u043d\\u0438\\u044e \\u043f\\u0440\\u043e\\u0442\\u0438\\u0432\\u043e\\u043b\\u0435\\u0436\\u0430\\u0449\\u0435\\u0439 \\u0441\\u0442\\u043e\\u0440\\u043e\\u043d\\u044b \\u043a \\u0433\\u0438\\u043f\\u043e\\u0442\\u0435\\u043d\\u0443\\u0437\\u0435.</p><p>2. \\u041a\\u043e\\u0441\\u0438\\u043d\\u0443\\u0441 \\u043e\\u0441\\u0442\\u0440\\u043e\\u0433\\u043e \\u0443\\u0433\\u043b\\u0430 \\u043f\\u0440\\u044f\\u043c\\u043e\\u0443\\u0433\\u043e\\u043b\\u044c\\u043d\\u043e\\u0433\\u043e \\u0442\\u0440\\u0435\\u0443\\u0433\\u043e\\u043b\\u044c\\u043d\\u0438\\u043a\\u0430 \\u0440\\u0430\\u0432\\u0435\\u043d \\u043e\\u0442\\u043d\\u043e\\u0448\\u0435\\u043d\\u0438\\u044e \\u043f\\u0440\\u0438\\u043b\\u0435\\u0436\\u0430\\u0449\\u0435\\u0433\\u043e \\u043a\\u0430\\u0442\\u0435\\u0442\\u0430 \\u043a \\u0433\\u0438\\u043f\\u043e\\u0442\\u0435\\u043d\\u0443\\u0437\\u0435.</p><p>3. \\u0412 \\u043f\\u0440\\u044f\\u043c\\u043e\\u0443\\u0433\\u043e\\u043b\\u044c\\u043d\\u043e\\u043c \\u0442\\u0440\\u0435\\u0443\\u0433\\u043e\\u043b\\u044c\\u043d\\u0438\\u043a\\u0435 \\u043a\\u0432\\u0430\\u0434\\u0440\\u0430\\u0442 \\u043b\\u044e\\u0431\\u043e\\u0433\\u043e \\u043a\\u0430\\u0442\\u0435\\u0442\\u0430 \\u0440\\u0430\\u0432\\u0435\\u043d \\u0441\\u0443\\u043c\\u043c\\u0435 \\u043a\\u0432\\u0430\\u0434\\u0440\\u0430\\u0442\\u043e\\u0432 \\u0434\\u0432\\u0443\\u0445 \\u0434\\u0440\\u0443\\u0433\\u0438\\u0445 \\u0441\\u0442\\u043e\\u0440\\u043e\\u043d.</p><p>\\u00a0</p><p>\\u0412\\u0432\\u0435\\u0434\\u0438\\u0442\\u0435 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0430 \\u0432\\u044b\\u0431\\u0440\\u0430\\u043d\\u043d\\u044b\\u0445 \\u0443\\u0442\\u0432\\u0435\\u0440\\u0436\\u0434\\u0435\\u043d\\u0438\\u0439 \\u043f\\u043e\\u0434\\u0440\\u044f\\u0434, \\u043d\\u0430\\u043f\\u0440\\u0438\\u043c\\u0435\\u0440 13.</p>\"}",
+            "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\ud83d\\udca1 \\u041f\\u043e\\u0434\\u0441\\u043a\\u0430\\u0437\\u043a\\u0430\", \"callback_data\": \"ad:hint:4b538146-5d54-4e73-ba1c-815b1f6bb36d\"}, {\"text\": \"\\ud83d\\udcd8 \\u0420\\u0430\\u0437\\u0431\\u043e\\u0440\", \"callback_data\": \"ad:solution:4b538146-5d54-4e73-ba1c-815b1f6bb36d\"}], [{\"text\": \"\\u23ed \\u041f\\u0440\\u043e\\u043f\\u0443\\u0441\\u0442\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:skip:4b538146-5d54-4e73-ba1c-815b1f6bb36d\"}], [{\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"ad:menu:4b538146-5d54-4e73-ba1c-815b1f6bb36d\"}, {\"text\": \"\\u0417\\u0430\\u0432\\u0435\\u0440\\u0448\\u0438\\u0442\\u044c\", \"callback_data\": \"ad:finish:4b538146-5d54-4e73-ba1c-815b1f6bb36d\"}]]}"
+          },
+          "attachments": {}
+        },
+        {
+          "method": "answerCallbackQuery",
+          "body": {
+            "callback_query_id": "3:next"
+          },
+          "attachments": {}
+        }
+      ]
+    }
+  ],
+  "terminal": [
+    {
+      "method": "sendMessage",
+      "body": {
+        "chat_id": "1",
+        "text": "Задание пропущено.",
+        "parse_mode": "HTML"
+      },
+      "attachments": {}
+    },
+    {
+      "method": "sendMessage",
+      "body": {
+        "chat_id": "1",
+        "text": "<b>Тренировка завершена!</b>\n\nРешено верно: 0 из 5\nСамостоятельно: 0 из 5\nПропущено: 5",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\": [[{\"text\": \"\\u041f\\u0435\\u0440\\u0441\\u043e\\u043d\\u0430\\u043b\\u044c\\u043d\\u0430\\u044f \\u0442\\u0440\\u0435\\u043d\\u0438\\u0440\\u043e\\u0432\\u043a\\u0430\", \"callback_data\": \"train:personal~mixed-dispatch\"}], [{\"text\": \"\\ud83d\\udcca \\u041c\\u043e\\u0439 \\u043f\\u0440\\u043e\\u0433\\u0440\\u0435\\u0441\\u0441\", \"callback_data\": \"train:progress~mixed-dispatch\"}, {\"text\": \"\\u21a9 \\u0412 \\u043c\\u0435\\u043d\\u044e\", \"callback_data\": \"nav:main~mixed-dispatch\"}]]}"
+      },
+      "attachments": {}
+    },
+    {
+      "method": "answerCallbackQuery",
+      "body": {
+        "callback_query_id": "4:skip"
+      },
+      "attachments": {}
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "case": "story-next-block",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Владелец бани подбирает печь для парной. Он сравнивает две дровяные модели и одну электрическую. Чтобы печь могла прогреть помещение, объём парной должен попадать в указанный производителем диапазон. Печь подходит и тогда, когда объём равен одной из границ диапазона. В каталоге указаны характеристики и цена каждой модели без дополнительных услуг.</p><p> </p><p>Парная имеет форму прямоугольного параллелепипеда. Размеры парной: <tg-math>3{,}3 \\times 2{,}1 \\times 2{,}1</tg-math> м. Дверь: 57 см × 196 см; окон нет.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://426f2FPziJabIQ",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "426f2FPziJabIQ": {
+          "path": "assets/7b3659c85637604e56d4384eac2e171300ae92f6f7bda7ac5a41bf23b4e7f8c2.png",
+          "filename": "scenario-1.png",
+          "sha256": "7b3659c85637604e56d4384eac2e171300ae92f6f7bda7ac5a41bf23b4e7f8c2"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Печи</b></p><p> </p><p><b>№3 — задание 6</b></p><p> </p><p>Определите по объёму парной подходящую дровяную печь. На сколько рублей её покупка обойдётся дешевле электрической с учётом установки? Установка электрической печи стоит 4 200 руб.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:f393500e-2451-47ba-bb8a-377ee817dcca"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:f393500e-2451-47ba-bb8a-377ee817dcca"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:f393500e-2451-47ba-bb8a-377ee817dcca"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:f393500e-2451-47ba-bb8a-377ee817dcca"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:f393500e-2451-47ba-bb8a-377ee817dcca"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:f393500e-2451-47ba-bb8a-377ee817dcca"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "0f5c0363-21bb-4ac5-aab8-425ed7f6a6fb"
+      }
+    }
+  ]
+}

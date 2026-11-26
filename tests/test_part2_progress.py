@@ -363,6 +363,21 @@ async def test_written_work_through_number_menu_and_private_history(bank_pool, m
         await tap("nav:numbers")
         await tap("nav:main")
         await tap("nav:progress")
+        with monkeypatch.context() as adaptive:
+            adaptive.setattr(settings, "oge_adaptive_enabled", True)
+            await tap("progress:details")
+            await tap("progress:written:23")
+        detail_id = await bank_pool.fetchval(
+            "SELECT (current_state->>'navigation_message_id')::int FROM users "
+            "WHERE telegram_user_id=42"
+        )
+        detail = telegram.messages[detail_id]
+        subtype = await bank_pool.fetchval("SELECT subtype_id FROM part2_issues WHERE id=$1", issue)
+        assert any(
+            button.callback_data.partition("~")[0] == f"p2:open:23:{subtype}"
+            for row in detail.reply_markup.inline_keyboard
+            for button in row
+        )
         await tap("progress:works:0")
         await tap(f"progress:work:{issue}:1:0")
         assert any("Моё решение." in (getattr(c, "text", None) or "") for c in telegram.calls)

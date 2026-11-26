@@ -1,0 +1,213 @@
+{
+  "case": "number-2",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Выбери номер</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "№1–5 · Связанный сюжет",
+                "callback_data": "nav:linked~bcdfeaa56d82"
+              }
+            ],
+            [
+              {
+                "text": "№1",
+                "callback_data": "train:area:1~bcdfeaa56d82"
+              },
+              {
+                "text": "№2",
+                "callback_data": "train:area:2~bcdfeaa56d82"
+              },
+              {
+                "text": "№3",
+                "callback_data": "train:area:3~bcdfeaa56d82"
+              },
+              {
+                "text": "№4",
+                "callback_data": "train:area:4~bcdfeaa56d82"
+              },
+              {
+                "text": "№5",
+                "callback_data": "train:area:5~bcdfeaa56d82"
+              }
+            ],
+            [
+              {
+                "text": "№6",
+                "callback_data": "train:area:6~bcdfeaa56d82"
+              },
+              {
+                "text": "№7",
+                "callback_data": "train:area:7~bcdfeaa56d82"
+              },
+              {
+                "text": "№8",
+                "callback_data": "train:area:8~bcdfeaa56d82"
+              },
+              {
+                "text": "№9",
+                "callback_data": "train:area:9~bcdfeaa56d82"
+              },
+              {
+                "text": "№10",
+                "callback_data": "train:area:10~bcdfeaa56d82"
+              }
+            ],
+            [
+              {
+                "text": "№11",
+                "callback_data": "train:area:11~bcdfeaa56d82"
+              },
+              {
+                "text": "№12",
+                "callback_data": "train:area:12~bcdfeaa56d82"
+              },
+              {
+                "text": "№13",
+                "callback_data": "train:area:13~bcdfeaa56d82"
+              },
+              {
+                "text": "№14",
+                "callback_data": "train:area:14~bcdfeaa56d82"
+              },
+              {
+                "text": "№15",
+                "callback_data": "train:area:15~bcdfeaa56d82"
+              }
+            ],
+            [
+              {
+                "text": "№16",
+                "callback_data": "train:area:16~bcdfeaa56d82"
+              },
+              {
+                "text": "№17",
+                "callback_data": "train:area:17~bcdfeaa56d82"
+              },
+              {
+                "text": "№18",
+                "callback_data": "train:area:18~bcdfeaa56d82"
+              },
+              {
+                "text": "№19",
+                "callback_data": "train:area:19~bcdfeaa56d82"
+              }
+            ],
+            [
+              {
+                "text": "№20",
+                "callback_data": "p2:menu:20~bcdfeaa56d82"
+              },
+              {
+                "text": "№21",
+                "callback_data": "p2:menu:21~bcdfeaa56d82"
+              },
+              {
+                "text": "№22",
+                "callback_data": "p2:menu:22~bcdfeaa56d82"
+              }
+            ],
+            [
+              {
+                "text": "№23",
+                "callback_data": "p2:menu:23~bcdfeaa56d82"
+              },
+              {
+                "text": "№24",
+                "callback_data": "p2:menu:24~bcdfeaa56d82"
+              },
+              {
+                "text": "№25",
+                "callback_data": "p2:menu:25~bcdfeaa56d82"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "nav:trainings~bcdfeaa56d82"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "437a4377-7aa5-45de-9a85-5a0b1a9a7546"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№2: весь номер или сюжет?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №2",
+                "callback_data": "train:number:2~a3a63d40babd"
+              }
+            ],
+            [
+              {
+                "text": "Шины",
+                "callback_data": "train:story:2:TYRES~a3a63d40babd"
+              }
+            ],
+            [
+              {
+                "text": "Бумага",
+                "callback_data": "train:story:2:PAPER~a3a63d40babd"
+              }
+            ],
+            [
+              {
+                "text": "Печи",
+                "callback_data": "train:story:2:STOVE~a3a63d40babd"
+              }
+            ],
+            [
+              {
+                "text": "Тарифы",
+                "callback_data": "train:story:2:TARIFF~a3a63d40babd"
+              }
+            ],
+            [
+              {
+                "text": "Участки",
+                "callback_data": "train:story:2:GARDEN~a3a63d40babd"
+              }
+            ],
+            [
+              {
+                "text": "Квартиры",
+                "callback_data": "train:story:2:FLAT~a3a63d40babd"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~a3a63d40babd"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "cd8e1082-0875-4eee-b3d7-ae2ec1364dc0"
+      }
+    }
+  ]
+}

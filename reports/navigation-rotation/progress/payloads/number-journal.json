@@ -1,0 +1,162 @@
+{
+  "case": "number-journal",
+  "label": "Журнал №6",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>№6 · Вычисления</b>\n\nРешено правильно: 8 из 8\nУспешность: 100%\nВыдано: 8 · Пропущено: 0\nНовых вариантов самостоятельно: 1\nОткрыто пробелов: 2 · На закреплении: 1 · Закрыто: 0\n\nПопытки\nВерно с первой: 1\nВерно со второй: 7\nС подсказкой: 0\nБез подсказки: 8\n\nТипы задач\n1. Вычитание двух обыкновенных дробей, отрицательный результат · 2/2 верно · Нужно потренировать, 0/3\n2. Умножение десятичных дробей · 2/2 верно · Нужно потренировать, 0/3\n3. Вычитание десятичных дробей · 1/1 верно · Нужно проверить\n4. Сложение десятичных дробей · 1/1 верно · Нужно проверить\n5. Умножение двух обыкновенных дробей · 2/2 верно · Закрепляется, 1/3",
+        "chat_id": "42",
+        "message_id": "325",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Тренировать №6",
+                "callback_data": "train:number:6~3dc7bcf37c56"
+              }
+            ],
+            [
+              {
+                "text": "Тренировать тип 1",
+                "callback_data": "train:family:OGE06-F001-SUB~3dc7bcf37c56"
+              },
+              {
+                "text": "Тренировать тип 2",
+                "callback_data": "train:family:OGE06-F004-DEC-MUL~3dc7bcf37c56"
+              }
+            ],
+            [
+              {
+                "text": "Тренировать тип 3",
+                "callback_data": "train:family:OGE06-F004-DEC-SUB~3dc7bcf37c56"
+              },
+              {
+                "text": "Тренировать тип 4",
+                "callback_data": "train:family:OGE06-F004-DEC-ADD~3dc7bcf37c56"
+              }
+            ],
+            [
+              {
+                "text": "Тренировать тип 5",
+                "callback_data": "train:family:OGE06-F002-MUL~3dc7bcf37c56"
+              }
+            ],
+            [
+              {
+                "text": "История и ошибки №6",
+                "callback_data": "progress:numhist:6:0~3dc7bcf37c56"
+              }
+            ],
+            [
+              {
+                "text": "Все типы задач",
+                "callback_data": "progress:family:6:0~3dc7bcf37c56"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "progress:details~3dc7bcf37c56"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~3dc7bcf37c56"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "da1c0d63-7b81-41f0-b978-18123ae10e6e"
+      }
+    },
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "История и ошибки · Все задания · №6\nЗаписи 1–6 из 8\n\n1. №6 · Умножение двух обыкновенных дробей\n26.11.2026 · решено\n\n2. №6 · Умножение десятичных дробей\n26.11.2026 · решено после ошибки\n\n3. №6 · Вычитание двух обыкновенных дробей, отрицательный результат\n26.11.2026 · решено после ошибки\n\n4. №6 · Вычитание двух обыкновенных дробей, отрицательный результат\n26.11.2026 · решено после ошибки\n\n5. №6 · Умножение десятичных дробей\n26.11.2026 · решено после ошибки\n\n6. №6 · Умножение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
+        "chat_id": "42",
+        "message_id": "325",
+        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 35}, {\"type\": \"bold\", \"offset\": 53, \"length\": 42}, {\"type\": \"bold\", \"offset\": 117, \"length\": 35}, {\"type\": \"bold\", \"offset\": 187, \"length\": 67}, {\"type\": \"bold\", \"offset\": 289, \"length\": 67}, {\"type\": \"bold\", \"offset\": 391, \"length\": 35}, {\"type\": \"bold\", \"offset\": 461, \"length\": 42}]",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "✓ Все задания",
+                "callback_data": "progress:numhist:6:0~ced166bf94fd"
+              },
+              {
+                "text": "С ошибками",
+                "callback_data": "progress:numerr:6:0~ced166bf94fd"
+              }
+            ],
+            [
+              {
+                "text": "Номер · 6",
+                "callback_data": "progress:filter:a6.0~ced166bf94fd"
+              }
+            ],
+            [
+              {
+                "text": "1",
+                "callback_data": "progress:item:b6piIxFDF05chD-tXwx_u_8A:a6.0~ced166bf94fd"
+              },
+              {
+                "text": "2",
+                "callback_data": "progress:item:b3ZJDkj30kZyo5TPZqfeqxoA:a6.0~ced166bf94fd"
+              },
+              {
+                "text": "3",
+                "callback_data": "progress:item:b32q6OjT_0Ell0sbBZyVFccA:a6.0~ced166bf94fd"
+              }
+            ],
+            [
+              {
+                "text": "4",
+                "callback_data": "progress:item:b4QB1HWrl0TdilCrqG_1MmYA:a6.0~ced166bf94fd"
+              },
+              {
+                "text": "5",
+                "callback_data": "progress:item:by1v5fOX6kxZuafxqL9UnRAA:a6.0~ced166bf94fd"
+              },
+              {
+                "text": "6",
+                "callback_data": "progress:item:b-B83wTiCELMvaj4HmQsmu4A:a6.0~ced166bf94fd"
+              }
+            ],
+            [
+              {
+                "text": "Дальше →",
+                "callback_data": "progress:numhist:6:6~ced166bf94fd"
+              }
+            ],
+            [
+              {
+                "text": "↩ К №6",
+                "callback_data": "progress:number:6~ced166bf94fd"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~ced166bf94fd"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "c80b178d-0b5f-44ac-9d07-dc1d1f3101c1"
+      }
+    }
+  ]
+}
