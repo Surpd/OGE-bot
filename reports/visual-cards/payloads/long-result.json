@@ -1,0 +1,43 @@
+{
+  "name": "long-result",
+  "label": "Длительная практика · завершение",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://t1hIbU7-vshSMQ",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Персональная тренировка",
+              "callback_data": "train:personal~4d8bf953bab6"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "train:progress~4d8bf953bab6"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~4d8bf953bab6"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "t1hIbU7-vshSMQ": {
+        "path": "assets/5db5acf894bd67af9437012c9463e7967108c1ac3aefe1e60b26178b0a963108.png",
+        "filename": "bop-training-result.png",
+        "sha256": "5db5acf894bd67af9437012c9463e7967108c1ac3aefe1e60b26178b0a963108"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 472,
+    "390": 511,
+    "430": 563
+  }
+}

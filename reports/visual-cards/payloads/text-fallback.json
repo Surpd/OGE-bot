@@ -1,0 +1,33 @@
+{
+  "name": "text-fallback",
+  "label": "Текстовый резерв при отказе рендера",
+  "call": {
+    "method": "sendMessage",
+    "payload": {
+      "chat_id": "42",
+      "text": "<b>Тренировка завершена.</b>\n\n<b>Тренировка по номеру</b>\n\nРешено верно: 1 из 1\nСамостоятельно: 1 из 1\nДругие верные: 0 · Не решено: 0 · Пропущено: 0\n\nС подсказками: 0 · Открыто разборов: 0\n\n<b>Закрепление типа</b>\n\nОбратная величина суммы двух единичных дробей\nТип закреплён.",
+      "parse_mode": "HTML",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Персональная тренировка",
+              "callback_data": "train:personal~52f425de8a3a"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "train:progress~52f425de8a3a"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~52f425de8a3a"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "displayed_heights": {}
+}

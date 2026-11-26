@@ -1,0 +1,43 @@
+{
+  "name": "mixed-result",
+  "label": "Смешанная тренировка · итог",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://JBdBpVGKwhDkGA",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Персональная тренировка",
+              "callback_data": "train:personal~d6e9ecb951b9"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "train:progress~d6e9ecb951b9"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~d6e9ecb951b9"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "JBdBpVGKwhDkGA": {
+        "path": "assets/afc975cc92452e9ee93ecba6ce84f03090b81c2356593a3e0a6add00a6fffe9d.png",
+        "filename": "bop-training-result.png",
+        "sha256": "afc975cc92452e9ee93ecba6ce84f03090b81c2356593a3e0a6add00a6fffe9d"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 488,
+    "390": 528,
+    "430": 583
+  }
+}

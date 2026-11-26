@@ -1,0 +1,49 @@
+{
+  "name": "early-result",
+  "label": "Досрочно завершённая практика",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://vxOxAlTIEbWLRw",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Обратная величина суммы двух единичных дробей",
+              "callback_data": "train:family:OGE06-F003-UNIT-SUM~d74103b0e374"
+            }
+          ],
+          [
+            {
+              "text": "Персональная тренировка",
+              "callback_data": "train:personal~d74103b0e374"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "train:progress~d74103b0e374"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~d74103b0e374"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "vxOxAlTIEbWLRw": {
+        "path": "assets/a842eeac7868c4cc51a2c681a61e327ae9da56cb40c4f9e7d3985a6919462144.png",
+        "filename": "bop-training-result.png",
+        "sha256": "a842eeac7868c4cc51a2c681a61e327ae9da56cb40c4f9e7d3985a6919462144"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 341,
+    "390": 370,
+    "430": 407
+  }
+}

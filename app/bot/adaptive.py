@@ -11,7 +11,7 @@ from uuid import uuid4
 from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from app.adaptive.engine import CURRENT
+from app.adaptive.engine import CURRENT, Stage
 from app.adaptive.planner import (
     History,
     NumberPerformance,
@@ -26,13 +26,16 @@ from app.adaptive.store import overview
 from app.bot.bop_copy import LABELS, reply
 from app.bot.callbacks import answer_callback
 from app.bot.math_layout import Role, TrainingMessage, solution_message
-from app.bot.menu import main_menu, trainings_hub
+from app.bot.menu import main_menu, picker_title, trainings_hub
 from app.bot.mixed_training import _is_correct, _scenario_question, _send_problem
 from app.bot.presentation import hint_message, send_text
+from app.bot.result_cards import result_card, result_fallback
 from app.bot.scenario_materials import send_scenario_materials
 from app.bot.scenario_training import STORY_NAMES, public_registry
 from app.bot.similar_practice import targeted_candidates
 from app.bot.trainings import PART2_TRAININGS, TRAININGS
+from app.bot.visual_delivery import build_visual, visual_enabled
+from app.bot.visual_models import VisualCard, VisualEntry, VisualPractice, VisualSection
 from app.config import get_settings
 from app.math.scenario_engine import (
     PracticeMode,
@@ -676,6 +679,42 @@ def area_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+def area_card(page: int = 0) -> tuple[VisualCard, InlineKeyboardMarkup]:
+    numbers = sorted(set(catalog().values()))
+    written = page > 0 and get_settings().oge_part2_enabled
+    if written:
+        sections: tuple[VisualSection, ...] = (VisualSection("Развёрнутые решения", tuple(
+            VisualEntry(t.title, key=str(t.number)) for t in PART2_TRAININGS
+        ), layout="tiles"),)
+        buttons = [button(f"№{t.number}", f"p2:menu:{t.number}") for t in PART2_TRAININGS]
+        rows = [buttons[i:i + 3] for i in range(0, len(buttons), 3)]
+        rows.append([button("← Первая часть", "train:areas:0")])
+    else:
+        names = {t.number: t.title for t in TRAININGS}
+        sections = (
+            VisualSection("Практические задания", tuple(
+                VisualEntry("Сюжеты", key=str(n)) for n in numbers if n <= 5
+            ), layout="practical"),
+            *(VisualSection(label, tuple(
+                VisualEntry(picker_title(n, names[n]), key=str(n)) for n in numbers if n in group
+            ), layout="tiles") for label, group in (
+                ("Алгебра и вероятность", range(6, 15)), ("Геометрия", range(15, 20)),
+            )),
+        )
+        rows = [[button("№1–5 · Связанный сюжет", "nav:linked")]]
+        for group in (range(1, 6), range(6, 15), range(15, 20)):
+            buttons = [button(f"№{n}", f"train:area:{n}") for n in numbers if n in group]
+            rows.extend(buttons[i:i + 5] for i in range(0, len(buttons), 5))
+        if get_settings().oge_part2_enabled:
+            rows.append([button("Вторая часть · №20–25", "train:areas:1")])
+    rows.append([button("↩ К тренировкам", "nav:trainings")])
+    return VisualCard(
+        screen="part2" if written else "numbers", title="Выбери номер",
+        subtitle="Вторая часть · №20–25" if written else "Первая часть · №1–19",
+        sections=sections,
+    ), InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 def family_area_keyboard(number: int, page: int = 0) -> InlineKeyboardMarkup:
     if 1 <= number <= 5:
         rows = [[button(f"Весь №{number}", f"train:number:{number}")]]
@@ -707,6 +746,31 @@ def story_area_keyboard(number: int, story: str, families: tuple[str, ...]) -> I
     rows.extend([[button(title(family), f"train:family:{family}")] for family in families])
     rows.append([button("↩ К сюжетам", f"train:area:{number}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def picker_card(number: int, page: int = 0, story: str | None = None) -> VisualCard:
+    """Read names and availability from the same registry as the real buttons."""
+    if 1 <= number <= 5 and story is None:
+        return VisualCard(
+            screen="stories", title="Выбери сюжет", subtitle=f"Практические задания · №{number}",
+            sections=(VisualSection("", tuple(
+                VisualEntry(STORY_NAMES[code], icon=code) for code in story_families(number)
+            ), layout="tiles"),),
+        )
+    families = (list(story_families(number).get(story, ())) if story else
+                sorted((skill for skill, n in catalog().items() if n == number), key=title))
+    page_size = (len(families) or 1) if story else 5
+    pages = max(1, (len(families) + page_size - 1) // page_size)
+    page = min(max(0, page), pages - 1)
+    return VisualCard(
+        screen="types", title="Выбери тип",
+        subtitle=f"№{number}" + (f" · {STORY_NAMES[story]}" if story else ""),
+        sections=(VisualSection("", tuple(
+            VisualEntry(title(skill), key=str(i)) for i, skill in
+            enumerate(families[page * page_size:(page + 1) * page_size], page * page_size + 1)
+        )),),
+        note=f"Страница {page + 1} из {pages}",
+    )
 
 
 _REASON_NAMES = {
@@ -853,14 +917,52 @@ def _result_lines(totals: Any) -> str:
     ))
 
 
+def _practice_changes(deltas: list[Any]) -> tuple[VisualPractice, ...]:
+    target = CURRENT.practice_count
+    initial: dict[str, tuple[int, bool]] = {}
+    latest: dict[str, tuple[int, bool, int]] = {}
+    for index, delta in enumerate(deltas):
+        family = delta["skill"]
+        before = json.loads(delta["before_state"]) if delta["before_state"] else {}
+        after = json.loads(delta["after_state"])
+        initial.setdefault(family, (
+            min(before.get("practice", 0), target), before.get("stage") == Stage.CONFIRMED,
+        ))
+        latest[family] = (
+            min(after["practice"], target), after.get("stage") == Stage.CONFIRMED, index,
+        )
+    changed = [family for family, state in latest.items() if state[:2] != initial[family]]
+    significant = sorted(changed, key=latest.__getitem__, reverse=True)[:2]
+    return tuple(
+        VisualPractice(title(family), latest[family][0], target, latest[family][1])
+        for family in significant
+    )
+
+
+def _result_card(
+    heading: str, totals: Any, deltas: list[Any], *, subtitle: str = "", recommendation: str = "",
+) -> VisualCard:
+    note = " · ".join(
+        f"{label}: {totals[key]}"
+        for key, label in (("hinted", "С подсказками"), ("reviewed", "Открыто разборов"))
+        if key in totals.keys()
+    )
+    return result_card(
+        heading, totals["issued"], totals["solved"], totals["independent"],
+        totals.get("skipped", 0), subtitle=subtitle, practice=_practice_changes(deltas),
+        recommendation=recommendation, note=note,
+    )
+
+
 async def checkpoint(message: Message, repository: Any, store: Session, row: Any) -> None:
     completed = row["position"] + 1
     start_position = completed - BLOCK_SIZE
     deltas = await store.summary_deltas(row["id"], from_position=start_position)
     totals = await store.totals(row["id"], from_position=start_position)
+    positions = f"Задания {start_position + 1}–{completed}"
     blocks: list[tuple[Role, str]] = [
         ("title", "Промежуточный итог"),
-        ("position", f"Задания {start_position + 1}–{completed}"),
+        ("position", positions),
         ("stats", _result_lines(totals)),
     ]
     changes = _summary_changes(deltas)
@@ -871,9 +973,14 @@ async def checkpoint(message: Message, repository: Any, store: Session, row: Any
         [button("➡ Продолжить", f"ad:continue:{pid}"), button("Завершить", f"ad:finish:{pid}")],
         [button(LABELS["menu"], f"ad:menu:{pid}")],
     ])
+    card = build_visual("training_result", lambda: _result_card(
+        "Промежуточный итог", totals, deltas, subtitle=positions,
+    )) if visual_enabled("training_result", message, store.learner) else None
     sent = await send_text(
-        message, repository, TrainingMessage(*blocks), reply_markup=markup,
+        message, repository, result_fallback(card) if card else TrainingMessage(*blocks),
+        reply_markup=markup,
         user_id_override=store.learner,
+        visual=card,
     )
     await store.set_prompt(store.learner, str(pid), sent.message_id)
 
@@ -901,11 +1008,17 @@ async def completion(
             include_practice=totals["independent"] < totals["issued"],
         ).reasons
     rows = []
+    compact_recommendation = ""
     if recommendations:
         item = recommendations[0]
         detail = _recommendation_text(item)
         if not item.by_number:
             detail = f"№{item.number} · {detail}"
+        if item.by_number:
+            compact_recommendation = f"№{item.number}"
+        else:
+            topic = "Прямые и углы" if item.family == "OGE19-LINES-ANGLES" else title(item.family)
+            compact_recommendation = f"№{item.number} · {topic}"
         blocks.extend((("section", "Что потренировать дальше"), ("recommendation", detail)))
         rows.append([button(*_recommendation_action(item))])
     if personal_available:
@@ -913,11 +1026,20 @@ async def completion(
     else:
         rows.append([button("К тренировкам", "train:hub")])
     rows.append([button(LABELS["progress"], "train:progress"), button(LABELS["menu"], "nav:main")])
-    text = TrainingMessage(*blocks)
     keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
     await repository.save_user_state(store.learner, "trainings")
+    subtitle = {
+        "personal": "Персональная тренировка",
+        "mixed": "Смешанная тренировка",
+        "number": "Тренировка по номеру",
+        "family": "Тренировка по типу",
+    }.get(row.get("strategy"), "")
+    card = build_visual("training_result", lambda: _result_card(
+        heading, totals, deltas, subtitle=subtitle, recommendation=compact_recommendation,
+    )) if visual_enabled("training_result", message, store.learner) else None
     await send_text(
-        message, repository, text, reply_markup=keyboard, user_id_override=store.learner
+        message, repository, result_fallback(card) if card else TrainingMessage(*blocks),
+        reply_markup=keyboard, user_id_override=store.learner, visual=card,
     )
 
 
@@ -947,8 +1069,15 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
             await show_progress(actor_message, repository)
         elif action == "areas" and (len(parts) == 2 or parts[2].isdigit()):
             await repository.save_user_state(learner, "trainings")
+            page = int(parts[2]) if len(parts) > 2 else 0
+            visual_screen = "part2" if page > 0 and get_settings().oge_part2_enabled else "numbers"
+            visual_result = build_visual(visual_screen, lambda: area_card(page)) if visual_enabled(
+                visual_screen, actor_message, learner,
+            ) else None
+            visual, visual_keyboard = visual_result if visual_result else (None, None)
             await send_text(actor_message, repository, TrainingMessage(("title", "Выбери номер")),
-                            reply_markup=area_keyboard(), user_id_override=learner)
+                            reply_markup=area_keyboard(), user_id_override=learner,
+                            visual=visual, visual_reply_markup=visual_keyboard)
         elif action == "area" and len(parts) in {3, 4} and parts[2].isdigit():
             number = int(parts[2])
             page = int(parts[3]) if len(parts) == 4 and parts[3].isdigit() else 0
@@ -956,9 +1085,13 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
                 await answer_callback(cb, "Этот номер пока недоступен.")
                 return
             choice = "сюжет" if number <= 5 else "конкретный тип"
+            visual_screen = "stories" if number <= 5 else "types"
             await send_text(actor_message, repository, f"№{number}: весь номер или {choice}?",
                             reply_markup=family_area_keyboard(number, page),
-                            user_id_override=learner)
+                            user_id_override=learner,
+                            visual=(build_visual(visual_screen, lambda: picker_card(number, page))
+                                    if visual_enabled(visual_screen, actor_message, learner)
+                                    else None))
         elif action in {"story", "story-all"} and len(parts) == 4 and parts[2].isdigit():
             number, story = int(parts[2]), parts[3]
             families = story_families(number).get(story, ())
@@ -976,6 +1109,8 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
                     actor_message, repository, f"№{number} · {STORY_NAMES[story]}",
                     reply_markup=story_area_keyboard(number, story, families),
                     user_id_override=learner,
+                    visual=(build_visual("types", lambda: picker_card(number, story=story))
+                            if visual_enabled("types", actor_message, learner) else None),
                 )
         elif action in {"personal", "mixed"} and len(parts) == 2:
             await start(actor_message, repository, strategy=action)

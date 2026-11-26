@@ -627,6 +627,38 @@ class MixedTrainingRepository:
                 return False
             return True
 
+    async def cycle_results(self, user_id: int, final_problem_id: str) -> list[dict[str, Any]]:
+        """Read up to nineteen recorded outcomes through the claimed problem."""
+        if self._pool is None:
+            records = self._repository._mixed_training_records.get(user_id, [])
+            end = next((i for i, row in enumerate(records) if row["id"] == final_problem_id), -1)
+            if end < 0:
+                return []
+            result = []
+            for row in records[max(0, end - 18) : end + 1]:
+                attempt: dict[str, Any] = next(
+                    (a for a in row["attempt_records"] if a["is_correct"]), {}
+                )
+                result.append({
+                    "number": row["number"], "outcome": row["outcome"],
+                    "attempt_no": attempt.get("attempt_no"), "used_hint": attempt.get("used_hint"),
+                    "hints_used": row.get("hints_used", 0),
+                })
+            return result
+        rows = await self._pool.fetch(
+            """SELECT p.number,p.outcome,a.attempt_no,a.used_hint,p.hints_used
+               FROM mixed_training_problems final
+               JOIN mixed_training_sessions s ON s.id=final.session_id
+               JOIN users u ON u.id=s.user_id
+               JOIN mixed_training_problems p ON p.session_id=final.session_id
+                 AND (p.issued_at,p.id) <= (final.issued_at,final.id)
+               LEFT JOIN mixed_training_attempts a ON a.problem_id=p.id AND a.is_correct
+               WHERE final.id=$2::uuid AND u.telegram_user_id=$1
+               ORDER BY p.issued_at DESC,p.id DESC LIMIT 19""",
+            user_id, final_problem_id,
+        )
+        return [dict(row) for row in reversed(rows)]
+
     async def advance(
         self,
         user_id: int,

@@ -26,6 +26,16 @@ class Settings(BaseSettings):
     oge_companion_adaptive_capture_only: bool = False
     oge_companion_adaptive_enabled: bool = False
     oge_part2_enabled: bool = False
+    oge_visual_welcome_enabled: bool = False
+    oge_visual_numbers_enabled: bool = False
+    oge_visual_part2_enabled: bool = False
+    oge_visual_stories_enabled: bool = False
+    oge_visual_types_enabled: bool = False
+    oge_visual_number_progress_enabled: bool = False
+    oge_visual_training_result_enabled: bool = False
+    oge_visual_companion_only: bool = False
+    # Empty means all users in this environment for the explicitly enabled screens.
+    oge_visual_user_ids: str = ""
     oge_grading_max_images: int = Field(default=1, ge=1, le=1)
     oge_grading_enabled: bool = False
     oge_grading_model: str = GRADING_MODEL

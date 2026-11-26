@@ -1,0 +1,43 @@
+{
+  "name": "full-result",
+  "label": "Вся первая часть · итог",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://FTP4dvAtCD2fXg",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "К тренировкам",
+              "callback_data": "nav:trainings~99f2250208de"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "nav:progress~99f2250208de"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~99f2250208de"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "FTP4dvAtCD2fXg": {
+        "path": "assets/0a41150e941f397c01e342434dc6811c9b117ef45fb9948c9d998f32d581137b.png",
+        "filename": "bop-training-result.png",
+        "sha256": "0a41150e941f397c01e342434dc6811c9b117ef45fb9948c9d998f32d581137b"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 288,
+    "390": 312,
+    "430": 344
+  }
+}

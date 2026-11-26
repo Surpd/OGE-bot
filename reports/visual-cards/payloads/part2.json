@@ -1,0 +1,67 @@
+{
+  "name": "part2",
+  "label": "Номера второй части",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://CQ7V_Icg9MEtFA",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "№20",
+              "callback_data": "p2:menu:20~17e1e2310b40"
+            },
+            {
+              "text": "№21",
+              "callback_data": "p2:menu:21~17e1e2310b40"
+            },
+            {
+              "text": "№22",
+              "callback_data": "p2:menu:22~17e1e2310b40"
+            }
+          ],
+          [
+            {
+              "text": "№23",
+              "callback_data": "p2:menu:23~17e1e2310b40"
+            },
+            {
+              "text": "№24",
+              "callback_data": "p2:menu:24~17e1e2310b40"
+            },
+            {
+              "text": "№25",
+              "callback_data": "p2:menu:25~17e1e2310b40"
+            }
+          ],
+          [
+            {
+              "text": "← Первая часть",
+              "callback_data": "train:areas:0~17e1e2310b40"
+            }
+          ],
+          [
+            {
+              "text": "↩ К тренировкам",
+              "callback_data": "nav:trainings~17e1e2310b40"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "CQ7V_Icg9MEtFA": {
+        "path": "assets/ef5891bd4b868435710cf38ce41fb65af91832bc10cfd731973ec9ce5667b142.png",
+        "filename": "bop-part2.png",
+        "sha256": "ef5891bd4b868435710cf38ce41fb65af91832bc10cfd731973ec9ce5667b142"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 374,
+    "390": 406,
+    "430": 447
+  }
+}

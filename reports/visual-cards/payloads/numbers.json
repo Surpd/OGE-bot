@@ -1,0 +1,129 @@
+{
+  "name": "numbers",
+  "label": "Номера первой части",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://jimbpTktvbfX7w",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "№1–5 · Связанный сюжет",
+              "callback_data": "nav:linked~30da95cfb8d1"
+            }
+          ],
+          [
+            {
+              "text": "№1",
+              "callback_data": "train:area:1~30da95cfb8d1"
+            },
+            {
+              "text": "№2",
+              "callback_data": "train:area:2~30da95cfb8d1"
+            },
+            {
+              "text": "№3",
+              "callback_data": "train:area:3~30da95cfb8d1"
+            },
+            {
+              "text": "№4",
+              "callback_data": "train:area:4~30da95cfb8d1"
+            },
+            {
+              "text": "№5",
+              "callback_data": "train:area:5~30da95cfb8d1"
+            }
+          ],
+          [
+            {
+              "text": "№6",
+              "callback_data": "train:area:6~30da95cfb8d1"
+            },
+            {
+              "text": "№7",
+              "callback_data": "train:area:7~30da95cfb8d1"
+            },
+            {
+              "text": "№8",
+              "callback_data": "train:area:8~30da95cfb8d1"
+            },
+            {
+              "text": "№9",
+              "callback_data": "train:area:9~30da95cfb8d1"
+            },
+            {
+              "text": "№10",
+              "callback_data": "train:area:10~30da95cfb8d1"
+            }
+          ],
+          [
+            {
+              "text": "№11",
+              "callback_data": "train:area:11~30da95cfb8d1"
+            },
+            {
+              "text": "№12",
+              "callback_data": "train:area:12~30da95cfb8d1"
+            },
+            {
+              "text": "№13",
+              "callback_data": "train:area:13~30da95cfb8d1"
+            },
+            {
+              "text": "№14",
+              "callback_data": "train:area:14~30da95cfb8d1"
+            }
+          ],
+          [
+            {
+              "text": "№15",
+              "callback_data": "train:area:15~30da95cfb8d1"
+            },
+            {
+              "text": "№16",
+              "callback_data": "train:area:16~30da95cfb8d1"
+            },
+            {
+              "text": "№17",
+              "callback_data": "train:area:17~30da95cfb8d1"
+            },
+            {
+              "text": "№18",
+              "callback_data": "train:area:18~30da95cfb8d1"
+            },
+            {
+              "text": "№19",
+              "callback_data": "train:area:19~30da95cfb8d1"
+            }
+          ],
+          [
+            {
+              "text": "Вторая часть · №20–25",
+              "callback_data": "train:areas:1~30da95cfb8d1"
+            }
+          ],
+          [
+            {
+              "text": "↩ К тренировкам",
+              "callback_data": "nav:trainings~30da95cfb8d1"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "jimbpTktvbfX7w": {
+        "path": "assets/c1c355f33f22705de4ecfe372871e6abf8c63b06f55011c0223bc9ed7b5b157c.png",
+        "filename": "bop-numbers.png",
+        "sha256": "c1c355f33f22705de4ecfe372871e6abf8c63b06f55011c0223bc9ed7b5b157c"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 551,
+    "390": 597,
+    "430": 658
+  }
+}

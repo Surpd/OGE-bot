@@ -3,6 +3,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.presentation import send_text
+from app.bot.visual_delivery import build_visual, visual_enabled
+from app.bot.visual_models import VisualCard, VisualEntry, VisualSection
 from app.persistence.repository import Repository
 from app.persistence.rotation_history import enabled
 from app.persistence.training_insights import family_name
@@ -82,6 +84,14 @@ async def show_families(
         f"Задание №{number} · выберите тип\nСейчас: {current}\n\n"
         f"{catalog}\n\nСтраница {page + 1} из {pages}",
         reply_markup=family_keyboard(number, page),
+        visual=build_visual("types", lambda: VisualCard(
+            screen="types", title="Выбери тип", subtitle=f"Задание №{number}",
+            sections=(VisualSection("", tuple(
+                VisualEntry(_selection_name(number, family), key=str(index))
+                for index, family in enumerate(entries, page * PAGE_SIZE + 1)
+            )),),
+            note=f"Сейчас: {current} · Страница {page + 1} из {pages}",
+        )) if visual_enabled("types", message) else None,
     )
 
 

@@ -1,0 +1,209 @@
+from datetime import UTC, datetime
+from io import BytesIO
+from typing import cast
+
+import pytest
+from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
+from aiogram.types import (
+    CallbackQuery,
+    Chat,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    ReplyParameters,
+    User,
+)
+from PIL import Image
+from test_inline_dispatcher_postgres import TelegramSession
+
+from app.bot import visual_delivery as delivery
+from app.bot.navigation import NavigationMessage, navigation_revision, navigation_screen
+from app.bot.presentation import send_text
+from app.bot.visual_models import VisualCard
+from app.config import Settings
+from app.config import test_settings as current_settings
+from app.persistence.repository import MemoryRepository
+
+CARD = VisualCard("numbers", "Выбери номер")
+VIEWER = User(id=42, is_bot=False, first_name="QA")
+
+
+class CardSession(TelegramSession):
+    photo_error = None
+
+    async def make_request(self, bot, method, timeout=None):  # noqa: ASYNC109
+        if method.__api_method__ == "sendPhoto" and self.photo_error is not None:
+            self.calls.append(method)
+            raise self.photo_error(method=method, message="synthetic delivery failure")
+        return await super().make_request(bot, method, timeout)
+
+
+def keyboard(label):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=label, callback_data="nav:numbers:0")],
+    ])
+
+
+@pytest.fixture
+def flags():
+    token = current_settings.set(Settings(_env_file=None, oge_visual_numbers_enabled=True))
+    delivery._render_menu_png.cache_clear()
+    try:
+        yield
+    finally:
+        current_settings.reset(token)
+        delivery._render_menu_png.cache_clear()
+
+
+@pytest.fixture
+def synthetic_png(monkeypatch):
+    buffer = BytesIO()
+    Image.new("RGB", (8, 8), color="white").save(buffer, "PNG")
+    captured = []
+
+    def render(card):
+        captured.append(card)
+        return buffer.getvalue()
+
+    monkeypatch.setattr(delivery, "_render_png", render)
+    return captured
+
+
+def source(bot, viewer=VIEWER):
+    return Message(message_id=10, date=datetime.now(UTC), chat=Chat(id=42, type="private"),
+                   from_user=viewer).as_(bot)
+
+
+async def test_photo_reuses_static_bytes_and_binds_returned_message(flags, synthetic_png):
+    transport = CardSession()
+    bot = Bot("123456:TEST", session=transport)
+    repository = MemoryRepository()
+    await repository.save_user_state(42, "number_selection")
+    legacy = keyboard("Текстовая кнопка")
+    visual = keyboard("Кнопка PNG")
+
+    first = await send_text(
+        source(bot), repository, "Прежний каталог", reply_markup=legacy,
+        visual=CARD, visual_reply_markup=visual,
+    )
+    proxy = cast(Message, NavigationMessage(first, CallbackQuery(
+        id="qa", from_user=VIEWER, chat_instance="qa", message=first,
+    ), repository))
+    second = await send_text(proxy, repository, "Прежний каталог", reply_markup=legacy, visual=CARD)
+
+    assert [method.__api_method__ for method in transport.calls] == [
+        "sendPhoto", "editMessageMedia",
+    ]
+    assert synthetic_png == [CARD]
+    assert first.photo and second.photo and first.message_id == second.message_id
+    assert first.reply_markup.inline_keyboard[0][0].text == "Кнопка PNG"
+    revision = navigation_revision(second.reply_markup)
+    assert revision != navigation_revision(first.reply_markup)
+    assert not await repository.claim_navigation_message(42, first.message_id, navigation_revision(
+        first.reply_markup
+    ))
+    assert await repository.claim_navigation_message(42, second.message_id, revision)
+
+
+@pytest.mark.parametrize("failure", ["render", "photo", "off", "other-viewer", "companion-only"])
+async def test_definite_failure_or_disabled_keeps_original_keyboard(
+    flags, synthetic_png, monkeypatch, failure,
+):
+    transport = CardSession()
+    bot = Bot("123456:TEST", session=transport)
+    repository = MemoryRepository()
+    await repository.save_user_state(42, "number_selection")
+    if failure == "render":
+        def failed(card):
+            raise OSError("unavailable")
+
+        monkeypatch.setattr(delivery, "_render_png", failed)
+    elif failure == "photo":
+        transport.photo_error = TelegramBadRequest
+    else:
+        current_settings.set(Settings(
+            _env_file=None,
+            oge_visual_numbers_enabled=failure != "off",
+            oge_visual_companion_only=failure == "companion-only",
+            oge_visual_user_ids="43" if failure == "other-viewer" else "",
+        ))
+
+    result = await send_text(
+        source(bot), repository, "Прежний каталог", visual=CARD,
+        reply_markup=keyboard("Рабочий маршрут"), visual_reply_markup=keyboard("Новый маршрут"),
+    )
+    expected = ["sendPhoto", "sendMessage"] if failure == "photo" else ["sendMessage"]
+    assert [method.__api_method__ for method in transport.calls] == expected
+    assert "Прежний каталог" in result.text
+    assert result.reply_markup.inline_keyboard[0][0].text == "Рабочий маршрут"
+    assert await repository.claim_navigation_message(
+        42, result.message_id, navigation_revision(result.reply_markup)
+    )
+
+
+async def test_ambiguous_delivery_does_not_publish_duplicate(flags, synthetic_png):
+    transport = CardSession()
+    transport.photo_error = TelegramNetworkError
+    bot = Bot("123456:TEST", session=transport)
+
+    with pytest.raises(TelegramNetworkError):
+        await send_text(source(bot), MemoryRepository(), "Прежний каталог", visual=CARD,
+                        reply_markup=keyboard("Меню"))
+
+    assert [method.__api_method__ for method in transport.calls] == ["sendPhoto"]
+
+
+async def test_visual_reply_preserves_dashboard_anchor(flags, synthetic_png):
+    transport = CardSession()
+    bot = Bot("123456:TEST", session=transport)
+    repository = MemoryRepository()
+    original = await send_text(source(bot), repository, "Исходное меню")
+    sent = await send_text(
+        source(bot), repository, "Прежний каталог",
+        visual=CARD, reply_markup=keyboard("К номерам"),
+        reply_parameters=ReplyParameters(message_id=original.message_id),
+    )
+    assert transport.calls[-1].reply_parameters.message_id == original.message_id
+    assert sent.reply_to_message.message_id == original.message_id
+
+
+async def test_menu_photo_does_not_replace_existing_progress_dashboard(flags, synthetic_png):
+    transport = CardSession()
+    bot = Bot("123456:TEST", session=transport)
+    repository = MemoryRepository()
+    dashboard_markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="По номерам", callback_data="progress:details")],
+    ])
+    first = await send_text(source(bot), repository, "Прогресс", visual=CARD,
+                            reply_markup=dashboard_markup)
+    proxy = cast(Message, NavigationMessage(first, CallbackQuery(
+        id="qa", from_user=VIEWER, chat_instance="qa", message=first,
+    ), repository))
+    second = await send_text(proxy, repository, "Каталог", visual=CARD,
+                             reply_markup=keyboard("Номера"))
+    assert [method.__api_method__ for method in transport.calls] == ["sendPhoto", "sendPhoto"]
+    assert first.message_id != second.message_id
+
+
+def test_second_part_requires_both_flags_and_private_viewer(flags):
+    current_settings.set(Settings(_env_file=None, oge_visual_part2_enabled=True))
+    message = source(None)
+    assert not delivery.visual_enabled("part2", message)
+    current_settings.set(Settings(
+        _env_file=None, oge_visual_part2_enabled=True, oge_part2_enabled=True,
+        oge_visual_user_ids="42, 43",
+    ))
+    assert delivery.visual_enabled("part2", message)
+    assert not delivery.visual_enabled("part2", message, 44)
+    assert not delivery.visual_enabled("part2", message.model_copy(update={
+        "chat": Chat(id=-42, type="group"),
+    }))
+
+
+def test_adaptive_written_picker_returns_to_training_number_selection(flags):
+    from app.bot.adaptive import area_card
+
+    current_settings.set(Settings(_env_file=None, oge_part2_enabled=True))
+    _, markup = area_card(1)
+    assert navigation_screen(markup) == "trainings"

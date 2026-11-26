@@ -1,0 +1,45 @@
+{
+  "name": "welcome",
+  "label": "Главное меню",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://65PARerOXicMvA",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "🎯 Тренировки",
+              "callback_data": "nav:trainings~48d86ca8260f"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "nav:progress~48d86ca8260f"
+            }
+          ],
+          [
+            {
+              "text": "⚙️ Настройки",
+              "callback_data": "nav:display~48d86ca8260f"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "65PARerOXicMvA": {
+        "path": "assets/a5eda10ee1639c6c13887cb21987d1812d0d44f85306347a2e1b3693b0daf909.png",
+        "filename": "bop-welcome.png",
+        "sha256": "a5eda10ee1639c6c13887cb21987d1812d0d44f85306347a2e1b3693b0daf909"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 174,
+    "390": 188,
+    "430": 207
+  }
+}

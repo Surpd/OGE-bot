@@ -1,0 +1,75 @@
+{
+  "name": "types",
+  "label": "Вычисления · типы №6",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://-TKH3hmGWSfOrg",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Весь №6",
+              "callback_data": "train:number:6~690aafca42e1"
+            }
+          ],
+          [
+            {
+              "text": "Вычислить разность, сократить дробь, указать числитель",
+              "callback_data": "train:family:OGE06-F008-REDUCED-NUMERATOR~690aafca42e1"
+            }
+          ],
+          [
+            {
+              "text": "Вычитание двух обыкновенных дробей, отрицательный результат",
+              "callback_data": "train:family:OGE06-F001-SUB~690aafca42e1"
+            }
+          ],
+          [
+            {
+              "text": "Вычитание десятичной дроби из смешанного числа",
+              "callback_data": "train:family:OGE06-F006-MIXED-MINUS-DECIMAL~690aafca42e1"
+            }
+          ],
+          [
+            {
+              "text": "Вычитание десятичных дробей",
+              "callback_data": "train:family:OGE06-F004-DEC-SUB~690aafca42e1"
+            }
+          ],
+          [
+            {
+              "text": "Деление десятичных дробей, записанных дробной чертой",
+              "callback_data": "train:family:OGE06-F004-DEC-DIV~690aafca42e1"
+            }
+          ],
+          [
+            {
+              "text": "→",
+              "callback_data": "train:area:6:1~690aafca42e1"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "train:areas~690aafca42e1"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "-TKH3hmGWSfOrg": {
+        "path": "assets/c72f3ff8b1d52840730341a2036b5cc00ce28e214435e0da80cfcd32250a5b67.png",
+        "filename": "bop-types.png",
+        "sha256": "c72f3ff8b1d52840730341a2036b5cc00ce28e214435e0da80cfcd32250a5b67"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 357,
+    "390": 387,
+    "430": 427
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "checkpoint",
+  "label": "Длительная практика · первые пять",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://jXQ1bl--BiXngw",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "➡ Продолжить",
+              "callback_data": "ad:continue:06d9505a-16d1-4419-9f99-9cfd42fba651"
+            },
+            {
+              "text": "Завершить",
+              "callback_data": "ad:finish:06d9505a-16d1-4419-9f99-9cfd42fba651"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "ad:menu:06d9505a-16d1-4419-9f99-9cfd42fba651"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "jXQ1bl--BiXngw": {
+        "path": "assets/5cbe46e951ff1927fdb41124d05619f969da4cadf0e2fddc75d583370de730a3.png",
+        "filename": "bop-training-result.png",
+        "sha256": "5cbe46e951ff1927fdb41124d05619f969da4cadf0e2fddc75d583370de730a3"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 488,
+    "390": 528,
+    "430": 583
+  }
+}

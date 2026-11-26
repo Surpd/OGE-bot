@@ -1,0 +1,87 @@
+{
+  "name": "number-progress",
+  "label": "Прогресс по №6",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://Wl6y8Fe5n50kkQ",
+      "reply_parameters": {
+        "message_id": 282,
+        "allow_sending_without_reply": true
+      },
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №6",
+              "callback_data": "train:number:6~443287bd49ec"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 1",
+              "callback_data": "train:family:OGE06-F001-SUB~443287bd49ec"
+            },
+            {
+              "text": "Тренировать тип 2",
+              "callback_data": "train:family:OGE06-F006-MIXED-MINUS-DECIMAL~443287bd49ec"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 3",
+              "callback_data": "train:family:OGE06-F004-DEC-DIV~443287bd49ec"
+            },
+            {
+              "text": "Тренировать тип 4",
+              "callback_data": "train:family:OGE06-F003-UNIT-SUM~443287bd49ec"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 5",
+              "callback_data": "train:family:OGE06-F002-MUL~443287bd49ec"
+            }
+          ],
+          [
+            {
+              "text": "История и ошибки №6",
+              "callback_data": "progress:numhist:6:0~443287bd49ec"
+            }
+          ],
+          [
+            {
+              "text": "Все типы задач",
+              "callback_data": "progress:family:6:0~443287bd49ec"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "progress:details~443287bd49ec"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~443287bd49ec"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "Wl6y8Fe5n50kkQ": {
+        "path": "assets/a02850db91b79f41808ae8233b8d40450fee0f93202764f30c3f0227214da0a3.png",
+        "filename": "bop-number-progress.png",
+        "sha256": "a02850db91b79f41808ae8233b8d40450fee0f93202764f30c3f0227214da0a3"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 679,
+    "390": 735,
+    "430": 811
+  }
+}

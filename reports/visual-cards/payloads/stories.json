@@ -1,0 +1,75 @@
+{
+  "name": "stories",
+  "label": "Сюжеты №2",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://h6mjYufWbeVJ1w",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Весь №2",
+              "callback_data": "train:number:2~d5e3ebfcad95"
+            }
+          ],
+          [
+            {
+              "text": "Шины",
+              "callback_data": "train:story:2:TYRES~d5e3ebfcad95"
+            }
+          ],
+          [
+            {
+              "text": "Бумага",
+              "callback_data": "train:story:2:PAPER~d5e3ebfcad95"
+            }
+          ],
+          [
+            {
+              "text": "Печи",
+              "callback_data": "train:story:2:STOVE~d5e3ebfcad95"
+            }
+          ],
+          [
+            {
+              "text": "Тарифы",
+              "callback_data": "train:story:2:TARIFF~d5e3ebfcad95"
+            }
+          ],
+          [
+            {
+              "text": "Участки",
+              "callback_data": "train:story:2:GARDEN~d5e3ebfcad95"
+            }
+          ],
+          [
+            {
+              "text": "Квартиры",
+              "callback_data": "train:story:2:FLAT~d5e3ebfcad95"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "train:areas~d5e3ebfcad95"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "h6mjYufWbeVJ1w": {
+        "path": "assets/3eb439fc76b027469a443f190ae1dfaa6ef4fc7e2af30717610627c84d4bde67.png",
+        "filename": "bop-stories.png",
+        "sha256": "3eb439fc76b027469a443f190ae1dfaa6ef4fc7e2af30717610627c84d4bde67"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 333,
+    "390": 361,
+    "430": 398
+  }
+}

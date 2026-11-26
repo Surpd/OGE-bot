@@ -50,8 +50,11 @@ def navigation_screen(markup: object) -> str | None:
         for row in markup.inline_keyboard
         for button in row
     }
-    if "nav:linked" in callbacks:
+    if "nav:linked" in callbacks or "train:areas:0" in callbacks:
         return "trainings"
+    if callbacks == {"nav:trainings", "nav:progress", "nav:main"}:
+        # The first-part result leaves the next cycle active until a menu is opened.
+        return "mixed"
     if "nav:trainings" in callbacks:
         return "main_menu"
     if any(c and c.startswith("nav:numbers:") for c in callbacks) or (
@@ -137,6 +140,12 @@ class NavigationMessage:
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._message, name)
+
+    def visual_edit_target(self) -> Message | None:
+        screen = navigation_screen(self._message.reply_markup)
+        if self._edit_navigation and self._message.photo and screen not in {None, "progress"}:
+            return self._message
+        return None
 
     async def answer(self, text: str, **kwargs: Any) -> Message:
         screen = navigation_screen(kwargs.get("reply_markup"))

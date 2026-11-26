@@ -1,0 +1,43 @@
+{
+  "name": "personal-result",
+  "label": "Персональная тренировка · итог",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://-UUbRdpuUljkBA",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Персональная тренировка",
+              "callback_data": "train:personal~3f9bfab8c8a9"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "train:progress~3f9bfab8c8a9"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~3f9bfab8c8a9"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "-UUbRdpuUljkBA": {
+        "path": "assets/3233e23c42f260e19faee07ca6ede9befca09d61ed3c3f1203dcc27dd1907fec.png",
+        "filename": "bop-training-result.png",
+        "sha256": "3233e23c42f260e19faee07ca6ede9befca09d61ed3c3f1203dcc27dd1907fec"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 472,
+    "390": 511,
+    "430": 563
+  }
+}

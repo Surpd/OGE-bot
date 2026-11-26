@@ -22,6 +22,7 @@ from aiogram.exceptions import (
 from aiogram.methods import SendPhoto
 from aiogram.types import (
     BufferedInputFile,
+    InlineKeyboardMarkup,
     InputMediaPhoto,
     InputRichMessage,
     InputRichMessageMedia,
@@ -39,6 +40,7 @@ from app.bot.math_notation import (
     rich_inline,
     rich_needs_png_fallback,
 )
+from app.bot.visual_models import VisualCard
 from app.persistence.repository import Repository
 
 _INLINE_ANSWER = re.compile(r"(Ответ:|Правильный ответ:|Правильный вариант:)")
@@ -315,9 +317,22 @@ async def send_text(
     math_system_rows: tuple[str, ...] | None = None,
     rich_with_navigation: bool = False,
     text_on_photo_rejection: bool = False,
+    visual: VisualCard | None = None,
+    visual_reply_markup: InlineKeyboardMarkup | None = None,
     **kwargs: Any,
 ) -> Message:
     from app.bot.navigation import navigation_screen, prepare_navigation_markup
+
+    if visual is not None and kwargs.keys() <= {"reply_markup", "reply_parameters"}:
+        from app.bot.visual_delivery import try_send_visual
+
+        sent_visual = await try_send_visual(
+            message, repository, visual, visual_reply_markup or kwargs.get("reply_markup"),
+            user_id_override=user_id_override,
+            reply_parameters=kwargs.get("reply_parameters"),
+        )
+        if sent_visual is not None:
+            return sent_visual
 
     has_navigation = navigation_screen(kwargs.get("reply_markup")) is not None
     key = template_key(math_family)

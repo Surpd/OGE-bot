@@ -1,0 +1,43 @@
+{
+  "name": "checkpoint-2",
+  "label": "Длительная практика · вторые пять",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://ulvsSOJvKOkq6A",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "➡ Продолжить",
+              "callback_data": "ad:continue:7c135225-ba63-40f6-804a-d5da46477135"
+            },
+            {
+              "text": "Завершить",
+              "callback_data": "ad:finish:7c135225-ba63-40f6-804a-d5da46477135"
+            }
+          ],
+          [
+            {
+              "text": "↩ В меню",
+              "callback_data": "ad:menu:7c135225-ba63-40f6-804a-d5da46477135"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "ulvsSOJvKOkq6A": {
+        "path": "assets/3fee3fc96a726ecacdfcc1e989899b92b298659cf2c59793e1a6fd98f971e5ca.png",
+        "filename": "bop-training-result.png",
+        "sha256": "3fee3fc96a726ecacdfcc1e989899b92b298659cf2c59793e1a6fd98f971e5ca"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 488,
+    "390": 528,
+    "430": 583
+  }
+}
