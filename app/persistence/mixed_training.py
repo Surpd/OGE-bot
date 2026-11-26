@@ -93,6 +93,7 @@ class MixedTrainingRepository:
 
     def __init__(self, repository: Any) -> None:
         self._repository = repository
+        self.bot_id: int = getattr(repository, "bot_id", 0)
         self._pool = getattr(repository, "_pool", None)
         if self._pool is None:
             if not hasattr(repository, "_mixed_training_sessions"):
@@ -460,9 +461,10 @@ class MixedTrainingRepository:
                 return None
             if reply_to is not None and problem.get("prompt_message_id") != reply_to:
                 return {"status": "stale"}
-            if message_id in session.setdefault("message_ids", set()):
+            message_key = (self.bot_id, message_id)
+            if message_key in session.setdefault("message_ids", set()):
                 return {"status": "duplicate"}
-            session["message_ids"].add(message_id)
+            session["message_ids"].add(message_key)
             if problem.get("outcome") != "issued":
                 return {"status": str(problem.get("outcome")), "problem": problem}
             attempt = int(problem.get("attempts", 0)) + 1
@@ -511,24 +513,23 @@ class MixedTrainingRepository:
                 return {"status": "stale"}
             if problem["outcome"] != "issued":
                 return {"status": str(problem["outcome"]), "problem": _object(problem["snapshot"])}
-            try:
-                attempt_no = int(problem["attempts"]) + 1
-                status = "solved" if correct else ("failed" if attempt_no >= 2 else "issued")
-                await connection.execute(
-                    """INSERT INTO mixed_training_attempts
-                       (problem_id,attempt_no,telegram_message_id,raw_answer,is_correct,used_hint)
-                       VALUES ($1,$2,$3,$4,$5,$6)""",
-                    problem_id,
-                    attempt_no,
-                    message_id,
-                    raw[:200],
-                    correct,
-                    int(problem["hints_used"]) > 0,
-                )
-            except Exception as exc:
-                if "unique" in str(exc).lower():
-                    return {"status": "duplicate"}
-                raise
+            attempt_no = int(problem["attempts"]) + 1
+            status = "solved" if correct else ("failed" if attempt_no >= 2 else "issued")
+            inserted = await connection.fetchval(
+                """INSERT INTO mixed_training_attempts
+                   (problem_id,attempt_no,telegram_message_id,raw_answer,is_correct,used_hint,bot_id)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7)
+                   ON CONFLICT (problem_id,bot_id,telegram_message_id) DO NOTHING RETURNING true""",
+                problem_id,
+                attempt_no,
+                message_id,
+                raw[:200],
+                correct,
+                int(problem["hints_used"]) > 0,
+                self.bot_id,
+            )
+            if not inserted:
+                return {"status": "duplicate"}
             await connection.execute(
                 """UPDATE mixed_training_problems SET attempts=$2,outcome=$3 WHERE id=$1""",
                 problem_id,

@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 from app.bot.menu import MAIN_MENU, main_menu
 from app.bot.router import choose_number, continue_session, menu_section, start
 from app.config import get_settings
-from app.main import create_app
+from app.main import _run_schema_migrations, create_app
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import MemoryRepository, PostgresRepository, read_migration
 
@@ -56,7 +56,7 @@ def test_update_is_idempotent(client) -> None:
     first = test_client.post("/telegram/webhook", json=payload, headers=headers)
     replay = test_client.post("/telegram/webhook", json=payload, headers=headers)
     assert first.status_code == replay.status_code == 200
-    assert repository.updates[100] == "processed"
+    assert repository.updates[123456, 100] == "processed"
     assert len(repository.updates) == 1
 
 
@@ -89,7 +89,7 @@ def test_widget_query_uses_raw_webhook_adapter_and_is_idempotent(client):
     assert isinstance(calls[0], AnswerWidgetQuery)
     assert calls[0].widget_query_id == "widget-query-1"
     assert '"tab":"o"' in (calls[0].data or "")
-    assert repository.updates[102] == "processed"
+    assert repository.updates[123456, 102] == "processed"
 
 
 def test_widget_query_rejects_a_different_private_chat_user(client):
@@ -140,7 +140,7 @@ def test_webhook_error_has_safe_traceback_and_remains_a_failure(client, monkeypa
             headers={"X-Telegram-Bot-Api-Secret-Token": "test-webhook-secret"},
         )
     assert response.status_code == 500
-    assert repository.updates[101] == "failed"
+    assert repository.updates[123456, 101] == "failed"
     records = [r for r in caplog.records if r.name == "oge_trainer"]
     diagnostic = "\n".join(r.getMessage() for r in records)
     assert "telegram_update_failed error_type=RuntimeError" in diagnostic
@@ -148,6 +148,54 @@ def test_webhook_error_has_safe_traceback_and_remains_a_failure(client, monkeypa
     assert "ValueError" in diagnostic and "fail" in diagnostic
     assert marker not in diagnostic and "test-webhook-secret" not in diagnostic
     assert all(r.exc_info is None for r in records)
+
+
+async def test_postgres_telegram_ids_are_scoped_to_the_bot(bank_pool):
+    from app.persistence.part2_training import Part2Training
+
+    update_id, message_id = 444, 80_001
+    await bank_pool.execute(
+        "INSERT INTO telegram_updates(update_id,status) VALUES($1,'processed')", update_id,
+    )
+    learner = 1
+    legacy = PostgresRepository(bank_pool)
+    await legacy.ensure_task6_session(learner)
+    issued = await legacy.advance_task6_problem(learner, None, build_candidate_batch({}, 17))
+    problem = str(issued["problem_id"])
+    await legacy.save_user_state(learner, "task6")
+
+    first = PostgresRepository(bank_pool, bot_id=100001)
+    second = PostgresRepository(bank_pool, bot_id=100002)
+    for repository in (first, second):
+        assert await repository.claim_update(update_id)
+        assert not await repository.claim_update(update_id)
+        await repository.finish_update(update_id)
+        assert not await repository.claim_update(update_id)
+
+    for repository, correct, expected in ((first, False, "active"), (second, True, "solved")):
+        result = await repository.task6_attempt(learner, problem, "1", correct, message_id)
+        assert result["status"] == expected
+        replay = await repository.task6_attempt(learner, problem, "1", correct, message_id)
+        assert replay["status"] == "duplicate"
+    assert [
+        row["bot_id"]
+        for row in await bank_pool.fetch("SELECT bot_id FROM attempts ORDER BY attempt_no")
+    ] == [first.bot_id, second.bot_id]
+
+    issue = await Part2Training(bank_pool).open(learner, 20)
+    assert issue is not None
+    for bot_id in (0, first.bot_id, second.bot_id):
+        store = Part2Training(bank_pool, bot_id=bot_id)
+        assert await store.append(learner, issue, 1, message_id, "draft", None) == "saved"
+        assert await store.append(learner, issue, 1, message_id, "draft", None) == "duplicate"
+    assert [
+        row["bot_id"]
+        for row in await bank_pool.fetch("SELECT bot_id FROM part2_work ORDER BY bot_id")
+    ] == [0, first.bot_id, second.bot_id]
+    assert [
+        row["bot_id"]
+        for row in await bank_pool.fetch("SELECT bot_id FROM telegram_updates ORDER BY bot_id")
+    ] == [0, first.bot_id, second.bot_id]
 
 
 @pytest.mark.asyncio
@@ -166,6 +214,7 @@ async def test_postgres_registration_and_state_survive_new_repository() -> None:
         await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
         await pool.execute(await read_migration("migrations/0005_task10_sessions.sql"))
         await pool.execute(await read_migration("migrations/0005_task10_sessions.sql"))
+        await _run_schema_migrations(pool)
         await pool.execute("DELETE FROM telegram_updates WHERE update_id = 444")
         first = PostgresRepository(pool)
         assert await pool.fetchval(
@@ -215,6 +264,7 @@ async def test_postgres_task6_flow_survives_restart_and_locks_duplicate_answers(
         await pool.execute(await read_migration("migrations/0003_task6_session_quality.sql"))
         await pool.execute(await read_migration("migrations/0004_task9_sessions.sql"))
         await pool.execute(await read_migration("migrations/0005_task10_sessions.sql"))
+        await _run_schema_migrations(pool)
         repository = PostgresRepository(pool)
         await repository.register_user(telegram_user_id)
         session_id = await repository.ensure_task6_session(telegram_user_id)
@@ -475,7 +525,7 @@ def test_lost_math_send_response_is_not_delivered_twice_and_explicit_resume_work
         assert http.post("/telegram/webhook", json=payload, headers=headers).status_code == 200
     expected = ["sendRichMessage", "sendPhoto"] if fallback else ["sendRichMessage"]
     assert calls == expected
-    assert repository.updates[601] == "processed"
+    assert repository.updates[123456, 601] == "processed"
     assert asyncio.run(repository.math_display(42, family)) == ("png" if fallback else "auto")
 
     # A new action by the student explicitly reopens the original committed task.

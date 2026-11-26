@@ -116,9 +116,11 @@ class Repository(Protocol):
 
     async def task6_progress(self, telegram_user_id: int) -> dict[str, int]: ...
 
-    async def claim_update(self, update_id: int) -> bool: ...
+    async def claim_update(self, update_id: int, *, bot_id: int | None = None) -> bool: ...
 
-    async def finish_update(self, update_id: int, *, failed: bool = False) -> None: ...
+    async def finish_update(
+        self, update_id: int, *, bot_id: int | None = None, failed: bool = False,
+    ) -> None: ...
 
     async def ensure_task9_session(self, telegram_user_id: int) -> str: ...
 
@@ -808,6 +810,7 @@ class Repository(Protocol):
 
 class _Task10PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -1047,9 +1050,11 @@ class _Task10PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -1069,8 +1074,9 @@ class _Task10PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -1078,6 +1084,7 @@ class _Task10PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -1236,6 +1243,7 @@ class _Task10PostgresMixin:
 
 class _Task12PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -1475,9 +1483,11 @@ class _Task12PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -1497,8 +1507,9 @@ class _Task12PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -1506,6 +1517,7 @@ class _Task12PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -1664,6 +1676,7 @@ class _Task12PostgresMixin:
 
 class _Task14PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -1903,9 +1916,11 @@ class _Task14PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -1925,8 +1940,9 @@ class _Task14PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -1934,6 +1950,7 @@ class _Task14PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -2092,6 +2109,7 @@ class _Task14PostgresMixin:
 
 class _Task15PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -2331,9 +2349,11 @@ class _Task15PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -2353,8 +2373,9 @@ class _Task15PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -2362,6 +2383,7 @@ class _Task15PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -2520,6 +2542,7 @@ class _Task15PostgresMixin:
 
 class _Task18PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -2764,9 +2787,11 @@ class _Task18PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -2786,8 +2811,9 @@ class _Task18PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -2795,6 +2821,7 @@ class _Task18PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -2953,6 +2980,7 @@ class _Task18PostgresMixin:
 
 class _Task17PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -3197,9 +3225,11 @@ class _Task17PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -3219,8 +3249,9 @@ class _Task17PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -3228,6 +3259,7 @@ class _Task17PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -3386,6 +3418,7 @@ class _Task17PostgresMixin:
 
 class _Task19PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -3639,9 +3672,11 @@ class _Task19PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -3661,8 +3696,9 @@ class _Task19PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -3670,6 +3706,7 @@ class _Task19PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -3828,6 +3865,7 @@ class _Task19PostgresMixin:
 
 class _Task16PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -4072,9 +4110,11 @@ class _Task16PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -4094,8 +4134,9 @@ class _Task16PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -4103,6 +4144,7 @@ class _Task16PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -4261,6 +4303,7 @@ class _Task16PostgresMixin:
 
 class _Task11PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -4500,9 +4543,11 @@ class _Task11PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -4522,8 +4567,9 @@ class _Task11PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -4531,6 +4577,7 @@ class _Task11PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -4719,6 +4766,7 @@ class _Task11PostgresMixin:
 
 class _Task8PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -4958,9 +5006,11 @@ class _Task8PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -4980,8 +5030,9 @@ class _Task8PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -4989,6 +5040,7 @@ class _Task8PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -5147,6 +5199,7 @@ class _Task8PostgresMixin:
 
 class _Task13PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -5394,9 +5447,11 @@ class _Task13PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -5416,8 +5471,9 @@ class _Task13PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -5425,6 +5481,7 @@ class _Task13PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if telegram_event_id is not None:
@@ -5587,6 +5644,7 @@ class _Task13PostgresMixin:
 
 class _Task7PostgresMixin:
     _pool: asyncpg.Pool
+    bot_id: int
 
     async def register_user(self, telegram_user_id: int) -> None:
         raise NotImplementedError
@@ -5826,9 +5884,11 @@ class _Task7PostgresMixin:
                 return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id=$1 AND telegram_message_id=$2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -5848,8 +5908,9 @@ class _Task7PostgresMixin:
             status = "solved" if is_correct else ("failed" if attempt == 2 else "active")
             await connection.execute(
                 """INSERT INTO attempts
-                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,used_hint,telegram_message_id)
-                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7)""",
+                   (problem_id,user_id,attempt_no,raw_answer,normalized_answer,is_correct,
+                    used_hint,telegram_message_id,bot_id)
+                   VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -5857,6 +5918,7 @@ class _Task7PostgresMixin:
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -6056,8 +6118,9 @@ class PostgresRepository(
     _Task13PostgresMixin,
     _Task7PostgresMixin,
 ):
-    def __init__(self, pool: asyncpg.Pool) -> None:
+    def __init__(self, pool: asyncpg.Pool, *, bot_id: int = 0) -> None:
         self._pool = pool
+        self.bot_id = bot_id
 
     async def set_navigation_message(
         self, user_id: int, screen: str, message_id: int, revision: str | None = None
@@ -6581,9 +6644,11 @@ class PostgresRepository(
                     return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id = $1 AND telegram_message_id = $2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -6604,8 +6669,8 @@ class PostgresRepository(
             await connection.execute(
                 """INSERT INTO attempts
                    (problem_id, user_id, attempt_no, raw_answer, normalized_answer,
-                    is_correct, used_hint, telegram_message_id)
-                   VALUES ($1, $2, $3, $4, $4, $5, $6, $7)""",
+                    is_correct, used_hint, telegram_message_id,bot_id)
+                   VALUES ($1, $2, $3, $4, $4, $5, $6, $7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -6613,6 +6678,7 @@ class PostgresRepository(
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -7004,9 +7070,11 @@ class PostgresRepository(
                     return {"status": "stale", "attempt": 0}
             if telegram_message_id is not None:
                 duplicate = await connection.fetchval(
-                    "SELECT 1 FROM attempts WHERE user_id = $1 AND telegram_message_id = $2",
+                    "SELECT 1 FROM attempts "
+                    "WHERE user_id=$1 AND bot_id=$3 AND telegram_message_id=$2",
                     row["user_id"],
                     telegram_message_id,
+                    self.bot_id,
                 )
                 if duplicate is not None:
                     return {"status": "duplicate", "attempt": 0}
@@ -7029,8 +7097,8 @@ class PostgresRepository(
             await connection.execute(
                 """INSERT INTO attempts
                    (problem_id, user_id, attempt_no, raw_answer, normalized_answer,
-                    is_correct, used_hint, telegram_message_id)
-                   VALUES ($1, $2, $3, $4, $4, $5, $6, $7)""",
+                    is_correct, used_hint, telegram_message_id,bot_id)
+                   VALUES ($1, $2, $3, $4, $4, $5, $6, $7,$8)""",
                 row["active_problem_id"],
                 row["user_id"],
                 attempt,
@@ -7038,6 +7106,7 @@ class PostgresRepository(
                 is_correct,
                 bool(state.get("used_hint", False)),
                 telegram_message_id,
+                self.bot_id,
             )
             state.update({"status": status, "attempts": attempt})
             if status in {"solved", "failed"}:
@@ -7211,40 +7280,46 @@ class PostgresRepository(
             return dict.fromkeys(keys, 0)
         return {key: int(row[key]) for key in keys}
 
-    async def claim_update(self, update_id: int) -> bool:
+    async def claim_update(self, update_id: int, *, bot_id: int | None = None) -> bool:
+        bot_id = self.bot_id if bot_id is None else bot_id
         async with self._pool.acquire() as connection:
             inserted = await connection.fetchval(
-                """INSERT INTO telegram_updates (update_id, status, claimed_at)
-                   VALUES ($1, 'processing', now())
-                   ON CONFLICT (update_id) DO NOTHING RETURNING update_id""",
-                update_id,
+                """INSERT INTO telegram_updates (update_id, bot_id, status, claimed_at)
+                   VALUES ($1, $2, 'processing', now())
+                   ON CONFLICT (bot_id, update_id) DO NOTHING RETURNING update_id""",
+                update_id, bot_id,
             )
             if inserted is not None:
                 return True
             reclaimed = await connection.fetchval(
                 """UPDATE telegram_updates SET status = 'processing', claimed_at = now()
-                   WHERE update_id = $1 AND (
+                   WHERE update_id = $1 AND bot_id = $2 AND (
                      status = 'failed' OR
                      (status = 'processing' AND claimed_at < now() - interval '5 minutes')
                    )
                    RETURNING update_id""",
-                update_id,
+                update_id, bot_id,
             )
             return reclaimed is not None
 
-    async def finish_update(self, update_id: int, *, failed: bool = False) -> None:
+    async def finish_update(
+        self, update_id: int, *, bot_id: int | None = None, failed: bool = False,
+    ) -> None:
+        bot_id = self.bot_id if bot_id is None else bot_id
         await self._pool.execute(
             """UPDATE telegram_updates SET status = $2, processed_at = now()
-               WHERE update_id = $1""",
+               WHERE update_id = $1 AND bot_id = $3""",
             update_id,
             "failed" if failed else "processed",
+            bot_id,
         )
 
 
 class MemoryRepository(MemoryTrainingPreferences):
     """Small adapter for isolated handler tests; production always uses PostgreSQL."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, bot_id: int = 0) -> None:
+        self.bot_id = bot_id
         self.issue_order: dict[tuple[int, str], int] = {}
         self.training_preferences: dict[tuple[int, int], str | None] = {}
         self.personal_preferences: dict[int, bool] = {}
@@ -7254,7 +7329,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         self.navigation_messages: dict[int, tuple[str, int, str | None]] = {}
         self.states: dict[int, str] = {}
         self.resume_modes: dict[int, str] = {}
-        self.updates: dict[int, str] = {}
+        self.updates: dict[tuple[int, int], str] = {}
         self.sessions: dict[int, dict[str, object]] = {}
         self.training: dict[int, dict[str, object]] = {}
         self.issued_history: dict[int, dict[str, dict[str, object]]] = {}
@@ -7262,7 +7337,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         self.outcomes: dict[int, dict[str, str]] = {}
         self.hints_history: dict[int, dict[str, int]] = {}
         self.solutions_viewed: dict[int, set[str]] = {}
-        self.processed_message_ids: set[tuple[int, int]] = set()
+        self.processed_message_ids: set[tuple[int, int, int]] = set()
         self.training9: dict[int, dict[str, object]] = {}
         self.issued9: dict[int, dict[str, dict[str, object]]] = {}
         self.attempts9: dict[int, list[dict[str, object]]] = {}
@@ -7706,7 +7781,7 @@ class MemoryRepository(MemoryTrainingPreferences):
             if telegram_message_id <= expected_prompt_message_id:
                 return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            message_key = (telegram_user_id, telegram_message_id)
+            message_key = (telegram_user_id, self.bot_id, telegram_message_id)
             if message_key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(message_key)
@@ -7824,15 +7899,19 @@ class MemoryRepository(MemoryTrainingPreferences):
         self.solutions_viewed.setdefault(telegram_user_id, set()).add(problem_id)
         return {"problem": problem, "status": previous_status}
 
-    async def claim_update(self, update_id: int) -> bool:
-        state = self.updates.get(update_id)
+    async def claim_update(self, update_id: int, *, bot_id: int | None = None) -> bool:
+        bot_id = self.bot_id if bot_id is None else bot_id
+        state = self.updates.get((bot_id, update_id))
         if state is None or state == "failed":
-            self.updates[update_id] = "processing"
+            self.updates[bot_id, update_id] = "processing"
             return True
         return False
 
-    async def finish_update(self, update_id: int, *, failed: bool = False) -> None:
-        self.updates[update_id] = "failed" if failed else "processed"
+    async def finish_update(
+        self, update_id: int, *, bot_id: int | None = None, failed: bool = False,
+    ) -> None:
+        bot_id = self.bot_id if bot_id is None else bot_id
+        self.updates[bot_id, update_id] = "failed" if failed else "processed"
 
     async def ensure_task9_session(self, telegram_user_id: int) -> str:
         return str(
@@ -7985,7 +8064,7 @@ class MemoryRepository(MemoryTrainingPreferences):
             if telegram_message_id <= expected_prompt_message_id:
                 return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -8243,7 +8322,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -8499,7 +8578,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -8755,7 +8834,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -9011,7 +9090,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -9272,7 +9351,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -9532,7 +9611,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -9795,7 +9874,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -10055,7 +10134,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -10311,7 +10390,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -10592,7 +10671,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -10846,7 +10925,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)
@@ -11124,7 +11203,7 @@ class MemoryRepository(MemoryTrainingPreferences):
         ):
             return {"status": "stale", "attempt": 0}
         if telegram_message_id is not None:
-            key = (telegram_user_id, telegram_message_id)
+            key = (telegram_user_id, self.bot_id, telegram_message_id)
             if key in self.processed_message_ids:
                 return {"status": "duplicate", "attempt": 0}
             self.processed_message_ids.add(key)

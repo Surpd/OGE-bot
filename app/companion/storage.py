@@ -12,8 +12,8 @@ from app.persistence.repository import PostgresRepository
 class TestRepository(PostgresRepository):
     __test__ = False
 
-    def __init__(self, pool: asyncpg.Pool, schema: str) -> None:
-        super().__init__(pool)
+    def __init__(self, pool: asyncpg.Pool, schema: str, *, bot_id: int = 0) -> None:
+        super().__init__(pool, bot_id=bot_id)
         if not re.fullmatch(r"oge_test_bot_[1-9][0-9]{0,19}", schema):
             raise ValueError("Invalid companion namespace")
         self.schema = schema
@@ -102,7 +102,7 @@ async def open_storage(url: str, bot_id: int) -> TestRepository:
                 ALTER TABLE qa_sessions ENABLE ROW LEVEL SECURITY;
                 REVOKE ALL ON qa_sessions FROM PUBLIC""")
             await import_bank(conn)
-        repository = TestRepository(pool, schema)
+        repository = TestRepository(pool, schema, bot_id=bot_id)
         return repository
     except BaseException:
         await pool.close()

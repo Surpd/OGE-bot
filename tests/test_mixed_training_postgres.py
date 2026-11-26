@@ -78,7 +78,8 @@ async def test_postgres_mixed_session_resume_attempt_dedupe_and_progress(monkeyp
         duplicate = await restarted.answer(user_id, problem_id, "4", False, 902, 901)
         assert wrong is not None and wrong["status"] == "active"
         assert duplicate == {"status": "duplicate"}
-        second = await restarted.answer(user_id, problem_id, "4", False, 903, 901)
+        switched_bot = MixedTrainingRepository(PostgresRepository(pool, bot_id=100002))
+        second = await switched_bot.answer(user_id, problem_id, "4", False, 902, 901)
         assert second is not None and second["status"] == "failed"
 
         summary = await training_insights(PostgresRepository(pool), user_id)

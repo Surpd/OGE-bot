@@ -9,6 +9,7 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
+from app.main import _run_schema_migrations
 from app.math.scenario_engine import (
     POSITIONS,
     PracticeMode,
@@ -75,6 +76,7 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
         await pool.execute(await read_migration("migrations/0001_foundation.sql"))
         await pool.execute(await read_migration("migrations/0012_oge15_scenarios.sql"))
         await pool.execute(await read_migration("migrations/0013_oge15_switchable_sessions.sql"))
+        await _run_schema_migrations(pool)
         store = ScenarioPostgresRepository(pool)
         snapshot = _snapshot()
         created = await store.start_session(user_id, snapshot, PracticeMode.FULL, POSITIONS)
@@ -119,11 +121,12 @@ async def test_scenario_snapshot_resume_callbacks_attempts_stats_and_asset_reten
             normalized_answer="0",
             is_correct=False,
         )
-        second = await store.record_attempt(
+        switched_bot = ScenarioPostgresRepository(pool, bot_id=100002)
+        second = await switched_bot.record_attempt(
             telegram_user_id=user_id,
             session_id=created.session_id,
             position=1,
-            telegram_message_id=102,
+            telegram_message_id=101,
             raw_answer="1",
             normalized_answer="1",
             is_correct=True,
@@ -239,6 +242,7 @@ async def test_switchable_sessions_are_owned_by_story_mode_and_foreground_is_ato
         await pool.execute(await read_migration("migrations/0001_foundation.sql"))
         await pool.execute(await read_migration("migrations/0012_oge15_scenarios.sql"))
         await pool.execute(await read_migration("migrations/0013_oge15_switchable_sessions.sql"))
+        await _run_schema_migrations(pool)
         store = ScenarioPostgresRepository(pool)
         tyres = await store.start_session(user_id, _snapshot("TYRES"), PracticeMode.FULL, POSITIONS)
         assert tyres is not None

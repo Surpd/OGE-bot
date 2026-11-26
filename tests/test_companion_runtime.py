@@ -135,7 +135,7 @@ async def test_optional_failure_never_gates_primary(monkeypatch, caplog, change,
                 },
             )
             assert response.status_code == 200
-            assert repo.updates[1] == "processed"
+            assert repo.updates[primary.id, 1] == "processed"
         assert len([m for m in primary_transport.calls if m.__api_method__ == "setWebhook"]) == 1
         assert app.state.companion.status != "ready"
     assert "synthetic secret" not in caplog.text

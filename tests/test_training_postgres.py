@@ -4,6 +4,7 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
+from app.main import _run_schema_migrations
 from app.math.oge9_scheduler import build_task9_candidate_batch
 from app.math.scheduler import build_candidate_batch
 from app.persistence.repository import PostgresRepository, read_migration
@@ -25,6 +26,7 @@ async def test_postgres_skip_next_answer_solution_and_next_transitions(task_numb
             "migrations/0004_task9_sessions.sql",
         ):
             await pool.execute(await read_migration(migration))
+        await _run_schema_migrations(pool)
         repository = PostgresRepository(pool)
         await repository.register_user(user_id)
         if task_number == 6:

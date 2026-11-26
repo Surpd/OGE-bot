@@ -157,7 +157,6 @@ def create_app(
             pool = await asyncpg.create_pool(
                 settings.database_url, min_size=1, max_size=5,
             )
-            repo = PostgresRepository(pool)
             if run_schema_migrations:
                 try:
                     await _run_schema_migrations(pool)
@@ -196,13 +195,15 @@ def create_app(
                 except BaseException:
                     await pool.close()
                     raise
-        oge15_repo = scenario_repository
-        if oge15_repo is None and pool is not None:
-            oge15_repo = ScenarioPostgresRepository(pool)
         if telegram_bot is None:
             if not settings.telegram_bot_token:
                 raise RuntimeError("TELEGRAM_BOT_TOKEN is required")
             telegram_bot = Bot(settings.telegram_bot_token)
+        if repo is None and pool is not None:
+            repo = PostgresRepository(pool, bot_id=telegram_bot.id)
+        oge15_repo = scenario_repository
+        if oge15_repo is None and pool is not None:
+            oge15_repo = ScenarioPostgresRepository(pool, bot_id=telegram_bot.id)
         if settings.app_env == "production":
             if not settings.telegram_webhook_secret:
                 raise RuntimeError("TELEGRAM_WEBHOOK_SECRET is required in production")
@@ -300,7 +301,9 @@ def create_app(
         if type(update_id) is not int or update_id < 0:
             raise HTTPException(status_code=400, detail="Invalid update")
         repo: Repository = request.app.state.repository
-        if not await repo.claim_update(update_id):
+        telegram_bot: Bot = request.app.state.bot
+        bot_id = telegram_bot.id
+        if not await repo.claim_update(update_id, bot_id=bot_id):
             return Response(status_code=200)
         try:
             widget_query = payload.get("widget_query")
@@ -309,23 +312,22 @@ def create_app(
 
                 widget_bot = request.app.state.bot
                 await handle_widget_query(widget_bot, repo, widget_query)
-                await repo.finish_update(update_id)
+                await repo.finish_update(update_id, bot_id=bot_id)
                 return Response(status_code=200)
             update = Update.model_validate(payload)
             dispatcher: Dispatcher = request.app.state.dispatcher
-            telegram_bot: Bot = request.app.state.bot
             await dispatcher.feed_update(
                 telegram_bot,
                 update,
                 repository=repo,
                 oge15_repository=request.app.state.oge15_repository,
             )
-            await repo.finish_update(update_id)
+            await repo.finish_update(update_id, bot_id=bot_id)
         except MathDeliveryUncertain as exc:
             # Telegram can redeliver a failed webhook. Replaying the same update
             # after a lost send response could show the committed task twice.
             logger.warning("math_delivery_uncertain cause=%s", type(exc.__cause__).__name__)
-            await repo.finish_update(update_id)
+            await repo.finish_update(update_id, bot_id=bot_id)
         except Exception as exc:
             logger.error(
                 "telegram_update_failed error_type=%s traceback=%s",
@@ -333,7 +335,7 @@ def create_app(
                 _safe_traceback(exc),
             )
             try:
-                await repo.finish_update(update_id, failed=True)
+                await repo.finish_update(update_id, bot_id=bot_id, failed=True)
             except Exception as cleanup_error:
                 logger.error(
                     "telegram_update_cleanup_failed error_type=%s traceback=%s",

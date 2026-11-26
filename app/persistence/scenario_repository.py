@@ -48,8 +48,9 @@ class ScenarioSession:
 class ScenarioPostgresRepository:
     """Stores the shared context once and progress/outcomes by question position."""
 
-    def __init__(self, pool: asyncpg.Pool) -> None:
+    def __init__(self, pool: asyncpg.Pool, *, bot_id: int = 0) -> None:
         self._pool = pool
+        self.bot_id = bot_id
 
     async def start_session(
         self,
@@ -505,9 +506,10 @@ class ScenarioPostgresRepository:
                 return AttemptResult.STALE
             duplicate = await connection.fetchval(
                 """SELECT EXISTS (SELECT 1 FROM oge15_attempts
-                   WHERE session_id=$1 AND telegram_message_id=$2)""",
+                   WHERE session_id=$1 AND telegram_message_id=$2 AND bot_id=$3)""",
                 session_id,
                 telegram_message_id,
+                self.bot_id,
             )
             if duplicate:
                 return AttemptResult.DUPLICATE
@@ -517,8 +519,8 @@ class ScenarioPostgresRepository:
             await connection.execute(
                 """INSERT INTO oge15_attempts
                    (session_id, position, attempt_no, telegram_message_id, raw_answer,
-                    normalized_answer, is_correct, used_hint)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)""",
+                    normalized_answer, is_correct, used_hint, bot_id)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)""",
                 session_id,
                 position,
                 attempt_no,
@@ -527,6 +529,7 @@ class ScenarioPostgresRepository:
                 normalized_answer,
                 is_correct,
                 progress["hints_used"] > 0,
+                self.bot_id,
             )
             status = "solved" if is_correct else "failed" if attempt_no == 2 else "active"
             await connection.execute(

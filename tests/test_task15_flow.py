@@ -53,7 +53,7 @@ def test_task15_duplicate_webhook_is_processed_once(monkeypatch):
                     headers={"X-Telegram-Bot-Api-Secret-Token": "oge15-test-secret"},
                 )
                 assert response.status_code == 200
-        assert repo.updates[15001] == "processed"
+        assert repo.updates[123456, 15001] == "processed"
         assert len(repo.attempts15[42]) == 1
         assert repo.outcomes15[42][snapshot["problem_id"]] == "solved"
         bot.session.make_request.assert_awaited_once()

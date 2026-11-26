@@ -30,7 +30,7 @@ async def _drop_test_database(admin: asyncpg.Connection, database_name: str) -> 
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("seed_count", [0, 6])
+@pytest.mark.parametrize("seed_count", [0, 6, 36])
 async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
     monkeypatch: pytest.MonkeyPatch,
     seed_count: int,
@@ -45,6 +45,10 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
             if number > seed_count:
                 break
             await seed_pool.execute(await read_migration(str(migration)))
+        if seed_count == 36:
+            await seed_pool.execute(
+                "INSERT INTO telegram_updates (update_id,status) VALUES (101,'processed')"
+            )
     finally:
         await seed_pool.close()
 
@@ -85,6 +89,13 @@ async def test_create_app_lifespan_applies_ordered_migrations_idempotently(
                 "SELECT version FROM app_schema_migrations ORDER BY version"
             )
             assert [row["version"] for row in rows] == expected_versions
+            if seed_count == 36:
+                assert await repository._pool.fetchval(
+                    "SELECT status FROM telegram_updates WHERE update_id=101 AND bot_id=0"
+                ) == "processed"
+                assert await repository.claim_update(101)
+                await repository.finish_update(101)
+                assert not await repository.claim_update(101)
             assert await repository._pool.fetchval(
                 "SELECT to_regclass('sessions_one_active_task8_per_user') IS NOT NULL"
             )
