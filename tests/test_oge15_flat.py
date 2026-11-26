@@ -239,6 +239,63 @@ def test_every_family_varies_in_128_seed_sweep_with_exact_plan_and_offers() -> N
     assert len(winners["FLAT-05-INTERNET-MIN"]) == 3
 
 
+@pytest.mark.parametrize("family", ["FLAT-02-TILE-PACK", "FLAT-02-PARQUET-PACK"])
+def test_flooring_identity_ignores_proportional_scale_and_rotation(family: str) -> None:
+    from dataclasses import replace
+
+    from app.math.scenarios.recent_questions import question_signature
+    from app.math.scenarios.stories.FLAT import FIXED_VERSION
+
+    adapter = build_adapter()
+    scenario = adapter.generator.generate_scenario(SOURCE_VECTOR_SEED)
+    question = adapter.question_builder.build_question_for_family(scenario, 2, family)
+    previous = replace(scenario, generator_version=FIXED_VERSION)
+    rescaled = replace(scenario, context={**scenario.context, "grid_cell_m": "0.5"})
+    model = dict(question.math_model)
+    if family == "FLAT-02-PARQUET-PACK":
+        model.update(
+            width_cells=model["height_cells"],
+            height_cells=model["width_cells"],
+            board_m=("1", "0.25"),
+        )
+    rotated = replace(question, math_model=model)
+    assert question_signature(previous, question) == question_signature(rescaled, rotated)
+
+    if family == "FLAT-02-PARQUET-PACK":
+        changed = replace(rotated, math_model={**model, "board_m": ("0.5", "1")})
+        assert question_signature(rescaled, changed) != question_signature(rescaled, rotated)
+
+
+def test_internet_identity_ignores_overage_rates_when_traffic_does_not_exceed_cap() -> None:
+    from dataclasses import replace
+
+    from app.math.scenarios.recent_questions import question_signature
+
+    adapter = build_adapter()
+    scenario = adapter.generator.generate_scenario(SOURCE_VECTOR_SEED)
+    question = adapter.question_builder.build_question_for_family(
+        scenario, 5, "FLAT-05-INTERNET-MIN"
+    )
+    internet = scenario.context["internet"]
+    first, second, unlimited = internet["plans"]
+    changed = ({**first, "overage": "17"}, second, {**unlimited, "overage": "99"})
+
+    def with_plans(traffic, plans):
+        return replace(
+            scenario,
+            context={**scenario.context, "internet": {"traffic_mb": traffic, "plans": plans}},
+        )
+
+    for traffic in (first["included_mb"] - 1, first["included_mb"]):
+        assert question_signature(with_plans(traffic, internet["plans"]), question) == (
+            question_signature(with_plans(traffic, changed), question)
+        )
+    traffic = first["included_mb"] + 1
+    assert question_signature(with_plans(traffic, internet["plans"]), question) != (
+        question_signature(with_plans(traffic, changed), question)
+    )
+
+
 def test_all_candidate_families_are_fail_closed_and_doubtful_cases_stay_out() -> None:
     adapter = build_adapter()
     registrations = {item.family_id: item for item in adapter.family_registry}

@@ -990,10 +990,12 @@ def _independent_visible_answer(
             r"Ответ округлите до (десятых|сотых)\.",
             expected.condition,
         )
-        rows = {label: (length, width) for label, length, width in _parse_visible_rows(rendered)}
+        dimensions = {
+            label: (length, width) for label, length, width in _parse_visible_rows(rendered)
+        }
         if direct:
             index = int(direct.group(1))
-            pair = rows.get(f"A{index}")
+            pair = dimensions.get(f"A{index}")
             if pair is None:
                 raise ValueError("PAPER side-ratio question has no valid visible dimensions")
             long_mm, short_mm = pair
@@ -1018,7 +1020,7 @@ def _independent_visible_answer(
         index, next_index = int(diagonal.group(1)), int(diagonal.group(3))
         side = "short" if diagonal.group(2) == "меньшей" else "long"
         places = 1 if diagonal.group(4) == "десятых" else 2
-        pair = rows.get(f"A{next_index}")
+        pair = dimensions.get(f"A{next_index}")
         if next_index != index + 1 or pair is None:
             raise ValueError("PAPER diagonal-ratio question requires the next format in its table")
         long_mm, short_mm = pair[1] + pair[1], pair[0]

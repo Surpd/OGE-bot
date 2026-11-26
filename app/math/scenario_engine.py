@@ -494,13 +494,22 @@ class PracticePlan:
     selected_positions: tuple[int, ...]
 
 
-def build_practice_plan(
+@dataclass(frozen=True, slots=True)
+class PreparedPractice:
+    mode: PracticeMode
+    adapter: StoryAdapter
+    scenario: ScenarioDraft
+    selected_positions: tuple[int, ...]
+    questions: tuple[QuestionDraft, ...]
+
+
+def prepare_practice_plan(
     request: PracticeRequest,
     registry: FamilyRegistry,
     *,
     accept_exact_candidate: Callable[[ScenarioDraft, QuestionDraft], bool] | None = None,
-) -> PracticePlan:
-    """Build and independently validate one immutable scenario and its selected questions."""
+) -> PreparedPractice:
+    """Prepare mathematical drafts for selection before rendering any materials."""
     available = registry.available_stories(request.mode, request.position)
     if request.story_code is not None:
         if request.story_code not in available:
@@ -555,10 +564,6 @@ def build_practice_plan(
             scenario, exact_question,
         ):
             raise ScenarioCandidateExcluded(exact_family)
-    adapter.independent_oracle.validate_scenario(scenario)
-    rendered = adapter.renderer.render_scenario(scenario)
-
-    questions: list[QuestionSnapshot] = []
     draft_questions: list[QuestionDraft] = []
     for position in POSITIONS:
         question = (
@@ -584,11 +589,21 @@ def build_practice_plan(
         )
         if policy is None:
             raise ValueError("Question references an unregistered answer policy version")
-        adapter.independent_oracle.validate_question(scenario, question, rendered)
         draft_questions.append(question)
-        questions.append(QuestionSnapshot.from_draft(question))
 
-    adapter.independent_oracle.validate_bundle(scenario, tuple(draft_questions), rendered)
+    return PreparedPractice(
+        request.mode, adapter, scenario, selected_positions, tuple(draft_questions),
+    )
+
+
+def finalize_practice_plan(prepared: PreparedPractice) -> PracticePlan:
+    """Render the selected draft and independently validate it before issuing a snapshot."""
+    adapter, scenario = prepared.adapter, prepared.scenario
+    adapter.independent_oracle.validate_scenario(scenario)
+    rendered = adapter.renderer.render_scenario(scenario)
+    for question in prepared.questions:
+        adapter.independent_oracle.validate_question(scenario, question, rendered)
+    adapter.independent_oracle.validate_bundle(scenario, prepared.questions, rendered)
 
     snapshot = ScenarioSnapshot(
         story_code=scenario.story_code,
@@ -598,10 +613,22 @@ def build_practice_plan(
         context=scenario.context,
         shared_context=rendered.shared_context,
         assets=rendered.assets,
-        questions=tuple(questions),
+        questions=tuple(QuestionSnapshot.from_draft(q) for q in prepared.questions),
         provenance=scenario.provenance,
     )
-    return PracticePlan(request.mode, snapshot, selected_positions)
+    return PracticePlan(prepared.mode, snapshot, prepared.selected_positions)
+
+
+def build_practice_plan(
+    request: PracticeRequest,
+    registry: FamilyRegistry,
+    *,
+    accept_exact_candidate: Callable[[ScenarioDraft, QuestionDraft], bool] | None = None,
+) -> PracticePlan:
+    """Build and independently validate one immutable scenario and its selected questions."""
+    return finalize_practice_plan(
+        prepare_practice_plan(request, registry, accept_exact_candidate=accept_exact_candidate),
+    )
 
 
 def snapshot_digest(snapshot: ScenarioSnapshot) -> str:

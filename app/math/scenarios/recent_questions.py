@@ -3,6 +3,7 @@
 import json
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import replace
+from fractions import Fraction
 from hashlib import sha256
 from random import Random
 from typing import cast
@@ -12,12 +13,15 @@ from app.math.scenario_engine import (
     PracticeMode,
     PracticePlan,
     PracticeRequest,
+    PreparedPractice,
     QuestionDraft,
     QuestionSnapshot,
     ScenarioCandidateExcluded,
     ScenarioDraft,
     ScenarioSnapshot,
     build_practice_plan,
+    finalize_practice_plan,
+    prepare_practice_plan,
 )
 
 QuestionSignature = tuple[str, str, str]
@@ -204,11 +208,13 @@ def _flat_inputs(
         roles = cast(tuple[str, ...], model["rooms_in_order"])
         return _fields(_record(context["room_labels"]), *roles)
     if family == "FLAT-02-TILE-PACK":
-        return context["grid_cell_m"], _fields(model, "room_cells", "tile_cells", "pack")
+        return _fields(model, "room_cells", "tile_cells", "pack")
     if family == "FLAT-02-PARQUET-PACK":
-        return context["grid_cell_m"], _fields(
-            model, "width_cells", "height_cells", "board_m", "pack",
-        )
+        cell_m = Fraction(str(context["grid_cell_m"]))
+        room_cells = sorted(cast(tuple[int, int], _fields(model, "width_cells", "height_cells")))
+        board_m = cast(tuple[str, str], model["board_m"])
+        board_cells = sorted(Fraction(side) / cell_m for side in board_m)
+        return room_cells, [str(side) for side in board_cells], model["pack"]
     if family == "FLAT-03-RECT-AREA":
         return context["grid_cell_m"], model["area_cells"]
     if family == "FLAT-04-RECT-PERCENT":
@@ -223,16 +229,15 @@ def _flat_inputs(
     if family == "FLAT-05-INTERNET-MIN":
         internet = _record(context["internet"])
         plans = cast(tuple[Mapping[str, object], ...], internet["plans"])
-        return internet["traffic_mb"], sorted(
-            (
-                (
-                    plan["fee"], plan["included_mb"],
-                    plan["overage"] if plan["included_mb"] is not None else None,
-                )
-                for plan in plans
-            ),
-            key=str,
-        )
+        traffic = cast(int, internet["traffic_mb"])
+        operands = []
+        for plan in plans:
+            cap = cast(int | None, plan["included_mb"])
+            rate = None
+            if cap is not None and traffic > cap:
+                rate = str(Fraction(str(plan["overage"])))
+            operands.append((plan["fee"], cap, rate))
+        return traffic, sorted(operands, key=str)
     raise ValueError("Unaudited FLAT family")
 
 
@@ -415,26 +420,29 @@ def rotated_plan(
         age = {story: seen.index(story) if story in seen else len(seen) for story in stories}
         oldest = max(age.values())
         request = replace(request, story_code=rng.choice([s for s in stories if age[s] == oldest]))
-    best = build_practice_plan(request, registry)
+    best = prepare_practice_plan(request, registry)
     if not recent and not history:
-        return best
-    registrations = registry.adapter(best.snapshot.story_code).family_registry
+        return finalize_practice_plan(best)
+    registrations = best.adapter.family_registry
 
-    def score(plan: PracticePlan) -> tuple[int, int]:
+    def score(plan: PreparedPractice) -> tuple[int, int]:
+        recent_count = 0
         repeated = 0
         for pos in plan.selected_positions:
+            question = plan.questions[pos - 1]
+            recent_count += question_signature(plan.scenario, question) in recent
             families = {f.family_id for f in registrations if f.available and f.position == pos}
             last = next((family for family in history if family in families), None)
-            if len(families) > 1 and plan.snapshot.questions[pos - 1].family_id == last:
+            if len(families) > 1 and question.family_id == last:
                 repeated += 1
-        return _repeat_count(plan, recent), repeated
+        return recent_count, repeated
 
     best_score = score(best)
     for _ in range(4):
         if best_score == (0, 0):
             break
-        trial = build_practice_plan(replace(request, seed=rng.getrandbits(63)), registry)
+        trial = prepare_practice_plan(replace(request, seed=rng.getrandbits(63)), registry)
         trial_score = score(trial)
         if trial_score < best_score:
             best, best_score = trial, trial_score
-    return best
+    return finalize_practice_plan(best)

@@ -2,9 +2,12 @@
 import json
 from dataclasses import replace
 from itertools import product
+from uuid import UUID
 
 import pytest
 
+from app.bot.error_replay import _accepts
+from app.bot.mixed_training import _is_correct
 from app.bot.scenario_training import PUBLIC_FAMILIES, public_registry
 from app.math.scenario_engine import (
     FamilyQuestionBuilder,
@@ -17,6 +20,8 @@ from app.math.scenario_engine import (
 from app.math.scenarios import recent_questions as identity
 from app.math.scenarios.stories.STOVE import _PYTHAGOREAN_PAIRS
 from app.math.scenarios.stories.TYRES import _ASPECTS, _RIMS, _WIDTHS
+from app.persistence.error_replay import ReplaySource
+from app.persistence.mixed_training import _scenario_question
 
 PUBLIC = sorted(
     (code, family) for code, families in PUBLIC_FAMILIES.items() for family in families
@@ -146,6 +151,11 @@ def test_public_mathematical_inputs_and_ten_issue_cycle(story, family):
         seen.add(fingerprint)
         request = replace(request, seed=scene.seed)
         if index == 0:
+            payload = scene.to_snapshot()
+            problem = _scenario_question(payload, position)
+            assert _is_correct(position, problem, question.canonical_answer) is True
+            replay = ReplaySource("scenario", UUID(int=1), position, position, problem, payload)
+            assert _accepts(replay, question.canonical_answer) is True
             cosmetic = replace(
                 scene,
                 shared_context="Другая подача того же сюжета",

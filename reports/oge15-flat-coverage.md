@@ -83,13 +83,15 @@ varies traffic, fee, cap, and overage inputs, and all three plans can win.
 
 The independent 128-seed test forced each family on every seed. It checked
 125 distinct grid layouts, exact area and percentage answers, no-cut
-flooring, and unique cost minima.
+flooring, and unique cost minima. Flooring signatures use relative dimensions
+in cells. Internet signatures include only overage rates used at the given
+traffic.
 
 | Family | Distinct mathematical inputs | Distinct answers |
 |---|---:|---:|
 | Room matching | 121 | 121 |
-| Tile packages | 79 | 11 |
-| Parquet packages | 94 | 20 |
+| Tile packages | 55 | 11 |
+| Parquet packages | 68 | 20 |
 | Rectangle area | 16 | 16 |
 | Percentage comparison | 23 | 15 |
 | Washer minimum | 128 | 109 |

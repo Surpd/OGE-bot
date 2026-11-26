@@ -4,11 +4,18 @@ from __future__ import annotations
 import csv
 import html
 import json
+from decimal import Decimal
 from hashlib import sha256
 from pathlib import Path
 
 from app.bot.scenario_training import PUBLIC_FAMILIES, public_registry
-from app.math.scenario_engine import PracticeMode, PracticeRequest, build_practice_plan
+from app.math.scenario_engine import (
+    FamilyQuestionBuilder,
+    FamilyScenarioGenerator,
+    PracticeMode,
+    PracticeRequest,
+    build_practice_plan,
+)
 from app.math.scenarios.mobile_photos import scenario_photos_for_question
 from app.math.scenarios.recent_questions import question_signature
 
@@ -29,6 +36,7 @@ PARAMETERS = {
     "PAPER-F04": "short/long ISO dimensions and rounding precision",
     "PAPER-F06": "dimensions for reconstructing the diagonal and reference side",
     "PAPER-F07": "initial font size and corresponding side lengths",
+    "TARIFF-F04-MONTHLY-BILL": "monthly fee, usage, included allowances and overage charges",
     "TARIFF-F09-PERCENT-FEE": "old and increased subscription fee",
 }
 
@@ -51,6 +59,43 @@ def example(scene, q):
             f"{esc(question_signature(scene, q)[2])}</code></details></article>")
 
 
+def measure_story(registry, story, baseline):
+    adapter = registry.adapter(story)
+    generator, builder = adapter.generator, adapter.question_builder
+    oracle = adapter.independent_oracle
+    results = {row["family"]: (set(), set(), []) for row in baseline}
+    for seed in range(100):
+        # Several families use precisely the same world. Validate/render it once
+        # per seed, retaining no images between seeds.
+        worlds = []
+        for row in baseline:
+            family, position = row["family"], int(row["position"])
+            draft = (generator.generate_scenario_for_family(seed, position, family)
+                     if isinstance(generator, FamilyScenarioGenerator)
+                     else generator.generate_scenario(seed))
+            rendered = next((r for d, r in worlds if d == draft), None)
+            if rendered is None:
+                oracle.validate_scenario(draft)
+                rendered = adapter.renderer.render_scenario(draft)
+                worlds.append((draft, rendered))
+            q = (builder.build_question_for_family(draft, position, family)
+                 if isinstance(builder, FamilyQuestionBuilder)
+                 else builder.build_question(draft, position))
+            assert q.family_id == family and q.scenario_seed == seed
+            oracle.validate_question(draft, q, rendered)
+            sig = question_signature(draft, q)
+            distinct, answers, examples = results[family]
+            if family in PARAMETERS and len(examples) < 3 and sig not in distinct:
+                scene = build_practice_plan(
+                    PracticeRequest(PracticeMode.SINGLE, seed, story, position, family), registry,
+                ).snapshot
+                assert all(x.scenario_seed == seed for x in scene.questions)
+                examples.append(example(scene, scene.questions[position - 1]))
+            distinct.add(sig)
+            answers.add(q.canonical_answer)
+    return results
+
+
 def main():
     (OUT / "assets").mkdir(exist_ok=True, parents=True)
     registry = public_registry()
@@ -58,25 +103,21 @@ def main():
     with BASELINE.open(encoding="utf-8", newline="") as stream:
         baseline = list(csv.DictReader(stream))
     assert {r["family"] for r in baseline} == set().union(*PUBLIC_FAMILIES.values())
-    for row in baseline:
-        family, story, position = row["family"], row["story"], int(row["position"])
-        distinct, answers, examples = set(), set(), []
-        for seed in range(100):
-            scene = build_practice_plan(
-                PracticeRequest(PracticeMode.SINGLE, seed, story, position, family), registry,
-            ).snapshot
-            q = scene.questions[position - 1]
-            assert q.family_id == family and all(x.scenario_seed == seed for x in scene.questions)
-            sig = question_signature(scene, q)
-            if family in PARAMETERS and len(examples) < 3 and sig not in distinct:
-                examples.append(example(scene, q))
-            distinct.add(sig)
-            answers.add(q.canonical_answer)
-        rows.append(dict(family=family, before=row["distinct_in_100_seeds"], after=len(distinct),
-                         different_answers=len(answers),
-                         parameters=PARAMETERS.get(family, row["mathematical_inputs"])))
-        if examples:
-            sections.append(f'<section><h2>{family}</h2><div>{"".join(examples)}</div></section>')
+    for story in dict.fromkeys(row["story"] for row in baseline):
+        story_rows = [row for row in baseline if row["story"] == story]
+        results = measure_story(registry, story, story_rows)
+        for row in story_rows:
+            family = row["family"]
+            distinct, answers, examples = results[family]
+            numeric = {Decimal(answer.replace(",", ".")) for answer in answers}
+            rows.append(dict(family=family, before=row["distinct_in_100_seeds"],
+                             after=len(distinct), different_answers=len(numeric),
+                             answer_strings=len(answers),
+                             parameters=PARAMETERS.get(family, row["mathematical_inputs"])))
+            if examples:
+                cards = "".join(examples)
+                sections.append(f'<section><h2>{family}</h2><div>{cards}</div></section>')
+        print(story, flush=True)
     with (OUT / "matrix.csv").open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=rows[0], lineterminator="\n")
         writer.writeheader()

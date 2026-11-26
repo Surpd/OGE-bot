@@ -7,9 +7,9 @@ TYRES-PERCENT-ROTATION,TYRES,0,5,1,Маркировка и определени�
 PAPER-F01,PAPER,0,1,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
 PAPER-F02,PAPER,0,2,1,Правило деления A0; схема; число листов,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
 PAPER-F03,PAPER,0,3,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
-PAPER-F06,PAPER,0,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F06,PAPER,1,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
 PAPER-F07,PAPER,0,5,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
-PAPER-F04,PAPER,1,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
+PAPER-F04,PAPER,0,4,1 0,Правило деления A0; схема; точные размеры в неназванных строках таблицы,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
 STOVE-F02-ATTRIBUTE-MATCH,STOVE,0,1,0,"Размеры парной/двери в контексте; каталог: тип, диапазон объёма, масса, цена",single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
 STOVE-F03-VOLUME,STOVE,0,2,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
 STOVE-F04-FLOOR-AREA,STOVE,0,3,,Размеры парной/двери в контексте; числовой текст без каталога,single/full/resume/mix/mix-adjacent/replay/history,offline payload/order + immutable snapshot
