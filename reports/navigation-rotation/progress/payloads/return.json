@@ -5,50 +5,50 @@
     {
       "method": "editMessageText",
       "payload": {
-        "text": "История и ошибки · С ошибками · №6\nЗаписи 7–7 из 7\n\n7. №6 · Вычислить разность, сократить дробь, указать числитель\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
+        "text": "История и ошибки · С ошибками · №6\nЗаписи 7–7 из 7\n\n7. №6 · Сложение десятичных дробей\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
         "chat_id": "42",
         "message_id": "327",
-        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 34}, {\"type\": \"bold\", \"offset\": 52, \"length\": 62}]",
+        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 34}, {\"type\": \"bold\", \"offset\": 52, \"length\": 34}]",
         "reply_markup": {
           "inline_keyboard": [
             [
               {
                 "text": "Все задания",
-                "callback_data": "progress:numhist:6:0~1fa9e75f201f"
+                "callback_data": "progress:numhist:6:0~c852b2688eb1"
               },
               {
                 "text": "✓ С ошибками",
-                "callback_data": "progress:numerr:6:0~1fa9e75f201f"
+                "callback_data": "progress:numerr:6:0~c852b2688eb1"
               }
             ],
             [
               {
                 "text": "Номер · 6",
-                "callback_data": "progress:filter:n6.6~1fa9e75f201f"
+                "callback_data": "progress:filter:n6.6~c852b2688eb1"
               }
             ],
             [
               {
                 "text": "7",
-                "callback_data": "progress:item:b1R5XppukkTtkVQm1Hyz6ysA:n6.6~1fa9e75f201f"
+                "callback_data": "progress:item:b78TeNaTXkEBtsmnxGdmp5AA:n6.6~c852b2688eb1"
               }
             ],
             [
               {
                 "text": "← Назад",
-                "callback_data": "progress:numerr:6:0~1fa9e75f201f"
+                "callback_data": "progress:numerr:6:0~c852b2688eb1"
               }
             ],
             [
               {
                 "text": "↩ К №6",
-                "callback_data": "progress:number:6~1fa9e75f201f"
+                "callback_data": "progress:number:6~c852b2688eb1"
               }
             ],
             [
               {
                 "text": "📊 Мой прогресс",
-                "callback_data": "progress:summary~1fa9e75f201f"
+                "callback_data": "progress:summary~c852b2688eb1"
               }
             ]
           ]
@@ -58,7 +58,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "88a9cf5e-32f2-4c1c-be96-5a865dd6add5"
+        "callback_query_id": "35772241-ad8b-4629-8a5b-1b0605971b94"
       }
     }
   ]

@@ -6,44 +6,44 @@
       "method": "sendPhoto",
       "payload": {
         "chat_id": "42",
-        "photo": "attach://fDJtYRrVGuDgfg",
+        "photo": "attach://_4B1VKQGbd0enQ",
         "reply_markup": {
           "inline_keyboard": [
             [
               {
                 "text": "Подробнее по номерам",
-                "callback_data": "progress:details~d9570e44b6b7"
+                "callback_data": "progress:details~f16c09f4ea74"
               }
             ],
             [
               {
                 "text": "История и ошибки",
-                "callback_data": "progress:history:0~d9570e44b6b7"
+                "callback_data": "progress:history:0~f16c09f4ea74"
               }
             ],
             [
               {
                 "text": "Письменные работы",
-                "callback_data": "progress:works:0~d9570e44b6b7"
+                "callback_data": "progress:works:0~f16c09f4ea74"
               }
             ],
             [
               {
-                "text": "Умножение двух обыкновенных дробей",
-                "callback_data": "train:family:OGE06-F002-MUL~d9570e44b6b7"
+                "text": "Умножение десятичных дробей",
+                "callback_data": "train:family:OGE06-F004-DEC-MUL~f16c09f4ea74"
               }
             ],
             [
               {
                 "text": "↩ В меню",
-                "callback_data": "nav:main~d9570e44b6b7"
+                "callback_data": "nav:main~f16c09f4ea74"
               }
             ]
           ]
         }
       },
       "attachments": {
-        "fDJtYRrVGuDgfg": {
+        "_4B1VKQGbd0enQ": {
           "path": "assets/d2f77019f3b55e09e4a6330df5cde0c66796ead0f6189e23b92c5747cae8199f.png",
           "filename": "progress.png",
           "sha256": "d2f77019f3b55e09e4a6330df5cde0c66796ead0f6189e23b92c5747cae8199f"
@@ -60,7 +60,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "0f9079eb-141d-4349-8fba-3fcd4bfd145f"
+        "callback_query_id": "4cf61636-c72b-408c-85e1-2149e41d8016"
       }
     },
     {
@@ -85,121 +85,121 @@
             [
               {
                 "text": "№1",
-                "callback_data": "progress:number:1~8d0d0b0689dd"
+                "callback_data": "progress:number:1~c3d4b028a629"
               },
               {
                 "text": "№2",
-                "callback_data": "progress:number:2~8d0d0b0689dd"
+                "callback_data": "progress:number:2~c3d4b028a629"
               },
               {
                 "text": "№3",
-                "callback_data": "progress:number:3~8d0d0b0689dd"
+                "callback_data": "progress:number:3~c3d4b028a629"
               },
               {
                 "text": "№4",
-                "callback_data": "progress:number:4~8d0d0b0689dd"
+                "callback_data": "progress:number:4~c3d4b028a629"
               }
             ],
             [
               {
                 "text": "№5",
-                "callback_data": "progress:number:5~8d0d0b0689dd"
+                "callback_data": "progress:number:5~c3d4b028a629"
               },
               {
                 "text": "№6",
-                "callback_data": "progress:number:6~8d0d0b0689dd"
+                "callback_data": "progress:number:6~c3d4b028a629"
               },
               {
                 "text": "№7",
-                "callback_data": "progress:number:7~8d0d0b0689dd"
+                "callback_data": "progress:number:7~c3d4b028a629"
               },
               {
                 "text": "№8",
-                "callback_data": "progress:number:8~8d0d0b0689dd"
+                "callback_data": "progress:number:8~c3d4b028a629"
               }
             ],
             [
               {
                 "text": "№9",
-                "callback_data": "progress:number:9~8d0d0b0689dd"
+                "callback_data": "progress:number:9~c3d4b028a629"
               },
               {
                 "text": "№10",
-                "callback_data": "progress:number:10~8d0d0b0689dd"
+                "callback_data": "progress:number:10~c3d4b028a629"
               },
               {
                 "text": "№11",
-                "callback_data": "progress:number:11~8d0d0b0689dd"
+                "callback_data": "progress:number:11~c3d4b028a629"
               },
               {
                 "text": "№12",
-                "callback_data": "progress:number:12~8d0d0b0689dd"
+                "callback_data": "progress:number:12~c3d4b028a629"
               }
             ],
             [
               {
                 "text": "№13",
-                "callback_data": "progress:number:13~8d0d0b0689dd"
+                "callback_data": "progress:number:13~c3d4b028a629"
               },
               {
                 "text": "№14",
-                "callback_data": "progress:number:14~8d0d0b0689dd"
+                "callback_data": "progress:number:14~c3d4b028a629"
               },
               {
                 "text": "№15",
-                "callback_data": "progress:number:15~8d0d0b0689dd"
+                "callback_data": "progress:number:15~c3d4b028a629"
               },
               {
                 "text": "№16",
-                "callback_data": "progress:number:16~8d0d0b0689dd"
+                "callback_data": "progress:number:16~c3d4b028a629"
               }
             ],
             [
               {
                 "text": "№17",
-                "callback_data": "progress:number:17~8d0d0b0689dd"
+                "callback_data": "progress:number:17~c3d4b028a629"
               },
               {
                 "text": "№18",
-                "callback_data": "progress:number:18~8d0d0b0689dd"
+                "callback_data": "progress:number:18~c3d4b028a629"
               },
               {
                 "text": "№19",
-                "callback_data": "progress:number:19~8d0d0b0689dd"
+                "callback_data": "progress:number:19~c3d4b028a629"
               },
               {
                 "text": "№20",
-                "callback_data": "progress:written:20~8d0d0b0689dd"
+                "callback_data": "progress:written:20~c3d4b028a629"
               }
             ],
             [
               {
                 "text": "№21",
-                "callback_data": "progress:written:21~8d0d0b0689dd"
+                "callback_data": "progress:written:21~c3d4b028a629"
               },
               {
                 "text": "№22",
-                "callback_data": "progress:written:22~8d0d0b0689dd"
+                "callback_data": "progress:written:22~c3d4b028a629"
               },
               {
                 "text": "№23",
-                "callback_data": "progress:written:23~8d0d0b0689dd"
+                "callback_data": "progress:written:23~c3d4b028a629"
               },
               {
                 "text": "№24",
-                "callback_data": "progress:written:24~8d0d0b0689dd"
+                "callback_data": "progress:written:24~c3d4b028a629"
               }
             ],
             [
               {
                 "text": "№25",
-                "callback_data": "progress:written:25~8d0d0b0689dd"
+                "callback_data": "progress:written:25~c3d4b028a629"
               }
             ],
             [
               {
                 "text": "📊 Мой прогресс",
-                "callback_data": "progress:summary~8d0d0b0689dd"
+                "callback_data": "progress:summary~c3d4b028a629"
               }
             ]
           ]
@@ -209,7 +209,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "8c39d6cf-9762-4cd8-833f-7c2a943416c3"
+        "callback_query_id": "cb232f26-07ef-4cbf-92f0-e82b1e945854"
       }
     }
   ]

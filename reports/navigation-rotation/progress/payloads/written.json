@@ -14,7 +14,7 @@
             [
               {
                 "text": "Мой прогресс",
-                "callback_data": "progress:summary~4e201aa4646b"
+                "callback_data": "progress:summary~1f6c6a7cc6dc"
               }
             ]
           ]
@@ -24,7 +24,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "aa6299dc-ffa8-4e07-b2ee-4a1bc7f9e464"
+        "callback_query_id": "4a2f6992-45a5-4b3f-b4a3-d71bae2650a6"
       }
     }
   ]

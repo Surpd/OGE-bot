@@ -54,32 +54,16 @@ async def page(
                 from app.adaptive.engine import Stage, family_status
                 from app.adaptive.skills import title as skill_title
                 from app.adaptive.store import overview
-                from app.bot.progress import family_evidence
 
-                states = {
-                    skill: state for n, skill, state, _ in await overview(repo, owner)
+                states = [
+                    (skill, state) for n, skill, state, _ in await overview(repo, owner)
                     if n == number and state.stage != Stage.UNCHECKED
-                }
-                notes = await family_evidence(repo, owner, list(states))
-                remaining = await bank.pool.fetch(
-                    """SELECT c.subtype_id, count(DISTINCT v.task_id) AS available
-                       FROM part2_versions v JOIN part2_cards c USING(task_id)
-                       WHERE c.subtype_id=ANY($1::text[]) AND v.available AND v.reviewed
-                         AND NOT EXISTS (
-                             SELECT FROM part2_issues i WHERE i.task_id=v.task_id AND i.owner=$2
-                         )
-                       GROUP BY c.subtype_id""",
-                    list(states), owner,
-                ) if states else ()
-                counts = {row["subtype_id"]: row["available"] for row in remaining}
-                for skill, state in states.items():
-                    label = skill_title(skill)
-                    message_text += f"\n\n{label} · {family_status(state).label}"
-                    message_text += f"\nНовых проверенных заданий: {counts.get(skill, 0)}"
-                    for note in notes.get(skill, {}).get("evidence", ()):
-                        message_text += f"\n{note}"
+                ]
+                for index, (skill, state) in enumerate(states, start=1):
+                    status = family_status(state).label
+                    message_text += f"\n{index}. {skill_title(skill)} · {status}"
                     if state.stage != Stage.CONFIRMED:
-                        rows.append([(f"Тренировать · {label}", f"p2:open:{number}:{skill}")])
+                        rows.append([(f"Тренировать тип {index}", f"p2:open:{number}:{skill}")])
             rows.append([("История письменных работ", "progress:works:0")])
         elif parts[0] == "works" and len(parts) == 2:
             offset = min(2**31 - 1, int(parts[1]))

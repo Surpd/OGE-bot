@@ -7,20 +7,20 @@
       "payload": {
         "chat_id": "42",
         "rich_message": {
-          "html": "<p><b>Разбор:</b></p><p> </p><p><b>1. Значение выражения:</b> <tg-math>\\frac{1}{4}</tg-math>.</p><p> </p><p>2. Дробь несократима; её числитель — 1.</p><p> </p><p><b>Ответ:</b> 1</p>"
+          "html": "<p><b>Разбор:</b></p><p> </p><tg-math-block>3{,}9 + 3{,}5 = 7{,}4.</tg-math-block><p> </p><p>2. Складываем десятые и единицы отдельно.</p><p> </p><p><b>Ответ:</b> 7,4</p>"
         },
         "reply_markup": {
           "inline_keyboard": [
             [
               {
                 "text": "↩ К записи",
-                "callback_data": "progress:item:b1R5XppukkTtkVQm1Hyz6ysA:n6.6~88b07d9bf8c0"
+                "callback_data": "progress:item:b78TeNaTXkEBtsmnxGdmp5AA:n6.6~ac2296721212"
               }
             ],
             [
               {
                 "text": "↩ В журнал",
-                "callback_data": "progress:numerr:6:6~88b07d9bf8c0"
+                "callback_data": "progress:numerr:6:6~ac2296721212"
               }
             ]
           ]
@@ -30,7 +30,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "d151372d-eee3-476c-b660-9c0dd8abc004"
+        "callback_query_id": "e3735674-7001-4a98-919e-422bb7ee17cf"
       }
     }
   ]

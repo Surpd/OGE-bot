@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from typing import Any, TypedDict
 from uuid import UUID
 
@@ -259,10 +259,11 @@ def progress_keyboard(
         families = _visible_families(insights, number, full=section == "family", offset=start)
         available = insights.get("available_families", {})
         practice = [
-            [_button(f"Тренировать · {row['name']}", available[row["family_id"]])]
-            for row in families if row["family_id"] in available
+            _button(f"Тренировать тип {index}", available[row["family_id"]])
+            for index, row in enumerate(families, start=start + 1)
+            if row["family_id"] in available
         ]
-        rows[1:1] = practice
+        rows[1:1] = [practice[i : i + 2] for i in range(0, len(practice), 2)]
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -394,84 +395,19 @@ def _visible_families(
     return families[offset : offset + PAGE_SIZE]
 
 
-def _family_line(row: dict[str, Any]) -> str:
-    line = f"• {row['name']}"
+def _family_line(index: int, row: dict[str, Any]) -> str:
+    fields = [f"{index}. {row['name']}"]
     if row.get("answered_tasks"):
-        line += f": {row['correct']}/{row['answered_tasks']} · {success_label(row)}"
-    if "diagnosis" in row and row.get("diagnosis_key") != "unchecked":
-        line += f" · {row['diagnosis']}"
+        fields.append(f"{row['correct']}/{row['answered_tasks']} верно")
+    if status := row.get("diagnosis"):
+        fields.append(status)
     elif not _has_family_results(row):
-        line += " · Нет данных"
-    if row.get("closed_at"):
-        line += f"\n  Пробел закрыт {row['closed_at']:%d.%m.%Y}"
-    if row.get("previous_closure"):
-        line += f"\n  Закрывался по прежним правилам {row['previous_closure']:%d.%m.%Y}"
-    if row.get("evidence"):
-        line += "\n  " + "\n  ".join(row["evidence"])
-    return line
-
-
-async def family_evidence(
-    repository: Any, user_id: int, families: list[str],
-) -> dict[str, dict[str, Any]]:
-    pool = getattr(repository, "_pool", None)
-    if pool is None or not families:
-        return {}
-    from app.bot.adaptive import _REASON_NAMES
-
-    records = await pool.fetch(
-        """SELECT skill, occurred, reason, outcome, attempt, confirmed_error_reasons FROM (
-               SELECT e.*, row_number() OVER (
-                   PARTITION BY e.skill ORDER BY e.occurred DESC, e.ordinal DESC
-               ) AS latest
-               FROM adaptive_learning_events e JOIN users u ON u.id=e.owner
-               WHERE u.telegram_user_id=$1 AND e.skill=ANY($2::text[]) AND e.reason IS NOT NULL
-           ) recent WHERE latest <= 4 ORDER BY skill, latest""",
-        user_id, families,
-    )
-    milestones = await pool.fetch(
-        """SELECT m.skill, max(m.occurred) AS last_closed
-           FROM adaptive_past_milestones m JOIN users u ON u.id=m.owner
-           WHERE u.telegram_user_id=$1 AND m.skill=ANY($2::text[]) AND m.reason='gap_closed'
-           GROUP BY m.skill""",
-        user_id, families,
-    )
-    labels = {
-        "gap_opened": "обнаружено затруднение",
-        "gap_reopened": "затруднение вернулось",
-        "independent_success": "самостоятельное решение",
-        "written_recommended": "рекомендована тренировка подтипа",
-        "gap_closed": "пробел закрыт",
-        "skill_confirmed": "три самостоятельных решения подряд",
-        "thematic_check_needed": "нужна проверка на одной теме",
-        "independent_check_needed": "нужен новый вариант без помощи",
-    }
-    outcomes = {"correct": "верный ответ", "wrong": "ошибка", "solution": "открыт разбор"}
-    result: dict[str, dict[str, Any]] = {
-        row["skill"]: {"previous_closure": row["last_closed"]} for row in milestones
-    }
-    for row in records:
-        reason = labels.get(row["reason"])
-        teacher = [_REASON_NAMES.get(code, code) for code in row["confirmed_error_reasons"] or ()]
-        if reason or teacher:
-            details = [f"{row['occurred']:%d.%m}"]
-            if outcome := outcomes.get(row["outcome"]):
-                details.append(outcome)
-            if row["attempt"]:
-                details.append(f"попытка {row['attempt']}")
-            if reason:
-                details.append(reason)
-            if teacher:
-                details.append("Отметил преподаватель: " + ", ".join(teacher))
-            result.setdefault(row["skill"], {}).setdefault("evidence", []).append(
-                " · ".join(details)
-            )
-    return result
+        fields.append("Нет данных")
+    return " · ".join(fields)
 
 
 async def _include_family_states(
-    insights: dict[str, Any], repository: Any, user_id: int, number: int, *,
-    full: bool = False, offset: int = 0,
+    insights: dict[str, Any], repository: Any, user_id: int, number: int,
 ) -> None:
     from app.adaptive.engine import State, family_status
     from app.adaptive.skills import title
@@ -516,18 +452,8 @@ async def _include_family_states(
         label = status.label
         if status.key in {"gap", "reopened", "practice"}:
             label += f", {status.practice}/{status.target}"
-        if state.reviewed_at is not None:
-            day = datetime.fromtimestamp(state.reviewed_at, UTC)
-            label += f" · повторено самостоятельно {day:%d.%m.%Y}"
         row["diagnosis"] = label
         row["diagnosis_key"] = status.key
-        if state.confirmed_at is not None and state.closed:
-            row["closed_at"] = datetime.fromtimestamp(state.confirmed_at, UTC)
-    if adaptive_enabled:
-        visible = _visible_families(insights, number, full=full, offset=offset)
-        notes = await family_evidence(repository, user_id, [row["family_id"] for row in visible])
-        for row in visible:
-            row.update(notes.get(row["family_id"], {}))
 
 
 def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
@@ -587,14 +513,16 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
                 f"Открыто разборов: {values.get('solutions_viewed', 0)}"
             )
         if families:
-            lines.extend(("", "Типы задач", *map(_family_line, families)))
+            lines.extend(("", "Типы задач"))
+            lines.extend(_family_line(i, row) for i, row in enumerate(families, start=1))
         return "\n".join(lines)
     if section == "family" and len(parts) >= 2:
         number = int(parts[0]) if parts[0].isdigit() else 0
         offset = int(parts[1]) if parts[1].isdigit() else 0
         families = _number_families(insights, number)
         visible = _visible_families(insights, number, full=True, offset=offset)
-        lines = [f"№{number} · Типы задач", "", *map(_family_line, visible)]
+        lines = [f"№{number} · Типы задач", ""]
+        lines.extend(_family_line(i, row) for i, row in enumerate(visible, start=offset + 1))
         if len(families) > PAGE_SIZE:
             lines.append(f"\nТипы {offset + 1}–{offset + len(visible)} из {len(families)}")
         return "\n".join(lines)
@@ -925,9 +853,7 @@ async def progress_navigation(
         if number not in range(1, 20):
             return await progress_navigation(message, repository, user_id, "details")
         insights = await training_insights(repository, user_id, "summary")
-        await _include_family_states(
-            insights, repository, user_id, number, full=True, offset=offset,
-        )
+        await _include_family_states(insights, repository, user_id, number)
         family_total = sum(int(row["number"]) == number for row in insights["families"])
         if family_total <= PAGE_SIZE:
             return await progress_navigation(message, repository, user_id, f"number:{number}")

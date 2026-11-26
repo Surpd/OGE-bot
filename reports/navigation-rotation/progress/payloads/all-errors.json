@@ -5,66 +5,66 @@
     {
       "method": "editMessageText",
       "payload": {
-        "text": "История и ошибки · С ошибками\nЗаписи 1–6 из 7\n\n1. №6 · Умножение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\n2. №6 · Деление десятичных дробей, записанных дробной чертой\n26.11.2026 · решено после ошибки\n\n3. №6 · Деление десятичных дробей, записанных дробной чертой\n26.11.2026 · решено после ошибки\n\n4. №6 · Умножение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\n5. №6 · Сложение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\n6. №6 · Деление обыкновенных дробей\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
+        "text": "История и ошибки · С ошибками\nЗаписи 1–6 из 7\n\n1. №6 · Умножение десятичных дробей\n26.11.2026 · решено после ошибки\n\n2. №6 · Вычитание двух обыкновенных дробей, отрицательный результат\n26.11.2026 · решено после ошибки\n\n3. №6 · Вычитание двух обыкновенных дробей, отрицательный результат\n26.11.2026 · решено после ошибки\n\n4. №6 · Умножение десятичных дробей\n26.11.2026 · решено после ошибки\n\n5. №6 · Умножение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\n6. №6 · Вычитание десятичных дробей\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
         "chat_id": "42",
         "message_id": "327",
-        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 29}, {\"type\": \"bold\", \"offset\": 47, \"length\": 42}, {\"type\": \"bold\", \"offset\": 124, \"length\": 60}, {\"type\": \"bold\", \"offset\": 219, \"length\": 60}, {\"type\": \"bold\", \"offset\": 314, \"length\": 42}, {\"type\": \"bold\", \"offset\": 391, \"length\": 41}, {\"type\": \"bold\", \"offset\": 467, \"length\": 35}]",
+        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 29}, {\"type\": \"bold\", \"offset\": 47, \"length\": 35}, {\"type\": \"bold\", \"offset\": 117, \"length\": 67}, {\"type\": \"bold\", \"offset\": 219, \"length\": 67}, {\"type\": \"bold\", \"offset\": 321, \"length\": 35}, {\"type\": \"bold\", \"offset\": 391, \"length\": 42}, {\"type\": \"bold\", \"offset\": 468, \"length\": 35}]",
         "reply_markup": {
           "inline_keyboard": [
             [
               {
                 "text": "Все задания",
-                "callback_data": "progress:history:0~e71b69120cba"
+                "callback_data": "progress:history:0~24401dc9d6cc"
               },
               {
                 "text": "✓ С ошибками",
-                "callback_data": "progress:errors:0~e71b69120cba"
+                "callback_data": "progress:errors:0~24401dc9d6cc"
               }
             ],
             [
               {
                 "text": "Номер · Все номера",
-                "callback_data": "progress:filter:e0~e71b69120cba"
+                "callback_data": "progress:filter:e0~24401dc9d6cc"
               }
             ],
             [
               {
                 "text": "1",
-                "callback_data": "progress:item:b_M1LAFXtUmFoR4GgoUlqcQA:e0~e71b69120cba"
+                "callback_data": "progress:item:b3ZJDkj30kZyo5TPZqfeqxoA:e0~24401dc9d6cc"
               },
               {
                 "text": "2",
-                "callback_data": "progress:item:b7EPEapYTE-Rvideif0L4bcA:e0~e71b69120cba"
+                "callback_data": "progress:item:b32q6OjT_0Ell0sbBZyVFccA:e0~24401dc9d6cc"
               },
               {
                 "text": "3",
-                "callback_data": "progress:item:b5eEg8Rk4kEBjU1zgZ18uYIA:e0~e71b69120cba"
+                "callback_data": "progress:item:b4QB1HWrl0TdilCrqG_1MmYA:e0~24401dc9d6cc"
               }
             ],
             [
               {
                 "text": "4",
-                "callback_data": "progress:item:b-CXfE91ME-Wqs8aiTkzXkcA:e0~e71b69120cba"
+                "callback_data": "progress:item:by1v5fOX6kxZuafxqL9UnRAA:e0~24401dc9d6cc"
               },
               {
                 "text": "5",
-                "callback_data": "progress:item:bxqXmri3T0-rrTrm__pW6BIA:e0~e71b69120cba"
+                "callback_data": "progress:item:b-B83wTiCELMvaj4HmQsmu4A:e0~24401dc9d6cc"
               },
               {
                 "text": "6",
-                "callback_data": "progress:item:b0CjoYzDz0lcl53lgxsx3z4A:e0~e71b69120cba"
+                "callback_data": "progress:item:b1mlRs2otU3-sI6irWik7VIA:e0~24401dc9d6cc"
               }
             ],
             [
               {
                 "text": "Дальше →",
-                "callback_data": "progress:errors:6~e71b69120cba"
+                "callback_data": "progress:errors:6~24401dc9d6cc"
               }
             ],
             [
               {
                 "text": "📊 Мой прогресс",
-                "callback_data": "progress:summary~e71b69120cba"
+                "callback_data": "progress:summary~24401dc9d6cc"
               }
             ]
           ]
@@ -74,7 +74,7 @@
     {
       "method": "answerCallbackQuery",
       "payload": {
-        "callback_query_id": "2610a252-87df-4f2e-a059-c968791d8a89"
+        "callback_query_id": "c73a97ef-7087-45f0-a769-d11deb40111a"
       }
     }
   ]
