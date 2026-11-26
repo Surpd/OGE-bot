@@ -215,6 +215,23 @@
       "library_file_id": "libfile_ee446fbcf8a881919bab7facb07dc4c0",
       "github_binary_status": "pending_import",
       "runtime_ready": false
+    },
+    {
+      "filename": "coffee-right.png",
+      "status": "approved",
+      "note": "Первый удачный вариант с кофе, взгляд вправо, расслабленные глаза, рука в кармане. Пользователь принял.",
+      "library_file_id": "libfile_3bbb96cba7fc819195266dc660cf773e",
+      "repository_path": "docs/design/bop-character/poses/approved/coffee-right.png",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "coffee-left.png",
+      "status": "approved",
+      "note": "Пользователь принял исправленный ракурс с кофе, взгляд влево, уменьшенный объём волос и более тонкая панель. Для карточек удалить фон отдельно, оригинал не перерисовывать.",
+      "library_file_id": "libfile_78ca520df6408191adb7f134ae9f8cd9",
+      "runtime_ready": false,
+      "repository_path": "docs/design/bop-character/poses/approved/coffee-left.png",
+      "github_binary_status": "pending_import"
     }
   ],
   "current_telegram": {
