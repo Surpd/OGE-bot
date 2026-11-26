@@ -173,3 +173,31 @@ async def recent_story_families(repository: Any, user_id: int) -> list[str]:
         user_id,
     )
     return [r["family"] for r in rows]
+
+async def story_family_recency(repository: Any, user_id: int, number: int) -> list[str]:
+    """Latest issuance of each family at this number, newest first across modes."""
+    rows = await repository._pool.fetch(
+        """WITH learner AS (SELECT id FROM users WHERE telegram_user_id=$1),
+        linked AS (
+          SELECT sc.snapshot->'questions'->(q.position::int-1)->>'family_id' AS family,
+                 coalesce(q.adaptive_issued_at,s.started_at) AS issued
+            FROM learner JOIN oge15_sessions s ON s.user_id=learner.id
+            JOIN oge15_scenarios sc ON sc.id=s.scenario_id
+            JOIN oge15_question_progress q ON q.session_id=s.id
+            WHERE q.position=$2 AND q.status<>'pending'
+        ), mixed AS (
+          SELECT p.family_id,p.issued_at
+            FROM learner JOIN mixed_training_sessions s ON s.user_id=learner.id
+            JOIN mixed_training_problems p ON p.session_id=s.id WHERE p.number=$2
+        ), adaptive AS (
+          SELECT p.family_id,p.issued_at
+            FROM learner JOIN issued_problems p ON p.user_id=learner.id
+            JOIN adaptive_slots a ON a.problem=p.id
+            WHERE p.snapshot->>'number'=$2::smallint::text
+        )
+        SELECT family FROM (SELECT * FROM linked UNION ALL SELECT * FROM mixed
+            UNION ALL SELECT * FROM adaptive) issued
+        WHERE family IS NOT NULL GROUP BY family ORDER BY max(issued) DESC,family""",
+        user_id, number,
+    )
+    return [row["family"] for row in rows]

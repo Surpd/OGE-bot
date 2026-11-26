@@ -69,6 +69,8 @@ def navigation_screen(markup: object) -> str | None:
         for c in callbacks
     ):
         return "part2_menu"
+    if "progress:summary" in callbacks:
+        return "progress"
     if "nav:task:6" not in callbacks and any(c and c.startswith("p2:") for c in callbacks):
         return "part2"
     for value in callbacks:
@@ -224,15 +226,11 @@ async def navigation_callback(
     }
     from app.config import get_settings
 
-    gaps_offset = None
     if get_settings().oge_adaptive_enabled:
-        from app.bot.adaptive import gaps, start
+        from app.bot.adaptive import start
 
         targets["nav:personal:on"] = targets["nav:personal:off"] = show_display_options
         targets["nav:adaptive"] = start
-        if data.startswith("nav:gaps:") and data[9:].isdigit() and len(data[9:]) <= 6:
-            gaps_offset = int(data[9:])
-            targets[data] = gaps
     target = targets.get(data)
     number_page = None
     if data.startswith("nav:numbers:"):
@@ -289,6 +287,8 @@ async def navigation_callback(
             elif action == "begin":
                 target = getattr(handlers, f"choose_task{int(value)}")
     progress_page = data.removeprefix("progress:") if data.startswith("progress:") else None
+    if data.startswith("nav:gaps:") and data[9:].isascii() and data[9:].isdigit():
+        progress_page = "details"
     display_mode = data.removeprefix("nav:math:") if data.startswith("nav:math:") else None
     if display_mode not in {None, "auto", "png"}:
         await answer_callback(callback, "Этот вид формул недоступен.")
@@ -336,8 +336,6 @@ async def navigation_callback(
     if data in {"nav:personal:on", "nav:personal:off"}:
         await repository.set_personal_enabled(callback.from_user.id, data.endswith(":on"))
         await show_display_options(message, repository)
-    elif gaps_offset is not None:
-        await gaps(message, repository, gaps_offset)
     elif display_mode is not None:
         await repository.set_math_display(callback.from_user.id, display_mode)
         await show_display_options(message, repository)

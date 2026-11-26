@@ -1,0 +1,31 @@
+{
+  "case": "written",
+  "label": "Письменные работы",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>Письменные работы</b>\n\nЗдесь появятся ваши задания №20–25.",
+        "chat_id": "42",
+        "message_id": "323",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Мой прогресс",
+                "callback_data": "progress:summary~4e201aa4646b"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "aa6299dc-ffa8-4e07-b2ee-4a1bc7f9e464"
+      }
+    }
+  ]
+}

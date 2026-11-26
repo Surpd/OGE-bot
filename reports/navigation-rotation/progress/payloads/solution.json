@@ -1,0 +1,37 @@
+{
+  "case": "solution",
+  "label": "Разбор исходного задания",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Разбор:</b></p><p> </p><p><b>1. Значение выражения:</b> <tg-math>\\frac{1}{4}</tg-math>.</p><p> </p><p>2. Дробь несократима; её числитель — 1.</p><p> </p><p><b>Ответ:</b> 1</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "↩ К записи",
+                "callback_data": "progress:item:b1R5XppukkTtkVQm1Hyz6ysA:n6.6~88b07d9bf8c0"
+              }
+            ],
+            [
+              {
+                "text": "↩ В журнал",
+                "callback_data": "progress:numerr:6:6~88b07d9bf8c0"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "d151372d-eee3-476c-b660-9c0dd8abc004"
+      }
+    }
+  ]
+}

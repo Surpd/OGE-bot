@@ -1,0 +1,213 @@
+{
+  "case": "number-6-unchanged",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Выбери номер</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "№1–5 · Связанный сюжет",
+                "callback_data": "nav:linked~d1e382770fb2"
+              }
+            ],
+            [
+              {
+                "text": "№1",
+                "callback_data": "train:area:1~d1e382770fb2"
+              },
+              {
+                "text": "№2",
+                "callback_data": "train:area:2~d1e382770fb2"
+              },
+              {
+                "text": "№3",
+                "callback_data": "train:area:3~d1e382770fb2"
+              },
+              {
+                "text": "№4",
+                "callback_data": "train:area:4~d1e382770fb2"
+              },
+              {
+                "text": "№5",
+                "callback_data": "train:area:5~d1e382770fb2"
+              }
+            ],
+            [
+              {
+                "text": "№6",
+                "callback_data": "train:area:6~d1e382770fb2"
+              },
+              {
+                "text": "№7",
+                "callback_data": "train:area:7~d1e382770fb2"
+              },
+              {
+                "text": "№8",
+                "callback_data": "train:area:8~d1e382770fb2"
+              },
+              {
+                "text": "№9",
+                "callback_data": "train:area:9~d1e382770fb2"
+              },
+              {
+                "text": "№10",
+                "callback_data": "train:area:10~d1e382770fb2"
+              }
+            ],
+            [
+              {
+                "text": "№11",
+                "callback_data": "train:area:11~d1e382770fb2"
+              },
+              {
+                "text": "№12",
+                "callback_data": "train:area:12~d1e382770fb2"
+              },
+              {
+                "text": "№13",
+                "callback_data": "train:area:13~d1e382770fb2"
+              },
+              {
+                "text": "№14",
+                "callback_data": "train:area:14~d1e382770fb2"
+              },
+              {
+                "text": "№15",
+                "callback_data": "train:area:15~d1e382770fb2"
+              }
+            ],
+            [
+              {
+                "text": "№16",
+                "callback_data": "train:area:16~d1e382770fb2"
+              },
+              {
+                "text": "№17",
+                "callback_data": "train:area:17~d1e382770fb2"
+              },
+              {
+                "text": "№18",
+                "callback_data": "train:area:18~d1e382770fb2"
+              },
+              {
+                "text": "№19",
+                "callback_data": "train:area:19~d1e382770fb2"
+              }
+            ],
+            [
+              {
+                "text": "№20",
+                "callback_data": "p2:menu:20~d1e382770fb2"
+              },
+              {
+                "text": "№21",
+                "callback_data": "p2:menu:21~d1e382770fb2"
+              },
+              {
+                "text": "№22",
+                "callback_data": "p2:menu:22~d1e382770fb2"
+              }
+            ],
+            [
+              {
+                "text": "№23",
+                "callback_data": "p2:menu:23~d1e382770fb2"
+              },
+              {
+                "text": "№24",
+                "callback_data": "p2:menu:24~d1e382770fb2"
+              },
+              {
+                "text": "№25",
+                "callback_data": "p2:menu:25~d1e382770fb2"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "nav:trainings~d1e382770fb2"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "6f1ac5fa-42c8-4577-9a34-bc44f47fa691"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№6: весь номер или конкретный тип?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №6",
+                "callback_data": "train:number:6~bfa1a3c980fb"
+              }
+            ],
+            [
+              {
+                "text": "Вычислить разность, сократить дробь, указать числитель",
+                "callback_data": "train:family:OGE06-F008-REDUCED-NUMERATOR~bfa1a3c980fb"
+              }
+            ],
+            [
+              {
+                "text": "Вычитание двух обыкновенных дробей, отрицательный результат",
+                "callback_data": "train:family:OGE06-F001-SUB~bfa1a3c980fb"
+              }
+            ],
+            [
+              {
+                "text": "Вычитание десятичной дроби из смешанного числа",
+                "callback_data": "train:family:OGE06-F006-MIXED-MINUS-DECIMAL~bfa1a3c980fb"
+              }
+            ],
+            [
+              {
+                "text": "Вычитание десятичных дробей",
+                "callback_data": "train:family:OGE06-F004-DEC-SUB~bfa1a3c980fb"
+              }
+            ],
+            [
+              {
+                "text": "Деление десятичных дробей, записанных дробной чертой",
+                "callback_data": "train:family:OGE06-F004-DEC-DIV~bfa1a3c980fb"
+              }
+            ],
+            [
+              {
+                "text": "→",
+                "callback_data": "train:area:6:1~bfa1a3c980fb"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~bfa1a3c980fb"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "4b166b8b-068e-4378-aefe-c6371db6a9d8"
+      }
+    }
+  ]
+}

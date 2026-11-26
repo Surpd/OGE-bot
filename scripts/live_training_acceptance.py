@@ -37,7 +37,9 @@ SMALL_POOL = "PAPER-F07"
 VISIBLE = {"sendMessage", "sendRichMessage", "sendPhoto", "editMessageText", "editMessageCaption"}
 
 
-async def serialize(transport: TelegramSession, bot: Bot, method: TelegramMethod) -> dict:
+async def serialize(
+    transport: TelegramSession, bot: Bot, method: TelegramMethod, *, out: Path = OUT,
+) -> dict:
     """Apply aiogram's own request encoding and archive actual uploaded bytes."""
     files: dict[str, InputFile] = {}
     payload = {
@@ -54,7 +56,7 @@ async def serialize(transport: TelegramSession, bot: Bot, method: TelegramMethod
         digest = hashlib.sha256(data).hexdigest()
         relative = f"assets/{digest}.png"
         assert data.startswith(b"\x89PNG\r\n\x1a\n"), "unexpected upload format"
-        target = OUT / relative
+        target = out / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
         assets[identifier] = {"path": relative, "filename": file.filename, "sha256": digest}
@@ -73,7 +75,9 @@ class Report:
     async def mark(self, case: str, label: str) -> None:
         calls = self.h.transport.calls[self.cursor:]
         self.cursor = len(self.h.transport.calls)
-        serialized = [await serialize(self.h.transport, self.h.bot, method) for method in calls]
+        serialized = [
+            await serialize(self.h.transport, self.h.bot, method, out=OUT) for method in calls
+        ]
         assert any(call["method"] in VISIBLE for call in serialized), (case, serialized)
         self.cards[case] = label, serialized
 
@@ -110,7 +114,7 @@ class Report:
             'padding:5px;background:#dbe8ef;border-radius:5px;font-size:12px}'
             'img{width:100%;height:auto;border-radius:7px;display:block;margin:8px 0}'
             '</style><main><header><h1>bop Math · приёмка тренировок</h1>'
-            '<p>Офлайн-превью payload с синтетическим учеником. Снимки галереи сделаны в Chromium.'
+            '<p>Офлайн-превью payload с синтетическим учеником.'
             '</p></header>' + "".join(sections) + '</main></html>'
         )
         (OUT / "index.html").write_text(gallery, encoding="utf-8")
@@ -147,15 +151,24 @@ def card(call: dict) -> str:
     return f'<article><small>{call["method"]}</small>{contents}{images}{keyboard}</article>'
 
 
-async def access_family(h: Harness, number: int, family: str) -> None:
+async def access_family(h: Harness, number: int, family: str) -> bool:
+    """Open the family's picker, or start it directly if it is the only story type."""
     await h.click(f"train:area:{number}")
+    if number <= 5:
+        from app.bot.adaptive import story_families
+
+        story = family.partition("-")[0]
+        families = story_families(number).get(story, ())
+        assert family in families
+        await h.click(f"train:story:{number}:{story}")
+        return len(families) > 1
     for page in range(1, 8):
         try:
             h.button(f"train:family:{family}")
         except AssertionError:
             await h.click(f"train:area:{number}:{page}")
         else:
-            return
+            return True
     raise AssertionError(f"Family unavailable: {family}")
 
 
@@ -196,7 +209,7 @@ async def exercise(h: Harness) -> None:
     await h.click("nav:trainings")
     await h.click("train:areas")
     report.cursor = len(h.transport.calls)
-    await access_family(h, 3, FLOOR)
+    assert await access_family(h, 3, FLOOR)
     await report.mark("family-picker", "Выбор математического типа №3")
     await h.click(f"train:family:{FLOOR}")
     seen = set()
@@ -239,8 +252,8 @@ async def exercise(h: Harness) -> None:
     await h.message("/start")
     await h.click("nav:trainings")
     await h.click("train:areas")
-    await access_family(h, 5, SMALL_POOL)
-    await h.click(f"train:family:{SMALL_POOL}")
+    if await access_family(h, 5, SMALL_POOL):
+        await h.click(f"train:family:{SMALL_POOL}")
     capacity = len(_FINITE_FAMILY_SEEDS[SMALL_POOL])
     for position in range(capacity):
         active = await session.current()

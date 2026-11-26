@@ -26,6 +26,7 @@ from app.persistence.training_insights import (
 )
 
 PAGE_SIZE = 6
+_JOURNAL = {"history", "errors", "numhist", "numerr"}
 _ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz"
 OUTCOMES = {
     "issued": "в процессе",
@@ -105,8 +106,9 @@ def encode_return_page(page: str) -> str:
         prefix = "h" if parts[0] == "history" else "e"
         offset = int(parts[1])
         return prefix + _base36(offset)
-    if len(parts) == 3 and parts[0] == "numerr":
-        return f"n{_base36(int(parts[1]))}.{_base36(int(parts[2]))}"
+    if len(parts) == 3 and parts[0] in {"numerr", "numhist"}:
+        prefix = "n" if parts[0] == "numerr" else "a"
+        return f"{prefix}{_base36(int(parts[1]))}.{_base36(int(parts[2]))}"
     raise ValueError("Unsupported progress return page")
 
 
@@ -114,13 +116,22 @@ def decode_return_page(value: str) -> str:
     if len(value) > 1 and value[0] in {"h", "e"}:
         section = "history" if value[0] == "h" else "errors"
         return f"{section}:{_from_base36(value[1:])}"
-    if value.startswith("n") and "." in value:
+    if value.startswith(("n", "a")) and "." in value:
         number, offset = value[1:].split(".", 1)
         parsed_number = _from_base36(number)
         if parsed_number not in range(1, 20):
             raise ValueError("Invalid return number")
-        return f"numerr:{parsed_number}:{_from_base36(offset)}"
+        section = "numerr" if value.startswith("n") else "numhist"
+        return f"{section}:{parsed_number}:{_from_base36(offset)}"
     raise ValueError("Invalid progress return page")
+
+
+def _journal_page(errors: bool, number: int | None, offset: int = 0) -> str:
+    if number:
+        section = "numerr" if errors else "numhist"
+        return f"{section}:{number}:{offset}"
+    section = "errors" if errors else "history"
+    return f"{section}:{offset}"
 
 
 def _number_title(number: int) -> str:
@@ -139,7 +150,6 @@ def progress_keyboard(
     number: int | None = None,
     records: list[dict[str, Any]] | None = None,
     family_total: int = 0,
-    has_errors: bool = False,
     return_page: str | None = None,
     replay_action: tuple[str, str] | None = None,
     similar_action: str | None = None,
@@ -152,26 +162,14 @@ def progress_keyboard(
     from app.config import get_settings
 
     if section == "summary":
-        if get_settings().oge_adaptive_enabled:
-            rows.append([_button("Сводка по типам задач", "nav:gaps:0")])
+        rows.append([_button("Подробнее по номерам", "progress:details")])
+        rows.append([_button("История и ошибки", "progress:history:0")])
+        if get_settings().oge_part2_enabled:
+            rows.append([_button("Письменные работы", "progress:works:0")])
         action = _summary_action(insights) if insights is not None else None
         if action is not None:
             rows.append([_button(*action)])
-        rows.append([_button("📊 Подробнее о номере", "progress:details")])
-        rows.append(
-            [
-                _button("⚠️ Мои ошибки", "progress:errors:0"),
-                _button("🕘 История", "progress:history:0"),
-            ]
-        )
-        rows.append(
-            [
-                _button("🔄 Обновить", "progress:refresh"),
-                _button("↩ В меню", "nav:main"),
-            ]
-        )
-        if get_settings().oge_part2_enabled:
-            rows.insert(-1, [_button("Письменные работы", "progress:works:0")])
+        rows.append([_button("↩ В меню", "nav:main")])
     elif section == "details":
         buttons = [_button(f"№{n}", f"progress:number:{n}") for n in range(1, 20)]
         if get_settings().oge_part2_enabled:
@@ -183,9 +181,8 @@ def progress_keyboard(
             rows.append([_button(f"Тренировать №{number}", f"nav:oge15:{number}")])
         else:
             rows.append([_button(f"Тренировать №{number}", f"nav:task:{number}")])
-        if has_errors:
-            rows.append([_button(f"⚠️ Ошибки №{number}", f"progress:numerr:{number}:0")])
-        if family_total:
+        rows.append([_button(f"История и ошибки №{number}", f"progress:numhist:{number}:0")])
+        if family_total > PAGE_SIZE:
             rows.append([_button("Все типы задач", f"progress:family:{number}:0")])
         rows.append([_button("↩ К номерам", "progress:details")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
@@ -204,11 +201,19 @@ def progress_keyboard(
             rows.append(nav)
         rows.append([_button(f"↩ К №{number}", f"progress:number:{number}")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
-    elif section in {"history", "errors", "numerr"}:
+    elif section in _JOURNAL:
         offset = int(parts[-1]) if parts[-1].isdigit() else 0
-        if number is None and section == "numerr" and len(parts) > 1:
+        if section in {"numerr", "numhist"}:
             number = int(parts[1])
+        errors = section in {"errors", "numerr"}
         origin = encode_return_page(page)
+        rows.append([
+            _button(("✓ " if not errors else "") + "Все задания",
+                    "progress:" + _journal_page(False, number)),
+            _button(("✓ " if errors else "") + "С ошибками",
+                    "progress:" + _journal_page(True, number)),
+        ])
+        rows.append([_button(f"Номер · {number or 'Все номера'}", f"progress:filter:{origin}")])
         numbered_buttons: list[InlineKeyboardButton] = []
         for index, record in enumerate(records or [], offset + 1):
             record_id = record.get("record_id")
@@ -234,27 +239,28 @@ def progress_keyboard(
             rows.append([_button(f"↩ К №{number}", f"progress:number:{number}")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     elif section == "item":
-        origin = return_page or "summary"
+        origin = return_page or "history:0"
         if replay_action is not None:
             rows.append([_button(replay_action[0], replay_action[1])])
         if similar_action is not None:
             rows.append([_button("Решить похожее", similar_action)])
-        back = "↩ К истории" if origin.startswith("history") else "↩ К ошибкам"
+        back = "↩ В журнал"
         rows.append([_button(back, f"progress:return:{encode_return_page(origin)}")])
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
     else:
         rows.append([_button("📊 Мой прогресс", "progress:summary")])
-    if section in {"number", "family"} and insights and get_settings().oge_adaptive_enabled:
-        rows[0] = [_button(f"Тренировать №{number}", f"train:number:{number}")]
+    if section in {"number", "family"} and insights and number is not None:
+        adaptive_enabled = get_settings().oge_adaptive_enabled
+        if adaptive_enabled:
+            rows[0] = [_button(f"Тренировать №{number}", f"train:number:{number}")]
         start = (
             int(parts[2]) if section == "family" and len(parts) > 2 and parts[2].isdigit() else 0
         )
-        families = _number_families(insights, number)
-        if section == "number":
-            families = [family for family in families if _has_family_results(family)]
+        families = _visible_families(insights, number, full=section == "family", offset=start)
+        available = insights.get("available_families", {})
         practice = [
-            [_button(f"Тренировать · {r['name']}", f"train:family:{r['family_id']}")]
-            for r in families[start:start + PAGE_SIZE] if r.get("practice_priority")
+            [_button(f"Тренировать · {row['name']}", available[row["family_id"]])]
+            for row in families if row["family_id"] in available
         ]
         rows[1:1] = practice
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -333,9 +339,9 @@ def _progress_page_parts(page: str) -> tuple[str, list[str]]:
 
 def _record_list(insights: dict[str, Any], page: str) -> Text:
     section, parts = _progress_page_parts(page)
-    errors = section != "history"
-    title = "Мои ошибки" if errors else "История"
-    if section == "numerr" and parts:
+    errors = section in {"errors", "numerr"}
+    title = "История и ошибки" + (" · С ошибками" if errors else " · Все задания")
+    if section in {"numerr", "numhist"} and parts:
         title += f" · №{parts[0]}"
     records = insights.get("errors" if errors else "history", [])
     if not records:
@@ -365,6 +371,7 @@ def _number_families(insights: dict[str, Any], number: int | None) -> list[dict[
         (row for row in insights.get("families", []) if row["number"] == number),
         key=lambda row: (
             _FAMILY_PRIORITY.get(row.get("diagnosis_key", ""), 4),
+            -int(row.get("correct", 0)),
             -int(row.get("answered_tasks", 0)),
             str(row["name"]).casefold(),
             str(row["family_id"]),
@@ -378,17 +385,93 @@ def _has_family_results(row: dict[str, Any]) -> bool:
     )
 
 
+def _visible_families(
+    insights: dict[str, Any], number: int, *, full: bool = False, offset: int = 0,
+) -> list[dict[str, Any]]:
+    families = _number_families(insights, number)
+    if not full and len(families) > PAGE_SIZE:
+        families = [row for row in families if _has_family_results(row)]
+    return families[offset : offset + PAGE_SIZE]
+
+
 def _family_line(row: dict[str, Any]) -> str:
     line = f"• {row['name']}"
-    if row.get("answered_tasks") or "diagnosis" not in row:
+    if row.get("answered_tasks"):
         line += f": {row['correct']}/{row['answered_tasks']} · {success_label(row)}"
     if "diagnosis" in row and row.get("diagnosis_key") != "unchecked":
         line += f" · {row['diagnosis']}"
+    elif not _has_family_results(row):
+        line += " · Нет данных"
+    if row.get("closed_at"):
+        line += f"\n  Пробел закрыт {row['closed_at']:%d.%m.%Y}"
+    if row.get("previous_closure"):
+        line += f"\n  Закрывался по прежним правилам {row['previous_closure']:%d.%m.%Y}"
+    if row.get("evidence"):
+        line += "\n  " + "\n  ".join(row["evidence"])
     return line
 
 
+async def family_evidence(
+    repository: Any, user_id: int, families: list[str],
+) -> dict[str, dict[str, Any]]:
+    pool = getattr(repository, "_pool", None)
+    if pool is None or not families:
+        return {}
+    from app.bot.adaptive import _REASON_NAMES
+
+    records = await pool.fetch(
+        """SELECT skill, occurred, reason, outcome, attempt, confirmed_error_reasons FROM (
+               SELECT e.*, row_number() OVER (
+                   PARTITION BY e.skill ORDER BY e.occurred DESC, e.ordinal DESC
+               ) AS latest
+               FROM adaptive_learning_events e JOIN users u ON u.id=e.owner
+               WHERE u.telegram_user_id=$1 AND e.skill=ANY($2::text[]) AND e.reason IS NOT NULL
+           ) recent WHERE latest <= 4 ORDER BY skill, latest""",
+        user_id, families,
+    )
+    milestones = await pool.fetch(
+        """SELECT m.skill, max(m.occurred) AS last_closed
+           FROM adaptive_past_milestones m JOIN users u ON u.id=m.owner
+           WHERE u.telegram_user_id=$1 AND m.skill=ANY($2::text[]) AND m.reason='gap_closed'
+           GROUP BY m.skill""",
+        user_id, families,
+    )
+    labels = {
+        "gap_opened": "обнаружено затруднение",
+        "gap_reopened": "затруднение вернулось",
+        "independent_success": "самостоятельное решение",
+        "written_recommended": "рекомендована тренировка подтипа",
+        "gap_closed": "пробел закрыт",
+        "skill_confirmed": "три самостоятельных решения подряд",
+        "thematic_check_needed": "нужна проверка на одной теме",
+        "independent_check_needed": "нужен новый вариант без помощи",
+    }
+    outcomes = {"correct": "верный ответ", "wrong": "ошибка", "solution": "открыт разбор"}
+    result: dict[str, dict[str, Any]] = {
+        row["skill"]: {"previous_closure": row["last_closed"]} for row in milestones
+    }
+    for row in records:
+        reason = labels.get(row["reason"])
+        teacher = [_REASON_NAMES.get(code, code) for code in row["confirmed_error_reasons"] or ()]
+        if reason or teacher:
+            details = [f"{row['occurred']:%d.%m}"]
+            if outcome := outcomes.get(row["outcome"]):
+                details.append(outcome)
+            if row["attempt"]:
+                details.append(f"попытка {row['attempt']}")
+            if reason:
+                details.append(reason)
+            if teacher:
+                details.append("Отметил преподаватель: " + ", ".join(teacher))
+            result.setdefault(row["skill"], {}).setdefault("evidence", []).append(
+                " · ".join(details)
+            )
+    return result
+
+
 async def _include_family_states(
-    insights: dict[str, Any], repository: Any, user_id: int, number: int,
+    insights: dict[str, Any], repository: Any, user_id: int, number: int, *,
+    full: bool = False, offset: int = 0,
 ) -> None:
     from app.adaptive.engine import State, family_status
     from app.adaptive.skills import title
@@ -396,30 +479,55 @@ async def _include_family_states(
     from app.bot.adaptive import catalog
     from app.config import get_settings
 
-    if not get_settings().oge_adaptive_enabled:
-        return
-    states = {f: state for n, f, state, _ in await overview(repository, user_id) if n == number}
-    insights["independent_count"] = sum(state.independent_count for state in states.values())
+    adaptive_enabled = get_settings().oge_adaptive_enabled
+    states = (
+        {f: state for n, f, state, _ in await overview(repository, user_id) if n == number}
+        if adaptive_enabled else {}
+    )
     rows = {r["family_id"]: r for r in insights["families"] if r["number"] == number}
-    for family, position in catalog().items():
-        if position != number:
-            continue
+    available = {family for family, position in catalog().items() if position == number}
+    if adaptive_enabled:
+        insights["independent_count"] = sum(state.independent_count for state in states.values())
+        insights["open_gaps"] = sum(state.opened > state.closed for state in states.values())
+        insights["in_practice"] = sum(state.stage == "practice" for state in states.values())
+        insights["closed_gaps"] = sum(
+            state.closed > 0 and state.opened == state.closed for state in states.values()
+        )
+        insights["available_families"] = {
+            family: f"train:family:{family}" for family in available
+        }
+    elif number > 5:
+        from app.persistence.rotation_history import enabled
+
+        insights["available_families"] = {
+            family: f"nav:family:{number}:{index}"
+            for index, family in enumerate(enabled(number))
+        }
+    for family in available | states.keys():
         row = rows.get(family)
         if row is None:
             row = {"family_id": family, "number": number, "correct": 0, "answered_tasks": 0}
             insights["families"].append(row)
         row["name"] = title(family)
+        if not adaptive_enabled:
+            continue
         state = states.get(family, State())
         status = family_status(state)
         label = status.label
-        if status.practice:
+        if status.key in {"gap", "reopened", "practice"}:
             label += f", {status.practice}/{status.target}"
         if state.reviewed_at is not None:
             day = datetime.fromtimestamp(state.reviewed_at, UTC)
             label += f" · повторено самостоятельно {day:%d.%m.%Y}"
         row["diagnosis"] = label
         row["diagnosis_key"] = status.key
-        row["practice_priority"] = status.key in {"check", "gap", "reopened", "practice"}
+        if state.confirmed_at is not None and state.closed:
+            row["closed_at"] = datetime.fromtimestamp(state.confirmed_at, UTC)
+    if adaptive_enabled:
+        visible = _visible_families(insights, number, full=full, offset=offset)
+        notes = await family_evidence(repository, user_id, [row["family_id"] for row in visible])
+        for row in visible:
+            row.update(notes.get(row["family_id"], {}))
 
 
 def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
@@ -439,21 +547,26 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
             )
         )
     if section == "details":
-        return "Подробнее о номере\n\nВыберите №1–19."
+        return "Подробнее по номерам\n\nВыберите номер задания."
     if section == "number" and parts and parts[0].isdigit():
         number = int(parts[0])
         values = insights["numbers"].get(number, {})
-        families = [row for row in _number_families(insights, number) if _has_family_results(row)]
+        families = _visible_families(insights, number)
         answered = values.get("answered_tasks", 0)
         lines = [
             f"№{number} · {_number_title(number)}", "",
             f"Решено правильно: {values.get('correct', 0)} из {answered}",
             f"Успешность: {success_label(values)}",
+            f"Выдано: {values.get('issued', 0)} · Пропущено: {values.get('skipped', 0)}",
         ]
-        if values.get("skipped"):
-            lines.append(f"Пропущено: {values['skipped']}")
         if "independent_count" in insights:
             lines.append(f"Новых вариантов самостоятельно: {insights['independent_count']}")
+            if any(insights.get(key) for key in ("open_gaps", "in_practice", "closed_gaps")):
+                lines.append(
+                    f"Открыто пробелов: {insights.get('open_gaps', 0)} · "
+                    f"На закреплении: {insights.get('in_practice', 0)} · "
+                    f"Закрыто: {insights.get('closed_gaps', 0)}"
+                )
         if int(answered) < MIN_ANSWERED_SAMPLE:
             lines.append(
                 f"Данных недостаточно для оценки: нужно {MIN_ANSWERED_SAMPLE} задач с ответом."
@@ -468,23 +581,26 @@ def render_progress(insights: dict[str, Any], page: str = "summary") -> str:
             ))
             if values.get("unknown_assistance", 0):
                 lines.append(f"Подсказка неизвестна: {values['unknown_assistance']}")
+        if values.get("hints_used") or values.get("solutions_viewed"):
+            lines.append(
+                f"Подсказок: {values.get('hints_used', 0)} · "
+                f"Открыто разборов: {values.get('solutions_viewed', 0)}"
+            )
         if families:
-            lines.extend(("", "Типы задач", *map(_family_line, families[:PAGE_SIZE])))
+            lines.extend(("", "Типы задач", *map(_family_line, families)))
         return "\n".join(lines)
     if section == "family" and len(parts) >= 2:
         number = int(parts[0]) if parts[0].isdigit() else 0
         offset = int(parts[1]) if parts[1].isdigit() else 0
         families = _number_families(insights, number)
-        visible = families[offset : offset + PAGE_SIZE]
-        observed = [_family_line(row) for row in visible if _has_family_results(row)]
-        unchecked = [_family_line(row) for row in visible if not _has_family_results(row)]
-        lines = [f"№{number} · Типы задач", "", *observed]
-        if unchecked:
-            lines.extend(("", "Нет данных", *unchecked))
+        visible = _visible_families(insights, number, full=True, offset=offset)
+        lines = [f"№{number} · Типы задач", "", *map(_family_line, visible)]
         if len(families) > PAGE_SIZE:
             lines.append(f"\nТипы {offset + 1}–{offset + len(visible)} из {len(families)}")
         return "\n".join(lines)
-    if section in {"history", "errors", "numerr"}:
+    if section == "filter":
+        return "История и ошибки · Выберите номер"
+    if section in _JOURNAL:
         return _record_list(insights, page).render()[0]
     if section == "item":
         detail = insights.get("detail")
@@ -566,13 +682,14 @@ async def load_progress_text_page(
 ) -> dict[str, Any]:
     section = page.partition(":")[0]
     query_page = page
-    if section == "numerr":
-        offset = page.rpartition(":")[2]
-        query_page = f"errors:{offset}"
+    if section in {"numhist", "numerr"}:
+        _, raw_number, offset = page.split(":")
+        number_filter = int(raw_number)
+        query_page = _journal_page(section == "numerr", None, int(offset))
     insights = await training_insights(
         repository,
         user_id,
-        query_page if section in {"history", "errors", "numerr"} else "summary",
+        query_page if section in _JOURNAL else "summary",
         PAGE_SIZE,
         number_filter=number_filter,
     )
@@ -636,6 +753,34 @@ async def progress_navigation(
 
     math_family: object = None
     math_system_rows: tuple[str, ...] | None = None
+    if section == "solution" and len(parts) == 3:
+        from app.bot.math_layout import solution_message
+        from app.persistence.error_replay import load_original_source
+
+        try:
+            origin = decode_return_page(parts[2])
+            record_id = decode_record_ref(parts[1])
+        except ValueError:
+            return await progress_navigation(message, repository, user_id, "history:0")
+        detail = await training_record_detail(repository, user_id, record_id)
+        if not detail or detail.get("outcome") not in {"solved", "failed", "solution_viewed"}:
+            return await progress_navigation(message, repository, user_id, origin)
+        try:
+            source = await load_original_source(repository, user_id, record_id)
+        except (KeyError, TypeError, ValueError):
+            return await progress_navigation(message, repository, user_id, origin)
+        steps = source.snapshot.get("solution_steps") or source.snapshot.get("solution")
+        if not isinstance(steps, list) or not steps:
+            return await progress_navigation(message, repository, user_id, origin)
+        await send_text(
+            message, repository, solution_message(list(map(str, steps)), source.correct_answer),
+            math_family=source.snapshot, user_id_override=user_id, rich_with_navigation=True,
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [_button("↩ К записи", f"progress:item:{parts[1]}:{parts[2]}")],
+                [_button("↩ В журнал", "progress:" + origin)],
+            ]),
+        )
+        return
     if section in {"item", "data"} and len(parts) == 3:
         from aiogram.types import BufferedInputFile
 
@@ -647,6 +792,7 @@ async def progress_navigation(
 
         replay_action = None
         similar_action = None
+        solution_action = None
         scenario_data_action = None
         photos: tuple[bytes, ...]
         try:
@@ -654,7 +800,7 @@ async def progress_navigation(
             return_page = decode_return_page(parts[2])
         except ValueError:
             insights = {"detail": None}
-            return_page = "summary"
+            return_page = "history:0"
         else:
             detail = await training_record_detail(repository, user_id, record_id)
             if detail is not None:
@@ -680,6 +826,11 @@ async def progress_navigation(
                     if has_error:
                         detail["replay_status"] = "unavailable"
                 else:
+                    steps = source.snapshot.get("solution_steps") or source.snapshot.get("solution")
+                    if (detail.get("outcome") in {"solved", "failed", "solution_viewed"}
+                            and isinstance(steps, list) and steps):
+                        solution_action = f"progress:solution:{parts[1]}:{parts[2]}"
+                    detail["number"] = source.number
                     math_family = source.snapshot
                     detail["condition"] = question_text(source.number, source.snapshot)
                     detail["drawing_unavailable"] = False
@@ -726,6 +877,8 @@ async def progress_navigation(
             output_page, return_page=return_page, replay_action=replay_action,
             similar_action=similar_action
         )
+        if solution_action is not None:
+            markup.inline_keyboard.insert(0, [_button("Разбор", solution_action)])
         if scenario_data_action is not None:
             markup.inline_keyboard.insert(0, [InlineKeyboardButton(
                 text="📷 Схема / данные", callback_data=scenario_data_action,
@@ -762,38 +915,48 @@ async def progress_navigation(
         insights = await training_insights(repository, user_id, "summary")
         await _include_family_states(insights, repository, user_id, number)
         family_total = sum(int(row["number"]) == number for row in insights["families"])
-        errors = await training_insights(repository, user_id, "errors:0", 1, number_filter=number)
-        has_errors = int(errors.get("page_total", 0)) > 0
         output_page = f"number:{number}:{offset}"
         markup = progress_keyboard(
-            output_page, number=number, family_total=family_total, has_errors=has_errors,
+            output_page, number=number, family_total=family_total,
             insights=insights,
         )
     elif section == "family" and len(parts) == 3 and all(p.isdigit() for p in parts[1:]):
         number, offset = map(int, parts[1:])
+        if number not in range(1, 20):
+            return await progress_navigation(message, repository, user_id, "details")
         insights = await training_insights(repository, user_id, "summary")
-        await _include_family_states(insights, repository, user_id, number)
+        await _include_family_states(
+            insights, repository, user_id, number, full=True, offset=offset,
+        )
         family_total = sum(int(row["number"]) == number for row in insights["families"])
+        if family_total <= PAGE_SIZE:
+            return await progress_navigation(message, repository, user_id, f"number:{number}")
         output_page = f"family:{number}:{offset}"
         markup = progress_keyboard(
             output_page, number=number, family_total=family_total, insights=insights
         )
-    elif section in {"history", "errors"} and len(parts) == 2 and parts[1].isdigit():
+    elif section == "filter" and len(parts) == 2:
+        try:
+            origin = decode_return_page(parts[1])
+        except ValueError:
+            return await progress_navigation(message, repository, user_id, "history:0")
+        errors = origin.split(":")[0] in {"numerr", "errors"}
+        buttons = [_button(f"№{n}", "progress:" + _journal_page(errors, n)) for n in range(1, 20)]
+        rows = [[_button("Все номера", "progress:" + _journal_page(errors, None))]]
+        rows.extend(buttons[i:i + 5] for i in range(0, len(buttons), 5))
+        rows.append([_button("↩ В журнал", "progress:" + origin)])
+        markup = InlineKeyboardMarkup(inline_keyboard=rows)
+        output_page = page
+        insights = {}
+    elif section in _JOURNAL:
+        numbered = section in {"numhist", "numerr"}
+        if (len(parts) != (3 if numbered else 2) or not all(p.isdigit() for p in parts[1:])
+                or numbered and int(parts[1]) not in range(1, 20)):
+            return await progress_navigation(message, repository, user_id, "history:0")
         output_page = page
         insights = await load_progress_text_page(repository, user_id, page)
-        markup = progress_keyboard(
-            output_page, insights.get("page_total", 0), records=insights.get(section, [])
-        )
-    elif section == "numerr" and len(parts) == 3 and all(p.isdigit() for p in parts[1:]):
-        number, offset = map(int, parts[1:])
-        output_page = page
-        insights = await load_progress_text_page(repository, user_id, page, number_filter=number)
-        markup = progress_keyboard(
-            output_page,
-            insights.get("page_total", 0),
-            number=number,
-            records=insights.get("errors", []),
-        )
+        key = "errors" if section in {"errors", "numerr"} else "history"
+        markup = progress_keyboard(page, insights.get("page_total", 0), records=insights[key])
     else:
         return await progress_navigation(message, repository, user_id, "summary")
 
@@ -813,7 +976,7 @@ async def progress_navigation(
     sent = await send_text(
         old_message if open_below_overview else message,
         repository,
-        (_record_list(insights, output_page) if section in {"history", "errors", "numerr"}
+        (_record_list(insights, output_page) if section in _JOURNAL
          else render_progress(insights, output_page)),
         reply_markup=markup,
         math_family=math_family,

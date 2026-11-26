@@ -642,6 +642,13 @@ async def test_all_ordinary_numbers_match_memory_and_postgres(insights_pool):
         )
         assert number_errors["page_total"] == 3
         assert all(row["number"] == 9 for row in number_errors["errors"])
+        from app.bot.progress import load_progress_text_page
+
+        all_nine = await load_progress_text_page(repo, telegram_user_id, "numhist:9:0")
+        mistakes = await load_progress_text_page(repo, telegram_user_id, "numerr:9:0")
+        assert [all_nine["page_total"], mistakes["page_total"]] == [4, 3]
+        assert all(r["number"] == 9 for r in all_nine["history"])
+        assert any(r["outcome"] == "solved" and r["has_error"] for r in mistakes["errors"])
         detail = await training_record_detail(repo, telegram_user_id, f"o:{target}")
         assert detail["condition"] == long_condition
         assert await training_record_detail(repo, telegram_user_id + 1, f"o:{target}") is None
@@ -779,3 +786,17 @@ def test_progress_number_keyboard_includes_every_first_part_number():
         if button.callback_data and button.callback_data.startswith("progress:number:")
     ]
     assert buttons == [f"№{number}" for number in range(1, 20)]
+
+
+@pytest.mark.parametrize("page", ["history:12", "errors:6", "numhist:19:36", "numerr:1:6"])
+def test_filtered_journal_record_roundtrip(page):
+    from app.bot.progress import decode_return_page
+
+    record_id = "s:32fa798a-f576-42e2-b63d-6074edf1d65e:4"
+    keyboard = progress_keyboard(page, 50, records=[{"record_id": record_id}])
+    actions = [b.callback_data for row in keyboard.inline_keyboard for b in row]
+    item = next(a for a in actions if a.startswith("progress:item:"))
+    origin = item.rsplit(":", 1)[1]
+    assert decode_return_page(origin) == page
+    assert f"progress:filter:{origin}" in actions
+    assert len(item.encode()) + 8 <= 64

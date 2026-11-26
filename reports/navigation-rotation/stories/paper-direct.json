@@ -1,0 +1,163 @@
+{
+  "case": "paper-direct",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№3: весь номер или сюжет?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №3",
+                "callback_data": "train:number:3~6255b28c4595"
+              }
+            ],
+            [
+              {
+                "text": "Шины",
+                "callback_data": "train:story:3:TYRES~6255b28c4595"
+              }
+            ],
+            [
+              {
+                "text": "Бумага",
+                "callback_data": "train:story:3:PAPER~6255b28c4595"
+              }
+            ],
+            [
+              {
+                "text": "Печи",
+                "callback_data": "train:story:3:STOVE~6255b28c4595"
+              }
+            ],
+            [
+              {
+                "text": "Тарифы",
+                "callback_data": "train:story:3:TARIFF~6255b28c4595"
+              }
+            ],
+            [
+              {
+                "text": "Участки",
+                "callback_data": "train:story:3:GARDEN~6255b28c4595"
+              }
+            ],
+            [
+              {
+                "text": "Квартиры",
+                "callback_data": "train:story:3:FLAT~6255b28c4595"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~6255b28c4595"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "391b6415-2cdf-44fb-8d22-eb6e9e6fec39"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://q8TYCwptEjuyBQ",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "q8TYCwptEjuyBQ": {
+          "path": "assets/a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49.png",
+          "filename": "scenario-1.png",
+          "sha256": "a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://OLJVAopO7SnFDg",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "OLJVAopO7SnFDg": {
+          "path": "assets/6ce5feeaf0dae83687e0f58b29be1a5cfd4daf978d9ce973aa2ebf848519d452.png",
+          "filename": "scenario-2.png",
+          "sha256": "6ce5feeaf0dae83687e0f58b29be1a5cfd4daf978d9ce973aa2ebf848519d452"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Размер листа и округление</b></p><p> </p><p><b>№3 — задание 1</b></p><p> </p><p>Найдите ширину листа бумаги формата A3. Ответ дайте в миллиметрах и округлите до ближайшего целого числа, кратного 10.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:d96f23ba-9a18-4199-bd08-83d0db970b64"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:d96f23ba-9a18-4199-bd08-83d0db970b64"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:d96f23ba-9a18-4199-bd08-83d0db970b64"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:d96f23ba-9a18-4199-bd08-83d0db970b64"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:d96f23ba-9a18-4199-bd08-83d0db970b64"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:d96f23ba-9a18-4199-bd08-83d0db970b64"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "d813412e-ab88-4f52-90a6-1ea306bc910e"
+      }
+    }
+  ]
+}

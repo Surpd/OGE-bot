@@ -1,0 +1,65 @@
+{
+  "case": "return",
+  "label": "Возврат на вторую страницу ошибок №6",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "История и ошибки · С ошибками · №6\nЗаписи 7–7 из 7\n\n7. №6 · Вычислить разность, сократить дробь, указать числитель\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
+        "chat_id": "42",
+        "message_id": "327",
+        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 34}, {\"type\": \"bold\", \"offset\": 52, \"length\": 62}]",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Все задания",
+                "callback_data": "progress:numhist:6:0~1fa9e75f201f"
+              },
+              {
+                "text": "✓ С ошибками",
+                "callback_data": "progress:numerr:6:0~1fa9e75f201f"
+              }
+            ],
+            [
+              {
+                "text": "Номер · 6",
+                "callback_data": "progress:filter:n6.6~1fa9e75f201f"
+              }
+            ],
+            [
+              {
+                "text": "7",
+                "callback_data": "progress:item:b1R5XppukkTtkVQm1Hyz6ysA:n6.6~1fa9e75f201f"
+              }
+            ],
+            [
+              {
+                "text": "← Назад",
+                "callback_data": "progress:numerr:6:0~1fa9e75f201f"
+              }
+            ],
+            [
+              {
+                "text": "↩ К №6",
+                "callback_data": "progress:number:6~1fa9e75f201f"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~1fa9e75f201f"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "88a9cf5e-32f2-4c1c-be96-5a865dd6add5"
+      }
+    }
+  ]
+}

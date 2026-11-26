@@ -1,0 +1,216 @@
+{
+  "case": "numbers",
+  "label": "Подробнее по номерам",
+  "calls": [
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://fDJtYRrVGuDgfg",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Подробнее по номерам",
+                "callback_data": "progress:details~d9570e44b6b7"
+              }
+            ],
+            [
+              {
+                "text": "История и ошибки",
+                "callback_data": "progress:history:0~d9570e44b6b7"
+              }
+            ],
+            [
+              {
+                "text": "Письменные работы",
+                "callback_data": "progress:works:0~d9570e44b6b7"
+              }
+            ],
+            [
+              {
+                "text": "Умножение двух обыкновенных дробей",
+                "callback_data": "train:family:OGE06-F002-MUL~d9570e44b6b7"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~d9570e44b6b7"
+              }
+            ]
+          ]
+        }
+      },
+      "attachments": {
+        "fDJtYRrVGuDgfg": {
+          "path": "assets/d2f77019f3b55e09e4a6330df5cde0c66796ead0f6189e23b92c5747cae8199f.png",
+          "filename": "progress.png",
+          "sha256": "d2f77019f3b55e09e4a6330df5cde0c66796ead0f6189e23b92c5747cae8199f"
+        }
+      }
+    },
+    {
+      "method": "deleteMessage",
+      "payload": {
+        "chat_id": "42",
+        "message_id": "323"
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "0f9079eb-141d-4349-8fba-3fcd4bfd145f"
+      }
+    },
+    {
+      "method": "editMessageReplyMarkup",
+      "payload": {
+        "chat_id": "42",
+        "message_id": "324"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Подробнее по номерам\n\nВыберите номер задания.",
+        "parse_mode": "HTML",
+        "reply_parameters": {
+          "message_id": 324,
+          "allow_sending_without_reply": true
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "№1",
+                "callback_data": "progress:number:1~8d0d0b0689dd"
+              },
+              {
+                "text": "№2",
+                "callback_data": "progress:number:2~8d0d0b0689dd"
+              },
+              {
+                "text": "№3",
+                "callback_data": "progress:number:3~8d0d0b0689dd"
+              },
+              {
+                "text": "№4",
+                "callback_data": "progress:number:4~8d0d0b0689dd"
+              }
+            ],
+            [
+              {
+                "text": "№5",
+                "callback_data": "progress:number:5~8d0d0b0689dd"
+              },
+              {
+                "text": "№6",
+                "callback_data": "progress:number:6~8d0d0b0689dd"
+              },
+              {
+                "text": "№7",
+                "callback_data": "progress:number:7~8d0d0b0689dd"
+              },
+              {
+                "text": "№8",
+                "callback_data": "progress:number:8~8d0d0b0689dd"
+              }
+            ],
+            [
+              {
+                "text": "№9",
+                "callback_data": "progress:number:9~8d0d0b0689dd"
+              },
+              {
+                "text": "№10",
+                "callback_data": "progress:number:10~8d0d0b0689dd"
+              },
+              {
+                "text": "№11",
+                "callback_data": "progress:number:11~8d0d0b0689dd"
+              },
+              {
+                "text": "№12",
+                "callback_data": "progress:number:12~8d0d0b0689dd"
+              }
+            ],
+            [
+              {
+                "text": "№13",
+                "callback_data": "progress:number:13~8d0d0b0689dd"
+              },
+              {
+                "text": "№14",
+                "callback_data": "progress:number:14~8d0d0b0689dd"
+              },
+              {
+                "text": "№15",
+                "callback_data": "progress:number:15~8d0d0b0689dd"
+              },
+              {
+                "text": "№16",
+                "callback_data": "progress:number:16~8d0d0b0689dd"
+              }
+            ],
+            [
+              {
+                "text": "№17",
+                "callback_data": "progress:number:17~8d0d0b0689dd"
+              },
+              {
+                "text": "№18",
+                "callback_data": "progress:number:18~8d0d0b0689dd"
+              },
+              {
+                "text": "№19",
+                "callback_data": "progress:number:19~8d0d0b0689dd"
+              },
+              {
+                "text": "№20",
+                "callback_data": "progress:written:20~8d0d0b0689dd"
+              }
+            ],
+            [
+              {
+                "text": "№21",
+                "callback_data": "progress:written:21~8d0d0b0689dd"
+              },
+              {
+                "text": "№22",
+                "callback_data": "progress:written:22~8d0d0b0689dd"
+              },
+              {
+                "text": "№23",
+                "callback_data": "progress:written:23~8d0d0b0689dd"
+              },
+              {
+                "text": "№24",
+                "callback_data": "progress:written:24~8d0d0b0689dd"
+              }
+            ],
+            [
+              {
+                "text": "№25",
+                "callback_data": "progress:written:25~8d0d0b0689dd"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~8d0d0b0689dd"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "8c39d6cf-9762-4cd8-833f-7c2a943416c3"
+      }
+    }
+  ]
+}

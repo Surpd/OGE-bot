@@ -1,0 +1,66 @@
+{
+  "case": "record",
+  "label": "Исходное задание, попытки и действия",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>№6 · Вычислить разность, сократить дробь, указать числитель</b></p><p>26,11,2026</p><p></p><p><b>Исходное условие:</b></p><p>Найдите значение выражения: <tg-math>\\frac{11}{12} - \\frac{4}{6}</tg-math>. Представьте результат в виде несократимой обыкновенной дроби. В ответ запишите числитель этой дроби</p><p></p><p><b>Результат:</b> решено</p><p>Ошибка была: да</p><p></p><p><b>Попытки:</b></p><p>1. неверно · без подсказки</p><p>2. верно · без подсказки</p><p></p><p>Доступен один учебный повтор исходной задачи.</p>"
+        },
+        "reply_parameters": {
+          "message_id": 324,
+          "allow_sending_without_reply": true
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Разбор",
+                "callback_data": "progress:solution:b1R5XppukkTtkVQm1Hyz6ysA:n6.6~f2cbc6bf409b"
+              }
+            ],
+            [
+              {
+                "text": "🔄 Повторить исходное",
+                "callback_data": "progress:replay:b1R5XppukkTtkVQm1Hyz6ysA~f2cbc6bf409b"
+              }
+            ],
+            [
+              {
+                "text": "Решить похожее",
+                "callback_data": "progress:similar:b1R5XppukkTtkVQm1Hyz6ysA~f2cbc6bf409b"
+              }
+            ],
+            [
+              {
+                "text": "↩ В журнал",
+                "callback_data": "progress:return:n6.6~f2cbc6bf409b"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~f2cbc6bf409b"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "deleteMessage",
+      "payload": {
+        "chat_id": "42",
+        "message_id": "325"
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "5a4c0100-0b25-478a-adf6-2a3831680c99"
+      }
+    }
+  ]
+}

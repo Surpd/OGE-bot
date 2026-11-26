@@ -1,10 +1,13 @@
 """Training sessions use ordinary issued problems and attempts."""
 
 import json
+from random import Random
 from typing import Any
 from uuid import UUID
 
 import asyncpg
+
+from app.adaptive.mixed_rotation import preview_plan, reserve_number
 
 OPEN_PRACTICE = {"number", "family"}
 BLOCK_SIZE = 5
@@ -30,6 +33,7 @@ class Session:
         *,
         strategy: str = "personal",
         scope: dict[str, Any] | None = None,
+        mixed_catalog: dict[str, int] | None = None,
     ) -> None:
         if strategy not in {"personal", "mixed", "number", "family"}:
             raise ValueError("unknown short-training strategy")
@@ -50,6 +54,19 @@ class Session:
             if isinstance(state, str):
                 state = json.loads(state)
             fallback = state.get("resume_mode")
+            if strategy == "mixed" and mixed_catalog:
+                previous_rotation = await conn.fetchval(
+                    """SELECT scope->'mixed_rotation' FROM adaptive_sessions
+                       WHERE owner=$1 AND strategy='mixed' AND scope ? 'mixed_rotation'
+                       ORDER BY finished DESC NULLS FIRST,id DESC LIMIT 1""",
+                    owner,
+                )
+                rotation = (
+                    json.loads(previous_rotation) if previous_rotation
+                    else {"seed": str(scope["plan_seed"])}
+                )
+                scope = {**scope, "mixed_rotation": rotation, "mixed_batch": []}
+                skills = preview_plan(mixed_catalog, rotation, BLOCK_SIZE)
             if skills:
                 if fallback and fallback != "adaptive":
                     scope["resume_fallback"] = fallback
@@ -227,8 +244,41 @@ class Session:
             )
         return [row["variant"] for row in rows if row["variant"]]
 
+    async def mixed_choices(
+        self, row: Any, catalog: dict[str, int], scope: dict[str, Any],
+    ) -> tuple[int, list[str], dict[str, Any]]:
+        number, rotation = reserve_number(
+            scope["mixed_rotation"], set(catalog.values()), scope["mixed_batch"],
+        )
+        families = sorted(family for family, value in catalog.items() if value == number)
+        Random(f"{scope['plan_seed']}:{number}:{row['position']}").shuffle(families)
+        records = await self.pool.fetch(
+            """WITH issues AS (
+                 SELECT family_id,issued_at FROM issued_problems
+                   WHERE user_id=$1 AND family_id=ANY($2::text[])
+                 UNION ALL
+                 SELECT p.family_id,p.issued_at FROM mixed_training_problems p
+                   JOIN mixed_training_sessions s ON s.id=p.session_id
+                   WHERE s.user_id=$1 AND p.number=$3 AND p.family_id=ANY($2::text[])
+                 UNION ALL
+                 SELECT sc.snapshot->'questions'->(q.position::int-1)->>'family_id',
+                        coalesce(q.adaptive_issued_at,s.started_at)
+                   FROM oge15_sessions s JOIN oge15_scenarios sc ON sc.id=s.scenario_id
+                   JOIN oge15_question_progress q ON q.session_id=s.id
+                   WHERE s.user_id=$1 AND q.position=$3 AND q.status<>'pending'
+                     AND sc.snapshot->'questions'->(q.position::int-1)->>'family_id'
+                         =ANY($2::text[])
+               )
+               SELECT family_id,max(issued_at) AS latest FROM issues GROUP BY family_id""",
+            row["owner"], families, number,
+        )
+        issued = {record["family_id"]: record["latest"] for record in records}
+        families.sort(key=lambda family: (family in issued, issued.get(family)))
+        return number, families, rotation
+
     async def save(
         self, row: Any, family: str, candidate: dict[str, Any], *, repeat: bool = False,
+        mixed_claim: tuple[int, dict[str, Any]] | None = None,
     ) -> bool:
         pid = UUID(candidate["problem_id"])
         async with self.pool.acquire() as conn, conn.transaction():
@@ -294,8 +344,12 @@ class Session:
             )
             await conn.execute(
                 """UPDATE adaptive_sessions SET problem=$2,prompt=NULL,
-                scope=scope-'similar_position'-'similar_replaced_family' WHERE id=$1""",
-                claimed, pid,
+                scope=(scope-'similar_position'-'similar_replaced_family') || $3::jsonb
+                WHERE id=$1""",
+                claimed, pid, json.dumps(
+                    {"mixed_pending": {"number": mixed_claim[0], "rotation": mixed_claim[1]}}
+                    if mixed_claim else {}
+                ),
             )
             return True
 
@@ -433,7 +487,14 @@ class Session:
     async def set_prompt(self, user_id: int, problem_id: str, message_id: int) -> bool:
         return bool(
             await self.pool.fetchval(
-                """UPDATE adaptive_sessions a SET prompt=$3 FROM users u
+                """UPDATE adaptive_sessions a SET prompt=$3,
+            scope=CASE WHEN a.scope ? 'mixed_pending' THEN
+              (a.scope-'mixed_pending') || jsonb_build_object(
+                'mixed_rotation',a.scope->'mixed_pending'->'rotation',
+                'mixed_batch',(a.scope->'mixed_batch') ||
+                    jsonb_build_array(a.scope->'mixed_pending'->'number'))
+              ELSE a.scope END
+            FROM users u
             WHERE a.owner=u.id AND u.telegram_user_id=$1 AND a.problem=$2 AND a.finished IS NULL
             AND (a.prompt IS NULL OR a.prompt<$3) RETURNING true""",
                 user_id,

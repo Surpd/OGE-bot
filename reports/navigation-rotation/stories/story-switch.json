@@ -1,0 +1,406 @@
+{
+  "case": "story-switch",
+  "calls": [
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "Тренировка сохранена.",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "▶ Продолжить",
+                "callback_data": "nav:resume~c9834de28060"
+              }
+            ],
+            [
+              {
+                "text": "🎯 Тренировки",
+                "callback_data": "nav:trainings~c9834de28060"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "nav:progress~c9834de28060"
+              }
+            ],
+            [
+              {
+                "text": "⚙️ Настройки",
+                "callback_data": "nav:display~c9834de28060"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "91a2f9ae-551d-4a3e-8f31-47699a0a1e04"
+      }
+    },
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "<b>Тренировки</b>",
+        "chat_id": "42",
+        "message_id": "152",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Продолжить тренировку",
+                "callback_data": "nav:resume~9f499c998302"
+              }
+            ],
+            [
+              {
+                "text": "🎯 Персональная тренировка",
+                "callback_data": "train:personal~9f499c998302"
+              }
+            ],
+            [
+              {
+                "text": "🔢 По номеру или типу",
+                "callback_data": "train:areas~9f499c998302"
+              }
+            ],
+            [
+              {
+                "text": "🔀 Смешанная тренировка",
+                "callback_data": "train:mixed~9f499c998302"
+              }
+            ],
+            [
+              {
+                "text": "📝 Первая часть целиком",
+                "callback_data": "nav:mixed~9f499c998302"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "nav:main~9f499c998302"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "708dcb39-5ce2-4f82-bba0-b800fc2aa57c"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>Выбери номер</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "№1–5 · Связанный сюжет",
+                "callback_data": "nav:linked~9e0ac3f2c19c"
+              }
+            ],
+            [
+              {
+                "text": "№1",
+                "callback_data": "train:area:1~9e0ac3f2c19c"
+              },
+              {
+                "text": "№2",
+                "callback_data": "train:area:2~9e0ac3f2c19c"
+              },
+              {
+                "text": "№3",
+                "callback_data": "train:area:3~9e0ac3f2c19c"
+              },
+              {
+                "text": "№4",
+                "callback_data": "train:area:4~9e0ac3f2c19c"
+              },
+              {
+                "text": "№5",
+                "callback_data": "train:area:5~9e0ac3f2c19c"
+              }
+            ],
+            [
+              {
+                "text": "№6",
+                "callback_data": "train:area:6~9e0ac3f2c19c"
+              },
+              {
+                "text": "№7",
+                "callback_data": "train:area:7~9e0ac3f2c19c"
+              },
+              {
+                "text": "№8",
+                "callback_data": "train:area:8~9e0ac3f2c19c"
+              },
+              {
+                "text": "№9",
+                "callback_data": "train:area:9~9e0ac3f2c19c"
+              },
+              {
+                "text": "№10",
+                "callback_data": "train:area:10~9e0ac3f2c19c"
+              }
+            ],
+            [
+              {
+                "text": "№11",
+                "callback_data": "train:area:11~9e0ac3f2c19c"
+              },
+              {
+                "text": "№12",
+                "callback_data": "train:area:12~9e0ac3f2c19c"
+              },
+              {
+                "text": "№13",
+                "callback_data": "train:area:13~9e0ac3f2c19c"
+              },
+              {
+                "text": "№14",
+                "callback_data": "train:area:14~9e0ac3f2c19c"
+              },
+              {
+                "text": "№15",
+                "callback_data": "train:area:15~9e0ac3f2c19c"
+              }
+            ],
+            [
+              {
+                "text": "№16",
+                "callback_data": "train:area:16~9e0ac3f2c19c"
+              },
+              {
+                "text": "№17",
+                "callback_data": "train:area:17~9e0ac3f2c19c"
+              },
+              {
+                "text": "№18",
+                "callback_data": "train:area:18~9e0ac3f2c19c"
+              },
+              {
+                "text": "№19",
+                "callback_data": "train:area:19~9e0ac3f2c19c"
+              }
+            ],
+            [
+              {
+                "text": "№20",
+                "callback_data": "p2:menu:20~9e0ac3f2c19c"
+              },
+              {
+                "text": "№21",
+                "callback_data": "p2:menu:21~9e0ac3f2c19c"
+              },
+              {
+                "text": "№22",
+                "callback_data": "p2:menu:22~9e0ac3f2c19c"
+              }
+            ],
+            [
+              {
+                "text": "№23",
+                "callback_data": "p2:menu:23~9e0ac3f2c19c"
+              },
+              {
+                "text": "№24",
+                "callback_data": "p2:menu:24~9e0ac3f2c19c"
+              },
+              {
+                "text": "№25",
+                "callback_data": "p2:menu:25~9e0ac3f2c19c"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "nav:trainings~9e0ac3f2c19c"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "da892e7b-2043-470f-8181-3f8e59e5089b"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "№3: весь номер или сюжет?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Весь №3",
+                "callback_data": "train:number:3~9a7041b0eb3f"
+              }
+            ],
+            [
+              {
+                "text": "Шины",
+                "callback_data": "train:story:3:TYRES~9a7041b0eb3f"
+              }
+            ],
+            [
+              {
+                "text": "Бумага",
+                "callback_data": "train:story:3:PAPER~9a7041b0eb3f"
+              }
+            ],
+            [
+              {
+                "text": "Печи",
+                "callback_data": "train:story:3:STOVE~9a7041b0eb3f"
+              }
+            ],
+            [
+              {
+                "text": "Тарифы",
+                "callback_data": "train:story:3:TARIFF~9a7041b0eb3f"
+              }
+            ],
+            [
+              {
+                "text": "Участки",
+                "callback_data": "train:story:3:GARDEN~9a7041b0eb3f"
+              }
+            ],
+            [
+              {
+                "text": "Квартиры",
+                "callback_data": "train:story:3:FLAT~9a7041b0eb3f"
+              }
+            ],
+            [
+              {
+                "text": "↩ К номерам",
+                "callback_data": "train:areas~9a7041b0eb3f"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "cb8d3f54-ef71-451d-91d3-27286ad8faac"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "<b>№3 · Печи</b>",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Все типы",
+                "callback_data": "train:story-all:3:STOVE~fa09279d93c8"
+              }
+            ],
+            [
+              {
+                "text": "Выбор печи с доставкой",
+                "callback_data": "train:family:STOVE-F07-FIT-WOOD-DELIVERY~fa09279d93c8"
+              }
+            ],
+            [
+              {
+                "text": "Дополнительные расходы на печь",
+                "callback_data": "train:family:STOVE-F06-PURCHASE-EXTRA-COSTS~fa09279d93c8"
+              }
+            ],
+            [
+              {
+                "text": "Площадь пола",
+                "callback_data": "train:family:STOVE-F04-FLOOR-AREA~fa09279d93c8"
+              }
+            ],
+            [
+              {
+                "text": "Площадь стен с проёмами",
+                "callback_data": "train:family:STOVE-F05-WALL-AREA-NET~fa09279d93c8"
+              }
+            ],
+            [
+              {
+                "text": "Сравнение стоимости печей",
+                "callback_data": "train:family:STOVE-F08-COST-COMPARISON~fa09279d93c8"
+              }
+            ],
+            [
+              {
+                "text": "↩ К сюжетам",
+                "callback_data": "train:area:3~fa09279d93c8"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "d5af8fcf-9109-41a1-958b-6c2927bf0616"
+      }
+    },
+    {
+      "method": "sendMessage",
+      "payload": {
+        "chat_id": "42",
+        "text": "У тебя уже есть начатая тренировка. Продолжить её или выбрать другую?",
+        "parse_mode": "HTML",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Продолжить: по типу",
+                "callback_data": "train:resume~7a48abdab666"
+              }
+            ],
+            [
+              {
+                "text": "Завершить и переключиться",
+                "callback_data": "train:x:s:3:STOVE~7a48abdab666"
+              }
+            ],
+            [
+              {
+                "text": "↩ К тренировкам",
+                "callback_data": "train:hub~7a48abdab666"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "c27a7466-0566-47bc-8df9-99012f1b4151"
+      }
+    }
+  ]
+}

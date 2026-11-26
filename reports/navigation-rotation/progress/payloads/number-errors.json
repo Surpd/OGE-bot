@@ -1,0 +1,87 @@
+{
+  "case": "number-errors",
+  "label": "Ошибки №6",
+  "calls": [
+    {
+      "method": "editMessageText",
+      "payload": {
+        "text": "История и ошибки · С ошибками · №6\nЗаписи 1–6 из 7\n\n1. №6 · Умножение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\n2. №6 · Деление десятичных дробей, записанных дробной чертой\n26.11.2026 · решено после ошибки\n\n3. №6 · Деление десятичных дробей, записанных дробной чертой\n26.11.2026 · решено после ошибки\n\n4. №6 · Умножение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\n5. №6 · Сложение двух обыкновенных дробей\n26.11.2026 · решено после ошибки\n\n6. №6 · Деление обыкновенных дробей\n26.11.2026 · решено после ошибки\n\nВыберите номер записи ниже.",
+        "chat_id": "42",
+        "message_id": "325",
+        "entities": "[{\"type\": \"bold\", \"offset\": 0, \"length\": 34}, {\"type\": \"bold\", \"offset\": 52, \"length\": 42}, {\"type\": \"bold\", \"offset\": 129, \"length\": 60}, {\"type\": \"bold\", \"offset\": 224, \"length\": 60}, {\"type\": \"bold\", \"offset\": 319, \"length\": 42}, {\"type\": \"bold\", \"offset\": 396, \"length\": 41}, {\"type\": \"bold\", \"offset\": 472, \"length\": 35}]",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "Все задания",
+                "callback_data": "progress:numhist:6:0~b9e73eb5960d"
+              },
+              {
+                "text": "✓ С ошибками",
+                "callback_data": "progress:numerr:6:0~b9e73eb5960d"
+              }
+            ],
+            [
+              {
+                "text": "Номер · 6",
+                "callback_data": "progress:filter:n6.0~b9e73eb5960d"
+              }
+            ],
+            [
+              {
+                "text": "1",
+                "callback_data": "progress:item:b_M1LAFXtUmFoR4GgoUlqcQA:n6.0~b9e73eb5960d"
+              },
+              {
+                "text": "2",
+                "callback_data": "progress:item:b7EPEapYTE-Rvideif0L4bcA:n6.0~b9e73eb5960d"
+              },
+              {
+                "text": "3",
+                "callback_data": "progress:item:b5eEg8Rk4kEBjU1zgZ18uYIA:n6.0~b9e73eb5960d"
+              }
+            ],
+            [
+              {
+                "text": "4",
+                "callback_data": "progress:item:b-CXfE91ME-Wqs8aiTkzXkcA:n6.0~b9e73eb5960d"
+              },
+              {
+                "text": "5",
+                "callback_data": "progress:item:bxqXmri3T0-rrTrm__pW6BIA:n6.0~b9e73eb5960d"
+              },
+              {
+                "text": "6",
+                "callback_data": "progress:item:b0CjoYzDz0lcl53lgxsx3z4A:n6.0~b9e73eb5960d"
+              }
+            ],
+            [
+              {
+                "text": "Дальше →",
+                "callback_data": "progress:numerr:6:6~b9e73eb5960d"
+              }
+            ],
+            [
+              {
+                "text": "↩ К №6",
+                "callback_data": "progress:number:6~b9e73eb5960d"
+              }
+            ],
+            [
+              {
+                "text": "📊 Мой прогресс",
+                "callback_data": "progress:summary~b9e73eb5960d"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "56c93985-595e-4cc3-b5c3-2e103f85ec05"
+      }
+    }
+  ]
+}
