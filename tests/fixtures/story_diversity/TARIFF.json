@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "story_code": "TARIFF",
+  "seed": 42,
+  "generator_version": "tariff-v3",
+  "compatibility_matrix_version": "tariff-compatible-71946582-v1",
+  "context": {
+    "world_version": "tariff-world-v1",
+    "compatible_set_id": "71946582-A",
+    "minutes": [
+      300,
+      50,
+      375,
+      400,
+      275,
+      0,
+      100,
+      350,
+      75,
+      150,
+      125,
+      325
+    ],
+    "gb_quarters": [
+      7,
+      4,
+      12,
+      2,
+      8,
+      3,
+      0,
+      16,
+      6,
+      14,
+      13,
+      11
+    ],
+    "tariff": {
+      "name": "Стандартный",
+      "monthly_fee_cents": 35000,
+      "included_minutes": 300,
+      "included_gb_quarters": 12,
+      "included_sms_month": 120,
+      "annual_sms": 110,
+      "extra_minute_cents": 300,
+      "data_pack_quarters": 2,
+      "data_pack_price_cents": 9000,
+      "fee_after_increase_cents": 38500,
+      "increase_percent": 10,
+      "fee_change_kind": "increase"
+    },
+    "isp": {
+      "usage_mb": 305,
+      "plans": [
+        {
+          "name": "Поминутный",
+          "monthly_fee_cents": 0,
+          "included_mb": 0,
+          "per_mb_cents": 150
+        },
+        {
+          "name": "Домашний-200",
+          "monthly_fee_cents": 20400,
+          "included_mb": 200,
+          "per_mb_cents": 120
+        },
+        {
+          "name": "Домашний-700",
+          "monthly_fee_cents": 67200,
+          "included_mb": 700,
+          "per_mb_cents": 50
+        }
+      ]
+    }
+  },
+  "shared_context": "За каждый месяц года показаны расход минут исходящих вызовов и мобильного интернета.\nНа графике сплошная линия — минуты (левая шкала), пунктирная — интернет в ГБ (правая шкала).\nТариф «Стандартный»: абонентская плата 350 руб./мес.; включено 300 минут, 3 ГБ и 120 SMS в месяц.\nСверх пакета: 3 руб./мин.; интернет — 90 руб. за 0.5 ГБ. За год отправлено 110 SMS.\nВ отдельной приложенной таблице приведены варианты домашнего интернета.\nМесяцы указаны в календарном порядке с января по декабрь.",
+  "assets": [
+    {
+      "sha256": "9f7a78e41c35cacbe1bebdf1f819edfbfd0532051bb717fb228c860e4a62bdb5",
+      "content_type": "image/svg+xml",
+      "storage_key": "sha256/9f7a78e41c35cacbe1bebdf1f819edfbfd0532051bb717fb228c860e4a62bdb5.svg"
+    },
+    {
+      "sha256": "1af9b84d6f6976c7440644384e7407ea005d409944135874213c567b689d6b1a",
+      "content_type": "image/svg+xml",
+      "storage_key": "sha256/1af9b84d6f6976c7440644384e7407ea005d409944135874213c567b689d6b1a.svg"
+    }
+  ],
+  "questions": [
+    {
+      "position": 1,
+      "scenario_seed": 42,
+      "family_id": "TARIFF-F01-MONTHS-MINUTES",
+      "generator_version": "tariff-v3",
+      "condition": "Определите номера месяцев, в которых израсходовано соответственно 400 мин, 150 мин, 325 мин, 75 мин. Запишите номера подряд, без разделителей.",
+      "answer_policy_id": "tariff.tariff-f01-months-minutes",
+      "answer_policy_version": "1",
+      "canonical_answer": "410129",
+      "hints": [
+        "На графике выберите сплошную линию и левую шкалу минут.",
+        "Для каждого значения найдите месяц; сохраняйте порядок значений в условии."
+      ],
+      "solution_steps": [
+        "400 мин — апрель (4).",
+        "150 мин — октябрь (10).",
+        "325 мин — декабрь (12).",
+        "75 мин — сентябрь (9).",
+        "В указанном порядке получаем код 410129."
+      ],
+      "math_model": {
+        "targets_minutes": [
+          400,
+          150,
+          325,
+          75
+        ],
+        "answer_grid": {
+          "columns": [
+            "400 мин",
+            "150 мин",
+            "325 мин",
+            "75 мин"
+          ],
+          "header": "Расход",
+          "row": "Номер месяца"
+        },
+        "source_ids": [
+          "461831"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 2,
+      "scenario_seed": 42,
+      "family_id": "TARIFF-F04-MONTHLY-BILL",
+      "generator_version": "tariff-v3",
+      "condition": "Определите плату за услуги связи за август при расходе, показанном на графике. Ответ укажите в рублях.",
+      "answer_policy_id": "tariff.tariff-f04-monthly-bill",
+      "answer_policy_version": "1",
+      "canonical_answer": "680",
+      "hints": [
+        "Сначала найдите расход минут и ГБ за указанный месяц.",
+        "Абонплата уже включает пакеты; отдельно посчитайте только превышения. Неполный пакет интернета оплачивается целиком."
+      ],
+      "solution_steps": [
+        "Абонплата: 350 руб.",
+        "Минуты сверх пакета: 50; доплата 150 руб.",
+        "Пакетов интернета сверх лимита: 2; доплата 180 руб.",
+        "Итого: 680 руб."
+      ],
+      "math_model": {
+        "month_index": 7,
+        "source_ids": [
+          "461832"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 3,
+      "scenario_seed": 42,
+      "family_id": "TARIFF-F05-EXTREMUM",
+      "generator_version": "tariff-v3",
+      "condition": "Определите наименьшее количество минут исходящих вызовов за один месяц по графику.",
+      "answer_policy_id": "tariff.tariff-f05-extremum",
+      "answer_policy_version": "1",
+      "canonical_answer": "0",
+      "hints": [
+        "Используйте сплошную линию и левую шкалу.",
+        "Сравните значения для всех двенадцати месяцев и выберите минимальное."
+      ],
+      "solution_steps": [
+        "Наименьшая точка ряда минут соответствует июнь.",
+        "Минимальный расход равен 0 мин."
+      ],
+      "math_model": {
+        "series": "minutes",
+        "source_ids": [
+          "461833"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 4,
+      "scenario_seed": 42,
+      "family_id": "TARIFF-F09-PERCENT-FEE",
+      "generator_version": "tariff-v3",
+      "condition": "Абонентская плата выросла с 350 руб. до 385 руб. На сколько процентов она увеличилась?",
+      "answer_policy_id": "tariff.tariff-f09-percent-fee",
+      "answer_policy_version": "1",
+      "canonical_answer": "10",
+      "hints": [
+        "Процент увеличения считают от первоначальной платы.",
+        "Вычтите старую плату из новой и разделите разность на старую плату."
+      ],
+      "solution_steps": [
+        "Изменение платы: 35 руб.",
+        "35 / 350 × 100 = 10%."
+      ],
+      "math_model": {
+        "fee_change_kind": "increase",
+        "source_ids": [
+          "461834"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    },
+    {
+      "position": 5,
+      "scenario_seed": 42,
+      "family_id": "TARIFF-F12-HOME-ISP",
+      "generator_version": "tariff-v3",
+      "condition": "Месячный расход домашнего интернета составляет 305 МБ. Используйте тарифы в таблице и определите наименьшую плату за месяц. Ответ укажите в рублях.",
+      "answer_policy_id": "tariff.tariff-f12-home-isp",
+      "answer_policy_version": "1",
+      "canonical_answer": "330",
+      "hints": [
+        "Для каждого плана учтите включённый объём и абонплату.",
+        "Плату за объём сверх лимита добавляйте только к абонплате этого плана."
+      ],
+      "solution_steps": [
+        "Поминутный: сверх пакета 305 МБ; 0 + 305 · 1,5 = 457,5 руб.",
+        "Домашний-200: сверх пакета 105 МБ; 204 + 105 · 1,2 = 330 руб.",
+        "Домашний-700: сверх пакета 0 МБ; 672 + 0 · 0,5 = 672 руб.",
+        "Наименьшая плата — 330 руб."
+      ],
+      "math_model": {
+        "usage_mb": 305,
+        "source_ids": [
+          "461835"
+        ],
+        "content_kind": "generated_analogue"
+      }
+    }
+  ],
+  "provenance": [
+    "https://math-oge.sdamgia.ru/problem?id=461831",
+    "https://math-oge.sdamgia.ru/problem?id=461832",
+    "https://math-oge.sdamgia.ru/problem?id=461833",
+    "https://math-oge.sdamgia.ru/problem?id=461834",
+    "https://math-oge.sdamgia.ru/problem?id=461835"
+  ]
+}

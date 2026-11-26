@@ -129,6 +129,173 @@ def test_seed_qa_reaches_200_distinct_observable_bundles_within_budget() -> None
     assert set(FAMILY_POSITION) <= family_seen
 
 
+@pytest.mark.mass
+def test_every_family_varies_in_128_seed_sweep_with_exact_plan_and_offers() -> None:
+    from dataclasses import replace
+    from math import ceil
+
+    from app.math.scenarios.mobile_photos import flat_plan
+    from app.math.scenarios.recent_questions import question_signature
+    from app.math.scenarios.stories.FLAT import plan_symbols
+
+    adapter = build_adapter()
+    inputs = {family: set() for family in FAMILY_POSITION}
+    answers = {family: set() for family in FAMILY_POSITION}
+    winners = {family: set() for family in FAMILY_POSITION}
+    geometry = set()
+    scales = set()
+    for seed in range(128):
+        scenario = adapter.generator.generate_scenario(seed)
+        rendered = adapter.renderer.render_scenario(scenario)
+        scale = Fraction(scenario.context["grid_cell_m"])
+        scales.add(scale)
+        parts = scenario.context["room_parts"]
+        geometry.add(tuple(parts.values()))
+        areas = {
+            room: sum((x2 - x1) * (y2 - y1) for x1, y1, x2, y2 in rectangles)
+            for room, rectangles in parts.items()
+        }
+        labels = scenario.context["room_labels"]
+        tile, parquet = scenario.context["tile"], scenario.context["parquet"]
+        x1, y1, x2, y2 = parts["living"][0]
+        board_w, board_l = map(Fraction, parquet["board_m"])
+        across, along = (y2 - y1) * scale / board_w, (x2 - x1) * scale / board_l
+        assert across.denominator == along.denominator == 1
+        eligible = [
+            row
+            for row in scenario.context["washers"]
+            if row["type"] == "вертикальная" and row["capacity"] >= 6
+        ]
+        washer_cost = {
+            row["model"]: row["price"]
+            + row["install"]
+            + Fraction(row["price"] * row["delivery_pct"], 100)
+            for row in eligible
+        }
+        internet = scenario.context["internet"]
+        traffic = internet["traffic_mb"]
+        internet_cost = {}
+        for plan in internet["plans"]:
+            total = Fraction(plan["fee"])
+            cap = plan["included_mb"]
+            if cap is not None and traffic > cap:
+                total += (traffic - cap) * Fraction(plan["overage"])
+            internet_cost[plan["name"]] = total
+        assert len(set(washer_cost.values())) == len(washer_cost)
+        assert len(set(internet_cost.values())) == len(internet_cost)
+        expected = (
+            int("".join(str(labels[room]) for room in ("bathroom", "pantry", "bedroom", "living"))),
+            ceil(Fraction(areas["bathroom"], tile["pack"])),
+            ceil(across * along / parquet["pack"]),
+            min(areas["loggia_1"], areas["loggia_2"]) * scale**2,
+            100 * (Fraction(areas["bathroom"], areas["pantry"]) - 1),
+            min(washer_cost.values()),
+            min(internet_cost.values()),
+        )
+        questions = []
+        for (family, position), answer in zip(FAMILY_POSITION.items(), expected, strict=True):
+            question = adapter.question_builder.build_question_for_family(
+                scenario,
+                position,
+                family,
+            )
+            adapter.independent_oracle.validate_question(scenario, question, rendered)
+            assert Fraction(question.canonical_answer.replace(",", ".")) == answer
+            inputs[family].add(question_signature(scenario, question))
+            answers[family].add(answer)
+            if "winner" in question.math_model:
+                winners[family].add(question.math_model["winner"])
+            questions.append(QuestionSnapshot.from_draft(question))
+        if seed in (0, 1):
+            snapshot = ScenarioSnapshot(
+                scenario.story_code,
+                seed,
+                scenario.generator_version,
+                scenario.compatibility_matrix_version,
+                scenario.context,
+                rendered.shared_context,
+                rendered.assets,
+                tuple(questions[index] for index in (0, 1, 3, 4, 5)),
+                scenario.provenance,
+            )
+            ordered = replace(
+                snapshot,
+                context={
+                    **snapshot.context,
+                    "room_parts": dict(sorted(parts.items())),
+                },
+            )
+            assert plan_symbols(snapshot.generator_version, snapshot.context)[0] == parts
+            assert flat_plan(snapshot) == flat_plan(ordered)
+            for asset in snapshot.assets:
+                restore_asset_bytes(adapter.renderer, ordered, asset)
+    assert len(geometry) >= 100
+    assert scales == {Fraction(2, 5), Fraction(1, 2)}
+    assert all(len(seen) >= 10 for seen in inputs.values()), {
+        family: len(seen) for family, seen in inputs.items()
+    }
+    assert all(len(seen) >= 10 for seen in answers.values())
+    assert len(winners["FLAT-05-WASHER-MIN"]) == 2
+    assert len(winners["FLAT-05-INTERNET-MIN"]) == 3
+
+
+@pytest.mark.parametrize("family", ["FLAT-02-TILE-PACK", "FLAT-02-PARQUET-PACK"])
+def test_flooring_identity_ignores_proportional_scale_and_rotation(family: str) -> None:
+    from dataclasses import replace
+
+    from app.math.scenarios.recent_questions import question_signature
+    from app.math.scenarios.stories.FLAT import FIXED_VERSION
+
+    adapter = build_adapter()
+    scenario = adapter.generator.generate_scenario(SOURCE_VECTOR_SEED)
+    question = adapter.question_builder.build_question_for_family(scenario, 2, family)
+    previous = replace(scenario, generator_version=FIXED_VERSION)
+    rescaled = replace(scenario, context={**scenario.context, "grid_cell_m": "0.5"})
+    model = dict(question.math_model)
+    if family == "FLAT-02-PARQUET-PACK":
+        model.update(
+            width_cells=model["height_cells"],
+            height_cells=model["width_cells"],
+            board_m=("1", "0.25"),
+        )
+    rotated = replace(question, math_model=model)
+    assert question_signature(previous, question) == question_signature(rescaled, rotated)
+
+    if family == "FLAT-02-PARQUET-PACK":
+        changed = replace(rotated, math_model={**model, "board_m": ("0.5", "1")})
+        assert question_signature(rescaled, changed) != question_signature(rescaled, rotated)
+
+
+def test_internet_identity_ignores_overage_rates_when_traffic_does_not_exceed_cap() -> None:
+    from dataclasses import replace
+
+    from app.math.scenarios.recent_questions import question_signature
+
+    adapter = build_adapter()
+    scenario = adapter.generator.generate_scenario(SOURCE_VECTOR_SEED)
+    question = adapter.question_builder.build_question_for_family(
+        scenario, 5, "FLAT-05-INTERNET-MIN"
+    )
+    internet = scenario.context["internet"]
+    first, second, unlimited = internet["plans"]
+    changed = ({**first, "overage": "17"}, second, {**unlimited, "overage": "99"})
+
+    def with_plans(traffic, plans):
+        return replace(
+            scenario,
+            context={**scenario.context, "internet": {"traffic_mb": traffic, "plans": plans}},
+        )
+
+    for traffic in (first["included_mb"] - 1, first["included_mb"]):
+        assert question_signature(with_plans(traffic, internet["plans"]), question) == (
+            question_signature(with_plans(traffic, changed), question)
+        )
+    traffic = first["included_mb"] + 1
+    assert question_signature(with_plans(traffic, internet["plans"]), question) != (
+        question_signature(with_plans(traffic, changed), question)
+    )
+
+
 def test_all_candidate_families_are_fail_closed_and_doubtful_cases_stay_out() -> None:
     adapter = build_adapter()
     registrations = {item.family_id: item for item in adapter.family_registry}

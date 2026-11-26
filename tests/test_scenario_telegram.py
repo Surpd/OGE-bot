@@ -1115,7 +1115,7 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 assert resumed.current_position == 3 and resumed.snapshot == active.snapshot
                 assert resumed_card.message_id == resumed.control_message_id
 
-                # A recent fixed PAPER-F03 is intentionally not reissued as Single.
+                # A new single can use a different rounding problem from the linked one.
                 update_id += 1
                 await _feed(
                     dispatcher,
@@ -1136,20 +1136,14 @@ async def test_dispatcher_public_menu_navigation_opens_real_oge15_task(
                 menu = max(transport.messages.values(), key=lambda item: item.message_id)
                 story = await tap(menu, "Бумага")
                 mode = await tap(story, "Выбрать одно задание")
-                calls_before_recent_single = len(transport.calls)
                 await tap(mode, "№3")
-                recent_callback_answers = [
-                    call
-                    for call in transport.calls[calls_before_recent_single:]
-                    if call.__api_method__ == "answerCallbackQuery"
-                ]
-                assert any(
-                    "уже был недавно" in (call.text or "")
-                    for call in recent_callback_answers
+                another = await scenario_repository.resume_session(user_id)
+                assert another is not None and another.mode is PracticeMode.SINGLE
+                from app.math.scenarios.recent_questions import question_signature
+
+                assert question_signature(another.snapshot, another.snapshot.questions[2]) != (
+                    question_signature(active.snapshot, question)
                 )
-                still_full = await scenario_repository.resume_session(user_id)
-                assert still_full is not None and still_full.session_id == active.session_id
-                assert still_full.current_position == 3 and still_full.snapshot == active.snapshot
 
                 # A new learner can open Single №3; assert the actual Dispatcher
                 # sends only the row-number table and the stored mobile PNGs.

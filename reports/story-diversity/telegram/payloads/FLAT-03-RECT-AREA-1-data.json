@@ -1,0 +1,37 @@
+{
+  "case": "FLAT-03-RECT-AREA-1-data",
+  "label": "FLAT-03-RECT-AREA · повторное открытие данных",
+  "calls": [
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "2ff75224-2f77-4ba4-8a3e-551583a6a347"
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. Коридор у входа; санузел слева от входа, кладовая в противоположном конце. Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; кухня выходит на другую лоджию. Гостиная — самое большое помещение. Обе лоджии расположены в верхних углах плана. Синие штрихи обозначают двери, бирюзовые — окна, красный — вход.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://TSS0oVKbLJTX7Q",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "TSS0oVKbLJTX7Q": {
+          "path": "assets/f024bf0ede7ee8e1dd695288eae688bb0d36222ff889d62642f8554734ae28e3.png",
+          "filename": "scenario-1.png",
+          "sha256": "f024bf0ede7ee8e1dd695288eae688bb0d36222ff889d62642f8554734ae28e3"
+        }
+      }
+    }
+  ]
+}

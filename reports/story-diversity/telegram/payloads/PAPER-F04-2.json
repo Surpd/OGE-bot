@@ -1,0 +1,98 @@
+{
+  "case": "PAPER-F04-2",
+  "label": "PAPER-F04 · выдача 2",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>Форматы бумаги серии A: площадь A0 принята равной 1 м²; при переходе к следующему формату площадь листа делится пополам. Схема показывает последовательное деление A0–A5 и является схемой отношений, а не чертежом в масштабе.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://wSllaS-A7ny3GQ",
+        "caption": "Данные задачи №4",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "wSllaS-A7ny3GQ": {
+          "path": "assets/a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49.png",
+          "filename": "scenario-1.png",
+          "sha256": "a6b23cd32629aed7f4dd2d0346f42d1d1c94ef88ca116e68953b48ad6fe4bc49"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://S1svLVHbZ1yXyA",
+        "caption": "Данные задачи №4",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "S1svLVHbZ1yXyA": {
+          "path": "assets/50e824dc748d7461c59f1e1d7cac4b6893ba8c4d7c2579cdc54004c235bcabfc.png",
+          "filename": "scenario-2.png",
+          "sha256": "50e824dc748d7461c59f1e1d7cac4b6893ba8c4d7c2579cdc54004c235bcabfc"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Отношение сторон листа</b></p><p> </p><p><b>№4 — задание 2</b></p><p> </p><p>Найдите отношение длины меньшей стороны листа формата A5 к большей. Ответ округлите до десятых.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:c40d4555-1f5a-449d-884a-f5f0f45f7bb5"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:c40d4555-1f5a-449d-884a-f5f0f45f7bb5"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:c40d4555-1f5a-449d-884a-f5f0f45f7bb5"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:c40d4555-1f5a-449d-884a-f5f0f45f7bb5"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:c40d4555-1f5a-449d-884a-f5f0f45f7bb5"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:c40d4555-1f5a-449d-884a-f5f0f45f7bb5"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "3308f1ed-6f25-4022-a315-89f4c5b2a087"
+      }
+    }
+  ]
+}

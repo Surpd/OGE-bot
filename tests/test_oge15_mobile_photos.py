@@ -162,8 +162,12 @@ def test_delivered_flat_plan_makes_both_loggias_visible_without_area_labels():
     with Image.open(BytesIO(photos[0])) as plan:
         # Both corner rectangles use the legend's swatch in the transmitted PNG.
         swatch = plan.getpixel((40, 880))
-        assert plan.getpixel((75, 167)) == plan.getpixel((825, 167)) == swatch
-        assert all(plan.getpixel(point) != swatch for point in [(415, 167), (75, 268)])
+        parts = snapshot.context["room_parts"]
+        cell = min(34, 1130 // parts["bedroom"][0][2], 625 // parts["hall"][0][3])
+        for room in ("loggia_1", "loggia_2", "kitchen", "living"):
+            x, y, *_ = parts[room][0]
+            pixel = plan.getpixel((60 + cell * x + cell // 2, 150 + cell * y + cell // 2))
+            assert (pixel == swatch) == room.startswith("loggia")
     assert "4,8" not in snapshot.questions[2].condition
 
 

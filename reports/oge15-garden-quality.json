@@ -1,8 +1,16 @@
 {
   "story": "GARDEN",
+  "generator_version": "garden-sosnovka-1.8",
   "samples": 250,
   "failures": [],
-  "unique_full_conditions": 235,
+  "unique_full_input_signatures": 250,
+  "distinct_answers_first_100_seeds": {
+    "GARDEN-01-IDENTIFY": 85,
+    "GARDEN-02-TILES-PACKS": 21,
+    "GARDEN-04-PERIMETER-POLYGON": 11,
+    "GARDEN-07-PERCENT-BUILDINGS": 18,
+    "GARDEN-09-HEAT-BREAKEVEN": 21
+  },
   "target_unique": 200,
   "source_fixture_seed_0_answers": [
     "7425",

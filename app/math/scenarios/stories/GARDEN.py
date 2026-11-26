@@ -1,7 +1,7 @@
 """Research-bounded garden plot adapter for the OGE 1–5 scenario engine.
 
-The first release deliberately uses the visually checked Sosnovka topology only.
-All coordinates are source-independent vector geometry in half-metre units.
+The parameterized plan retains the Sosnovka arrangement of objects.
+Legacy snapshots keep their original vector geometry.
 """
 
 # SVG path/data strings are intentionally long single attributes.
@@ -32,9 +32,12 @@ from app.math.scenario_engine import (
     StoryAdapter,
 )
 
-VERSION = "garden-sosnovka-1.7"
+VERSION = "garden-sosnovka-1.8"
+_FIXED_GEOMETRY_VERSION = "garden-sosnovka-1.7"
 PREVIOUS_VERSION = "garden-sosnovka-1.6"
-SOURCE_PLAN_VERSIONS = frozenset({VERSION, PREVIOUS_VERSION, "garden-sosnovka-1.5"})
+SOURCE_PLAN_VERSIONS = frozenset({VERSION, _FIXED_GEOMETRY_VERSION, PREVIOUS_VERSION, "garden-sosnovka-1.5"})
+HEAT_TABLE_ONLY_VERSIONS = frozenset({VERSION, _FIXED_GEOMETRY_VERSION})
+_MODERN_HEAT_VERSIONS = HEAT_TABLE_ONLY_VERSIONS | {PREVIOUS_VERSION}
 _PRE_HEAT_VERSION = "garden-sosnovka-1.3"
 _PRE_GEOMETRY_VERSION = "garden-sosnovka-1.4"
 POLICY_VERSION = "1"
@@ -67,7 +70,7 @@ def _world(seed: int) -> dict[str, JsonValue]:
     labels: dict[str, JsonValue] = {**dict(zip(roles, numbers, strict=True)), "garden": 6}
     return {
         "template_id": "SOSNOVKA-2025-1.1",
-        "world_version": VERSION,
+        "world_version": _FIXED_GEOMETRY_VERSION,
         "grid_side_m": 2,
         "plot_area_m2": 600,
         "labels": labels,
@@ -232,7 +235,126 @@ def _svg_current(ctx: Mapping[str, JsonValue]) -> bytes:
     return "".join(parts).encode("utf-8")
 
 
+def _vary_geometry(seed: int) -> dict[str, JsonValue]:
+    rng = Random(seed ^ 0x9F60)
+    if seed == 0:
+        house_w, main_h, wing_w, wing_h = 5, 3, 2, 1
+        bath_w, bath_h, garage_w, garage_h, shed_w, shed_h, pad_w = 3, 3, 4, 3, 3, 2, 2
+    else:
+        house_w, main_h = rng.randint(4, 7), rng.randint(2, 8)
+        wing_w, wing_h = rng.randint(2, 3), rng.randint(1, 2)
+        bath_w, bath_h = rng.randint(3, 4), rng.randint(2, 3)
+        garage_w, garage_h = rng.randint(3, 5), rng.randint(2, 3)
+        shed_w, shed_h, pad_w = rng.randint(2, 3), rng.randint(2, 3), rng.randint(2, 3)
+
+    # Coordinates are metres from the upper left corner. Buildings follow the
+    # 2 m grid. The paving strips occupy whole one-metre squares.
+    house_right = 12 + house_w * 2
+    shoulder = 2 + main_h * 2
+    house_bottom = shoulder + wing_h * 2
+    path_y = max(12, house_bottom + 2)
+    plot_w = max(30, house_right + 2 + pad_w * 2)
+    plot_h = path_y + 8
+    pad_x = plot_w - pad_w * 2
+    pad_y = shed_h * 2
+    bath_top = plot_h - bath_h * 2
+    garage_left = plot_w - garage_w * 2
+    paths: tuple[tuple[int, int, int, int], ...] = (
+        (4, path_y, pad_x - 4, 1),
+        (13, house_bottom, 1, path_y - house_bottom),
+        (4, path_y + 1, 1, bath_top - path_y - 1),
+        (plot_w - 1, path_y + 2, 1, 2),
+    )
+    # The source arrangement has the garage touching the pad. A shorter
+    # garage instead meets a one-metre paved extension.
+    if garage_h == 3:
+        paths = paths[:3]
+    rects = {
+        "bath": (0, bath_top, bath_w * 2, bath_h * 2),
+        "garage": (garage_left, plot_h - garage_h * 2, garage_w * 2, garage_h * 2),
+        "shed": (plot_w - shed_w * 2, 0, shed_w * 2, shed_h * 2),
+        "garden": (0, 0, 10, 12),
+        "greenhouse": (2, 2, 6, 2),
+        "pad": (pad_x, pad_y, pad_w * 2, path_y + 2 - pad_y),
+    }
+    return {
+        "plot_size": (plot_w, plot_h),
+        "gate_y": path_y - 1,
+        "house_polygon": (
+            (12, 2), (house_right, 2), (house_right, shoulder),
+            (12 + wing_w * 2, shoulder), (12 + wing_w * 2, house_bottom), (12, house_bottom),
+        ),
+        "rects": rects,
+        "path_rects": paths,
+        "orchard_bounds": (bath_w * 2, path_y + 2, garage_left, plot_h),
+        "plot_area_m2": plot_w * plot_h,
+        "building_areas_m2": tuple(
+            4 * n for n in (house_w * main_h + wing_w * wing_h,
+                            bath_w * bath_h, garage_w * garage_h, shed_w * shed_h)
+        ),
+        "exposed_perimeter_edges": 2 * (house_w + main_h + wing_h),
+        "path_tiles": sum(width * height for _, _, width, height in paths),
+        "pad_tiles": rects["pad"][2] * rects["pad"][3],
+    }
+
+
+def _svg_diverse(ctx: Mapping[str, JsonValue]) -> bytes:
+    labels = cast(Mapping[str, int], ctx["labels"])
+    plot_w, plot_h = cast(tuple[int, int], ctx["plot_size"])
+    gate_y = cast(int, ctx["gate_y"])
+    right, bottom, gate = 20 + 10 * plot_w, 20 + 10 * plot_h, 20 + 10 * gate_y
+    width, height = right + 80, bottom + 80
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width * 3}" height="{height * 3}" viewBox="0 0 {width} {height}">',
+        f'<rect width="{width}" height="{height}" fill="#fff"/>',
+    ]
+    for x, y, w, h in cast(tuple[tuple[int, int, int, int], ...], ctx["path_rects"]):
+        parts.append(f'<rect data-role="paving" x="{20 + x * 10}" y="{20 + y * 10}" width="{w * 10}" height="{h * 10}" fill="#b99d6b"/>')
+    rects = cast(Mapping[str, tuple[int, int, int, int]], ctx["rects"])
+    fills = {"pad": "#d9c99e", "garden": "#a8d88a", "greenhouse": "#a9dce6"}
+    label_points = {}
+    for role, (x, y, w, h) in rects.items():
+        fill = fills.get(role, "#e7b88e")
+        parts.append(f'<rect data-role="{role}" x="{20 + x * 10}" y="{20 + y * 10}" width="{w * 10}" height="{h * 10}" fill="{fill}" stroke="#503d30"/>')
+        label_points[role] = (20 + 10 * x + 5 * w, 20 + 10 * y + 5 * h)
+    house = cast(tuple[tuple[int, int], ...], ctx["house_polygon"])
+    points = " ".join(f"{20 + 10 * x},{20 + 10 * y}" for x, y in house)
+    parts.append(f'<polygon data-role="house" points="{points}" fill="#e7b88e" stroke="#503d30" stroke-width="2"/>')
+    label_points["house"] = (20 + 5 * (house[0][0] + house[1][0]), 20 + 5 * (house[0][1] + house[2][1]))
+    x1, y1, x2, y2 = cast(tuple[int, int, int, int], ctx["orchard_bounds"])
+    parts.append('<g data-role="orchard" fill="#478e42">')
+    for x in (x1 + 1, x2 - 1):
+        for y in (y1 + 1, y2 - 1):
+            parts.append(f'<circle cx="{20 + x * 10}" cy="{20 + y * 10}" r="6"/>')
+    parts.append("</g>")
+    label_points["orchard"] = (20 + 5 * (x1 + x2), 20 + 5 * (y1 + y2))
+    label_points["garden"] = (85, 115)
+    parts.append('<g stroke="#849486" stroke-width=".7" opacity=".45">')
+    parts.extend(f'<path d="M{x} 20V{bottom}"/>' for x in range(20, right + 1, 20))
+    parts.extend(f'<path d="M20 {y}H{right}"/>' for y in range(20, bottom + 1, 20))
+    parts.append("</g>")
+    parts.extend((
+        f'<path data-plot="{right},{bottom}" data-gate="{gate}" d="M20 20H{right}V{gate - 10} M{right} {gate + 10}V{bottom}H20Z" fill="none" stroke="#283b2d" stroke-width="3"/>',
+        f'<text x="{right + 2}" y="{gate + 4}" font-size="8">Ворота</text>',
+    ))
+    for role, number in labels.items():
+        x, y = label_points[role]
+        parts.extend((
+            f'<circle cx="{x}" cy="{y}" r="7" fill="white" stroke="#283b2d"/>',
+            f'<text data-label="{role}" x="{x}" y="{y}" text-anchor="middle" dominant-baseline="central" font-size="9">{number}</text>',
+        ))
+    parts.extend((
+        f'<text x="24" y="{bottom + 35}" font-size="8">Клетка — 2 м · дорожки — 1 м · плитка — 1×1 м</text>',
+        "</svg>",
+    ))
+    return "".join(parts).encode("utf-8")
+
+
+
+
 def _svg(ctx: Mapping[str, JsonValue]) -> bytes:
+    if ctx.get("world_version") == VERSION:
+        return _svg_diverse(ctx)
     if ctx.get("world_version") in SOURCE_PLAN_VERSIONS:
         return _svg_current(ctx)
     return _svg_legacy(ctx)
@@ -248,7 +370,7 @@ class _Policy:
 
 class _Generator:
     def generate_scenario(self, seed: int) -> ScenarioDraft:
-        ctx = _world(seed)
+        ctx = {**_world(seed), **_vary_geometry(seed), "world_version": VERSION}
         return ScenarioDraft(
             "GARDEN",
             seed,
@@ -282,6 +404,40 @@ def _modern_heat_solution(heat: Mapping[str, int]) -> tuple[str, tuple[str, ...]
     )
 
 
+def _geometry_solution(
+    context: Mapping[str, JsonValue], position: int, answer: str,
+) -> tuple[str, ...]:
+    if position == 2:
+        paths = cast(tuple[tuple[int, int, int, int], ...], context["path_rects"])
+        lengths = ", ".join(str(max(w, h)) for _, _, w, h in paths)
+        _, _, pad_w, pad_h = cast(Mapping[str, tuple[int, int, int, int]], context["rects"])["pad"]
+        total = cast(int, context["path_tiles"]) + cast(int, context["pad_tiles"])
+        return (
+            f"Длины полос шириной 1 м: {lengths} м. Их общая площадь {context['path_tiles']} м².",
+            f"Площадка {pad_w} × {pad_h} м занимает {context['pad_tiles']} м². Всего нужно {total} плиток по 1 м².",
+            f"Округляем {total} / {context['tiles_per_pack']} вверх. Ответ: {answer}.",
+        )
+    if position == 3:
+        edges = context["exposed_perimeter_edges"]
+        return (
+            f"Внешний контур состоит из {edges} сторон клеток.",
+            f"Периметр: {edges} × 2 = {answer} м.",
+        )
+    cells = tuple(area // 4 for area in cast(tuple[int, ...], context["building_areas_m2"]))
+    width, height = cast(tuple[int, int], context["plot_size"])
+    occupied = sum(cells) * 4
+    plot = width * height
+    counts = " + ".join(map(str, cells))
+    return (
+        f"Дом занимает {cells[0]} клеток, баня — {cells[1]}, гараж — {cells[2]}, сарай — {cells[3]}.",
+        f"Площадь клетки — 4 м². Постройки занимают ({counts}) × 4 = {occupied} м².",
+        f"Площадь участка: {width} × {height} = {plot} м².",
+        f"Вычисляем {occupied} / {plot} × 100 и округляем до целого. Ответ: {answer} %.",
+    )
+
+
+
+
 class _Builder:
     def build_question(self, scenario: ScenarioDraft, position: int) -> QuestionDraft:
         c = scenario.context
@@ -306,17 +462,21 @@ class _Builder:
             answer = str(cast(int, c["exposed_perimeter_edges"]) * cast(int, c["grid_side_m"]))
             condition = "Дом имеет ломаную форму по сторонам клеток плана. Найдите периметр его внешнего контура в метрах, если сторона клетки 2 м."
         elif position == 4:
-            answer = str(round(sum(areas) / cast(int, c["plot_area_m2"]) * 100))
+            plot_area = cast(int, c["plot_area_m2"])
+            if scenario.generator_version == VERSION:
+                answer = str((200 * sum(areas) + plot_area) // (2 * plot_area))
+            else:
+                answer = str(round(sum(areas) / plot_area * 100))
             condition = "Найдите по плану, сколько процентов площади участка занимают дом, баня, гараж и сарай. Это четыре бежевых строения. Сторона клетки 2 м. Ответ округлите до целого."
         elif position == 5:
             heat = cast(Mapping[str, int], c["heat"])
-            if scenario.generator_version in {VERSION, PREVIOUS_VERSION}:
+            if scenario.generator_version in _MODERN_HEAT_VERSIONS:
                 gas_initial = heat["gas_heater_cost"] + heat["gas_installation_cost"]
                 electric_initial = heat["electric_heater_cost"] + heat["electric_installation_cost"]
                 gas_rate = heat["gas_m3_per_hour_tenths"] * heat["gas_price_per_m3_tenths"]
                 electric_rate = heat["electric_kw_tenths"] * heat["electric_price_per_kwh_tenths"]
                 answer = str((gas_initial - electric_initial) * 100 // (electric_rate - gas_rate))
-                if scenario.generator_version == VERSION:
+                if scenario.generator_version in HEAT_TABLE_ONLY_VERSIONS:
                     condition = (
                         "Для одного и того же дома выбирают отопление газом или электричеством. "
                         "Используйте таблицу исходных данных. Через сколько часов суммарные "
@@ -360,7 +520,7 @@ class _Builder:
         }
         if position == 5:
             heat = cast(Mapping[str, int], c["heat"])
-            if scenario.generator_version in {VERSION, PREVIOUS_VERSION}:
+            if scenario.generator_version in _MODERN_HEAT_VERSIONS:
                 checked_answer, solutions[5] = _modern_heat_solution(heat)
                 if answer != checked_answer:
                     raise ValueError("Heating answer and source operands disagree")
@@ -372,6 +532,8 @@ class _Builder:
                     f"За час оно экономит 20,58 − 7,84 = {savings:.2f} руб.",
                     f"Затраты сравняются через {difference} / {savings:.2f} = {answer} ч.",
                 )
+        if scenario.generator_version == VERSION and position in (2, 3, 4):
+            solutions[position] = _geometry_solution(c, position, answer)
         model: dict[str, JsonValue] = {"position": position, "expected": answer}
         if position == 1:
             model["answer_grid"] = {
@@ -383,7 +545,7 @@ class _Builder:
             position,
             scenario.seed,
             FAMILIES[position - 1],
-            VERSION,
+            scenario.generator_version,
             condition,
             "integer_or_code",
             POLICY_VERSION,
@@ -397,7 +559,7 @@ class _Builder:
 class _Renderer:
     @staticmethod
     def _shared_context(scenario: ScenarioDraft) -> str:
-        if scenario.generator_version == VERSION:
+        if scenario.generator_version in HEAT_TABLE_ONLY_VERSIONS:
             return (
                 "На плане изображён дачный участок в посёлке Сосновка. Единственные ворота "
                 "расположены на правой границе. При входе слева находится гараж, справа — сарай, "
@@ -449,6 +611,121 @@ class _Renderer:
         return _svg(snapshot.context)
 
 
+def _visible_geometry(scenario: ScenarioDraft) -> tuple[int, int, int, int]:
+    """Measure the rendered plan using one-metre squares and exposed edges."""
+    c = scenario.context
+    root = ElementTree.fromstring(_svg(c))
+    fence = root.find(".//*[@data-plot]")
+    if fence is None:
+        raise ValueError("Missing garden fence")
+    parsed = search(r"^M20 20H(\d+)V(\d+) M\1 (\d+)V(\d+)H20Z$", fence.attrib["d"])
+    if parsed is None:
+        raise ValueError("Garden fence must be rectangular with a gate on the right")
+    right, gate_start, gate_end, bottom = map(int, parsed.groups())
+    if (gate_end - gate_start != 20 or (right - 20) % 20 or (bottom - 20) % 20
+            or root.attrib["viewBox"] != f"0 0 {right + 80} {bottom + 80}"):
+        raise ValueError("Invalid garden scale or gate")
+    width, height = (right - 20) // 10, (bottom - 20) // 10
+    grid = {node.attrib["d"] for node in root.findall(".//{*}path") if node is not fence}
+    if grid != (
+        {f"M{x} 20V{bottom}" for x in range(20, right + 1, 20)}
+        | {f"M20 {y}H{right}" for y in range(20, bottom + 1, 20)}
+    ):
+        raise ValueError("Displayed grid differs from the two-metre scale")
+
+    def rectangle(node: ElementTree.Element) -> set[tuple[int, int]]:
+        x, y, w, h = (int(node.attrib[key]) for key in ("x", "y", "width", "height"))
+        if any(n % 10 for n in (x, y, w, h)) or min(w, h) <= 0:
+            raise ValueError("Garden rectangle must occupy whole tiles")
+        return {(col, row) for col in range((x - 20) // 10, (x + w - 20) // 10)
+                for row in range((y - 20) // 10, (y + h - 20) // 10)}
+
+    def region(role: str) -> ElementTree.Element:
+        nodes = root.findall(f".//*[@data-role='{role}']")
+        if len(nodes) != 1:
+            raise ValueError(f"Missing or duplicate garden role {role}")
+        return nodes[0]
+
+    points = [tuple(map(int, point.split(","))) for point in region("house").attrib["points"].split()]
+    edges = tuple(zip(points, (*points[1:], points[0]), strict=True))
+    if any((x1 == x2) == (y1 == y2) for (x1, y1), (x2, y2) in edges):
+        raise ValueError("House contour must have nonzero rectilinear segments")
+    for role in ("bath", "garage", "shed", "garden", "greenhouse"):
+        if any(int(region(role).attrib[key]) % 20 for key in ("x", "y", "width", "height")):
+            raise ValueError("Building must align to the displayed grid")
+    if any(x % 20 or y % 20 for x, y in points):
+        raise ValueError("House vertices must align to the displayed grid")
+    house: set[tuple[int, int]] = set()
+    for row in range(height):
+        scan_y = 25 + 10 * row
+        crossings = sorted(
+            x1 for (x1, y1), (x2, y2) in edges if x1 == x2 and min(y1, y2) < scan_y < max(y1, y2)
+        )
+        for left, end in zip(crossings[::2], crossings[1::2], strict=True):
+            house.update((x, row) for x in range((left - 20) // 10, (end - 20) // 10))
+    perimeter = sum(
+        (x + dx, y + dy) not in house
+        for x, y in house for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+    )
+    vertices_perimeter = sum(abs(x1 - x2) + abs(y1 - y2) for (x1, y1), (x2, y2) in edges)
+    if not house or vertices_perimeter != 10 * perimeter:
+        raise ValueError("House contour and occupied cells disagree")
+
+    bath, garage, shed, garden, greenhouse, pad = (
+        rectangle(region(role)) for role in ("bath", "garage", "shed", "garden", "greenhouse", "pad")
+    )
+    if not greenhouse < garden:
+        raise ValueError("Greenhouse must lie inside the garden")
+    if not (any((width - 1, row) in pad for row in range((gate_start - 20) // 10, (gate_end - 20) // 10))
+            and max(y for _, y in shed) < (gate_start - 20) // 10 <= min(y for _, y in garage)):
+        raise ValueError("Garage and shed must be on opposite sides of the paved entrance")
+
+    paving: set[tuple[int, int]] = set()
+    for node in root.findall(".//*[@data-role='paving']"):
+        if min(int(node.attrib[key]) for key in ("width", "height")) != 10:
+            raise ValueError("Paving strips must be one metre wide")
+        strip = rectangle(node)
+        if paving & strip:
+            raise ValueError("Paving strips overlap")
+        paving.update(strip)
+    occupied: set[tuple[int, int]] = set()
+    for surface in (house, bath, garage, shed, garden, pad, paving):
+        if surface & occupied or any(not (0 <= x < width and 0 <= y < height) for x, y in surface):
+            raise ValueError("Garden objects overlap or extend beyond the plot")
+        occupied.update(surface)
+
+    areas = tuple(map(len, (house, bath, garage, shed)))
+    plot = width * height
+    if (areas != c["building_areas_m2"] or perimeter != 2 * cast(int, c["exposed_perimeter_edges"])
+            or (len(paving), len(pad), plot) != (c["path_tiles"], c["pad_tiles"], c["plot_area_m2"])):
+        raise ValueError("Rendered garden geometry differs from the immutable operands")
+    labels = cast(Mapping[str, int], c["labels"])
+    label_nodes = {node.attrib["data-label"]: node for node in root.findall(".//*[@data-label]")}
+    if {role: node.text for role, node in label_nodes.items()} != {role: str(n) for role, n in labels.items()}:
+        raise ValueError("Visible labels differ from the immutable labels")
+    for role, surface in zip(("house", "bath", "garage", "shed", "garden", "greenhouse"),
+                             (house, bath, garage, shed, garden - greenhouse, greenhouse), strict=True):
+        node = label_nodes[role]
+        if tuple((int(node.attrib[k]) - 20) // 10 for k in ("x", "y")) not in surface:
+            raise ValueError(f"Label lies outside the visible {role} region")
+    trees = region("orchard").findall(".//{*}circle")
+    if len(trees) != 4:
+        raise ValueError("Orchard symbol requires four trees")
+    orchard_points = [
+        *((int(tree.attrib["cx"]), int(tree.attrib["cy"])) for tree in trees),
+        (int(label_nodes["orchard"].attrib["x"]), int(label_nodes["orchard"].attrib["y"])),
+    ]
+    left, right = max(x for x, _ in bath) + 1, min(x for x, _ in garage)
+    first_row = min(y for _, y in bath) - 2
+    for point_x, point_y in orchard_points:
+        x, y = (point_x - 20) // 10, (point_y - 20) // 10
+        if not (left <= x < right and first_row <= y < height and (x, y) not in occupied):
+            raise ValueError("Orchard symbols must lie across from the house between bath and garage")
+    return len(paving) + len(pad), perimeter, sum(areas), plot
+
+
+
+
 class _Oracle:
     def validate_svg_bytes(self, scenario: ScenarioDraft, image: bytes) -> None:
         """Reject moved structures, changed labels, scale, or paving width."""
@@ -458,13 +735,16 @@ class _Oracle:
 
     def validate_scenario(self, scenario: ScenarioDraft) -> None:
         c = scenario.context
-        if c.get("template_id") != "SOSNOVKA-2025-1.1" or c.get("scenario_seed") != scenario.seed:
+        if (c.get("template_id") != "SOSNOVKA-2025-1.1" or c.get("scenario_seed") != scenario.seed
+                or c.get("grid_side_m") != 2):
             raise ValueError("Unverified garden topology or mismatched seed")
+        if scenario.generator_version == VERSION and c.get("world_version") != VERSION:
+            raise ValueError("Garden generator and plan versions differ")
         labels = cast(Mapping[str, int], c["labels"])
         if len(set(labels.values())) != len(labels) or set(labels.values()) != set(range(1, 8)):
             raise ValueError("Garden labels must be a unique source-verified mapping")
         heat = cast(Mapping[str, int], c["heat"])
-        if scenario.generator_version == VERSION:
+        if scenario.generator_version in _MODERN_HEAT_VERSIONS:
             gas_hourly = int(heat["gas_m3_per_hour_tenths"]) * int(heat["gas_price_per_m3_tenths"])
             electric_hourly = int(heat["electric_kw_tenths"]) * int(heat["electric_price_per_kwh_tenths"])
             gas_upfront = int(heat["gas_heater_cost"]) + int(heat["gas_installation_cost"])
@@ -490,6 +770,13 @@ class _Oracle:
             or question.family_id != FAMILIES[question.position - 1]
         ):
             raise ValueError("Question family/seed mismatch")
+        diverse = scenario.generator_version == VERSION
+        total_tiles, perimeter, occupied, plot = (
+            _visible_geometry(scenario) if diverse and question.position != 5 else (65, 36, 176, 600)
+        )
+        if diverse and question.position in (2, 3, 4):
+            if question.solution_steps != _geometry_solution(scenario.context, question.position, question.canonical_answer):
+                raise ValueError("Garden solutions differ from the visible plan")
         if question.position == 1:
             labels = cast(Mapping[str, int], scenario.context["labels"])
             expected = "".join(str(labels[k]) for k in ("house", "bath", "garage", "greenhouse"))
@@ -516,17 +803,18 @@ class _Oracle:
                     raise ValueError("Shared garden narrative omits an identification clue")
         elif question.position == 2:
             pack = cast(int, scenario.context["tiles_per_pack"])
-            if question.canonical_answer != str(ceil(65 / pack)):
+            if question.canonical_answer != str(ceil(Fraction(total_tiles, pack))):
                 raise ValueError("Tile pack answer mismatch")
             if not all(value in question.condition for value in ("2 м", "1 м", f"В пачке {pack} плиток")):
                 raise ValueError("Tile values in text differ from plan")
         elif question.position == 3:
-            if question.canonical_answer != "36":
+            if question.canonical_answer != str(perimeter):
                 raise ValueError("Perimeter mismatch")
             if "2 м" not in question.condition or "внешнего контура" not in question.condition:
                 raise ValueError("Perimeter wording or scale mismatch")
         elif question.position == 4:
-            if question.canonical_answer != "29":
+            percentage = int(Fraction(100 * occupied, plot) + Fraction(1, 2))
+            if question.canonical_answer != str(percentage):
                 raise ValueError("Building percentage mismatch")
             if not all(
                 value in question.condition for value in ("четыре бежевых", "2 м", "целого")
@@ -534,7 +822,7 @@ class _Oracle:
                 raise ValueError("Building areas or denominator differ from plan")
         elif question.position == 5:
             heat = cast(Mapping[str, int], scenario.context["heat"])
-            if scenario.generator_version == VERSION:
+            if scenario.generator_version in HEAT_TABLE_ONLY_VERSIONS:
                 answer, expected_steps = _modern_heat_solution(heat)
                 if question.canonical_answer != answer:
                     raise ValueError("Heating answer mismatch")
@@ -633,6 +921,8 @@ class _Oracle:
         self.validate_svg_bytes(scenario, image)
         root = ElementTree.fromstring(image)
         if scenario.generator_version == VERSION:
+            return
+        if scenario.generator_version in SOURCE_PLAN_VERSIONS:
             self._validate_current_geometry(scenario, questions, root)
             return
         if (

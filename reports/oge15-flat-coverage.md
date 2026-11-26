@@ -6,23 +6,22 @@ does not claim exhaustive coverage of the OGE item bank.
 
 | Family | Position | Status in research | Adapter state | Basis / limitation |
 |---|---:|---|---|---|
-| `FLAT-01-ROOM-MATCH` | 1 | enabled_candidate | Implemented, disabled | Fixed eight-room topology, graph clues, ordered four-digit answer. |
-| `FLAT-02-TILE-PACK` | 2 | enabled_candidate | Implemented, disabled | Exact 0.4 m square grid, no-cut tile fit, integer ceiling by pack. |
-| `FLAT-02-PARQUET-PACK` | 2 | enabled_candidate | Implemented, disabled | 4.8×5.2 m room; 0.2×0.8 m boards fit 6×26 without cutting. |
-| `FLAT-03-RECT-AREA` | 3 | enabled_candidate | Implemented, disabled | Fixed 3×10-cell loggia; exact 4.8 m² control result. |
-| `FLAT-04-RECT-PERCENT` | 4 | enabled_candidate | Implemented, disabled | Exact 30 vs 20 cells; denominator is the smaller storage area. |
+| `FLAT-01-ROOM-MATCH` | 1 | enabled_candidate | Implemented, disabled | Parameterized eight-room plan, graph clues, ordered four-digit answer. |
+| `FLAT-02-TILE-PACK` | 2 | enabled_candidate | Implemented, disabled | Exact 0.4 m or 0.5 m square grid, no-cut tile fit, integer ceiling by pack. |
+| `FLAT-02-PARQUET-PACK` | 2 | enabled_candidate | Implemented, disabled | Variable dimensions and fitting boards, exact placement without cutting. |
+| `FLAT-03-RECT-AREA` | 3 | enabled_candidate | Implemented, disabled | Variable loggia dimensions and scale; exact 4.8 m² control result. |
+| `FLAT-04-RECT-PERCENT` | 4 | enabled_candidate | Implemented, disabled | Variable exact cell counts; pantry area is the denominator. |
 | `FLAT-04-COMPOSITE-PERCENT` | 4 | enabled_candidate | Excluded from generation | Its only disputed positive example is 409306; rounding is unresolved. |
 | `FLAT-05-WASHER-MIN` | 5 | enabled_candidate | Implemented, disabled by default | [Source №409311](https://math-oge.sdamgia.ru/problem?id=409311) asks for vertical load, capacity ≥6 kg, and minimum full price including hookup and delivery. The generator now uses those eligibility conditions and independently totals purchase price, hookup, and percent delivery. Its six-row authored table retains explicit dimensions, but no width/depth/height fit rule is applied because the prompt states none. |
 | `FLAT-05-INTERNET-MIN` | 5 | enabled_candidate | Implemented, disabled | Two capped plans plus unlimited plan; exact `Fraction` overage cost and unique minimum. |
 | `FLAT-ALT-TOPOLOGY` | 1 | research_only | Excluded | Alternative plan grid is not verified. |
 | `FLAT-02-CUTTING-WASTE` | 2 | blocked | Excluded | Cutting and waste rules are not specified by verified examples. |
 
-Seven of the eight candidate structures are generated for public selection. The
-washer generator remains registered for research but cannot be selected; every
-family still has `enabled=False` by default. The single
-research-only and blocked structures also remain non-generating. Thus the
-adapter is installed for engineering review, while OGE 1–5 remain unavailable
-to students through the fail-closed registry.
+Seven of the eight candidate structures are allowed by the public registry,
+including washer cost comparison. The adapter's registrations default to
+`enabled=False`; the public registry explicitly activates eligible families.
+Composite percentages, the research-only topology, and cutting waste remain
+excluded from selection.
 
 ## Control block
 
@@ -70,3 +69,39 @@ Labels vary; geometry does not. New full-kit counts must not be presented as
 new geometries. A legacy snapshot fixture checks the static SVG digest; the frozen c2570e9
 PNG renderer separately verifies byte-identical restoration in the same Pillow
 runtime, avoiding an invalid Windows-wheel/Linux-wheel digest comparison.
+
+
+## Variable plans and offers in flat-grid-3.0.0
+
+The apartment keeps the eight-room adjacency graph of the control plan.
+Room boundaries and the corresponding door and window positions vary together,
+and each plot is drawn from the immutable snapshot. The shared legend and
+relevant questions use the same exact 0.4 m or 0.5 m scale. Pack sizes vary
+for both flooring families. The washer question varies the input costs of
+eligible offers and can select either eligible model. The internet question
+varies traffic, fee, cap, and overage inputs, and all three plans can win.
+
+The independent 128-seed test forced each family on every seed. It checked
+125 distinct grid layouts, exact area and percentage answers, no-cut
+flooring, and unique cost minima. Flooring signatures use relative dimensions
+in cells. Internet signatures include only overage rates used at the given
+traffic.
+
+| Family | Distinct mathematical inputs | Distinct answers |
+|---|---:|---:|
+| Room matching | 121 | 121 |
+| Tile packages | 55 | 11 |
+| Parquet packages | 68 | 20 |
+| Rectangle area | 16 | 16 |
+| Percentage comparison | 23 | 15 |
+| Washer minimum | 128 | 109 |
+| Internet minimum | 128 | 80 |
+
+The control seed still yields `1346`, `12`, `4.8`, `50`, `950`. Released
+snapshots retain their original model, answer policy, and versioned asset
+rendering. Geometry and restored asset bytes are invariant to JSON key order.
+
+The smaller-loggia area has 16 reachable signatures (four widths, two depths,
+and two scales). Percentage comparison has 23 reachable pairs of pantry area
+and excess bathroom area. The selection tests cover exact exhaustion of both
+pools using one validated seed per signature.

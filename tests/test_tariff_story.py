@@ -124,9 +124,9 @@ def test_1200_seed_oracle_and_per_question_content_diversity(adapter) -> None:
             fingerprints[family].add(_question_content_fingerprint(question, context))
     assert {family: len(items) for family, items in fingerprints.items()} == {
         MINUTES_FAMILY: 1200,
-        BILL_FAMILY: 992,
+        BILL_FAMILY: 1121,
         MINIMUM_FAMILY: 1200,
-        PERCENT_FAMILY: 4,
+        PERCENT_FAMILY: 63,
         "TARIFF-F12-HOME-ISP": 220,
     }
 
@@ -167,7 +167,7 @@ def test_money_uses_exact_kopecks_and_ceil_for_partial_data_packages(adapter) ->
     context = dict(scenario.context)
     context["minutes"] = (300,) * 12
     context["gb_quarters"] = (12, 13, 14, 16) + (12,) * 8
-    context["tariff"] = dict(context["tariff"])
+    context["tariff"] = {**context["tariff"], "monthly_fee_cents": 35_000}
     assert _monthly_bill_cents(context, 0) == 35_000
     assert _monthly_bill_cents(context, 1) == 44_000
     assert _monthly_bill_cents(context, 2) == 44_000
@@ -184,6 +184,7 @@ def test_research_vectors_for_bill_percentage_and_home_internet(adapter) -> None
     context = dict(scenario.context)
     context["minutes"] = (175, 275, 150, 350, 300, 325, 375, 325, 200, 200, 325, 350)
     context["gb_quarters"] = (10, 14, 8, 16, 11, 12, 4, 6, 11, 13, 15, 9)
+    context["tariff"] = {**context["tariff"], "monthly_fee_cents": 35_000}
     assert _monthly_bill_cents(context, 7) == 42_500  # Aug: 350 + 25 × 3
 
     old_fee_cents, new_fee_cents = 35_000, 49_000

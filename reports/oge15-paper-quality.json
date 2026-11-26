@@ -1,46 +1,42 @@
 {
   "story": "PAPER",
-  "generator_version": "paper-v1",
+  "generator_version": "paper-v5",
   "seed_range": "0..1199",
   "per_family_samples": {
     "PAPER-F01": {
       "status": "enabled_candidate",
-      "enabled": true,
+      "enabled_in_quality_harness": true,
       "sources": [
         "408268",
         "SPB-2025-2502"
       ],
       "samples_validated": 300,
-      "unique_structural_fingerprints": 298,
+      "unique_structural_fingerprints": 295,
       "unique_canonical_answers": 24,
       "fingerprint_examples": [
         [
           [
             "A0",
             "A1",
-            "A2",
-            "A3"
+            "A3",
+            "A4"
           ],
           [
             [
-              "A2",
-              594,
-              420
+              420,
+              297
             ],
             [
-              "A0",
-              1189,
-              841
-            ],
-            [
-              "A1",
               841,
               594
             ],
             [
-              "A3",
-              420,
-              297
+              297,
+              210
+            ],
+            [
+              1189,
+              841
             ]
           ]
         ],
@@ -49,148 +45,128 @@
             "A0",
             "A1",
             "A4",
-            "A6"
-          ],
-          [
-            [
-              "A0",
-              1189,
-              841
-            ],
-            [
-              "A1",
-              841,
-              594
-            ],
-            [
-              "A4",
-              297,
-              210
-            ],
-            [
-              "A6",
-              148,
-              105
-            ]
-          ]
-        ],
-        [
-          [
-            "A0",
-            "A1",
-            "A5",
-            "A6"
-          ],
-          [
-            [
-              "A6",
-              148,
-              105
-            ],
-            [
-              "A5",
-              210,
-              148
-            ],
-            [
-              "A0",
-              1189,
-              841
-            ],
-            [
-              "A1",
-              841,
-              594
-            ]
-          ]
-        ],
-        [
-          [
-            "A0",
-            "A1",
-            "A6",
-            "A2"
-          ],
-          [
-            [
-              "A6",
-              148,
-              105
-            ],
-            [
-              "A1",
-              841,
-              594
-            ],
-            [
-              "A0",
-              1189,
-              841
-            ],
-            [
-              "A2",
-              594,
-              420
-            ]
-          ]
-        ],
-        [
-          [
-            "A0",
-            "A1",
-            "A6",
             "A3"
           ],
           [
             [
-              "A6",
-              148,
-              105
+              297,
+              210
             ],
             [
-              "A3",
+              841,
+              594
+            ],
+            [
               420,
               297
             ],
             [
-              "A0",
               1189,
               841
-            ],
-            [
-              "A1",
-              841,
-              594
             ]
           ]
         ],
         [
           [
             "A0",
-            "A1",
-            "A6",
+            "A2",
+            "A3",
             "A4"
           ],
           [
             [
-              "A4",
+              594,
+              420
+            ],
+            [
               297,
               210
             ],
             [
-              "A6",
-              148,
-              105
-            ],
-            [
-              "A0",
               1189,
               841
             ],
             [
-              "A1",
+              420,
+              297
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A2",
+            "A4",
+            "A3"
+          ],
+          [
+            [
+              420,
+              297
+            ],
+            [
+              297,
+              210
+            ],
+            [
+              594,
+              420
+            ],
+            [
+              1189,
+              841
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A2",
+            "A4",
+            "A3"
+          ],
+          [
+            [
+              594,
+              420
+            ],
+            [
+              420,
+              297
+            ],
+            [
+              297,
+              210
+            ],
+            [
+              1189,
+              841
+            ]
+          ]
+        ],
+        [
+          [
+            "A0",
+            "A3",
+            "A1",
+            "A4"
+          ],
+          [
+            [
               841,
               594
+            ],
+            [
+              297,
+              210
+            ],
+            [
+              420,
+              297
+            ],
+            [
+              1189,
+              841
             ]
           ]
         ]
@@ -198,157 +174,215 @@
     },
     "PAPER-F02": {
       "status": "enabled_candidate",
-      "enabled": true,
+      "enabled_in_quality_harness": true,
       "sources": [
         "408281",
         "408284"
       ],
       "samples_validated": 300,
-      "unique_structural_fingerprints": 21,
-      "unique_canonical_answers": 6,
+      "unique_structural_fingerprints": 30,
+      "unique_canonical_answers": 20,
       "fingerprint_examples": [
         [
-          0,
+          1,
           1
         ],
         [
-          0,
+          1,
           2
         ],
         [
-          0,
+          1,
           3
         ],
         [
-          0,
+          1,
           4
         ],
         [
-          0,
+          1,
           5
         ],
         [
-          0,
+          1,
           6
         ]
       ]
     },
     "PAPER-F03": {
       "status": "enabled_candidate",
-      "enabled": true,
+      "enabled_in_quality_harness": true,
       "sources": [
         "408300",
         "408313"
       ],
       "samples_validated": 300,
-      "unique_structural_fingerprints": 2,
-      "unique_canonical_answers": 2,
+      "unique_structural_fingerprints": 13,
+      "unique_canonical_answers": 10,
       "fingerprint_examples": [
         [
-          0,
-          "short",
+          105,
           10
         ],
         [
-          7,
-          "long",
+          1189,
+          10
+        ],
+        [
+          1189,
           5
+        ],
+        [
+          148,
+          10
+        ],
+        [
+          148,
+          5
+        ],
+        [
+          297,
+          10
         ]
       ]
     },
     "PAPER-F04": {
       "status": "enabled_candidate",
-      "enabled": true,
+      "enabled_in_quality_harness": true,
       "sources": [
         "408314"
       ],
       "samples_validated": 300,
-      "unique_structural_fingerprints": 7,
-      "unique_canonical_answers": 1,
+      "unique_structural_fingerprints": 16,
+      "unique_canonical_answers": 3,
       "fingerprint_examples": [
         [
-          0,
-          "short_over_long"
-        ],
-        [
+          105,
+          148,
           1,
-          "short_over_long"
+          "long"
         ],
         [
+          105,
+          148,
           2,
-          "short_over_long"
+          "long"
         ],
         [
-          3,
-          "short_over_long"
+          148,
+          210,
+          1,
+          "long"
         ],
         [
-          4,
-          "short_over_long"
+          148,
+          210,
+          2,
+          "long"
         ],
         [
-          5,
-          "short_over_long"
+          210,
+          297,
+          1,
+          "long"
+        ],
+        [
+          210,
+          297,
+          2,
+          "long"
         ]
       ]
     },
     "PAPER-F06": {
       "status": "enabled_candidate",
-      "enabled": true,
+      "enabled_in_quality_harness": true,
       "sources": [
         "408320"
       ],
       "samples_validated": 300,
-      "unique_structural_fingerprints": 1,
-      "unique_canonical_answers": 1,
+      "unique_structural_fingerprints": 16,
+      "unique_canonical_answers": 6,
       "fingerprint_examples": [
         [
-          "A2",
-          "diagonal_over_short"
+          105,
+          148,
+          1,
+          "long"
+        ],
+        [
+          105,
+          148,
+          1,
+          "short"
+        ],
+        [
+          105,
+          148,
+          2,
+          "long"
+        ],
+        [
+          105,
+          148,
+          2,
+          "short"
+        ],
+        [
+          148,
+          210,
+          1,
+          "long"
+        ],
+        [
+          148,
+          210,
+          1,
+          "short"
         ]
       ]
     },
     "PAPER-F07": {
       "status": "enabled_candidate",
-      "enabled": true,
+      "enabled_in_quality_harness": true,
       "sources": [
         "408333",
         "408343",
         "460960"
       ],
       "samples_validated": 300,
-      "unique_structural_fingerprints": 197,
-      "unique_canonical_answers": 36,
+      "unique_structural_fingerprints": 34,
+      "unique_canonical_answers": 24,
       "fingerprint_examples": [
         [
-          0,
-          1,
-          11
+          10,
+          297,
+          420
         ],
         [
-          0,
-          1,
-          12
+          10,
+          420,
+          297
         ],
         [
-          0,
-          1,
-          13
+          11,
+          297,
+          420
         ],
         [
-          0,
-          1,
-          15
+          11,
+          420,
+          297
         ],
         [
-          0,
-          1,
-          16
+          12,
+          297,
+          420
         ],
         [
-          0,
-          1,
-          20
+          12,
+          420,
+          297
         ]
       ]
     }
@@ -356,38 +390,17 @@
   "structural_uniqueness": {
     "PAPER-F01": {
       "attempts": 1200,
-      "unique_structural_fingerprints": 1162,
-      "target": 200,
-      "passed": true
-    },
-    "PAPER-F07": {
-      "attempts": 1200,
-      "unique_structural_fingerprints": 344,
+      "unique_structural_fingerprints": 1113,
       "target": 200,
       "passed": true
     }
   },
   "natural_capacity_exceptions": {
-    "PAPER-F02": {
-      "observed_unique_conditions": 21,
-      "unique_answers": 6,
-      "exception": "finite A0..A6 index pairs"
-    },
-    "PAPER-F03": {
-      "observed_unique_conditions": 2,
-      "unique_answers": 2,
-      "exception": "only two individually checked side/multiple combinations"
-    },
-    "PAPER-F04": {
-      "observed_unique_conditions": 7,
-      "unique_answers": 1,
-      "exception": "same 0.7 answer for rounded A0..A6 dimensions"
-    },
-    "PAPER-F06": {
-      "observed_unique_conditions": 1,
-      "unique_answers": 1,
-      "exception": "only the source-verified A2 diagonal ratio is implemented"
-    }
+    "PAPER-F02": "1–5 starting sheets and six cutting depths",
+    "PAPER-F03": "bounded ISO side values with meaningful rounding to 5 or 10 mm",
+    "PAPER-F04": "eight ISO formats at one or two decimal places",
+    "PAPER-F06": "four exact ISO reconstructions, two denominators and two precisions",
+    "PAPER-F07": "two format directions and 17 point sizes"
   },
   "full_bundle": {
     "seeds_validated": 300,
@@ -408,15 +421,5 @@
     "PAPER-F09": "blocked: ideal-area and rounded-dimension mass disagree"
   },
   "independent_oracle": "scenario, rendered text/table, each question and bundle validated",
-  "renderer": "deterministic PNG diagram + table; snapshot restore SHA-256 checked in tests",
-  "visual_audit": {
-    "screen_widths_px": [
-      360,
-      390,
-      430
-    ],
-    "table_png": "1024x520; all headers, row labels and values remain within the canvas",
-    "diagram_png": "960x640; A0-A5 labels and successive arrows remain within the canvas",
-    "result": "visually inspected at all three scaled widths"
-  }
+  "renderer": "deterministic PNG diagram + table; snapshot restore SHA-256 checked in tests"
 }

@@ -1,6 +1,6 @@
 """Deterministic, fail-closed apartment-plan adapter for OGE tasks 1–5.
 
-The geometry is authored on a 0.4 m integer lattice. PNG and SVG are rendered
+The geometry uses an integer lattice with an exact metric scale. PNG and SVG are rendered
 from that model; neither is a modified third-party raster.
 """
 
@@ -29,7 +29,8 @@ from app.math.scenario_engine import (
 
 LEGACY_VERSION = "flat-grid-1.0.0"
 PREVIOUS_VERSION = "flat-grid-2.1.0"
-GENERATOR_VERSION = "flat-grid-2.2.0"
+FIXED_VERSION = "flat-grid-2.2.0"
+GENERATOR_VERSION = "flat-grid-3.0.0"
 COMPATIBILITY_VERSION = "flat-compat-1"
 CELL_M = Fraction(2, 5)
 SOURCE_VECTOR_SEED = 20220523
@@ -117,6 +118,7 @@ WINDOW_MARKS = ((5, 0, "h"), (16, 0, "h"), (27, 0, "h"), (30, 4, "h"), (3, 3, "h
 
 def plan_symbols(
     version: str,
+    context: Mapping[str, JsonValue] | None = None,
 ) -> tuple[
     dict[str, tuple[tuple[int, int, int, int], ...]],
     tuple[tuple[int, int, str], ...],
@@ -124,9 +126,87 @@ def plan_symbols(
 ]:
     if version == LEGACY_VERSION:
         return LEGACY_ROOM_PARTS, LEGACY_DOOR_MARKS, LEGACY_WINDOW_MARKS
-    if version in (PREVIOUS_VERSION, GENERATOR_VERSION):
+    if version in (PREVIOUS_VERSION, FIXED_VERSION, "flat-grid-2.0.0"):
         return ROOM_PARTS, DOOR_MARKS, WINDOW_MARKS
-    raise ValueError("Unsupported FLAT geometry version")
+    if version != GENERATOR_VERSION or context is None:
+        raise ValueError("Unsupported FLAT geometry version")
+
+    # Use the authored room order even when a JSONB roundtrip reorders keys.
+    stored = cast(Mapping[str, tuple[tuple[int, int, int, int], ...]], context["room_parts"])
+    parts = {room: stored[room] for room in ROOM_PARTS}
+    _, kitchen_top, kitchen_right, kitchen_bottom = parts["kitchen"][0]
+    _, _, living_right, living_bottom = parts["living"][0]
+    _, bedroom_top, width, _ = parts["bedroom"][0]
+    bath_right, _, pantry_left, bottom = parts["hall"][0]
+    doors = (
+        (kitchen_right, (kitchen_top + kitchen_bottom) // 2 - 1, "v"),
+        ((bath_right + kitchen_right) // 2, kitchen_bottom, "h"),
+        (living_right + 3, living_bottom, "h"),
+        (kitchen_right + 3, living_bottom, "h"),
+        (pantry_left, bottom - 2, "v"),
+        (bath_right, living_bottom + 2, "v"),
+        (kitchen_right - 4, kitchen_top, "h"),
+        (living_right + 3, bedroom_top, "h"),
+    )
+    windows = (
+        (kitchen_right // 2, 0, "h"),
+        (kitchen_right + 6, 0, "h"),
+        (living_right + 5, 0, "h"),
+        (width - 3, bedroom_top, "h"),
+        (3, kitchen_top, "h"),
+    )
+    return parts, doors, windows
+
+
+def plan_annotations(
+    version: str,
+    geometry: Mapping[str, tuple[tuple[int, int, int, int], ...]],
+) -> tuple[tuple[int, int, int] | None, tuple[int, int]]:
+    if version == LEGACY_VERSION:
+        return None, (7, 19)
+    hall_left, hall_top, _, hall_bottom = geometry["hall"][0]
+    return (hall_left, hall_top, geometry["kitchen"][0][2]), (hall_left + 5, hall_bottom)
+
+
+# Exact integer percentage and practical dimensions on the shared hall wall.
+_BATH_PANTRY_DIMENSIONS = tuple(
+    (bath_width, pantry_width, hall_depth)
+    for bath_width in range(4, 8)
+    for pantry_width in range(3, 7)
+    for hall_depth in range(4, 9)
+    if 0
+    < 100 * (bath_width * (hall_depth + 1) - pantry_width * hall_depth)
+    <= 150 * pantry_width * hall_depth
+    and 100 * bath_width * (hall_depth + 1) % (pantry_width * hall_depth) == 0
+)
+
+
+def _variable_parts(rng: Random) -> dict[str, tuple[tuple[int, int, int, int], ...]]:
+    bath_width, pantry_width, hall_depth = rng.choice(_BATH_PANTRY_DIMENSIONS)
+    kitchen_right = rng.randint(max(9, bath_width + 3), 12)
+    living_width = rng.choice((10, 12, 14) if kitchen_right <= 10 else (12, 14))
+    living_right = kitchen_right + living_width
+    width = living_right + rng.randint(10, min(12, living_width))
+    pantry_left = width - pantry_width
+    hall_cells = (pantry_left - bath_width) * hall_depth + kitchen_right - bath_width
+    min_living_depth = hall_cells // living_width + 1
+    hall_top = rng.randint(max(12, min_living_depth), max(16, min_living_depth))
+    bottom = hall_top + hall_depth
+    kitchen_top = rng.choice((2, 3))
+    bedroom_top = rng.choice((4, 5))
+    return {
+        "bedroom": ((living_right, bedroom_top, width, hall_top),),
+        "kitchen": ((0, kitchen_top, kitchen_right, hall_top - 1),),
+        "living": ((kitchen_right, 0, living_right, hall_top),),
+        "hall": (
+            (bath_width, hall_top, pantry_left, bottom),
+            (bath_width, hall_top - 1, kitchen_right, hall_top),
+        ),
+        "pantry": ((pantry_left, hall_top, width, bottom),),
+        "bathroom": ((0, hall_top - 1, bath_width, bottom),),
+        "loggia_1": ((0, 0, kitchen_right, kitchen_top),),
+        "loggia_2": ((living_right, 0, width, bedroom_top),),
+    }
 
 
 FAMILY_POSITION = {
@@ -162,8 +242,23 @@ def _decimal(value: Fraction) -> str:
     return f"{whole},{cents:02d}"
 
 
-def _room_area_cells(room: str) -> int:
-    return sum((x2 - x1) * (y2 - y1) for x1, y1, x2, y2 in ROOM_PARTS[room])
+def _room_area_cells(
+    parts: Mapping[str, tuple[tuple[int, int, int, int], ...]],
+    room: str,
+) -> int:
+    return sum((x2 - x1) * (y2 - y1) for x1, y1, x2, y2 in parts[room])
+
+
+def _rect_dimensions(
+    parts: Mapping[str, tuple[tuple[int, int, int, int], ...]],
+    room: str,
+) -> tuple[int, int]:
+    ((x1, y1, x2, y2),) = parts[room]
+    return x2 - x1, y2 - y1
+
+
+def _cell_m(context: Mapping[str, object]) -> Fraction:
+    return Fraction(str(context["grid_cell_m"]))
 
 
 def _to_int(value: object) -> int:
@@ -197,6 +292,10 @@ class _Generator:
         if not 0 <= seed < 2**63:
             raise ValueError("Seed must fit a non-negative PostgreSQL bigint")
         rng = Random(f"oge15-flat:{GENERATOR_VERSION}:{seed}")
+        source = seed == SOURCE_VECTOR_SEED
+        parts = ROOM_PARTS if source else _variable_parts(rng)
+        cell_m = CELL_M if source else rng.choice((Fraction(2, 5), Fraction(1, 2)))
+        width, height = _rect_dimensions(parts, "living")
         labels = list(range(1, 9))
         rng.shuffle(labels)
         room_labels = dict(zip(ROOM_PARTS, labels, strict=True))
@@ -211,11 +310,9 @@ class _Generator:
                 "loggia_1": 8,
                 "loggia_2": 5,
             }
-        # Measurements remain on the fixed 0.4 m lattice. Integer multipliers
-        # are bounded by the same fixed room topology; no wall is randomized.
-        room_cells = {name: _room_area_cells(name) for name in ROOM_PARTS}
-        tile_pack = rng.choice((10, 12, 15, 18, 20))
-        parquet_pack = 14 if seed == SOURCE_VECTOR_SEED else rng.choice((8, 10, 12, 14))
+        room_cells = {name: _room_area_cells(parts, name) for name in parts}
+        tile_pack = rng.choice((4, 5, 6, 8, 10, 12, 15, 18, 20))
+        parquet_pack = 14 if source else rng.choice((8, 10, 12, 14, 16, 18, 20))
         tile_cells = room_cells["bathroom"]
         area_room = "loggia_1"
         percent_base = room_cells["pantry"]
@@ -276,35 +373,62 @@ class _Generator:
                 "delivery_pct": 0,
             },
         ]
-        traffic = 800 + rng.randrange(0, 6) * 100
+        traffic = 1000
+        plans: list[dict[str, int | str | None]] = [
+            {"name": "Базовый", "included_mb": 600, "fee": 650, "overage": "2"},
+            {"name": "Оптимальный", "included_mb": 900, "fee": 820, "overage": "1.5"},
+            {"name": "Безлимитный", "included_mb": None, "fee": 950, "overage": "0"},
+        ]
+        if not source:
+            # The two eligible models are drawn from disjoint total-cost bands.
+            # Either row can win, even though list order stays stable.
+            low, high = ((22000, 26000), (30500, 34500))
+            eligible_bands = iter(rng.sample((low, high), 2))
+            for model in washer_models:
+                if model["type"] == "вертикальная":
+                    lower, upper = next(eligible_bands)
+                else:
+                    lower, upper = (23000, 36000)
+                model["price"] = rng.randrange(lower, upper, 100)
+                model["install"] = rng.randrange(0, 1501, 100)
+                model["delivery_pct"] = rng.choice((0, 5, 10))
+                model["capacity"] = rng.randint(6, 9)
+            traffic = rng.randrange(500, 1301, 50)
+            # Distinct residues modulo 5 distinguish totals. Overage increments
+            # are multiples of 25 because traffic and limits are multiples of 50.
+            plans[0].update(
+                included_mb=rng.randrange(500, 751, 50),
+                fee=rng.randrange(500, 651, 5),
+                overage=rng.choice(("1.5", "2")),
+            )
+            plans[1].update(
+                included_mb=rng.randrange(800, 1051, 50),
+                fee=rng.randrange(701, 852, 5),
+                overage=rng.choice(("1", "1.5")),
+            )
+            plans[2]["fee"] = rng.randrange(902, 1053, 5)
         context: dict[str, Any] = {
-            "grid_cell_m": "0.4",
-            "topology_id": "flat_2room_8label_v2",
-            "room_parts": {
-                key: [list(rect) for rect in value] for key, value in ROOM_PARTS.items()
-            },
+            "grid_cell_m": _decimal(cell_m).replace(",", "."),
+            "topology_id": "flat_2room_8label_v3",
+            "room_parts": {key: [list(rect) for rect in value] for key, value in parts.items()},
             "room_labels": room_labels,
             "door_graph": [list(pair) for pair in DOORS],
             "tile": {"room": "bathroom", "tile_cells": 1, "pack": tile_pack, "count": tile_cells},
             "parquet": {
                 "room": "living",
-                "width_cells": 12,
-                "height_cells": 13,
-                "board_m": ["0.2", "0.8"],
+                "width_cells": width,
+                "height_cells": height,
+                "board_m": [
+                    _decimal(cell_m / 2).replace(",", "."),
+                    _decimal(cell_m * 2).replace(",", "."),
+                ],
                 "pack": parquet_pack,
-                "count": 156,
+                "count": width * height,
             },
             "area_room": area_room,
             "percent": {"base": percent_base, "delta": percent_delta},
             "washers": washer_models,
-            "internet": {
-                "traffic_mb": 1000 if seed == SOURCE_VECTOR_SEED else traffic,
-                "plans": [
-                    {"name": "Базовый", "included_mb": 600, "fee": 650, "overage": "2"},
-                    {"name": "Оптимальный", "included_mb": 900, "fee": 820, "overage": "1.5"},
-                    {"name": "Безлимитный", "included_mb": None, "fee": 950, "overage": "0"},
-                ],
-            },
+            "internet": {"traffic_mb": traffic, "plans": plans},
         }
         return ScenarioDraft(
             story_code="FLAT",
@@ -348,6 +472,8 @@ class _QuestionBuilder:
             raise ValueError("FLAT family does not belong to this question position")
         c = cast(Mapping[str, Any], scenario.context)
         labels = cast(Mapping[str, int], c["room_labels"])
+        parts, _, _ = plan_symbols(scenario.generator_version, scenario.context)
+        cell_m = _cell_m(c)
         solution: tuple[str, ...]
         if position == 1:
             rooms = ("bathroom", "pantry", "bedroom", "living")
@@ -374,7 +500,7 @@ class _QuestionBuilder:
             count, pack = _to_int(tile["count"]), _to_int(tile["pack"])
             answer = str((count + pack - 1) // pack)
             condition = (
-                f"Пол санузла выложен плитками {_decimal(CELL_M)}×{_decimal(CELL_M)} м. "
+                f"Пол санузла выложен плитками {_decimal(cell_m)}×{_decimal(cell_m)} м. "
                 f"В упаковке {pack} плиток. Сколько упаковок потребуется? Резка не нужна."
             )
             model = {
@@ -392,36 +518,39 @@ class _QuestionBuilder:
             parquet = cast(Mapping[str, object], c["parquet"])
             count, pack = _to_int(parquet["count"]), _to_int(parquet["pack"])
             answer = str((count + pack - 1) // pack)
+            width, height = _rect_dimensions(parts, "living")
+            board_width, board_length = cast(tuple[str, str], parquet["board_m"])
+            room_width_m, room_height_m = width * cell_m, height * cell_m
+            along = room_width_m / Fraction(board_length)
+            across = room_height_m / Fraction(board_width)
             condition = (
                 "Пол гостиной покрывают паркетными досками "
-                f"0,2×0,8 м без распила. В упаковке {pack} досок. "
-                "Сколько упаковок потребуется?"
+                f"{_decimal(Fraction(board_width))}×{_decimal(Fraction(board_length))} м "
+                f"без распила. В упаковке {pack} досок. Сколько упаковок потребуется?"
             )
-            model = {
-                "room": "living",
-                "width_cells": 12,
-                "height_cells": 13,
-                "board_m": ["0.2", "0.8"],
-                "pack": pack,
-                "count": count,
-            }
+            model = dict(parquet)
             solution = (
-                "Гостиная на плане: 12×13 клеток, то есть 4,8×5,2 м.",
-                "При укладке без распила помещается 6×26 = 156 досок.",
-                f"156 : {pack} с округлением вверх = {answer} упаковок.",
+                f"Гостиная на плане: {width}×{height} клеток, "
+                f"то есть {_decimal(room_width_m)}×{_decimal(room_height_m)} м.",
+                f"При укладке без распила помещается {along}×{across} = {count} досок.",
+                f"{count} : {pack} с округлением вверх = {answer} упаковок.",
             )
         elif position == 3:
             room = "loggia_1"
-            area = Fraction(_room_area_cells(room), 1) * CELL_M * CELL_M
-            answer = _decimal(area)
+            width, height = _rect_dimensions(parts, room)
+            other_width, other_height = _rect_dimensions(parts, "loggia_2")
+            cells, other_cells = width * height, other_width * other_height
+            cell_area = _decimal(cell_m**2)
+            answer = _decimal(cells * cell_m**2)
             condition = (
                 "Найдите площадь меньшей лоджии, если сторона клетки плана "
-                "равна 0,4 м. Ответ дайте в квадратных метрах."
+                f"равна {_decimal(cell_m)} м. Ответ дайте в квадратных метрах."
             )
-            model = {"room": room, "area_cells": _room_area_cells(room), "cell_area": "0.16"}
+            model = {"room": room, "area_cells": cells, "cell_area": cell_area.replace(",", ".")}
             solution = (
-                "Меньшая лоджия занимает 3×10 = 30 клеток; вторая — 4×11 = 44 клетки.",
-                f"{_room_area_cells(room)} · 0,16 = {answer} м².",
+                f"Число клеток на лоджиях: {width}×{height} = {cells} "
+                f"и {other_width}×{other_height} = {other_cells}.",
+                f"{cells} · {cell_area} = {answer} м².",
             )
         elif position == 4 and family == "FLAT-04-RECT-PERCENT":
             pct = cast(Mapping[str, int], c["percent"])
@@ -432,37 +561,14 @@ class _QuestionBuilder:
             )
             model = {"base_cells": base, "delta_cells": delta, "denominator": "кладовая"}
             solution = (
-                f"Разность площадей равна {delta} клеткам.",
-                f"{delta}/{base} · 100% = {answer}%.",
-            )
-        elif position == 4:
-            base, delta = (
-                _room_area_cells("pantry"),
-                _room_area_cells("bathroom") - _room_area_cells("pantry"),
-            )
-            if base <= 0 or (100 * delta) % base:
-                raise ValueError("Plan areas do not produce an exact percentage")
-            answer = str(100 * delta // base)
-            condition = (
-                "Площадь санузла на плане больше площади кладовой. На сколько процентов площадь "
-                "санузла больше площади кладовой? Сторона клетки — 0,4 м."
-            )
-            model = {
-                "base_cells": base,
-                "delta_cells": delta,
-                "denominator": "кладовая",
-                "bathroom_cells": _room_area_cells("bathroom"),
-            }
-            solution = (
-                f"Площадь кладовой — {base} клеток, санузла — {base + delta} клеток.",
+                f"Кладовая занимает {base} клеток, санузел — {base + delta}. "
+                f"Их разность — {delta}.",
                 f"{delta}/{base} · 100% = {answer}%.",
             )
         elif position == 5 and family == "FLAT-05-WASHER-MIN":
             models = cast(list[dict[str, object]], c["washers"])
             eligible = [
-                m
-                for m in models
-                if m["type"] == "вертикальная" and _to_int(m["capacity"]) >= 6
+                m for m in models if m["type"] == "вертикальная" and _to_int(m["capacity"]) >= 6
             ]
             costs = [
                 _to_int(m["price"])
@@ -572,7 +678,7 @@ class _QuestionBuilder:
             position,
             scenario.seed,
             family,
-            GENERATOR_VERSION,
+            scenario.generator_version,
             condition,
             "oge15.flat.numeric",
             "1",
@@ -585,12 +691,27 @@ class _QuestionBuilder:
 
 
 class _Renderer:
+    @staticmethod
+    def _layout(
+        version: str,
+        geometry: Mapping[str, tuple[tuple[int, int, int, int], ...]],
+    ) -> tuple[int, int, int]:
+        if version == LEGACY_VERSION:
+            return 36, 150, 210
+        if version == GENERATOR_VERSION:
+            width = geometry["bedroom"][0][2]
+            height = geometry["hall"][0][3]
+            return min(29, 1000 // width, 750 // height), 60, 155
+        return 29, 65, 170
+
     def _svg(self, scenario: ScenarioDraft) -> bytes:
         c = scenario.context
         labels = cast(Mapping[str, int], c["room_labels"])
-        geometry, doors, windows = plan_symbols(scenario.generator_version)
-        scale, ox, oy = (
-            (36, 150, 210) if scenario.generator_version == LEGACY_VERSION else (29, 65, 170)
+        geometry, doors, windows = plan_symbols(scenario.generator_version, c)
+        scale, ox, oy = self._layout(scenario.generator_version, geometry)
+        seam, entry = plan_annotations(scenario.generator_version, geometry)
+        cell_label = (
+            _decimal(_cell_m(c)) if scenario.generator_version == GENERATOR_VERSION else "0,4"
         )
         width, height = 1120, 1000
         parts: list[str] = [
@@ -598,7 +719,7 @@ class _Renderer:
             f'height="{height}" viewBox="0 0 {width} {height}">',
             '<rect width="100%" height="100%" fill="white"/>',
             '<text x="40" y="48" font-size="26" font-family="sans-serif">'
-            "План квартиры · клетка 0,4 м</text>",
+            f"План квартиры · клетка {cell_label} м</text>",
             '<text x="40" y="78" font-size="17" font-family="sans-serif">'
             "Синие проёмы — двери · бирюзовые — окна · вход отмечен красным</text>",
         ]
@@ -629,10 +750,11 @@ class _Renderer:
                 f'text-anchor="middle" font-size="19" '
                 f'font-family="sans-serif">{labels[room]}</text>'
             )
-        if scenario.generator_version != LEGACY_VERSION:
+        if seam is not None:
+            left, y, right = seam
             parts.append(
-                f'<path d="M {ox + 5 * scale} {oy + 13 * scale} '
-                f'H {ox + 10 * scale}" stroke="#dce4eb" stroke-width="4"/>'
+                f'<path d="M {ox + left * scale} {oy + y * scale} '
+                f'H {ox + right * scale}" stroke="#dce4eb" stroke-width="4"/>'
             )
         # Door gaps are symbolized with short colored segments on fixed shared walls.
         for x, y, orientation in doors:
@@ -657,10 +779,7 @@ class _Renderer:
                 f'<path d="M {start} L {end}" stroke="white" stroke-width="9"/>'
                 f'<path d="M {start} L {end}" stroke="#008b8b" stroke-width="4"/>'
             )
-        entry_x, entry_y = (
-            ox + (7 if scenario.generator_version == LEGACY_VERSION else 10) * scale,
-            oy + (19 if scenario.generator_version == LEGACY_VERSION else 18) * scale,
-        )
+        entry_x, entry_y = ox + entry[0] * scale, oy + entry[1] * scale
         parts.append(
             f'<path d="M {entry_x - 30} {entry_y} L {entry_x + 30} {entry_y}" '
             'stroke="white" stroke-width="9"/>'
@@ -674,9 +793,11 @@ class _Renderer:
     def _png(self, scenario: ScenarioDraft) -> bytes:
         c = scenario.context
         labels = cast(Mapping[str, int], c["room_labels"])
-        geometry, doors, windows = plan_symbols(scenario.generator_version)
-        scale, ox, oy = (
-            (36, 150, 210) if scenario.generator_version == LEGACY_VERSION else (29, 65, 170)
+        geometry, doors, windows = plan_symbols(scenario.generator_version, c)
+        scale, ox, oy = self._layout(scenario.generator_version, geometry)
+        seam, entry = plan_annotations(scenario.generator_version, geometry)
+        cell_label = (
+            _decimal(_cell_m(c)) if scenario.generator_version == GENERATOR_VERSION else "0,4"
         )
         image = Image.new("RGB", (1120, 1000), "white")
         draw = ImageDraw.Draw(image)
@@ -685,10 +806,11 @@ class _Renderer:
             font = ImageFont.truetype("arial.ttf", 18)
         except OSError:
             font = ImageFont.load_default()
-        draw.text((40, 30), "План квартиры · клетка 0,4 м", fill="#202b38", font=font)
+        draw.text((40, 30), f"План квартиры · клетка {cell_label} м", fill="#202b38", font=font)
         draw.text(
             (40, 62),
-            "Сторона клетки 0,4 м · синие проёмы — двери · бирюзовые — окна · вход красный",
+            f"Сторона клетки {cell_label} м · синие проёмы — двери · "
+            "бирюзовые — окна · вход красный",
             fill="#202b38",
             font=font,
         )
@@ -709,9 +831,10 @@ class _Renderer:
                 (cx - 17, cy - 17, cx + 17, cy + 17), fill="#e9f2ff", outline="#1463a5", width=2
             )
             draw.text((cx - 6, cy - 12), str(labels[room]), fill="#102b45", font=font)
-        if scenario.generator_version != LEGACY_VERSION:
+        if seam is not None:
+            left, y, right = seam
             draw.line(
-                (ox + 5 * scale, oy + 13 * scale, ox + 10 * scale, oy + 13 * scale),
+                (ox + left * scale, oy + y * scale, ox + right * scale, oy + y * scale),
                 fill="#dce4eb",
                 width=4,
             )
@@ -729,10 +852,7 @@ class _Renderer:
             )
             draw.line(bounds, fill="white", width=9)
             draw.line(bounds, fill="#008b8b", width=4)
-        entry_x, entry_y = (
-            ox + (7 if scenario.generator_version == LEGACY_VERSION else 10) * scale,
-            oy + (19 if scenario.generator_version == LEGACY_VERSION else 18) * scale,
-        )
+        entry_x, entry_y = ox + entry[0] * scale, oy + entry[1] * scale
         draw.line((entry_x - 30, entry_y, entry_x + 30, entry_y), fill="white", width=9)
         draw.line((entry_x - 30, entry_y, entry_x + 30, entry_y), fill="#bd3030", width=5)
         draw.text((entry_x - 20, entry_y + 8), "Вход", fill="#202b38", font=font)
@@ -752,14 +872,14 @@ class _Renderer:
             )
             for data, mime, ext in ((png, "image/png", "png"), (svg, "image/svg+xml", "svg"))
         )
+        cell_label = _decimal(_cell_m(scenario.context))
         context = (
-            "План квартиры: восемь помещений с цифровыми метками; сторона клетки 0,4 м. "
+            f"План квартиры: восемь помещений с цифровыми метками; сторона клетки {cell_label} м. "
             "Коридор у входа; санузел слева от входа, кладовая в противоположном конце. "
             "Рядом с кладовой спальня с лоджией. Гостиная соединяет коридор и кухню; "
             "кухня выходит на другую лоджию. Гостиная — самое большое помещение. "
             "Обе лоджии расположены в верхних углах плана. "
-            "Синие штрихи обозначают двери, бирюзовые — окна, красный — вход. "
-            "Это собственная SVG/PNG схема фиксированной топологии."
+            "Синие штрихи обозначают двери, бирюзовые — окна, красный — вход."
         )
         return RenderedScenario(context, assets)
 
@@ -768,6 +888,7 @@ class _Renderer:
             LEGACY_VERSION,
             "flat-grid-2.0.0",
             PREVIOUS_VERSION,
+            FIXED_VERSION,
             GENERATOR_VERSION,
         ):
             raise ValueError("Unsupported FLAT snapshot renderer version")
@@ -793,60 +914,107 @@ class _Oracle:
     def validate_scenario(self, scenario: ScenarioDraft) -> None:
         c = cast(Mapping[str, Any], scenario.context)
         labels = cast(Mapping[str, int], c["room_labels"])
-        if set(labels) != set(ROOM_PARTS) or set(labels.values()) != set(range(1, 9)):
-            raise ValueError("Room labels must be a bijection over the fixed 8-room plan")
-        if c["grid_cell_m"] != "0.4" or c["topology_id"] != "flat_2room_8label_v2":
-            raise ValueError("Plan scale/topology differs from the validated fixed template")
-        if tuple(tuple(edge) for edge in c["door_graph"]) != DOORS:
-            raise ValueError("Door graph differs from the fixed visible plan topology")
-        if len(DOOR_MARKS) != len(DOORS):
-            raise ValueError("Door drawing and door graph have different edge counts")
-        actual_parts = cast(Mapping[str, object], c["room_parts"])
-        expected_parts = {
-            key: tuple(tuple(rect) for rect in value) for key, value in ROOM_PARTS.items()
-        }
-        if actual_parts != expected_parts:
-            raise ValueError("Room geometry differs from the fixed rendered plan")
-        if CELL_M != Fraction(2, 5) or _room_area_cells("living") <= max(
-            _room_area_cells(r) for r in ROOM_PARTS if r != "living"
+        parts, door_marks, windows = plan_symbols(scenario.generator_version, scenario.context)
+        cell_m = _cell_m(c)
+        if (
+            set(labels) != set(ROOM_PARTS)
+            or any(type(label) is not int for label in labels.values())
+            or set(labels.values()) != set(range(1, 9))
         ):
-            raise ValueError("Scale or largest-room invariant failed")
-        occupancy: dict[tuple[int, int], str] = {}
-        for room, rectangles in ROOM_PARTS.items():
+            raise ValueError("Room labels must be a bijection over the 8-room plan")
+        topology = (
+            "flat_2room_8label_v3"
+            if scenario.generator_version == GENERATOR_VERSION
+            else "flat_2room_8label_v2"
+        )
+        if cell_m not in (Fraction(2, 5), Fraction(1, 2)) or c["topology_id"] != topology:
+            raise ValueError("Plan scale or topology is outside the validated ranges")
+        if c["door_graph"] != DOORS:
+            raise ValueError("Door graph differs from the visible plan topology")
+        if set(c["room_parts"]) != set(parts) or c["room_parts"] != parts:
+            raise ValueError("Stored room polygons differ from the rendered plan")
+
+        occupied: dict[tuple[int, int], str] = {}
+        for room, rectangles in parts.items():
+            if len(rectangles) != (2 if room == "hall" else 1):
+                raise ValueError("Unexpected room polygon structure")
             for x1, y1, x2, y2 in rectangles:
+                if not (0 <= x1 < x2 <= 38 and 0 <= y1 < y2 <= 31):
+                    raise ValueError("Invalid room polygon bounds")
                 for x in range(x1, x2):
                     for y in range(y1, y2):
-                        if (x, y) in occupancy:
+                        if (x, y) in occupied:
                             raise ValueError("Room polygons overlap on the integer grid")
-                        occupancy[(x, y)] = room
-        if set(occupancy) != {(x, y) for x in range(33) for y in range(18)}:
-            raise ValueError("Room polygons leave gaps or exceed the apartment outline")
-        for (x, y, orientation), (left_room, right_room) in zip(DOOR_MARKS, DOORS, strict=True):
-            adjacent = {(x - 1, y), (x, y)} if orientation == "v" else {(x, y - 1), (x, y)}
-            if any(cell not in occupancy for cell in adjacent):
-                raise ValueError("Door mark is outside the source plan")
-            room_names = {occupancy[cell] for cell in adjacent}
-            if room_names != {left_room, right_room}:
+                        occupied[x, y] = room
+        width, height = max(x for x, _ in occupied) + 1, max(y for _, y in occupied) + 1
+        if set(occupied) != {(x, y) for x in range(width) for y in range(height)}:
+            raise ValueError("Room polygons leave gaps in the apartment outline")
+
+        def sides(x: int, y: int, orientation: str) -> frozenset[str | None]:
+            a = (x - 1, y) if orientation == "v" else (x, y - 1)
+            return frozenset((occupied.get(a), occupied.get((x, y))))
+
+        for (x, y, orientation), edge in zip(door_marks, DOORS, strict=True):
+            before = (x, y - 1) if orientation == "v" else (x - 1, y)
+            if sides(x, y, orientation) != set(edge) or sides(*before, orientation) != set(edge):
                 raise ValueError("Visible door gap does not match the language door graph")
-        tile = cast(Mapping[str, int], c["tile"])
-        if tile["tile_cells"] != 1 or tile["count"] != _room_area_cells("bathroom"):
-            raise ValueError("Tile count does not match exact room lattice")
-        parquet = cast(Mapping[str, object], c["parquet"])
-        if (parquet["width_cells"], parquet["height_cells"], parquet["count"]) != (12, 13, 156):
-            raise ValueError("Parquet room dimensions and count do not match fixed plan")
-        room_width_m = _to_int(parquet["width_cells"]) * CELL_M
-        room_height_m = _to_int(parquet["height_cells"]) * CELL_M
-        board_width, board_length = (
-            Fraction(value) for value in cast(list[str], parquet["board_m"])
-        )
-        if room_width_m % board_length or room_height_m % board_width:
-            raise ValueError("Parquet dimensions do not tile in the displayed orientation")
-        if _to_int(room_width_m / board_length) * _to_int(room_height_m / board_width) != _to_int(
-            parquet["count"]
+        for x, y, orientation in windows:
+            if len(sides(x, y, orientation)) != 2:
+                raise ValueError("Window must lie on a wall")
+        seam, (entry_x, entry_y) = plan_annotations(scenario.generator_version, parts)
+        if sides(entry_x, entry_y, "h") != {"hall", None} or seam is None:
+            raise ValueError("Entrance must lead to the hall from the exterior")
+        left, y, right = seam
+        if left >= right or any(sides(x, y, "h") != {"hall"} for x in range(left, right)):
+            raise ValueError("Hall segments must meet along the shared grid line")
+        if occupied[0, 0] != "loggia_1" or occupied[width - 1, 0] != "loggia_2":
+            raise ValueError("The room matching clues require loggias in the upper corners")
+        if not (
+            sides(parts["pantry"][0][0], parts["pantry"][0][1], "h") == {"bedroom", "pantry"}
+            and parts["bathroom"][0][2] < entry_x < parts["pantry"][0][0]
         ):
-            raise ValueError("Parquet placement count differs from exact row/column layout")
-        if not set(cast(Mapping[str, object], c["internet"])):
-            raise ValueError("Internet tariff table missing")
+            raise ValueError("Room locations contradict the entrance clues")
+
+        areas = {room: sum(value == room for value in occupied.values()) for room in parts}
+        if areas["living"] <= max(area for room, area in areas.items() if room != "living"):
+            raise ValueError("The living room must be the largest room")
+        if c["area_room"] != "loggia_1" or areas["loggia_1"] >= areas["loggia_2"]:
+            raise ValueError("The smaller loggia must be uniquely determined")
+        base = areas["pantry"]
+        delta = areas["bathroom"] - base
+        if delta <= 0 or 100 * delta % base or c["percent"] != {"base": base, "delta": delta}:
+            raise ValueError("Bathroom and pantry must give an exact positive percentage")
+        tile = c["tile"]
+        if (tile["room"], tile["tile_cells"], tile["count"]) != ("bathroom", 1, areas["bathroom"]):
+            raise ValueError("Tile count does not match exact room lattice")
+        self._check_pack(tile["pack"])
+
+        parquet = c["parquet"]
+        living_cells = [(x, y) for (x, y), room in occupied.items() if room == "living"]
+        width = len({x for x, _ in living_cells})
+        height = len({y for _, y in living_cells})
+        if (parquet["room"], parquet["width_cells"], parquet["height_cells"]) != (
+            "living",
+            width,
+            height,
+        ):
+            raise ValueError("Parquet room dimensions do not match the plan")
+        board_width, board_length = map(Fraction, parquet["board_m"])
+        room_width, room_height = width * cell_m, height * cell_m
+        if (
+            min(board_width, board_length) <= 0
+            or room_width % board_length
+            or room_height % board_width
+        ):
+            raise ValueError("Parquet boards do not tile the displayed room without cutting")
+        if parquet["count"] != (room_width / board_length) * (room_height / board_width):
+            raise ValueError("Parquet count does not match the plan and board dimensions")
+        self._check_pack(parquet["pack"])
+
+    @staticmethod
+    def _check_pack(pack: object) -> None:
+        if not 1 <= _to_int(pack) <= 30:
+            raise ValueError("Invalid package size")
 
     def validate_question(
         self, scenario: ScenarioDraft, question: QuestionDraft, rendered: RenderedScenario
@@ -854,10 +1022,15 @@ class _Oracle:
         self.validate_scenario(scenario)
         if (
             question.scenario_seed != scenario.seed
+            or question.generator_version != scenario.generator_version
             or question.position != FAMILY_POSITION[question.family_id]
         ):
             raise ValueError("Question is detached from scenario seed or registered position")
-        # Re-parse the visible numbers/model and recompute independently.
+        # Check the visible wording against the operands and recompute independently.
+        parts, _, _ = plan_symbols(scenario.generator_version, scenario.context)
+        cell_m = _cell_m(scenario.context)
+        if f"сторона клетки {_decimal(cell_m)} м." not in rendered.shared_context:
+            raise ValueError("Shared text scale differs from the plan")
         model = question.math_model
         if question.position == 1:
             labels = cast(Mapping[str, int], model["labels"])
@@ -880,85 +1053,100 @@ class _Oracle:
             ):
                 raise ValueError("Room identity clues do not match the fixed plan")
         elif question.position == 2 and question.family_id == "FLAT-02-TILE-PACK":
-            shown_pack = re.search(r"В упаковке (\d+) плиток", question.condition)
-            if shown_pack is None or _to_int(shown_pack.group(1)) != _to_int(model["pack"]):
-                raise ValueError("Visible tile condition lost pack count")
-            if "0,4×0,4 м" not in question.condition:
-                raise ValueError("Tile dimensions differ from the exact 0.4 m grid")
-            if _to_int(question.canonical_answer) != (
-                _to_int(model["count"]) + _to_int(model["pack"]) - 1
-            ) // _to_int(model["pack"]):
-                raise ValueError("Tile packages must round up")
+            tile = cast(Mapping[str, int], scenario.context["tile"])
+            pack, count = tile["pack"], tile["count"]
+            side = _decimal(cell_m)
+            expected = (
+                f"Пол санузла выложен плитками {side}×{side} м. "
+                f"В упаковке {pack} плиток. Сколько упаковок потребуется? Резка не нужна."
+            )
             if (
-                _to_int(model["count"]) != _room_area_cells("bathroom")
-                or _to_int(model["tile_cells"]) != 1
+                question.condition != expected
+                or model["room_cells"] != count
+                or model["count"] != count
+                or model["tile_cells"] != 1
+                or model["pack"] != pack
+                or _to_int(question.canonical_answer) != -(-count // pack)
             ):
-                raise ValueError("Tile dimensions do not tile the visible bathroom")
+                raise ValueError("Visible tile geometry, packaging or answer differs from the plan")
         elif question.position == 2:
-            if "0,2×0,8" not in question.condition or "гостиной" not in question.condition:
-                raise ValueError("Visible parquet room/board dimensions changed")
+            parquet = cast(Mapping[str, Any], scenario.context["parquet"])
+            board = "×".join(_decimal(Fraction(side)) for side in parquet["board_m"])
+            expected = (
+                f"Пол гостиной покрывают паркетными досками {board} м без распила. "
+                f"В упаковке {parquet['pack']} досок. Сколько упаковок потребуется?"
+            )
             if (
-                _to_int(model["width_cells"]) != 12
-                or _to_int(model["height_cells"]) != 13
-                or cast(tuple[str, ...], model["board_m"]) != ("0.2", "0.8")
+                question.condition != expected
+                or model != parquet
+                or _to_int(question.canonical_answer) != -(-parquet["count"] // parquet["pack"])
             ):
-                raise ValueError("Parquet orientation or room outline differs from the fixed plan")
-            if Fraction("4.8") / Fraction("0.8") != 6 or Fraction("5.2") / Fraction("0.2") != 26:
-                raise ValueError("Visible board orientation does not form an exact rectangle")
-            if _to_int(model["count"]) != 156 or _to_int(model["count"]) != _to_int(
-                model["width_cells"]
-            ) * _to_int(model["height_cells"]):
-                raise ValueError("Parquet board count does not match room grid")
-            if question.canonical_answer != str(
-                (_to_int(model["count"]) + _to_int(model["pack"]) - 1) // _to_int(model["pack"])
-            ):
-                raise ValueError("Parquet packages must round up after exact placement")
+                raise ValueError("Parquet geometry, packaging or answer differs from the plan")
         elif question.position == 3:
-            room = str(model["room"])
-            if _to_int(model["area_cells"]) != _room_area_cells(room):
-                raise ValueError("Area model differs from exact visible room footprint")
-            exact = Fraction(_to_int(model["area_cells"])) * Fraction(16, 100)
+            width, height = _rect_dimensions(parts, "loggia_1")
+            other_width, other_height = _rect_dimensions(parts, "loggia_2")
+            cells = width * height
+            expected_steps = (
+                f"Число клеток на лоджиях: {width}×{height} = {cells} "
+                f"и {other_width}×{other_height} = {other_width * other_height}.",
+                f"{cells} · {_decimal(cell_m**2)} = {_decimal(cells * cell_m**2)} м².",
+            )
             if (
-                _decimal(exact) != question.canonical_answer
-                or "меньшей лоджии" not in question.condition
-                or _room_area_cells(room) >= _room_area_cells("loggia_2")
-                or "0,4 м" not in question.condition
-            ):
-                raise ValueError("Area answer or visible room name mismatches plan")
-        elif question.position == 4:
-            base, delta = _to_int(model["base_cells"]), _to_int(model["delta_cells"])
-            if (base, delta) != (
-                _room_area_cells("pantry"),
-                _room_area_cells("bathroom") - _room_area_cells("pantry"),
-            ):
-                raise ValueError("Percentage areas differ from the two visible room footprints")
-            if re.search(r"\d+", question.condition):
-                raise ValueError(
-                    "Percentage must be derived from the plan, not supplied cell counts"
+                model["room"] != "loggia_1"
+                or model["area_cells"] != cells
+                or Fraction(str(model["cell_area"])) != cell_m**2
+                or _decimal(cells * cell_m**2) != question.canonical_answer
+                or question.condition
+                != (
+                    "Найдите площадь меньшей лоджии, если сторона клетки плана "
+                    f"равна {_decimal(cell_m)} м. Ответ дайте в квадратных метрах."
                 )
-            if 100 * delta % base or str(100 * delta // base) != question.canonical_answer:
-                raise ValueError("Percent answer is not exact or denominator is wrong")
-            if (
-                "кладовой" not in question.condition
-                or "больше площади кладовой" not in question.condition
+                or question.solution_steps != expected_steps
             ):
-                raise ValueError("Visible percentage comparison denominator is ambiguous")
+                raise ValueError("Area question or solution differs from the smaller loggia")
+        elif question.position == 4:
+            base = _room_area_cells(parts, "pantry")
+            bathroom = _room_area_cells(parts, "bathroom")
+            delta = bathroom - base
+            result = Fraction(100 * delta, base)
+            expected_steps = (
+                f"Кладовая занимает {base} клеток, санузел — {bathroom}. Их разность — {delta}.",
+                f"{delta}/{base} · 100% = {result}%.",
+            )
+            if (
+                (model["base_cells"], model["delta_cells"]) != (base, delta)
+                or result.denominator != 1
+                or str(result) != question.canonical_answer
+                or question.condition
+                != (
+                    "По плану определите, на сколько процентов площадь санузла "
+                    "больше площади кладовой?"
+                )
+                or question.solution_steps != expected_steps
+            ):
+                raise ValueError("Percentage question or solution differs from the visible rooms")
         elif question.family_id == "FLAT-05-WASHER-MIN":
-            models = cast(list[dict[str, object]], model["models"])
+            models = cast(tuple[Mapping[str, JsonValue], ...], model["models"])
+            if models != scenario.context["washers"]:
+                raise ValueError("Equipment offers differ from the issued scenario")
             eligible = [
-                m
-                for m in models
-                if m["type"] == "вертикальная" and _to_int(m["capacity"]) >= 6
+                m for m in models if m["type"] == "вертикальная" and _to_int(m["capacity"]) >= 6
             ]
             costs = [
-                _to_int(m["price"])
+                Fraction(_to_int(m["price"])) * Fraction(100 + _to_int(m["delivery_pct"]), 100)
                 + _to_int(m["install"])
-                + _to_int(m["price"]) * _to_int(m["delivery_pct"]) // 100
                 for m in eligible
             ]
-            if not 6 <= len(models) <= 10 or "вертикальной загрузкой" not in question.condition:
-                raise ValueError("Washer table or requested load type is outside validated bounds")
-            if costs.count(min(costs)) != 1 or question.canonical_answer != str(min(costs)):
+            if (
+                not 6 <= len(models) <= 10
+                or len(eligible) < 2
+                or any(cost.denominator != 1 for cost in costs)
+                or costs.count(min(costs)) != 1
+                or question.canonical_answer != str(min(costs))
+                or model["eligible"] != tuple(m["model"] for m in eligible)
+                or model["costs"] != tuple(map(_to_int, costs))
+                or model["winner"] != eligible[costs.index(min(costs))]["model"]
+            ):
                 raise ValueError("Equipment constraints/costs must have a unique exact minimum")
             expected_rows = "; ".join(
                 f"{m['model']}: {m['type']}, загрузка {m['capacity']} кг, высота {m['height']} см, "
@@ -974,7 +1162,10 @@ class _Oracle:
             if question.condition != expected_condition:
                 raise ValueError("Visible equipment table differs from its model")
         else:
-            plans = cast(list[dict[str, object]], model["plans"])
+            plans = cast(tuple[Mapping[str, JsonValue], ...], model["plans"])
+            internet = cast(Mapping[str, object], scenario.context["internet"])
+            if plans != internet["plans"] or model["traffic_mb"] != internet["traffic_mb"]:
+                raise ValueError("Internet offers or traffic differ from the issued scenario")
             tariff_costs = [
                 _to_int(p["fee"])
                 + max(
@@ -988,6 +1179,8 @@ class _Oracle:
                 any(cost.denominator != 1 for cost in tariff_costs)
                 or str(min(tariff_costs)) != question.canonical_answer
                 or tariff_costs.count(min(tariff_costs)) != 1
+                or model["costs"] != tuple(map(_to_int, tariff_costs))
+                or model["winner"] != plans[tariff_costs.index(min(tariff_costs))]["name"]
             ):
                 raise ValueError("Tariff table must have exact costs and unique optimum")
             if any(str(p["fee"]) not in question.condition for p in plans):
@@ -1004,22 +1197,6 @@ class _Oracle:
             )
             if question.condition != expected_condition:
                 raise ValueError("Visible tariff table differs from its model")
-        # Independent arithmetic above checks the answer; these checks also guard the
-        # displayed derivation against accidentally retained pre-fix dimensions.
-        if question.position == 3:
-            expected_steps = (
-                "Меньшая лоджия занимает 3×10 = 30 клеток; вторая — 4×11 = 44 клетки.",
-                f"30 · 0,16 = {_decimal(Fraction(30) * CELL_M**2)} м².",
-            )
-            if question.solution_steps != expected_steps:
-                raise ValueError("Area solution differs from source plan dimensions")
-        if question.position == 4:
-            expected_steps = (
-                f"Разность площадей равна {delta} клеткам.",
-                f"{delta}/{base} · 100% = {100 * delta // base}%.",
-            )
-            if question.solution_steps != expected_steps:
-                raise ValueError("Percentage solution differs from source plan dimensions")
         if len(question.hints) < 2 or len(question.solution_steps) < 2:
             raise ValueError("Question requires two hints and checked solution steps")
         if not rendered.assets or not any(a.content_type == "image/png" for a in rendered.assets):
@@ -1039,19 +1216,6 @@ class _Oracle:
             )
         for question in questions:
             self.validate_question(scenario, question, rendered)
-        # Independent graph/area predicates distinguish the requested rooms.
-        graph = [tuple(edge) for edge in cast(Any, scenario.context["door_graph"])]
-        degree = {room: sum(room in edge for edge in graph) for room in ROOM_PARTS}
-        if degree["bathroom"] != 1 or set(edge for edge in graph if "pantry" in edge) != {
-            ("hall", "pantry"),
-        }:
-            raise ValueError("Room door clues do not uniquely identify bathroom and pantry")
-        if ("bedroom", "loggia_2") not in graph or _room_area_cells("living") != max(
-            _room_area_cells(room) for room in ROOM_PARTS
-        ):
-            raise ValueError(
-                "Room balcony/largest-area clues do not identify bedroom and living room"
-            )
 
 
 def build_adapter() -> StoryAdapter:

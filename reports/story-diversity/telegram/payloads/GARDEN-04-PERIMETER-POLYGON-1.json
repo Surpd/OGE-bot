@@ -1,0 +1,82 @@
+{
+  "case": "GARDEN-04-PERIMETER-POLYGON-1",
+  "label": "GARDEN-04-PERIMETER-POLYGON · выдача 1",
+  "calls": [
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p>На плане изображён дачный участок в посёлке Сосновка. Единственные ворота расположены на правой границе. При входе слева находится гараж, справа — сарай, а чуть дальше — жилой дом. Напротив дома находятся яблоневые посадки. Огород отмечен цифрой 6, теплица расположена внутри огорода; баня находится в нижней левой части участка. Клетка плана — 2 м; дорожки имеют ширину 1 м, плитка — <tg-math>1 \\times 1</tg-math> м.</p>"
+        }
+      }
+    },
+    {
+      "method": "sendPhoto",
+      "payload": {
+        "chat_id": "42",
+        "photo": "attach://uH0cM4_MrpWHUQ",
+        "caption": "Данные задачи №3",
+        "parse_mode": "HTML"
+      },
+      "attachments": {
+        "uH0cM4_MrpWHUQ": {
+          "path": "assets/d54a615fbdab6ba37c6898d5e9d9300d4e60b9b22736cf7a28259340029ab57d.png",
+          "filename": "scenario-1.png",
+          "sha256": "d54a615fbdab6ba37c6898d5e9d9300d4e60b9b22736cf7a28259340029ab57d"
+        }
+      }
+    },
+    {
+      "method": "sendRichMessage",
+      "payload": {
+        "chat_id": "42",
+        "rich_message": {
+          "html": "<p><b>Периметр по плану</b></p><p> </p><p><b>№3 — задание 1</b></p><p> </p><p>Дом имеет ломаную форму по сторонам клеток плана. Найдите периметр его внешнего контура в метрах, если сторона клетки 2 м.</p><p> </p><p>Напишите ответ в чат.</p>"
+        },
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "💡 Подсказка",
+                "callback_data": "ad:hint:2c4c9814-ae3a-4424-9b19-2df8bf762d6a"
+              },
+              {
+                "text": "📘 Разбор",
+                "callback_data": "ad:solution:2c4c9814-ae3a-4424-9b19-2df8bf762d6a"
+              }
+            ],
+            [
+              {
+                "text": "⏭ Пропустить",
+                "callback_data": "ad:skip:2c4c9814-ae3a-4424-9b19-2df8bf762d6a"
+              }
+            ],
+            [
+              {
+                "text": "📷 Схема / данные",
+                "callback_data": "ad:data:2c4c9814-ae3a-4424-9b19-2df8bf762d6a"
+              }
+            ],
+            [
+              {
+                "text": "↩ В меню",
+                "callback_data": "ad:menu:2c4c9814-ae3a-4424-9b19-2df8bf762d6a"
+              },
+              {
+                "text": "Завершить",
+                "callback_data": "ad:finish:2c4c9814-ae3a-4424-9b19-2df8bf762d6a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "method": "answerCallbackQuery",
+      "payload": {
+        "callback_query_id": "1ed73ab2-f888-4aa6-854c-ba414564b9e1"
+      }
+    }
+  ]
+}

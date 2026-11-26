@@ -185,7 +185,13 @@ def garden_plan(snapshot: ScenarioSnapshot) -> bytes:
 
 def _garden_source_plan(snapshot: ScenarioSnapshot) -> bytes:
     root = ElementTree.fromstring(GARDEN._svg(snapshot.context))
-    image = Image.new("RGB", (990, 750), "white")
+    fence = root.find(".//*[@data-plot]")
+    right, bottom, gate = 320, 220, 130
+    if fence is not None:
+        right, bottom = map(int, fence.attrib["data-plot"].split(","))
+        gate = int(fence.attrib["data-gate"])
+    footer = 694 + (bottom - 220) * 3
+    image = Image.new("RGB", (990 + (right - 320) * 3, footer + 56), "white")
     draw = ImageDraw.Draw(image)
     draw.text((30, 15), "План участка", font=font(44), fill=INK)
 
@@ -225,22 +231,26 @@ def _garden_source_plan(snapshot: ScenarioSnapshot) -> bytes:
                 )
     # The cell scale must also be readable inside the house and paved area.
     grid = ImageDraw.Draw(image, "RGBA")
-    for x in range(20, 321, 20):
-        grid.line((*xy(x, 20), *xy(x, 220)), fill=(45, 53, 57, 68), width=2)
-    for y in range(20, 221, 20):
-        grid.line((*xy(20, y), *xy(320, y)), fill=(45, 53, 57, 68), width=2)
-    draw.line([xy(20, 20), xy(320, 20), xy(320, 120)], fill=INK, width=5)
-    draw.line([xy(320, 140), xy(320, 220), xy(20, 220), xy(20, 20)], fill=INK, width=5)
+    for x in range(20, right + 1, 20):
+        grid.line((*xy(x, 20), *xy(x, bottom)), fill=(45, 53, 57, 68), width=2)
+    for y in range(20, bottom + 1, 20):
+        grid.line((*xy(20, y), *xy(right, y)), fill=(45, 53, 57, 68), width=2)
+    draw.line([xy(20, 20), xy(right, 20), xy(right, gate - 10)], fill=INK, width=5)
+    draw.line(
+        [xy(right, gate + 10), xy(right, bottom), xy(20, bottom), xy(20, 20)], fill=INK, width=5,
+    )
     for label in root.findall(".//*[@data-label]"):
         cx, cy = xy(int(label.attrib["x"]), int(label.attrib["y"]))
         draw.ellipse((cx - 24, cy - 24, cx + 24, cy + 24), fill="white", outline=INK, width=2)
         draw.text((cx, cy), label.text or "", font=font(37), fill=INK, anchor="mm")
-    gate_x, gate_y = xy(320, 130)
+    gate_x, gate_y = xy(right, gate)
     draw.line((gate_x + 48, gate_y, gate_x + 12, gate_y), fill=INK, width=5)
     draw.polygon(
         ((gate_x + 8, gate_y), (gate_x + 24, gate_y - 10), (gate_x + 24, gate_y + 10)), fill=INK
     )
-    draw.text((28, 694), "Клетка — 2 м · дорожка — 1 м · стрелка — ворота", font=font(32), fill=INK)
+    draw.text(
+        (28, footer), "Клетка — 2 м · дорожка — 1 м · стрелка — ворота", font=font(32), fill=INK,
+    )
     return png(image)
 
 
@@ -320,15 +330,24 @@ def table_photos(snapshot: ScenarioSnapshot) -> tuple[bytes, ...]:
 
 def flat_plan(snapshot: ScenarioSnapshot) -> bytes:
     legacy = snapshot.generator_version == FLAT.LEGACY_VERSION
-    highlight_loggias = snapshot.generator_version == FLAT.GENERATOR_VERSION
-    geometry, doors, windows = FLAT.plan_symbols(snapshot.generator_version)
+    variable = snapshot.generator_version == FLAT.GENERATOR_VERSION
+    highlight_loggias = variable or snapshot.generator_version == FLAT.FIXED_VERSION
+    geometry, doors, windows = FLAT.plan_symbols(snapshot.generator_version, snapshot.context)
+    seam, entry = FLAT.plan_annotations(snapshot.generator_version, geometry)
+    if variable:
+        grid_width = geometry["bedroom"][0][2]
+        grid_height = geometry["hall"][0][3]
+        scale = min(34, 1130 // grid_width, 625 // grid_height)
+    else:
+        scale = 34
+    ox, oy = (146, 265) if legacy else (60, 150)
     image = Image.new("RGB", (1000, 1030) if legacy else (1250, 900), "white")
     draw = ImageDraw.Draw(image)
     draw.text((32, 18), "План квартиры", font=font(45), fill=INK)
     labels = cast(Mapping[str, int], snapshot.context["room_labels"])
 
     def xy(x: int, y: int) -> tuple[int, int]:
-        return (146 + 34 * x, 265 + 34 * y) if legacy else (60 + 34 * x, 150 + 34 * y)
+        return ox + scale * x, oy + scale * y
 
     for room, parts in geometry.items():
         fill = "#ffebba" if highlight_loggias and room.startswith("loggia_") else "#f4f8fc"
@@ -341,9 +360,14 @@ def flat_plan(snapshot: ScenarioSnapshot) -> bytes:
             draw.rectangle((*xy(x1, y1), *xy(x2, y2)), outline=INK, width=6)
         x1, y1, x2, y2 = parts[0]
         cx, cy = xy(x1 + x2, y1 + y2)
-        cx, cy = (cx + (146 if legacy else 60)) // 2, (cy + (265 if legacy else 150)) // 2
-        draw.ellipse((cx - 26, cy - 26, cx + 26, cy + 26), fill="white", outline=INK, width=2)
-        draw.text((cx, cy), str(labels[room]), font=font(40), fill=INK, anchor="mm")
+        cx, cy = (cx + ox) // 2, (cy + oy) // 2
+        radius = min(26, scale - 3) if variable else 26
+        draw.ellipse(
+            (cx - radius, cy - radius, cx + radius, cy + radius), fill="white", outline=INK, width=2
+        )
+        draw.text(
+            (cx, cy), str(labels[room]), font=font(min(40, 2 * radius)), fill=INK, anchor="mm"
+        )
 
     def opening(x: int, y: int, orientation: str, half: int, color: str) -> None:
         px, py = xy(x, y)
@@ -353,19 +377,21 @@ def flat_plan(snapshot: ScenarioSnapshot) -> bytes:
         draw.line(ends, fill="white", width=14)
         draw.line(ends, fill=color, width=8)
 
-    if not legacy:
-        draw.line((*xy(5, 13), *xy(10, 13)), fill="#b3c5d6", width=6)
+    if seam is not None:
+        left, y, right = seam
+        draw.line((*xy(left, y), *xy(right, y)), fill="#b3c5d6", width=6)
     for x, y, direction in doors:
-        opening(x, y, direction, 17, BLUE)
+        opening(x, y, direction, min(17, scale // 2), BLUE)
     for x, y, direction in windows:
-        opening(x, y, direction, 30, "#008080")
-    opening(7 if legacy else 10, 19 if legacy else 18, "h", 30, "#ad252c")
-    draw.text(
-        (384, 925) if legacy else (400, 780), "Вход", font=font(36), fill="#ad252c", anchor="mt"
-    )
+        opening(x, y, direction, min(30, scale - 2), "#008080")
+    opening(*entry, "h", 30, "#ad252c")
+    entry_x, entry_y = xy(*entry)
+    entry_label = (entry_x, entry_y + 10) if variable else (384, 925) if legacy else (400, 780)
+    draw.text(entry_label, "Вход", font=font(30 if variable else 36), fill="#ad252c", anchor="mt")
+    cell_label = str(snapshot.context["grid_cell_m"]).replace(".", ",") if variable else "0,4"
     draw.text(
         (32, 981) if legacy else (32, 828 if highlight_loggias else 846),
-        "Клетка — 0,4 м · двери синие · окна бирюзовые",
+        f"Клетка — {cell_label} м · двери синие · окна бирюзовые",
         font=font(35),
         fill=INK,
     )
