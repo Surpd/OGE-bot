@@ -24,6 +24,7 @@ from app.bot.menu import (
     task9_menu,
     task11_menu,
     task13_menu,
+    welcome_card,
 )
 from app.bot.mixed_training import mixed_answer, mixed_callback
 from app.bot.mixed_training import start_mixed as _start_mixed
@@ -54,6 +55,7 @@ from app.bot.training_engine import (
 )
 from app.bot.training_ux import TERMINAL_RESULTS, matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
+from app.bot.visual_delivery import build_visual, visual_enabled
 from app.math.equations import ANSWER_POLICIES_BY_SNAPSHOT
 from app.math.family_cycle import ordinary_candidates
 from app.math.inequalities import ENABLED_FAMILIES as TASK13_ENABLED_FAMILIES
@@ -322,6 +324,8 @@ async def start(
         repository,
         "Выберите раздел в меню.",
         reply_markup=main_menu(has_session=has_session),
+        visual=(build_visual("welcome", welcome_card)
+                if visual_enabled("welcome", message) else None),
     )
 
 
@@ -440,7 +444,23 @@ async def choose_number(
         include_task11=bool(TASK11_ENABLED_FAMILIES),
         page=page,
     )
-    await send_text(message, repository, text, reply_markup=keyboard)
+    from app.bot.menu import number_card
+
+    visual_screen = "part2" if any(
+        button.callback_data and button.callback_data.startswith("p2:menu:")
+        for row in keyboard.inline_keyboard for button in row
+    ) else "numbers"
+    visual_result = build_visual(visual_screen, lambda: number_card(
+        include_task7=bool(TASK7_ENABLED_FAMILIES),
+        include_task13=bool(TASK13_ENABLED_FAMILIES),
+        include_task11=bool(TASK11_ENABLED_FAMILIES),
+        page=page,
+    )) if visual_enabled(visual_screen, message) else None
+    visual, visual_keyboard = visual_result if visual_result else (None, None)
+    await send_text(
+        message, repository, text, reply_markup=keyboard,
+        visual=visual, visual_reply_markup=visual_keyboard,
+    )
 
 
 def _saved_problem_sender(number: int) -> Callable[..., Awaitable[bool]]:

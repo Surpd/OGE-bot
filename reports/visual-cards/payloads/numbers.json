@@ -1,0 +1,314 @@
+{
+  "name": "numbers",
+  "label": "Номера первой части",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://ARZTWW03Qq1RAA",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "№1–5 · Связанный сюжет",
+              "callback_data": "nav:linked~8d976e50c8f3"
+            }
+          ],
+          [
+            {
+              "text": "№1",
+              "callback_data": "train:area:1~8d976e50c8f3"
+            },
+            {
+              "text": "№2",
+              "callback_data": "train:area:2~8d976e50c8f3"
+            },
+            {
+              "text": "№3",
+              "callback_data": "train:area:3~8d976e50c8f3"
+            },
+            {
+              "text": "№4",
+              "callback_data": "train:area:4~8d976e50c8f3"
+            },
+            {
+              "text": "№5",
+              "callback_data": "train:area:5~8d976e50c8f3"
+            }
+          ],
+          [
+            {
+              "text": "№6",
+              "callback_data": "train:area:6~8d976e50c8f3"
+            },
+            {
+              "text": "№7",
+              "callback_data": "train:area:7~8d976e50c8f3"
+            },
+            {
+              "text": "№8",
+              "callback_data": "train:area:8~8d976e50c8f3"
+            },
+            {
+              "text": "№9",
+              "callback_data": "train:area:9~8d976e50c8f3"
+            },
+            {
+              "text": "№10",
+              "callback_data": "train:area:10~8d976e50c8f3"
+            }
+          ],
+          [
+            {
+              "text": "№11",
+              "callback_data": "train:area:11~8d976e50c8f3"
+            },
+            {
+              "text": "№12",
+              "callback_data": "train:area:12~8d976e50c8f3"
+            },
+            {
+              "text": "№13",
+              "callback_data": "train:area:13~8d976e50c8f3"
+            },
+            {
+              "text": "№14",
+              "callback_data": "train:area:14~8d976e50c8f3"
+            }
+          ],
+          [
+            {
+              "text": "№15",
+              "callback_data": "train:area:15~8d976e50c8f3"
+            },
+            {
+              "text": "№16",
+              "callback_data": "train:area:16~8d976e50c8f3"
+            },
+            {
+              "text": "№17",
+              "callback_data": "train:area:17~8d976e50c8f3"
+            },
+            {
+              "text": "№18",
+              "callback_data": "train:area:18~8d976e50c8f3"
+            },
+            {
+              "text": "№19",
+              "callback_data": "train:area:19~8d976e50c8f3"
+            }
+          ],
+          [
+            {
+              "text": "Вторая часть · №20–25",
+              "callback_data": "train:areas:1~8d976e50c8f3"
+            }
+          ],
+          [
+            {
+              "text": "↩ К тренировкам",
+              "callback_data": "nav:trainings~8d976e50c8f3"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "ARZTWW03Qq1RAA": {
+        "path": "assets/c1c355f33f22705de4ecfe372871e6abf8c63b06f55011c0223bc9ed7b5b157c.png",
+        "filename": "bop-numbers.png",
+        "sha256": "c1c355f33f22705de4ecfe372871e6abf8c63b06f55011c0223bc9ed7b5b157c"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 551,
+    "390": 597,
+    "430": 658
+  },
+  "checks": {
+    "actual_message_id": 117
+  },
+  "projection": {
+    "screen": "numbers",
+    "title": "Выбери номер",
+    "subtitle": "Первая часть · №1–19",
+    "sections": [
+      {
+        "title": "Практические задания",
+        "entries": [
+          {
+            "label": "Сюжеты",
+            "key": "1",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Сюжеты",
+            "key": "2",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Сюжеты",
+            "key": "3",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Сюжеты",
+            "key": "4",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Сюжеты",
+            "key": "5",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "practical"
+      },
+      {
+        "title": "Алгебра и вероятность",
+        "entries": [
+          {
+            "label": "Вычисления",
+            "key": "6",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Координатная прямая",
+            "key": "7",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Степени и корни",
+            "key": "8",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Уравнения",
+            "key": "9",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Вероятность",
+            "key": "10",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Графики функций",
+            "key": "11",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Формулы",
+            "key": "12",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Неравенства",
+            "key": "13",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Прогрессии",
+            "key": "14",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "tiles"
+      },
+      {
+        "title": "Геометрия",
+        "entries": [
+          {
+            "label": "Треугольники",
+            "key": "15",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Окружности",
+            "key": "16",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Четырёхугольники",
+            "key": "17",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Фигуры на клетках",
+            "key": "18",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Геометрические утверждения",
+            "key": "19",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "tiles"
+      }
+    ],
+    "metrics": [],
+    "note": "",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  }
+}

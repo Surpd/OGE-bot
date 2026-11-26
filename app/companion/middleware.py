@@ -89,6 +89,7 @@ class CompanionMiddleware(BaseMiddleware):
             update={
                 "oge_part2_enabled": True,
                 "oge_adaptive_enabled": settings.oge_companion_adaptive_enabled,
+                "oge_visual_companion_only": False,
                 "oge_grading_enabled": False,
                 "openai_api_key": None,
             }

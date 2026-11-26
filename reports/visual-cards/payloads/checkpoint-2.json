@@ -1,0 +1,95 @@
+{
+  "name": "checkpoint-2",
+  "label": "Длинная практика · второй блок из пяти",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://PvshmT_dBmuk6A",
+      "caption": "Хочешь продолжить?",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Ещё 5 заданий →",
+              "callback_data": "ad:continue:5bcd1fc0-955c-4166-8d57-24af9d4383bf"
+            },
+            {
+              "text": "Завершить",
+              "callback_data": "ad:finish:5bcd1fc0-955c-4166-8d57-24af9d4383bf"
+            }
+          ],
+          [
+            {
+              "text": "В меню",
+              "callback_data": "ad:menu:5bcd1fc0-955c-4166-8d57-24af9d4383bf"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "PvshmT_dBmuk6A": {
+        "path": "assets/dadd92f668200195449594147904b38063c9163bf0691e22487edaf6cc041ff4.png",
+        "filename": "bop-training-result.png",
+        "sha256": "dadd92f668200195449594147904b38063c9163bf0691e22487edaf6cc041ff4"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 472,
+    "390": 512,
+    "430": 564
+  },
+  "checks": {
+    "actual_message_id": 336,
+    "issued": 5,
+    "checkpoint": true,
+    "inline_labels": [
+      "Ещё 5 заданий →",
+      "Завершить",
+      "В меню"
+    ],
+    "caption": "Хочешь продолжить?"
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Результат тренировки",
+    "subtitle": "№6 · Вычисления\nЗадания 6–10",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "5/5",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "5/5",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 5,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 0
+    },
+    "practice": [
+      {
+        "label": "Умножение двух обыкновенных дробей",
+        "count": 3,
+        "target": 3,
+        "confirmed": true
+      },
+      {
+        "label": "Вычислить разность, сократить дробь, указать числитель",
+        "count": 3,
+        "target": 3,
+        "confirmed": true
+      }
+    ]
+  }
+}

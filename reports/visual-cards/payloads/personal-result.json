@@ -1,0 +1,94 @@
+{
+  "name": "personal-result",
+  "label": "Персональная тренировка · автоматический итог пяти",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://LlmnAZJtVrUvww",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "К тренировкам",
+              "callback_data": "train:hub~2c6676c54029"
+            }
+          ],
+          [
+            {
+              "text": "Мой прогресс",
+              "callback_data": "train:progress~2c6676c54029"
+            },
+            {
+              "text": "В меню",
+              "callback_data": "nav:main~2c6676c54029"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "LlmnAZJtVrUvww": {
+        "path": "assets/0803db5bb8f6990a6d1ee3f893d16236a9c22af51b824d96b94f13471ddb027c.png",
+        "filename": "bop-training-result.png",
+        "sha256": "0803db5bb8f6990a6d1ee3f893d16236a9c22af51b824d96b94f13471ddb027c"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 470,
+    "390": 509,
+    "430": 561
+  },
+  "checks": {
+    "actual_message_id": 513,
+    "issued": 5,
+    "checkpoint": false,
+    "inline_labels": [
+      "К тренировкам",
+      "Мой прогресс",
+      "В меню"
+    ],
+    "caption": ""
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Тренировка завершена",
+    "subtitle": "Персональная тренировка",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "5/5",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "5/5",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 5,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 0
+    },
+    "practice": [
+      {
+        "label": "Между какими целыми лежит дробь",
+        "count": 2,
+        "target": 3,
+        "confirmed": false
+      },
+      {
+        "label": "Остаточная категория при выборе одного объекта",
+        "count": 2,
+        "target": 3,
+        "confirmed": false
+      }
+    ]
+  }
+}

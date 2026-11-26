@@ -1,0 +1,1533 @@
+[
+  {
+    "name": "day-one-a",
+    "label": "Пример А · первые пять",
+    "asset": "assets/6d578a16b1af4b70d70f28a9d86e92d2bba207c0b7430b8eecacc606f4e26634.png",
+    "source": "Агрегированные результаты из обратной связи первого дня.",
+    "displayed_heights": {
+      "360": 349,
+      "390": 378,
+      "430": 417
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Результат тренировки",
+      "subtitle": "5 задач",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "3/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "",
+      "hint": "",
+      "breakdown": {
+        "independent": 3,
+        "assisted": 2,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Медиана к гипотенузе по клеткам",
+          "count": 2,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "day-one-b",
+    "label": "Пример Б · первые пять",
+    "asset": "assets/4d9b8e474303143a90c7ee6e21f54cb87514b9366e09ca6c8ed847b47438a95e.png",
+    "source": "Агрегированные результаты из обратной связи первого дня.",
+    "displayed_heights": {
+      "360": 238,
+      "390": 258,
+      "430": 285
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Результат тренировки",
+      "subtitle": "5 задач",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "3/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "3/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "",
+      "hint": "",
+      "breakdown": {
+        "independent": 3,
+        "assisted": 0,
+        "unsolved": 2,
+        "skipped": 0
+      },
+      "practice": []
+    }
+  },
+  {
+    "name": "day-one-c",
+    "label": "Пример В · итог тренировки",
+    "asset": "assets/b228fbe262f4a993574a486710f33da0f2510c184b5a87dd73006ae94dccd428.png",
+    "source": "Агрегированные результаты из обратной связи первого дня.",
+    "displayed_heights": {
+      "360": 412,
+      "390": 447,
+      "430": 492
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "5 задач",
+      "sections": [
+        {
+          "title": "Что повторить",
+          "entries": [
+            {
+              "label": "№19 · Прямые и углы",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "list"
+        }
+      ],
+      "metrics": [
+        {
+          "value": "1/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "1/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "",
+      "hint": "",
+      "breakdown": {
+        "independent": 1,
+        "assisted": 0,
+        "unsolved": 3,
+        "skipped": 1
+      },
+      "practice": [
+        {
+          "label": "Какой корень принадлежит отрезку",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "all-correct",
+    "label": "Идеальный результат",
+    "asset": "assets/b1dfceeb83a2a8b499d7b80d2d7dc43435d388e2ff4aa5434c28120762ccb902.png",
+    "source": "Синтетический сценарий для проверки отображения.",
+    "displayed_heights": {
+      "360": 333,
+      "390": 361,
+      "430": 398
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "5 задач",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Медиана к гипотенузе по клеткам",
+          "count": 3,
+          "target": 3,
+          "confirmed": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "zero-correct",
+    "label": "Ни одного верного ответа",
+    "asset": "assets/7d1ec76ab336ad5b39801e5324f471442e0340944dcdf86334816903003a57dc.png",
+    "source": "Синтетический сценарий для проверки отображения.",
+    "displayed_heights": {
+      "360": 238,
+      "390": 258,
+      "430": 285
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "5 задач",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "0/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "0/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "",
+      "hint": "",
+      "breakdown": {
+        "independent": 0,
+        "assisted": 0,
+        "unsolved": 4,
+        "skipped": 1
+      },
+      "practice": []
+    }
+  },
+  {
+    "name": "no-practice-no-recommendation",
+    "label": "Без закрепления и рекомендации",
+    "asset": "assets/1bafa856f2fb7df22051b91f4b541affa047044dd0271b9af186b4213c9ebc03.png",
+    "source": "Синтетические итоги без данных для необязательных секций.",
+    "displayed_heights": {
+      "360": 238,
+      "390": 258,
+      "430": 285
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "№6 · Вычисления",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "1/2",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "1/2",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "",
+      "hint": "",
+      "breakdown": {
+        "independent": 1,
+        "assisted": 0,
+        "unsolved": 1,
+        "skipped": 0
+      },
+      "practice": []
+    }
+  },
+  {
+    "name": "welcome",
+    "label": "Главное меню",
+    "displayed_heights": {
+      "360": 174,
+      "390": 188,
+      "430": 207
+    },
+    "checks": {
+      "actual_message_id": 116
+    },
+    "projection": {
+      "screen": "welcome",
+      "title": "Математика для ОГЭ",
+      "subtitle": "Задания №1–25",
+      "sections": [],
+      "metrics": [],
+      "note": "",
+      "hint": "",
+      "breakdown": null,
+      "practice": []
+    }
+  },
+  {
+    "name": "numbers",
+    "label": "Номера первой части",
+    "displayed_heights": {
+      "360": 551,
+      "390": 597,
+      "430": 658
+    },
+    "checks": {
+      "actual_message_id": 117
+    },
+    "projection": {
+      "screen": "numbers",
+      "title": "Выбери номер",
+      "subtitle": "Первая часть · №1–19",
+      "sections": [
+        {
+          "title": "Практические задания",
+          "entries": [
+            {
+              "label": "Сюжеты",
+              "key": "1",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Сюжеты",
+              "key": "2",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Сюжеты",
+              "key": "3",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Сюжеты",
+              "key": "4",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Сюжеты",
+              "key": "5",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "practical"
+        },
+        {
+          "title": "Алгебра и вероятность",
+          "entries": [
+            {
+              "label": "Вычисления",
+              "key": "6",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Координатная прямая",
+              "key": "7",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Степени и корни",
+              "key": "8",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Уравнения",
+              "key": "9",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Вероятность",
+              "key": "10",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Графики функций",
+              "key": "11",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Формулы",
+              "key": "12",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Неравенства",
+              "key": "13",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Прогрессии",
+              "key": "14",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "tiles"
+        },
+        {
+          "title": "Геометрия",
+          "entries": [
+            {
+              "label": "Треугольники",
+              "key": "15",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Окружности",
+              "key": "16",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Четырёхугольники",
+              "key": "17",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Фигуры на клетках",
+              "key": "18",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Геометрические утверждения",
+              "key": "19",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "tiles"
+        }
+      ],
+      "metrics": [],
+      "note": "",
+      "hint": "",
+      "breakdown": null,
+      "practice": []
+    }
+  },
+  {
+    "name": "part2",
+    "label": "Номера второй части",
+    "displayed_heights": {
+      "360": 374,
+      "390": 406,
+      "430": 447
+    },
+    "checks": {
+      "actual_message_id": 118
+    },
+    "projection": {
+      "screen": "part2",
+      "title": "Выбери номер",
+      "subtitle": "Вторая часть · №20–25",
+      "sections": [
+        {
+          "title": "Развёрнутые решения",
+          "entries": [
+            {
+              "label": "Уравнения и неравенства",
+              "key": "20",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Текстовые задачи",
+              "key": "21",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Графики",
+              "key": "22",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Геометрические вычисления",
+              "key": "23",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Доказательства",
+              "key": "24",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Сложная геометрия",
+              "key": "25",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "tiles"
+        }
+      ],
+      "metrics": [],
+      "note": "",
+      "hint": "",
+      "breakdown": null,
+      "practice": []
+    }
+  },
+  {
+    "name": "stories",
+    "label": "Сюжеты №2",
+    "displayed_heights": {
+      "360": 333,
+      "390": 361,
+      "430": 398
+    },
+    "checks": {
+      "actual_message_id": 120
+    },
+    "projection": {
+      "screen": "stories",
+      "title": "Выбери сюжет",
+      "subtitle": "Практические задания · №2",
+      "sections": [
+        {
+          "title": "",
+          "entries": [
+            {
+              "label": "Шины",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": "TYRES"
+            },
+            {
+              "label": "Бумага",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": "PAPER"
+            },
+            {
+              "label": "Печи",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": "STOVE"
+            },
+            {
+              "label": "Тарифы",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": "TARIFF"
+            },
+            {
+              "label": "Участки",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": "GARDEN"
+            },
+            {
+              "label": "Квартиры",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": "FLAT"
+            }
+          ],
+          "layout": "tiles"
+        }
+      ],
+      "metrics": [],
+      "note": "",
+      "hint": "",
+      "breakdown": null,
+      "practice": []
+    }
+  },
+  {
+    "name": "story-types",
+    "label": "Квартиры · типы №2",
+    "displayed_heights": {
+      "360": 208,
+      "390": 225,
+      "430": 248
+    },
+    "checks": {
+      "actual_message_id": 121
+    },
+    "projection": {
+      "screen": "types",
+      "title": "Выбери тип",
+      "subtitle": "№2 · Квартиры",
+      "sections": [
+        {
+          "title": "",
+          "entries": [
+            {
+              "label": "Упаковки паркета",
+              "key": "1",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Упаковки плитки",
+              "key": "2",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "list"
+        }
+      ],
+      "metrics": [],
+      "note": "Страница 1 из 1",
+      "hint": "",
+      "breakdown": null,
+      "practice": []
+    }
+  },
+  {
+    "name": "types",
+    "label": "Вычисления · типы №6",
+    "displayed_heights": {
+      "360": 357,
+      "390": 387,
+      "430": 427
+    },
+    "checks": {
+      "actual_message_id": 124
+    },
+    "projection": {
+      "screen": "types",
+      "title": "Выбери тип",
+      "subtitle": "№6",
+      "sections": [
+        {
+          "title": "",
+          "entries": [
+            {
+              "label": "Вычислить разность, сократить дробь, указать числитель",
+              "key": "1",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Вычитание двух обыкновенных дробей, отрицательный результат",
+              "key": "2",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Вычитание десятичной дроби из смешанного числа",
+              "key": "3",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Вычитание десятичных дробей",
+              "key": "4",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "Деление десятичных дробей, записанных дробной чертой",
+              "key": "5",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "list"
+        }
+      ],
+      "metrics": [],
+      "note": "Страница 1 из 3",
+      "hint": "",
+      "breakdown": null,
+      "practice": []
+    }
+  },
+  {
+    "name": "checkpoint",
+    "label": "Первые пять · действующие подпись и кнопки",
+    "displayed_heights": {
+      "360": 505,
+      "390": 547,
+      "430": 603
+    },
+    "checks": {
+      "actual_message_id": 189,
+      "issued": 5,
+      "checkpoint": true,
+      "inline_labels": [
+        "Ещё 5 заданий →",
+        "Завершить",
+        "В меню"
+      ],
+      "caption": "Хочешь продолжить?"
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Результат тренировки",
+      "subtitle": "№6 · Вычисления\nЗадания 1–5",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Умножение двух обыкновенных дробей",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        },
+        {
+          "label": "Вычислить разность, сократить дробь, указать числитель",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "checkpoint-finished",
+    "label": "Завершение первых пяти в том же сообщении",
+    "displayed_heights": {
+      "360": 488,
+      "390": 528,
+      "430": 583
+    },
+    "checks": {
+      "actual_message_id": 189,
+      "issued": 5,
+      "checkpoint": false,
+      "inline_labels": [
+        "К тренировкам",
+        "Мой прогресс",
+        "В меню"
+      ],
+      "caption": ""
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "№6 · Вычисления",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Умножение двух обыкновенных дробей",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        },
+        {
+          "label": "Вычислить разность, сократить дробь, указать числитель",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "long-checkpoint",
+    "label": "Длинная практика · первые пять",
+    "displayed_heights": {
+      "360": 505,
+      "390": 547,
+      "430": 603
+    },
+    "checks": {
+      "actual_message_id": 271,
+      "issued": 5,
+      "checkpoint": true,
+      "inline_labels": [
+        "Ещё 5 заданий →",
+        "Завершить",
+        "В меню"
+      ],
+      "caption": "Хочешь продолжить?"
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Результат тренировки",
+      "subtitle": "№6 · Вычисления\nЗадания 1–5",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Умножение двух обыкновенных дробей",
+          "count": 2,
+          "target": 3,
+          "confirmed": false
+        },
+        {
+          "label": "Вычислить разность, сократить дробь, указать числитель",
+          "count": 2,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "continue-transition",
+    "label": "Продолжение убирает прежние кнопки",
+    "displayed_heights": {},
+    "checks": {
+      "old_message_id": 271,
+      "new_prompt_id": 272,
+      "old_keyboard_removed": true
+    }
+  },
+  {
+    "name": "stale-after-continue",
+    "label": "Старые и повторные нажатия отклонены",
+    "source": "Реальные callback updates после завершения сессии.",
+    "checks": {
+      "callbacks": 2,
+      "only_acknowledgements": true,
+      "unchanged_session": true
+    },
+    "displayed_heights": {}
+  },
+  {
+    "name": "checkpoint-2",
+    "label": "Длинная практика · второй блок из пяти",
+    "displayed_heights": {
+      "360": 472,
+      "390": 512,
+      "430": 564
+    },
+    "checks": {
+      "actual_message_id": 336,
+      "issued": 5,
+      "checkpoint": true,
+      "inline_labels": [
+        "Ещё 5 заданий →",
+        "Завершить",
+        "В меню"
+      ],
+      "caption": "Хочешь продолжить?"
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Результат тренировки",
+      "subtitle": "№6 · Вычисления\nЗадания 6–10",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Умножение двух обыкновенных дробей",
+          "count": 3,
+          "target": 3,
+          "confirmed": true
+        },
+        {
+          "label": "Вычислить разность, сократить дробь, указать числитель",
+          "count": 3,
+          "target": 3,
+          "confirmed": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "long-result",
+    "label": "Длинная практика · суммарные десять в том же сообщении",
+    "displayed_heights": {
+      "360": 455,
+      "390": 493,
+      "430": 544
+    },
+    "checks": {
+      "actual_message_id": 336,
+      "issued": 10,
+      "checkpoint": false,
+      "inline_labels": [
+        "К тренировкам",
+        "Мой прогресс",
+        "В меню"
+      ],
+      "caption": ""
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "№6 · Вычисления",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "10/10",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "10/10",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 10,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Умножение двух обыкновенных дробей",
+          "count": 3,
+          "target": 3,
+          "confirmed": true
+        },
+        {
+          "label": "Вычислить разность, сократить дробь, указать числитель",
+          "count": 3,
+          "target": 3,
+          "confirmed": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "stale-actions",
+    "label": "Старые и повторные нажатия отклонены",
+    "source": "Реальные callback updates после завершения сессии.",
+    "checks": {
+      "callbacks": 6,
+      "only_acknowledgements": true,
+      "unchanged_session": true
+    },
+    "displayed_heights": {}
+  },
+  {
+    "name": "number-progress",
+    "label": "Прогресс по №6",
+    "displayed_heights": {
+      "360": 630,
+      "390": 682,
+      "430": 752
+    },
+    "checks": {
+      "actual_message_id": 353
+    },
+    "projection": {
+      "screen": "number_progress",
+      "title": "№6 · Прогресс",
+      "subtitle": "Вычисления",
+      "sections": [
+        {
+          "title": "Попытки",
+          "entries": [
+            {
+              "label": "Верно с первой: 15 · Со второй: 0",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            },
+            {
+              "label": "С подсказкой: 0 · Без подсказки: 15",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "list"
+        },
+        {
+          "title": "Типы задач",
+          "entries": [
+            {
+              "label": "Вычислить разность, сократить дробь, указать числитель",
+              "key": "1",
+              "detail": "3/3 верно · Получается",
+              "value": "",
+              "tone": "good",
+              "icon": ""
+            },
+            {
+              "label": "Вычитание десятичной дроби из смешанного числа",
+              "key": "2",
+              "detail": "3/3 верно · Получается",
+              "value": "",
+              "tone": "good",
+              "icon": ""
+            },
+            {
+              "label": "Вычитание десятичных дробей",
+              "key": "3",
+              "detail": "3/3 верно · Получается",
+              "value": "",
+              "tone": "good",
+              "icon": ""
+            },
+            {
+              "label": "Деление десятичных дробей, записанных дробной чертой",
+              "key": "4",
+              "detail": "3/3 верно · Получается",
+              "value": "",
+              "tone": "good",
+              "icon": ""
+            },
+            {
+              "label": "Умножение двух обыкновенных дробей",
+              "key": "5",
+              "detail": "3/3 верно · Получается",
+              "value": "",
+              "tone": "good",
+              "icon": ""
+            }
+          ],
+          "layout": "list"
+        }
+      ],
+      "metrics": [
+        {
+          "value": "15/15",
+          "label": "Верно",
+          "tone": "neutral"
+        },
+        {
+          "value": "100%",
+          "label": "Успешность",
+          "tone": "neutral"
+        },
+        {
+          "value": "15",
+          "label": "Новых самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "Выдано: 15 · Пропущено: 0",
+      "hint": "",
+      "breakdown": null,
+      "practice": []
+    }
+  },
+  {
+    "name": "mixed-result",
+    "label": "Смешанная тренировка · автоматический итог пяти",
+    "displayed_heights": {
+      "360": 470,
+      "390": 509,
+      "430": 561
+    },
+    "checks": {
+      "actual_message_id": 433,
+      "issued": 5,
+      "checkpoint": false,
+      "inline_labels": [
+        "К тренировкам",
+        "Мой прогресс",
+        "В меню"
+      ],
+      "caption": ""
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "Смешанная тренировка",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Между какими целыми лежит дробь",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        },
+        {
+          "label": "Остаточная категория при выборе одного объекта",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "personal-result",
+    "label": "Персональная тренировка · автоматический итог пяти",
+    "displayed_heights": {
+      "360": 470,
+      "390": 509,
+      "430": 561
+    },
+    "checks": {
+      "actual_message_id": 513,
+      "issued": 5,
+      "checkpoint": false,
+      "inline_labels": [
+        "К тренировкам",
+        "Мой прогресс",
+        "В меню"
+      ],
+      "caption": ""
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "Персональная тренировка",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Между какими целыми лежит дробь",
+          "count": 2,
+          "target": 3,
+          "confirmed": false
+        },
+        {
+          "label": "Остаточная категория при выборе одного объекта",
+          "count": 2,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "early-result",
+    "label": "Досрочный итог учитывает два ответа и выданное третье задание",
+    "displayed_heights": {
+      "360": 547,
+      "390": 593,
+      "430": 654
+    },
+    "checks": {
+      "actual_message_id": 558,
+      "issued": 3,
+      "checkpoint": false,
+      "inline_labels": [
+        "Система двух линейных неравенств: ограниченный отрезок",
+        "К тренировкам",
+        "Мой прогресс",
+        "В меню"
+      ],
+      "caption": ""
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Тренировка завершена",
+      "subtitle": "№6 · Вычисления",
+      "sections": [
+        {
+          "title": "Что повторить",
+          "entries": [
+            {
+              "label": "№13 · Система двух линейных неравенств: ограниченный отрезок",
+              "key": "",
+              "detail": "",
+              "value": "",
+              "tone": "neutral",
+              "icon": ""
+            }
+          ],
+          "layout": "list"
+        }
+      ],
+      "metrics": [
+        {
+          "value": "2/3",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "2/3",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 2,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 1
+      },
+      "practice": [
+        {
+          "label": "Деление обыкновенных дробей",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        },
+        {
+          "label": "Привести разность к указанному знаменателю и записать числитель",
+          "count": 1,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "fallback-checkpoint-source",
+    "label": "Фото до отказа рендера",
+    "displayed_heights": {
+      "360": 487,
+      "390": 527,
+      "430": 582
+    },
+    "checks": {
+      "actual_message_id": 640,
+      "issued": 5,
+      "checkpoint": true,
+      "inline_labels": [
+        "Ещё 5 заданий →",
+        "Завершить",
+        "В меню"
+      ],
+      "caption": "Хочешь продолжить?"
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Результат тренировки",
+      "subtitle": "№6 · Вычисления\nЗадания 1–5",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "5/5",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "5/5",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Открыто разборов: 0",
+      "hint": "",
+      "breakdown": {
+        "independent": 5,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 0
+      },
+      "practice": [
+        {
+          "label": "Деление обыкновенных дробей",
+          "count": 2,
+          "target": 3,
+          "confirmed": false
+        },
+        {
+          "label": "Привести разность к указанному знаменателю и записать числитель",
+          "count": 2,
+          "target": 3,
+          "confirmed": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "photo-checkpoint-fallback",
+    "label": "Отказ рендера · финал в том же фото",
+    "checks": {
+      "same_message_id": 640,
+      "no_sendPhoto": true,
+      "issued": 5
+    },
+    "displayed_heights": {},
+    "previous_card": "fallback-checkpoint-source"
+  },
+  {
+    "name": "text-checkpoint",
+    "label": "Текстовый резерв при отказе рендера",
+    "displayed_heights": {},
+    "checks": {
+      "issued": 5,
+      "checkpoint": true,
+      "no_sendPhoto": true,
+      "actual_message_id": 722
+    }
+  },
+  {
+    "name": "text-checkpoint-finished",
+    "label": "Текстовый промежуточный итог заменён финалом",
+    "checks": {
+      "same_message_id": 722,
+      "no_sendPhoto": true,
+      "issued": 5
+    },
+    "displayed_heights": {}
+  },
+  {
+    "name": "text-fallback",
+    "label": "Текстовый резерв при отказе рендера",
+    "displayed_heights": {},
+    "checks": {
+      "issued": 1,
+      "checkpoint": false,
+      "no_sendPhoto": true,
+      "actual_message_id": 753
+    }
+  },
+  {
+    "name": "full-result",
+    "label": "Вся первая часть · итог",
+    "displayed_heights": {
+      "360": 288,
+      "390": 312,
+      "430": 344
+    },
+    "checks": {
+      "actual_message_id": 809
+    },
+    "projection": {
+      "screen": "training_result",
+      "title": "Итог первой части",
+      "subtitle": "Задания №1–19",
+      "sections": [],
+      "metrics": [
+        {
+          "value": "1/19",
+          "label": "Решено верно",
+          "tone": "good"
+        },
+        {
+          "value": "1/19",
+          "label": "Самостоятельно",
+          "tone": "neutral"
+        }
+      ],
+      "note": "С подсказками: 0 · Запрошено разборов: 0",
+      "hint": "Дальше начинается новый комплект.",
+      "breakdown": {
+        "independent": 1,
+        "assisted": 0,
+        "unsolved": 0,
+        "skipped": 18
+      },
+      "practice": []
+    }
+  }
+]

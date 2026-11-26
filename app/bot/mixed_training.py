@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import hashlib
+import logging
 import secrets
 from collections.abc import Callable
 from contextlib import suppress
@@ -26,11 +27,13 @@ from app.bot.callbacks import answer_callback
 from app.bot.math_layout import question_message, solution_message
 from app.bot.menu import main_menu
 from app.bot.presentation import hint_message, send_photo, send_text
+from app.bot.result_cards import result_card, result_fallback
 from app.bot.scenario_materials import send_scenario_materials
 from app.bot.scenario_training import public_registry
 from app.bot.task_view import answer_instruction, question_text, system_rows, task13_is_graph_choice
 from app.bot.training_ux import matches_current_condition, resumed_result
 from app.bot.trainings import TRAININGS
+from app.bot.visual_delivery import visual_enabled
 from app.math.probability import GRAPH_FAMILIES
 from app.math.probability_diagram import render_snapshot as render_probability_diagram
 from app.math.scenario_engine import (
@@ -41,6 +44,8 @@ from app.math.scenario_engine import (
 from app.math.scenarios.recent_questions import rotated_plan
 from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.repository import Repository
+
+logger = logging.getLogger(__name__)
 
 
 class _CandidateUnavailable(RuntimeError):
@@ -625,6 +630,58 @@ async def mixed_answer(message: Message, repository: Repository) -> None:
         await store.set_prompt(user_id, str(problem["problem_id"]), prompt)
 
 
+async def _send_full_result(
+    message: Message, repository: Repository, store: MixedTrainingRepository,
+    user_id: int, final_problem_id: str,
+) -> None:
+    if not visual_enabled("training_result", message, user_id):
+        return
+    try:
+        outcomes = await store.cycle_results(user_id, final_problem_id)
+        if [row["number"] for row in outcomes] != list(range(1, 20)) or any(
+            row["outcome"] not in {"solved", "failed", "skipped", "solution_viewed"}
+            for row in outcomes
+        ):
+            return
+        correct = sum(row["outcome"] == "solved" for row in outcomes)
+        first_without_hint = sum(
+            row["outcome"] == "solved" and row["attempt_no"] == 1 and row["used_hint"] is False
+            for row in outcomes
+        )
+        skipped = sum(row["outcome"] == "skipped" for row in outcomes)
+        hinted = sum(row["hints_used"] > 0 for row in outcomes)
+        reviewed = sum(row["outcome"] == "solution_viewed" for row in outcomes)
+        card = result_card(
+            "Итог первой части", len(outcomes), correct, first_without_hint, skipped,
+            subtitle="Задания №1–19",
+            note=f"С подсказками: {hinted} · Запрошено разборов: {reviewed}",
+            hint="Дальше начинается новый комплект.",
+        )
+    except Exception as error:
+        logger.warning(
+            "visual_png_data_failed screen=training_result type=%s", type(error).__name__
+        )
+        return
+    try:
+        markup = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="К тренировкам", callback_data="nav:trainings")],
+            [
+                InlineKeyboardButton(text=LABELS["progress"], callback_data="nav:progress"),
+                InlineKeyboardButton(text=LABELS["menu"], callback_data="nav:main"),
+            ],
+        ])
+        await send_text(
+            message, repository, result_fallback(card), visual=card, user_id_override=user_id,
+            reply_markup=markup,
+        )
+    except (TelegramAPIError, OSError) as error:
+        # This is a side message. Deliver the next issued condition even if the
+        # optional summary was lost or already accepted by Telegram.
+        logger.warning(
+            "visual_png_side_delivery_failed screen=training_result type=%s", type(error).__name__
+        )
+
+
 async def mixed_callback(callback: CallbackQuery, repository: Repository) -> None:
     parts = (callback.data or "").split(":")
     if (
@@ -845,6 +902,8 @@ async def mixed_callback(callback: CallbackQuery, repository: Repository) -> Non
     if not isinstance(result, dict):
         await answer_callback(callback, "Тренировка завершена.")
         return
+    if number == 19 and not queue:
+        await _send_full_result(message, repository, store, user_id, problem_id)
     if result.get("outcome") == "issued" and isinstance(result.get("problem_id"), str):
         await _send_problem(
             message, repository, store, result, user_id=user_id, previous_problem=problem,

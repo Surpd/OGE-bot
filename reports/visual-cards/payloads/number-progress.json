@@ -1,0 +1,186 @@
+{
+  "name": "number-progress",
+  "label": "Прогресс по №6",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://BIGWlzo7j6AiEQ",
+      "reply_parameters": {
+        "message_id": 350,
+        "allow_sending_without_reply": true
+      },
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Тренировать №6",
+              "callback_data": "train:number:6~466a14983c7c"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 1",
+              "callback_data": "train:family:OGE06-F008-REDUCED-NUMERATOR~466a14983c7c"
+            },
+            {
+              "text": "Тренировать тип 2",
+              "callback_data": "train:family:OGE06-F006-MIXED-MINUS-DECIMAL~466a14983c7c"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 3",
+              "callback_data": "train:family:OGE06-F004-DEC-SUB~466a14983c7c"
+            },
+            {
+              "text": "Тренировать тип 4",
+              "callback_data": "train:family:OGE06-F004-DEC-DIV~466a14983c7c"
+            }
+          ],
+          [
+            {
+              "text": "Тренировать тип 5",
+              "callback_data": "train:family:OGE06-F002-MUL~466a14983c7c"
+            }
+          ],
+          [
+            {
+              "text": "История и ошибки №6",
+              "callback_data": "progress:numhist:6:0~466a14983c7c"
+            }
+          ],
+          [
+            {
+              "text": "Все типы задач",
+              "callback_data": "progress:family:6:0~466a14983c7c"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "progress:details~466a14983c7c"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "progress:summary~466a14983c7c"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "BIGWlzo7j6AiEQ": {
+        "path": "assets/0e3f76f2a86857f28d38aec29e87f2b5d6e55db16b61616b4f001434111e1fdb.png",
+        "filename": "bop-number-progress.png",
+        "sha256": "0e3f76f2a86857f28d38aec29e87f2b5d6e55db16b61616b4f001434111e1fdb"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 630,
+    "390": 682,
+    "430": 752
+  },
+  "checks": {
+    "actual_message_id": 353
+  },
+  "projection": {
+    "screen": "number_progress",
+    "title": "№6 · Прогресс",
+    "subtitle": "Вычисления",
+    "sections": [
+      {
+        "title": "Попытки",
+        "entries": [
+          {
+            "label": "Верно с первой: 15 · Со второй: 0",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "С подсказкой: 0 · Без подсказки: 15",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "list"
+      },
+      {
+        "title": "Типы задач",
+        "entries": [
+          {
+            "label": "Вычислить разность, сократить дробь, указать числитель",
+            "key": "1",
+            "detail": "3/3 верно · Получается",
+            "value": "",
+            "tone": "good",
+            "icon": ""
+          },
+          {
+            "label": "Вычитание десятичной дроби из смешанного числа",
+            "key": "2",
+            "detail": "3/3 верно · Получается",
+            "value": "",
+            "tone": "good",
+            "icon": ""
+          },
+          {
+            "label": "Вычитание десятичных дробей",
+            "key": "3",
+            "detail": "3/3 верно · Получается",
+            "value": "",
+            "tone": "good",
+            "icon": ""
+          },
+          {
+            "label": "Деление десятичных дробей, записанных дробной чертой",
+            "key": "4",
+            "detail": "3/3 верно · Получается",
+            "value": "",
+            "tone": "good",
+            "icon": ""
+          },
+          {
+            "label": "Умножение двух обыкновенных дробей",
+            "key": "5",
+            "detail": "3/3 верно · Получается",
+            "value": "",
+            "tone": "good",
+            "icon": ""
+          }
+        ],
+        "layout": "list"
+      }
+    ],
+    "metrics": [
+      {
+        "value": "15/15",
+        "label": "Верно",
+        "tone": "neutral"
+      },
+      {
+        "value": "100%",
+        "label": "Успешность",
+        "tone": "neutral"
+      },
+      {
+        "value": "15",
+        "label": "Новых самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "Выдано: 15 · Пропущено: 0",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  }
+}

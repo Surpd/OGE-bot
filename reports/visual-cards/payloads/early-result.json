@@ -1,0 +1,116 @@
+{
+  "name": "early-result",
+  "label": "Досрочный итог учитывает два ответа и выданное третье задание",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://X2VWmQVwTKz48A",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Система двух линейных неравенств: ограниченный отрезок",
+              "callback_data": "train:family:OGE13-S01~1a4d5d888143"
+            }
+          ],
+          [
+            {
+              "text": "К тренировкам",
+              "callback_data": "train:hub~1a4d5d888143"
+            }
+          ],
+          [
+            {
+              "text": "Мой прогресс",
+              "callback_data": "train:progress~1a4d5d888143"
+            },
+            {
+              "text": "В меню",
+              "callback_data": "nav:main~1a4d5d888143"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "X2VWmQVwTKz48A": {
+        "path": "assets/2f29763fe0323265f2fe555bc171688ce166250fdb2a9341fe5dc0d27898f066.png",
+        "filename": "bop-training-result.png",
+        "sha256": "2f29763fe0323265f2fe555bc171688ce166250fdb2a9341fe5dc0d27898f066"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 547,
+    "390": 593,
+    "430": 654
+  },
+  "checks": {
+    "actual_message_id": 558,
+    "issued": 3,
+    "checkpoint": false,
+    "inline_labels": [
+      "Система двух линейных неравенств: ограниченный отрезок",
+      "К тренировкам",
+      "Мой прогресс",
+      "В меню"
+    ],
+    "caption": ""
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Тренировка завершена",
+    "subtitle": "№6 · Вычисления",
+    "sections": [
+      {
+        "title": "Что повторить",
+        "entries": [
+          {
+            "label": "№13 · Система двух линейных неравенств: ограниченный отрезок",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "list"
+      }
+    ],
+    "metrics": [
+      {
+        "value": "2/3",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "2/3",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Открыто разборов: 0",
+    "hint": "",
+    "breakdown": {
+      "independent": 2,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 1
+    },
+    "practice": [
+      {
+        "label": "Деление обыкновенных дробей",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      },
+      {
+        "label": "Привести разность к указанному знаменателю и записать числитель",
+        "count": 1,
+        "target": 3,
+        "confirmed": false
+      }
+    ]
+  }
+}

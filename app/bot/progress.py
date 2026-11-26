@@ -12,6 +12,8 @@ from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, ReplyParameters
 from aiogram.utils.formatting import Bold, Text, as_list
 
+from app.bot.visual_delivery import build_visual, visual_enabled
+from app.bot.visual_models import VisualCard, VisualEntry, VisualMetric, VisualSection
 from app.persistence.training_insights import (
     _STORY_NAMES,
     MIN_ANSWERED_SAMPLE,
@@ -406,6 +408,83 @@ def _family_line(index: int, row: dict[str, Any]) -> str:
     return " · ".join(fields)
 
 
+def _number_card(
+    insights: dict[str, Any], number: int, *, families_only: bool = False, offset: int = 0,
+) -> VisualCard:
+    visible = _visible_families(insights, number, full=families_only, offset=offset)
+    entries = tuple(
+        VisualEntry(
+            label=str(row["name"]),
+            key=str(index),
+            detail=" · ".join(part for part in (
+                f"{row['correct']}/{row['answered_tasks']} верно"
+                if row.get("answered_tasks") else "",
+                row.get("diagnosis") or ("Нет данных" if not _has_family_results(row) else ""),
+            ) if part),
+            tone={"gap": "warn", "reopened": "warn", "confirmed": "good"}.get(
+                row.get("diagnosis_key", ""), "neutral"
+            ),
+        )
+        for index, row in enumerate(visible, start=offset + 1)
+    )
+    family_section = (VisualSection("Типы задач", entries),) if entries else ()
+    if families_only:
+        total = len(_number_families(insights, number))
+        return VisualCard(
+            "number_progress", f"№{number} · Типы задач", _number_title(number),
+            sections=family_section,
+            note=f"Типы {offset + 1}–{offset + len(visible)} из {total}" if visible else "",
+        )
+
+    values = insights["numbers"].get(number, {})
+    answered = values.get("answered_tasks", 0)
+    metrics = [
+        VisualMetric(f"{values.get('correct', 0)}/{answered}", "Верно"),
+        VisualMetric(success_label(values), "Успешность"),
+    ]
+    if "independent_count" in insights:
+        metrics.append(VisualMetric(str(insights["independent_count"]), "Новых самостоятельно"))
+    sections = []
+    if answered:
+        attempts = [
+            VisualEntry(
+                f"Верно с первой: {values.get('first_correct', 0)} · "
+                f"Со второй: {values.get('second_correct', 0)}"
+            ),
+            VisualEntry(
+                f"С подсказкой: {values.get('assisted_correct', 0)} · "
+                f"Без подсказки: {values.get('unassisted_correct', 0)}"
+            ),
+        ]
+        if values.get("unknown_correct_attempt"):
+            attempts.append(VisualEntry(
+                f"Номер верной попытки неизвестен: {values['unknown_correct_attempt']}"
+            ))
+        if values.get("unknown_assistance"):
+            attempts.append(VisualEntry(
+                f"Использование подсказки неизвестно: {values['unknown_assistance']}"
+            ))
+        sections.append(VisualSection("Попытки", tuple(attempts)))
+    activity = f"Выдано: {values.get('issued', 0)} · Пропущено: {values.get('skipped', 0)}"
+    if values.get("hints_used") or values.get("solutions_viewed"):
+        activity += (
+            f"\nПодсказок: {values.get('hints_used', 0)} · "
+            f"Открыто разборов: {values.get('solutions_viewed', 0)}"
+        )
+    if any(insights.get(key) for key in ("open_gaps", "in_practice", "closed_gaps")):
+        activity += (
+            f"\nОткрыто пробелов: {insights.get('open_gaps', 0)} · "
+            f"На закреплении: {insights.get('in_practice', 0)} · "
+            f"Закрыто пробелов: {insights.get('closed_gaps', 0)}"
+        )
+    return VisualCard(
+        "number_progress", f"№{number} · Прогресс", _number_title(number),
+        sections=(*sections, *family_section), metrics=tuple(metrics), note=activity,
+        hint=(f"Для оценки нужно {MIN_ANSWERED_SAMPLE} задач с ответом."
+              if answered < MIN_ANSWERED_SAMPLE else ""),
+    )
+
+
 async def _include_family_states(
     insights: dict[str, Any], repository: Any, user_id: int, number: int,
 ) -> None:
@@ -646,6 +725,13 @@ async def progress_navigation(
     was_photo = bool(getattr(old_message, "photo", None))
     reply = getattr(old_message, "reply_to_message", None)
     overview = reply if isinstance(reply, Message) and reply.photo else None
+    old_markup = getattr(old_message, "reply_markup", None)
+    is_overview = was_photo and overview is None and (
+        old_markup is None or any(
+            (button.callback_data or "").partition("~")[0] == "progress:details"
+            for row in old_markup.inline_keyboard for button in row
+        )
+    )
     if section in {"summary", "refresh"}:
         if overview is not None and await send_progress_image(
             overview, repository, user_id, "summary", edit_existing=True, viewer=message.from_user
@@ -656,9 +742,9 @@ async def progress_navigation(
                 pass
             return
         if await send_progress_image(
-            message, repository, user_id, "summary", edit_existing=was_photo
+            message, repository, user_id, "summary", edit_existing=is_overview
         ):
-            if not was_photo:
+            if not is_overview:
                 try:
                     await old_message.delete()
                 except (TelegramBadRequest, TelegramNotFound):
@@ -679,6 +765,7 @@ async def progress_navigation(
                 pass
         return
 
+    visual = None
     math_family: object = None
     math_system_rows: tuple[str, ...] | None = None
     if section == "solution" and len(parts) == 3:
@@ -848,6 +935,8 @@ async def progress_navigation(
             output_page, number=number, family_total=family_total,
             insights=insights,
         )
+        if visual_enabled("number_progress", message, user_id):
+            visual = build_visual("number_progress", lambda: _number_card(insights, number))
     elif section == "family" and len(parts) == 3 and all(p.isdigit() for p in parts[1:]):
         number, offset = map(int, parts[1:])
         if number not in range(1, 20):
@@ -861,6 +950,10 @@ async def progress_navigation(
         markup = progress_keyboard(
             output_page, number=number, family_total=family_total, insights=insights
         )
+        if visual_enabled("number_progress", message, user_id):
+            visual = build_visual("number_progress", lambda: _number_card(
+                insights, number, families_only=True, offset=offset,
+            ))
     elif section == "filter" and len(parts) == 2:
         try:
             origin = decode_return_page(parts[1])
@@ -886,7 +979,7 @@ async def progress_navigation(
     else:
         return await progress_navigation(message, repository, user_id, "summary")
 
-    open_below_overview = section == "details" and was_photo
+    open_below_overview = section == "details" and is_overview
     reply_options: _ReplyOptions = {}
     if open_below_overview:
         overview = old_message
@@ -912,6 +1005,7 @@ async def progress_navigation(
         rich_with_navigation=(section == "item"),
         math_system_rows=math_system_rows,
         user_id_override=user_id,
+        visual=visual,
         **reply_options,
     )
     if not open_below_overview and sent.message_id != old_message.message_id:

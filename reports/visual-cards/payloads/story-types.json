@@ -1,0 +1,88 @@
+{
+  "name": "story-types",
+  "label": "Квартиры · типы №2",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://CW_FozdyG3ilJA",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Все типы",
+              "callback_data": "train:story-all:2:FLAT~d497cf78ed6c"
+            }
+          ],
+          [
+            {
+              "text": "Упаковки паркета",
+              "callback_data": "train:family:FLAT-02-PARQUET-PACK~d497cf78ed6c"
+            }
+          ],
+          [
+            {
+              "text": "Упаковки плитки",
+              "callback_data": "train:family:FLAT-02-TILE-PACK~d497cf78ed6c"
+            }
+          ],
+          [
+            {
+              "text": "↩ К сюжетам",
+              "callback_data": "train:area:2~d497cf78ed6c"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "CW_FozdyG3ilJA": {
+        "path": "assets/8b2f240204f1229a26c7766da106237ee0c8715b8b0fd7465a6eea484a9a73b8.png",
+        "filename": "bop-types.png",
+        "sha256": "8b2f240204f1229a26c7766da106237ee0c8715b8b0fd7465a6eea484a9a73b8"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 208,
+    "390": 225,
+    "430": 248
+  },
+  "checks": {
+    "actual_message_id": 121
+  },
+  "projection": {
+    "screen": "types",
+    "title": "Выбери тип",
+    "subtitle": "№2 · Квартиры",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Упаковки паркета",
+            "key": "1",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          },
+          {
+            "label": "Упаковки плитки",
+            "key": "2",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": ""
+          }
+        ],
+        "layout": "list"
+      }
+    ],
+    "metrics": [],
+    "note": "Страница 1 из 1",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  }
+}

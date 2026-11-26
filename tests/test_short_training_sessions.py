@@ -66,6 +66,8 @@ async def test_similar_uses_next_slot_and_revision_is_callback_safe(bank_pool):
         UUID(str(second["problem_id"])),
     )
     assert tuple(slot) == (1, "similar")
+    assert await session.difficulties(row["id"]) == {family: 1}
+    assert await session.difficulties(row["id"], from_position=1) == {}
     from app.adaptive.store import sync
     async with bank_pool.acquire() as conn, conn.transaction():
         await sync(conn, next_row["owner"])

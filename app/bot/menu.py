@@ -1,10 +1,12 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.bot.bop_copy import LABELS
+from app.bot.visual_models import VisualCard, VisualEntry, VisualSection
 
 # Legacy reply text remains accepted by the router, but unavailable modes are hidden.
 MAIN_MENU = ("🧮 По номеру", "📊 Мой прогресс", "⚙️ Настройки", "▶ Продолжить")
 TASK6_MENU = ("💡 Подсказка", "📘 Разбор", "⏭ Пропустить", "↩ В меню")
+_PICKER_TITLES = {7: "Координатная прямая", 18: "Фигуры на клетках"}
 
 
 def _button(text: str, data: str) -> InlineKeyboardButton:
@@ -98,6 +100,74 @@ def number_menu(
         include_task13=include_task13,
         page=page,
     )[1]
+
+
+def welcome_card() -> VisualCard:
+    from app.config import get_settings
+
+    return VisualCard(
+        screen="welcome", title="Математика для ОГЭ",
+        subtitle=("Задания №1–25" if get_settings().oge_part2_enabled
+                  else "Тренажёр первой части"),
+    )
+
+
+def picker_title(number: int, title: str) -> str:
+    return _PICKER_TITLES.get(number, title)
+
+
+def number_card(
+    *, include_task7: bool = False, include_task11: bool = False,
+    include_task13: bool = False, page: int = 0,
+) -> tuple[VisualCard, InlineKeyboardMarkup]:
+    """Visual grouping uses existing routes; old numeric pages remain valid fallback."""
+    from app.bot.trainings import PART2_TRAININGS, TRAININGS
+    from app.config import get_settings
+
+    flags = {7: include_task7, 11: include_task11, 13: include_task13}
+    trainings = [t for t in TRAININGS if flags.get(t.number, t.available)]
+    # The first legacy page containing a written task is also its visual entry.
+    written_page = (1 + len(trainings)) // 6
+    written = get_settings().oge_part2_enabled and page >= written_page
+    if written:
+        entries = tuple(VisualEntry(t.title, key=str(t.number)) for t in PART2_TRAININGS)
+        rows = [[_button(f"№{t.number}", f"p2:menu:{t.number}") for t in PART2_TRAININGS[i:i + 3]]
+                for i in range(0, len(PART2_TRAININGS), 3)]
+        rows.append([_button("← Первая часть", "nav:numbers:0")])
+        sections: tuple[VisualSection, ...] = (
+            VisualSection("Развёрнутые решения", entries, layout="tiles"),
+        )
+    else:
+        from app.bot.scenario_training import public_registry
+        from app.math.scenario_engine import PracticeMode
+
+        practical = [n for n in range(1, 6)
+                     if public_registry().available_stories(PracticeMode.SINGLE, n)]
+        sections = (
+            VisualSection("Практические задания", tuple(
+                VisualEntry("Сюжеты", key=str(n)) for n in practical
+            ), layout="practical"),
+            *(VisualSection(label, tuple(
+                VisualEntry(picker_title(t.number, t.title), key=str(t.number))
+                for t in trainings if t.number in group
+            ), layout="tiles")
+              for label, group in (("Алгебра и вероятность", range(6, 15)),
+                                   ("Геометрия", range(15, 20)))),
+        )
+        rows = [[_button(f"№{n}", f"nav:oge15:{n}") for n in practical]] if practical else []
+        rows.append([_button("№1–5 · Практические задания", "nav:oge15")])
+        for group in (range(6, 15), range(15, 20)):
+            buttons = [_button(f"№{t.number}", f"nav:task:{t.number}")
+                       for t in trainings if t.number in group]
+            rows.extend(buttons[i:i + 5] for i in range(0, len(buttons), 5))
+        if get_settings().oge_part2_enabled:
+            rows.append([_button("Вторая часть · №20–25", f"nav:numbers:{written_page}")])
+    rows.append([_button(LABELS["menu"], "nav:main")])
+    return VisualCard(
+        screen="part2" if written else "numbers", title="Выбери номер",
+        subtitle="Вторая часть · №20–25" if written else "Первая часть · №1–19",
+        sections=sections,
+    ), InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def progress_menu(*, has_session: bool = False) -> InlineKeyboardMarkup:

@@ -1,0 +1,73 @@
+{
+  "name": "full-result",
+  "label": "Вся первая часть · итог",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://sHvTP6qwUtoTMA",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "К тренировкам",
+              "callback_data": "nav:trainings~fd436b4ceebf"
+            }
+          ],
+          [
+            {
+              "text": "📊 Мой прогресс",
+              "callback_data": "nav:progress~fd436b4ceebf"
+            },
+            {
+              "text": "↩ В меню",
+              "callback_data": "nav:main~fd436b4ceebf"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "sHvTP6qwUtoTMA": {
+        "path": "assets/0a41150e941f397c01e342434dc6811c9b117ef45fb9948c9d998f32d581137b.png",
+        "filename": "bop-training-result.png",
+        "sha256": "0a41150e941f397c01e342434dc6811c9b117ef45fb9948c9d998f32d581137b"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 288,
+    "390": 312,
+    "430": 344
+  },
+  "checks": {
+    "actual_message_id": 809
+  },
+  "projection": {
+    "screen": "training_result",
+    "title": "Итог первой части",
+    "subtitle": "Задания №1–19",
+    "sections": [],
+    "metrics": [
+      {
+        "value": "1/19",
+        "label": "Решено верно",
+        "tone": "good"
+      },
+      {
+        "value": "1/19",
+        "label": "Самостоятельно",
+        "tone": "neutral"
+      }
+    ],
+    "note": "С подсказками: 0 · Запрошено разборов: 0",
+    "hint": "Дальше начинается новый комплект.",
+    "breakdown": {
+      "independent": 1,
+      "assisted": 0,
+      "unsolved": 0,
+      "skipped": 18
+    },
+    "practice": []
+  }
+}

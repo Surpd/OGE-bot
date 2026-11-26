@@ -1,0 +1,17 @@
+{
+  "name": "continue-transition",
+  "label": "Продолжение убирает прежние кнопки",
+  "call": {
+    "method": "editMessageReplyMarkup",
+    "payload": {
+      "chat_id": "42",
+      "message_id": "271"
+    }
+  },
+  "displayed_heights": {},
+  "checks": {
+    "old_message_id": 271,
+    "new_prompt_id": 272,
+    "old_keyboard_removed": true
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "name": "stories",
+  "label": "Сюжеты №2",
+  "call": {
+    "method": "sendPhoto",
+    "payload": {
+      "chat_id": "42",
+      "photo": "attach://87yLnoyR_gR2BQ",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "Весь №2",
+              "callback_data": "train:number:2~80e3798d5d46"
+            }
+          ],
+          [
+            {
+              "text": "Шины",
+              "callback_data": "train:story:2:TYRES~80e3798d5d46"
+            }
+          ],
+          [
+            {
+              "text": "Бумага",
+              "callback_data": "train:story:2:PAPER~80e3798d5d46"
+            }
+          ],
+          [
+            {
+              "text": "Печи",
+              "callback_data": "train:story:2:STOVE~80e3798d5d46"
+            }
+          ],
+          [
+            {
+              "text": "Тарифы",
+              "callback_data": "train:story:2:TARIFF~80e3798d5d46"
+            }
+          ],
+          [
+            {
+              "text": "Участки",
+              "callback_data": "train:story:2:GARDEN~80e3798d5d46"
+            }
+          ],
+          [
+            {
+              "text": "Квартиры",
+              "callback_data": "train:story:2:FLAT~80e3798d5d46"
+            }
+          ],
+          [
+            {
+              "text": "↩ К номерам",
+              "callback_data": "train:areas~80e3798d5d46"
+            }
+          ]
+        ]
+      }
+    },
+    "attachments": {
+      "87yLnoyR_gR2BQ": {
+        "path": "assets/3eb439fc76b027469a443f190ae1dfaa6ef4fc7e2af30717610627c84d4bde67.png",
+        "filename": "bop-stories.png",
+        "sha256": "3eb439fc76b027469a443f190ae1dfaa6ef4fc7e2af30717610627c84d4bde67"
+      }
+    }
+  },
+  "displayed_heights": {
+    "360": 333,
+    "390": 361,
+    "430": 398
+  },
+  "checks": {
+    "actual_message_id": 120
+  },
+  "projection": {
+    "screen": "stories",
+    "title": "Выбери сюжет",
+    "subtitle": "Практические задания · №2",
+    "sections": [
+      {
+        "title": "",
+        "entries": [
+          {
+            "label": "Шины",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "TYRES"
+          },
+          {
+            "label": "Бумага",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "PAPER"
+          },
+          {
+            "label": "Печи",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "STOVE"
+          },
+          {
+            "label": "Тарифы",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "TARIFF"
+          },
+          {
+            "label": "Участки",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "GARDEN"
+          },
+          {
+            "label": "Квартиры",
+            "key": "",
+            "detail": "",
+            "value": "",
+            "tone": "neutral",
+            "icon": "FLAT"
+          }
+        ],
+        "layout": "tiles"
+      }
+    ],
+    "metrics": [],
+    "note": "",
+    "hint": "",
+    "breakdown": null,
+    "practice": []
+  }
+}

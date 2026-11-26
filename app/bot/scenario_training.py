@@ -33,6 +33,8 @@ from app.bot.scenario_materials import (
     send_scenario_materials,
 )
 from app.bot.training_ux import matches_current_condition, resumed_result
+from app.bot.visual_delivery import build_visual, visual_enabled
+from app.bot.visual_models import VisualCard, VisualEntry, VisualSection
 from app.math.scenario_engine import (
     FamilyRegistry,
     PracticeMode,
@@ -187,8 +189,13 @@ def _story_keyboard(
 ) -> InlineKeyboardMarkup:
     suffix = f":n{selected_number}" if selected_number is not None else ""
     callback_prefix = "oge15:linked" if linked_only else "oge15:story"
+    available = set(public_registry().available_stories(
+        PracticeMode.FULL if linked_only else PracticeMode.SINGLE,
+        None if linked_only else selected_number,
+    ))
     rows = [
-        [_button(name, f"{callback_prefix}:{code}{suffix}")] for code, name in STORY_NAMES.items()
+        [_button(name, f"{callback_prefix}:{code}{suffix}")]
+        for code, name in STORY_NAMES.items() if code in available
     ]
     rows.extend(
         (
@@ -210,6 +217,24 @@ def _story_keyboard(
             ]
         )
     return _keyboard(rows)
+
+
+def story_card(
+    selected_number: int | None = None, *, linked_only: bool = False,
+) -> VisualCard:
+    mode = PracticeMode.FULL if linked_only else PracticeMode.SINGLE
+    available = set(public_registry().available_stories(
+        mode, None if linked_only else selected_number,
+    ))
+    return VisualCard(
+        screen="stories", title="Выбери сюжет",
+        subtitle=(f"Практические задания · №{selected_number}" if selected_number
+                  else "Практические задания · №1–5"),
+        sections=(VisualSection("", tuple(
+            VisualEntry(name, icon=code) for code, name in STORY_NAMES.items()
+            if code in available
+        ), layout="tiles"),),
+    )
 
 
 async def show_public_oge15(
@@ -248,6 +273,9 @@ async def show_public_oge15(
             text,
             reply_markup=keyboard,
             user_id_override=user_id,
+            visual=build_visual("stories", lambda: story_card(
+                selected_number, linked_only=linked_only,
+            )) if visual_enabled("stories", message, user_id) else None,
         )
 
 
@@ -256,6 +284,7 @@ async def _send_selection(
     text: str,
     keyboard: InlineKeyboardMarkup,
     repository: Repository | None = None,
+    *, visual: VisualCard | None = None,
 ) -> None:
     if isinstance(callback.message, Message):
         if repository is None:
@@ -267,6 +296,7 @@ async def _send_selection(
                 text,
                 reply_markup=keyboard,
                 user_id_override=callback.from_user.id,
+                visual=visual,
             )
     await answer_callback(callback)
 
@@ -862,7 +892,13 @@ async def handle_callback(
     if data == "oge15:home":
         if repository is not None:
             await repository.save_user_state(callback.from_user.id, "oge15_menu")
-        await _send_selection(callback, "Выберите сюжет:", _story_keyboard(), repository)
+        await _send_selection(
+            callback, "Выберите сюжет:", _story_keyboard(), repository,
+            visual=(build_visual("stories", story_card)
+                    if isinstance(callback.message, Message)
+                    and visual_enabled("stories", callback.message, callback.from_user.id)
+                    else None),
+        )
         return
     if data == "oge15:stats":
         from app.bot.progress import progress_navigation
