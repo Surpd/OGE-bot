@@ -100,11 +100,30 @@
       "mode": "RGB",
       "alpha_extrema": null,
       "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "point-left.png",
+      "repository_path": "docs/design/bop-character/poses/approved/point-left.png",
+      "status": "approved",
+      "note": "Пользователь принял позу с указанием и поворотом головы влево, мягким отражением на визоре. Татуировка в этом конкретном ракурсе принята как допустимое отклонение; не дублировать надпись на видимой стороне шеи. Мимика этой позы — дружелюбная улыбка.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 1655272,
+      "sha256": "dfd876cfac2cc0ff5928db7f582149a1bb0a14244573a75a556c4a9e74487deb",
+      "github_binary_status": "pending_import"
     }
   ],
   "current_telegram": {
     "avatar": "avatar.png",
     "description_picture": "welcome-640x360.png",
     "master": "welcome-original.png"
+  },
+  "generation_guidance": {
+    "expression": "Варьировать цифровые глаза и рот в разных позах осознанно, по смыслу сценария; не использовать одну и ту же улыбку по умолчанию. Визуальный характер и одежду сохранять. Блики зависят от освещения и не являются постоянной деталью."
   }
 }
