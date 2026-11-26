@@ -384,15 +384,19 @@ async def _issue_task(
     mixed_options: list[str] | None = None
     mixed_claim = None
     if strategy == "mixed" and not exact and "mixed_rotation" in scope:
-        number, mixed_options, next_rotation = await store.mixed_choices(row, catalog(), scope)
-        mixed_claim = number, next_rotation
+        mixed_number, mixed_options, next_rotation = await store.mixed_choices(
+            row, catalog(), scope,
+        )
+        mixed_claim = mixed_number, next_rotation
     excluded = (
         [] if exact or repeat or mixed_options is not None else await store.excluded_for_learner()
     )
     number = scope.get("number")
-    story_number = strategy == "number" and isinstance(number, int) and number <= 5
+    story_number = (
+        number if strategy == "number" and isinstance(number, int) and 1 <= number <= 5 else None
+    )
     recent_story = (
-        await story_family_recency(repository, store.learner, number)
+        await story_family_recency(repository, store.learner, story_number)
         if story_number and not exact and not repeat else []
     )
     history, insights = (
@@ -407,7 +411,7 @@ async def _issue_task(
     if mixed_options is not None and not repeat:
         attempts = len(mixed_options)
     elif story_number:
-        attempts = sum(map(len, story_families(number).values())) + 1
+        attempts = sum(map(len, story_families(story_number).values())) + 1
     for _ in range(attempts):  # Search the selected number's available families on mixed retries.
         updated = skills
         if mixed_options is not None:
@@ -420,7 +424,7 @@ async def _issue_task(
                 break
         elif story_number and not exact and not repeat:
             rotated = _story_slots(
-                number, story=scope.get("story"), recent=recent_story, excluded=excluded,
+                story_number, story=scope.get("story"), recent=recent_story, excluded=excluded,
                 size=len(skills) - position, seed=str(scope.get("plan_seed", store.learner)),
             )
             updated = [*skills[:position], *rotated]
@@ -1090,17 +1094,20 @@ async def callback(cb: CallbackQuery, repository: Any) -> None:
     elif action == "continue" and at_checkpoint(row):
         scope = _scope(row)
         strategy = row["strategy"]
-        number = scope.get("number")
-        story_number = strategy == "number" and isinstance(number, int) and 1 <= number <= 5
+        practice_number = scope.get("number")
+        story_number = (
+            strategy == "number" and isinstance(practice_number, int) and 1 <= practice_number <= 5
+        )
         history, insights = (
             await _learner_inputs(repository, learner)
             if strategy == "number" and not story_number else ([], {})
         )
         recent_story = (
-            await story_family_recency(repository, learner, number) if story_number else []
+            await story_family_recency(repository, learner, practice_number)
+            if story_number and practice_number is not None else []
         )
         next_block = _mode_plan(
-            strategy, learner, history, insights, number=number,
+            strategy, learner, history, insights, number=practice_number,
             family=scope.get("family"), seed=secrets.token_hex(8),
             story=scope.get("story"), recent_story=recent_story,
         )
