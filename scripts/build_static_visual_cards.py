@@ -3,7 +3,7 @@
 import argparse
 import sys
 from collections.abc import Iterator
-from itertools import product
+from hashlib import sha256
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -23,15 +23,12 @@ def static_cards() -> Iterator[VisualCard]:
         token = test_settings.set(Settings(_env_file=None, oge_part2_enabled=written))
         try:
             yield menu.welcome_card()
-            yield adaptive.area_card()[0]
             yield _numbers_card()
-            for seven, eleven, thirteen in product((False, True), repeat=3):
-                yield menu.number_card(
-                    include_task7=seven, include_task11=eleven, include_task13=thirteen,
-                )[0]
             if written:
+                yield menu.number_card(
+                    include_task7=True, include_task11=True, include_task13=True,
+                )[0]
                 yield menu.number_card(page=99)[0]
-                yield adaptive.area_card(1)[0]
         finally:
             test_settings.reset(token)
 
@@ -57,20 +54,29 @@ def main() -> None:
     parser.add_argument("--check", action="store_true", help="Verify the packaged catalogue")
     check = parser.parse_args().check
     cards = {static_path(card): card for card in static_cards()}
+    actual = set(STATIC_DIRECTORY.glob("*.png"))
     if check:
-        actual = set(STATIC_DIRECTORY.glob("*.png"))
         if actual != cards.keys():
             missing, obsolete = cards.keys() - actual, actual - cards.keys()
             raise SystemExit(f"Missing: {sorted(missing)}\nObsolete: {sorted(obsolete)}")
-        for path in cards:
+        seen = {}
+        for path, card in cards.items():
             with Image.open(path) as image:
                 if image.format != "PNG":
                     raise SystemExit(f"Expected PNG: {path}")
                 image.verify()
+            if card.screen in {"welcome", "progress_numbers"}:
+                with Image.open(path) as image:
+                    key = (image.size, sha256(image.convert("RGBA").tobytes()).digest())
+                if key in seen:
+                    raise SystemExit(f"Duplicate artwork: {seen[key]} and {path}")
+                seen[key] = path
     else:
         STATIC_DIRECTORY.mkdir(parents=True, exist_ok=True)
         for path, card in cards.items():
             path.write_bytes(render_card(card))
+        for path in actual - cards.keys():
+            path.unlink()
     print(f"{len(cards)} static PNG cards")
 
 

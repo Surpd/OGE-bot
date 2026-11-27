@@ -347,3 +347,25 @@ async def test_visual_journal_render_failure_keeps_same_filter_and_page_size(
         assert "progress:history:6" in actions(journal)
     finally:
         await route.bot.session.close()
+
+
+async def test_disabled_number_uses_text_and_current_navigation(monkeypatch):
+    from app.bot import router
+    from app.persistence.repository import MemoryRepository
+
+    monkeypatch.setattr(router, "TASK7_ENABLED_FAMILIES", ())
+    route = ProgressRoute(MemoryRepository(), progress_settings(oge_visual_numbers_enabled=True))
+    try:
+        await route.feed(message=Message(
+            message_id=1, date=datetime.now(UTC), chat=route.chat, from_user=route.user,
+            text="🧮 По номеру",
+        ))
+        page = route.current
+        assert page.text and "Выберите номер задания" in page.text and not page.photo
+        assert "nav:task:7" not in actions(page)
+        assert "nav:task:6" in actions(page)
+        next_page = await route.click("nav:numbers:1")
+        assert next_page.text and "Страница 2" in next_page.text
+        assert "nav:numbers:0" in actions(next_page)
+    finally:
+        await route.bot.session.close()
