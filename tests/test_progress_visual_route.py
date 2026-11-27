@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from io import BytesIO
 from uuid import UUID
 
+import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, Chat, Message, MessageEntity, Update, User
@@ -169,6 +170,51 @@ class ProgressTelegramSession(TelegramSession):
         return await super().make_request(bot, method, timeout=timeout)
 
 
+@pytest.mark.parametrize("missing_artwork", [False, True])
+async def test_written_picker_uses_packaged_artwork_and_live_keyboard(monkeypatch, missing_artwork):
+    from app.bot import adaptive
+    from app.persistence.repository import MemoryRepository
+
+    route = ProgressRoute(
+        MemoryRepository(), progress_settings(
+            oge_visual_numbers_enabled=True, oge_part2_enabled=True,
+        ),
+    )
+    def render_must_not_run(card):
+        pytest.fail(f"Re-rendered static card {card.screen}")
+
+    load = visual_delivery._read_static_png
+
+    def read(path):
+        if missing_artwork and path.name.startswith("part2-"):
+            raise FileNotFoundError(path)
+        return load(path)
+
+    monkeypatch.setattr(visual_delivery, "_read_static_png", read)
+    monkeypatch.setattr(visual_delivery, "_render_png", render_must_not_run)
+    try:
+        await route.feed(message=Message(
+            message_id=1, date=datetime.now(UTC), chat=route.chat, from_user=route.user,
+            text="/start", entities=[MessageEntity(type="bot_command", offset=0, length=6)],
+        ))
+        await route.click("nav:trainings")
+        assert (await route.click("train:areas")).photo
+        written = await route.click("train:areas:1")
+        assert bool(written.photo) != missing_artwork
+        assert actions(written, "p2:menu:") == [f"p2:menu:{n}" for n in range(20, 26)]
+        if missing_artwork:
+            await route.click("nav:trainings")
+            assert (await route.click("train:areas")).photo
+        else:
+            assert "train:areas:0" in actions(written)
+            assert (await route.click("train:areas:0")).photo
+            assert list(actions(route.current, "train:area:")) == [
+                f"train:area:{number}" for number in sorted(set(adaptive.catalog().values()))
+            ]
+    finally:
+        await route.bot.session.close()
+
+
 async def test_visual_progress_dispatcher_keeps_filter_page_and_message_identity(
     navigation_pool, monkeypatch,
 ):
@@ -176,7 +222,7 @@ async def test_visual_progress_dispatcher_keeps_filter_page_and_message_identity
     await seed_progress(repository)
     route = ProgressRoute(repository)
     cards = []
-    render = visual_delivery._render_png
+    render = visual_delivery._card_png
 
     def capture(card):
         cards.append(card)
@@ -186,8 +232,8 @@ async def test_visual_progress_dispatcher_keeps_filter_page_and_message_identity
                 assert image.height * 430 <= image.width * 440
         return png
 
-    monkeypatch.setattr(visual_delivery, "_render_png", capture)
-    visual_delivery._render_menu_png.cache_clear()
+    monkeypatch.setattr(visual_delivery, "_card_png", capture)
+    visual_delivery._read_static_png.cache_clear()
     try:
         overview = await route.start()
         assert overview.photo and "progress:details" in actions(overview)
@@ -263,7 +309,7 @@ async def test_visual_progress_dispatcher_keeps_filter_page_and_message_identity
         attempts = await training_insights(repository, 42)
         assert attempts["numbers"][6]["second_correct"] == 8
     finally:
-        visual_delivery._render_menu_png.cache_clear()
+        visual_delivery._read_static_png.cache_clear()
         await route.bot.session.close()
 
 
@@ -299,5 +345,27 @@ async def test_visual_journal_render_failure_keeps_same_filter_and_page_size(
         journal = await route.click("progress:history:0")
         assert not journal.photo and len(actions(journal, "progress:item:")) == 6
         assert "progress:history:6" in actions(journal)
+    finally:
+        await route.bot.session.close()
+
+
+async def test_disabled_number_uses_text_and_current_navigation(monkeypatch):
+    from app.bot import router
+    from app.persistence.repository import MemoryRepository
+
+    monkeypatch.setattr(router, "TASK7_ENABLED_FAMILIES", ())
+    route = ProgressRoute(MemoryRepository(), progress_settings(oge_visual_numbers_enabled=True))
+    try:
+        await route.feed(message=Message(
+            message_id=1, date=datetime.now(UTC), chat=route.chat, from_user=route.user,
+            text="🧮 По номеру",
+        ))
+        page = route.current
+        assert page.text and "Выберите номер задания" in page.text and not page.photo
+        assert "nav:task:7" not in actions(page)
+        assert "nav:task:6" in actions(page)
+        next_page = await route.click("nav:numbers:1")
+        assert next_page.text and "Страница 2" in next_page.text
+        assert "nav:numbers:0" in actions(next_page)
     finally:
         await route.bot.session.close()

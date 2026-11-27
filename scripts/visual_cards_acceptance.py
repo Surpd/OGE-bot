@@ -559,22 +559,22 @@ async def main() -> None:
     settings = config(
         oge_companion_adaptive_enabled=True, oge_visual_companion_only=True,
         oge_visual_user_ids="42", oge_visual_welcome_enabled=True, oge_visual_numbers_enabled=True,
-        oge_visual_part2_enabled=True, oge_visual_stories_enabled=True,
+        oge_visual_stories_enabled=True,
         oge_visual_types_enabled=True,
         oge_visual_number_progress_enabled=True, oge_visual_training_result_enabled=True,
     )
     harness = Harness(repo, settings, ScenarioPostgresRepository(repo._pool))
     report = Evidence(harness)
 
-    from app.bot.visual_delivery import _render_png
+    from app.bot.visual_delivery import _card_png
 
     def capture_render(visual: VisualCard) -> bytes:
         report.projections.append(visual)
-        return _render_png(visual)
+        return _card_png(visual)
 
     try:
         aggregate_examples(report)
-        with patch("app.bot.visual_delivery._render_png", side_effect=capture_render):
+        with patch("app.bot.visual_delivery._card_png", side_effect=capture_render):
             await exercise(harness, report)
         report.write()
     finally:

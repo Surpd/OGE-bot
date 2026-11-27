@@ -61,12 +61,12 @@ def result_keyboard():
 @pytest.fixture
 def flags():
     token = current_settings.set(Settings(_env_file=None, oge_visual_numbers_enabled=True))
-    delivery._render_menu_png.cache_clear()
+    delivery._read_static_png.cache_clear()
     try:
         yield
     finally:
         current_settings.reset(token)
-        delivery._render_menu_png.cache_clear()
+        delivery._read_static_png.cache_clear()
 
 
 @pytest.fixture
@@ -79,7 +79,7 @@ def synthetic_png(monkeypatch):
         captured.append(card)
         return buffer.getvalue()
 
-    monkeypatch.setattr(delivery, "_render_png", render)
+    monkeypatch.setattr(delivery, "_card_png", render)
     return captured
 
 
@@ -88,7 +88,7 @@ def source(bot, viewer=VIEWER):
                    from_user=viewer).as_(bot)
 
 
-async def test_photo_reuses_static_bytes_and_binds_returned_message(flags, synthetic_png):
+async def test_photo_reuses_message_and_binds_new_keyboard(flags, synthetic_png):
     transport = CardSession()
     bot = Bot("123456:TEST", session=transport)
     repository = MemoryRepository()
@@ -108,7 +108,7 @@ async def test_photo_reuses_static_bytes_and_binds_returned_message(flags, synth
     assert [method.__api_method__ for method in transport.calls] == [
         "sendPhoto", "editMessageMedia",
     ]
-    assert synthetic_png == [CARD]
+    assert synthetic_png == [CARD, CARD]
     assert first.photo and second.photo and first.message_id == second.message_id
     assert first.reply_markup.inline_keyboard[0][0].text == "Кнопка PNG"
     revision = navigation_revision(second.reply_markup)
@@ -131,7 +131,7 @@ async def test_definite_failure_or_disabled_keeps_original_keyboard(
         def failed(card):
             raise OSError("unavailable")
 
-        monkeypatch.setattr(delivery, "_render_png", failed)
+        monkeypatch.setattr(delivery, "_card_png", failed)
     elif failure == "photo":
         transport.photo_error = TelegramBadRequest
     else:
@@ -299,13 +299,13 @@ async def test_finish_replaces_checkpoint_in_place(
         raise OSError("synthetic render failure")
 
     if transport_path == "text":
-        monkeypatch.setattr(delivery, "_render_png", failed)
+        monkeypatch.setattr(delivery, "_card_png", failed)
     first = await send_text(
         source(bot), repository, "Результат тренировки\n\nХочешь продолжить?",
         visual=CHECKPOINT, visual_caption="Хочешь продолжить?",
     )
     if transport_path == "cover":
-        monkeypatch.setattr(delivery, "_render_png", failed)
+        monkeypatch.setattr(delivery, "_card_png", failed)
     elif transport_path == "caption":
         transport.media_error = TelegramBadRequest
 

@@ -37,7 +37,7 @@ class Gallery:
         self.route = route
         self.cases = []
         self.cards = []
-        self.render = visual_delivery._render_png
+        self.render = visual_delivery._card_png
 
     def capture_render(self, card):
         self.cards.append(card)
@@ -211,7 +211,7 @@ async def main():
     gallery = Gallery(route)
     try:
         await seed_progress(repository)
-        with patch.object(visual_delivery, "_render_png", side_effect=gallery.capture_render):
+        with patch.object(visual_delivery, "_card_png", side_effect=gallery.capture_render):
             await exercise(gallery)
         gallery.write()
     finally:
