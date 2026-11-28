@@ -247,8 +247,12 @@ async def test_real_pg_isolation_two_sessions_cross_routes_and_restart(bank_pool
                 home = next(
                     m for m in reversed(list(transport.messages.values())) if m.reply_markup
                 )
-                assert home.photo and home.caption
-                assert "Аккаунтов всего" in home.caption
+                assert home.photo and home.caption is None
+                assert any(
+                    button.text == "Подробнее"
+                    for row in home.reply_markup.inline_keyboard
+                    for button in row
+                )
                 button = home.reply_markup.inline_keyboard[0][0]
                 callback = {
                     "update_id": 2,
@@ -364,9 +368,7 @@ async def test_namespace_never_falls_back_to_public(bank_pool):
 
 
 @pytest.mark.parametrize("sha_variable", ["RENDER_GIT_COMMIT", "APP_BUILD_SHA"])
-async def test_runtime_admin_tools_round_trip_and_release_sha(
-    bank_pool, monkeypatch, sha_variable
-):
+async def test_runtime_admin_tools_round_trip_and_release_sha(bank_pool, monkeypatch, sha_variable):
     """Exercise the emitted Telegram keyboards through Companion's real dispatcher."""
     sha = "a" * 40 if sha_variable == "RENDER_GIT_COMMIT" else "b" * 40
     monkeypatch.setenv(sha_variable, sha)
@@ -410,14 +412,10 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
                 "from": {"id": 42, "is_bot": False, "first_name": "Synthetic"},
                 "chat_instance": "synthetic",
                 "data": button.callback_data,
-                "message": emitted.model_dump(
-                    mode="json", by_alias=True, exclude_none=True
-                ),
+                "message": emitted.model_dump(mode="json", by_alias=True, exclude_none=True),
             },
         }
-        response = await client.post(
-            "/telegram/test-webhook", json=payload, headers=headers
-        )
+        response = await client.post("/telegram/test-webhook", json=payload, headers=headers)
         assert response.status_code == 200
 
     async def send_text(client, headers, update_id, text):
@@ -457,7 +455,7 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
                 )
                 await send_text(client, headers, 5, student_keyboard.keyboard[0][0].text)
                 await click(client, headers, 6, "↩ Админ-панель")
-                await click(client, headers, 7, "Состояние системы")
+                await click(client, headers, 7, "Система")
 
                 system_messages = [
                     entry
@@ -466,9 +464,12 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
                 ]
                 assert system_messages, [entry.text for entry in transport.messages.values()]
                 system = system_messages[-1]
+                assert sha not in system.text
+                assert "База данных  <b>на связи</b>" in system.text
+                assert "Ошибки проверок за период  <b>0</b>" in system.text
+                await click(client, headers, 8, "Подробнее")
+                system = list(transport.messages.values())[-1]
                 assert f"Версия приложения  <code>{sha}</code>" in system.text
-                assert "База аналитики  <b>на связи</b>" in system.text
-                assert "Ошибки письменных проверок  <b>0</b>" in system.text
                 service = companion.admin_service
                 assert service.repository is not None
                 startup_report = await service.load("home", "28")

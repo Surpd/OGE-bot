@@ -22,11 +22,11 @@
           "callback_data": "adm:preview:back"
         },
         {
-          "text": "⌂ Главная",
+          "text": "Главная",
           "callback_data": "adm:preview:home"
         },
         {
-          "text": "↻ Обновить",
+          "text": "Обновить",
           "callback_data": "adm:preview:refresh"
         }
       ]

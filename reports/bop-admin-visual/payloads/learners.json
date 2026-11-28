@@ -6,18 +6,26 @@
     "rows": [
       {
         "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb01",
+        "display_name": "Анна · демо",
+        "username": "preview_anna",
         "last_activity": "2026-11-28 09:17:00+00:00"
       },
       {
         "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb02",
+        "display_name": "Михаил · демо",
+        "username": null,
         "last_activity": "2026-11-27 09:17:00+00:00"
       },
       {
         "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb03",
+        "display_name": null,
+        "username": null,
         "last_activity": "2026-11-24 09:17:00+00:00"
       },
       {
         "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb04",
+        "display_name": "Очень длинное имя профиля для проверки",
+        "username": "preview_long_profile",
         "last_activity": "2026-11-23 09:17:00+00:00"
       }
     ]
@@ -29,32 +37,32 @@
     "end": "2026-11-28T00:00:00+03:00"
   },
   "updated_at": "2026-11-28T12:34:00+03:00",
-  "text": "<b>bop Admin · Ученики</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\n<b>Последнее занятие</b>\n<b>…77eb01</b> · 28.11 12:17 МСК\n<b>…77eb02</b> · 27.11 12:17 МСК\n<b>…77eb03</b> · 24.11 12:17 МСК\n<b>…77eb04</b> · 23.11 12:17 МСК",
+  "text": "<b>bop Admin · Ученики</b>\n21.11 00:00 — 28.11 00:00 МСК\n\nВыберите ученика. Сначала — недавние занятия.",
   "caption": null,
   "image": null,
   "reply_markup": {
     "inline_keyboard": [
       [
         {
-          "text": "Ученик …77eb01",
+          "text": "@preview_anna",
           "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb01"
         }
       ],
       [
         {
-          "text": "Ученик …77eb02",
+          "text": "Михаил · демо",
           "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb02"
         }
       ],
       [
         {
-          "text": "Ученик …77eb03",
+          "text": "Ученик без имени · 3",
           "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb03"
         }
       ],
       [
         {
-          "text": "Ученик …77eb04",
+          "text": "@preview_long_profile",
           "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb04"
         }
       ],
@@ -64,11 +72,11 @@
           "callback_data": "adm:preview:back"
         },
         {
-          "text": "⌂ Главная",
+          "text": "Главная",
           "callback_data": "adm:preview:home"
         },
         {
-          "text": "↻ Обновить",
+          "text": "Обновить",
           "callback_data": "adm:preview:refresh"
         }
       ],

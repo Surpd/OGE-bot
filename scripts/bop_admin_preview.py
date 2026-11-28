@@ -90,14 +90,24 @@ FIXTURES: dict[str, dict[str, Any]] = {
         "rows": [
             {
                 "user_id": identity,
+                "display_name": name,
+                "username": username,
                 "last_activity": PREVIEW_NOW.astimezone(DATABASE_TZ)
                 - timedelta(days=days, minutes=17),
             }
-            for identity, days in zip(LEARNER_IDS, [0, 1, 4, 5], strict=True)
+            for identity, days, name, username in zip(
+                LEARNER_IDS,
+                [0, 1, 4, 5],
+                ["Анна · демо", "Михаил · демо", None, "Очень длинное имя профиля для проверки"],
+                ["preview_anna", None, None, "preview_long_profile"],
+                strict=True,
+            )
         ]
     },
     "learner": {
         "found": True,
+        "display_name": "Анна · демо",
+        "username": "preview_anna",
         "last_activity": PREVIEW_NOW - timedelta(days=1, minutes=17),
         "days": 6,
         "solved": 24,
@@ -241,6 +251,23 @@ def build() -> None:
     usage_month = ReportWindow.at("28", PREVIEW_NOW)
     first, last = usage_month.mature_cohorts()
     cases = [(screen, screen, fixture, "Заполнено") for screen, fixture in FIXTURES.items()] + [
+        ("usage-details", "usage", FIXTURES["usage"], "Подробнее"),
+        ("cost-details", "cost", FIXTURES["cost"], "Подробнее"),
+        ("system-details", "system", FIXTURES["system"], "Подробнее"),
+        ("learner-details", "learner", FIXTURES["learner"], "Подробнее"),
+        ("learners-empty", "learners", {"rows": []}, "Пусто"),
+        (
+            "learner-long-name",
+            "learner",
+            {**FIXTURES["learner"], "display_name": "ДлинноеИмя" * 12, "username": None},
+            "Длинное имя",
+        ),
+        (
+            "usage-today-empty",
+            "usage",
+            {"registered": 126, "active": 0, "modes": [], "days": [], "retention": {}},
+            "Сегодня · пусто",
+        ),
         (
             "usage-28",
             "usage",
@@ -400,13 +427,16 @@ def build() -> None:
     payloads = []
     for case, screen, fixture, fixture_kind in cases:
         data = fixture.copy()
-        period = {"home-today": "today", "usage-28": "28"}.get(case, "7")
+        period = {"home-today": "today", "usage-today-empty": "today", "usage-28": "28"}.get(
+            case, "7"
+        )
         window = ReportWindow.at(period, PREVIEW_NOW)
         context: dict[str, Any] = {
             "revision": "preview",
             "period": period,
             "release": "synthetic-preview",
-            "companion_status": "unavailable",
+            "companion_status": "unavailable" if case == "system-unconfigured" else "ready",
+            "expanded": case.endswith("-details"),
         }
         if screen in report_screens:
             context.update(window=window, updated_at=PREVIEW_NOW)

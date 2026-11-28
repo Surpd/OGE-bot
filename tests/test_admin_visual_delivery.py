@@ -212,3 +212,90 @@ async def test_definite_photo_rejection_falls_back_once_to_the_full_html_menu(mo
     assert sent.reply_markup is not None
     assert state["admin_revision"] in sent.reply_markup.inline_keyboard[0][0].callback_data
     await bot.session.close()
+
+
+@pytest.mark.asyncio
+async def test_detail_toggle_keeps_learner_period_and_parent_without_growing_history():
+    class LearnerService(ReportService):
+        async def load(self, screen, period, **kwargs):
+            self.calls.append((screen, period, kwargs))
+            return SimpleNamespace(
+                data={
+                    "found": True,
+                    "display_name": "Демо ученик",
+                    "username": "demo_user",
+                    "rows": [{"user_id": identity, "username": "demo_user"}],
+                },
+                unavailable=None,
+            )
+
+    session = TelegramSession()
+    bot = Bot("123456:TEST", session=session)
+    service = LearnerService()
+    companion = SimpleNamespace(status="ready", sha="test")
+    identity = "17a8f719-f34a-4aa3-8e94-bd7f4d77eb01"
+    state = {"admin_period": "7", "admin_history": []}
+    await admin_telegram.present_admin(
+        _message(bot, 1, text="/start"), state, service, companion, action="learners:1"
+    )
+
+    async def click(action):
+        message = session.messages[state["admin_menu"]]
+        await handle_admin_update(message, state, service, companion, _click(bot, message, action))
+        return session.messages[state["admin_menu"]]
+
+    card = await click(f"learner:{identity}")
+    assert card.photo
+    full = await click("expand")
+    assert not full.photo and "@demo_user" in full.text and identity not in full.text
+    assert state["admin_expanded"] is True
+    await click("period:28")
+    await click("refresh")
+    compact = await click("collapse")
+    assert compact.photo and compact.caption is None
+    assert state["admin_period"] == "28"
+    assert state["admin_args"] == {"key": identity}
+    assert len(state["admin_history"]) == 1
+    assert all(call[2]["key"] == identity for call in service.calls[1:])
+    await click("expand")
+    restored = await click("back")
+    assert not restored.photo and "Выберите ученика" in restored.text
+    assert state["admin_expanded"] is False
+    assert state["admin_args"] == {"page": 1}
+    assert state["admin_period"] == "28"
+    await bot.session.close()
+
+
+@pytest.mark.asyncio
+async def test_written_detail_paging_stays_expanded_and_summary_has_no_invisible_pager():
+    class WrittenService(ReportService):
+        async def load(self, screen, period, **kwargs):
+            self.calls.append((screen, period, kwargs))
+            return SimpleNamespace(
+                data={"submitted": 3, "rows": [], "more": True}, unavailable=None
+            )
+
+    session = TelegramSession()
+    bot = Bot("123456:TEST", session=session)
+    service = WrittenService()
+    state = {}
+    companion = SimpleNamespace(status="ready")
+    await admin_telegram.present_admin(
+        _message(bot, 1, text="/start"), state, service, companion, action="written:23"
+    )
+    compact = session.messages[state["admin_menu"]]
+    callbacks = [b.callback_data for row in compact.reply_markup.inline_keyboard for b in row]
+    assert not any(value.endswith(":written:23:1") for value in callbacks)
+
+    async def click(action):
+        message = session.messages[state["admin_menu"]]
+        await handle_admin_update(message, state, service, companion, _click(bot, message, action))
+        return session.messages[state["admin_menu"]]
+
+    await click("expand")
+    second = await click("written:23:1")
+    assert second.photo is None and "Страница 2" in second.text
+    assert state["admin_expanded"] is True
+    assert state["admin_args"] == {"number": 23, "page": 1}
+    assert any(b.text == "Кратко" for row in second.reply_markup.inline_keyboard for b in row)
+    await bot.session.close()

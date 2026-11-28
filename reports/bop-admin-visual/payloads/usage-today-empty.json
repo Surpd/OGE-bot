@@ -1,0 +1,67 @@
+{
+  "case": "usage-today-empty",
+  "screen": "usage",
+  "fixture_kind": "Сегодня · пусто",
+  "report_data": {
+    "registered": 126,
+    "active": 0,
+    "modes": [],
+    "days": [],
+    "retention": {}
+  },
+  "report_window": {
+    "period": "today",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-28T00:00:00+03:00",
+    "end": "2026-11-28T12:34:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Активность</b>\n28.11 00:00 — 28.11 12:34 МСК\nОбновлено в 12:34 МСК\n\nЗанимались  <b>0</b>\nНачали впервые  <b>0</b>\n\nЗа этот период занятий пока нет.\n\nАккаунтов всего  <b>126</b>\nПопытки ответа  <b>0</b>\nЗадания с ответом  <b>0</b>\nПроверки с оценкой  <b>0</b>\nОшибки письменных проверок  <b>0</b>\nИзвестные расходы на ИИ  <b>—</b>\nЗапросы с неизвестной стоимостью  <b>0</b>\n\n<b>Вернулись на второй неделе</b>\nПока нет учеников с полной второй неделей.",
+  "caption": null,
+  "image": "images/usage-today-empty.png",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Подробнее",
+          "callback_data": "adm:preview:expand"
+        }
+      ],
+      [
+        {
+          "text": "Ученики",
+          "callback_data": "adm:preview:learners:0"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "✓ Сегодня",
+          "style": "success",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "7 дней",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

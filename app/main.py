@@ -13,6 +13,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 
+from app.admin.identities import LearnerProfiles
 from app.admin.repository import AdminRepository
 from app.bot.presentation import MathDeliveryUncertain
 from app.bot.router import build_router
@@ -244,7 +245,10 @@ def create_app(
         from app.companion.runtime import Companion
 
         analytics = AdminRepository(repo._pool) if isinstance(repo, PostgresRepository) else None
-        companion = Companion(settings, telegram_bot.id, analytics_repository=analytics)
+        profiles = LearnerProfiles(analytics, telegram_bot.get_chat) if analytics else None
+        companion = Companion(
+            settings, telegram_bot.id, analytics_repository=analytics, learner_profiles=profiles
+        )
         application.state.companion = companion
         companion.start()  # Optional background startup never gates primary readiness.
         try:

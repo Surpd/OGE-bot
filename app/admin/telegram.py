@@ -34,6 +34,10 @@ def _parse_action(action: str, state: dict[str, Any]) -> tuple[str, dict[str, An
     if period not in PERIODS:
         period = "7"
     is_period_filter = action.startswith("period:")
+    is_detail_toggle = action in {"expand", "collapse"}
+    if is_detail_toggle:
+        state["admin_expanded"] = action == "expand"
+        action = state.get("admin_screen", "home")
     if is_period_filter:
         candidate = action.partition(":")[2]
         if candidate in PERIODS:
@@ -95,7 +99,7 @@ def _parse_action(action: str, state: dict[str, Any]) -> tuple[str, dict[str, An
             args["page"] = max(0, int(action.split(":", 1)[1]))
     except (ValueError, TypeError, IndexError):
         screen, args = "home", {}
-    if is_period_filter and isinstance(state.get("admin_args"), dict):
+    if (is_period_filter or is_detail_toggle) and isinstance(state.get("admin_args"), dict):
         args = dict(state["admin_args"])
     if screen not in {
         "home",
@@ -140,13 +144,29 @@ async def present_admin(
         if isinstance(previous, dict):
             action = previous.get("action", "home")
             last_args = previous.get("args", {})
+            next_state["admin_expanded"] = bool(previous.get("expanded", False))
         else:
             action = "home"
+            next_state["admin_expanded"] = False
     screen, args, period = _parse_action(action, next_state)
     if is_back and isinstance(last_args, dict):
         args = dict(last_args)
     if is_refresh and not args and isinstance(last_args, dict):
         args = dict(last_args)
+    if (
+        not is_back
+        and action not in {"refresh", "expand", "collapse"}
+        and not action.startswith("period:")
+    ):
+        same_report = (
+            callback is not None
+            and screen == state.get("admin_screen")
+            and isinstance(last_args, dict)
+            and args.get("number", 0) == last_args.get("number", 0)
+            and args.get("key", "") == last_args.get("key", "")
+        )
+        if not same_report:
+            next_state["admin_expanded"] = False
     refresh = bool(next_state.pop("admin_refresh", False))
     revision = secrets.token_hex(5)
     if callback is not None:
@@ -187,6 +207,7 @@ async def present_admin(
         sort=args.get("sort", "sample"),
         family_id=args.get("key", "") if screen == "task" else "",
         updated_at=getattr(report, "updated_at", None),
+        expanded=bool(next_state.get("admin_expanded")),
     )
     markup = view.markup
     next_state.update(
@@ -293,13 +314,16 @@ async def handle_admin_update(
             return True
         action = parts[2]
         next_state = deepcopy(state)
-        if action not in {"back", "refresh"} and not action.startswith("period:"):
+        if action not in {"back", "refresh", "expand", "collapse"} and not action.startswith(
+            "period:"
+        ):
             history = next_state.setdefault("admin_history", [])
             history.append(
                 {
                     "action": next_state.get("admin_screen", "home"),
                     "args": next_state.get("admin_args", {}),
                     "period": next_state.get("admin_period", "7"),
+                    "expanded": bool(next_state.get("admin_expanded")),
                 }
             )
             del history[:-10]

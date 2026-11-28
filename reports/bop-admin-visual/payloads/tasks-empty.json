@@ -12,8 +12,8 @@
     "end": "2026-11-28T00:00:00+03:00"
   },
   "updated_at": "2026-11-28T12:34:00+03:00",
-  "text": "<b>bop Admin · Задания по номерам</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\nНа этой странице за период нет заданий с ответом.",
-  "caption": "Обновлено в 12:34:00 МСК",
+  "text": "<b>bop Admin · Задания по номерам</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34 МСК\n\nНа этой странице за период нет заданий с ответом.",
+  "caption": null,
   "image": "images/tasks-empty.png",
   "reply_markup": {
     "inline_keyboard": [
@@ -29,11 +29,11 @@
           "callback_data": "adm:preview:back"
         },
         {
-          "text": "⌂ Главная",
+          "text": "Главная",
           "callback_data": "adm:preview:home"
         },
         {
-          "text": "↻ Обновить",
+          "text": "Обновить",
           "callback_data": "adm:preview:refresh"
         }
       ],

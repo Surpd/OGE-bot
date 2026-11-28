@@ -12,7 +12,7 @@
     "end": "2026-11-28T00:00:00+03:00"
   },
   "updated_at": "2026-11-28T12:34:00+03:00",
-  "text": "<b>bop Admin · Типы заданий · №7</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\nЗа этот период по типам нет данных.",
+  "text": "<b>bop Admin · Типы заданий · №7</b>\n21.11 00:00 — 28.11 00:00 МСК\n\nЗа этот период по типам нет данных.",
   "caption": null,
   "image": null,
   "reply_markup": {
@@ -40,15 +40,21 @@
       ],
       [
         {
+          "text": "Подробнее",
+          "callback_data": "adm:preview:expand"
+        }
+      ],
+      [
+        {
           "text": "← Назад",
           "callback_data": "adm:preview:back"
         },
         {
-          "text": "⌂ Главная",
+          "text": "Главная",
           "callback_data": "adm:preview:home"
         },
         {
-          "text": "↻ Обновить",
+          "text": "Обновить",
           "callback_data": "adm:preview:refresh"
         }
       ],

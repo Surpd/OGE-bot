@@ -18,6 +18,9 @@ from app.persistence.training_insights import family_name
 
 MOSCOW = ZoneInfo("Europe/Moscow")
 NUMBER_PAGE_SIZE = 10
+DETAIL_SCREENS = frozenset(
+    {"home", "usage", "learner", "task", "written", "cost", "system", "types"}
+)
 
 LABELS = {
     "home": "Обзор",
@@ -146,6 +149,23 @@ def _join(*blocks: str) -> str:
     return "\n\n".join(block for block in blocks if block)
 
 
+def learner_name(data: Data, *, fallback: str = "Ученик без имени") -> str:
+    """A profile label is presentation only; navigation still uses the stored UUID."""
+    name = " ".join(str(data.get("display_name") or "").split())
+    username = str(data.get("username") or "").strip().lstrip("@")
+    return name or (f"@{username}" if username else fallback)
+
+
+def learner_button(data: Data, index: int) -> str:
+    username = str(data.get("username") or "").strip().lstrip("@")
+    # Usernames are unique when available, unlike profile names. Keep the whole
+    # target in callback_data; shortening a label must never select another user.
+    label = (
+        f"@{username}" if username else learner_name(data, fallback=f"Ученик без имени · {index}")
+    )
+    return label if len(label) <= 30 else label[:29].rstrip() + "…"
+
+
 @dataclass(frozen=True)
 class _Body:
     summary: str = ""
@@ -238,19 +258,15 @@ def _learners(data: Data, page: int) -> _Body:
     rows = page_rows("learners", data, page)
     if not rows:
         return _Body("За этот период никто не занимался.")
-    return _Body(
-        _block(
-            "Последнее занятие",
-            [
-                f"{_bold('…' + str(row.get('user_id', ''))[-6:])} · "
-                f"{moscow_time(row.get('last_activity'))}"
-                for row in rows
-            ],
-        )
-    )
+    entries = []
+    for i, row in enumerate(rows):
+        fallback = f"Ученик без имени · {page * PAGE_SIZE + i + 1}"
+        name = _bold(learner_name(row, fallback=fallback))
+        entries.append(f"{name} · {moscow_time(row.get('last_activity'))}")
+    return _Body(_block("Последнее занятие", entries))
 
 
-def _learner(data: Data, learner_id: str) -> _Body:
+def _learner(data: Data) -> _Body:
     if not data.get("found"):
         return _Body("Карточка недоступна. Выберите ученика из списка ещё раз.")
     last = (
@@ -265,9 +281,13 @@ def _learner(data: Data, learner_id: str) -> _Body:
     points = "—" if data.get("points") is None else count(data, "points")
     numbers = ", ".join(str(number) for number in data.get("numbers", [])[:25])
     return _Body(
-        _join(last, short, _block("Письменные работы", [written, _metric("Всего баллов", points)])),
         _join(
-            f"ID ученика  {_code(learner_id or '—')}", f"Номера заданий  {_bold(numbers or '—')}"
+            _bold(learner_name(data)),
+            _bold(f"@{data['username']}") if data.get("username") else "",
+            last,
+            short,
+            _block("Письменные работы", [written, _metric("Всего баллов", points)]),
+            f"Номера заданий  {_bold(numbers or '—')}",
         ),
     )
 
@@ -453,12 +473,18 @@ def _system(data: Data, status: str, release: str) -> _Body:
         "timeout": "не отвечает",
     }.get(str(unavailable), "на связи")
     errors = "—" if unavailable else count(data, "errors")
+    failed_operations = sum(
+        int(row.get("count") or 0)
+        for row in data.get("operations", [])
+        if row.get("status") in {"error", "failed"}
+    )
     connections = _block(
         "Подключения",
         [
-            _metric("База аналитики", db),
+            _metric("База данных", db),
             _metric("Тестовый бот", _companion(status)),
-            f"Версия приложения  {_code(release)}" if release else "Версия приложения  —",
+            _metric("Ошибки проверок за период", errors),
+            *([_metric("Ошибки операций", str(failed_operations))] if failed_operations else []),
         ],
     )
     labels = {
@@ -479,7 +505,7 @@ def _system(data: Data, status: str, release: str) -> _Body:
     return _Body(
         connections,
         _join(
-            _block("За выбранный период", [_metric("Ошибки письменных проверок", errors)]),
+            f"Версия приложения  {_code(release)}" if release else "Версия приложения  —",
             _block(
                 "Операции основного бота",
                 operations
@@ -551,8 +577,8 @@ def _nav(screen: str, period: str) -> ButtonRows:
     if screen == "home":
         rows = [
             [("Активность", "usage"), ("Задания", "tasks")],
-            [("Письменные работы", "written"), ("ИИ и расходы", "cost")],
-            [("Состояние системы", "system"), ("Инструменты", "tools")],
+            [("Работы №20–25", "written"), ("Расходы ИИ", "cost")],
+            [("Система", "system"), ("Инструменты", "tools")],
             [("↻ Обновить", "refresh")],
         ]
     else:
@@ -562,8 +588,8 @@ def _nav(screen: str, period: str) -> ButtonRows:
         if screen == "tasks":
             rows.append([("Повторы ошибок", "replays")])
         if screen == "system":
-            rows.append([("ИИ и расходы", "cost")])
-        rows.append([("← Назад", "back"), ("⌂ Главная", "home"), ("↻ Обновить", "refresh")])
+            rows.append([("Расходы ИИ", "cost")])
+        rows.append([("← Назад", "back"), ("Главная", "home"), ("Обновить", "refresh")])
     rows.append(
         [
             (f"{'✓ ' if key == period else ''}{label}", f"period:{key}")
@@ -590,13 +616,22 @@ def _detail_nav(
     number: int,
     sort: str,
     family_id: str,
+    expanded: bool = False,
 ) -> ButtonRows:
     rows = page_rows(screen, data, page)
     more = bool(data.get("more"))
     if screen == "learners":
+        labels = [learner_button(row, page * PAGE_SIZE + i + 1) for i, row in enumerate(rows)]
         return [
-            [(f"Ученик …{str(row['user_id'])[-6:]}", f"learner:{row['user_id']}")]
-            for row in rows
+            [
+                (
+                    label
+                    if labels.count(label) == 1
+                    else f"{label[:24]} · {page * PAGE_SIZE + i + 1}",
+                    f"learner:{row['user_id']}",
+                )
+            ]
+            for i, (row, label) in enumerate(zip(rows, labels, strict=True))
             if row.get("user_id")
         ] + _paging(page, more, "learners")
     if screen == "tasks":
@@ -629,11 +664,8 @@ def _detail_nav(
             for r in rows
             if not number and r.get("number")
         ]
-        return [list(group) for group in batched(written_links, 3)] + _paging(
-            page,
-            more,
-            f"written:{number}",
-        )
+        pages = _paging(page, more, f"written:{number}") if expanded or not number else []
+        return [list(group) for group in batched(written_links, 3)] + pages
     if screen == "replays":
         return _paging(page, more, "replays")
     return []
@@ -644,6 +676,22 @@ class ScreenCopy:
     text: str
     caption: str
     markup: InlineKeyboardMarkup
+    compact_text: str | None = None
+
+
+def _photo_notice(screen: str, data: Data, status: str) -> str:
+    """Only actionable caveats belong below the image, never a second report."""
+    notices = []
+    if screen in {"home", "usage"}:
+        if data.get("errors"):
+            notices.append(f"Ошибки проверок: {_bold(count(data, 'errors'))}")
+        if status not in {"ready", "disabled"}:
+            notices.append(f"Тестовый бот {escape(_companion(status))}")
+    if screen in {"home", "usage", "cost"} and data.get("unknown_cost"):
+        notices.append(f"Стоимость неизвестна: {_bold(count(data, 'unknown_cost'))} запросов")
+    if screen == "written" and data.get("submitted"):
+        notices.append("Текущие статусы проверок, начатых за период.")
+    return "\n".join(notices)
 
 
 def screen_copy(
@@ -662,13 +710,16 @@ def screen_copy(
     learner_id: str = "",
     window: object = None,
     updated_at: datetime | None = None,
+    expanded: bool = False,
 ) -> ScreenCopy:
     screen = screen if screen in LABELS else "home"
     title = f"bop Admin · {LABELS[screen]}"
     if number and screen in {"types", "task", "written"}:
         title += f" · №{number}"
     subtitle = period_range(window)
-    updated = f"Обновлено в {updated_at:%H:%M:%S} МСК" if updated_at is not None else ""
+    updated = (
+        f"Обновлено в {updated_at.astimezone(MOSCOW):%H:%M} МСК" if updated_at is not None else ""
+    )
     header = "\n".join(filter(None, (_bold(title), subtitle, updated)))
     unavailable = data.get("unavailable")
     if unavailable and screen not in {"system", "tools"}:
@@ -680,14 +731,13 @@ def screen_copy(
             "Данные недоступны", [reason, "Нажмите «Обновить», чтобы повторить запрос."]
         )
         return ScreenCopy(_join(header, notice), "", _keyboard(_nav(screen, period), revision))
-    photo_details = None
     match screen:
         case "home" | "usage":
             body = _activity(data, period, home=screen == "home", status=companion_status)
         case "learners":
             body = _learners(data, page)
         case "learner":
-            body = _learner(data, learner_id)
+            body = _learner(data)
         case "tasks":
             body = _tasks(data, page)
         case "types":
@@ -695,7 +745,7 @@ def screen_copy(
         case "task":
             body = _task(data, family_id)
         case "written":
-            body, photo_details = _written(data, number, page)
+            body, _ = _written(data, number, page)
         case "cost":
             body = _cost(data)
         case "system":
@@ -708,7 +758,7 @@ def screen_copy(
         keyboard = _keyboard(
             [
                 [("Открыть точные проверки", "tools_open")],
-                [("← Назад", "back"), ("⌂ Главная", "home"), ("↻ Обновить", "refresh")],
+                [("← Назад", "back"), ("Главная", "home"), ("Обновить", "refresh")],
             ],
             revision,
         )
@@ -718,8 +768,16 @@ def screen_copy(
             )
     else:
         dynamic = _detail_nav(
-            screen, data, page=page, number=number, sort=sort, family_id=family_id
+            screen,
+            data,
+            page=page,
+            number=number,
+            sort=sort,
+            family_id=family_id,
+            expanded=expanded,
         )
+        if screen in DETAIL_SCREENS:
+            dynamic.append([("Кратко", "collapse")] if expanded else [("Подробнее", "expand")])
         keyboard = _keyboard(dynamic + _nav(screen, period), revision)
     page_label = (
         f"Страница {page + 1}"
@@ -733,11 +791,20 @@ def screen_copy(
         else ""
     )
     text = _join(header, body.summary, body.details, page_label)
-    caption = _join(
-        photo_details if photo_details is not None else body.details,
-        " · ".join(filter(None, (updated, page_label))),
-    )
-    return ScreenCopy(text, caption, keyboard)
+    caption = _photo_notice(screen, data, companion_status)
+    compact_text = None
+    if not expanded:
+        short_header = "\n".join(filter(None, (_bold(title), subtitle)))
+        if screen == "learners":
+            hint = (
+                "Выберите ученика. Сначала — недавние занятия."
+                if data.get("rows")
+                else body.summary
+            )
+            compact_text = _join(short_header, hint, page_label)
+        elif screen in {"system", "types"}:
+            compact_text = _join(short_header, body.summary, page_label)
+    return ScreenCopy(text, caption, keyboard, compact_text)
 
 
 def render_screen(

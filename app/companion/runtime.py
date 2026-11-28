@@ -1,4 +1,4 @@
-"""Optional second bot. No references to the primary repository or bot session."""
+"""Optional second bot with isolated training storage and narrow admin readers."""
 
 import asyncio
 import hmac
@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand, Message, Update
 
+from app.admin.identities import LearnerProfiles
 from app.admin.repository import AdminRepository
 from app.admin.service import AdminService, make_service
 from app.bot.router import build_router
@@ -45,6 +46,7 @@ class Companion:
         primary_id: int,
         *,
         analytics_repository: AdminRepository | None = None,
+        learner_profiles: LearnerProfiles | None = None,
     ) -> None:
         self.settings = settings
         self.primary_id = primary_id
@@ -54,6 +56,7 @@ class Companion:
         self.repository: TestRepository | None = None
         self.admin_service: AdminService | None = None
         self._analytics_repository = analytics_repository
+        self._learner_profiles = learner_profiles
         self.dispatcher: Dispatcher | None = None
         self.secret = secrets.token_urlsafe(32)
         self.owner_ids: frozenset[int] = frozenset()
@@ -95,7 +98,8 @@ class Companion:
                     raise ValueError("Unexpected test bot identity")
                 self.repository = await open_storage(self.settings.database_url, identity.id)
                 self.admin_service = make_service(
-                    self.settings, self.owner_ids, self.primary_id, self._analytics_repository
+                    self.settings, self.owner_ids, self.primary_id, self._analytics_repository,
+                    learner_profiles=self._learner_profiles,
                 )
                 self.secret = await self.repository._pool.fetchval(
                     "SELECT webhook_secret FROM companion_identity"
