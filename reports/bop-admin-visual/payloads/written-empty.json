@@ -1,0 +1,51 @@
+{
+  "case": "written-empty",
+  "screen": "written",
+  "fixture_kind": "Пусто",
+  "report_data": {
+    "rows": []
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Письменные работы</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\n<b>Выдачи и отправки</b>\nЗаданий выдано  <b>0</b>\nЗаданий с отправкой  <b>0</b>\nВсего отправок  <b>0</b>\nПовторные отправки  <b>0</b>\n\n<b>Статусы проверок</b>\nС оценкой  <b>0</b>\nНечитаемые  <b>0</b>\nНе удалось оценить  <b>0</b>\nТехнические ошибки  <b>0</b>\nОжидают завершения  <b>0</b>\n\nЗа этот период работы на проверку не отправляли.",
+  "caption": "За этот период работы на проверку не отправляли.\n\nОбновлено в 12:34:00 МСК",
+  "image": "images/written-empty.png",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "case": "home",
+  "screen": "home",
+  "fixture_kind": "Заполнено",
+  "report_data": {
+    "registered": 126,
+    "active": 34,
+    "first": 11,
+    "repeat_days": 18,
+    "answered": 428,
+    "attempts": 506,
+    "graded": 17,
+    "errors": 2,
+    "known_cost": "0.0184",
+    "unknown_cost": 2
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Обзор</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\nЗанимались  <b>34</b>\nНачали впервые  <b>11</b>\nЗанимались в разные дни  <b>18</b>\nЗадания с ответом  <b>428</b>\nПроверки с оценкой  <b>17</b>\nИзвестные расходы на ИИ  <b>$0,0184</b>\n\nАккаунтов всего  <b>126</b>\nПопытки ответа  <b>506</b>\n\n<b>Требует внимания</b>\nОшибки письменных проверок  <b>2</b>\nЗапросы с неизвестной стоимостью  <b>2</b>\nТестовый бот недоступен",
+  "caption": "Аккаунтов всего  <b>126</b>\nПопытки ответа  <b>506</b>\n\n<b>Требует внимания</b>\nОшибки письменных проверок  <b>2</b>\nЗапросы с неизвестной стоимостью  <b>2</b>\nТестовый бот недоступен\n\nОбновлено в 12:34:00 МСК",
+  "image": "images/home.png",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Активность",
+          "callback_data": "adm:preview:usage"
+        },
+        {
+          "text": "Задания",
+          "callback_data": "adm:preview:tasks"
+        }
+      ],
+      [
+        {
+          "text": "Письменные работы",
+          "callback_data": "adm:preview:written"
+        },
+        {
+          "text": "ИИ и расходы",
+          "callback_data": "adm:preview:cost"
+        }
+      ],
+      [
+        {
+          "text": "Состояние системы",
+          "callback_data": "adm:preview:system"
+        },
+        {
+          "text": "Инструменты",
+          "callback_data": "adm:preview:tools"
+        }
+      ],
+      [
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

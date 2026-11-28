@@ -34,11 +34,17 @@ class Service:
 class Msg:
     def __init__(self, message_id=55):
         self.message_id = message_id
+        self.photo = None
+        self.bot = None
         self.sent = []
         self.edited = []
 
     async def answer(self, text, **kwargs):
         self.sent.append((text, kwargs))
+        return SimpleNamespace(message_id=99)
+
+    async def answer_photo(self, photo, **kwargs):
+        self.sent.append((photo, kwargs))
         return SimpleNamespace(message_id=99)
 
     async def edit_text(self, text, **kwargs):
@@ -67,9 +73,9 @@ def test_admin_owner_gate_requires_private_owner_chat():
 
 def test_report_screens_have_compact_actual_telegram_navigation():
     text, keyboard = render_screen("home", {"registered": 5, "active": 2}, revision="abc")
-    assert "Всего зарегистрировано: 5" in text
-    assert "Активны за период: 2" in text
-    assert "bop Admin" in text
+    assert "Аккаунтов всего  <b>5</b>" in text
+    assert "Занимались  <b>2</b>" in text
+    assert "<b>bop Admin · Обзор</b>" in text
     callbacks = [button.callback_data for row in keyboard.inline_keyboard for button in row]
     assert "adm:abc:usage" in callbacks
     assert "adm:abc:tasks" in callbacks
@@ -79,8 +85,8 @@ def test_report_screens_have_compact_actual_telegram_navigation():
 
 def test_unavailable_screen_does_not_present_missing_metrics_as_zeroes():
     text, _ = render_screen("home", {"unavailable": "unconfigured"})
-    assert "не настроен" in text
-    assert "Ученики: 0" not in text
+    assert "Подключение к аналитике отсутствует" in text
+    assert "Занимались" not in text
 
 
 def test_today_hides_multi_day_metric_and_attention_list_is_capped():
@@ -91,15 +97,15 @@ def test_today_hides_multi_day_metric_and_attention_list_is_capped():
         companion_status="unavailable",
     )
     assert "Занимались в разные дни" not in text
-    assert text.count("Без стоимости:") == 1
-    assert len(text.split("Требует внимания\n", 1)[1].splitlines()) <= 3
+    assert text.count("Запросы с неизвестной стоимостью") == 1
+    assert len(text.split("<b>Требует внимания</b>\n", 1)[1].splitlines()) == 3
 
 
 def test_report_labels_localize_written_and_task_detail():
     written, _ = render_screen("written", {"issued": 2, "graded": 1})
-    assert "выдано 2" in written and "проверено 1" in written
+    assert "Заданий выдано  <b>2</b>" in written and "С оценкой  <b>1</b>" in written
     task, _ = render_screen("task", {"users": 3, "hinted": 1, "hint_known": 2})
-    assert "Ученики: 3" in task and "Подсказки: 1 из 2 известных" in task
+    assert "Ученики  <b>3</b>" in task and "Брали подсказку  <b>1 из 2</b>" in task
     assert "first_correct" not in task
 
 
@@ -116,6 +122,7 @@ def test_deep_report_routes_keep_filters_and_expose_family_tool_action():
         button.callback_data for row in type_keyboard.inline_keyboard for button in row
     ]
     assert any(value and value.endswith(":types:12:2:help") for value in type_callbacks)
+    assert "adm:r:task:12" in type_callbacks
     _, task_keyboard = render_screen(
         "task", {"users": 1}, revision="r", number=12, family_id="OGE12-R001"
     )
@@ -147,12 +154,13 @@ def test_long_family_ids_do_not_overflow_callback_data_and_task_list_is_paginate
     assert max(len(value.encode("utf-8")) for value in callbacks) <= 64
     assert "x" * 180 not in callbacks
     task_text, task_keyboard = render_screen(
-        "tasks", {"rows": [{"number": n} for n in range(1, 20)]}, page=1
+        "tasks", {"rows": [{"number": n, "answered": 1} for n in range(1, 20)]}, page=1
     )
     task_callbacks = [
         button.callback_data for row in task_keyboard.inline_keyboard for button in row
     ]
-    assert "№11" in task_text and "№19" in task_text and "№1 ·" not in task_text
+    assert "<b>№11</b>" in task_text and "<b>№19</b>" in task_text
+    assert "<b>№1</b>" not in task_text
     assert any(value.endswith(":tasks:0") for value in task_callbacks)
 
 
@@ -183,7 +191,7 @@ async def test_degraded_report_is_rendered_as_safe_unavailable_state():
     companion = SimpleNamespace(status="ready", sha="a" * 40, identity=None, bot=None)
     await present_admin(message, state, service, companion)
     text, _ = message.sent[0]
-    assert "источник аналитики временно недоступен" in text.lower()
+    assert "Аналитика временно недоступна" in text
     assert "TimeoutError" not in text
     assert state["admin_menu"] == 99
 
@@ -198,7 +206,8 @@ async def test_current_admin_callback_refreshes_and_rotates_revision():
     assert await handle_admin_update(message, state, service, companion, callback)
     assert service.calls[0][:2] == ("usage", "7")
     assert state["admin_revision"] != "r1"
-    assert message.edited
+    assert message.sent[0][1]["parse_mode"] == "HTML"
+    assert state["admin_menu"] == 99
 
 
 @pytest.mark.asyncio

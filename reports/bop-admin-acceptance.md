@@ -1,5 +1,8 @@
 # bop Admin mobile preview and acceptance
 
+Материалы первого выпуска приведены ниже. Актуальные визуальные сводки,
+экранные состояния и инструкция для пересборки находятся в [новой галерее](bop-admin-visual/README.md).
+
 ## Scope
 
 Gallery of admin screens rendered from the production text and `InlineKeyboardMarkup` API with synthetic service fixtures. This report covers visual review at 360, 390, and 430 CSS pixels only. No learner flow, database, Telegram account, or production service is used.
@@ -9,7 +12,6 @@ Gallery of admin screens rendered from the production text and `InlineKeyboardMa
 - Gallery: `reports/bop-admin-preview/index.html`
 - Rendered screen payloads: `reports/bop-admin-preview/payloads/`
 - Screenshots: `reports/bop-admin-preview/screenshots/`
-- Rebuild command: `python scripts/bop_admin_preview.py`
 
 ## Verified checks
 

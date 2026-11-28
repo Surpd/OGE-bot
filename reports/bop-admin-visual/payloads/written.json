@@ -1,0 +1,86 @@
+{
+  "case": "written",
+  "screen": "written",
+  "fixture_kind": "Заполнено",
+  "report_data": {
+    "issued": 22,
+    "issues_submitted": 16,
+    "submitted": 18,
+    "revisions": 4,
+    "graded": 11,
+    "unreadable": 2,
+    "uncertain": 1,
+    "error": 1,
+    "pending": 3,
+    "rows": [
+      {
+        "number": 20,
+        "title": "Задание №20",
+        "zero": 3,
+        "one": 3,
+        "two": 1
+      },
+      {
+        "number": 21,
+        "title": "Задание №21",
+        "zero": 1,
+        "one": 2,
+        "two": 1
+      }
+    ],
+    "more": false
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Письменные работы</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\n<b>Выдачи и отправки</b>\nЗаданий выдано  <b>22</b>\nЗаданий с отправкой  <b>16</b>\nВсего отправок  <b>18</b>\nПовторные отправки  <b>4</b>\n\n<b>Статусы проверок</b>\nС оценкой  <b>11</b>\nНечитаемые  <b>2</b>\nНе удалось оценить  <b>1</b>\nТехнические ошибки  <b>1</b>\nОжидают завершения  <b>3</b>\n\nПроверки начаты в выбранном периоде. Показаны их текущие статусы.\n\n<b>Как распределились баллы</b>\n<b>№20</b> · 0 б. — 3 · 1 б. — 3 · 2 б. — 1\n<b>№21</b> · 0 б. — 1 · 1 б. — 2 · 2 б. — 1",
+  "caption": "Проверки начаты в выбранном периоде. Показаны их текущие статусы.\n\nОбновлено в 12:34:00 МСК",
+  "image": "images/written.png",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "№20",
+          "callback_data": "adm:preview:written:20"
+        },
+        {
+          "text": "№21",
+          "callback_data": "adm:preview:written:21"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

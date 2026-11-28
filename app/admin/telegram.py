@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 from collections.abc import Mapping
+from copy import deepcopy
 from typing import Any
 
-from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import CallbackQuery, Message
+from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
+from aiogram.types import (
+    BufferedInputFile,
+    CallbackQuery,
+    InputMediaPhoto,
+    Message,
+)
 
-from app.admin.screens import render_screen
+from app.admin.presentation import AdminView, render_admin_view
 
 PERIODS = {"today", "7", "28"}
 logger = logging.getLogger("oge_trainer")
@@ -117,27 +124,30 @@ async def present_admin(
     action: str = "home",
     callback: CallbackQuery | None = None,
 ) -> None:
-    state["active"] = False
-    state["revision"] = None
-    state["actions"] = []
+    # Prepare navigation state separately. A failed Telegram delivery must leave
+    # the currently visible menu revision valid and usable.
+    next_state = deepcopy(state)
+    next_state["active"] = False
+    next_state["revision"] = None
+    next_state["actions"] = []
     is_refresh = action == "refresh"
     is_back = action == "back"
-    last_args = state.get("admin_args", {})
+    last_args = next_state.get("admin_args", {})
     if is_back:
-        history = state.get("admin_history", [])
+        history = next_state.get("admin_history", [])
         previous = history.pop() if history else state.get("admin_back")
-        state["admin_history"] = history
+        next_state["admin_history"] = history
         if isinstance(previous, dict):
             action = previous.get("action", "home")
             last_args = previous.get("args", {})
         else:
             action = "home"
-    screen, args, period = _parse_action(action, state)
+    screen, args, period = _parse_action(action, next_state)
     if is_back and isinstance(last_args, dict):
         args = dict(last_args)
     if is_refresh and not args and isinstance(last_args, dict):
         args = dict(last_args)
-    refresh = bool(state.pop("admin_refresh", False))
+    refresh = bool(next_state.pop("admin_refresh", False))
     revision = secrets.token_hex(5)
     if callback is not None:
         await callback.answer()
@@ -154,12 +164,15 @@ async def present_admin(
     if unavailable:
         data["unavailable"] = unavailable
     if screen == "types":
-        state["admin_type_keys"] = [str(row.get("family_id", "")) for row in data.get("rows", [])]
+        next_state["admin_type_keys"] = [
+            str(row.get("family_id", "")) for row in data.get("rows", [])
+        ]
     username = getattr(getattr(companion, "identity", None), "username", None)
     if not username and getattr(companion, "bot", None):
         username = getattr(companion.bot, "username", None)
     tools_url = f"https://t.me/{username}?start=qa" if username else None
-    text, markup = render_screen(
+    view = await asyncio.to_thread(
+        render_admin_view,
         screen,
         data,
         revision=revision,
@@ -175,7 +188,8 @@ async def present_admin(
         family_id=args.get("key", "") if screen == "task" else "",
         updated_at=getattr(report, "updated_at", None),
     )
-    state.update(
+    markup = view.markup
+    next_state.update(
         {
             "admin_active": True,
             "admin_screen": screen,
@@ -189,16 +203,74 @@ async def present_admin(
             ],
         }
     )
-    if callback is None:
-        sent = await message.answer(text, reply_markup=markup, disable_web_page_preview=True)
-        state["admin_menu"] = sent.message_id
+    if callback is not None and bool(message.photo) == (view.photo is not None):
+        try:
+            if view.photo is not None:
+                media = InputMediaPhoto(
+                    media=BufferedInputFile(view.photo, filename="bop-admin.png"),
+                    caption=view.caption,
+                    parse_mode="HTML",
+                )
+                edited = await message.edit_media(media=media, reply_markup=markup)
+            else:
+                edited = await message.edit_text(
+                    view.text,
+                    reply_markup=markup,
+                    parse_mode="HTML",
+                    disable_web_page_preview=True,
+                )
+        except TelegramBadRequest:
+            # Only a definitive edit rejection permits a replacement send.
+            pass
+        else:
+            next_state["admin_menu"] = (
+                edited.message_id if isinstance(edited, Message) else message.message_id
+            )
+            _replace_state(state, next_state)
+            return
+    old_message_id = message.message_id if callback is not None else next_state.get("admin_menu")
+    sent = await _send_view(message, view)
+    next_state["admin_menu"] = sent.message_id
+    _replace_state(state, next_state)
+    await _delete_previous_menu(message, old_message_id, sent.message_id)
+
+
+def _replace_state(state: dict[str, Any], next_state: dict[str, Any]) -> None:
+    state.clear()
+    state.update(next_state)
+
+
+async def _send_view(message: Message, view: AdminView) -> Message:
+    if view.photo is not None:
+        try:
+            return await message.answer_photo(
+                BufferedInputFile(view.photo, filename="bop-admin.png"),
+                caption=view.caption,
+                parse_mode="HTML",
+                reply_markup=view.markup,
+            )
+        except TelegramBadRequest as exc:
+            logger.warning("admin_photo_rejected type=%s", type(exc).__name__)
+    return await message.answer(
+        view.text,
+        reply_markup=view.markup,
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
+
+
+async def _delete_previous_menu(message: Message, previous_id: object, replacement_id: int) -> None:
+    if not isinstance(previous_id, int) or previous_id == replacement_id:
+        return
+    bot = message.bot
+    if bot is None:
         return
     try:
-        await message.edit_text(text, reply_markup=markup, disable_web_page_preview=True)
-        state["admin_menu"] = message.message_id
-    except TelegramBadRequest:
-        sent = await message.answer(text, reply_markup=markup, disable_web_page_preview=True)
-        state["admin_menu"] = sent.message_id
+        await bot.delete_message(message.chat.id, previous_id)
+    except TelegramAPIError as exc:
+        # A replaced message can no longer authorize callbacks. Keep Telegram's
+        # harmless cleanup failure out of the report path.
+        logger.info("admin_previous_menu_cleanup_rejected type=%s", type(exc).__name__)
 
 
 async def handle_admin_update(
@@ -220,29 +292,35 @@ async def handle_admin_update(
             await callback.answer("Эта кнопка устарела. Откройте /start.", show_alert=False)
             return True
         action = parts[2]
+        next_state = deepcopy(state)
         if action not in {"back", "refresh"} and not action.startswith("period:"):
-            history = state.setdefault("admin_history", [])
+            history = next_state.setdefault("admin_history", [])
             history.append(
                 {
-                    "action": state.get("admin_screen", "home"),
-                    "args": state.get("admin_args", {}),
-                    "period": state.get("admin_period", "7"),
+                    "action": next_state.get("admin_screen", "home"),
+                    "args": next_state.get("admin_args", {}),
+                    "period": next_state.get("admin_period", "7"),
                 }
             )
             del history[:-10]
         if action == "tools_open":
             await callback.answer()
-            state["admin_active"] = False
-            state["admin_revision"] = None
-            state["admin_actions"] = []
+            next_state["admin_active"] = False
+            next_state["admin_revision"] = None
+            next_state["admin_actions"] = []
+            _replace_state(state, next_state)
             return "tools"
         if action == "qa_family":
             await callback.answer()
-            state["admin_active"] = False
-            state["admin_revision"] = None
-            state["admin_actions"] = []
+            next_state["admin_active"] = False
+            next_state["admin_revision"] = None
+            next_state["admin_actions"] = []
+            _replace_state(state, next_state)
             return "qa_family"
-        await present_admin(message, state, service, companion, action=action, callback=callback)
+        await present_admin(
+            message, next_state, service, companion, action=action, callback=callback
+        )
+        _replace_state(state, next_state)
         return True
     text = message.text or ""
     words = text.split(maxsplit=1)
@@ -250,8 +328,10 @@ async def handle_admin_update(
         # `start=qa` is the explicit deep link back to the established exact-test UI.
         if start_payload(text) == "qa":
             return False
-        state["admin_history"] = []
-        await present_admin(message, state, service, companion)
+        next_state = deepcopy(state)
+        next_state["admin_history"] = []
+        await present_admin(message, next_state, service, companion)
+        _replace_state(state, next_state)
         return True
     if state.get("admin_active"):
         return True

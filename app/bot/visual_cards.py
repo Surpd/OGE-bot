@@ -91,6 +91,9 @@ def _measure(text: str, font: ImageFont.FreeTypeFont) -> float:
 
 
 class _Canvas:
+    width = _WIDTH
+    padding = _PAD
+
     def __init__(self) -> None:
         self.image = Image.new("RGB", (_WIDTH * _SCALE, _MAX_HEIGHT * _SCALE), _PALETTE["paper"])
         self.draw = ImageDraw.Draw(self.image)
@@ -173,6 +176,10 @@ class _Canvas:
         with BytesIO() as output:
             self.image.crop((0, 0, self.image.width, height)).save(output, format="PNG")
             return output.getvalue()
+
+
+# Admin summaries use the same image geometry, type and color tokens.
+BopCanvas = _Canvas
 
 
 def _heading(canvas: _Canvas, card: VisualCard) -> int:
