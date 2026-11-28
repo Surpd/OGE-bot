@@ -474,7 +474,9 @@ def capture_gallery(chrome: Path) -> None:
         raise FileNotFoundError("Pass the path to a Chromium executable with --chromium")
     screenshots = OUT / "screenshots"
     screenshots.mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="bop-admin-gallery-") as profile:
+    with tempfile.TemporaryDirectory(
+        prefix="bop-admin-gallery-", ignore_cleanup_errors=True
+    ) as profile:
         chrome_process = subprocess.Popen(
             [
                 str(chrome),
@@ -588,9 +590,13 @@ def capture_gallery(chrome: Path) -> None:
                                 f"got {image.width}×{image.height}"
                             )
                         print(f"{target_path.name}: {image.width}×{image.height} px")
+                browser.send(json.dumps({"id": next_id + 1, "method": "Browser.close"}))
         finally:
-            chrome_process.terminate()
-            chrome_process.wait(timeout=10)
+            try:
+                chrome_process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                chrome_process.terminate()
+                chrome_process.wait(timeout=10)
 
 
 PAGE = r"""<!doctype html>
@@ -675,23 +681,18 @@ PAGE = r"""<!doctype html>
   <script>
     const screens = __PAYLOADS__;
     const names = {
-      home:'Обзор', usage:'Использование', learners:'Список учеников', learner:'Карточка ученика',
-      tasks:'Задания', types:'Типы заданий', task:'Статистика номера', replays:'Повторы',
+      home:'Обзор', usage:'Активность', learners:'Ученики', learner:'Карточка ученика',
+      tasks:'Задания по номерам', types:'Типы заданий', task:'Результаты по номеру',
+      replays:'Повторы ошибок',
       written:'Письменные работы', system:'Состояние системы',
-      cost:'Расходы на ИИ', tools:'Инструменты'
+      cost:'ИИ и расходы', tools:'Инструменты'
     };
-    const emptyCases = [
-      'usage-empty', 'tasks-empty', 'types-empty', 'written-empty', 'replays-empty', 'cost-empty'
-    ];
     function caseTitle(item) {
-      if (item.case.startsWith('written-'))
-        return `Письменные проверки · №${item.case.split('-')[1]}`;
+      if (/^written-\d+$/.test(item.case))
+        return `Письменные работы · №${item.case.split('-')[1]}`;
       if (item.case === 'home-today') return 'Обзор · сегодня';
-      if (item.case === 'learner-not-found') return 'Карточка ученика · архивная запись';
-      if (item.fixture_kind !== 'Заполнено' && item.fixture_kind !== 'Инструменты'
-          && !emptyCases.includes(item.case))
-        return `${names[item.screen] || item.screen} · ${item.fixture_kind.toLowerCase()}`;
-      if (emptyCases.includes(item.case))
+      if (item.case === 'learner-not-found') return 'Карточка ученика · недоступна';
+      if (item.fixture_kind !== 'Заполнено' && item.fixture_kind !== 'Инструменты')
         return `${names[item.screen] || item.screen} · ${item.fixture_kind.toLowerCase()}`;
       return names[item.screen] || item.screen;
     }
