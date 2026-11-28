@@ -10,7 +10,7 @@ import asyncpg
 import httpx
 import pytest
 from aiogram import Bot
-from aiogram.types import User
+from aiogram.types import ReplyKeyboardMarkup, User
 from test_inline_dispatcher_postgres import TelegramSession
 
 from app.companion.storage import TestRepository, assert_namespace, open_storage
@@ -39,7 +39,9 @@ class Transport(TelegramSession):
             await self.blocked.wait()
         if name == "getMe":
             self.calls.append(method)
-            return User(id=bot.id, is_bot=True, first_name="Synthetic test bot")
+            return User(
+                id=bot.id, is_bot=True, first_name="Synthetic test bot", username="SyntheticTestBot"
+            )
         if name in {"setWebhook", "setMyCommands"}:
             self.calls.append(method)
             return True
@@ -245,6 +247,8 @@ async def test_real_pg_isolation_two_sessions_cross_routes_and_restart(bank_pool
                 home = next(
                     m for m in reversed(list(transport.messages.values())) if m.reply_markup
                 )
+                assert "bop Admin" in home.text
+                assert "Всего зарегистрировано:" in home.text
                 button = home.reply_markup.inline_keyboard[0][0]
                 callback = {
                     "update_id": 2,
@@ -266,6 +270,11 @@ async def test_real_pg_isolation_two_sessions_cross_routes_and_restart(bank_pool
                 before = len(transport.calls)
                 await c.post("/telegram/test-webhook", json=callback, headers=headers)
                 assert len(transport.calls) == before
+                await test_repo.register_user(42)
+                await test_repo.reset_owner(42)
+                assert not await test_repo._pool.fetchval(
+                    "SELECT count(*) FROM users WHERE telegram_user_id=42"
+                )
                 assert await dump() == baseline
                 assert await test_repo._pool.fetchval("SELECT count(*) FROM qa_sessions") == 1
                 # Same update ID in the primary route must still be handled independently.
@@ -352,3 +361,131 @@ async def test_namespace_never_falls_back_to_public(bank_pool):
         await conn.execute(f'DROP SCHEMA "{repo.schema}" CASCADE')
         await conn.execute(f'DROP TABLE public."{name}"')
         await conn.close()
+
+
+@pytest.mark.parametrize("sha_variable", ["RENDER_GIT_COMMIT", "APP_BUILD_SHA"])
+async def test_runtime_admin_tools_round_trip_and_release_sha(
+    bank_pool, monkeypatch, sha_variable
+):
+    """Exercise the emitted Telegram keyboards through Companion's real dispatcher."""
+    sha = "a" * 40 if sha_variable == "RENDER_GIT_COMMIT" else "b" * 40
+    monkeypatch.setenv(sha_variable, sha)
+    other_sha = "APP_BUILD_SHA" if sha_variable == "RENDER_GIT_COMMIT" else "RENDER_GIT_COMMIT"
+    monkeypatch.delenv(other_sha, raising=False)
+
+    url = os.environ["DATABASE_URL"]
+    bot_id = 300000000 + int(uuid4().hex[:7], 16)
+    transport = Transport()
+    primary_transport = Transport()
+    primary = Bot("654321:PRIMARY", session=primary_transport)
+    config = settings(
+        database_url=url,
+        telegram_test_bot_token=f"{bot_id}:TEST",
+    )
+    install(monkeypatch, config, transport)
+    app = create_app(repository=PostgresRepository(bank_pool), bot=primary)
+
+    async def click(client, headers, update_id, label):
+        emitted = next(
+            message
+            for message in reversed(list(transport.messages.values()))
+            if message.reply_markup
+            and any(
+                button.text == label
+                for row in message.reply_markup.inline_keyboard
+                for button in row
+            )
+        )
+        button = next(
+            button
+            for row in emitted.reply_markup.inline_keyboard
+            for button in row
+            if button.text == label
+        )
+        assert button.callback_data
+        payload = {
+            "update_id": update_id,
+            "callback_query": {
+                "id": f"callback-{update_id}",
+                "from": {"id": 42, "is_bot": False, "first_name": "Synthetic"},
+                "chat_instance": "synthetic",
+                "data": button.callback_data,
+                "message": emitted.model_dump(
+                    mode="json", by_alias=True, exclude_none=True
+                ),
+            },
+        }
+        response = await client.post(
+            "/telegram/test-webhook", json=payload, headers=headers
+        )
+        assert response.status_code == 200
+
+    async def send_text(client, headers, update_id, text):
+        response = await client.post(
+            "/telegram/test-webhook",
+            json=message(update_id=update_id, text=text),
+            headers=headers,
+        )
+        assert response.status_code == 200
+
+    try:
+        async with app.router.lifespan_context(app):
+            await app.state.companion.task
+            companion = app.state.companion
+            assert companion.status == "ready"
+            assert companion.sha == sha
+            headers = {"X-Telegram-Bot-Api-Secret-Token": companion.secret}
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app), base_url="http://test"
+            ) as client:
+                await send_text(client, headers, 1, "/start")
+                assert "bop Admin" in list(transport.messages.values())[-1].text
+                await click(client, headers, 2, "Инструменты")
+                await click(client, headers, 3, "Открыть точные проверки")
+                before_student = len(transport.calls)
+                await click(client, headers, 4, "Как ученик")
+                student_calls = transport.calls[before_student:]
+                assert any(
+                    str(getattr(call, "text", "")).startswith("Режим ученика")
+                    for call in student_calls
+                )
+                student_keyboard = next(
+                    call.reply_markup
+                    for call in student_calls
+                    if isinstance(getattr(call, "reply_markup", None), ReplyKeyboardMarkup)
+                )
+                await send_text(client, headers, 5, student_keyboard.keyboard[0][0].text)
+                await click(client, headers, 6, "↩ Админ-панель")
+                await click(client, headers, 7, "Состояние системы")
+
+                system_messages = [
+                    entry
+                    for entry in transport.messages.values()
+                    if entry.text and "bop Admin · Состояние системы" in entry.text
+                ]
+                assert system_messages, [entry.text for entry in transport.messages.values()]
+                system = system_messages[-1]
+                assert f"Релиз: {sha}" in system.text
+                assert "Аналитическая БД: подключена" in system.text
+                assert "Ошибки письменных запросов: 0" in system.text
+                service = companion.admin_service
+                assert service.repository is not None
+                startup_report = await service.load("home", "28")
+                assert startup_report.unavailable is None
+                assert startup_report.data["registered"] >= 1
+                async with service.repository.read() as conn:
+                    assert await conn.fetchval("SHOW transaction_read_only") == "on"
+                    assert await conn.fetchval("SHOW transaction_isolation") == "repeatable read"
+                    assert await conn.fetchval("SELECT current_schemas(false)") == [
+                        "pg_catalog",
+                        f"{await bank_pool.fetchval('SELECT current_schema()')}_admin",
+                    ]
+                    assert await conn.fetchval("SELECT current_user") == await bank_pool.fetchval(
+                        "SELECT current_user"
+                    )
+                async with bank_pool.acquire() as primary_conn:
+                    assert await primary_conn.fetchval("SHOW transaction_read_only") == "off"
+                    assert await primary_conn.fetchval("SHOW statement_timeout") == "0"
+    finally:
+        await primary.session.close()
+        await bank_pool.execute(f'DROP SCHEMA IF EXISTS "oge_test_bot_{bot_id}" CASCADE')

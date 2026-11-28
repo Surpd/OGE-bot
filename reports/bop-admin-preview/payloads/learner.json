@@ -1,0 +1,64 @@
+{
+  "case": "learner",
+  "screen": "learner",
+  "fixture_kind": "synthetic",
+  "report_data": {
+    "found": true,
+    "last_activity": "2026-11-28 12:17:00+03:00",
+    "days": 9,
+    "solved": 38,
+    "answered": 51,
+    "numbers": [
+      1,
+      2,
+      4,
+      7,
+      8,
+      12
+    ],
+    "submitted": 3,
+    "graded": 3,
+    "points": 14
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Карточка ученика\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\nID: 17a8f719-f34a-4aa3-8e94-bd7f4d77eb01\nАктивность: 28.11 12:17 МСК · дней: 9\nРешено: 38 · ответы: 51\nПисьменных работ: 3\nРабот проверено: 3 · баллы: 14\nПо номерам: 1, 2, 4, 7, 8, 12",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

@@ -13,6 +13,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 
+from app.admin.repository import AdminRepository
 from app.bot.presentation import MathDeliveryUncertain
 from app.bot.router import build_router
 from app.config import GRADING_REASONING, get_settings
@@ -133,6 +134,9 @@ async def _run_schema_migrations(
                 await connection.execute(
                     "INSERT INTO app_schema_migrations (version) VALUES ($1)", version
                 )
+                logging.getLogger("uvicorn.error").info(
+                    "schema_migration_applied version=%s", version
+                )
         finally:
             await connection.execute("SELECT pg_advisory_unlock($1)", lock_id)
 
@@ -212,7 +216,7 @@ def create_app(
             ):
                 raise RuntimeError("WEBHOOK_BASE_URL must be an HTTPS origin in production")
         if settings.webhook_base_url and settings.telegram_webhook_secret:
-            await telegram_bot.set_webhook(
+            primary_webhook = await telegram_bot.set_webhook(
                 url=f"{settings.webhook_base_url.rstrip('/')}/telegram/webhook",
                 secret_token=settings.telegram_webhook_secret,
                 drop_pending_updates=False,
@@ -221,6 +225,8 @@ def create_app(
                     "widget_query",
                 ],
             )
+            if primary_webhook:
+                logging.getLogger("uvicorn.error").info("primary_webhook_ready")
         dispatcher = Dispatcher()
         dispatcher.include_router(build_router())
         application.state.repository = repo
@@ -237,7 +243,8 @@ def create_app(
             maintenance = asyncio.create_task(maintain_work(pool))
         from app.companion.runtime import Companion
 
-        companion = Companion(settings, telegram_bot.id)
+        analytics = AdminRepository(repo._pool) if isinstance(repo, PostgresRepository) else None
+        companion = Companion(settings, telegram_bot.id, analytics_repository=analytics)
         application.state.companion = companion
         companion.start()  # Optional background startup never gates primary readiness.
         try:

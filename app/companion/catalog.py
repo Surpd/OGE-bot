@@ -49,8 +49,26 @@ def generate(number: int, family: str, seed: int = 0, version: str | None = None
         raise ValueError("Seed out of range")
     scenario = None
     if number <= 5:
+        registry = public_registry()
+        story = family.removeprefix("OGE15:")
+        exact_family = None
+        if story not in registry.story_codes:
+            exact_family = family
+            story = next(
+                (
+                    code
+                    for code in registry.available_stories(PracticeMode.SINGLE, number)
+                    if any(
+                        item.family_id == family and item.position == number and item.available
+                        for item in registry.adapter(code).family_registry
+                    )
+                ),
+                "",
+            )
+            if not story:
+                raise ValueError("Exact story family unavailable")
         scenario = build_practice_plan(
-            PracticeRequest(PracticeMode.SINGLE, seed, family, number), public_registry()
+            PracticeRequest(PracticeMode.SINGLE, seed, story, number, exact_family), registry
         ).snapshot.to_snapshot()
         if version is not None and scenario["generator_version"] != version:
             raise ValueError("Historical story generator unavailable; use a saved snapshot")

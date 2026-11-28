@@ -12,6 +12,8 @@ from urllib.parse import urlsplit
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand, Message, Update
 
+from app.admin.repository import AdminRepository
+from app.admin.service import AdminService, make_service
 from app.bot.router import build_router
 from app.companion.middleware import CompanionMiddleware, allowed_payload
 from app.companion.storage import TestRepository, open_storage
@@ -37,11 +39,21 @@ def owners(value: str) -> frozenset[int]:
 
 
 class Companion:
-    def __init__(self, settings: Settings, primary_id: int) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        primary_id: int,
+        *,
+        analytics_repository: AdminRepository | None = None,
+    ) -> None:
         self.settings = settings
         self.primary_id = primary_id
+        self.sha = running_sha()
         self.bot: Bot | None = None
+        self.identity: Any | None = None
         self.repository: TestRepository | None = None
+        self.admin_service: AdminService | None = None
+        self._analytics_repository = analytics_repository
         self.dispatcher: Dispatcher | None = None
         self.secret = secrets.token_urlsafe(32)
         self.owner_ids: frozenset[int] = frozenset()
@@ -78,9 +90,13 @@ class Companion:
                     raise ValueError("Primary bot token cannot be used for companion")
                 async with asyncio.timeout(10):
                     identity = await self.bot.get_me()
+                self.identity = identity
                 if identity.id != self.bot.id or identity.id == self.primary_id:
                     raise ValueError("Unexpected test bot identity")
                 self.repository = await open_storage(self.settings.database_url, identity.id)
+                self.admin_service = make_service(
+                    self.settings, self.owner_ids, self.primary_id, self._analytics_repository
+                )
                 self.secret = await self.repository._pool.fetchval(
                     "SELECT webhook_secret FROM companion_identity"
                 )
@@ -92,7 +108,13 @@ class Companion:
                     raise ValueError("Invalid companion webhook secret")
                 self.dispatcher = Dispatcher()
                 self.dispatcher.update.outer_middleware(
-                    CompanionMiddleware(self.settings, self.owner_ids, running_sha())
+                    CompanionMiddleware(
+                        self.settings,
+                        self.owner_ids,
+                        self.sha,
+                        admin_service=self.admin_service,
+                        companion=self,
+                    )
                 )
                 self.dispatcher.include_router(build_router())
                 async with asyncio.timeout(10):
@@ -102,14 +124,18 @@ class Companion:
                             BotCommand(command="qa", description="Точные проверки"),
                         ]
                     )
-                    await self.bot.set_webhook(
+                    webhook_ready = await self.bot.set_webhook(
                         url=f"{(self.settings.webhook_base_url or '').rstrip('/')}{PATH}",
                         secret_token=self.secret,
                         drop_pending_updates=False,
                         allowed_updates=["message", "callback_query"],
                     )
+                if not webhook_ready:
+                    raise RuntimeError("Telegram did not confirm the companion webhook")
                 self.status = "ready"
-                logger.info("companion_ready")
+                logging.getLogger("uvicorn.error").info(
+                    "companion_ready release=%s bot=%s", self.sha, identity.username or "-"
+                )
         except asyncio.CancelledError:
             raise
         except Exception as exc:
@@ -120,6 +146,28 @@ class Companion:
                 await self.close_resources()
             except Exception as cleanup:
                 logger.warning("companion_cleanup_failed type=%s", type(cleanup).__name__)
+
+        if self.status == "ready" and self._analytics_repository is not None:
+            await self._probe_analytics()
+
+    async def _probe_analytics(self) -> None:
+        if self.admin_service is None:
+            return
+        try:
+            report = await self.admin_service.load("home", "28")
+        except Exception as exc:
+            logger.warning("companion_analytics_probe_failed type=%s", type(exc).__name__)
+            return
+        if report.unavailable:
+            logger.warning("companion_analytics_unavailable status=%s", report.unavailable)
+            return
+        # Use the actual report, logging availability and activity presence rather than counts.
+        logging.getLogger("uvicorn.error").info(
+            "companion_analytics_ready release=%s has_accounts=%s has_learning_activity=%s",
+            self.sha,
+            bool(report.data.get("registered")),
+            bool(report.data.get("active")),
+        )
 
     def accepts(self, secret: str | None) -> bool:
         return bool(self.status == "ready" and secret and hmac.compare_digest(secret, self.secret))
@@ -136,7 +184,7 @@ class Companion:
             or callback.message.from_user.id != self.bot.id
         ):
             return
-        # One owner operation at a time. Bounded HTTP processing; primary has its own pool.
+        # One owner operation at a time; the writable test pool stays isolated.
         async with asyncio.timeout(45), self.lock:
             repo = self.repository
             if not await repo.claim_update(update.update_id, bot_id=self.bot.id):
@@ -154,12 +202,26 @@ class Companion:
 
     async def close_resources(self) -> None:
         if self.bot:
-            await self.bot.session.close()
+            try:
+                await self.bot.session.close()
+            except Exception as exc:
+                logger.warning("companion_bot_cleanup_failed type=%s", type(exc).__name__)
         if self.repository:
-            async with asyncio.timeout(5):
-                await self.repository._pool.close()
+            try:
+                async with asyncio.timeout(5):
+                    await self.repository._pool.close()
+            except Exception as exc:
+                logger.warning("companion_storage_cleanup_failed type=%s", type(exc).__name__)
+        if self.admin_service:
+            try:
+                await self.admin_service.close()
+            except Exception as exc:
+                logger.warning("companion_admin_cleanup_failed type=%s", type(exc).__name__)
+            finally:
+                self.admin_service = None
         self.bot = None
         self.repository = None
+        self.identity = None
         # Intentionally no deleteWebhook, for either identity.
 
     async def close(self) -> None:
