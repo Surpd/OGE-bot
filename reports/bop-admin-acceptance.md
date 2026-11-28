@@ -19,6 +19,7 @@ The gallery was generated from `app.admin.screens.render_screen`, which returns 
 |---|---|---|
 | Synthetic fixtures only; no credentials or production service calls | PASS | `scripts/bop_admin_preview.py`; 16 payloads tagged synthetic, empty, or unavailable |
 | All admin screens and selected views render production text and Telegram markup | PASS | 12 screen flows + №13 subtype view + 3 state variants; 131 keyboard buttons; callback data and `success` style retained |
+| Usage modes and Tools entry | PASS | Usage shows eight persisted or unknown mode labels. Tools shows the exact-check callback. |
 | Task-family QA action and list pagination | PASS | №7 detail has `adm:preview:qa_family`; task list, written, and replay views expose their next-page action |
 | 360 px viewport | PASS | Browser: document width 360 px; no message overflow. Screenshot: [mobile-360.png](bop-admin-preview/screenshots/mobile-360.png) |
 | 390 px viewport | PASS | Browser: document width 390 px; no message overflow. Screenshot: [mobile-390.png](bop-admin-preview/screenshots/mobile-390.png) |
@@ -66,3 +67,21 @@ This is a browser rendering of Telegram Bot API message text and keyboard markup
 Типы и детали дополнительно соединяют задачи и проекцию вариантов. Замер
 сделан без Telegram и сетевой задержки. План воспроизводится тестом
 `test_admin_query_plans_on_synthetic_history`.
+
+
+## Повторная приёмка PR №122
+
+Адресный набор прошёл на PostgreSQL 17.11 (45 тестов). Отдельный финальный
+прогон модуля companion подтвердил оба маршрута (14 тестов).
+
+- PostgreSQL-тест использует действующий триггер активации сюжетных позиций и
+  проверяет отдельно одиночный вопрос и сюжетную пятёрку. В том же отчёте
+  проверены четыре коротких режима, новая сессия полного цикла и неизвестный
+  режим старых записей. Возобновление старой сессии сохраняет её классификацию.
+- Оба варианта запуска companion с ограниченным аналитическим логином и без
+  DSN прошли путь от `/start` через «Инструменты» до режима «Как ученик»
+  и обратно. Тест нажимает кнопки, полученные от настоящего aiogram-диспетчера
+  через записывающий Telegram-транспорт. Экран состояния показал оба варианта
+  фактического SHA, `RENDER_GIT_COMMIT` и `APP_BUILD_SHA`.
+- Галерея переснята на ширинах 360, 390 и 430 px. В ней видны обновлённые
+  режимы и рабочий переход в точные проверки.

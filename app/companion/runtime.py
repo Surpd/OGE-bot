@@ -40,6 +40,7 @@ class Companion:
     def __init__(self, settings: Settings, primary_id: int) -> None:
         self.settings = settings
         self.primary_id = primary_id
+        self.sha = running_sha()
         self.bot: Bot | None = None
         self.identity: Any | None = None
         self.repository: TestRepository | None = None
@@ -101,7 +102,7 @@ class Companion:
                     CompanionMiddleware(
                         self.settings,
                         self.owner_ids,
-                        running_sha(),
+                        self.sha,
                         admin_service=self.admin_service,
                         companion=self,
                     )

@@ -20,7 +20,7 @@
           "callback_data": "adm:preview:back"
         },
         {
-          "text": "⌂ Обзор",
+          "text": "⌂ Главная",
           "callback_data": "adm:preview:home"
         }
       ],

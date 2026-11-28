@@ -8,6 +8,12 @@ BEGIN
     IF source_schema IS NULL THEN
         RAISE EXCEPTION 'admin analytics migration requires a configured search_path';
     END IF;
+    -- Record the entry mode for new full-cycle sessions in both bot namespaces.
+    -- Earlier sessions could use the same catalog under a shuffled route.
+    EXECUTE format('ALTER TABLE %I.mixed_training_sessions
+        ADD COLUMN IF NOT EXISTS training_mode text CHECK (training_mode = ''full_part'')',
+        source_schema);
+
     IF source_schema ~ '^oge_test_bot_[0-9]+$' THEN
         RAISE NOTICE 'skipping admin analytics projections for isolated bot schema %', source_schema;
     ELSE
@@ -38,7 +44,7 @@ BEGIN
             SELECT 'ordinary'::text AS source, p.id::text AS task_key, p.user_id,
                    coalesce((SELECT a.strategy FROM %2$I.adaptive_slots sl
                              JOIN %2$I.adaptive_sessions a ON a.id=sl.session_id
-                             WHERE sl.problem=p.id LIMIT 1), 'ordinary') AS mode,
+                             WHERE sl.problem=p.id LIMIT 1), 'unknown') AS mode,
                    coalesce(substring(p.family_id from '^OGE0?([0-9]{1,2})-')::int,
                             substring(s.mode from '^task([0-9]+)$')::int,
                             substring(p.snapshot->>'exam_number' from '^([0-9]{1,2})$')::int,
@@ -52,15 +58,15 @@ BEGIN
             FROM %2$I.issued_problems p LEFT JOIN %2$I.sessions s ON s.id=p.session_id
             WHERE p.outcome <> 'pending'
             UNION ALL
-            SELECT 'mixed', p.id::text, s.user_id, 'mixed', p.number::int, p.family_id,
+            SELECT 'mixed', p.id::text, s.user_id, coalesce(s.training_mode,'unknown'),
+                   p.number::int, p.family_id,
                    p.issued_at, NULL::timestamptz,
                    p.solution_viewed_at, CASE WHEN p.hints_used>0 THEN true ELSE NULL::boolean END,
                    NULL::boolean
             FROM %2$I.mixed_training_problems p JOIN %2$I.mixed_training_sessions s ON s.id=p.session_id
             UNION ALL
         SELECT 'scenario', s.id::text || ':' || q.position::text, s.user_id,
-                   CASE WHEN q.adaptive_issued_at IS NOT NULL THEN 'scenario_adaptive'
-                        ELSE 'scenario_' || s.mode END,
+                   'scenario_' || s.mode,
                    q.position::int,
                    coalesce(sc.snapshot->'questions'->(q.position-1)->>'family_id', sc.story_code),
                    q.adaptive_issued_at,
@@ -163,7 +169,7 @@ BEGIN
         CREATE OR REPLACE VIEW %1$I.attempts AS
         WITH events AS (
             SELECT a.user_id,'ordinary'::text AS source,p.id::text AS task_key,
-                   coalesce(ats.strategy,'ordinary') AS mode,
+                   coalesce(ats.strategy,'unknown') AS mode,
                    coalesce(substring(s.mode from '^task([0-9]+)$')::int,
                             substring(p.family_id from '^OGE0?([0-9]{1,2})-')::int,
                             substring(coalesce(p.snapshot->>'exam_number',p.snapshot->>'number',
@@ -183,7 +189,8 @@ BEGIN
             LEFT JOIN %2$I.adaptive_slots sl ON sl.problem=p.id
             LEFT JOIN %2$I.adaptive_sessions ats ON ats.id=sl.session_id
             UNION ALL
-            SELECT s.user_id,'mixed',p.id::text,'mixed',p.number::int,p.family_id,
+            SELECT s.user_id,'mixed',p.id::text,coalesce(s.training_mode,'unknown'),
+                   p.number::int,p.family_id,
                    a.attempt_no::int,a.is_correct,a.used_hint,
                    a.used_hint OR coalesce(p.solution_viewed_at<=a.created_at,false),a.created_at
             FROM %2$I.mixed_training_attempts a
@@ -191,8 +198,7 @@ BEGIN
             JOIN %2$I.mixed_training_sessions s ON s.id=p.session_id
             UNION ALL
             SELECT s.user_id,'scenario',s.id::text||':'||a.position::text,
-                   CASE WHEN q.adaptive_issued_at IS NOT NULL THEN 'scenario_adaptive'
-                        ELSE 'scenario_'||s.mode END,
+                   'scenario_' || s.mode,
                    a.position::int,
                    coalesce(sc.snapshot->'questions'->(a.position-1)->>'family_id',sc.story_code),
                    a.attempt_no::int,a.is_correct,a.used_hint,

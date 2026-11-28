@@ -46,6 +46,7 @@ def _parse_action(action: str, state: dict[str, Any]) -> tuple[str, dict[str, An
             "written",
             "system",
             "cost",
+            "tools",
         }:
             action = "home"
         state["admin_refresh"] = True
@@ -147,9 +148,8 @@ async def present_admin(
     except Exception as exc:
         # Operational detail stays in server logs; this private view gets no exception text.
         logger.warning("admin_report_failed view=%s type=%s", screen, type(exc).__name__)
-        pass
     data: Mapping[str, Any] = getattr(report, "data", {}) if report is not None else {}
-    unavailable = getattr(report, "unavailable", None) if report is not None else "unavailable"
+    unavailable = getattr(report, "unavailable", None if screen == "tools" else "unavailable")
     data = dict(data)
     if unavailable:
         data["unavailable"] = unavailable

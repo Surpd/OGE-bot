@@ -18,3 +18,5 @@ production material routes from106,tests/test_scenario_required_materials.py,fir
 last twelve snapshots retain recency after JSONB,tests/test_companion_qa.py::test_last_twelve_snapshots_keep_recency_through_jsonb,explicit ordered array
 admin period activity retention writing budget,tests/test_admin_analytics_postgres.py::test_admin_reports_on_hand_calculated_data,synthetic PostgreSQL 17
 admin source keys and real reader permissions,tests/test_admin_sources_postgres.py,synthetic PostgreSQL 17
+admin persisted mode and scenario activation trigger,tests/test_admin_analytics_postgres.py::test_usage_distinguishes_training_modes_from_sources_and_trigger,synthetic PostgreSQL 17
+admin tools and release SHA with and without report connection,tests/test_companion_runtime.py,real dispatcher and PostgreSQL with recorded Telegram transport

@@ -110,8 +110,9 @@ async def test_admin_views_separate_adaptive_mixed_scenario_and_replay_sources()
             "VALUES($1,1,'active'),($1,2,'pending')",
             scenario_session,
         )
-        await pool.execute(
-            "UPDATE oge15_question_progress SET adaptive_issued_at=NULL WHERE session_id=$1",
+        assert await pool.fetchval(
+            "SELECT adaptive_issued_at IS NOT NULL FROM oge15_question_progress "
+            "WHERE session_id=$1 AND position=1",
             scenario_session,
         )
         await pool.execute(
@@ -143,7 +144,7 @@ async def test_admin_views_separate_adaptive_mixed_scenario_and_replay_sources()
                     "ORDER BY source,mode"
                 )
                 assert [(row["source"], row["mode"]) for row in task_rows] == [
-                    ("mixed", "mixed"),
+                    ("mixed", "unknown"),
                     ("ordinary", "personal"),
                     ("replay", "replay"),
                     ("scenario", "scenario_single"),

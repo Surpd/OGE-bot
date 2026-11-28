@@ -3,6 +3,8 @@ import os
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
 
@@ -12,7 +14,10 @@ from pydantic import SecretStr
 from app.admin.queries import COST, DAYS, HOME, MODES, RETENTION, TASK, TYPE_ORDERS, TYPES, WRITTEN
 from app.admin.repository import AdminRepository
 from app.admin.service import AdminService, ReportWindow
+from app.bot import mixed_training
+from app.persistence.mixed_training import MixedTrainingRepository
 from app.persistence.part2_grades import budget_usage
+from app.persistence.repository import PostgresRepository
 
 
 @pytest.fixture
@@ -187,6 +192,101 @@ async def test_admin_reports_on_hand_calculated_data(bank_pool, analytics) -> No
     assert (await analytics.load("written", "7")).data["pending"] == 1
     refreshed = (await analytics.load("written", "7", refresh=True)).data
     assert refreshed["pending"] == 0 and refreshed["uncertain"] == 1
+
+
+async def test_usage_distinguishes_training_modes_from_sources_and_trigger(
+    bank_pool, analytics, monkeypatch,
+):
+    await bank_pool.execute("INSERT INTO users(telegram_user_id) SELECT generate_series(101, 109)")
+    users = {
+        row["telegram_user_id"]: row["id"]
+        for row in await bank_pool.fetch("SELECT id,telegram_user_id FROM users")
+    }
+    stamp = "2026-11-27 12:00+03"
+    for student, strategy in enumerate(("personal", "mixed", "number", "family"), start=101):
+        user = users[student]
+        problem = await _issue(bank_pool, user, stamp)
+        session = await bank_pool.fetchval(
+            "INSERT INTO adaptive_sessions(owner,plan,strategy) VALUES($1,'[]',$2) RETURNING id",
+            user, strategy,
+        )
+        await bank_pool.execute(
+            "INSERT INTO adaptive_slots(session_id,position,problem) VALUES($1,0,$2)",
+            session, problem,
+        )
+        await _answer(bank_pool, user, problem, 1, True, stamp)
+
+    ordinary = await _issue(bank_pool, users[108], stamp)
+    await _answer(bank_pool, users[108], ordinary, 1, False, stamp)
+
+    # The same catalog can already be saved in an untagged historical session.
+    # The live entry handler records only newly created full-cycle sessions.
+    repo = PostgresRepository(bank_pool)
+    store = MixedTrainingRepository(repo)
+    await store.start(105, mixed_training.available_numbers())
+    monkeypatch.setattr(mixed_training, "_issue", AsyncMock(return_value={"number": 1}))
+    monkeypatch.setattr(mixed_training, "_send_problem", AsyncMock())
+    for user_id in (105, 106):
+        await mixed_training.start_mixed(
+            SimpleNamespace(from_user=SimpleNamespace(id=user_id)), repo
+        )
+    sessions = await bank_pool.fetch("""
+        SELECT s.id,u.telegram_user_id,s.training_mode
+        FROM mixed_training_sessions s JOIN users u ON u.id=s.user_id ORDER BY u.telegram_user_id
+    """)
+    assert [(r["telegram_user_id"], r["training_mode"]) for r in sessions] == [
+        (105, None), (106, "full_part"),
+    ]
+    for row in sessions:
+        await bank_pool.execute("""
+            WITH problem AS (
+                INSERT INTO mixed_training_problems(id,session_id,number,family_id,fingerprint,
+                                                     snapshot,snapshot_sha256,issued_at)
+                VALUES(gen_random_uuid(),$1,6,'OGE06-TEST','test','{}',repeat('a',64),
+                       $2::text::timestamptz) RETURNING id
+            )
+            INSERT INTO mixed_training_attempts(problem_id,attempt_no,telegram_message_id,
+                                                 raw_answer,is_correct,created_at)
+            SELECT id,1,1,'synthetic',true,$2::text::timestamptz FROM problem
+        """, row["id"], stamp)
+
+    await bank_pool.execute("""
+        WITH scene AS (
+            INSERT INTO oge15_scenarios(user_id,story_code,seed,generator_version,
+                                       snapshot_schema_version,snapshot,snapshot_sha256)
+            SELECT id,'TYRES',0,'1',1,'{"questions":[{"family_id":"TYRES-TEST"}]}',repeat('a',64)
+            FROM users WHERE telegram_user_id IN (107,109)
+            RETURNING id,user_id
+        ), sessions AS (
+            INSERT INTO oge15_sessions(user_id,scenario_id,story_code,mode,current_position)
+            SELECT scene.user_id,scene.id,'TYRES',
+                   CASE u.telegram_user_id WHEN 107 THEN 'single' ELSE 'full' END,1
+            FROM scene JOIN users u ON u.id=scene.user_id
+            RETURNING id
+        )
+        INSERT INTO oge15_question_progress(session_id,position,status)
+        SELECT id,1,'active' FROM sessions
+    """)
+    assert await bank_pool.fetchval("""
+        SELECT count(*) FROM oge15_question_progress WHERE adaptive_issued_at IS NOT NULL
+    """) == 2
+    await bank_pool.execute("""
+        INSERT INTO oge15_attempts(session_id,position,attempt_no,telegram_message_id,
+                                   raw_answer,is_correct,created_at)
+        SELECT id,1,1,1,'synthetic',true,$1::text::timestamptz
+        FROM oge15_sessions
+    """, stamp)
+
+    expected = {
+        "personal": 1, "mixed": 1, "number": 1, "family": 1, "full_part": 1,
+        "scenario_single": 1, "scenario_full": 1, "unknown": 2,
+    }
+    report = await analytics.load("usage", "7")
+    assert report.unavailable is None
+    assert {row["mode"]: row["answered"] for row in report.data["modes"]} == expected
+    async with analytics.repository.read() as conn:
+        task_modes = await conn.fetch("SELECT mode, count(*) FROM tasks GROUP BY mode")
+    assert {row["mode"]: row["count"] for row in task_modes} == expected
 
 
 async def test_admin_query_plans_on_synthetic_history(bank_pool, analytics) -> None:

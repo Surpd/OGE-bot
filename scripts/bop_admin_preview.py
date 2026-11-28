@@ -60,8 +60,14 @@ FIXTURES: dict[str, dict[str, Any]] = {
         "known_cost": Decimal("0.0184"),
         "unknown_cost": 2,
         "modes": [
-            {"mode": "mixed", "users": 22, "answered": 240, "submitted": 9},
-            {"mode": "adaptive", "users": 12, "answered": 188, "submitted": 8},
+            {"mode": "personal", "users": 8, "answered": 64, "submitted": 0},
+            {"mode": "mixed", "users": 6, "answered": 78, "submitted": 0},
+            {"mode": "number", "users": 5, "answered": 70, "submitted": 0},
+            {"mode": "family", "users": 4, "answered": 54, "submitted": 0},
+            {"mode": "full_part", "users": 3, "answered": 95, "submitted": 0},
+            {"mode": "scenario_single", "users": 2, "answered": 22, "submitted": 0},
+            {"mode": "scenario_full", "users": 4, "answered": 42, "submitted": 0},
+            {"mode": "unknown", "users": 2, "answered": 3, "submitted": 0},
         ],
         "retention": {
             "returned": 18,

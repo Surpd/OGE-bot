@@ -61,14 +61,14 @@ def _family_label(value: object) -> str:
 def _mode(value: Any) -> str:
     name = str(value)
     known = {
-        "ordinary": "обычная тренировка",
-        "personal": "персональная",
-        "mixed": "смешанная",
+        "unknown": "режим неизвестен",
+        "personal": "персональная пятёрка",
+        "mixed": "смешанная пятёрка",
         "number": "по номеру",
         "family": "по типу",
-        "scenario_single": "одиночный сюжет",
-        "scenario_full": "вся пятёрка сюжетов",
-        "scenario_adaptive": "подбор сюжетов",
+        "full_part": "первая часть целиком",
+        "scenario_single": "один вопрос сюжета",
+        "scenario_full": "сюжетная пятёрка",
         "replay": "повтор ошибки",
         "written": "письменная работа",
     }
@@ -497,42 +497,19 @@ def render_screen(
             dynamic = [page_buttons]
     elif screen == "task":
         dynamic = locals().get("task_buttons", [])
-    if screen == "tools" and tools_url:
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(text="Открыть тестовый бот", url=tools_url),
-                    InlineKeyboardButton(
-                        text="Открыть здесь", callback_data=f"adm:{revision}:tools_open"
-                    ),
-                ],
-                [
-                    InlineKeyboardButton(text="← Назад", callback_data=f"adm:{revision}:back"),
-                ],
-                [
-                    InlineKeyboardButton(text="⌂ Обзор", callback_data=f"adm:{revision}:home"),
-                    InlineKeyboardButton(
-                        text="↻ Обновить", callback_data=f"adm:{revision}:refresh"
-                    ),
-                ],
-            ]
+    if screen == "tools":
+        keyboard = _kb(
+            [
+                [("Открыть точные проверки", "tools_open")],
+                [("← Назад", "back"), ("⌂ Главная", "home")],
+                [("↻ Обновить", "refresh")],
+            ],
+            revision,
         )
-    elif screen == "tools":
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="Открыть точные проверки",
-                        callback_data=f"adm:{revision}:tools_open",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(text="← Назад", callback_data=f"adm:{revision}:back"),
-                    InlineKeyboardButton(text="⌂ Обзор", callback_data=f"adm:{revision}:home"),
-                ],
-                [InlineKeyboardButton(text="↻ Обновить", callback_data=f"adm:{revision}:refresh")],
-            ]
-        )
+        if tools_url:
+            keyboard.inline_keyboard.insert(
+                1, [InlineKeyboardButton(text="Открыть через /qa", url=tools_url)]
+            )
     else:
         keyboard = _kb(dynamic + _nav(screen, period), revision)
     return "\n".join(lines), keyboard

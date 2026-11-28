@@ -509,7 +509,7 @@ async def start_mixed(message: Message, repository: Repository) -> None:
         return
     user_id = message.from_user.id
     store = MixedTrainingRepository(repository)
-    await store.start(user_id, available_numbers())
+    await store.start(user_id, available_numbers(), training_mode="full_part")
     session = await store.state(user_id)
     current = session.get("problem") if session else None
     if not isinstance(current, dict):
@@ -538,7 +538,7 @@ async def start_mixed(message: Message, repository: Repository) -> None:
 
 async def continue_mixed(message: Message, repository: Repository, user_id: int) -> bool:
     store = MixedTrainingRepository(repository)
-    await store.start(user_id, available_numbers())
+    await store.start(user_id, available_numbers(), training_mode="full_part")
     state = await store.state(user_id)
     problem = state.get("problem") if state else None
     if not isinstance(problem, dict):

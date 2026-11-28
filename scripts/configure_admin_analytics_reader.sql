@@ -86,7 +86,7 @@ BEGIN
     EXECUTE format('GRANT SELECT (id,mode) ON %I.sessions TO oge_admin_projection', source_schema);
     EXECUTE format('GRANT SELECT (problem,session_id,selection) ON %I.adaptive_slots TO oge_admin_projection', source_schema);
     EXECUTE format('GRANT SELECT (id,strategy) ON %I.adaptive_sessions TO oge_admin_projection', source_schema);
-    EXECUTE format('GRANT SELECT (id,user_id) ON %I.mixed_training_sessions TO oge_admin_projection', source_schema);
+    EXECUTE format('GRANT SELECT (id,user_id,training_mode) ON %I.mixed_training_sessions TO oge_admin_projection', source_schema);
     EXECUTE format('GRANT SELECT (id,session_id,number,family_id,issued_at,outcome,solution_viewed_at,hints_used) ON %I.mixed_training_problems TO oge_admin_projection', source_schema);
     EXECUTE format('GRANT SELECT (problem_id,attempt_no,is_correct,used_hint,created_at) ON %I.mixed_training_attempts TO oge_admin_projection', source_schema);
     EXECUTE format('GRANT SELECT (session_id,position,status,adaptive_issued_at,updated_at,solution_viewed_at,hints_used) ON %I.oge15_question_progress TO oge_admin_projection', source_schema);

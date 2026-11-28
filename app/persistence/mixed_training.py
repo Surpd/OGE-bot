@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from hashlib import sha256
-from typing import Any, cast
+from typing import Any, Literal, cast
 from uuid import UUID, uuid4
 
 from app.persistence.rotation_history import candidate_state, recent_story_families
@@ -155,7 +155,13 @@ class MixedTrainingRepository:
             self._repository, user_id, number, _object(local), for_mix=True,
         )
 
-    async def start(self, user_id: int, available_numbers: list[int]) -> dict[str, object]:
+    async def start(
+        self,
+        user_id: int,
+        available_numbers: list[int],
+        *,
+        training_mode: Literal["full_part"] | None = None,
+    ) -> dict[str, object]:
         if self._pool is None:
             sessions = self._repository._mixed_training_sessions
             current = sessions.get(user_id)
@@ -204,10 +210,11 @@ class MixedTrainingRepository:
                     "last_number": None,
                 }
                 row = await connection.fetchrow(
-                    """INSERT INTO mixed_training_sessions (user_id,state)
-                       VALUES ($1,$2::jsonb) RETURNING id,status,revision,state""",
+                    """INSERT INTO mixed_training_sessions (user_id,state,training_mode)
+                       VALUES ($1,$2::jsonb,$3) RETURNING id,status,revision,state""",
                     user["id"],
                     json.dumps(state, ensure_ascii=False),
+                    training_mode,
                 )
             else:
                 await connection.execute(
