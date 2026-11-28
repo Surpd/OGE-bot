@@ -31,14 +31,6 @@ async def test_admin_never_falls_back_to_the_primary_connection() -> None:
     assert report.unavailable == "unconfigured" and report.data == {}
 
 
-async def test_invalid_analytics_exclusions_fail_closed() -> None:
-    service = make_service(
-        Settings(oge_admin_excluded_user_ids="3,invalid", _env_file=None),
-        frozenset({1}), 2,
-    )
-    assert (await service.load("home", "7")).unavailable == "unavailable"
-
-
 def test_cost_with_only_unknown_fees_preserves_unknown() -> None:
     report = cost_report(
         dict(written_cost=None, graded=2, unknown_written=3, spent=Decimal(4), held=Decimal(2)),

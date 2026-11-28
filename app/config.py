@@ -19,9 +19,6 @@ class Settings(BaseSettings):
     # Optional companion settings are validated only in its background startup.
     telegram_test_bot_token: SecretStr | None = None
     telegram_test_owner_ids: str = ""
-    oge_admin_database_url: SecretStr | None = None
-    oge_admin_schema: str = "public_admin"
-    oge_admin_excluded_user_ids: str = ""
     telegram_webhook_secret: str | None = None
     webhook_base_url: str | None = None
     oge_adaptive_enabled: bool = False

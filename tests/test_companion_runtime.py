@@ -4,8 +4,6 @@ import asyncio
 import copy
 import os
 from datetime import UTC, datetime
-from pathlib import Path
-from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
 
 import asyncpg
@@ -250,7 +248,7 @@ async def test_real_pg_isolation_two_sessions_cross_routes_and_restart(bank_pool
                     m for m in reversed(list(transport.messages.values())) if m.reply_markup
                 )
                 assert "bop Admin" in home.text
-                assert "не настроен" in home.text
+                assert "Всего зарегистрировано:" in home.text
                 button = home.reply_markup.inline_keyboard[0][0]
                 callback = {
                     "update_id": 2,
@@ -365,12 +363,9 @@ async def test_namespace_never_falls_back_to_public(bank_pool):
         await conn.close()
 
 
-@pytest.mark.parametrize(
-    ("sha_variable", "configured_dsn"),
-    [("RENDER_GIT_COMMIT", True), ("APP_BUILD_SHA", False)],
-)
+@pytest.mark.parametrize("sha_variable", ["RENDER_GIT_COMMIT", "APP_BUILD_SHA"])
 async def test_runtime_admin_tools_round_trip_and_release_sha(
-    bank_pool, monkeypatch, sha_variable, configured_dsn
+    bank_pool, monkeypatch, sha_variable
 ):
     """Exercise the emitted Telegram keyboards through Companion's real dispatcher."""
     sha = "a" * 40 if sha_variable == "RENDER_GIT_COMMIT" else "b" * 40
@@ -379,27 +374,6 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
     monkeypatch.delenv(other_sha, raising=False)
 
     url = os.environ["DATABASE_URL"]
-    schema = await bank_pool.fetchval("SELECT current_schema()")
-    admin_schema = f"{schema}_admin"
-    role = f"admin_test_{uuid4().hex}"
-    if configured_dsn:
-        provision = Path("scripts/configure_admin_analytics_reader.sql").read_text(
-            encoding="utf-8"
-        )
-        async with bank_pool.acquire() as conn:
-            await conn.execute(provision)
-            await conn.execute(
-                f"CREATE ROLE {role} LOGIN PASSWORD 'synthetic-runtime-password';"
-                f"GRANT oge_admin_reader TO {role}"
-            )
-        parsed_url = urlsplit(url)
-        admin_dsn = urlunsplit(
-            parsed_url._replace(
-                netloc=f"{role}:synthetic-runtime-password@{parsed_url.netloc.rsplit('@', 1)[-1]}"
-            )
-        )
-    else:
-        admin_dsn = None
     bot_id = 300000000 + int(uuid4().hex[:7], 16)
     transport = Transport()
     primary_transport = Transport()
@@ -407,8 +381,6 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
     config = settings(
         database_url=url,
         telegram_test_bot_token=f"{bot_id}:TEST",
-        oge_admin_database_url=admin_dsn,
-        oge_admin_schema=admin_schema,
     )
     install(monkeypatch, config, transport)
     app = create_app(repository=PostgresRepository(bank_pool), bot=primary)
@@ -494,22 +466,26 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
                 assert system_messages, [entry.text for entry in transport.messages.values()]
                 system = system_messages[-1]
                 assert f"Релиз: {sha}" in system.text
-                if configured_dsn:
-                    assert "Аналитическая БД: подключена" in system.text
-                    assert "Ошибки письменных запросов: 0" in system.text
-                    service = companion.admin_service
-                    assert service.repository is not None
-                    async with service.repository.read() as conn:
-                        assert await conn.fetchval("SHOW transaction_read_only") == "on"
-                        assert await conn.fetchval(
-                            "SELECT current_user LIKE 'admin_test_%'"
-                        ) is True
-                else:
-                    assert "Аналитическая БД: не настроена" in system.text
-                    assert "Ошибки письменных запросов: —" in system.text
+                assert "Аналитическая БД: подключена" in system.text
+                assert "Ошибки письменных запросов: 0" in system.text
+                service = companion.admin_service
+                assert service.repository is not None
+                startup_report = await service.load("home", "28")
+                assert startup_report.unavailable is None
+                assert startup_report.data["registered"] >= 1
+                async with service.repository.read() as conn:
+                    assert await conn.fetchval("SHOW transaction_read_only") == "on"
+                    assert await conn.fetchval("SHOW transaction_isolation") == "repeatable read"
+                    assert await conn.fetchval("SELECT current_schemas(false)") == [
+                        "pg_catalog",
+                        f"{await bank_pool.fetchval('SELECT current_schema()')}_admin",
+                    ]
+                    assert await conn.fetchval("SELECT current_user") == await bank_pool.fetchval(
+                        "SELECT current_user"
+                    )
+                async with bank_pool.acquire() as primary_conn:
+                    assert await primary_conn.fetchval("SHOW transaction_read_only") == "off"
+                    assert await primary_conn.fetchval("SHOW statement_timeout") == "0"
     finally:
         await primary.session.close()
-        if configured_dsn:
-            await bank_pool.execute(f"DROP ROLE {role}")
-        await bank_pool.execute(f'DROP SCHEMA "{admin_schema}" CASCADE')
         await bank_pool.execute(f'DROP SCHEMA IF EXISTS "oge_test_bot_{bot_id}" CASCADE')

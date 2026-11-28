@@ -1,18 +1,15 @@
 import json
-import os
 from datetime import UTC, date, datetime
 from decimal import Decimal
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
-from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
 
+import asyncpg
 import pytest
-from pydantic import SecretStr
 
 from app.admin.queries import COST, DAYS, HOME, MODES, RETENTION, TASK, TYPE_ORDERS, TYPES, WRITTEN
-from app.admin.repository import AdminRepository
+from app.admin.repository import AdminRepository, AdminUnavailable
 from app.admin.service import AdminService, ReportWindow
 from app.bot import mixed_training
 from app.persistence.mixed_training import MixedTrainingRepository
@@ -22,21 +19,8 @@ from app.persistence.repository import PostgresRepository
 
 @pytest.fixture
 async def analytics(bank_pool):
-    schema = await bank_pool.fetchval("SELECT current_schema()")
-    role = f"admin_test_{uuid4().hex}"
-    provision = Path("scripts/configure_admin_analytics_reader.sql").read_text(encoding="utf-8")
-    async with bank_pool.acquire() as conn:
-        await conn.execute(provision)
-        await conn.execute(
-            f"CREATE ROLE {role} LOGIN PASSWORD 'synthetic-admin-password';"
-            f"GRANT oge_admin_reader TO {role}"
-        )
-    url = urlsplit(os.environ["DATABASE_URL"])
-    dsn = urlunsplit(url._replace(
-        netloc=f"{role}:synthetic-admin-password@{url.netloc.rsplit('@', 1)[-1]}"
-    ))
     service = AdminService(
-        AdminRepository(SecretStr(dsn), f"{schema}_admin"),
+        AdminRepository(bank_pool),
         excluded=frozenset({1, 2}), primary_id=345, environment="test", budget=Decimal(5),
         now=lambda: datetime(2026, 11, 28, 7, 15, tzinfo=UTC),
     )
@@ -44,8 +28,35 @@ async def analytics(bank_pool):
         yield service
     finally:
         await service.close()
-        await bank_pool.execute(f"DROP ROLE {role}")
-        await bank_pool.execute(f'DROP SCHEMA "{schema}_admin" CASCADE')
+        # Closing an analytics service only clears its cache; the shared pool belongs
+        # to the primary application and must remain available.
+        assert await bank_pool.fetchval("SELECT 1") == 1
+
+
+async def test_admin_repository_rejects_companion_test_namespace():
+    class FakeConnection:
+        async def fetchval(self, query):
+            assert query == "SELECT current_schema()"
+            return "oge_test_bot_123456"
+
+        def transaction(self, **kwargs):
+            assert kwargs == {"readonly": True, "isolation": "repeatable_read"}
+            return self
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+    class FakePool:
+        def acquire(self, **kwargs):
+            assert kwargs == {"timeout": 4}
+            return FakeConnection()
+
+    with pytest.raises(AdminUnavailable):
+        async with AdminRepository(FakePool()).read():
+            pytest.fail("Companion test namespace must not be queried")
 
 
 async def _issue(pool, user, timestamp, family="OGE06-TEST"):
@@ -187,7 +198,15 @@ async def test_admin_reports_on_hand_calculated_data(bank_pool, analytics) -> No
     assert analytics.repository is not None
     async with analytics.repository.read() as conn:
         assert await conn.fetchval("SHOW transaction_read_only") == "on"
-        assert await conn.fetchval("SELECT current_user LIKE 'admin_test_%'") is True
+        assert await conn.fetchval("SELECT current_user") == await bank_pool.fetchval(
+            "SELECT current_user"
+        )
+        assert await conn.fetchval("SELECT current_schemas(false)") == [
+            "pg_catalog", f"{await bank_pool.fetchval('SELECT current_schema()')}_admin"
+        ]
+        source_schema = await bank_pool.fetchval("SELECT current_schema()")
+        with pytest.raises(asyncpg.ReadOnlySQLTransactionError):
+            await conn.execute(f'UPDATE "{source_schema}".users SET telegram_user_id=0')
     await bank_pool.execute("UPDATE part2_grades SET status='uncertain' WHERE issue_id=$1", pending)
     assert (await analytics.load("written", "7")).data["pending"] == 1
     refreshed = (await analytics.load("written", "7", refresh=True)).data

@@ -14,6 +14,10 @@ BEGIN
         ADD COLUMN IF NOT EXISTS training_mode text CHECK (training_mode = ''full_part'')',
         source_schema);
 
+    IF octet_length(analytics_schema) > 63 THEN
+        RAISE EXCEPTION 'admin analytics schema name would be truncated';
+    END IF;
+
     IF source_schema ~ '^oge_test_bot_[0-9]+$' THEN
         RAISE NOTICE 'skipping admin analytics projections for isolated bot schema %', source_schema;
     ELSE
@@ -275,6 +279,7 @@ BEGIN
     EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA %I FROM PUBLIC', analytics_schema);
     FOREACH source_schema IN ARRAY ARRAY['anon','authenticated'] LOOP
         IF EXISTS (SELECT FROM pg_roles WHERE rolname=source_schema) THEN
+            EXECUTE format('REVOKE ALL ON SCHEMA %I FROM %I', analytics_schema, source_schema);
             EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA %I FROM %I', analytics_schema, source_schema);
         END IF;
     END LOOP;

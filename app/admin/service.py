@@ -3,7 +3,6 @@
 import asyncio
 import hashlib
 import logging
-import re
 from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -64,14 +63,12 @@ class AdminService:
         primary_id: int,
         environment: str,
         budget: Decimal,
-        misconfigured: bool = False,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self.repository = repository
         self.primary_id = primary_id
         self.environment = environment
         self.budget = budget
-        self._misconfigured = misconfigured
         self._now = now
         self._excluded_keys = tuple(
             hashlib.md5(str(identity).encode(), usedforsecurity=False).hexdigest()
@@ -97,10 +94,8 @@ class AdminService:
             raise ValueError("Invalid admin filters")
         now = self._now().astimezone(MOSCOW)
         window = ReportWindow.at(period, now)
-        if self._misconfigured or self.repository is None:
-            return AdminReport(
-                window, now, {}, "unavailable" if self._misconfigured else "unconfigured"
-            )
+        if self.repository is None:
+            return AdminReport(window, now, {}, "unconfigured")
         cache_key = (
             self.environment, self.primary_id, self._excluded_keys, MOSCOW.key,
             window.period, window.start, window.end.date(), view, number, key, page, sort,
@@ -147,26 +142,18 @@ class AdminService:
 
     async def close(self) -> None:
         self._cache.clear()
-        if self.repository is not None:
-            await self.repository.close()
 
 
-def make_service(settings: Settings, owner_ids: frozenset[int], primary_id: int) -> AdminService:
-    raw_exclusions = settings.oge_admin_excluded_user_ids.strip()
-    entries = [item.strip() for item in raw_exclusions.split(",")] if raw_exclusions else []
-    invalid = len(entries) > 100 or any(not re.fullmatch(r"[1-9][0-9]{0,14}", i) for i in entries)
-    excluded = owner_ids if invalid else owner_ids.union(int(i) for i in entries)
-    dsn = settings.oge_admin_database_url
-    repository = (
-        AdminRepository(dsn, settings.oge_admin_schema)
-        if dsn is not None and dsn.get_secret_value().strip()
-        else None
-    )
+def make_service(
+    settings: Settings,
+    owner_ids: frozenset[int],
+    primary_id: int,
+    repository: AdminRepository | None = None,
+) -> AdminService:
     return AdminService(
         repository,
-        excluded=excluded,
+        excluded=owner_ids,
         primary_id=primary_id,
         environment=settings.app_env,
         budget=settings.oge_grading_monthly_budget_usd,
-        misconfigured=invalid,
     )

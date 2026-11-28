@@ -100,7 +100,6 @@ class CompanionMiddleware(BaseMiddleware):
                 "oge_visual_companion_only": False,
                 "oge_grading_enabled": False,
                 "openai_api_key": None,
-                "oge_admin_database_url": None,
             }
         )
         self.owner_ids = owner_ids
