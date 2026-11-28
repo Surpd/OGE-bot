@@ -245,6 +245,8 @@ async def test_real_pg_isolation_two_sessions_cross_routes_and_restart(bank_pool
                 home = next(
                     m for m in reversed(list(transport.messages.values())) if m.reply_markup
                 )
+                assert "bop Admin" in home.text
+                assert "не настроен" in home.text
                 button = home.reply_markup.inline_keyboard[0][0]
                 callback = {
                     "update_id": 2,
@@ -266,6 +268,11 @@ async def test_real_pg_isolation_two_sessions_cross_routes_and_restart(bank_pool
                 before = len(transport.calls)
                 await c.post("/telegram/test-webhook", json=callback, headers=headers)
                 assert len(transport.calls) == before
+                await test_repo.register_user(42)
+                await test_repo.reset_owner(42)
+                assert not await test_repo._pool.fetchval(
+                    "SELECT count(*) FROM users WHERE telegram_user_id=42"
+                )
                 assert await dump() == baseline
                 assert await test_repo._pool.fetchval("SELECT count(*) FROM qa_sessions") == 1
                 # Same update ID in the primary route must still be handled independently.

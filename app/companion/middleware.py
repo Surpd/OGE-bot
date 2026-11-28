@@ -3,6 +3,7 @@
 import asyncio
 import copy
 import json
+import secrets
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import Any
@@ -84,7 +85,14 @@ async def state_for(repository: Repository, owner: int) -> AsyncIterator[dict[st
 
 
 class CompanionMiddleware(BaseMiddleware):
-    def __init__(self, settings: Settings, owner_ids: frozenset[int], sha: str) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        owner_ids: frozenset[int],
+        sha: str,
+        admin_service: Any | None = None,
+        companion: Any | None = None,
+    ) -> None:
         self.settings = settings.model_copy(
             update={
                 "oge_part2_enabled": True,
@@ -92,10 +100,13 @@ class CompanionMiddleware(BaseMiddleware):
                 "oge_visual_companion_only": False,
                 "oge_grading_enabled": False,
                 "openai_api_key": None,
+                "oge_admin_database_url": None,
             }
         )
         self.owner_ids = owner_ids
         self.sha = sha
+        self.admin_service = admin_service
+        self.companion = companion
 
     async def __call__(
         self,
@@ -150,12 +161,157 @@ class CompanionMiddleware(BaseMiddleware):
             message = incoming
         after = None
         handled = False
+        incoming_text = incoming.text or "" if incoming else ""
+        words = incoming_text.split(maxsplit=1)
+        command = words[0].split("@")[0] if words else ""
+        admin_trigger = bool(
+            self.admin_service is not None
+            and (
+                (callback and (callback.data or "").startswith("adm:"))
+                or (
+                    callback
+                    and (callback.data or "").startswith("qa:")
+                    and (callback.data or "").rsplit(":", 1)[-1] == "admin"
+                )
+                or (command == "/start" and not (len(words) == 2 and words[1].strip() == "qa"))
+            )
+        )
+        if admin_trigger:
+            from app.admin.telegram import handle_admin_update
+
+            claim_token: str | None = None
+            qa_admin_home = bool(
+                callback
+                and (callback.data or "").startswith("qa:")
+                and (callback.data or "").rsplit(":", 1)[-1] == "admin"
+            )
+            async with state_for(repository, owner) as saved_state:
+                saved_state["sha"] = self.sha
+                saved_state["admin_enabled"] = True
+                admin_state = copy.deepcopy(saved_state)
+                if callback and (callback.data or "").startswith("adm:"):
+                    parts = (callback.data or "").split(":", 2)
+                    valid = bool(
+                        len(parts) == 3
+                        and parts[1] == saved_state.get("admin_revision")
+                        and message.message_id == saved_state.get("admin_menu")
+                        and parts[2] in saved_state.get("admin_actions", [])
+                    )
+                    if valid:
+                        claim_token = secrets.token_urlsafe(12)
+                        saved_state["admin_revision"] = None
+                        saved_state["admin_claim"] = claim_token
+                        admin_state["admin_claim"] = claim_token
+                elif qa_admin_home and callback:
+                    parts = (callback.data or "").split(":", 2)
+                    valid = bool(
+                        len(parts) == 3
+                        and parts[1] == saved_state.get("revision")
+                        and message.message_id == saved_state.get("menu")
+                        and parts[2] in saved_state.get("actions", [])
+                        and saved_state.get("active")
+                    )
+                    if valid:
+                        claim_token = secrets.token_urlsafe(12)
+                        saved_state["revision"] = None
+                        saved_state["admin_claim"] = claim_token
+                        admin_state["admin_claim"] = claim_token
+                else:
+                    claim_token = secrets.token_urlsafe(12)
+                    saved_state["admin_revision"] = None
+                    saved_state["revision"] = None
+                    saved_state["actions"] = []
+                    saved_state["admin_claim"] = claim_token
+                    admin_state["admin_claim"] = claim_token
+            admin_result: bool | str = False
+            if qa_admin_home and callback:
+                parts = (callback.data or "").split(":", 2)
+                if (
+                    len(parts) != 3
+                    or parts[1] != admin_state.get("revision")
+                    or message.message_id != admin_state.get("menu")
+                    or parts[2] not in admin_state.get("actions", [])
+                    or not admin_state.get("active")
+                ):
+                    await answer_callback(
+                        callback, "Эта кнопка устарела. Откройте «Проверки» в меню бота."
+                    )
+                    return None
+                await callback.answer()
+                admin_state["revision"] = None
+                admin_state["active"] = False
+                admin_state["admin_history"] = []
+                from app.admin.telegram import present_admin
+
+                await present_admin(
+                    message, admin_state, self.admin_service, self.companion or self
+                )
+                admin_result = True
+            else:
+                admin_result = await handle_admin_update(
+                    message,
+                    admin_state,
+                    self.admin_service,
+                    self.companion or self,
+                    callback=callback,
+                )
+            admin_action = admin_result if isinstance(admin_result, str) else None
+            if admin_action == "tools":
+                desk = Desk(admin_state, repository, owner)
+                await desk.prepare()
+                await desk.home(message)
+                admin_result = True
+            elif admin_action == "qa_family":
+                args = admin_state.get("admin_args", {})
+                number = int(args.get("number", 0))
+                family = str(args.get("key", ""))
+                if 1 <= number <= 19 and family:
+                    admin_state.update(
+                        number=number,
+                        selected=family,
+                        choices=[family],
+                        active=True,
+                    )
+                    desk = Desk(admin_state, repository, owner)
+                    await desk.prepare()
+                    await desk.say(
+                        message,
+                        f"Точная проверка типа {family} · №{number}\n"
+                        "Выберите исходный seed или укажите проверенную версию генератора.",
+                        [
+                            [("Открыть вариант seed 0", "generate")],
+                            [("Указать seed + версию", "seed")],
+                            [("К номерам", "numbers")],
+                            [("↩ Админ-панель", "admin")],
+                        ],
+                    )
+                else:
+                    from app.admin.telegram import present_admin
+
+                    await present_admin(
+                        message,
+                        admin_state,
+                        self.admin_service,
+                        self.companion or self,
+                    )
+                admin_result = True
+            if admin_result is True:
+                if claim_token is not None:
+                    async with state_for(repository, owner) as saved_state:
+                        if saved_state.get("admin_claim") == claim_token:
+                            saved_state.clear()
+                            saved_state.update(admin_state)
+                            saved_state.pop("admin_claim", None)
+                return None
         async with state_for(repository, owner) as state:
             state["sha"] = self.sha
+            state["admin_enabled"] = self.admin_service is not None
             desk = Desk(state, repository, owner)
             await desk.prepare()
             words = (incoming.text or "").split(maxsplit=1) if incoming else []
             command = words[0].split("@")[0] if words else ""
+            if command == "/start" and len(words) == 2 and words[1].strip() == "qa":
+                command = "/qa"
             if command in {"/api_test", "/api_status"} or (
                 callback and (callback.data or "").startswith("p2:apitest:")
             ):
@@ -168,6 +324,9 @@ class CompanionMiddleware(BaseMiddleware):
                 or (command == "/start" and (state.get("active") or not state.get("visited")))
                 or (incoming and incoming.text == "🔬 Проверки")
             ):
+                state.pop("admin_claim", None)
+                state["admin_revision"] = None
+                state["admin_actions"] = []
                 state["visited"] = True
                 await message.answer(f"Тестовый бот · кандидат {self.sha}")
                 await desk.home(message)
@@ -190,6 +349,7 @@ class CompanionMiddleware(BaseMiddleware):
                         callback, "Эта кнопка устарела. Откройте «Проверки» в меню бота."
                     )
                     return None
+                state.pop("admin_claim", None)
                 state["revision"] = None  # Claim while holding the database lock.
                 await answer_callback(callback)
                 if parts[2] == "exit":
@@ -224,6 +384,7 @@ class CompanionMiddleware(BaseMiddleware):
                     # Redelivery does not run input twice, including seed/ID requests.
                     if incoming.message_id <= state.get("last_input", 0):
                         return None
+                    state.pop("admin_claim", None)
                     state["last_input"] = incoming.message_id
                     try:
                         await desk.input(incoming)

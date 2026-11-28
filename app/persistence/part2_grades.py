@@ -10,28 +10,26 @@ import asyncpg
 
 from app.config import Settings
 from app.part2_grading import PROMPT_VERSION, Grade, ceiling
+from app.persistence.part2_budget_sql import BUDGET_ROWS, BUDGET_TOTALS, UTC_DAY, UTC_MONTH
 
 
 async def budget_usage(conn: Any, owner: int) -> asyncpg.Record:
     return await conn.fetchrow(
-        """WITH charges AS (
+        f"""WITH charges AS (
           SELECT i.owner,g.created_at,g.dispatched_at,g.status,g.cost_usd,g.reserved_usd
           FROM part2_grades g JOIN part2_issues i ON i.id=g.issue_id
           UNION ALL
           SELECT owner,created_at,dispatched_at,status,cost_usd,reserved_usd FROM part2_api_tests
         )
         SELECT count(*) FILTER(WHERE owner=$1 AND
-            coalesce(dispatched_at,created_at)>=date_trunc('day',now(),'UTC')) daily,
+            coalesce(dispatched_at,created_at)>={UTC_DAY}) daily,
           count(*) FILTER(WHERE owner=$1 AND
-            coalesce(dispatched_at,created_at)>=date_trunc('month',now(),'UTC')) monthly,
+            coalesce(dispatched_at,created_at)>={UTC_MONTH}) monthly,
           coalesce(bool_or(status='pending') FILTER(WHERE owner=$1),false) pending,
           coalesce(bool_or(coalesce(dispatched_at,created_at)>now()-interval '20 seconds')
             FILTER(WHERE owner=$1),false) cooldown,
-          coalesce(sum(cost_usd) FILTER(WHERE created_at>=date_trunc('month',now(),'UTC')
-            OR dispatched_at>=date_trunc('month',now(),'UTC')),0) spent,
-          coalesce(sum(reserved_usd) FILTER(WHERE cost_usd IS NULL),0) held
-          FROM charges WHERE cost_usd IS NULL OR created_at>=date_trunc('month',now(),'UTC')
-            OR dispatched_at>=date_trunc('month',now(),'UTC')""",
+          {BUDGET_TOTALS}
+          FROM charges WHERE {BUDGET_ROWS}""",
         owner,
     )
 

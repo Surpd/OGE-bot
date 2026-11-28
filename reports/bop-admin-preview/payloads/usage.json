@@ -1,0 +1,114 @@
+{
+  "case": "usage",
+  "screen": "usage",
+  "fixture_kind": "synthetic",
+  "report_data": {
+    "registered": 126,
+    "active": 34,
+    "first": 11,
+    "repeat_days": 18,
+    "answered": 428,
+    "attempts": 506,
+    "graded": 17,
+    "errors": 2,
+    "known_cost": "0.0184",
+    "unknown_cost": 2,
+    "modes": [
+      {
+        "mode": "mixed",
+        "users": 22,
+        "answered": 240,
+        "submitted": 9
+      },
+      {
+        "mode": "adaptive",
+        "users": 12,
+        "answered": 188,
+        "submitted": 8
+      }
+    ],
+    "retention": {
+      "returned": 18,
+      "eligible": 29,
+      "first_day": "2026-11-08",
+      "last_day": "2026-11-14"
+    },
+    "days": [
+      {
+        "day": "2026-11-21",
+        "active": 8
+      },
+      {
+        "day": "2026-11-22",
+        "active": 12
+      },
+      {
+        "day": "2026-11-23",
+        "active": 10
+      },
+      {
+        "day": "2026-11-24",
+        "active": 18
+      },
+      {
+        "day": "2026-11-25",
+        "active": 16
+      },
+      {
+        "day": "2026-11-26",
+        "active": 23
+      },
+      {
+        "day": "2026-11-27",
+        "active": 34
+      }
+    ]
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Использование\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\nВсего зарегистрировано: 126\nАктивны за период: 34\nНачали впервые: 11\nОтветы: 428 · попытки: 506\nПроверено работ: 17 · ошибки: 2\nЗанимались в разные дни: 18\nИИ: $0.0184 учтено · без стоимости записей: 2\nРежимы\nсмешанная: 22 уч. · 240 ответов · работ: 9\nadaptive: 12 уч. · 188 ответов · работ: 8\nВозврат на второй неделе: 18 из 29 (62%)\nКогорты: 08.11 — 14.11\nАктивные дни (дата: ученики):\n21.11: 8 · 22.11: 12 · 23.11: 10 · 24.11: 18 · 25.11: 16 · 26.11: 23 · 27.11: 34",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Ученики",
+          "callback_data": "adm:preview:learners:0"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "case": "task",
+  "screen": "task",
+  "fixture_kind": "synthetic",
+  "report_data": {
+    "users": 24,
+    "issued": 92,
+    "answered": 71,
+    "solved": 49,
+    "first_correct": 31,
+    "unassisted": 39,
+    "first_unassisted": 24,
+    "novel_first_unassisted": 17,
+    "novelty_unknown": 2,
+    "assistance_unknown": 3,
+    "assistance_known": 68,
+    "hinted": 11,
+    "hint_known": 18,
+    "skipped": 6,
+    "solution_views": 14,
+    "repeat_errors": 8,
+    "replay_answered": 18,
+    "replay_solved": 13
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Статистика номера · №7\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\nOGE07-DIRECT\nУченики: 24 · выдано: 92\nОтветы: 71 · решено: 49\nВерно с 1-й попытки: 31 · без помощи: 39\nПервая попытка без помощи: 24 · новые варианты: 17\nПодсказки: 11 из 18 известных · помощь неизвестна: 3\nПропуски: 6 · разборы: 14\nПовторные ошибки: 8\nПовтор ошибки: 13 решено / 18 ответов\nМалая выборка описывает наблюдения, а не уровень освоения.\nНовизна неизвестна для 2 вариантов.",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Точная проверка этого типа",
+          "callback_data": "adm:preview:qa_family"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

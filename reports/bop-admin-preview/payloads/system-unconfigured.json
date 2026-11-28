@@ -1,0 +1,55 @@
+{
+  "case": "system-unconfigured",
+  "screen": "system",
+  "fixture_kind": "unavailable",
+  "report_data": {
+    "unavailable": "unconfigured"
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Состояние системы\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\nАналитическая БД: не настроена\nОшибки письменных запросов: —\nРелиз: synthetic-preview · тестовый бот: недоступен\nМониторинг ограничен сохранёнными статусами и ошибками за выбранное окно.\n\nАналитика недоступна; метрики не заменены нулями.",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "ИИ и расходы",
+          "callback_data": "adm:preview:cost"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

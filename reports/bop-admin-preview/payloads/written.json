@@ -1,0 +1,86 @@
+{
+  "case": "written",
+  "screen": "written",
+  "fixture_kind": "synthetic",
+  "report_data": {
+    "issued": 22,
+    "issues_submitted": 16,
+    "submitted": 18,
+    "revisions": 4,
+    "graded": 11,
+    "unreadable": 2,
+    "uncertain": 1,
+    "error": 1,
+    "pending": 3,
+    "rows": [
+      {
+        "number": 13,
+        "title": "Задание №13",
+        "zero": 5,
+        "one": 4,
+        "two": 2
+      },
+      {
+        "number": 14,
+        "title": "Задание №14",
+        "zero": 2,
+        "one": 3,
+        "two": 2
+      }
+    ],
+    "more": false
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Письменные работы\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\nНачаты в периоде. Статус на момент обновления.\nЗаданий с отправкой: 16 · всего отправок: 18 · версий: 4\nСтатусы: выдано 22 · проверено 11 · не читается 2 · неясно 1 · ошибка 1 · ожидает 3\n13: 0 — 5 · 1 — 4 · 2 — 2\n14: 0 — 2 · 1 — 3 · 2 — 2",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "№13",
+          "callback_data": "adm:preview:written:13"
+        }
+      ],
+      [
+        {
+          "text": "№14",
+          "callback_data": "adm:preview:written:14"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

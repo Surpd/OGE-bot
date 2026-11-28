@@ -1,0 +1,35 @@
+{
+  "case": "tools",
+  "screen": "tools",
+  "fixture_kind": "synthetic",
+  "report_data": {},
+  "report_window": null,
+  "updated_at": null,
+  "text": "bop Admin · Инструменты\nТочные проверки живут отдельно в companion и тестовой истории.\nИстория учеников не изменяется.\nОткройте точные проверки командой /qa в тестовом боте.",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Открыть точные проверки",
+          "callback_data": "adm:preview:tools_open"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Обзор",
+          "callback_data": "adm:preview:home"
+        }
+      ],
+      [
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ]
+    ]
+  }
+}

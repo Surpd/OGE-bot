@@ -1,0 +1,73 @@
+{
+  "case": "home-timeout",
+  "screen": "home",
+  "fixture_kind": "unavailable",
+  "report_data": {
+    "unavailable": "timeout"
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Обзор\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\n\nТребует внимания\nИсточник аналитики не ответил вовремя.\nМожно повторить обновление позже.",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Использование",
+          "callback_data": "adm:preview:usage"
+        },
+        {
+          "text": "Задания",
+          "callback_data": "adm:preview:tasks"
+        }
+      ],
+      [
+        {
+          "text": "Письменные работы",
+          "callback_data": "adm:preview:written"
+        }
+      ],
+      [
+        {
+          "text": "Состояние системы",
+          "callback_data": "adm:preview:system"
+        }
+      ],
+      [
+        {
+          "text": "Инструменты",
+          "callback_data": "adm:preview:tools"
+        },
+        {
+          "text": "ИИ и расходы",
+          "callback_data": "adm:preview:cost"
+        }
+      ],
+      [
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

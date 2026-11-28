@@ -1,0 +1,82 @@
+{
+  "case": "written-13",
+  "screen": "written",
+  "fixture_kind": "synthetic",
+  "report_data": {
+    "issued": 8,
+    "issues_submitted": 6,
+    "submitted": 7,
+    "revisions": 1,
+    "graded": 5,
+    "unreadable": 1,
+    "uncertain": 0,
+    "error": 0,
+    "pending": 1,
+    "rows": [
+      {
+        "number": 13,
+        "subtype_id": "OGE13-LINEAR-EQUATION",
+        "title": "Линейное уравнение",
+        "zero": 2,
+        "one": 1,
+        "two": 1
+      },
+      {
+        "number": 13,
+        "subtype_id": "OGE13-QUADRATIC-EQUATION",
+        "title": "Квадратное уравнение",
+        "zero": 1,
+        "one": 0,
+        "two": 1
+      }
+    ],
+    "more": true
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Письменные работы · №13\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\nНачаты в периоде. Статус на момент обновления.\nЗаданий с отправкой: 6 · всего отправок: 7 · версий: 1\nСтатусы: выдано 8 · проверено 5 · не читается 1 · неясно 0 · ошибка 0 · ожидает 1\nOGE13-LINEAR-EQUATION: 0 — 2 · 1 — 1 · 2 — 1\nOGE13-QUADRATIC-EQUATION: 0 — 1 · 1 — 0 · 2 — 1",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "→",
+          "callback_data": "adm:preview:written:13:1"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

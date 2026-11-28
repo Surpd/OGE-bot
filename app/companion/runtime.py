@@ -41,7 +41,9 @@ class Companion:
         self.settings = settings
         self.primary_id = primary_id
         self.bot: Bot | None = None
+        self.identity: Any | None = None
         self.repository: TestRepository | None = None
+        self.admin_service: Any | None = None
         self.dispatcher: Dispatcher | None = None
         self.secret = secrets.token_urlsafe(32)
         self.owner_ids: frozenset[int] = frozenset()
@@ -78,9 +80,13 @@ class Companion:
                     raise ValueError("Primary bot token cannot be used for companion")
                 async with asyncio.timeout(10):
                     identity = await self.bot.get_me()
+                self.identity = identity
                 if identity.id != self.bot.id or identity.id == self.primary_id:
                     raise ValueError("Unexpected test bot identity")
                 self.repository = await open_storage(self.settings.database_url, identity.id)
+                from app.admin.service import make_service
+
+                self.admin_service = make_service(self.settings, self.owner_ids, self.primary_id)
                 self.secret = await self.repository._pool.fetchval(
                     "SELECT webhook_secret FROM companion_identity"
                 )
@@ -92,7 +98,13 @@ class Companion:
                     raise ValueError("Invalid companion webhook secret")
                 self.dispatcher = Dispatcher()
                 self.dispatcher.update.outer_middleware(
-                    CompanionMiddleware(self.settings, self.owner_ids, running_sha())
+                    CompanionMiddleware(
+                        self.settings,
+                        self.owner_ids,
+                        running_sha(),
+                        admin_service=self.admin_service,
+                        companion=self,
+                    )
                 )
                 self.dispatcher.include_router(build_router())
                 async with asyncio.timeout(10):
@@ -154,12 +166,26 @@ class Companion:
 
     async def close_resources(self) -> None:
         if self.bot:
-            await self.bot.session.close()
+            try:
+                await self.bot.session.close()
+            except Exception as exc:
+                logger.warning("companion_bot_cleanup_failed type=%s", type(exc).__name__)
         if self.repository:
-            async with asyncio.timeout(5):
-                await self.repository._pool.close()
+            try:
+                async with asyncio.timeout(5):
+                    await self.repository._pool.close()
+            except Exception as exc:
+                logger.warning("companion_storage_cleanup_failed type=%s", type(exc).__name__)
+        if self.admin_service:
+            try:
+                await self.admin_service.close()
+            except Exception as exc:
+                logger.warning("companion_admin_cleanup_failed type=%s", type(exc).__name__)
+            finally:
+                self.admin_service = None
         self.bot = None
         self.repository = None
+        self.identity = None
         # Intentionally no deleteWebhook, for either identity.
 
     async def close(self) -> None:

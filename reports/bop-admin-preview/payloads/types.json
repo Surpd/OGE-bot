@@ -1,0 +1,97 @@
+{
+  "case": "types",
+  "screen": "types",
+  "fixture_kind": "synthetic",
+  "report_data": {
+    "rows": [
+      {
+        "family_id": "OGE07-DIRECT",
+        "users": 18,
+        "answered": 46,
+        "solved": 32,
+        "hinted": 7,
+        "assistance_known": 44,
+        "hint_known": 45
+      },
+      {
+        "family_id": "OGE07-REVERSE",
+        "users": 11,
+        "answered": 27,
+        "solved": 17,
+        "hinted": 5,
+        "assistance_known": 26,
+        "hint_known": 26
+      }
+    ],
+    "more": false
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "bop Admin · Типы заданий · №7\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено: 12:34:00 МСК\nOGE07-DIRECT · решено 32 / n=46 · подсказки 7/45 известных\nOGE07-REVERSE · решено 17 / n=27 · подсказки 5/26 известных\nРейтинг опирается на выборку; для малых n ранжирование неустойчиво.\nСведения о помощи в старых записях могут быть неизвестны.",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "OGE07-DIRECT · n=46",
+          "callback_data": "adm:preview:detail:7:0"
+        }
+      ],
+      [
+        {
+          "text": "OGE07-REVERSE · n=27",
+          "callback_data": "adm:preview:detail:7:1"
+        }
+      ],
+      [
+        {
+          "text": "По наблюдениям",
+          "callback_data": "adm:preview:types:7:0:sample"
+        },
+        {
+          "text": "По результату",
+          "callback_data": "adm:preview:types:7:0:success"
+        }
+      ],
+      [
+        {
+          "text": "По помощи",
+          "callback_data": "adm:preview:types:7:0:help"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

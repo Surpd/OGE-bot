@@ -16,3 +16,5 @@ numbers 6-19 versioned generators,tests/test_companion_qa.py::test_every_number_
 OGE16-D01 seed19,tests/test_companion_qa.py::test_frozen_regressions_and_seed_contract,KNOWN RED not fixed
 production material routes from106,tests/test_scenario_required_materials.py,first-five full single Mix history replay
 last twelve snapshots retain recency after JSONB,tests/test_companion_qa.py::test_last_twelve_snapshots_keep_recency_through_jsonb,explicit ordered array
+admin period activity retention writing budget,tests/test_admin_analytics_postgres.py::test_admin_reports_on_hand_calculated_data,synthetic PostgreSQL 17
+admin source keys and real reader permissions,tests/test_admin_sources_postgres.py,synthetic PostgreSQL 17
