@@ -1,0 +1,13 @@
+{
+  "frames": 72,
+  "fps": 24,
+  "seconds": 3.0,
+  "unique_raster_frames": 72,
+  "max_head_scale_error": 2.220446049250313e-16,
+  "max_loop_endpoint_matrix_error": 0.0,
+  "minimum_deformed_to_bind_triangle_area_ratio": 0.7511354858539281,
+  "bones": 16,
+  "draw_order_slots": 16,
+  "weighted_meshes": 5,
+  "right_hand_cels": 14
+}
