@@ -1,0 +1,51 @@
+{
+  "case": "learner-empty",
+  "screen": "learner",
+  "fixture_kind": "Пусто",
+  "report_data": {
+    "found": true
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Карточка ученика</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\nЗа выбранный период занятий не было.\n\nДни занятий  <b>0</b>\nРешено  <b>0</b>\nЗадания с ответом  <b>0</b>\n\n<b>Письменные работы</b>\nОтправлено  <b>0</b>\nС оценкой  <b>0</b>\nВсего баллов  <b>—</b>\n\nID ученика  <code>17a8f719-f34a-4aa3-8e94-bd7f4d77eb01</code>\n\nНомера заданий  <b>—</b>",
+  "caption": "ID ученика  <code>17a8f719-f34a-4aa3-8e94-bd7f4d77eb01</code>\n\nНомера заданий  <b>—</b>\n\nОбновлено в 12:34:00 МСК",
+  "image": "images/learner-empty.png",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

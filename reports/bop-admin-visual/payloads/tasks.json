@@ -1,0 +1,222 @@
+{
+  "case": "tasks",
+  "screen": "tasks",
+  "fixture_kind": "Заполнено",
+  "report_data": {
+    "rows": [
+      {
+        "number": 1,
+        "users": 23,
+        "answered": 61,
+        "solved": 46
+      },
+      {
+        "number": 2,
+        "users": 22,
+        "answered": 60,
+        "solved": 45
+      },
+      {
+        "number": 3,
+        "users": 21,
+        "answered": 59,
+        "solved": 44
+      },
+      {
+        "number": 4,
+        "users": 20,
+        "answered": 58,
+        "solved": 43
+      },
+      {
+        "number": 5,
+        "users": 19,
+        "answered": 57,
+        "solved": 42
+      },
+      {
+        "number": 6,
+        "users": 18,
+        "answered": 56,
+        "solved": 41
+      },
+      {
+        "number": 7,
+        "users": 17,
+        "answered": 55,
+        "solved": 40
+      },
+      {
+        "number": 8,
+        "users": 16,
+        "answered": 54,
+        "solved": 39
+      },
+      {
+        "number": 9,
+        "users": 15,
+        "answered": 53,
+        "solved": 38
+      },
+      {
+        "number": 10,
+        "users": 14,
+        "answered": 52,
+        "solved": 37
+      },
+      {
+        "number": 11,
+        "users": 13,
+        "answered": 51,
+        "solved": 36
+      },
+      {
+        "number": 12,
+        "users": 12,
+        "answered": 50,
+        "solved": 35
+      },
+      {
+        "number": 13,
+        "users": 11,
+        "answered": 49,
+        "solved": 34
+      },
+      {
+        "number": 14,
+        "users": 10,
+        "answered": 48,
+        "solved": 33
+      },
+      {
+        "number": 15,
+        "users": 9,
+        "answered": 47,
+        "solved": 32
+      },
+      {
+        "number": 16,
+        "users": 8,
+        "answered": 46,
+        "solved": 31
+      },
+      {
+        "number": 17,
+        "users": 7,
+        "answered": 45,
+        "solved": 30
+      },
+      {
+        "number": 18,
+        "users": 6,
+        "answered": 44,
+        "solved": 29
+      },
+      {
+        "number": 19,
+        "users": 5,
+        "answered": 43,
+        "solved": 28
+      }
+    ]
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Задания по номерам</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\n<b>№1</b> · 46 из 61 решено · 23 уч.\n<b>№2</b> · 45 из 60 решено · 22 уч.\n<b>№3</b> · 44 из 59 решено · 21 уч.\n<b>№4</b> · 43 из 58 решено · 20 уч.\n<b>№5</b> · 42 из 57 решено · 19 уч.\n<b>№6</b> · 41 из 56 решено · 18 уч.\n<b>№7</b> · 40 из 55 решено · 17 уч.\n<b>№8</b> · 39 из 54 решено · 16 уч.\n<b>№9</b> · 38 из 53 решено · 15 уч.\n<b>№10</b> · 37 из 52 решено · 14 уч.\n\nВыберите номер, чтобы открыть результаты по типам.\n\nСтраница 1",
+  "caption": "Выберите номер, чтобы открыть результаты по типам.\n\nОбновлено в 12:34:00 МСК · Страница 1",
+  "image": "images/tasks.png",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "№1",
+          "callback_data": "adm:preview:types:1:0:sample"
+        },
+        {
+          "text": "№2",
+          "callback_data": "adm:preview:types:2:0:sample"
+        },
+        {
+          "text": "№3",
+          "callback_data": "adm:preview:types:3:0:sample"
+        },
+        {
+          "text": "№4",
+          "callback_data": "adm:preview:types:4:0:sample"
+        },
+        {
+          "text": "№5",
+          "callback_data": "adm:preview:types:5:0:sample"
+        }
+      ],
+      [
+        {
+          "text": "№6",
+          "callback_data": "adm:preview:types:6:0:sample"
+        },
+        {
+          "text": "№7",
+          "callback_data": "adm:preview:types:7:0:sample"
+        },
+        {
+          "text": "№8",
+          "callback_data": "adm:preview:types:8:0:sample"
+        },
+        {
+          "text": "№9",
+          "callback_data": "adm:preview:types:9:0:sample"
+        },
+        {
+          "text": "№10",
+          "callback_data": "adm:preview:types:10:0:sample"
+        }
+      ],
+      [
+        {
+          "text": "Следующая ›",
+          "callback_data": "adm:preview:tasks:1"
+        }
+      ],
+      [
+        {
+          "text": "Повторы ошибок",
+          "callback_data": "adm:preview:replays"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

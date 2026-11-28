@@ -247,8 +247,8 @@ async def test_real_pg_isolation_two_sessions_cross_routes_and_restart(bank_pool
                 home = next(
                     m for m in reversed(list(transport.messages.values())) if m.reply_markup
                 )
-                assert "bop Admin" in home.text
-                assert "Всего зарегистрировано:" in home.text
+                assert home.photo and home.caption
+                assert "Аккаунтов всего" in home.caption
                 button = home.reply_markup.inline_keyboard[0][0]
                 callback = {
                     "update_id": 2,
@@ -439,7 +439,8 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
                 transport=httpx.ASGITransport(app), base_url="http://test"
             ) as client:
                 await send_text(client, headers, 1, "/start")
-                assert "bop Admin" in list(transport.messages.values())[-1].text
+                admin_home = list(transport.messages.values())[-1]
+                assert admin_home.photo and admin_home.reply_markup
                 await click(client, headers, 2, "Инструменты")
                 await click(client, headers, 3, "Открыть точные проверки")
                 before_student = len(transport.calls)
@@ -465,9 +466,9 @@ async def test_runtime_admin_tools_round_trip_and_release_sha(
                 ]
                 assert system_messages, [entry.text for entry in transport.messages.values()]
                 system = system_messages[-1]
-                assert f"Релиз: {sha}" in system.text
-                assert "Аналитическая БД: подключена" in system.text
-                assert "Ошибки письменных запросов: 0" in system.text
+                assert f"Версия приложения  <code>{sha}</code>" in system.text
+                assert "База аналитики  <b>на связи</b>" in system.text
+                assert "Ошибки письменных проверок  <b>0</b>" in system.text
                 service = companion.admin_service
                 assert service.repository is not None
                 startup_report = await service.load("home", "28")

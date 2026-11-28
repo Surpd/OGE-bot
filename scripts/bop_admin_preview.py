@@ -1,32 +1,38 @@
-"""Build a static, synthetic gallery from bop Admin's production Telegram renderers."""
+"""Build a static, synthetic gallery from bop Admin's production Telegram renderer."""
 
 from __future__ import annotations
 
+import argparse
+import base64
 import json
+import subprocess
 import sys
+import tempfile
+import time
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any
+from urllib.request import urlopen
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+from PIL import Image
+from websockets.sync.client import connect
+
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "reports" / "bop-admin-preview"
+OUT = ROOT / "reports" / "bop-admin-visual"
 sys.path.insert(0, str(ROOT))
 
-from app.admin.screens import render_screen  # noqa: E402
+from app.admin.presentation import render_admin_view  # noqa: E402
+from app.admin.service import ReportWindow  # noqa: E402
 
 MOSCOW = ZoneInfo("Europe/Moscow")
 PREVIEW_NOW = datetime(2026, 11, 28, 12, 34, tzinfo=MOSCOW)
 DATABASE_TZ = ZoneInfo("UTC")
 
 
-REPORT_WINDOW = SimpleNamespace(
-    start=datetime(2026, 11, 21, tzinfo=MOSCOW),
-    end=datetime(2026, 11, 28, tzinfo=MOSCOW),
-)
+REPORT_WINDOW = ReportWindow.at("7", PREVIEW_NOW)
 COHORT_END = date(2026, 11, 15)
 LEARNER_IDS = [
     UUID("17a8f719-f34a-4aa3-8e94-bd7f4d77eb01"),
@@ -92,25 +98,30 @@ FIXTURES: dict[str, dict[str, Any]] = {
     },
     "learner": {
         "found": True,
-        "last_activity": PREVIEW_NOW - timedelta(minutes=17),
-        "days": 9,
-        "solved": 38,
-        "answered": 51,
+        "last_activity": PREVIEW_NOW - timedelta(days=1, minutes=17),
+        "days": 6,
+        "solved": 24,
+        "answered": 31,
         "numbers": [1, 2, 4, 7, 8, 12],
         "submitted": 3,
         "graded": 3,
-        "points": 14,
+        "points": 6,
     },
     "tasks": {
         "rows": [
-            {"number": number, "users": 63 - number, "answered": 62 - number, "solved": 47 - number}
+            {
+                "number": number,
+                "users": 24 - number,
+                "answered": 62 - number,
+                "solved": 47 - number,
+            }
             for number in range(1, 20)
         ]
     },
     "types": {
         "rows": [
             {
-                "family_id": "OGE07-DIRECT",
+                "family_id": "OGE07-C01",
                 "users": 18,
                 "answered": 46,
                 "solved": 32,
@@ -119,7 +130,7 @@ FIXTURES: dict[str, dict[str, Any]] = {
                 "hint_known": 45,
             },
             {
-                "family_id": "OGE07-REVERSE",
+                "family_id": "OGE07-C02",
                 "users": 11,
                 "answered": 27,
                 "solved": 17,
@@ -154,21 +165,21 @@ FIXTURES: dict[str, dict[str, Any]] = {
         "rows": [
             {
                 "number": 7,
-                "family_id": "OGE07-DIRECT",
+                "family_id": "OGE07-C01",
                 "answered": 4,
                 "solved": 3,
                 "repeat_errors": 1,
             },
             {
                 "number": 12,
-                "family_id": "OGE12-RATIO",
+                "family_id": "OGE08-R02",
                 "answered": 3,
                 "solved": 2,
                 "repeat_errors": 1,
             },
             {
                 "number": 4,
-                "family_id": "OGE04-TABLE",
+                "family_id": "OGE04-F001",
                 "answered": 5,
                 "solved": 4,
                 "repeat_errors": 1,
@@ -187,8 +198,8 @@ FIXTURES: dict[str, dict[str, Any]] = {
         "error": 1,
         "pending": 3,
         "rows": [
-            {"number": 13, "title": "Задание №13", "zero": 5, "one": 4, "two": 2},
-            {"number": 14, "title": "Задание №14", "zero": 2, "one": 3, "two": 2},
+            {"number": 20, "title": "Задание №20", "zero": 3, "one": 3, "two": 1},
+            {"number": 21, "title": "Задание №21", "zero": 1, "one": 2, "two": 1},
         ],
         "more": False,
     },
@@ -225,9 +236,71 @@ def build() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     payload_dir = OUT / "payloads"
     payload_dir.mkdir(exist_ok=True)
-    cases = [(screen, screen, fixture, "synthetic") for screen, fixture in FIXTURES.items()] + [
+    assets_dir = OUT / "images"
+    assets_dir.mkdir(exist_ok=True)
+    usage_month = ReportWindow.at("28", PREVIEW_NOW)
+    first, last = usage_month.mature_cohorts()
+    cases = [(screen, screen, fixture, "Заполнено") for screen, fixture in FIXTURES.items()] + [
         (
-            "written-13",
+            "usage-28",
+            "usage",
+            {
+                **FIXTURES["usage"],
+                "active": 61,
+                "first": 31,
+                "repeat_days": 43,
+                "answered": 1284,
+                "attempts": 1534,
+                "days": [
+                    {"day": usage_month.start.date() + timedelta(days=offset), "active": users}
+                    for offset, users in enumerate(
+                        [
+                            7,
+                            11,
+                            10,
+                            13,
+                            16,
+                            19,
+                            20,
+                            15,
+                            14,
+                            17,
+                            21,
+                            23,
+                            24,
+                            20,
+                            15,
+                            19,
+                            22,
+                            18,
+                            23,
+                            30,
+                            27,
+                            19,
+                            22,
+                            21,
+                            29,
+                            32,
+                            28,
+                            37,
+                        ]
+                    )
+                ],
+                "modes": [
+                    {**mode, "users": mode["users"] * 2, "answered": mode["answered"] * 3}
+                    for mode in FIXTURES["usage"]["modes"]
+                ],
+                "retention": {
+                    "returned": 32,
+                    "eligible": 48,
+                    "first_day": first.date(),
+                    "last_day": last.date() - timedelta(days=1),
+                },
+            },
+            "28 дней",
+        ),
+        (
+            "written-23",
             "written",
             {
                 "issued": 8,
@@ -241,17 +314,17 @@ def build() -> None:
                 "pending": 1,
                 "rows": [
                     {
-                        "number": 13,
-                        "subtype_id": "OGE13-LINEAR-EQUATION",
-                        "title": "Линейное уравнение",
-                        "zero": 2,
+                        "number": 23,
+                        "subtype_id": "OGE23-PRACTICAL-CALCULATION",
+                        "title": "Практический расчёт",
+                        "zero": 1,
                         "one": 1,
                         "two": 1,
                     },
                     {
-                        "number": 13,
-                        "subtype_id": "OGE13-QUADRATIC-EQUATION",
-                        "title": "Квадратное уравнение",
+                        "number": 23,
+                        "subtype_id": "OGE23-TEXT-MODELLING",
+                        "title": "Математическая модель условия",
                         "zero": 1,
                         "one": 0,
                         "two": 1,
@@ -259,47 +332,121 @@ def build() -> None:
                 ],
                 "more": True,
             },
-            "synthetic",
+            "Заполнено",
         ),
-        ("home-timeout", "home", {"unavailable": "timeout"}, "unavailable"),
-        ("learners-empty", "learners", {"rows": []}, "empty"),
-        ("system-unconfigured", "system", {"unavailable": "unconfigured"}, "unavailable"),
+        (
+            "written-25",
+            "written",
+            {
+                "issued": 9,
+                "issues_submitted": 6,
+                "submitted": 7,
+                "revisions": 1,
+                "graded": 6,
+                "pending": 1,
+                "rows": [
+                    {
+                        "number": 25,
+                        "subtype_id": "OGE25-PLANE-GEOMETRY",
+                        "title": "Планиметрическая задача",
+                        "zero": 1,
+                        "one": 2,
+                        "two": 3,
+                    }
+                ],
+            },
+            "Заполнено",
+        ),
+        (
+            "home-today",
+            "home",
+            {
+                "registered": 126,
+                "active": 6,
+                "first": 2,
+                "answered": 14,
+                "attempts": 17,
+                "known_cost": Decimal(0),
+            },
+            "Сегодня",
+        ),
+        ("home-empty", "home", {}, "Пусто"),
+        ("usage-empty", "usage", {"modes": [], "days": [], "retention": {}}, "Пусто"),
+        ("tasks-empty", "tasks", {"rows": []}, "Пусто"),
+        ("types-empty", "types", {"rows": []}, "Пусто"),
+        ("learner-empty", "learner", {"found": True}, "Пусто"),
+        ("learner-not-found", "learner", {"found": False}, "Ученик недоступен"),
+        ("written-empty", "written", {"rows": []}, "Пусто"),
+        (
+            "cost-empty",
+            "cost",
+            {
+                "known_cost": Decimal(0),
+                "spent": Decimal(0),
+                "held": Decimal(0),
+                "budget": FIXTURES["cost"]["budget"],
+                "available": FIXTURES["cost"]["budget"],
+                "month_start": FIXTURES["cost"]["month_start"],
+                "month_end": FIXTURES["cost"]["month_end"],
+            },
+            "Пусто",
+        ),
+        ("replays-empty", "replays", {"rows": []}, "Пусто"),
+        ("home-timeout", "home", {"unavailable": "timeout"}, "Источник недоступен"),
+        ("system-unconfigured", "system", {"unavailable": "unconfigured"}, "Источник недоступен"),
+        ("tools-current", "tools", {}, "Инструменты"),
     ]
     report_screens = set(FIXTURES) - {"tools"}
-    window_meta = {
-        "period": "7",
-        "timezone": "Europe/Moscow",
-        "start": REPORT_WINDOW.start.isoformat(),
-        "end": REPORT_WINDOW.end.isoformat(),
-    }
     payloads = []
     for case, screen, fixture, fixture_kind in cases:
         data = fixture.copy()
+        period = {"home-today": "today", "usage-28": "28"}.get(case, "7")
+        window = ReportWindow.at(period, PREVIEW_NOW)
         context: dict[str, Any] = {
             "revision": "preview",
-            "period": "7",
+            "period": period,
             "release": "synthetic-preview",
             "companion_status": "unavailable",
         }
         if screen in report_screens:
-            context.update(window=REPORT_WINDOW, updated_at=PREVIEW_NOW)
+            context.update(window=window, updated_at=PREVIEW_NOW)
         if screen == "learner":
             context["learner_id"] = str(LEARNER_IDS[0])
         if screen in {"types", "task"}:
             context["number"] = 7
         if screen == "task":
-            context["family_id"] = "OGE07-DIRECT"
-        if case == "written-13":
-            context["number"] = 13
-        text, markup = render_screen(screen, data, **context)
+            context["family_id"] = "OGE07-C01"
+        if case in {"written-23", "written-25"}:
+            context["number"] = int(case.split("-")[1])
+        if screen in {"learners", "tasks", "types", "written", "replays"}:
+            context["page"] = 0
+        if case in {"types", "types-empty"}:
+            context["sort"] = "help" if case == "types" else "sample"
+        if case == "learner-not-found":
+            context["learner_id"] = "preview-not-found"
+        view = render_admin_view(screen, data, **context)
+        text, markup = view.text, view.markup
+        image_path = None
+        if view.photo is not None:
+            image_path = f"images/{case}.png"
+            (OUT / image_path).write_bytes(view.photo)
         record = {
             "case": case,
             "screen": screen,
             "fixture_kind": fixture_kind,
             "report_data": data,
-            "report_window": window_meta if screen in report_screens else None,
+            "report_window": {
+                "period": period,
+                "timezone": "Europe/Moscow",
+                "start": window.start.isoformat(),
+                "end": window.end.isoformat(),
+            }
+            if screen in report_screens
+            else None,
             "updated_at": PREVIEW_NOW.isoformat() if screen in report_screens else None,
             "text": text,
+            "caption": view.caption,
+            "image": image_path,
             "reply_markup": markup.model_dump(mode="json", exclude_none=True),
         }
         payloads.append(record)
@@ -308,9 +455,142 @@ def build() -> None:
             encoding="utf-8",
         )
 
+    expected_payloads = {f"{record['case']}.json" for record in payloads}
+    for file in payload_dir.glob("*.json"):
+        if file.name not in expected_payloads:
+            file.unlink()
+    expected_images = {Path(record["image"]).name for record in payloads if record["image"]}
+    for file in assets_dir.glob("*.png"):
+        if file.name not in expected_images:
+            file.unlink()
+
     data = json.dumps(payloads, ensure_ascii=False, default=str).replace("</", "<\\/")
     page = PAGE.replace("__PAYLOADS__", data)
     (OUT / "index.html").write_text(page, encoding="utf-8")
+
+
+def capture_gallery(chrome: Path) -> None:
+    if not chrome.is_file():
+        raise FileNotFoundError("Pass the path to a Chromium executable with --chromium")
+    screenshots = OUT / "screenshots"
+    screenshots.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="bop-admin-gallery-") as profile:
+        chrome_process = subprocess.Popen(
+            [
+                str(chrome),
+                "--headless=new",
+                "--disable-gpu",
+                "--hide-scrollbars",
+                "--no-first-run",
+                "--remote-debugging-port=0",
+                f"--user-data-dir={profile}",
+                (OUT / "index.html").resolve().as_uri(),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        try:
+            port_file = Path(profile) / "DevToolsActivePort"
+            deadline = time.monotonic() + 15
+            while not port_file.exists() and time.monotonic() < deadline:
+                if chrome_process.poll() is not None:
+                    raise RuntimeError("Local Chromium exited before opening the gallery")
+                time.sleep(0.1)
+            if not port_file.exists():
+                raise TimeoutError("Local Chromium did not expose its headless preview")
+            port = int(port_file.read_text(encoding="utf-8").splitlines()[0])
+            targets = json.load(urlopen(f"http://127.0.0.1:{port}/json/list", timeout=5))
+            target = next(item for item in targets if item.get("type") == "page")
+            with connect(
+                target["webSocketDebuggerUrl"],
+                max_size=None,
+                open_timeout=5,
+            ) as browser:
+                next_id = 0
+
+                def command(method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+                    nonlocal next_id
+                    next_id += 1
+                    command_id = next_id
+                    browser.send(
+                        json.dumps({"id": command_id, "method": method, "params": params or {}})
+                    )
+                    while True:
+                        response = json.loads(browser.recv(timeout=10))
+                        if response.get("id") == command_id:
+                            if "error" in response:
+                                raise RuntimeError(f"Chromium preview command failed: {method}")
+                            return response.get("result", {})
+
+                command("Page.enable")
+                command("Runtime.enable")
+                for width in (360, 390, 430):
+                    target_path = screenshots / f"mobile-{width}.png"
+                    command(
+                        "Emulation.setDeviceMetricsOverride",
+                        {"width": width, "height": 850, "deviceScaleFactor": 1, "mobile": True},
+                    )
+                    command("Page.navigate", {"url": (OUT / "index.html").resolve().as_uri()})
+                    deadline = time.monotonic() + 15
+                    while True:
+                        state = command(
+                            "Runtime.evaluate",
+                            {
+                                "expression": (
+                                    "JSON.stringify({ready:document.readyState,"
+                                    "width:document.documentElement.clientWidth,"
+                                    "hasScreens:!!document.querySelector('.screen'),"
+                                    "images:[...document.images].every(image=>"
+                                    "image.complete&&image.naturalWidth>0)})"
+                                ),
+                                "returnByValue": True,
+                            },
+                        )
+                        payload = json.loads(state["result"]["value"])
+                        if (
+                            payload["ready"] == "complete"
+                            and payload["hasScreens"]
+                            and payload["width"] == width
+                            and payload["images"]
+                        ):
+                            break
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError(f"Gallery did not finish laying out at {width}px")
+                        time.sleep(0.1)
+                    layout = command("Page.getLayoutMetrics")["cssContentSize"]
+                    if layout["width"] != width:
+                        raise RuntimeError(f"Expected a {width}px preview, got {layout['width']}px")
+                    result = command(
+                        "Runtime.evaluate",
+                        {
+                            "expression": (
+                                "[...document.querySelectorAll('.message,.key')].every("
+                                "el=>el.scrollWidth<=el.clientWidth&&(!el.classList.contains"
+                                "('key')||(el.offsetWidth>=44&&el.offsetHeight>=44)))"
+                            ),
+                            "returnByValue": True,
+                        },
+                    )
+                    if result["result"]["value"] is not True:
+                        raise RuntimeError(
+                            f"Clipped content or undersized Telegram button at {width}px"
+                        )
+                    screenshot = command(
+                        "Page.captureScreenshot",
+                        {"format": "png", "captureBeyondViewport": True, "fromSurface": True},
+                    )
+                    target_path.write_bytes(base64.b64decode(screenshot["data"], validate=True))
+                    with Image.open(target_path) as image:
+                        if image.width != width or image.height != layout["height"]:
+                            raise RuntimeError(
+                                f"Expected {width}px full-page image, "
+                                f"got {image.width}×{image.height}"
+                            )
+                        print(f"{target_path.name}: {image.width}×{image.height} px")
+        finally:
+            chrome_process.terminate()
+            chrome_process.wait(timeout=10)
 
 
 PAGE = r"""<!doctype html>
@@ -349,11 +629,14 @@ PAGE = r"""<!doctype html>
     .badge { flex: none; border-radius: 999px; padding: 4px 8px; color: #496b55;
       background: var(--green-soft); font-size: 10px; font-weight: 700; }
     .chat { padding: 14px 12px; background: #eef3ec; }
-    .bubble { width: 100%; padding: 12px 13px 10px; border-radius: 14px 14px 14px 4px;
+    .bubble { width: 100%; padding: 11px 11px 9px; border-radius: 14px 14px 14px 4px;
       background: white; box-shadow: 0 1px 2px #26362912; }
     .message { font-size: 14px; line-height: 1.48; white-space: pre-wrap; overflow-wrap: anywhere; }
     .message b, .message strong { font-weight: 700; }
     .message i { font-style: italic; }
+    .message img { display: block; width: min(100%, 400px); height: auto; margin: -1px auto 9px;
+      border-radius: 6px; }
+    .message:empty { display: none; }
     .time { margin-top: 6px; text-align: right; color: #8b9b90; font-size: 10px; }
     .keyboard { display: grid; gap: 5px; margin-top: 9px; }
     .keyrow { display: grid; gap: 5px;
@@ -378,9 +661,9 @@ PAGE = r"""<!doctype html>
 <body>
   <main class="shell">
     <header>
-      <p class="eyebrow">bop Math · закрытая панель</p>
-      <h1>Админские экраны в Telegram</h1>
-      <p class="intro">12 экранов + экран №13 + 3 состояния · production renderer</p>
+      <p class="eyebrow">bop Math · аналитика</p>
+      <h1>Панель в Telegram</h1>
+      <p class="intro">Синтетические данные · реальные PNG, сообщения и клавиатуры</p>
       <nav class="shot-links" aria-label="Скриншоты мобильной галереи">
         <a href="screenshots/mobile-360.png">360 px</a>
         <a href="screenshots/mobile-390.png">390 px</a>
@@ -391,12 +674,27 @@ PAGE = r"""<!doctype html>
   </main>
   <script>
     const screens = __PAYLOADS__;
-    const names = {home:'Обзор',usage:'Использование',learners:'Ученики',learner:'Карточка ученика',
-      tasks:'Задания',types:'Типы заданий',task:'Статистика номера',replays:'Повторы',
-      written:'Письменные работы',system:'Система',cost:'AI и расходы',tools:'Точные проверки'};
-    const cases = {'written-13':'Письменные работы · №13 и типы',
-      'home-timeout':'Обзор · тайм-аут', 'learners-empty':'Ученики · пустой период',
-      'system-unconfigured':'Система · не настроена'};
+    const names = {
+      home:'Обзор', usage:'Использование', learners:'Список учеников', learner:'Карточка ученика',
+      tasks:'Задания', types:'Типы заданий', task:'Статистика номера', replays:'Повторы',
+      written:'Письменные работы', system:'Состояние системы',
+      cost:'Расходы на ИИ', tools:'Инструменты'
+    };
+    const emptyCases = [
+      'usage-empty', 'tasks-empty', 'types-empty', 'written-empty', 'replays-empty', 'cost-empty'
+    ];
+    function caseTitle(item) {
+      if (item.case.startsWith('written-'))
+        return `Письменные проверки · №${item.case.split('-')[1]}`;
+      if (item.case === 'home-today') return 'Обзор · сегодня';
+      if (item.case === 'learner-not-found') return 'Карточка ученика · архивная запись';
+      if (item.fixture_kind !== 'Заполнено' && item.fixture_kind !== 'Инструменты'
+          && !emptyCases.includes(item.case))
+        return `${names[item.screen] || item.screen} · ${item.fixture_kind.toLowerCase()}`;
+      if (emptyCases.includes(item.case))
+        return `${names[item.screen] || item.screen} · ${item.fixture_kind.toLowerCase()}`;
+      return names[item.screen] || item.screen;
+    }
     function safeTelegramText(source, target) {
       const parsed = new DOMParser().parseFromString(`<body>${source}</body>`, 'text/html').body;
       function copy(node, parent) {
@@ -420,15 +718,21 @@ PAGE = r"""<!doctype html>
       const card = document.createElement('article'); card.className = 'screen';
       const head = document.createElement('div'); head.className = 'screen-head';
       const title = document.createElement('h2');
-      title.textContent = cases[item.case] || names[item.screen] || item.screen;
+      title.textContent = caseTitle(item);
       const badge = document.createElement('span');
       badge.className = 'badge';
-      badge.textContent = item.fixture_kind.toUpperCase();
+      badge.textContent = item.fixture_kind;
       head.append(title,badge);
       const chat = document.createElement('div'); chat.className = 'chat';
       const bubble = document.createElement('div'); bubble.className = 'bubble';
       const message = document.createElement('div'); message.className = 'message';
-      safeTelegramText(item.text, message);
+      if (item.image) {
+        const photo = document.createElement('img');
+        photo.src = item.image;
+        photo.alt = `Сводка ${names[item.screen] || item.screen}`;
+        message.append(photo);
+        if (item.caption) safeTelegramText(item.caption, message);
+      } else safeTelegramText(item.text, message);
       const time = document.createElement('div');
       time.className = 'time'; time.textContent = '12:34';
       bubble.append(message,time);
@@ -460,4 +764,9 @@ PAGE = r"""<!doctype html>
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--chromium", type=Path, help="Capture mobile PNGs with this executable")
+    options = parser.parse_args()
     build()
+    if options.chromium:
+        capture_gallery(options.chromium.resolve())

@@ -1,0 +1,92 @@
+{
+  "case": "learners",
+  "screen": "learners",
+  "fixture_kind": "Заполнено",
+  "report_data": {
+    "rows": [
+      {
+        "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb01",
+        "last_activity": "2026-11-28 09:17:00+00:00"
+      },
+      {
+        "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb02",
+        "last_activity": "2026-11-27 09:17:00+00:00"
+      },
+      {
+        "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb03",
+        "last_activity": "2026-11-24 09:17:00+00:00"
+      },
+      {
+        "user_id": "17a8f719-f34a-4aa3-8e94-bd7f4d77eb04",
+        "last_activity": "2026-11-23 09:17:00+00:00"
+      }
+    ]
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Ученики</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\n<b>Последнее занятие</b>\n<b>…77eb01</b> · 28.11 12:17 МСК\n<b>…77eb02</b> · 27.11 12:17 МСК\n<b>…77eb03</b> · 24.11 12:17 МСК\n<b>…77eb04</b> · 23.11 12:17 МСК",
+  "caption": null,
+  "image": null,
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Ученик …77eb01",
+          "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb01"
+        }
+      ],
+      [
+        {
+          "text": "Ученик …77eb02",
+          "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb02"
+        }
+      ],
+      [
+        {
+          "text": "Ученик …77eb03",
+          "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb03"
+        }
+      ],
+      [
+        {
+          "text": "Ученик …77eb04",
+          "callback_data": "adm:preview:learner:17a8f719-f34a-4aa3-8e94-bd7f4d77eb04"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

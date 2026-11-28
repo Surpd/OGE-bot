@@ -1,0 +1,74 @@
+{
+  "case": "task",
+  "screen": "task",
+  "fixture_kind": "Заполнено",
+  "report_data": {
+    "users": 24,
+    "issued": 92,
+    "answered": 71,
+    "solved": 49,
+    "first_correct": 31,
+    "unassisted": 39,
+    "first_unassisted": 24,
+    "novel_first_unassisted": 17,
+    "novelty_unknown": 2,
+    "assistance_unknown": 3,
+    "assistance_known": 68,
+    "hinted": 11,
+    "hint_known": 18,
+    "skipped": 6,
+    "solution_views": 14,
+    "repeat_errors": 8,
+    "replay_answered": 18,
+    "replay_solved": 13
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Результаты по номеру · №7</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\n<b>Отрезок, содержащий дробь</b>\n\nВерно решено  <b>49 из 71</b>\n\nУченики  <b>24</b>\nВыдано  <b>92</b>\n\n<b>Попытки и помощь</b>\nВерно с первой попытки  <b>31</b>\nВерно без помощи  <b>39</b>\nВерно с первой попытки без помощи  <b>24</b>\nИз них новых вариантов  <b>17</b>\nБрали подсказку  <b>11 из 18</b> с известными данными\nПомощь неизвестна  <b>3</b>\n\n<b>Пропуски и разборы</b>\nПропуски  <b>6</b>\nПросмотры разбора  <b>14</b>\n\n<b>Ошибки и повторы</b>\nПовторные ошибки  <b>8</b>\nРешено при повторе ошибки  <b>13 из 18</b>\n\nНеизвестно, новые ли варианты  <b>2</b>",
+  "caption": "<b>Попытки и помощь</b>\nВерно с первой попытки  <b>31</b>\nВерно без помощи  <b>39</b>\nВерно с первой попытки без помощи  <b>24</b>\nИз них новых вариантов  <b>17</b>\nБрали подсказку  <b>11 из 18</b> с известными данными\nПомощь неизвестна  <b>3</b>\n\n<b>Пропуски и разборы</b>\nПропуски  <b>6</b>\nПросмотры разбора  <b>14</b>\n\n<b>Ошибки и повторы</b>\nПовторные ошибки  <b>8</b>\nРешено при повторе ошибки  <b>13 из 18</b>\n\nНеизвестно, новые ли варианты  <b>2</b>\n\nОбновлено в 12:34:00 МСК",
+  "image": "images/task.png",
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Проверить этот тип",
+          "callback_data": "adm:preview:qa_family"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

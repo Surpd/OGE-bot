@@ -1,0 +1,104 @@
+{
+  "case": "types",
+  "screen": "types",
+  "fixture_kind": "Заполнено",
+  "report_data": {
+    "rows": [
+      {
+        "family_id": "OGE07-C01",
+        "users": 18,
+        "answered": 46,
+        "solved": 32,
+        "hinted": 7,
+        "assistance_known": 44,
+        "hint_known": 45
+      },
+      {
+        "family_id": "OGE07-C02",
+        "users": 11,
+        "answered": 27,
+        "solved": 17,
+        "hinted": 5,
+        "assistance_known": 26,
+        "hint_known": 26
+      }
+    ],
+    "more": false
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Типы заданий · №7</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34:00 МСК\n\nПорядок · <b>Подсказки</b>\n\n<b>Отрезок, содержащий дробь</b>\nРешено  <b>32</b> из 46 · учеников 18\nПодсказки  7 из 45 с известными данными\n\n<b>Между какими целыми лежит корень</b>\nРешено  <b>17</b> из 27 · учеников 11\nПодсказки  5 из 26 с известными данными\n\nПри малом числе ответов порядок легко меняется. О подсказках в старых записях известно не всегда.",
+  "caption": null,
+  "image": null,
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Сводка №7",
+          "callback_data": "adm:preview:task:7"
+        }
+      ],
+      [
+        {
+          "text": "Отрезок, содержащий дробь",
+          "callback_data": "adm:preview:detail:7:0"
+        }
+      ],
+      [
+        {
+          "text": "Между какими целыми лежит корень",
+          "callback_data": "adm:preview:detail:7:1"
+        }
+      ],
+      [
+        {
+          "text": "Объём выборки",
+          "callback_data": "adm:preview:types:7:0:sample"
+        },
+        {
+          "text": "Результат",
+          "callback_data": "adm:preview:types:7:0:success"
+        },
+        {
+          "text": "✓ Подсказки",
+          "style": "success",
+          "callback_data": "adm:preview:types:7:0:help"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "⌂ Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "↻ Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}
