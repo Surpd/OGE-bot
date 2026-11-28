@@ -3,23 +3,26 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import datetime
 from math import ceil
 from typing import Any
 
 from app.admin.queries import MIN_RANK_SAMPLE
 from app.admin.screens import (
+    MOSCOW,
     WRITTEN_STATUSES,
     Data,
     budget_dates,
     count,
     day_label,
     family_label,
+    learner_name,
     money,
     moscow_time,
     page_rows,
     period_range,
 )
-from app.bot.visual_cards import BopCanvas
+from app.bot.visual_cards import BopCanvas, CardLayoutError
 
 LEFT = BopCanvas.padding
 RIGHT = BopCanvas.width - LEFT
@@ -105,7 +108,7 @@ def _home(canvas: BopCanvas, y: int, data: Data, period: str) -> int:
         + 5
     )
     if not data.get("active"):
-        return _caption(canvas, y + 5, "За этот период занятий пока нет.")
+        y = _caption(canvas, y + 5, "За этот период занятий пока нет.")
     return y
 
 
@@ -216,6 +219,24 @@ def _task(canvas: BopCanvas, y: int, data: Data, family_id: str) -> int:
 
 
 def _learner(canvas: BopCanvas, y: int, data: Data) -> int:
+    name = learner_name(data)[:160]
+    # Profile text is user-controlled and may be a single very long word.
+    # Elide the label, never fall back to a long report just because of a name.
+    lines = ["Ученик без имени"]
+    for end in range(len(name), 0, -1):
+        candidate = name if end == len(name) else name[:end].rstrip() + "…"
+        try:
+            wrapped = canvas.wrap(candidate, WIDTH, 21, bold=True)
+        except CardLayoutError:
+            continue
+        if len(wrapped) <= 2:
+            lines = wrapped
+            break
+    y += canvas.paragraph(LEFT, y, lines, 21, 25, bold=True) + 7
+    if data.get("username"):
+        username = f"@{str(data['username'])[:32]}"
+        canvas.text(LEFT, y, username, canvas.fit(username, WIDTH, 14, 10), fill="muted")
+        y += 25
     if data.get("last_activity"):
         y = _caption(canvas, y, f"Последнее занятие · {moscow_time(data.get('last_activity'))}")
     else:
@@ -229,6 +250,11 @@ def _learner(canvas: BopCanvas, y: int, data: Data) -> int:
             (count(data, "answered"), "Заданий с ответом"),
         ],
     )
+    numbers = ", ".join(str(number) for number in data.get("numbers", [])[:25])
+    if numbers:
+        y = _caption(canvas, y + 10, f"Номера занятий · {numbers}")
+    if not data.get("submitted"):
+        return y
     y = _section(canvas, y + 13, "Письменные работы")
     points = "—" if data.get("points") is None else count(data, "points")
     return _values(
@@ -323,6 +349,7 @@ def render_summary(
     number: int = 0,
     page: int = 0,
     family_id: str = "",
+    updated_at: datetime | None = None,
     **_: Any,
 ) -> bytes | None:
     if (
@@ -351,4 +378,27 @@ def render_summary(
             bottom = _written(canvas, top, data, number, page)
         case _:
             bottom = _cost(canvas, top, data)
+    if screen == "home":
+        canvas.text(
+            LEFT, bottom + 12, f"Аккаунтов всего · {count(data, 'registered')}", 12, fill="muted"
+        )
+        if updated_at is not None:
+            canvas.text(
+                RIGHT,
+                bottom + 12,
+                f"На {updated_at.astimezone(MOSCOW):%H:%M} МСК",
+                12,
+                fill="muted",
+                align="r",
+            )
+        bottom += 28
+    elif updated_at is not None:
+        canvas.text(
+            LEFT,
+            bottom + 12,
+            f"Обновлено {updated_at.astimezone(MOSCOW):%H:%M} МСК",
+            12,
+            fill="muted",
+        )
+        bottom += 28
     return canvas.png(bottom)

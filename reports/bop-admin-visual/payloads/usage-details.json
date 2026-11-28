@@ -1,0 +1,158 @@
+{
+  "case": "usage-details",
+  "screen": "usage",
+  "fixture_kind": "Подробнее",
+  "report_data": {
+    "registered": 126,
+    "active": 34,
+    "first": 11,
+    "repeat_days": 18,
+    "answered": 428,
+    "attempts": 506,
+    "graded": 17,
+    "errors": 2,
+    "known_cost": "0.0184",
+    "unknown_cost": 2,
+    "modes": [
+      {
+        "mode": "personal",
+        "users": 8,
+        "answered": 64,
+        "submitted": 0
+      },
+      {
+        "mode": "mixed",
+        "users": 6,
+        "answered": 78,
+        "submitted": 0
+      },
+      {
+        "mode": "number",
+        "users": 5,
+        "answered": 70,
+        "submitted": 0
+      },
+      {
+        "mode": "family",
+        "users": 4,
+        "answered": 54,
+        "submitted": 0
+      },
+      {
+        "mode": "full_part",
+        "users": 3,
+        "answered": 95,
+        "submitted": 0
+      },
+      {
+        "mode": "scenario_single",
+        "users": 2,
+        "answered": 22,
+        "submitted": 0
+      },
+      {
+        "mode": "scenario_full",
+        "users": 4,
+        "answered": 42,
+        "submitted": 0
+      },
+      {
+        "mode": "unknown",
+        "users": 2,
+        "answered": 3,
+        "submitted": 0
+      }
+    ],
+    "retention": {
+      "returned": 18,
+      "eligible": 29,
+      "first_day": "2026-11-08",
+      "last_day": "2026-11-14"
+    },
+    "days": [
+      {
+        "day": "2026-11-21",
+        "active": 8
+      },
+      {
+        "day": "2026-11-22",
+        "active": 12
+      },
+      {
+        "day": "2026-11-23",
+        "active": 10
+      },
+      {
+        "day": "2026-11-24",
+        "active": 18
+      },
+      {
+        "day": "2026-11-25",
+        "active": 16
+      },
+      {
+        "day": "2026-11-26",
+        "active": 23
+      },
+      {
+        "day": "2026-11-27",
+        "active": 34
+      }
+    ]
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · Активность</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34 МСК\n\nЗанимались  <b>34</b>\nНачали впервые  <b>11</b>\nЗанимались в разные дни  <b>18</b>\n\nАккаунтов всего  <b>126</b>\nПопытки ответа  <b>506</b>\nЗадания с ответом  <b>428</b>\nПроверки с оценкой  <b>17</b>\nОшибки письменных проверок  <b>2</b>\nИзвестные расходы на ИИ  <b>$0,0184</b>\nЗапросы с неизвестной стоимостью  <b>2</b>\n\n<b>Вернулись на второй неделе</b>\n<b>18 из 29 · 62%</b>\nНачали с 08.11 по 14.11.\n\n<b>Режимы занятий</b>\nУченики · задания с ответом\n<b>Персональная пятёрка</b>  8 · 64\n<b>Смешанная пятёрка</b>  6 · 78\n<b>Практика по номеру</b>  5 · 70\n<b>Практика по типу</b>  4 · 54\n<b>Первая часть целиком</b>  3 · 95\n<b>Один вопрос сюжета</b>  2 · 22\n<b>Сюжетная пятёрка</b>  4 · 42\n<b>Режим неизвестен</b>  2 · 3\n\n<b>По дням · число учеников</b>\n21.11–27.11  8 / 12 / 10 / 18 / 16 / 23 / 34",
+  "caption": null,
+  "image": null,
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Кратко",
+          "callback_data": "adm:preview:collapse"
+        }
+      ],
+      [
+        {
+          "text": "Ученики",
+          "callback_data": "adm:preview:learners:0"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}

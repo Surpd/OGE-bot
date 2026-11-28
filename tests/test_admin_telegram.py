@@ -223,7 +223,12 @@ async def test_back_restores_previous_number_sort_and_period():
         "admin_args": {"number": 12, "key": "OGE12-R001"},
         "admin_period": "28",
         "admin_history": [
-            {"action": "types", "args": {"number": 12, "page": 1, "sort": "help"}, "period": "7"}
+            {
+                "action": "types",
+                "args": {"number": 12, "page": 1, "sort": "help"},
+                "period": "7",
+                "expanded": True,
+            }
         ],
     }
     await handle_admin_update(message, state, service, SimpleNamespace(), callback)
@@ -231,6 +236,7 @@ async def test_back_restores_previous_number_sort_and_period():
     assert service.calls[0][2]["number"] == 12
     assert service.calls[0][2]["page"] == 1
     assert service.calls[0][2]["sort"] == "help"
+    assert state["admin_expanded"] is True
 
 
 @pytest.mark.asyncio

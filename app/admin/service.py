@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 import asyncpg
 
+from app.admin.identities import LearnerProfiles
 from app.admin.queries import DAYS, MODES, PAGE_SIZE, RETENTION, TYPE_ORDERS, ReportQueries
 from app.admin.repository import AdminRepository, AdminUnavailable
 from app.config import Settings
@@ -64,8 +65,10 @@ class AdminService:
         environment: str,
         budget: Decimal,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
+        learner_profiles: LearnerProfiles | None = None,
     ) -> None:
         self.repository = repository
+        self._learner_profiles = learner_profiles
         self.primary_id = primary_id
         self.environment = environment
         self.budget = budget
@@ -134,6 +137,10 @@ class AdminService:
             LOGGER.warning("admin_report_unavailable type=%s", type(exc).__name__)
             return AdminReport(window, now, {}, "unavailable")
 
+        if self._learner_profiles is not None:
+            data = await self._learner_profiles.enrich(
+                view, data, key, self._excluded_keys, refresh=refresh
+            )
         report = AdminReport(window, now, data)
         self._cache[cache_key] = monotonic(), report
         if len(self._cache) > CACHE_LIMIT:
@@ -142,6 +149,8 @@ class AdminService:
 
     async def close(self) -> None:
         self._cache.clear()
+        if self._learner_profiles is not None:
+            self._learner_profiles.clear()
 
 
 def make_service(
@@ -149,6 +158,7 @@ def make_service(
     owner_ids: frozenset[int],
     primary_id: int,
     repository: AdminRepository | None = None,
+    learner_profiles: LearnerProfiles | None = None,
 ) -> AdminService:
     return AdminService(
         repository,
@@ -156,4 +166,5 @@ def make_service(
         primary_id=primary_id,
         environment=settings.app_env,
         budget=settings.oge_grading_monthly_budget_usd,
+        learner_profiles=learner_profiles,
     )

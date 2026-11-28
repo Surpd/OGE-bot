@@ -1,0 +1,71 @@
+{
+  "case": "cost-details",
+  "screen": "cost",
+  "fixture_kind": "Подробнее",
+  "report_data": {
+    "known_cost": "0.0184",
+    "unknown_cost": 2,
+    "diagnostics": 12,
+    "diagnostic_cost": "0.0032",
+    "diagnostic_unknown": 1,
+    "spent": "0.0204",
+    "held": "0.0040",
+    "month_start": "2026-11-01 00:00:00+00:00",
+    "month_end": "2026-12-01 00:00:00+00:00",
+    "graded": 17,
+    "written_cost": "0.0187",
+    "unknown_written": 1,
+    "budget": "2.0000",
+    "available": "1.9756",
+    "known_cost_per_result": "0.0011"
+  },
+  "report_window": {
+    "period": "7",
+    "timezone": "Europe/Moscow",
+    "start": "2026-11-21T00:00:00+03:00",
+    "end": "2026-11-28T00:00:00+03:00"
+  },
+  "updated_at": "2026-11-28T12:34:00+03:00",
+  "text": "<b>bop Admin · ИИ и расходы</b>\n21.11 00:00 — 28.11 00:00 МСК\nОбновлено в 12:34 МСК\n\nИзвестные расходы за период  <b>$0,0184</b>\n\n<b>Месячный бюджет · UTC</b>\n01.11 00:00 — 01.12 00:00\nЛимит  <b>$2,0000</b>\nПотрачено  <b>$0,0204</b>\nЗарезервировано  <b>$0,0040</b>\nДоступно  <b>$1,9756</b>\n\n<b>Расходы за выбранный период</b>\nЗапросы с неизвестной стоимостью  <b>2</b>\nСумма за период частичная.\n\n<b>Диагностика</b>\nВызовы  <b>12</b>\nИзвестные расходы  <b>$0,0032</b>\nЗапросы с неизвестной стоимостью  <b>1</b>\n\n<b>Письменные проверки</b>\nПроверки с оценкой  <b>17</b>\nНа одну проверку с оценкой  <b>$0,0011</b>\nПроверки с неизвестной стоимостью  <b>1</b>",
+  "caption": null,
+  "image": null,
+  "reply_markup": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "Кратко",
+          "callback_data": "adm:preview:collapse"
+        }
+      ],
+      [
+        {
+          "text": "← Назад",
+          "callback_data": "adm:preview:back"
+        },
+        {
+          "text": "Главная",
+          "callback_data": "adm:preview:home"
+        },
+        {
+          "text": "Обновить",
+          "callback_data": "adm:preview:refresh"
+        }
+      ],
+      [
+        {
+          "text": "Сегодня",
+          "callback_data": "adm:preview:period:today"
+        },
+        {
+          "text": "✓ 7 дней",
+          "style": "success",
+          "callback_data": "adm:preview:period:7"
+        },
+        {
+          "text": "28 дней",
+          "callback_data": "adm:preview:period:28"
+        }
+      ]
+    ]
+  }
+}
