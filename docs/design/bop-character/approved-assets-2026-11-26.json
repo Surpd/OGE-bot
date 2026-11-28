@@ -1,0 +1,248 @@
+{
+  "date": "2026-11-26",
+  "repository": "Surpd/OGE-bot",
+  "branch": "design/bop-character-library",
+  "pull_request": 114,
+  "github_binary_status": "pending_import",
+  "assets": [
+    {
+      "filename": "phone-happy.png",
+      "repository_path": "docs/design/bop-character/poses/approved/phone-happy.png",
+      "status": "approved",
+      "note": "Пользователь принял исправленный вариант со смартфоном 26.11.2026.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 1609052,
+      "sha256": "551ca54284737883ac15e57818f38f5a88a0dfae34c6ab6d5785879246bc973d"
+    },
+    {
+      "filename": "headphones-adjust.png",
+      "repository_path": "docs/design/bop-character/poses/approved/headphones-adjust.png",
+      "status": "preferred",
+      "note": "Ранее выбранная удачная поза; оригинал без перерисовки.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 1748956,
+      "sha256": "b1c2820b79d09d0201937620fbb1739da09816896d8bfc2a5bc24fec7ce71109"
+    },
+    {
+      "filename": "edge-sit.png",
+      "repository_path": "docs/design/bop-character/poses/candidates/edge-sit.png",
+      "status": "preferred_reference",
+      "note": "Ранее выбранная сидячая поза; не финальная техническая приёмка. Принт местами пересекает шнурки.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 898767,
+      "sha256": "e0b33ff9524d4929f9884aed2c0ae8d3d3eaf9832dcca8b3c3f10d0cd9471ff1"
+    },
+    {
+      "filename": "avatar-selected.png",
+      "repository_path": "docs/design/bop-character/references/telegram/avatar-414.png",
+      "status": "superseded",
+      "note": "Заменена новой утверждённой аватаркой 26.11.2026; только архив.",
+      "width": 414,
+      "height": 414,
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "bytes": 141933,
+      "sha256": "dade2908317304170d8ddcf6bf444294670248430d605c61830c132f9af344f3"
+    },
+    {
+      "filename": "avatar.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1991489,
+      "sha256": "81250e299ad2f66d0494bf8f2c711f3ee9a03e24d5ab13df529cf7e4f8dd81d4",
+      "note": "Новая действующая аватарка Telegram; утверждена пользователем.",
+      "repository_path": "docs/design/bop-character/references/telegram/avatar.png",
+      "status": "approved",
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "welcome-original.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1910868,
+      "sha256": "c8031008f9b3299b847df691072b90082f1b371e0b02168e39555b8aa89bfe50",
+      "note": "Утверждённая приветственная обложка, оригинал.",
+      "repository_path": "docs/design/bop-character/references/telegram/welcome-original.png",
+      "status": "approved",
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "welcome-640x360.png",
+      "width": 640,
+      "height": 360,
+      "bytes": 309486,
+      "sha256": "6bba8ea22602ed28457946ca0a8eea6d03e4f224d818db0a1e8715e61c857b69",
+      "note": "Действующая обложка для BotFather Edit Description Picture.",
+      "repository_path": "docs/design/bop-character/references/telegram/welcome-640x360.png",
+      "status": "approved",
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "point-left.png",
+      "repository_path": "docs/design/bop-character/poses/approved/point-left.png",
+      "status": "approved",
+      "note": "Пользователь принял позу с указанием и поворотом головы влево, мягким отражением на визоре. Татуировка в этом конкретном ракурсе принята как допустимое отклонение; не дублировать надпись на видимой стороне шеи. Мимика этой позы — дружелюбная улыбка.",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 1655272,
+      "sha256": "dfd876cfac2cc0ff5928db7f582149a1bb0a14244573a75a556c4a9e74487deb",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "tablet-focused.png",
+      "repository_path": "docs/design/bop-character/poses/approved/tablet-focused.png",
+      "status": "approved",
+      "note": "Утверждённая поза с планшетом и стилусом, взгляд влево, сосредоточенные цифровые глаза. В следующих ассетах нижнюю светлую панель визора делать немного тоньше. Для карточек предпочтительны взгляд влево или анфас.",
+      "width": 1312,
+      "height": 1199,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bytes": 1466616,
+      "sha256": "940e133bdb97d5ad2abf3698cea2f6a9410612bcc235b1b5ecd43c4ffd78e3cf",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "peek-right-down.png",
+      "repository_path": "docs/design/bop-character/poses/approved/peek-right-down.png",
+      "status": "approved",
+      "note": "Выглядывает справа, с любопытством смотрит влево-вниз. Пользователь одобрил сохранение как дополнительного варианта. Основной следующий вариант должен смотреть горизонтально влево; отдельно запланирован вариант выглядывания снизу со взглядом вверх.",
+      "library_file_id": "libfile_89a975677eec81919b6908c1850823e3",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "peek-right-horizontal.png",
+      "repository_path": "docs/design/bop-character/poses/approved/peek-right-horizontal.png",
+      "status": "approved",
+      "note": "Выглядывает справа, смотрит горизонтально влево с любопытством. Пользователь перешёл к следующей позе.",
+      "library_file_id": "libfile_1719a4dcb82c8191b90106ed8fea1c3c",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "peek-bottom-up.png",
+      "repository_path": "docs/design/bop-character/poses/approved/peek-bottom-up.png",
+      "status": "approved",
+      "note": "Пользователь принял вариант с сильно поднятой головой, смотрит прямо вверх. Художественная приёмка; для использования в карточках требуется отдельно убрать фон и нарисованную нижнюю планку, сохранив персонажа и кисти. Оригинал хранить без изменений.",
+      "library_file_id": "libfile_b9c45c6be9588191aa073266edd76efe",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
+    },
+    {
+      "filename": "thinking.png",
+      "repository_path": "docs/design/bop-character/poses/approved/thinking.png",
+      "status": "approved",
+      "note": "Задумчивая поза, рука у подбородка, асимметричная цифровая мимика, взгляд влево-вверх. Пользователь принял изображение. На куртке есть вариация принта bop MATH, не переносить её автоматически в другие позы.",
+      "library_file_id": "libfile_dccb8f38cec081919af72da6d909c60f",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "arms-crossed-confident.jpeg",
+      "repository_path": "docs/design/bop-character/poses/approved/arms-crossed-confident.jpeg",
+      "status": "approved",
+      "note": "Ранее принятая поза со скрещёнными руками и уверенной мимикой, исправлен принт MATH. Сохранён оригинальный JPEG, для карточек требуется удалить белый фон.",
+      "library_file_id": "libfile_8f28779869fc8191bd206fe69f964977",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
+    },
+    {
+      "filename": "victory-fist.png",
+      "repository_path": "docs/design/bop-character/poses/approved/victory-fist.png",
+      "status": "approved",
+      "note": "Пользователь принял полноразмерную победную позу с поднятым кулаком и восторженной цифровой мимикой. Художественная приёмка; тёмный фон необходимо удалить для использования в карточках. Оригинал сохранить.",
+      "library_file_id": "libfile_792c40037cb88191ae780a04d5ddf81e",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
+    },
+    {
+      "filename": "hands-on-head-confused.png",
+      "repository_path": "docs/design/bop-character/poses/approved/hands-on-head-confused.png",
+      "status": "approved",
+      "note": "Пользователь принял позу с руками на голове, недоумением и цифровым вопросительным знаком на визоре. Оригинал сохраняется.",
+      "library_file_id": "libfile_a90cf2e71ff88191a3e5a0ae6732d731",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "shrug-skeptical.jpeg",
+      "repository_path": "docs/design/bop-character/poses/approved/shrug-skeptical.jpeg",
+      "status": "approved",
+      "note": "Выбран пользователем именно присланный фронтальный вариант с ладонями вверх и скептической цифровой мимикой. Оригинал JPEG на белом фоне; для карточек нужна отдельная версия PNG RGBA с удалённым фоном. Не заменять другими генерациями.",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "bytes": 418910,
+      "sha256": "5f833e0517209f7989684c0628f933e050446d49dfd85ea4a284841dcb278b2a",
+      "library_file_id": "libfile_167ef97905dc81919b5f27f753d4cc98",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
+    },
+    {
+      "filename": "fist-bump-confident.png",
+      "repository_path": "docs/design/bop-character/poses/candidates/fist-bump-confident.png",
+      "status": "preferred_candidate",
+      "note": "Второй вариант fist bump, спокойный уверенный прищур вместо детской гримасы. Пользователь продолжил работу, отдельного явного утверждения не было. Сохранён для дальнейшего отбора. Для карточек нужно убрать фон; облачка и реплики рисуются отдельно программно.",
+      "library_file_id": "libfile_ee446fbcf8a881919bab7facb07dc4c0",
+      "github_binary_status": "pending_import",
+      "runtime_ready": false
+    },
+    {
+      "filename": "coffee-right.png",
+      "status": "approved",
+      "note": "Первый удачный вариант с кофе, взгляд вправо, расслабленные глаза, рука в кармане. Пользователь принял.",
+      "library_file_id": "libfile_3bbb96cba7fc819195266dc660cf773e",
+      "repository_path": "docs/design/bop-character/poses/approved/coffee-right.png",
+      "github_binary_status": "pending_import"
+    },
+    {
+      "filename": "coffee-left.png",
+      "status": "approved",
+      "note": "Пользователь принял исправленный ракурс с кофе, взгляд влево, уменьшенный объём волос и более тонкая панель. Для карточек удалить фон отдельно, оригинал не перерисовывать.",
+      "library_file_id": "libfile_78ca520df6408191adb7f134ae9f8cd9",
+      "runtime_ready": false,
+      "repository_path": "docs/design/bop-character/poses/approved/coffee-left.png",
+      "github_binary_status": "pending_import"
+    }
+  ],
+  "current_telegram": {
+    "avatar": "avatar.png",
+    "description_picture": "welcome-640x360.png",
+    "master": "welcome-original.png"
+  },
+  "generation_guidance": {
+    "expression": "Варьировать цифровые глаза и рот по смыслу сценария; не использовать одну улыбку по умолчанию. Блики зависят от освещения.",
+    "chin": "Светлая нижняя панель немного тоньше, чем на утверждённом tablet-focused; без изменения общего силуэта визора.",
+    "gaze": "Для размещения справа от содержимого карточек чаще выбирать взгляд влево (относительно зрителя), влево-вниз или анфас.",
+    "clothing": "Допустимы осознанные вариации куртки, худи и принта в чёрно-оранжево-кремовой палитре при сохранении узнаваемой головы, визора, причёски, наушников X и художественного стиля. Принт на ткани располагается под шнурками."
+  }
+}
